@@ -88,8 +88,8 @@ public:
      * @param forwardBias プレイヤー方向（手前）へ寄せる最大距離 (m)
      * @param specificVariationId 特定のバリエーションIDを指定して生成する場合（空文字列の場合は通常ランダム）
      */
-    void SpawnDebrisBurst(const Irufemi::Vector3& origin, const Irufemi::Vector3& targetPlayerPos,
-                          int count = 2, float spreadRadius = 3.5f, float forwardBias = 10.0f,
+    void SpawnDebrisBurst(const Irufemi::Vector3& origin, const Irufemi::Vector3& targetPlayerPos, int count = 2,
+                          float spreadRadius = 3.5f, float forwardBias = 10.0f,
                           const std::string& specificVariationId = "");
 
     /**

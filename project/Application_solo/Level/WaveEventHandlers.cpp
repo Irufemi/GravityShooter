@@ -187,7 +187,7 @@ void SpawnEnemyHandler::Execute(WaveManagerComponent* manager, const WaveEventDa
                         enemyComp->SetBehaviorType(static_cast<EnemyBehaviorType>(bt));
                     }
                     enemyComp->SetRailTrackingParams(spline, playerFollower, initialDistOffset, targetDistance,
-                                                    formationOffset);
+                                                     formationOffset);
                 }
             }
         }

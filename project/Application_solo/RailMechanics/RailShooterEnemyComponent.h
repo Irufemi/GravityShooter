@@ -24,9 +24,9 @@ enum class EnemyAIState {
  * @brief 敵キャラクターの戦術行動タイプ
  */
 enum class EnemyBehaviorType {
-    StandardGunner = 0,   //!< 従来の滞空・自機狙い射撃
-    DiveBomber = 1,       //!< 特攻急降下（射撃を行わず、高速で自機へ体当たり自爆）
-    PredictiveSniper = 2  //!< 偏差射撃（自機の移動ベクトルから未来予測位置を計算して射撃）
+    StandardGunner = 0,  //!< 従来の滞空・自機狙い射撃
+    DiveBomber = 1,      //!< 特攻急降下（射撃を行わず、高速で自機へ体当たり自爆）
+    PredictiveSniper = 2 //!< 偏差射撃（自機の移動ベクトルから未来予測位置を計算して射撃）
 };
 
 /**
@@ -34,10 +34,10 @@ enum class EnemyBehaviorType {
  * @brief 敵キャラクターがシーンから退場・消滅する明確な理由（AAA基準ライフサイクル管理）
  */
 enum class DespawnReason {
-    KilledByPlayer,   //!< プレイヤーの攻撃（ガレキ投擲・衝突）により撃破された
-    OutOfBounds,      //!< 画面外（自機後方 -30m 等）へすれ違い離脱した
-    Timeout,          //!< シーン遷移やウェーブ強制終了による消滅
-    CollisionSuicide  //!< プレイヤーへの直接体当たりによる自爆
+    KilledByPlayer,  //!< プレイヤーの攻撃（ガレキ投擲・衝突）により撃破された
+    OutOfBounds,     //!< 画面外（自機後方 -30m 等）へすれ違い離脱した
+    Timeout,         //!< シーン遷移やウェーブ強制終了による消滅
+    CollisionSuicide //!< プレイヤーへの直接体当たりによる自爆
 };
 
 class GameObject;
@@ -114,9 +114,8 @@ public:
      * @param targetDistOffset 交戦時に維持する目標レール距離 (m)
      * @param formationOffset フォーメーションによるローカルXYオフセット
      */
-    void SetRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* follower,
-                               float initialDistOffset, float targetDistOffset,
-                               const Irufemi::Vector2& formationOffset);
+    void SetRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* follower, float initialDistOffset,
+                               float targetDistOffset, const Irufemi::Vector2& formationOffset);
 
     void SetFormationOffset(const Irufemi::Vector2& offset) {
         baseFormationOffset_ = offset;
@@ -166,7 +165,7 @@ private:
     SplineFollowerComponent* playerFollower_ = nullptr;    //!< プレイヤーのスプライン追従情報
     float currentDistanceOffset_ = 85.0f;                  //!< レール上の自機からの現在相対距離 (m)
     Irufemi::Vector2 baseFormationOffset_ = {0.0f, 0.0f};  //!< フォーメーションによる基本XYオフセット
-    Irufemi::Vector2 currentLocalOffset_ = {0.0f, 0.0f};   //!< 浮遊サイン波が付加された現在XYオフセット
+    Irufemi::Vector2 currentLocalOffset_ = {0.0f, 0.0f}; //!< 浮遊サイン波が付加された現在XYオフセット
 
     // スナイパー用AOE予兆（Telegraphing）パラメータ
     float sniperTelegraphDuration_ = 1.0f; //!< 射撃前の予兆レーザー照射時間（秒）
@@ -185,18 +184,17 @@ private:
     ConstantBuffer<AOEParams> aoeParamsBuffer_;
     AOEParams aoeParamsData_{};
 
-
-    int behaviorType_ = 0;                                 //!< 戦術行動タイプ (0: Standard, 1: DiveBomber, 2: PredictiveSniper)
-    EnemyAIState state_ = EnemyAIState::Approach;          //!< 現在のAIステート
-    float stateTimer_ = 0.0f;                              //!< ステート内タイマー
-    float combatDuration_ = 7.5f;                          //!< 滞空交戦の制限時間（秒）
-    float shootInterval_ = 1.8f;                           //!< 射撃インターバル（秒）
-    float shootTimer_ = 0.6f;                              //!< 射撃タイマー
-    float targetDistance_ = 65.0f;                         //!< 自機前方との維持距離
-    float hoverTimer_ = 0.0f;                              //!< 浮遊サイン波タイマー
-    int bodyDamage_ = 20;                                  //!< 体当たり衝突ダメージ
-    float bulletScale_ = 0.3f;                             //!< 敵弾のスケール・コライダー半径
-    float bulletSpeed_ = 32.0f;                            //!< 敵弾の飛翔速度
+    int behaviorType_ = 0; //!< 戦術行動タイプ (0: Standard, 1: DiveBomber, 2: PredictiveSniper)
+    EnemyAIState state_ = EnemyAIState::Approach; //!< 現在のAIステート
+    float stateTimer_ = 0.0f;                     //!< ステート内タイマー
+    float combatDuration_ = 7.5f;                 //!< 滞空交戦の制限時間（秒）
+    float shootInterval_ = 1.8f;                  //!< 射撃インターバル（秒）
+    float shootTimer_ = 0.6f;                     //!< 射撃タイマー
+    float targetDistance_ = 65.0f;                //!< 自機前方との維持距離
+    float hoverTimer_ = 0.0f;                     //!< 浮遊サイン波タイマー
+    int bodyDamage_ = 20;                         //!< 体当たり衝突ダメージ
+    float bulletScale_ = 0.3f;                    //!< 敵弾のスケール・コライダー半径
+    float bulletSpeed_ = 32.0f;                   //!< 敵弾の飛翔速度
 
     Irufemi::Vector3 lastPlayerPos_ = {0.0f, 0.0f, 0.0f};  //!< 前フレームのプレイヤー座標
     Irufemi::Vector3 playerVelocity_ = {0.0f, 0.0f, 0.0f}; //!< プレイヤーの推定実効移動速度

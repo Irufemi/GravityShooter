@@ -156,11 +156,9 @@ void RailShooterEnemyComponent::Update() {
     if (playerObj && playerObj->GetTransform()) {
         currentPlayerPos = playerObj->GetTransform()->GetWorldPosition();
         if (hasLastPlayerPos_ && dt > 0.0001f) {
-            playerVelocity_ = {
-                (currentPlayerPos.x - lastPlayerPos_.x) / dt,
-                (currentPlayerPos.y - lastPlayerPos_.y) / dt,
-                (currentPlayerPos.z - lastPlayerPos_.z) / dt
-            };
+            playerVelocity_ = {(currentPlayerPos.x - lastPlayerPos_.x) / dt,
+                               (currentPlayerPos.y - lastPlayerPos_.y) / dt,
+                               (currentPlayerPos.z - lastPlayerPos_.z) / dt};
         } else {
             playerVelocity_ = {0.0f, 0.0f, 0.0f};
         }
@@ -227,17 +225,12 @@ void RailShooterEnemyComponent::Update() {
                     float travelTime = dist / (std::max)(bulletSpeed_, 1.0f);
                     travelTime = std::clamp(travelTime, 0.0f, 1.2f); // 過剰な未来予測の暴走を防止
 
-                    lockedTargetPos_ = {
-                        currentPlayerPos.x + playerVelocity_.x * travelTime,
-                        currentPlayerPos.y + playerVelocity_.y * travelTime,
-                        currentPlayerPos.z + playerVelocity_.z * travelTime
-                    };
+                    lockedTargetPos_ = {currentPlayerPos.x + playerVelocity_.x * travelTime,
+                                        currentPlayerPos.y + playerVelocity_.y * travelTime,
+                                        currentPlayerPos.z + playerVelocity_.z * travelTime};
 
-                    Irufemi::Vector3 aimDiff = {
-                        lockedTargetPos_.x - myPos.x,
-                        lockedTargetPos_.y - myPos.y,
-                        lockedTargetPos_.z - myPos.z
-                    };
+                    Irufemi::Vector3 aimDiff = {lockedTargetPos_.x - myPos.x, lockedTargetPos_.y - myPos.y,
+                                                lockedTargetPos_.z - myPos.z};
                     float aimLen = std::sqrt(aimDiff.x * aimDiff.x + aimDiff.y * aimDiff.y + aimDiff.z * aimDiff.z);
                     if (aimLen > 0.0001f) {
                         lockedAimDir_ = {aimDiff.x / aimLen, aimDiff.y / aimLen, aimDiff.z / aimLen};
@@ -424,9 +417,8 @@ void RailShooterEnemyComponent::Draw() {
     // ロック固定中は赤と白の超高速パルス点滅で強烈に発射警告
     if (isAimLocked_) {
         float pulse = std::sin(shootTimer_ * 55.0f);
-        Irufemi::Vector4 flashColor = (pulse > 0.0f)
-            ? Irufemi::Vector4{1.0f, 0.15f, 0.15f, 0.95f}
-            : Irufemi::Vector4{1.0f, 0.95f, 0.95f, 1.0f};
+        Irufemi::Vector4 flashColor =
+            (pulse > 0.0f) ? Irufemi::Vector4{1.0f, 0.15f, 0.15f, 0.95f} : Irufemi::Vector4{1.0f, 0.95f, 0.95f, 1.0f};
         telegraphCylinder_->SetColor(flashColor);
         aoeParamsData_.warningRatio = 1.0f;
     } else {
@@ -448,14 +440,14 @@ void RailShooterEnemyComponent::Draw() {
     telegraphCylinder_->SetScale({sniperLaserRadius_, sniperLaserLength_, sniperLaserRadius_});
     telegraphCylinder_->Update();
 
-    telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
-                                     PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+    telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd, PSOManager::DepthWrite::Disable,
+                                     PSOManager::CullMode::None);
     telegraphCylinder_->SetCustomCBVAddress(aoeParamsBuffer_.GetGPUVirtualAddress(frameIndex));
     telegraphCylinder_->Draw();
 }
 
 void RailShooterEnemyComponent::ShootPredictiveAtPlayer(const Irufemi::Vector3& playerPos,
-                                                         const Irufemi::Vector3& playerVel) {
+                                                        const Irufemi::Vector3& playerVel) {
     if (!gameObject_) {
         return;
     }
@@ -477,11 +469,8 @@ void RailShooterEnemyComponent::ShootPredictiveAtPlayer(const Irufemi::Vector3& 
     travelTime = std::clamp(travelTime, 0.0f, 1.2f); // 過剰な未来予測の暴走を防止
 
     // 自機の未来予測座標
-    Irufemi::Vector3 predictedTarget = {
-        playerPos.x + playerVel.x * travelTime,
-        playerPos.y + playerVel.y * travelTime,
-        playerPos.z + playerVel.z * travelTime
-    };
+    Irufemi::Vector3 predictedTarget = {playerPos.x + playerVel.x * travelTime, playerPos.y + playerVel.y * travelTime,
+                                        playerPos.z + playerVel.z * travelTime};
 
     Irufemi::Vector3 dir = {predictedTarget.x - myPos.x, predictedTarget.y - myPos.y, predictedTarget.z - myPos.z};
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);

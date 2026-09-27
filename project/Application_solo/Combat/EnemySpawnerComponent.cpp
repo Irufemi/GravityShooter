@@ -69,7 +69,7 @@ void EnemySpawnerComponent::Start() {
 }
 
 EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabPool(const std::string& prefabPath,
-                                                                                   uint32_t poolSize) {
+                                                                                    uint32_t poolSize) {
     if (prefabPath.empty()) {
         return nullptr;
     }
@@ -192,9 +192,8 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                                 p.scale = {0.5f, 0.5f, 0.5f};
                                 p.startColor = {1.8f, 1.3f, 0.9f, 1.0f};
                                 p.endColor = {0.1f, 0.1f, 0.1f, 1.0f};
-                                voxelMgr->PlayExplosion(capturedModelPath, deadPos,
-                                                        {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, currentScale, p,
-                                                        {3, 3, 3});
+                                voxelMgr->PlayExplosion(capturedModelPath, deadPos, {0.0f, 0.0f, 0.0f},
+                                                        {0.0f, 0.0f, 0.0f}, currentScale, p, {3, 3, 3});
                             }
                         }
 
@@ -301,10 +300,8 @@ GameObject* EnemySpawnerComponent::SpawnEnemy(const Irufemi::Vector3& position, 
     return SpawnEnemyByPrefab(enemyPrefabPath_, position, rotation, scaleMultiplier);
 }
 
-GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabPath,
-                                                      const Irufemi::Vector3& position,
-                                                      const Irufemi::Vector3& rotation,
-                                                      float scaleMultiplier) {
+GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
+                                                      const Irufemi::Vector3& rotation, float scaleMultiplier) {
     auto poolData = GetOrCreatePrefabPool(prefabPath);
     if (!poolData || !poolData->pool) {
         return nullptr;

@@ -298,13 +298,14 @@ void DebrisManagerComponent::SpawnDebrisCluster(const Irufemi::Vector3& centerPo
 }
 
 void DebrisManagerComponent::SpawnDebrisBurst(const Irufemi::Vector3& origin, const Irufemi::Vector3& targetPlayerPos,
-                                             int count, float spreadRadius, float forwardBias,
-                                             const std::string& specificVariationId) {
+                                              int count, float spreadRadius, float forwardBias,
+                                              const std::string& specificVariationId) {
     if (count <= 0 || variations_.empty()) {
         return;
     }
 
-    Irufemi::Vector3 toPlayer = {targetPlayerPos.x - origin.x, targetPlayerPos.y - origin.y, targetPlayerPos.z - origin.z};
+    Irufemi::Vector3 toPlayer = {targetPlayerPos.x - origin.x, targetPlayerPos.y - origin.y,
+                                 targetPlayerPos.z - origin.z};
     float dist = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
 
     Irufemi::Vector3 burstCenter = origin;

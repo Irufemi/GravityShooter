@@ -911,8 +911,7 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
     if (result.voxels.empty()) {
         std::unordered_set<uint64_t> occupiedCells;
         auto getCellKey = [](int x, int y, int z) -> uint64_t {
-            return (static_cast<uint64_t>(x & 0x1FFFFF) << 42) |
-                   (static_cast<uint64_t>(y & 0x1FFFFF) << 21) |
+            return (static_cast<uint64_t>(x & 0x1FFFFF) << 42) | (static_cast<uint64_t>(y & 0x1FFFFF) << 21) |
                    (static_cast<uint64_t>(z & 0x1FFFFF));
         };
 
@@ -928,15 +927,18 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
                 Irufemi::Vector3 p2 = {v2.position.x, v2.position.y, v2.position.z};
 
                 // ポリゴンの重心位置
-                Irufemi::Vector3 centroid = {
-                    (p0.x + p1.x + p2.x) / 3.0f,
-                    (p0.y + p1.y + p2.y) / 3.0f,
-                    (p0.z + p1.z + p2.z) / 3.0f
-                };
+                Irufemi::Vector3 centroid = {(p0.x + p1.x + p2.x) / 3.0f, (p0.y + p1.y + p2.y) / 3.0f,
+                                             (p0.z + p1.z + p2.z) / 3.0f};
 
-                int gx = std::clamp(static_cast<int>((centroid.x - result.aabbMin.x) / (std::max)(voxelSize.x, 0.0001f)), 0, resolution.x - 1);
-                int gy = std::clamp(static_cast<int>((centroid.y - result.aabbMin.y) / (std::max)(voxelSize.y, 0.0001f)), 0, resolution.y - 1);
-                int gz = std::clamp(static_cast<int>((centroid.z - result.aabbMin.z) / (std::max)(voxelSize.z, 0.0001f)), 0, resolution.z - 1);
+                int gx =
+                    std::clamp(static_cast<int>((centroid.x - result.aabbMin.x) / (std::max)(voxelSize.x, 0.0001f)), 0,
+                               resolution.x - 1);
+                int gy =
+                    std::clamp(static_cast<int>((centroid.y - result.aabbMin.y) / (std::max)(voxelSize.y, 0.0001f)), 0,
+                               resolution.y - 1);
+                int gz =
+                    std::clamp(static_cast<int>((centroid.z - result.aabbMin.z) / (std::max)(voxelSize.z, 0.0001f)), 0,
+                               resolution.z - 1);
 
                 uint64_t key = getCellKey(gx, gy, gz);
                 if (occupiedCells.find(key) != occupiedCells.end()) {
@@ -945,25 +947,19 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
                 occupiedCells.insert(key);
 
                 Irufemi::Voxel newVoxel;
-                newVoxel.position = {
-                    result.aabbMin.x + (gx + 0.5f) * voxelSize.x,
-                    result.aabbMin.y + (gy + 0.5f) * voxelSize.y,
-                    result.aabbMin.z + (gz + 0.5f) * voxelSize.z
-                };
+                newVoxel.position = {result.aabbMin.x + (gx + 0.5f) * voxelSize.x,
+                                     result.aabbMin.y + (gy + 0.5f) * voxelSize.y,
+                                     result.aabbMin.z + (gz + 0.5f) * voxelSize.z};
 
                 // 法線の平均
-                Irufemi::Vector3 avgNormal = {
-                    (v0.normal.x + v1.normal.x + v2.normal.x) / 3.0f,
-                    (v0.normal.y + v1.normal.y + v2.normal.y) / 3.0f,
-                    (v0.normal.z + v1.normal.z + v2.normal.z) / 3.0f
-                };
+                Irufemi::Vector3 avgNormal = {(v0.normal.x + v1.normal.x + v2.normal.x) / 3.0f,
+                                              (v0.normal.y + v1.normal.y + v2.normal.y) / 3.0f,
+                                              (v0.normal.z + v1.normal.z + v2.normal.z) / 3.0f};
                 newVoxel.normal = Irufemi::Math::Normalize(avgNormal);
 
                 // テクスチャサンプリングまたはマテリアルカラー
-                Irufemi::Vector2 avgUV = {
-                    (v0.texcoord.x + v1.texcoord.x + v2.texcoord.x) / 3.0f,
-                    (v0.texcoord.y + v1.texcoord.y + v2.texcoord.y) / 3.0f
-                };
+                Irufemi::Vector2 avgUV = {(v0.texcoord.x + v1.texcoord.x + v2.texcoord.x) / 3.0f,
+                                          (v0.texcoord.y + v1.texcoord.y + v2.texcoord.y) / 3.0f};
                 newVoxel.uv = avgUV;
 
                 newVoxel.color = mesh.material.color;
@@ -975,8 +971,12 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
                         if (width > 0 && height > 0) {
                             int texX = static_cast<int>(avgUV.x * width) % width;
                             int texY = static_cast<int>(avgUV.y * height) % height;
-                            if (texX < 0) texX += width;
-                            if (texY < 0) texY += height;
+                            if (texX < 0) {
+                                texX += width;
+                            }
+                            if (texY < 0) {
+                                texY += height;
+                            }
 
                             const DirectX::Image* image = img->GetImage(0, 0, 0);
                             if (image && !DirectX::IsCompressed(img->GetMetadata().format)) {
@@ -1003,11 +1003,9 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
     // 万一ポリゴンが0個の特殊メッシュでも空返却によるエラーを防止する安全ガード
     if (result.voxels.empty()) {
         Irufemi::Voxel fallbackVoxel;
-        fallbackVoxel.position = {
-            (result.aabbMin.x + result.aabbMax.x) * 0.5f,
-            (result.aabbMin.y + result.aabbMax.y) * 0.5f,
-            (result.aabbMin.z + result.aabbMax.z) * 0.5f
-        };
+        fallbackVoxel.position = {(result.aabbMin.x + result.aabbMax.x) * 0.5f,
+                                  (result.aabbMin.y + result.aabbMax.y) * 0.5f,
+                                  (result.aabbMin.z + result.aabbMax.z) * 0.5f};
         fallbackVoxel.normal = {0.0f, 1.0f, 0.0f};
         fallbackVoxel.color = {1.0f, 1.0f, 1.0f, 1.0f};
         fallbackVoxel.uv = {0.0f, 0.0f};
