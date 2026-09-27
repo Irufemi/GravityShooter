@@ -2151,16 +2151,16 @@
                   0.0
                 ],
                 "scale": [
-                  3.0,
-                  3.0,
-                  3.0
+                  8.0,
+                  8.0,
+                  8.0
                 ]
               },
               "type": "TransformComponent"
             },
             {
               "data": {
-                "modelName": "resources/model/sample/suzanne.obj"
+                "modelName": "resources/model/BossRing/BossRing.obj"
               },
               "type": "MeshRendererComponent"
             },
@@ -2219,7 +2219,7 @@
         },
         {
           "data": {
-            "Beam Offset Y": -1.0,
+            "Beam Offset Y": 0.0,
             "Beam Offset Z": 4.0,
             "Status Data Path": "resources/GameData/BossStatus.json"
           },
