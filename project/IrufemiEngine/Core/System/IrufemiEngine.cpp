@@ -774,6 +774,15 @@ void IrufemiEngine::Execute() {
         }
 #endif // USE_IMGUI
 
+        // F11 または Alt + Enter で全画面/ウィンドウモードを切り替え
+        if (inputManager_) {
+            bool isF11 = inputManager_->IsKeyPressed(VK_F11);
+            bool isAltEnter = (inputManager_->IsKeyDown(VK_MENU) && inputManager_->IsKeyPressed(VK_RETURN));
+            if (isF11 || isAltEnter) {
+                ToggleDisplayMode();
+            }
+        }
+
         // 更新
         audioManager_->Update();
         postProcessManager_->ClearCustomEffectParams();
@@ -1145,6 +1154,15 @@ bool IrufemiEngine::SaveScreenShotDepth(const std::wstring& filePath) {
 void IrufemiEngine::SetDisplayMode(DisplayMode mode) {
     if (winApp_) {
         winApp_->SetDisplayMode(mode);
+    }
+}
+
+void IrufemiEngine::ToggleDisplayMode() {
+    DisplayMode currentMode = (winApp_ ? winApp_->GetDisplayMode() : DisplayMode::Windowed);
+    DisplayMode nextMode = (currentMode == DisplayMode::Windowed) ? DisplayMode::Borderless : DisplayMode::Windowed;
+    Irufemi::CVarSystem::SetInt("r.DisplayMode", static_cast<int>(nextMode));
+    if (winApp_ && winApp_->GetDisplayMode() != nextMode) {
+        winApp_->SetDisplayMode(nextMode);
     }
 }
 

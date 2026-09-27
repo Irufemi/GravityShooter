@@ -170,6 +170,11 @@ public: // メンバ関数
     void SetDisplayMode(DisplayMode mode);
 
     /**
+     * @brief ディスプレイモード（ウィンドウ/仮想フルスクリーン）を切り替える
+     */
+    void ToggleDisplayMode();
+
+    /**
      * @brief VSync（垂直同期）の有効/無効を設定する
      */
     void SetVSync(bool enable);
