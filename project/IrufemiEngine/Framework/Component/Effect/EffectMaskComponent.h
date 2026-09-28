@@ -106,6 +106,14 @@ public:
     }
 
     /**
+     * @brief CustomParams を設定する。
+     * @param[in] params 設定する CustomEffectParams の値
+     */
+    void SetCustomParams(const PostProcessManager::CustomEffectParams& params) {
+        customParams_ = params;
+    }
+
+    /**
      * @brief CustomParams を取得する。
      * @return 取得された CustomParams
      */

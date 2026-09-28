@@ -1,6 +1,7 @@
 #include "Player/PlayerHealthComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/Collider/ColliderComponent.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
 #include "Core/Utility/Log.h"
@@ -90,11 +91,30 @@ void PlayerHealthComponent::Update() {
         return;
     }
 
-    // 無敵タイマーの更新
+    // 無敵タイマーの更新 & ブリンク演出 (Juice)
     if (invincibilityTimer_ > 0.0f) {
         invincibilityTimer_ -= dt;
-        if (invincibilityTimer_ < 0.0f) {
+
+        if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
+            if (!hasCachedNormalOutline_) {
+                normalOutlineColor_ = maskComp->GetCustomParams().color1;
+                hasCachedNormalOutline_ = true;
+            }
+            // 0.1秒周期で警告レッドと通常シアンを交互に切り替え
+            bool blinkState = static_cast<int>(invincibilityTimer_ * 10.0f) % 2 == 0;
+            auto params = maskComp->GetCustomParams();
+            params.color1 = blinkState ? warningOutlineColor_ : normalOutlineColor_;
+            maskComp->SetCustomParams(params);
+        }
+
+        if (invincibilityTimer_ <= 0.0f) {
             invincibilityTimer_ = 0.0f;
+            // 無敵終了時に通常カラーへ完全復帰
+            if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
+                auto params = maskComp->GetCustomParams();
+                params.color1 = normalOutlineColor_;
+                maskComp->SetCustomParams(params);
+            }
         }
     }
 }

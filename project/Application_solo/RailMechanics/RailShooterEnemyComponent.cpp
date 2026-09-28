@@ -15,6 +15,7 @@
 #include "Physics/CollisionManager.h"
 #include "Core/Math/MathFunction.h"
 #include "Environment/DebrisComponent.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
 #include "Renderer/Pipeline/PSOManager.h"
 #include "RHI/DirectX12/DirectXCommon.h"
 #include <cmath>
@@ -127,6 +128,19 @@ void RailShooterEnemyComponent::Update() {
     auto transform = GetTransform();
     if (!transform) {
         return;
+    }
+
+    // 被弾ヒットフラッシュタイマーの更新 (Juice)
+    if (hitFlashTimer_ > 0.0f) {
+        hitFlashTimer_ -= dt;
+        if (hitFlashTimer_ <= 0.0f) {
+            hitFlashTimer_ = 0.0f;
+            if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
+                auto params = maskComp->GetCustomParams();
+                params.color1 = originalOutlineColor_;
+                maskComp->SetCustomParams(params);
+            }
+        }
     }
 
     // スプライン追従情報が未解決の場合はプレイヤーから自動解決
@@ -562,6 +576,19 @@ void RailShooterEnemyComponent::TakeDamage(int damage) {
     }
 
     hp_ -= damage;
+
+    // 被弾時の白熱ヒットフラッシュ演出 (Juice)
+    if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
+        if (!hasCachedOriginalOutline_) {
+            originalOutlineColor_ = maskComp->GetCustomParams().color1;
+            hasCachedOriginalOutline_ = true;
+        }
+        auto params = maskComp->GetCustomParams();
+        params.color1 = Irufemi::Vector4{2.5f, 2.5f, 2.5f, 1.0f}; // 白熱閃光
+        maskComp->SetCustomParams(params);
+        hitFlashTimer_ = 0.08f; // 約5フレーム閃光
+    }
+
     if (hp_ <= 0) {
         hp_ = 0;
         NotifyDespawn(DespawnReason::KilledByPlayer);
