@@ -40,6 +40,7 @@ private:
     void DrawImGuizmo(ImVec2 minPos, ImVec2 size);
     void HandleDragAndDrop(ImVec2 minPos, ImVec2 size);
     void HandlePicking(ImVec2 mousePos, ImVec2 minPos, ImVec2 maxPos, ImVec2 size);
+    void SnapToGameCamera();
 };
 
 #endif // EditorMode

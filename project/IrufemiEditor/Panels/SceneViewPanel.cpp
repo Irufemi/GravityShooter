@@ -24,6 +24,8 @@
 #include "Framework/Component/Collider/AABBColliderComponent.h"
 #include "Framework/Component/Collider/OBBColliderComponent.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
+#include "Framework/Component/Camera/CameraComponent.h"
+#include "Framework/Component/Camera/TargetFollowComponent.h"
 #include "Physics/Collision/Collision.h"
 #include "Platform/Input/InputManager.h"
 #include "Platform/Input/Mouse.h"
@@ -154,6 +156,12 @@ void SceneViewPanel::Draw() {
                         }
                     }
                 }
+
+                // Ctrl + Shift + F または P キーによる GameCamera スナップ機能
+                if ((ImGui::GetIO().KeyCtrl && ImGui::GetIO().KeyShift && ImGui::IsKeyPressed(ImGuiKey_F)) ||
+                    ImGui::IsKeyPressed(ImGuiKey_P)) {
+                    SnapToGameCamera();
+                }
             } else {
                 engine->GetInputManager()->SetVirtualMousePosition({0.0f, 0.0f}, false);
             }
@@ -173,14 +181,14 @@ void SceneViewPanel::Draw() {
 void SceneViewPanel::DrawToolbar(ImVec2 minPos, ImVec2 maxPos) {
     auto* engine = editorManager_->GetEngine();
 
-    ImVec2 overlayPos = ImVec2(maxPos.x - 300.0f, minPos.y + 10.0f);
+    ImVec2 overlayPos = ImVec2(maxPos.x - 365.0f, minPos.y + 10.0f);
     ImGui::SetCursorScreenPos(overlayPos);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 0.85f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
-    if (ImGui::BeginChild("SceneToolbar", ImVec2(290.0f, 40.0f), true,
+    if (ImGui::BeginChild("SceneToolbar", ImVec2(355.0f, 40.0f), true,
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 4));
 
@@ -246,6 +254,18 @@ void SceneViewPanel::DrawToolbar(ImVec2 minPos, ImVec2 maxPos) {
             if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Toggle Collider Debug Draw");
             }
+        }
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("|");
+        ImGui::SameLine();
+
+        // Game Camera スナップボタン
+        if (ImGui::Button(ICON_FA_VIDEO " Cam", ImVec2(54, 24))) {
+            SnapToGameCamera();
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Align SceneView to Game Camera\n(Snap to Play start position & rotation) [P]");
         }
 
         ImGui::PopStyleVar();
@@ -609,4 +629,91 @@ void SceneViewPanel::HandlePicking(ImVec2 mousePos, ImVec2 minPos, ImVec2 maxPos
         }
     }
 }
+
+void SceneViewPanel::SnapToGameCamera() {
+    auto* engine = editorManager_->GetEngine();
+    if (!engine) {
+        return;
+    }
+    auto* scene = engine->GetSceneManager()->GetCurrentScene();
+    if (!scene) {
+        return;
+    }
+
+    // 1. シーン内から MainCamera または CameraComponent を持つ GameObject を再帰探索
+    std::shared_ptr<GameObject> camObj = nullptr;
+    std::function<void(const std::shared_ptr<GameObject>&)> findCam = [&](const std::shared_ptr<GameObject>& obj) {
+        if (!obj || camObj) {
+            return;
+        }
+        if (obj->GetName() == "MainCamera" && obj->GetComponent<CameraComponent>()) {
+            camObj = obj;
+            return;
+        }
+        for (const auto& child : obj->GetChildren()) {
+            findCam(child);
+        }
+    };
+
+    for (const auto& obj : scene->GetGameObjects()) {
+        findCam(obj);
+        if (camObj) {
+            break;
+        }
+    }
+
+    if (!camObj) {
+        std::function<void(const std::shared_ptr<GameObject>&)> findAnyCam =
+            [&](const std::shared_ptr<GameObject>& obj) {
+                if (!obj || camObj) {
+                    return;
+                }
+                if (obj->GetComponent<CameraComponent>()) {
+                    camObj = obj;
+                    return;
+                }
+                for (const auto& child : obj->GetChildren()) {
+                    findAnyCam(child);
+                }
+            };
+        for (const auto& obj : scene->GetGameObjects()) {
+            findAnyCam(obj);
+            if (camObj) {
+                break;
+            }
+        }
+    }
+
+    if (!camObj) {
+        return;
+    }
+
+    // 2. TargetFollowComponent がある場合は静的に追従位置を解決 (Play開始時と同等)
+    if (auto follow = camObj->GetComponent<TargetFollowComponent>()) {
+        follow->SnapToTarget();
+    }
+
+    auto transform = camObj->GetTransform();
+    if (!transform) {
+        return;
+    }
+
+    Irufemi::Vector3 pos = transform->GetWorldPosition();
+    Irufemi::Vector3 rot = transform->GetWorldRotation();
+
+    // 3. SceneView のアクティブカメラに位置・回転・FOV・FarZ を適用
+    if (auto activeCam = engine->GetCameraManager()->GetActiveCamera()) {
+        activeCam->SetTranslate(pos);
+        activeCam->SetRotate(rot);
+        if (auto camComp = camObj->GetComponent<CameraComponent>()) {
+            activeCam->SetFovY(camComp->GetFovAngleY());
+            activeCam->SetFarClip(camComp->GetFarZ());
+        }
+
+        // 4. OrbitCameraController の注視点・距離を前方10mに再同期
+        cameraController_.SyncTargetFromCamera(activeCam, 10.0f);
+    }
+}
+
 #endif // EditorMode
+
