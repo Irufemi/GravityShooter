@@ -170,3 +170,7 @@ resources/shaders/generated/
 # Screenshots
 **/resources/screenshots/
 
+# Submission packages
+_Submission/
+
+
