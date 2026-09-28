@@ -124,7 +124,7 @@ public:
      * @param formationOffset フォーメーションによるローカルXYオフセット
      */
     void SetRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* follower, float initialDistOffset,
-                                float targetDistOffset, const Irufemi::Vector2& formationOffset);
+                               float targetDistOffset, const Irufemi::Vector2& formationOffset);
 
     /**
      * @brief フォーメーション基準のローカルXYオフセットを設定する
