@@ -4,12 +4,12 @@
 #include "Renderer/Data/FogParams.h"
 
 void FogComponent::OnRegisterProperties() {
-    RegisterProperty("Enabled", &enabled_);
-    RegisterProperty("Color", &fogColor_);
-    RegisterProperty("Start Distance", &fogStart_);
-    RegisterProperty("End Distance", &fogEnd_);
-    RegisterProperty("Density", &fogDensity_);
-    RegisterProperty("Type (0:Lin, 1:Exp)", &fogType_);
+    RegisterProperty("Enabled", &enabled_).OnChanged([this]() { SyncToEngine(); });
+    RegisterProperty("Color", &fogColor_).OnChanged([this]() { SyncToEngine(); });
+    RegisterProperty("Start Distance", &fogStart_).SetMinMax(0.0f, 5000.0f).OnChanged([this]() { SyncToEngine(); });
+    RegisterProperty("End Distance", &fogEnd_).SetMinMax(0.0f, 10000.0f).OnChanged([this]() { SyncToEngine(); });
+    RegisterProperty("Density", &fogDensity_).SetMinMax(0.0f, 5.0f).OnChanged([this]() { SyncToEngine(); });
+    RegisterProperty("Type (0:Lin, 1:Exp)", &fogType_).SetMinMax(0.0f, 1.0f).OnChanged([this]() { SyncToEngine(); });
 }
 
 void FogComponent::Start() {

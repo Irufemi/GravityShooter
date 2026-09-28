@@ -41,9 +41,11 @@ public:
                     std::make_unique<ChangeValueCommand<T>>(startValue, endValue, std::forward<Func>(callback)));
             } else if constexpr (std::is_invocable_v<Func>) {
                 actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<T>>(
-                    startValue, endValue, [valuePtr, cb = std::forward<Func>(callback)](const T& v) {
+                    startValue, endValue, [valuePtr, cb = std::function<void()>(std::forward<Func>(callback))](const T& v) {
                         *valuePtr = v;
-                        cb();
+                        if (cb) {
+                            cb();
+                        }
                     }));
             }
         }

@@ -534,9 +534,18 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                     }
                     case ComponentPropertyType::Float3: {
                         Irufemi::Vector3* ptr = reinterpret_cast<Irufemi::Vector3*>(prop.GetRawData());
-                        if (ImGui::DragFloat3(hiddenName.c_str(), &ptr->x, 0.1f)) {
-                            if (prop.onChanged) {
-                                prop.onChanged();
+                        if (prop.name.find("Color") != std::string::npos ||
+                            prop.name.find("color") != std::string::npos) {
+                            if (ImGui::ColorEdit3(hiddenName.c_str(), &ptr->x)) {
+                                if (prop.onChanged) {
+                                    prop.onChanged();
+                                }
+                            }
+                        } else {
+                            if (ImGui::DragFloat3(hiddenName.c_str(), &ptr->x, 0.1f)) {
+                                if (prop.onChanged) {
+                                    prop.onChanged();
+                                }
                             }
                         }
                         CheckUndoRedoDrag(actionManager, ptr, prop.onChanged);
