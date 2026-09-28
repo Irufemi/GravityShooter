@@ -70,9 +70,9 @@
         "customEffectType": 6,
         "customParams": {
           "color1": [
-            1.0,
+            0.85,
             0.1,
-            0.35,
+            1.0,
             1.0
           ],
           "color2": [

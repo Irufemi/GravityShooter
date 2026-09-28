@@ -66,6 +66,19 @@ public:
     void SetCustomEffectParam(float param);
 
     /**
+     * @brief EnableLighting を設定する。
+     * @param[in] enable 設定する EnableLighting の値（falseでUnlitモード）
+     */
+    void SetEnableLighting(bool enable);
+    /**
+     * @brief EnableLighting を取得する。
+     * @return 取得された EnableLighting
+     */
+    bool GetEnableLighting() const {
+        return enableLighting_;
+    }
+
+    /**
      * @brief Visible を設定する。
      * @param[in] visible 設定する Visible の値
      */
@@ -139,6 +152,7 @@ private:
     std::unique_ptr<StaticModelObject> obj_; ///< 実際の描画を担う既存クラス
     std::string modelName_ = "";             ///< 読み込むモデル名
     std::string currentLoadedFilename_ = ""; ///< 現在ロードされているモデル名（動的変更検知用）
+    bool enableLighting_ = true;             ///< ライティング有効フラグ（falseでUnlit自己発光モード）
     bool castShadows_ = true;
     bool isVisible_ = true;
 };

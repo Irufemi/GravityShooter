@@ -297,20 +297,18 @@ Irufemi::Vector3 PlayerTargetingComponent::CalculateAimPoint(float maxDistance) 
 void PlayerTargetingComponent::UpdateOutlineHighlights() {
     std::unordered_set<uint64_t> currentTargetIds;
 
-    // 現在キューに入っているロックオン対象
+    // 【業界標準アプローチ】
+    // 照準ホバー（カーソル近傍）では3Dモデルのアウトライン色は変えず、
+    // プレイヤーが右クリックで明示的に確定したロックオンターゲット（queuedTargets_）のみをハイライトする
     for (const auto& target : queuedTargets_) {
         if (target && target->GetIsActive() && !target->IsDestroyed()) {
             currentTargetIds.insert(target->GetInstanceID());
         }
     }
-    // 現在レティクルがホバーしている対象
-    if (hoverTarget_ && hoverTarget_->GetIsActive() && !hoverTarget_->IsDestroyed()) {
-        currentTargetIds.insert(hoverTarget_->GetInstanceID());
-    }
 
     auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
 
-    // 1. 今回ハイライトから外れたオブジェクトを元の色に戻す
+    // 1. 今回ロック解除されたオブジェクトを元の色に戻す
     for (auto it = originalOutlineColors_.begin(); it != originalOutlineColors_.end();) {
         uint64_t id = it->first;
         if (currentTargetIds.find(id) == currentTargetIds.end()) {
@@ -329,8 +327,8 @@ void PlayerTargetingComponent::UpdateOutlineHighlights() {
         }
     }
 
-    // 2. 現在のターゲットを警告ロックオンイエローにハイライト
-    const Irufemi::Vector4 lockonYellow = {1.0f, 0.9f, 0.1f, 1.0f};
+    // 2. 確定ロックオン中のターゲットを警告レモンイエローにハイライト
+    const Irufemi::Vector4 lockonYellow = {1.0f, 1.0f, 0.0f, 1.0f};
     auto applyHighlight = [&](const std::shared_ptr<GameObject>& obj) {
         if (!obj || !obj->GetIsActive() || obj->IsDestroyed()) {
             return;
@@ -348,9 +346,6 @@ void PlayerTargetingComponent::UpdateOutlineHighlights() {
 
     for (const auto& target : queuedTargets_) {
         applyHighlight(target);
-    }
-    if (hoverTarget_) {
-        applyHighlight(hoverTarget_);
     }
 }
 

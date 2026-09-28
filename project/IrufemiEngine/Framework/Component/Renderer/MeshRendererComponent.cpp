@@ -17,6 +17,7 @@ void MeshRendererComponent::LoadModel(const std::string& filename) {
         obj_ = std::make_unique<StaticModelObject>();
     }
     obj_->Initialize(modelName_);
+    obj_->SetEnableLightingToAllMeshes(enableLighting_);
 }
 
 IRenderable* MeshRendererComponent::GetRenderable() {
@@ -33,6 +34,9 @@ void MeshRendererComponent::OnRegisterProperties() {
         });
     RegisterProperty("Visible", &isVisible_);
     RegisterProperty("Cast Shadows", &castShadows_);
+    RegisterProperty("Enable Lighting", &enableLighting_).OnChanged([this]() {
+        SetEnableLighting(enableLighting_);
+    });
 }
 
 void MeshRendererComponent::Initialize() {
@@ -68,6 +72,13 @@ void MeshRendererComponent::SetCustomEffectType(int32_t type) {
 void MeshRendererComponent::SetCustomEffectParam(float param) {
     if (obj_) {
         obj_->SetCustomEffectParam(param);
+    }
+}
+
+void MeshRendererComponent::SetEnableLighting(bool enable) {
+    enableLighting_ = enable;
+    if (obj_) {
+        obj_->SetEnableLightingToAllMeshes(enableLighting_);
     }
 }
 
@@ -182,6 +193,9 @@ nlohmann::json MeshRendererComponent::Serialize() {
     if (!castShadows_) {
         j["castShadows"] = false;
     }
+    if (!enableLighting_) {
+        j["enableLighting"] = false;
+    }
     return j;
 }
 
@@ -205,6 +219,16 @@ void MeshRendererComponent::Deserialize(const nlohmann::json& j) {
     } else {
         castShadows_ = true;
     }
+    if (j.contains("enableLighting")) {
+        enableLighting_ = j["enableLighting"].get<bool>();
+    } else if (j.contains("Enable Lighting")) {
+        enableLighting_ = j["Enable Lighting"].get<bool>();
+    } else {
+        enableLighting_ = true;
+    }
+    if (obj_) {
+        obj_->SetEnableLightingToAllMeshes(enableLighting_);
+    }
 }
 
 std::shared_ptr<Component> MeshRendererComponent::Clone() {
@@ -212,6 +236,7 @@ std::shared_ptr<Component> MeshRendererComponent::Clone() {
     clone->CopyPropertiesFrom(this);
     clone->castShadows_ = this->castShadows_;
     clone->isVisible_ = this->isVisible_;
+    clone->enableLighting_ = this->enableLighting_;
     if (!this->modelName_.empty()) {
         clone->LoadModel(this->modelName_);
     }
