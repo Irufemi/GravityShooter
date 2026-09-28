@@ -72,6 +72,7 @@ public:
         std::vector<RenderPackets::GPUParticlePacket> gpuParticleQueue;
         std::vector<RenderPackets::VoxelParticlePacket> voxelParticleQueue;
         std::vector<RenderPackets::SkyboxPacket> skyboxQueue;
+        std::vector<RenderPackets::SkydomePacket> skydomeQueue;
         std::vector<RenderPackets::PrimitiveBatchPacket> primitiveBatchQueue;
         std::vector<RenderPackets::Primitive2DBatchPacket> primitive2DBatchQueue;
         std::vector<RenderPackets::ModelBatchPacket> modelBatchQueue;
@@ -94,6 +95,7 @@ public:
             gpuParticleQueue.clear();
             voxelParticleQueue.clear();
             skyboxQueue.clear();
+            skydomeQueue.clear();
             primitiveBatchQueue.clear();
             primitive2DBatchQueue.clear();
             modelBatchQueue.clear();
@@ -120,6 +122,7 @@ private:
     std::vector<RenderPackets::GPUParticlePacket> gpuParticleQueue_;
     std::vector<RenderPackets::VoxelParticlePacket> voxelParticleQueue_;
     std::vector<RenderPackets::SkyboxPacket> skyboxQueue_;
+    std::vector<RenderPackets::SkydomePacket> skydomeQueue_;
     std::vector<RenderPackets::PrimitiveBatchPacket> primitiveBatchQueue_;
     std::vector<RenderPackets::Primitive2DBatchPacket> primitive2DBatchQueue_;
     std::vector<RenderPackets::ModelBatchPacket> modelBatchQueue_;
@@ -219,6 +222,13 @@ public:
      */
     const std::vector<RenderPackets::SkyboxPacket>& GetSkyboxQueue() const {
         return skyboxQueue_;
+    }
+    /**
+     * @brief SkydomeQueue を取得する。
+     * @return 取得された SkydomeQueue
+     */
+    const std::vector<RenderPackets::SkydomePacket>& GetSkydomeQueue() const {
+        return skydomeQueue_;
     }
     /**
      * @brief PrimitiveBatchQueue を取得する。
@@ -715,6 +725,16 @@ public:
      * @brief DrawSkybox を実行する。
      */
     void DrawSkybox(const RenderPackets::SkyboxPacket& packet);
+
+    /**
+     * @brief プロシージャルスカイドームの描画コマンドを送信する
+     * @param[in] materialAddress マテリアル定数バッファのGPU仮想アドレス
+     */
+    void SubmitSkydome(D3D12_GPU_VIRTUAL_ADDRESS materialAddress);
+    /**
+     * @brief DrawSkydome を実行する。
+     */
+    void DrawSkydome(const RenderPackets::SkydomePacket& packet);
 
     /**
      * @brief GPUパーティクルのインスタンス描画 (GPUParticle.hlsl)

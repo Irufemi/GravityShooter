@@ -46,12 +46,23 @@ void MainOpaquePass::Execute(const Irufemi::RenderContext& rc) {
         return;
     }
 
-    // 1. Skybox
+    // 1. Skybox / Skydome
     const auto& skyboxQueue = drawManager->GetSkyboxQueue();
     if (!skyboxQueue.empty()) {
         engine->ApplyPSO("Skybox");
         for (const auto& p : skyboxQueue) {
             drawManager->DrawSkybox(p);
+        }
+    }
+
+    const auto& skydomeQueue = drawManager->GetSkydomeQueue();
+    if (!skydomeQueue.empty()) {
+        engine->ApplyPSO("Skydome");
+        engine->SetBlend(Irufemi::BlendMode::kBlendModeNone);
+        engine->SetDepthWrite(PSOManager::DepthWrite::Disable);
+        engine->SetCull(PSOManager::CullMode::None);
+        for (const auto& p : skydomeQueue) {
+            drawManager->DrawSkydome(p);
         }
     }
 

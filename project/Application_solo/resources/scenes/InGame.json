@@ -2353,7 +2353,7 @@
         {
           "data": {
             "FOV": 0.785398006439209,
-            "FarZ": 1000.0,
+            "FarZ": 2500.0,
             "MakeActive": true,
             "NearZ": 0.10000000149011612
           },
@@ -2792,8 +2792,8 @@
             "inheritScale": true,
             "position": [
               0.0,
-              16.200000762939453,
-              -6.5
+              0.0,
+              0.0
             ],
             "rotation": [
               0.0,
@@ -2810,22 +2810,24 @@
         },
         {
           "data": {
-            "enableLighting": false,
-            "modelName": "resources/model/skydome/skydome.obj"
-          },
-          "type": "MeshRendererComponent"
-        },
-        {
-          "data": {
-            "FollowDelay": 0.0,
-            "Offset": [
-              0.0,
+            "color": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "intensity": 1.0,
+            "texturePath": "resources/texture/sky/skydome.png",
+            "uvOffset": [
               0.0,
               0.0
             ],
-            "Target Object": 1432498776640000749
+            "uvTiling": [
+              1.0,
+              1.0
+            ]
           },
-          "type": "TargetFollowComponent"
+          "type": "SkyDomeComponent"
         }
       ],
       "instanceId": 777111222333444555,

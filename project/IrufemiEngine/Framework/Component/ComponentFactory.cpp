@@ -1,6 +1,7 @@
 #include "Framework/Component/ComponentFactory.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
+#include "Framework/Component/Renderer/SkyDomeComponent.h"
 #include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
 #include "Framework/Component/Renderer/Primitive2DRendererComponent.h"
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
@@ -68,6 +69,7 @@ void ComponentFactory::RegisterAllCoreComponents() {
         }
     });
     Register("MeshRendererComponent", "Renderer", []() { return std::make_shared<MeshRendererComponent>(); });
+    Register("SkyDomeComponent", "Renderer", []() { return std::make_shared<SkyDomeComponent>(); });
     Register("PrimitiveRendererComponent", "Renderer", []() { return std::make_shared<PrimitiveRendererComponent>(); });
     Register("Primitive2DRendererComponent", "Renderer",
              []() { return std::make_shared<Primitive2DRendererComponent>(); });

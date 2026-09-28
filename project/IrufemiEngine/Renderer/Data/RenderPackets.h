@@ -94,6 +94,10 @@ struct SkyboxPacket {
     UINT indexCount;
 };
 
+struct SkydomePacket {
+    D3D12_GPU_VIRTUAL_ADDRESS materialAddress = 0;
+};
+
 struct PrimitiveBatchPacket {
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     D3D12_INDEX_BUFFER_VIEW indexBufferView;

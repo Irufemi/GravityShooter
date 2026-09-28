@@ -555,6 +555,9 @@
     <ClCompile Include="Framework\Component\Renderer\MeshRendererComponent.cpp">
       <Filter>Framework\Component\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\Component\Renderer\SkyDomeComponent.cpp">
+      <Filter>Framework\Component\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="Framework\Component\Renderer\ModelBatchRendererComponent.cpp">
       <Filter>Framework\Component\Renderer</Filter>
     </ClCompile>
@@ -1194,6 +1197,9 @@
       <Filter>ヘッダー ファイル\Framework\Component\Collider</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Component\Renderer\MeshRendererComponent.h">
+      <Filter>Framework\Component\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Component\Renderer\SkyDomeComponent.h">
       <Filter>Framework\Component\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Component\Renderer\ModelBatchRendererComponent.h">

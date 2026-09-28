@@ -313,6 +313,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Framework\Component\Effect\GlobalPostProcessComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\PostProcessSettings.cpp" />
     <ClCompile Include="Framework\Component\Renderer\MeshRendererComponent.cpp" />
+    <ClCompile Include="Framework\Component\Renderer\SkyDomeComponent.cpp" />
     <ClCompile Include="Framework\Component\Renderer\ModelBatchRendererComponent.cpp" />
     <ClCompile Include="Framework\Component\Renderer\PrimitiveRendererComponent.cpp" />
     <ClCompile Include="Framework\Component\Renderer\Primitive2DRendererComponent.cpp" />
@@ -527,6 +528,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Component\Collider\OBBColliderComponent.h" />
     <ClInclude Include="Framework\Component\Collider\SphereColliderComponent.h" />
     <ClInclude Include="Framework\Component\Renderer\MeshRendererComponent.h" />
+    <ClInclude Include="Framework\Component\Renderer\SkyDomeComponent.h" />
     <ClInclude Include="Framework\Component\Renderer\ModelBatchRendererComponent.h" />
     <ClInclude Include="Framework\Component\Effect\ParticleEmitterComponent.h" />
     <ClInclude Include="Framework\Component\Renderer\PrimitiveRendererComponent.h" />

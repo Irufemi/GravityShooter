@@ -79,6 +79,19 @@ public:
     }
 
     /**
+     * @brief Skydome モードを設定する（最奥深度固定＋前面カリング＋深度書き込み無効）
+     * @param[in] isSkydome 設定する値
+     */
+    void SetIsSkydome(bool isSkydome);
+    /**
+     * @brief Skydome モードかどうかを取得する
+     * @return 判定結果
+     */
+    bool GetIsSkydome() const {
+        return isSkydome_;
+    }
+
+    /**
      * @brief Visible を設定する。
      * @param[in] visible 設定する Visible の値
      */
@@ -153,6 +166,7 @@ private:
     std::string modelName_ = "";             ///< 読み込むモデル名
     std::string currentLoadedFilename_ = ""; ///< 現在ロードされているモデル名（動的変更検知用）
     bool enableLighting_ = true;             ///< ライティング有効フラグ（falseでUnlit自己発光モード）
+    bool isSkydome_ = false;                 ///< Skydomeモードフラグ（最奥深度固定・前面カリング・深度書き込み無効）
     bool castShadows_ = true;
     bool isVisible_ = true;
 };

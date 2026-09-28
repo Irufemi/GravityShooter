@@ -173,6 +173,7 @@ void DrawManager::MergeThreadLocalQueues() {
         mergeVec(gpuParticleQueue_, lq->gpuParticleQueue);
         mergeVec(voxelParticleQueue_, lq->voxelParticleQueue);
         mergeVec(skyboxQueue_, lq->skyboxQueue);
+        mergeVec(skydomeQueue_, lq->skydomeQueue);
         mergeVec(primitiveBatchQueue_, lq->primitiveBatchQueue);
         mergeVec(primitive2DBatchQueue_, lq->primitive2DBatchQueue);
         mergeVec(modelBatchQueue_, lq->modelBatchQueue);
@@ -995,6 +996,24 @@ void DrawManager::DrawSkybox(const RenderPackets::SkyboxPacket& packet) {
     commandList_->DrawIndexedInstanced(packet.indexCount, 1, 0, 0, 0);
 }
 
+void DrawManager::SubmitSkydome(D3D12_GPU_VIRTUAL_ADDRESS materialAddress) {
+    RenderPackets::SkydomePacket packet;
+    packet.materialAddress = materialAddress;
+    GetLocalQueues().skydomeQueue.push_back(packet);
+}
+
+void DrawManager::DrawSkydome(const RenderPackets::SkydomePacket& packet) {
+    if (dxCommon_->GetEngine()->GetScreenCaptureManager() &&
+        dxCommon_->GetEngine()->GetScreenCaptureManager()->IsCaptureWithAlphaRequested()) {
+        return;
+    }
+
+    commandList_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    commandList_->IASetVertexBuffers(0, 0, nullptr); // 頂点バッファ不要（SV_VertexID）
+    commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, packet.materialAddress); // b0
+    commandList_->DrawInstanced(3, 1, 0, 0); // 全画面三角形
+}
+
 void DrawManager::SubmitStandard3D(const Object3DResource* resource,
                                    const D3D12_VERTEX_BUFFER_VIEW* vertexBufferViewOverride, bool castShadows,
                                    ID3D12Resource* vertexBufferResourceOverride,
@@ -1625,6 +1644,7 @@ void DrawManager::ClearRenderQueues() {
     gpuParticleQueue_.clear();
     voxelParticleQueue_.clear();
     skyboxQueue_.clear();
+    skydomeQueue_.clear();
     primitiveBatchQueue_.clear();
     primitive2DBatchQueue_.clear();
     modelBatchQueue_.clear();

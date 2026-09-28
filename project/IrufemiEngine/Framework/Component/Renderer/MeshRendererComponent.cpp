@@ -18,6 +18,9 @@ void MeshRendererComponent::LoadModel(const std::string& filename) {
     }
     obj_->Initialize(modelName_);
     obj_->SetEnableLightingToAllMeshes(enableLighting_);
+    if (isSkydome_) {
+        SetIsSkydome(true);
+    }
 }
 
 IRenderable* MeshRendererComponent::GetRenderable() {
@@ -36,6 +39,9 @@ void MeshRendererComponent::OnRegisterProperties() {
     RegisterProperty("Cast Shadows", &castShadows_);
     RegisterProperty("Enable Lighting", &enableLighting_).OnChanged([this]() {
         SetEnableLighting(enableLighting_);
+    });
+    RegisterProperty("Is Skydome", &isSkydome_).OnChanged([this]() {
+        SetIsSkydome(isSkydome_);
     });
 }
 
@@ -79,6 +85,24 @@ void MeshRendererComponent::SetEnableLighting(bool enable) {
     enableLighting_ = enable;
     if (obj_) {
         obj_->SetEnableLightingToAllMeshes(enableLighting_);
+    }
+}
+
+void MeshRendererComponent::SetIsSkydome(bool isSkydome) {
+    isSkydome_ = isSkydome;
+    if (obj_) {
+        if (isSkydome_) {
+            // Skydome専用PSO（最奥深度.xyww、前面カリング、深度書き込み無効）を全メッシュに適用
+            obj_->SetCustomPSO("Skydome", Irufemi::BlendMode::kBlendModeNone, PSOManager::DepthWrite::Disable, PSOManager::CullMode::Front);
+            obj_->SetCastShadows(false);
+            obj_->SetCullingEnabled(false);
+            obj_->SetEnableLightingToAllMeshes(false); // 自己発光Unlit
+        } else {
+            obj_->SetCustomPSO("");
+            obj_->SetCastShadows(castShadows_);
+            obj_->SetCullingEnabled(true);
+            obj_->SetEnableLightingToAllMeshes(enableLighting_);
+        }
     }
 }
 
@@ -196,6 +220,9 @@ nlohmann::json MeshRendererComponent::Serialize() {
     if (!enableLighting_) {
         j["enableLighting"] = false;
     }
+    if (isSkydome_) {
+        j["isSkydome"] = true;
+    }
     return j;
 }
 
@@ -229,6 +256,16 @@ void MeshRendererComponent::Deserialize(const nlohmann::json& j) {
     if (obj_) {
         obj_->SetEnableLightingToAllMeshes(enableLighting_);
     }
+    if (j.contains("isSkydome")) {
+        isSkydome_ = j["isSkydome"].get<bool>();
+    } else if (j.contains("Is Skydome")) {
+        isSkydome_ = j["Is Skydome"].get<bool>();
+    } else {
+        isSkydome_ = false;
+    }
+    if (isSkydome_) {
+        SetIsSkydome(true);
+    }
 }
 
 std::shared_ptr<Component> MeshRendererComponent::Clone() {
@@ -237,6 +274,7 @@ std::shared_ptr<Component> MeshRendererComponent::Clone() {
     clone->castShadows_ = this->castShadows_;
     clone->isVisible_ = this->isVisible_;
     clone->enableLighting_ = this->enableLighting_;
+    clone->isSkydome_ = this->isSkydome_;
     if (!this->modelName_.empty()) {
         clone->LoadModel(this->modelName_);
     }

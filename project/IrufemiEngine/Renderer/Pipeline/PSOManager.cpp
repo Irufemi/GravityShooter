@@ -393,8 +393,9 @@ void PSOManager::PreWarmCommonPSOs() {
     GetPSO("ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);
     GetPSO("ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Front);
 
-    // 4. スカイボックス
+    // 4. スカイボックス・スカイドーム
     GetPSO("Skybox", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
+    GetPSO("Skydome", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
 
     // 5. デバッグ及びその他
     GetPSO("Batch", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Disable, CullMode::None);

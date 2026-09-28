@@ -1065,6 +1065,32 @@ renderer->SetEnableLighting(false); // Unlit（陰影なし・自己発光）モ
 ```
 ※ デフォルトは `true`（通常ライティング有効）です。
 
+### スカイドームモード (最奥深度固定・Infinite Sky)
+天球モデル（`.obj` 等）を背景空として描画する場合、通常の3Dメッシュとして描画すると球殻の距離（例: 300m）が深度バッファに書き込まれ、**遠くの環境オブジェクト（ビル、浮遊島、山など）が空に隠れて近づいた時にひょっこり出現してしまう（クリッピング現象）** が発生します。
+`isSkydome: true`（または `SetIsSkydome(true)`）を設定することで、**業界標準の「最奥深度固定トリック（Infinite Sky）」** が有効になります。
+
+- **仕様と効果:**
+  - 頂点シェーダー（`Skydome.VS.hlsl`）でクリップ座標を `.xyww` 出力し、GPU深度値を常に最奥（$Z=1.0$）に固定。
+  - **深度書き込み無効（`DepthWrite: Disable`）** により、どれだけ遠くにある環境物・敵・雲も **100% 空の手前に描画** されます（境界の突き抜け・ひょっこり出現が完全消滅）。
+  - **前面カリング（`CullMode: Front`）** により天球の内側を正常描画。
+  - カメラの平行移動が無効化され、天球の中心が常にカメラに自動追従します。
+
+- **C++ コードからの制御:**
+```cpp
+auto renderer = gameObject_->GetComponent<MeshRendererComponent>();
+renderer->SetIsSkydome(true); // 最奥深度Skydomeパイプラインを適用
+```
+
+- **Scene / Prefab JSON からの設定:**
+```json
+{
+    "type": "MeshRendererComponent",
+    "modelName": "resources/model/skydome/skydome.obj",
+    "isSkydome": true,
+    "enableLighting": false
+}
+```
+
 ### 3Dプリミティブの描画 (PrimitiveRendererComponent)
 テスト用の床や障害物など、モデルファイルを用意せずに簡易的な立体を描画したい場合は `PrimitiveRendererComponent` を使用します。
 

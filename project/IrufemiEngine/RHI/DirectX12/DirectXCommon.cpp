@@ -311,6 +311,8 @@ void DirectXCommon::RegisterAllShaders() {
     auto vsSkin = shaderManager_->GetOrCompile(L"SkinningObject3D.VS.hlsl", options);
     auto vsSkybox = shaderManager_->GetOrCompile(L"Skybox.VS.hlsl", options);
     auto psSkybox = shaderManager_->GetOrCompile(L"Skybox.PS.hlsl", options);
+    auto vsSkydome = shaderManager_->GetOrCompile(L"Skydome.VS.hlsl", options);
+    auto psSkydome = shaderManager_->GetOrCompile(L"Skydome.PS.hlsl", options);
     auto vsGpuParticle = shaderManager_->GetOrCompile(L"ParticleGPU.VS.hlsl", options);
     auto psGpuParticle = shaderManager_->GetOrCompile(L"ParticleGPU.PS.hlsl", options);
 
@@ -389,6 +391,11 @@ void DirectXCommon::RegisterAllShaders() {
     PSOManager::PipelineStateDesc skyboxDesc = mrtDesc;
     skyboxDesc.shaders = {vsSkybox, psSkybox};
     psoManager_->RegisterShader("Skybox", skyboxDesc);
+
+    PSOManager::PipelineStateDesc skydomeDesc = mrtDesc;
+    skydomeDesc.shaders = {vsSkydome, psSkydome};
+    skydomeDesc.useNullInputLayout = true; // 頂点バッファなし(SV_VertexID)
+    psoManager_->RegisterShader("Skydome", skydomeDesc);
 
     PSOManager::PipelineStateDesc gpuParticleDesc = mrtDesc;
     gpuParticleDesc.shaders = {vsGpuParticle, psGpuParticle};
