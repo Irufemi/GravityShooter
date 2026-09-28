@@ -37,6 +37,35 @@ void SplineFollowerComponent::Start() {
             cachedPath_ = obj->GetComponent<SplineComponent>();
         }
     }
+
+    // 初回姿勢（始点位置）を即座にTransformへ反映する
+    SnapToDistance(currentDistance_);
+}
+
+void SplineFollowerComponent::SnapToDistance(float dist) {
+    currentDistance_ = dist;
+    if (cachedPath_ && !cachedPath_->GetWaypoints().empty()) {
+        float totalLength = cachedPath_->GetTotalLength();
+        if (currentDistance_ > totalLength) {
+            currentDistance_ = totalLength;
+        } else if (currentDistance_ < 0.0f) {
+            currentDistance_ = 0.0f;
+        }
+
+        // レール上の座標と接線（進行方向）を距離ベースで取得
+        Irufemi::Vector3 basePos = cachedPath_->GetPointAtDistance(currentDistance_);
+        Irufemi::Vector3 tangent = cachedPath_->GetTangentAtDistance(currentDistance_);
+
+        auto transform = GetTransform();
+        if (transform) {
+            transform->SetWorldPosition(basePos);
+
+            // 進行方向に向くように回転を設定 (Z前方)
+            float yaw = std::atan2(tangent.x, tangent.z);
+            float pitch = std::asin(std::clamp(-tangent.y, -1.0f, 1.0f));
+            transform->SetWorldRotation({pitch, yaw, 0.0f});
+        }
+    }
 }
 
 void SplineFollowerComponent::Update() {
@@ -56,25 +85,7 @@ void SplineFollowerComponent::Update() {
 
     if (cachedPath_ && !cachedPath_->GetWaypoints().empty()) {
         // 進行度を前進させる (m/s)
-        float totalLength = cachedPath_->GetTotalLength();
-        currentDistance_ += speed_ * deltaTime;
-        if (currentDistance_ > totalLength) {
-            currentDistance_ = totalLength;
-        }
-
-        // レール上の座標と接線（進行方向）を距離ベースで取得
-        Irufemi::Vector3 basePos = cachedPath_->GetPointAtDistance(currentDistance_);
-        Irufemi::Vector3 tangent = cachedPath_->GetTangentAtDistance(currentDistance_);
-
-        auto transform = GetTransform();
-        if (transform) {
-            transform->SetWorldPosition(basePos);
-
-            // 進行方向に向くように回転を設定 (Z前方)
-            float yaw = std::atan2(tangent.x, tangent.z);
-            float pitch = std::asin(std::clamp(-tangent.y, -1.0f, 1.0f));
-            transform->SetWorldRotation({pitch, yaw, 0.0f});
-        }
+        SnapToDistance(currentDistance_ + speed_ * deltaTime);
     }
 }
 
