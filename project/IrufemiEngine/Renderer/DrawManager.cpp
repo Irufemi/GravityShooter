@@ -27,6 +27,7 @@ using namespace RenderPackets;
 #include "Renderer/Pipeline/RenderGraph/ComputePass.h"
 #include "Renderer/Pipeline/RenderGraph/ShadowPass.h"
 #include "Renderer/Pipeline/RenderGraph/MainOpaquePass.h"
+#include "Renderer/Pipeline/RenderGraph/FogPass.h"
 #include "Renderer/Pipeline/RenderGraph/MainTransparentPass.h"
 #include "Renderer/Pipeline/RenderGraph/UIPass.h"
 #include "Renderer/Pipeline/RenderGraph/PostUIPass.h"
@@ -202,21 +203,25 @@ void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
                                 ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
     const size_t lightCommonSize = (sizeof(LightCommonData) + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) &
                                    ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+    const size_t fogParamsSize = (sizeof(FogParams) + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) &
+                                 ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
     const uint32_t kMaxLights = 1024;
 
     for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
         auto& fr = frameResources_[i];
 
-        // フレーム定数バッファ (PerFrameData + LightCommonData)
-        fr.frameResource = dxCommon_->CreateBufferResource(perFrameSize + lightCommonSize);
+        // フレーム定数バッファ (PerFrameData + LightCommonData + FogParams)
+        fr.frameResource = dxCommon_->CreateBufferResource(perFrameSize + lightCommonSize + fogParamsSize);
         uint8_t* mapped = nullptr;
         fr.frameResource->Map(0, nullptr, reinterpret_cast<void**>(&mapped));
 
         fr.perFrameData = reinterpret_cast<PerFrameData*>(mapped);
         fr.lightCommonData = reinterpret_cast<LightCommonData*>(mapped + perFrameSize);
+        fr.fogParams = reinterpret_cast<FogParams*>(mapped + perFrameSize + lightCommonSize);
 
         fr.frameData.camera = fr.frameResource->GetGPUVirtualAddress();
         fr.frameData.lightCommon = fr.frameData.camera + perFrameSize;
+        fr.frameData.fog = fr.frameData.lightCommon + lightCommonSize;
 
         // StructuredBuffer の初期化 (ひとまず1024個分を確保)
         fr.pointLightResource = dxCommon_->CreateBufferResource(sizeof(PointLight) * kMaxLights);
@@ -244,6 +249,7 @@ void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
     renderGraph_->AddPass(std::make_unique<ComputePass>());
     renderGraph_->AddPass(std::make_unique<ShadowPass>());
     renderGraph_->AddPass(std::make_unique<MainOpaquePass>());
+    renderGraph_->AddPass(std::make_unique<FogPass>());
     renderGraph_->AddPass(std::make_unique<MainTransparentPass>());
     renderGraph_->AddPass(std::make_unique<PostProcessPass>());
     renderGraph_->AddPass(std::make_unique<UIPass>());
@@ -555,7 +561,10 @@ void DrawManager::SyncCachedFrameData() {
         fr.perFrameData->envMapIndex = dxCommon_->GetSrvPool()->GetIndexFromGPUHandle(environmentMapHandle_);
         ShadowMap* shadowMap = shadowMaps_[dxCommon_->GetFrameIndex()].get();
         fr.perFrameData->shadowMapIndex = shadowMap ? shadowMap->GetSrvIndex() : 0xFFFFFFFFu;
-        fr.perFrameData->depthMapIndex = 0xFFFFFFFFu; // 未実装
+        fr.perFrameData->depthMapIndex = dxCommon_->GetDepthSRVIndex();
+    }
+    if (fr.fogParams) {
+        *fr.fogParams = fogParams_;
     }
     if (fr.lightCommonData) {
         // ライト共通データの更新（b1）

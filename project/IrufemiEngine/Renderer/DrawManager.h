@@ -22,6 +22,7 @@
 #include <atomic>
 #include "Renderer/Compute/IComputeTask.h"
 #include "Renderer/Data/RenderPackets.h"
+#include "Renderer/Data/FogParams.h"
 
 class ShadowMap;
 
@@ -324,6 +325,7 @@ public:
 
         PerFrameData* perFrameData = nullptr;
         LightCommonData* lightCommonData = nullptr;
+        FogParams* fogParams = nullptr;
 
         D3D12_GPU_DESCRIPTOR_HANDLE lightSrvHandle{};
         uint32_t lightSrvBaseIndex = 0xFFFFFFFFu;
@@ -332,6 +334,7 @@ public:
         struct FrameData {
             D3D12_GPU_VIRTUAL_ADDRESS camera;
             D3D12_GPU_VIRTUAL_ADDRESS lightCommon; // register b1
+            D3D12_GPU_VIRTUAL_ADDRESS fog;         // register b0 (FogPass)
         } frameData{};
     };
     std::array<FrameResource, kMaxFramesInFlight> frameResources_;
@@ -540,6 +543,9 @@ private:
     Irufemi::Vector3 shadowTargetPos_{0, 0, 0};
     float shadowOrthoSize_{128.0f};
     bool useCustomShadowParams_{false};
+
+    // フォグパラメータ
+    FogParams fogParams_{};
 
     TextureManager* textureManager_ = nullptr; ///< 環境マップフォールバック等に使用するテクスチャマネージャー
 
@@ -774,6 +780,18 @@ public:
     ///@{
     PerFrameData* GetPerFrameData() const {
         return frameResources_[dxCommon_->GetFrameIndex()].perFrameData;
+    }
+    D3D12_GPU_VIRTUAL_ADDRESS GetCameraCBVAddress() const {
+        return frameResources_[dxCommon_->GetFrameIndex()].frameData.camera;
+    }
+    D3D12_GPU_VIRTUAL_ADDRESS GetFogCBVAddress() const {
+        return frameResources_[dxCommon_->GetFrameIndex()].frameData.fog;
+    }
+    void SetFogParams(const FogParams& params) {
+        fogParams_ = params;
+    }
+    const FogParams& GetFogParams() const {
+        return fogParams_;
     }
     /**
      * @brief RenderGraph を取得する。

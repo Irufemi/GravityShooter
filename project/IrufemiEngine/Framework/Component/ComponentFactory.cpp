@@ -16,6 +16,7 @@
 #include "Framework/Component/Effect/EffectMaskComponent.h"
 #include "Framework/Component/Effect/ScreenEffectComponent.h"
 #include "Framework/Component/Effect/GlobalPostProcessComponent.h"
+#include "Framework/Component/Effect/FogComponent.h"
 #include "Framework/Component/Collider/AABBColliderComponent.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
 #include "Framework/Component/Collider/OBBColliderComponent.h"
@@ -88,6 +89,7 @@ void ComponentFactory::RegisterAllCoreComponents() {
     Register("EffectMaskComponent", "Effect", []() { return std::make_shared<EffectMaskComponent>(); });
     Register("ScreenEffectComponent", "Effect", []() { return std::make_shared<ScreenEffectComponent>(); });
     Register("GlobalPostProcessComponent", "Effect", []() { return std::make_shared<GlobalPostProcessComponent>(); });
+    Register("FogComponent", "Effect", []() { return std::make_shared<FogComponent>(); });
     Register("AABBColliderComponent", "Collider", []() { return std::make_shared<AABBColliderComponent>(); });
     Register("SphereColliderComponent", "Collider", []() { return std::make_shared<SphereColliderComponent>(); });
     Register("OBBColliderComponent", "Collider", []() { return std::make_shared<OBBColliderComponent>(); });

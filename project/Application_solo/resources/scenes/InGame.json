@@ -2833,6 +2833,59 @@
       "instanceId": 777111222333444555,
       "name": "Skydome",
       "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Color": [
+              0.550000011920929,
+              0.6499999761581421,
+              0.8199999928474426
+            ],
+            "Density": 1.0,
+            "Enabled": true,
+            "End Distance": 2200.0,
+            "Start Distance": 300.0,
+            "Type (0:Lin, 1:Exp)": 0,
+            "enabled": true,
+            "fogColor": [
+              0.550000011920929,
+              0.6499999761581421,
+              0.8199999928474426
+            ],
+            "fogDensity": 1.0,
+            "fogEnd": 2200.0,
+            "fogStart": 300.0,
+            "fogType": 0
+          },
+          "type": "FogComponent"
+        }
+      ],
+      "instanceId": 888111222333444555,
+      "name": "AtmosphericFog",
+      "tag": "Untagged"
     }
   ],
   "settings": {

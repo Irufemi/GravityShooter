@@ -323,11 +323,13 @@ void DirectXCommon::RegisterAllShaders() {
     auto vsShadowBatch = shaderManager_->GetOrCompile(L"ShadowMapBatch.VS.hlsl", options);
     auto psAOEWarning = shaderManager_->GetOrCompile(L"AOEWarning.PS.hlsl", options);
 
+    auto vsFullscreen = shaderManager_->GetOrCompile(L"Fullscreen.VS.hlsl", options);
+    auto psFog = shaderManager_->GetOrCompile(L"Fog.PS.hlsl", options);
+
 #ifdef EditorMode
     auto vsSelection = shaderManager_->GetOrCompile(L"SelectionMask.VS.hlsl", options);
     auto psSelection = shaderManager_->GetOrCompile(L"SelectionMask.PS.hlsl", options);
     auto psSelectionText = shaderManager_->GetOrCompile(L"SelectionMaskText.PS.hlsl", options);
-    auto vsFullscreen = shaderManager_->GetOrCompile(L"Fullscreen.VS.hlsl", options);
     auto psOutlineComp = shaderManager_->GetOrCompile(L"OutlineComposite.PS.hlsl", options);
 #endif
 
@@ -445,6 +447,16 @@ void DirectXCommon::RegisterAllShaders() {
     outlineCompDesc.dsvFormat = DXGI_FORMAT_UNKNOWN;
     psoManager_->RegisterShader("OutlineComposite", outlineCompDesc);
 #endif
+
+    // 大気・距離フォグ (全画面ブレンド)
+    PSOManager::PipelineStateDesc fogDesc{};
+    fogDesc.shaders = {vsFullscreen, psFog};
+    fogDesc.disableDepthTest = true;
+    fogDesc.noDSV = true;
+    fogDesc.useNullInputLayout = true;
+    fogDesc.rtvFormat = mrtDesc.rtvFormat;
+    fogDesc.dsvFormat = DXGI_FORMAT_UNKNOWN;
+    psoManager_->RegisterShader("Fog", fogDesc);
 
     // バックバッファ書き込み用のスプライト設定
     PSOManager::PipelineStateDesc spriteBBDesc{};
