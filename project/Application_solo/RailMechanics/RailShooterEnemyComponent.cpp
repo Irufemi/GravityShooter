@@ -244,17 +244,8 @@ void RailShooterEnemyComponent::Update() {
             }
 
             if (shootTimer_ <= 0.0f) {
-                // 固定された射線ベクトルへ高威力の偏差弾を発射
-                Irufemi::Vector3 myPos = transform->GetWorldPosition();
-                if (!bulletManager_) {
-                    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
-                    if (scene) {
-                        bulletManager_ = EnemyBulletManagerComponent::GetOrCreate(scene);
-                    }
-                }
-                if (bulletManager_) {
-                    bulletManager_->FireBullet(myPos, lockedAimDir_, bulletSpeed_, 15, bulletScale_);
-                }
+                // 固定された射線ベクトル（または未来予測）へ高威力の偏差弾を発射
+                ShootPredictiveAtPlayer(currentPlayerPos, playerVelocity_);
                 shootTimer_ = shootInterval_;
                 ResetTelegraph();
             }
@@ -461,25 +452,29 @@ void RailShooterEnemyComponent::ShootPredictiveAtPlayer(const Irufemi::Vector3& 
     }
 
     Irufemi::Vector3 myPos = transform->GetWorldPosition();
-    float dx = playerPos.x - myPos.x;
-    float dy = playerPos.y - myPos.y;
-    float dz = playerPos.z - myPos.z;
-    float dist = std::sqrt(dx * dx + dy * dy + dz * dz);
-    float travelTime = dist / (std::max)(bulletSpeed_, 1.0f);
-    travelTime = std::clamp(travelTime, 0.0f, 1.2f); // 過剰な未来予測の暴走を防止
+    Irufemi::Vector3 dir = lockedAimDir_;
 
-    // 自機の未来予測座標
-    Irufemi::Vector3 predictedTarget = {playerPos.x + playerVel.x * travelTime, playerPos.y + playerVel.y * travelTime,
-                                        playerPos.z + playerVel.z * travelTime};
+    // 射線ロック固定中でない場合はプレイヤーの移動ベクトルから未来予測射線を算出
+    if (!isAimLocked_) {
+        float dx = playerPos.x - myPos.x;
+        float dy = playerPos.y - myPos.y;
+        float dz = playerPos.z - myPos.z;
+        float dist = std::sqrt(dx * dx + dy * dy + dz * dz);
+        float travelTime = dist / (std::max)(bulletSpeed_, 1.0f);
+        travelTime = std::clamp(travelTime, 0.0f, 1.2f); // 過剰な未来予測の暴走を防止
 
-    Irufemi::Vector3 dir = {predictedTarget.x - myPos.x, predictedTarget.y - myPos.y, predictedTarget.z - myPos.z};
-    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-    if (len > 0.0001f) {
-        dir.x /= len;
-        dir.y /= len;
-        dir.z /= len;
-    } else {
-        dir = {0.0f, 0.0f, -1.0f};
+        // 自機の未来予測座標
+        Irufemi::Vector3 predictedTarget = {playerPos.x + playerVel.x * travelTime,
+                                            playerPos.y + playerVel.y * travelTime,
+                                            playerPos.z + playerVel.z * travelTime};
+
+        Irufemi::Vector3 diff = {predictedTarget.x - myPos.x, predictedTarget.y - myPos.y, predictedTarget.z - myPos.z};
+        float len = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+        if (len > 0.0001f) {
+            dir = {diff.x / len, diff.y / len, diff.z / len};
+        } else {
+            dir = {0.0f, 0.0f, -1.0f};
+        }
     }
 
     if (!bulletManager_) {

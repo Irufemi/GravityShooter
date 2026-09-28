@@ -99,9 +99,18 @@ public:
      */
     void NotifyDespawn(DespawnReason reason);
 
+    /**
+     * @brief 敵のサイズ倍率を設定する（Lootドロップ量等の算出基準）
+     * @param scale スケール倍率
+     */
     void SetScaleMultiplier(float scale) {
         scaleMultiplier_ = scale;
     }
+
+    /**
+     * @brief 敵のサイズ倍率を取得する
+     * @return スケール倍率
+     */
     float GetScaleMultiplier() const {
         return scaleMultiplier_;
     }
@@ -115,48 +124,117 @@ public:
      * @param formationOffset フォーメーションによるローカルXYオフセット
      */
     void SetRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* follower, float initialDistOffset,
-                               float targetDistOffset, const Irufemi::Vector2& formationOffset);
+                                float targetDistOffset, const Irufemi::Vector2& formationOffset);
 
+    /**
+     * @brief フォーメーション基準のローカルXYオフセットを設定する
+     * @param offset ローカルXYオフセット (m)
+     */
     void SetFormationOffset(const Irufemi::Vector2& offset) {
         baseFormationOffset_ = offset;
         currentLocalOffset_ = offset;
     }
+
+    /**
+     * @brief レール上の自機からの現在相対距離オフセットを設定する
+     * @param offset 距離オフセット (m)
+     */
     void SetDistanceOffset(float offset) {
         currentDistanceOffset_ = offset;
     }
 
-    // パラメータ設定
+    /**
+     * @brief 進入・離脱の移動速度を設定する
+     * @param speed 移動速度 (m/s)
+     */
     void SetSpeed(float speed) {
         speed_ = speed;
     }
+
+    /**
+     * @brief 滞空交戦の制限時間を設定する
+     * @param duration 交戦継続時間（秒）
+     */
     void SetCombatDuration(float duration) {
         combatDuration_ = duration;
     }
+
+    /**
+     * @brief 射撃インターバルを設定する
+     * @param interval 射撃間隔（秒）
+     */
     void SetShootInterval(float interval) {
         shootInterval_ = interval;
     }
+
+    /**
+     * @brief 自機前方との目標維持距離を設定する
+     * @param dist 目標維持距離 (m)
+     */
     void SetTargetDistance(float dist) {
         targetDistance_ = dist;
     }
+
+    /**
+     * @brief 敵弾のスケール・コライダー半径を設定する
+     * @param scale 弾スケール
+     */
     void SetBulletScale(float scale) {
         bulletScale_ = scale;
     }
+
+    /**
+     * @brief 敵弾の飛翔速度を設定する
+     * @param speed 弾速 (m/s)
+     */
     void SetBulletSpeed(float speed) {
         bulletSpeed_ = speed;
     }
+
+    /**
+     * @brief 戦術行動タイプを設定する
+     * @param type 行動タイプ（通常/急降下/スナイパー）
+     */
     void SetBehaviorType(EnemyBehaviorType type) {
         behaviorType_ = static_cast<int>(type);
     }
+
+    /**
+     * @brief 戦術行動タイプを取得する
+     * @return 行動タイプ（通常/急降下/スナイパー）
+     */
     EnemyBehaviorType GetBehaviorType() const {
         return static_cast<EnemyBehaviorType>(behaviorType_);
     }
 
 private:
+    /**
+     * @brief プレイヤー現在位置へ向けて通常射撃を行う
+     * @param playerPos プレイヤー座標
+     */
     void ShootAtPlayer(const Irufemi::Vector3& playerPos);
+
+    /**
+     * @brief プレイヤーの移動ベクトルから偏差射撃を行う
+     * @param playerPos プレイヤー座標
+     * @param playerVel プレイヤー推定速度
+     */
     void ShootPredictiveAtPlayer(const Irufemi::Vector3& playerPos, const Irufemi::Vector3& playerVel);
+
+    /**
+     * @brief シーン上のプレイヤーオブジェクトを取得する
+     * @return プレイヤーのGameObjectポインタ（存在しない場合nullptr）
+     */
     GameObject* GetPlayerObject();
 
+    /**
+     * @brief 予兆（Telegraphing）描画用リソースの初期化を保証する
+     */
     void EnsureTelegraphResources();
+
+    /**
+     * @brief 予兆ステートをリセットする
+     */
     void ResetTelegraph();
 
 private:

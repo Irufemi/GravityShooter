@@ -96,9 +96,11 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
         poolData->baseColliderRadius = 1.6f;
     }
 
-    // プレハブ専用の ModelBatchRendererComponent をアタッチしてモデルをロード（Instancing描画）
+    // プレハブ専用の子 GameObject を作成して ModelBatchRendererComponent をアタッチ（1オブジェクト1コンポーネント原則）
     if (gameObject_) {
-        poolData->batchRenderer = gameObject_->AddComponent<ModelBatchRendererComponent>();
+        auto batchChild = std::make_shared<GameObject>("BatchRenderer_" + prefabPath);
+        gameObject_->AddChild(batchChild);
+        poolData->batchRenderer = batchChild->AddComponent<ModelBatchRendererComponent>();
         poolData->batchRenderer->LoadModel(poolData->modelPath);
     }
 
@@ -149,7 +151,7 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
                 // プレイヤー撃破（または自爆体当たり）時のみ、残骸ガレキドロップ＆Voxel破砕演出を実行
                 if (reason == DespawnReason::KilledByPlayer || reason == DespawnReason::CollisionSuicide) {
-                    auto deadTrans = deadObj->GetComponent<TransformComponent>();
+                    auto deadTrans = deadObj->GetTransform();
                     Irufemi::Vector3 deadPos =
                         deadTrans ? deadTrans->GetWorldPosition() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
                     Irufemi::Vector3 currentScale =
