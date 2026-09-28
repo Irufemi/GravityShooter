@@ -134,4 +134,3 @@ void SkyDomeComponent::Deserialize(const nlohmann::json& j) {
     ReloadTexture();
     UpdateMaterialBuffer();
 }
-

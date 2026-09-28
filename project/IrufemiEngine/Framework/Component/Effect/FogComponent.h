@@ -79,9 +79,9 @@ private:
 
 private:
     Irufemi::Vector3 fogColor_ = {0.65f, 0.70f, 0.85f}; ///< フォグ色 (淡いラベンダーブルー)
-    float fogStart_ = 200.0f;                            ///< 開始距離 (m)
-    float fogEnd_ = 2000.0f;                             ///< 終了距離 (m)
-    float fogDensity_ = 1.0f;                            ///< 密度
-    int fogType_ = 0;                                    ///< 0: Linear, 1: Exponential
-    bool enabled_ = true;                                ///< 有効/無効フラグ
+    float fogStart_ = 200.0f;                           ///< 開始距離 (m)
+    float fogEnd_ = 2000.0f;                            ///< 終了距離 (m)
+    float fogDensity_ = 1.0f;                           ///< 密度
+    int fogType_ = 0;                                   ///< 0: Linear, 1: Exponential
+    bool enabled_ = true;                               ///< 有効/無効フラグ
 };

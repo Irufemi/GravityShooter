@@ -37,12 +37,8 @@ void MeshRendererComponent::OnRegisterProperties() {
         });
     RegisterProperty("Visible", &isVisible_);
     RegisterProperty("Cast Shadows", &castShadows_);
-    RegisterProperty("Enable Lighting", &enableLighting_).OnChanged([this]() {
-        SetEnableLighting(enableLighting_);
-    });
-    RegisterProperty("Is Skydome", &isSkydome_).OnChanged([this]() {
-        SetIsSkydome(isSkydome_);
-    });
+    RegisterProperty("Enable Lighting", &enableLighting_).OnChanged([this]() { SetEnableLighting(enableLighting_); });
+    RegisterProperty("Is Skydome", &isSkydome_).OnChanged([this]() { SetIsSkydome(isSkydome_); });
 }
 
 void MeshRendererComponent::Initialize() {
@@ -93,7 +89,8 @@ void MeshRendererComponent::SetIsSkydome(bool isSkydome) {
     if (obj_) {
         if (isSkydome_) {
             // Skydome専用PSO（最奥深度.xyww、前面カリング、深度書き込み無効）を全メッシュに適用
-            obj_->SetCustomPSO("Skydome", Irufemi::BlendMode::kBlendModeNone, PSOManager::DepthWrite::Disable, PSOManager::CullMode::Front);
+            obj_->SetCustomPSO("Skydome", Irufemi::BlendMode::kBlendModeNone, PSOManager::DepthWrite::Disable,
+                               PSOManager::CullMode::Front);
             obj_->SetCastShadows(false);
             obj_->SetCullingEnabled(false);
             obj_->SetEnableLightingToAllMeshes(false); // 自己発光Unlit

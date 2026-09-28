@@ -165,8 +165,8 @@ private:
     std::unique_ptr<StaticModelObject> obj_; ///< 実際の描画を担う既存クラス
     std::string modelName_ = "";             ///< 読み込むモデル名
     std::string currentLoadedFilename_ = ""; ///< 現在ロードされているモデル名（動的変更検知用）
-    bool enableLighting_ = true;             ///< ライティング有効フラグ（falseでUnlit自己発光モード）
-    bool isSkydome_ = false;                 ///< Skydomeモードフラグ（最奥深度固定・前面カリング・深度書き込み無効）
+    bool enableLighting_ = true; ///< ライティング有効フラグ（falseでUnlit自己発光モード）
+    bool isSkydome_ = false; ///< Skydomeモードフラグ（最奥深度固定・前面カリング・深度書き込み無効）
     bool castShadows_ = true;
     bool isVisible_ = true;
 };

@@ -36,7 +36,7 @@ void BossStateCoreExposed::Enter(BossComponent* boss) {
         }
         auto params = coreMask->GetCustomParams();
         params.color1 = Irufemi::Vector4{1.5f, 1.2f, 0.2f, 1.0f}; // 超高輝度ゴールド
-        params.param1 = 3.0f;                                      // 太線強調
+        params.param1 = 3.0f;                                     // 太線強調
         coreMask->SetCustomParams(params);
     }
 }

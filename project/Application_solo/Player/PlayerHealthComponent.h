@@ -131,7 +131,7 @@ private:
     class ColliderComponent* collider_ = nullptr;
 
     // 無敵ブリンク演出 (Juice)
-    Irufemi::Vector4 normalOutlineColor_ = {0.15f, 0.9f, 1.0f, 1.0f};  //!< 通常時の自機ネオンシアン色
+    Irufemi::Vector4 normalOutlineColor_ = {0.15f, 0.9f, 1.0f, 1.0f}; //!< 通常時の自機ネオンシアン色
     Irufemi::Vector4 warningOutlineColor_ = {1.0f, 0.1f, 0.1f, 1.0f}; //!< 被弾無敵時の警告レッド色
-    bool hasCachedNormalOutline_ = false;                              //!< 通常アウトライン色のキャッシュ完了フラグ
+    bool hasCachedNormalOutline_ = false; //!< 通常アウトライン色のキャッシュ完了フラグ
 };

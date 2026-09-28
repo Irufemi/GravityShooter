@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    float hitFlashTimer_ = 0.0f;                                      //!< コア被弾時の白熱閃光タイマー（秒）
+    float hitFlashTimer_ = 0.0f; //!< コア被弾時の白熱閃光タイマー（秒）
     Irufemi::Vector4 originalCoreColor_ = {1.0f, 0.05f, 0.15f, 1.0f}; //!< 通常時の深紅アウトライン色
     float originalThickness_ = 2.0f;                                  //!< 通常時のアウトライン線幅
     bool hasCachedOriginal_ = false;                                  //!< 通常設定のキャッシュ完了フラグ

@@ -55,7 +55,7 @@ ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::strin
         auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
         if (obj) {
             obj->SetIsSerializable(false); // セーブデータへの混入を確実に防止
-            obj->SetHideInHierarchy(true);  // エディタのヒエラルキーを汚染しないよう非表示設定
+            obj->SetHideInHierarchy(true); // エディタのヒエラルキーを汚染しないよう非表示設定
             obj->SetIsActive(false);       // Removeせずに非アクティブ状態で休眠させる
 
             // 寿命コンポーネントがあれば、プール運用のためにDestroyではなくDisableに変更する

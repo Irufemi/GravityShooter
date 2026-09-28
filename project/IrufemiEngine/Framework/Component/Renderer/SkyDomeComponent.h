@@ -103,11 +103,11 @@ private:
 private:
     std::string texturePath_ = "resources/texture/sky/skydome.png"; ///< 空テクスチャパス
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};             ///< 空のカラー乗数
-    float intensity_ = 1.0f;                                         ///< 輝度乗数
-    Irufemi::Vector2 uvOffset_ = {0.0f, 0.0f};                       ///< UVオフセット
-    Irufemi::Vector2 uvTiling_ = {1.0f, 1.0f};                       ///< UVタイリング
+    float intensity_ = 1.0f;                                        ///< 輝度乗数
+    Irufemi::Vector2 uvOffset_ = {0.0f, 0.0f};                      ///< UVオフセット
+    Irufemi::Vector2 uvTiling_ = {1.0f, 1.0f};                      ///< UVタイリング
 
-    uint32_t textureIndex_ = 0;                                      ///< [Bindless] テクスチャインデックス
+    uint32_t textureIndex_ = 0; ///< [Bindless] テクスチャインデックス
     Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_ = nullptr; ///< マテリアル定数バッファ
-    Material* mappedMaterialData_ = nullptr;                         ///< マップポインタ
+    Material* mappedMaterialData_ = nullptr;                            ///< マップポインタ
 };

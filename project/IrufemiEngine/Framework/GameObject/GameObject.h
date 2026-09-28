@@ -376,8 +376,7 @@ public:
      * @param[in] makeChild trueの場合、生成されたオブジェクトを自身の子（AddChild）として階層化する
      * @return 生成された GameObject のポインタ
      */
-    std::shared_ptr<GameObject> Instantiate(const std::string& prefabPath,
-                                            const Irufemi::Vector3& position = {0, 0, 0},
+    std::shared_ptr<GameObject> Instantiate(const std::string& prefabPath, const Irufemi::Vector3& position = {0, 0, 0},
                                             bool makeChild = false);
 
     // --- エディタ用フラグ ---

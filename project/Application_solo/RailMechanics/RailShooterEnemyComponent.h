@@ -289,7 +289,7 @@ private:
     float scaleMultiplier_ = 1.0f;           //!< 敵のサイズ倍率（Lootドロップ量等の算出基準）
 
     // 被弾ヒットフラッシュ演出 (Juice)
-    float hitFlashTimer_ = 0.0f;                                        //!< ヒットフラッシュの残り時間（秒）
+    float hitFlashTimer_ = 0.0f; //!< ヒットフラッシュの残り時間（秒）
     Irufemi::Vector4 originalOutlineColor_ = {1.0f, 0.2f, 0.1f, 1.0f}; //!< 通常時のアウトライン色
-    bool hasCachedOriginalOutline_ = false;                             //!< 初期アウトライン色のキャッシュ完了フラグ
+    bool hasCachedOriginalOutline_ = false; //!< 初期アウトライン色のキャッシュ完了フラグ
 };
