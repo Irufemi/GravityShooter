@@ -1046,6 +1046,25 @@ renderer->LoadModel("sample/cube.gltf");
 
 ※ アニメーションを行わないため、後述の `SkinnedMeshRendererComponent` よりも軽量に動作します。動かない物体にはこちらを優先して使用してください。
 
+### ライティングの有効/無効切替 (Unlit描画)
+スカイドーム（天球）や自己発光するオブジェクト、UI用3Dモデルなど、**「シーンの平行光源（DirectionalLight）による陰影計算を無視し、テクスチャ本来の色を100%忠実に出力させたい」** 場合は、ライティングを無効化（Unlit化）できます。
+
+- **C++ コードからの制御:**
+```cpp
+auto renderer = gameObject_->GetComponent<MeshRendererComponent>();
+renderer->SetEnableLighting(false); // Unlit（陰影なし・自己発光）モードに切り替え
+```
+
+- **Scene / Prefab JSON からの設定:**
+```json
+{
+    "type": "MeshRendererComponent",
+    "modelPath": "resources/models/skydome/skydome.obj",
+    "enableLighting": false
+}
+```
+※ デフォルトは `true`（通常ライティング有効）です。
+
 ### 3Dプリミティブの描画 (PrimitiveRendererComponent)
 テスト用の床や障害物など、モデルファイルを用意せずに簡易的な立体を描画したい場合は `PrimitiveRendererComponent` を使用します。
 
@@ -1425,6 +1444,14 @@ gameObject->AddComponent<EffectMaskComponent>();
 // 発動時 (effectType, effectParam, duration(秒))
 gameObject->GetComponent<EffectMaskComponent>()->ApplyEffect(8, effectParam, 1.0f);
 ```
+
+#### 【仕様】アウター・シルエット方式アウトライン (Outer Silhouette)
+本エンジンの個別輪郭線（`LuminanceBasedOutline`）は、**モデル表面のテクスチャやライティングを100%保護し、外側の背景ピクセルのみに輪郭線を描画する「アウター・シルエット方式」**（AAAタイトル・Overwatch等と同様の方式）を採用しています。
+
+- モデルのスリットやモールドなどの細かなテクスチャデザインが塗り潰されることがなく、クオリティの高い輪郭強調が可能です。
+- 線幅の下限は `0.5px` に対応しており、極細でシャープなハイライトから太いアニメ調ラインまで自由に調整できます。
+- ロックオンシステム等で敵を強調する際は、モデル表面を汚さずに外周だけを高輝度イエロー等で際立たせることができます。
+
 
 ### 4. バッチ描画（環境物）への適用 (ModelBatchRendererComponent)
 大量に配置された静的・環境オブジェクトの、**特定のインスタンスにのみ** エフェクトを指定する方法です。
