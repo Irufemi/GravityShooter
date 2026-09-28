@@ -358,10 +358,12 @@ void BaseScene::WarmUpRenderState() {
         pendingRemoves_.clear();
     }
 
-    // 2. 未実行オブジェクトの Start() を先行実行（Scene Priming: カメラ登録や参照解決、初期配置を完了）
-    for (auto& obj : gameObjects_) {
-        if (obj && !obj->GetParent() && !obj->IsDestroyed() && !obj->IsStarted()) {
-            obj->Start();
+    // 2. 未実行オブジェクトの Start() を先行実行（Scene Priming: ゲーム実行中のみ開始し、Editモード時の暴発を防止）
+    if (engine_ && engine_->IsPlayMode()) {
+        for (auto& obj : gameObjects_) {
+            if (obj && !obj->GetParent() && !obj->IsDestroyed() && !obj->IsStarted()) {
+                obj->Start();
+            }
         }
     }
 

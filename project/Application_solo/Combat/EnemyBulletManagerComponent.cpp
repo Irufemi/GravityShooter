@@ -19,7 +19,7 @@ void EnemyBulletManagerComponent::OnRegisterProperties() {
 }
 
 void EnemyBulletManagerComponent::Initialize() {
-    WarmupPool();
+    // Editモード中（シーン編集時）の不要なプール生成を防止するため、Initializeではプレウォームを行わない
 }
 
 void EnemyBulletManagerComponent::Start() {
@@ -75,6 +75,7 @@ void EnemyBulletManagerComponent::WarmupPool() {
 
         auto bullet = std::make_shared<GameObject>("EnemyBullet");
         bullet->SetIsSerializable(false);
+        bullet->SetHideInHierarchy(true); // エディタのヒエラルキーを汚染しないよう非表示設定
 
         // レンダラー設定
         auto meshRenderer = bullet->AddComponent<MeshRendererComponent>();
@@ -99,8 +100,8 @@ void EnemyBulletManagerComponent::WarmupPool() {
         bulletComp->Initialize();
         bulletComp->SetManager(this);
 
-        // シーンに登録し、非アクティブにして待機
-        scene->AddGameObject(bullet);
+        // マネージャーの子オブジェクトとして登録し、非アクティブにして待機（ルート直置きを解消）
+        gameObject_->AddChild(bullet);
         bullet->SetIsActive(false);
 
         return bullet;

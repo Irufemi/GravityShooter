@@ -51,9 +51,12 @@ ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::strin
 
     int poolCapacity = (effectKey == "Hit") ? maxHitEffects_ : maxDustEffects_;
     auto pool = std::make_unique<ObjectPool<GameObject>>(poolCapacity, [this, prefabPath]() {
-        auto obj = gameObject_->Instantiate(prefabPath); // ☛Instantiate内部でシーン登録される
+        // makeChild = true でマネージャーの子として生成し、ルート直置きを解消
+        auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
         if (obj) {
-            obj->SetIsActive(false); // Removeせずに非アクティブ状態で休眠させる
+            obj->SetIsSerializable(false); // セーブデータへの混入を確実に防止
+            obj->SetHideInHierarchy(true);  // エディタのヒエラルキーを汚染しないよう非表示設定
+            obj->SetIsActive(false);       // Removeせずに非アクティブ状態で休眠させる
 
             // 寿命コンポーネントがあれば、プール運用のためにDestroyではなくDisableに変更する
             if (auto lifetime = obj->GetComponent<LifetimeComponent>()) {

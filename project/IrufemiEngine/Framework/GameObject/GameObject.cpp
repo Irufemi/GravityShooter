@@ -890,9 +890,15 @@ void GameObject::SendCollisionExit(GameObject* hitObject) {
     }
 }
 
-std::shared_ptr<GameObject> GameObject::Instantiate(const std::string& prefabPath, const Irufemi::Vector3& position) {
+std::shared_ptr<GameObject> GameObject::Instantiate(const std::string& prefabPath,
+                                                    const Irufemi::Vector3& position,
+                                                    bool makeChild) {
     if (scene_) {
-        return scene_->InstantiatePrefab(prefabPath, position);
+        auto obj = scene_->InstantiatePrefab(prefabPath, position);
+        if (obj && makeChild) {
+            AddChild(obj);
+        }
+        return obj;
     }
     return nullptr;
 }
