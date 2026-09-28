@@ -349,9 +349,9 @@
                 "customEffectType": 6,
                 "customParams": {
                   "color1": [
-                    0.0,
-                    0.0,
-                    0.0,
+                    0.15000000596046448,
+                    0.8999999761581421,
+                    1.0,
                     1.0
                   ],
                   "color2": [
@@ -360,7 +360,7 @@
                     0.0,
                     1.0
                   ],
-                  "param1": 1.0,
+                  "param1": 1.5,
                   "param2": 0.0,
                   "param3": 0.0,
                   "param4": 0.0
@@ -2169,9 +2169,9 @@
                 "customEffectType": 6,
                 "customParams": {
                   "color1": [
-                    0.0,
-                    0.0,
-                    0.0,
+                    1.0,
+                    0.25,
+                    0.05000000074505806,
                     1.0
                   ],
                   "color2": [
@@ -2180,7 +2180,7 @@
                     0.0,
                     1.0
                   ],
-                  "param1": 1.0,
+                  "param1": 2.0,
                   "param2": 0.0,
                   "param3": 0.0,
                   "param4": 0.0
@@ -2555,9 +2555,9 @@
                 "customEffectType": 6,
                 "customParams": {
                   "color1": [
-                    0.0,
-                    0.0,
-                    0.0,
+                    1.0,
+                    0.20000000298023224,
+                    0.10000000149011612,
                     1.0
                   ],
                   "color2": [
@@ -2566,7 +2566,7 @@
                     0.0,
                     1.0
                   ],
-                  "param1": 1.0,
+                  "param1": 1.5,
                   "param2": 0.0,
                   "param3": 0.0,
                   "param4": 0.0
@@ -2783,6 +2783,52 @@
       ],
       "instanceId": 998877665544332211,
       "name": "GlobalPostProcessVolume",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              2.0,
+              2.0,
+              2.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "modelName": "resources/model/skydome/skydome.obj"
+          },
+          "type": "MeshRendererComponent"
+        },
+        {
+          "data": {
+            "FollowDelay": 0.0,
+            "Offset": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Target Object": 1432498776640000749
+          },
+          "type": "TargetFollowComponent"
+        }
+      ],
+      "instanceId": 777111222333444555,
+      "name": "Skydome",
       "tag": "Untagged"
     }
   ],

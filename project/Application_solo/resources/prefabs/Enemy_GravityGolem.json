@@ -63,6 +63,31 @@
         "TargetDistance": 65.0
       },
       "type": "RailShooterEnemyComponent"
+    },
+    {
+      "data": {
+        "customEffectType": 6,
+        "customParams": {
+          "color1": [
+            1.0,
+            0.35,
+            0.05,
+            1.0
+          ],
+          "color2": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "param1": 2.0,
+          "param2": 0.0,
+          "param3": 0.0,
+          "param4": 0.0
+        },
+        "enableEffectMask": true
+      },
+      "type": "EffectMaskComponent"
     }
   ],
   "instanceId": 7391454204695923275,

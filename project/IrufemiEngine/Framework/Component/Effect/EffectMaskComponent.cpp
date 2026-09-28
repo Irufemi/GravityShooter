@@ -14,13 +14,7 @@ void EffectMaskComponent::Initialize() {
     OnSpawned();
 }
 
-void EffectMaskComponent::OnAwake() {
-    if (gameObject_) {
-        cachedRenderer_ = gameObject_->GetComponent<MeshRendererComponent>();
-        cachedSkinnedRenderer_ = gameObject_->GetComponent<SkinnedMeshRendererComponent>();
-        hasCheckedRenderer_ = true;
-    }
-}
+void EffectMaskComponent::OnAwake() {}
 
 void EffectMaskComponent::OnSpawned() {
     if (auto* engine = GetEngine()) {
@@ -29,12 +23,6 @@ void EffectMaskComponent::OnSpawned() {
 }
 
 void EffectMaskComponent::Update() {
-    if (!hasCheckedRenderer_ && gameObject_) {
-        cachedRenderer_ = gameObject_->GetComponent<MeshRendererComponent>();
-        cachedSkinnedRenderer_ = gameObject_->GetComponent<SkinnedMeshRendererComponent>();
-        hasCheckedRenderer_ = true;
-    }
-
     if (enableEffectMask_ && customEffectType_ > 0) {
         if (!cachedPostProcessManager_) {
             if (auto* engine = GetEngine()) {
@@ -52,16 +40,16 @@ void EffectMaskComponent::Update() {
 
     const bool isDirty =
         (lastEnable_ != enableEffectMask_ || lastType_ != customEffectType_ || lastParam_ != cachedEffectParam_);
-    if (isDirty) {
-        if (cachedRenderer_) {
-            cachedRenderer_->SetEnableEffectMask(enableEffectMask_);
-            cachedRenderer_->SetCustomEffectType(customEffectType_);
-            cachedRenderer_->SetCustomEffectParam(cachedEffectParam_);
+    if (isDirty && gameObject_) {
+        if (auto meshRenderer = gameObject_->GetComponent<MeshRendererComponent>()) {
+            meshRenderer->SetEnableEffectMask(enableEffectMask_);
+            meshRenderer->SetCustomEffectType(customEffectType_);
+            meshRenderer->SetCustomEffectParam(cachedEffectParam_);
         }
-        if (cachedSkinnedRenderer_) {
-            cachedSkinnedRenderer_->SetEnableEffectMask(enableEffectMask_);
-            cachedSkinnedRenderer_->SetCustomEffectType(customEffectType_);
-            cachedSkinnedRenderer_->SetCustomEffectParam(cachedEffectParam_);
+        if (auto skinnedRenderer = gameObject_->GetComponent<SkinnedMeshRendererComponent>()) {
+            skinnedRenderer->SetEnableEffectMask(enableEffectMask_);
+            skinnedRenderer->SetCustomEffectType(customEffectType_);
+            skinnedRenderer->SetCustomEffectParam(cachedEffectParam_);
         }
         lastEnable_ = enableEffectMask_;
         lastType_ = customEffectType_;

@@ -14,6 +14,7 @@
 #include "Environment/DebrisManagerComponent.h"
 #include "Effects/EffectManagerComponent.h"
 #include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
 
 // AAAタイトルのアプローチ (Data-Oriented Design & Instancing)
 // 個々の敵オブジェクトにMeshRendererを持たせるのではなく、Spawnerが一括でModelBatchRendererComponentを管理します。
@@ -249,7 +250,16 @@ void EnemySpawnerComponent::Update() {
             auto poolIt = prefabPools_.find(prefabPath);
             if (poolIt != prefabPools_.end() && poolIt->second && poolIt->second->batchRenderer) {
                 if (auto transform = enemyObj->GetTransform()) {
-                    poolIt->second->batchRenderer->AddInstanceWorld(transform->GetWorldMatrix());
+                    int32_t effectType = 0;
+                    float effectParam = 0.0f;
+                    bool enableMask = false;
+                    if (auto effectMask = enemyObj->GetComponent<EffectMaskComponent>()) {
+                        enableMask = effectMask->GetEnableEffectMask();
+                        effectType = effectMask->GetCustomEffectType();
+                        effectParam = effectMask->GetCachedEffectParam();
+                    }
+                    poolIt->second->batchRenderer->AddInstanceWorld(transform->GetWorldMatrix(), effectType,
+                                                                    effectParam, enableMask);
                 }
             }
         }
