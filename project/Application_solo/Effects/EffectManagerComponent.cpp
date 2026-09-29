@@ -160,11 +160,9 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
     }
 }
 
-std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(
-    const std::string& effectKey,
-    std::shared_ptr<GameObject> parent,
-    const Irufemi::Vector3& localOffset
-) {
+std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(const std::string& effectKey,
+                                                                       std::shared_ptr<GameObject> parent,
+                                                                       const Irufemi::Vector3& localOffset) {
     if (!parent) {
         return nullptr;
     }
@@ -189,4 +187,3 @@ std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(
     }
     return effectObj;
 }
-

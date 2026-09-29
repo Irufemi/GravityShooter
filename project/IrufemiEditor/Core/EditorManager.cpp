@@ -407,11 +407,7 @@ void EditorManager::FramePrefabObject() {
 
     if (auto camTrans = stageCameraObject_->GetTransform()) {
         // 斜め上方から見下ろす位置にカメラを配置
-        Irufemi::Vector3 camPos = {
-            targetCenter.x,
-            targetCenter.y + radius * 0.5f,
-            targetCenter.z - distance
-        };
+        Irufemi::Vector3 camPos = {targetCenter.x, targetCenter.y + radius * 0.5f, targetCenter.z - distance};
         camTrans->SetPosition(camPos);
         camTrans->SetRotation({8.0f * (Irufemi::Math::PI / 180.0f), 0.0f, 0.0f});
     }

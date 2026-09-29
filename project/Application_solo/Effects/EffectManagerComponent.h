@@ -43,17 +43,15 @@ public:
     void PlayEffect(const std::string& effectKey, const Irufemi::Vector3& worldPosition);
 
     /**
-     * @brief 指定したGameObjectの子としてエフェクトをアタッチし、親の移動・3軸回転に自動追従させる (Niagara SpawnAttached方式)
+     * @brief 指定したGameObjectの子としてエフェクトをアタッチし、親の移動・3軸回転に自動追従させる (Niagara
+     * SpawnAttached方式)
      * @param effectKey エフェクトプレハブの識別キー ("Thruster" 等)
      * @param parent 追従先の親GameObject (自機、敵戦闘機等)
      * @param localOffset 親ローカル空間での配置オフセット
      * @return 生成されたエフェクトGameObjectへの共有ポインタ
      */
-    std::shared_ptr<GameObject> PlayAttachedEffect(
-        const std::string& effectKey,
-        std::shared_ptr<GameObject> parent,
-        const Irufemi::Vector3& localOffset = {0.0f, 0.0f, 0.0f}
-    );
+    std::shared_ptr<GameObject> PlayAttachedEffect(const std::string& effectKey, std::shared_ptr<GameObject> parent,
+                                                   const Irufemi::Vector3& localOffset = {0.0f, 0.0f, 0.0f});
 
 private:
     static inline EffectManagerComponent* s_instance_ = nullptr; //!< 静的サービスロケータインスタンス

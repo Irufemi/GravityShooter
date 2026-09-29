@@ -265,7 +265,8 @@ void ProjectBrowserPanel::Draw() {
                     std::string pathLower = path.generic_string();
                     std::transform(pathLower.begin(), pathLower.end(), pathLower.begin(), ::tolower);
                     if (ext == ".prefab" || pathLower.find(".prefab.json") != std::string::npos ||
-                        pathLower.find("prefabs/") != std::string::npos || pathLower.find("prefabs\\") != std::string::npos) {
+                        pathLower.find("prefabs/") != std::string::npos ||
+                        pathLower.find("prefabs\\") != std::string::npos) {
                         isPrefabFile = true;
                     }
                 }

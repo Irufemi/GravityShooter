@@ -35,12 +35,9 @@ void PlayerThrusterVisualizerComponent::Start() {
     // 2. RailShooterPlayerComponent のイベントを購読 (Observer パターン)
     playerComp_ = gameObject_->GetComponent<RailShooterPlayerComponent>();
     if (playerComp_) {
-        playerComp_->AddOnThrottleChangeListener([this](float throttle) {
-            OnThrottleChanged(throttle);
-        });
-        playerComp_->AddOnStateChangeListener([this](PlayerFlightState newState, PlayerFlightState oldState) {
-            OnStateChanged(newState, oldState);
-        });
+        playerComp_->AddOnThrottleChangeListener([this](float throttle) { OnThrottleChanged(throttle); });
+        playerComp_->AddOnStateChangeListener(
+            [this](PlayerFlightState newState, PlayerFlightState oldState) { OnStateChanged(newState, oldState); });
     }
 }
 

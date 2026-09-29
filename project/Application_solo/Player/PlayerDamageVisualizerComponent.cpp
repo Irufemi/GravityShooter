@@ -148,19 +148,12 @@ void PlayerDamageVisualizerComponent::TriggerDeathVisuals() {
         p.gravity = 6.0f;
         p.dispersion = 18.0f; // 激しい四散インパルス
         p.scale = {0.6f, 0.6f, 0.6f};
-        p.startColor = {2.5f, 1.8f, 0.8f, 1.0f};       // 激しい閃光オレンジ
-        p.endColor = {0.1f, 0.1f, 0.1f, 1.0f};         // 煤・燃え尽き炭
+        p.startColor = {2.5f, 1.8f, 0.8f, 1.0f};        // 激しい閃光オレンジ
+        p.endColor = {0.1f, 0.1f, 0.1f, 1.0f};          // 煤・燃え尽き炭
         p.dissolveEdgeColor = {0.2f, 0.8f, 1.0f, 1.0f}; // 自機シアンの余韻
 
-        voxelManager->PlayExplosion(
-            "resources/model/PlayerCraft/PlayerCraft.obj",
-            deathPos,
-            deathRot,
-            {0.0f, 0.0f, 0.0f},
-            deathScale,
-            p,
-            {3, 3, 3}
-        );
+        voxelManager->PlayExplosion("resources/model/PlayerCraft/PlayerCraft.obj", deathPos, deathRot,
+                                    {0.0f, 0.0f, 0.0f}, deathScale, p, {3, 3, 3});
     }
 
     // ② 二次爆発エフェクトの重畳（火球・閃光）

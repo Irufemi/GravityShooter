@@ -32,8 +32,8 @@ private:
     RailShooterPlayerComponent* playerComp_ = nullptr;
 
     Irufemi::Vector3 nozzleOffset_ = {0.0f, 0.0f, -0.48f}; ///< 機体ノズル相対座標
-    float minScaleZ_ = 0.8f;   ///< アイドル時のスケール
-    float maxScaleZ_ = 1.8f;   ///< 全力ブースト時のスケール
+    float minScaleZ_ = 0.8f;                               ///< アイドル時のスケール
+    float maxScaleZ_ = 1.8f;                               ///< 全力ブースト時のスケール
     float currentScaleZ_ = 1.0f;
     float targetScaleZ_ = 1.0f;
 };

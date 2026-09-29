@@ -9,11 +9,11 @@
  * @brief 自機の飛行・機動ステート（一線級シューターのStateパターン）
  */
 enum class PlayerFlightState {
-    Idle,       ///< 静止ホバリング中（微小呼吸振動）
-    Cruise,     ///< 通常移動中（標準バンク・ピッチ）
-    Boost,      ///< 急加速中（前傾姿勢、アフターバーナー点火）
-    Brake,      ///< 急制動中（ノーズアップ、減速）
-    Dying       ///< 撃破・制御不能
+    Idle,   ///< 静止ホバリング中（微小呼吸振動）
+    Cruise, ///< 通常移動中（標準バンク・ピッチ）
+    Boost,  ///< 急加速中（前傾姿勢、アフターバーナー点火）
+    Brake,  ///< 急制動中（ノーズアップ、減速）
+    Dying   ///< 撃破・制御不能
 };
 
 /**
@@ -81,16 +81,16 @@ private:
     float maxSpeed_ = 15.0f;      // 最高速度
 
     // --- 3軸姿勢制御パラメータ（Pitch / Yaw / Roll） ---
-    float rollAngle_ = 0.0f;      ///< 現在のロール角（Z軸: 左右の傾き）
-    float maxRollAngle_ = 0.8f;   ///< 最大ロール角度（約45度）
+    float rollAngle_ = 0.0f;    ///< 現在のロール角（Z軸: 左右の傾き）
+    float maxRollAngle_ = 0.8f; ///< 最大ロール角度（約45度）
 
     float pitchAngle_ = 0.0f;     ///< 現在のピッチ角（X軸: 上下の傾き）
     float maxPitchAngle_ = 0.40f; ///< 最大ピッチ角度（約23度: 上昇時にノーズアップ）
 
-    float yawAngle_ = 0.0f;       ///< 現在のヨー角（Y軸: 旋回方向への首振り）
-    float maxYawAngle_ = 0.20f;   ///< 最大ヨー角度（約11度: 旋回スリップ）
+    float yawAngle_ = 0.0f;     ///< 現在のヨー角（Y軸: 旋回方向への首振り）
+    float maxYawAngle_ = 0.20f; ///< 最大ヨー角度（約11度: 旋回スリップ）
 
-    float hoverTimer_ = 0.0f;     ///< 浮遊アニメーション用の経過時間
-    float hoverAmplitude_ = 0.25f;///< 浮遊の揺れ幅
-    float hoverFrequency_ = 2.0f; ///< 浮遊の揺れ速度
+    float hoverTimer_ = 0.0f;      ///< 浮遊アニメーション用の経過時間
+    float hoverAmplitude_ = 0.25f; ///< 浮遊の揺れ幅
+    float hoverFrequency_ = 2.0f;  ///< 浮遊の揺れ速度
 };

@@ -122,7 +122,8 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
     poolData->pool = std::make_unique<ObjectPool<GameObject>>(effectivePoolSize, [weakObj, capturedPrefabPath,
                                                                                   capturedModelPath, capturedBaseScale,
-                                                                                  capturedColliderRadius, capturedOBBSize]() {
+                                                                                  capturedColliderRadius,
+                                                                                  capturedOBBSize]() {
         std::shared_ptr<GameObject> enemy = nullptr;
         if (auto spawnerObj = weakObj.lock()) {
             enemy = spawnerObj->Instantiate(capturedPrefabPath);

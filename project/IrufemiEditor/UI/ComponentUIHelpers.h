@@ -17,8 +17,7 @@
 class ComponentUIHelpers {
 public:
     static std::shared_ptr<Component> GetSharedComponent(GameObject* go, Component* comp);
-    static void SwitchColliderType(GameObject* go, ColliderComponent* oldComp,
-                                   ColliderComponent::ColliderType newType,
+    static void SwitchColliderType(GameObject* go, ColliderComponent* oldComp, ColliderComponent::ColliderType newType,
                                    EditorActionManager* actionManager);
 
     template <typename T> static void CheckUndoRedoDrag(EditorActionManager* actionManager, T* valuePtr) {

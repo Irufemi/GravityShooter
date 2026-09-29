@@ -651,7 +651,8 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                         if (entry.is_regular_file()) {
                                             auto ext = entry.path().extension().string();
                                             if (ext == ".json" || ext == ".prefab") {
-                                                cachedPrefabs.push_back("resources/prefabs/" + entry.path().filename().generic_string());
+                                                cachedPrefabs.push_back("resources/prefabs/" +
+                                                                        entry.path().filename().generic_string());
                                             }
                                         }
                                     }
@@ -664,7 +665,8 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
 
                             // 型安全メタデータフィルタリング（Unityの[RequireComponent] / UE5のAllowedClassesに相当）
                             static std::unordered_map<std::string, std::vector<std::string>> prefabComponentCache;
-                            auto PrefabHasComponent = [](const std::string& path, const std::string& requiredComp) -> bool {
+                            auto PrefabHasComponent = [](const std::string& path,
+                                                         const std::string& requiredComp) -> bool {
                                 if (requiredComp.empty()) {
                                     return true;
                                 }
@@ -683,7 +685,8 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                     }
                                     it = prefabComponentCache.emplace(path, std::move(compNames)).first;
                                 }
-                                return std::find(it->second.begin(), it->second.end(), requiredComp) != it->second.end();
+                                return std::find(it->second.begin(), it->second.end(), requiredComp) !=
+                                       it->second.end();
                             };
 
                             std::vector<std::string> displayPrefabs;
@@ -912,8 +915,8 @@ void ComponentUIHelpers::DrawPropertyResetButton(const char* id, bool isModified
 }
 
 void ComponentUIHelpers::SwitchColliderType(GameObject* go, ColliderComponent* oldComp,
-                                           ColliderComponent::ColliderType newType,
-                                           EditorActionManager* actionManager) {
+                                            ColliderComponent::ColliderType newType,
+                                            EditorActionManager* actionManager) {
     if (!go || !oldComp) {
         return;
     }
