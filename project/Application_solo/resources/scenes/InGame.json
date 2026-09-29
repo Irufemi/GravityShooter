@@ -2117,13 +2117,6 @@
         },
         {
           "data": {
-            "Base Collider Radius": 2.0,
-            "Base Enemy Scale": [
-              1.2000000476837158,
-              1.2000000476837158,
-              1.2000000476837158
-            ],
-            "Enemy Model Path": "Enemy_GravityGolem_A/SM_Enemy_GravityGolem_A.obj",
             "Enemy Prefab Path": "resources/prefabs/Enemy_GravityGolem.json"
           },
           "type": "EnemySpawnerComponent"
