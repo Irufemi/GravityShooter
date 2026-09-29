@@ -14,7 +14,7 @@
   ],
   "children": [
     {
-      "name": "WhiteHotCore",
+      "name": "SingularityCore",
       "components": [
         {
           "type": "TransformComponent",
@@ -33,27 +33,27 @@
               "depthWrite": 2,
               "emitOnAwake": true,
               "emitType": 0,
-              "emissionRate": 140.0,
-              "radius": 0.02,
-              "spread": 0.04,
-              "speedMin": 16.0,
-              "speedMax": 26.0,
+              "emissionRate": 120.0,
+              "radius": 0.015,
+              "spread": 0.02,
+              "speedMin": 12.0,
+              "speedMax": 18.0,
               "direction": [ 0.0, 0.0, -1.0 ],
-              "lifeTimeMin": 0.08,
-              "lifeTimeMax": 0.14,
-              "startScale": [ 0.14, 0.14, 0.14 ],
-              "midScale": [ 0.09, 0.09, 0.09 ],
-              "endScale": [ 0.01, 0.01, 0.01 ],
-              "color": [ 1.8, 1.8, 2.0, 1.0 ],
-              "midColor": [ 0.8, 1.2, 1.8, 0.9 ],
-              "endColor": [ 0.1, 0.4, 1.0, 0.0 ]
+              "lifeTimeMin": 0.05,
+              "lifeTimeMax": 0.08,
+              "startScale": [ 0.10, 0.10, 0.10 ],
+              "midScale": [ 0.05, 0.05, 0.05 ],
+              "endScale": [ 0.005, 0.005, 0.005 ],
+              "color": [ 1.5, 2.0, 2.8, 1.0 ],
+              "midColor": [ 0.6, 1.3, 2.2, 0.8 ],
+              "endColor": [ 0.1, 0.3, 1.0, 0.0 ]
             }
           }
         }
       ]
     },
     {
-      "name": "HeavyGravityPlume",
+      "name": "GravityVectorStream",
       "components": [
         {
           "type": "TransformComponent",
@@ -72,32 +72,32 @@
               "depthWrite": 2,
               "emitOnAwake": true,
               "emitType": 0,
-              "emissionRate": 180.0,
-              "radius": 0.04,
-              "spread": 0.06,
-              "speedMin": 20.0,
-              "speedMax": 36.0,
+              "emissionRate": 260.0,
+              "radius": 0.02,
+              "spread": 0.02,
+              "speedMin": 36.0,
+              "speedMax": 52.0,
               "direction": [ 0.0, 0.0, -1.0 ],
-              "lifeTimeMin": 0.14,
-              "lifeTimeMax": 0.22,
-              "startScale": [ 0.22, 0.22, 0.22 ],
-              "midScale": [ 0.15, 0.15, 0.15 ],
-              "endScale": [ 0.03, 0.03, 0.03 ],
-              "color": [ 0.2, 0.8, 1.5, 1.0 ],
-              "midColor": [ 0.05, 0.35, 1.0, 0.7 ],
-              "endColor": [ 0.02, 0.05, 0.4, 0.0 ]
+              "lifeTimeMin": 0.10,
+              "lifeTimeMax": 0.15,
+              "startScale": [ 0.36, 0.36, 0.36 ],
+              "midScale": [ 0.20, 0.20, 0.20 ],
+              "endScale": [ 0.02, 0.02, 0.02 ],
+              "color": [ 0.6, 1.5, 2.5, 1.0 ],
+              "midColor": [ 0.1, 0.6, 1.6, 0.8 ],
+              "endColor": [ 0.01, 0.1, 0.6, 0.0 ]
             }
           }
         }
       ]
     },
     {
-      "name": "GravityShockRings",
+      "name": "GravitationalWavefront",
       "components": [
         {
           "type": "TransformComponent",
           "data": {
-            "position": [ 0.0, 0.0, -0.04 ],
+            "position": [ 0.0, 0.0, -0.02 ],
             "rotation": [ 0.0, 0.0, 0.0 ],
             "scale": [ 1.0, 1.0, 1.0 ]
           }
@@ -112,27 +112,27 @@
               "depthWrite": 2,
               "emitOnAwake": true,
               "emitType": 0,
-              "emissionRate": 20.0,
+              "emissionRate": 42.0,
               "radius": 0.01,
-              "spread": 0.02,
-              "speedMin": 18.0,
-              "speedMax": 28.0,
+              "spread": 0.01,
+              "speedMin": 24.0,
+              "speedMax": 36.0,
               "direction": [ 0.0, 0.0, -1.0 ],
-              "lifeTimeMin": 0.10,
-              "lifeTimeMax": 0.15,
-              "startScale": [ 0.12, 0.12, 0.12 ],
-              "midScale": [ 0.22, 0.22, 0.22 ],
-              "endScale": [ 0.32, 0.32, 0.32 ],
-              "color": [ 0.6, 1.2, 2.0, 0.9 ],
-              "midColor": [ 0.1, 0.5, 1.2, 0.6 ],
-              "endColor": [ 0.0, 0.1, 0.5, 0.0 ]
+              "lifeTimeMin": 0.08,
+              "lifeTimeMax": 0.12,
+              "startScale": [ 0.30, 0.30, 0.30 ],
+              "midScale": [ 0.48, 0.48, 0.48 ],
+              "endScale": [ 0.65, 0.65, 0.65 ],
+              "color": [ 0.3, 0.8, 1.8, 0.6 ],
+              "midColor": [ 0.05, 0.25, 0.8, 0.3 ],
+              "endColor": [ 0.0, 0.05, 0.4, 0.0 ]
             }
           }
         }
       ]
     },
     {
-      "name": "CyberpunkSparks",
+      "name": "GravitonMotes",
       "components": [
         {
           "type": "TransformComponent",
@@ -146,25 +146,25 @@
           "type": "ParticleEmitterComponent",
           "data": {
             "ParticleData": {
-              "texturePath": "resources/circle.png",
+              "texturePath": "resources/circle2.png",
               "blendMode": 2,
               "depthWrite": 2,
               "emitOnAwake": true,
               "emitType": 0,
-              "emissionRate": 50.0,
+              "emissionRate": 30.0,
               "radius": 0.03,
-              "spread": 0.18,
-              "speedMin": 14.0,
-              "speedMax": 30.0,
+              "spread": 0.12,
+              "speedMin": 2.0,
+              "speedMax": 4.0,
               "direction": [ 0.0, 0.0, -1.0 ],
-              "lifeTimeMin": 0.10,
-              "lifeTimeMax": 0.18,
+              "lifeTimeMin": 0.20,
+              "lifeTimeMax": 0.30,
               "startScale": [ 0.05, 0.05, 0.05 ],
               "midScale": [ 0.03, 0.03, 0.03 ],
               "endScale": [ 0.005, 0.005, 0.005 ],
-              "color": [ 1.5, 1.8, 2.2, 1.0 ],
-              "midColor": [ 0.3, 0.8, 1.8, 0.8 ],
-              "endColor": [ 0.0, 0.2, 0.8, 0.0 ]
+              "color": [ 0.6, 1.2, 2.0, 0.7 ],
+              "midColor": [ 0.2, 0.5, 1.2, 0.4 ],
+              "endColor": [ 0.0, 0.1, 0.6, 0.0 ]
             }
           }
         }
