@@ -11,6 +11,8 @@ struct PrefabMetrics {
     Irufemi::Vector3 baseScale = {1.0f, 1.0f, 1.0f}; //!< 基準スケール
     float colliderRadius = 1.0f;                     //!< スフィアコライダーの半径
     bool hasSphereCollider = false;                  //!< スフィアコライダーが存在するか
+    Irufemi::Vector3 obbSize = {1.0f, 1.0f, 1.0f};   //!< OBBコライダーの半幅サイズ (localSize)
+    bool hasOBBCollider = false;                     //!< OBBコライダーが存在するか
     std::string modelPath = "";                      //!< 参照モデルのファイルパス
 };
 

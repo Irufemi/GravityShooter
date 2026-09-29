@@ -91,6 +91,8 @@ private:
         std::string modelPath;
         Irufemi::Vector3 baseScale = {1.2f, 1.2f, 1.2f};
         float baseColliderRadius = 1.8f;
+        Irufemi::Vector3 baseOBBSize = {1.0f, 1.0f, 1.0f};
+        bool hasOBBCollider = false;
         std::shared_ptr<ModelBatchRendererComponent> batchRenderer;
         std::unique_ptr<ObjectPool<GameObject>> pool;
     };

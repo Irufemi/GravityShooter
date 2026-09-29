@@ -2,7 +2,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
-#include "Framework/Component/Collider/SphereColliderComponent.h"
+#include "Framework/Component/Collider/ColliderComponent.h"
 #include "Framework/Component/Utility/SplineComponent.h"
 #include "RailMechanics/SplineFollowerComponent.h"
 #include "Player/TargetableComponent.h"
@@ -73,7 +73,7 @@ void RailShooterEnemyComponent::Initialize() {
     }
 
     // コライダーのサイズ・形状はプレハブ（アセット）側を100%尊重し、コードによる勝手な追加・上書きを行わない
-    if (auto collider = gameObject_->GetComponent<SphereColliderComponent>()) {
+    if (auto collider = gameObject_->GetComponent<ColliderComponent>()) {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
                 collider->layer_ = cm->GetLayerMask("Enemy");

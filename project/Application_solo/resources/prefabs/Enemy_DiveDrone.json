@@ -14,9 +14,9 @@
           0.0
         ],
         "scale": [
-          1.3,
-          1.3,
-          1.3
+          1.2999999523162842,
+          1.2999999523162842,
+          1.2999999523162842
         ]
       },
       "type": "TransformComponent"
@@ -37,7 +37,11 @@
           0.0,
           0.0
         ],
-        "localRadius": 1.3,
+        "localSize": [
+          1.0,
+          0.30000001192092896,
+          0.949999988079071
+        ],
         "mask": 18,
         "pushbackMask": [
           1.0,
@@ -45,23 +49,36 @@
           1.0
         ]
       },
-      "type": "SphereColliderComponent"
+      "type": "OBBColliderComponent"
     },
     {
       "type": "TargetableComponent"
     },
     {
       "data": {
-        "BehaviorType": 1,
-        "BodyDamage": 30,
-        "BulletScale": 0.3,
-        "BulletSpeed": 0.0,
-        "CombatDuration": 4.5,
-        "HP": 60,
-        "ShootInterval": 999.0,
+        "BaseFormationOffsetX": 0.0,
+        "BaseFormationOffsetY": 0.0,
+        "BehaviorType": 0,
+        "BodyDamage": 20,
+        "BulletScale": 0.30000001192092896,
+        "BulletSpeed": 32.0,
+        "CombatDuration": 7.5,
+        "CurrentDistanceOffset": 85.0,
+        "HP": 100,
+        "ShootInterval": 1.7999999523162842,
+        "SniperLaserColor": [
+          1.0,
+          0.15000000596046448,
+          0.15000000596046448,
+          0.8500000238418579
+        ],
+        "SniperLaserLength": 200.0,
+        "SniperLaserRadius": 0.11999999731779099,
+        "SniperLockLeadTime": 0.25,
+        "SniperTelegraphDuration": 1.0,
         "SpawnProgress": 0.5,
-        "Speed": 26.0,
-        "TargetDistance": 15.0
+        "Speed": 15.0,
+        "TargetDistance": 65.0
       },
       "type": "RailShooterEnemyComponent"
     },
@@ -71,8 +88,8 @@
         "customParams": {
           "color1": [
             1.0,
-            0.05,
-            0.05,
+            0.05000000074505806,
+            0.05000000074505806,
             1.0
           ],
           "color2": [
@@ -91,7 +108,7 @@
       "type": "EffectMaskComponent"
     }
   ],
-  "instanceId": 7391454204695923276,
+  "instanceId": 7391822204611837472,
   "name": "Enemy_DiveDrone",
   "tag": "Untagged"
 }

@@ -10,6 +10,7 @@
 #include "Framework/Component/Camera/CameraComponent.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
 #include "Framework/Component/Collider/AABBColliderComponent.h"
+#include "Framework/Component/Collider/OBBColliderComponent.h"
 #include "Renderer/Camera/CameraManager.h"
 #include "Core/Math/MathFunction.h"
 #include "Framework/GameObject/GameObject.h"
@@ -237,6 +238,18 @@ void EditorManager::EnterPrefabMode(const std::string& prefabPath) {
         return;
     }
 
+    // 0. PrefabMode突入前のメインシーンカメラ状態（位置・回転・アクティブカメラ名）を完全退避
+    if (engine_ && engine_->GetCameraManager()) {
+        auto cm = engine_->GetCameraManager();
+        savedActiveCameraName_ = cm->GetActiveCameraName();
+        if (auto activeCam = cm->GetActiveCamera()) {
+            savedCameraTranslate_ = activeCam->GetTranslate();
+            savedCameraRotate_ = activeCam->GetRotate();
+            savedCameraFov_ = activeCam->GetFovY();
+            hasSavedCameraState_ = true;
+        }
+    }
+
     // 1. 現在のメインシーン状態をバックアップ
     SceneSerializer::Save(scene, "temp/.temp_prefab_backup");
 
@@ -321,6 +334,32 @@ void EditorManager::ExitPrefabMode(bool saveChanges) {
 
     // 3. バックアップから元のメインシーンを完全復元
     SceneSerializer::Load(scene, "temp/.temp_prefab_backup");
+
+    // 4. メインシーン内の全 CameraComponent を CameraManager に手動登録（Editモードでも確実に登録）
+    if (engine_ && engine_->GetCameraManager()) {
+        auto cm = engine_->GetCameraManager();
+        for (const auto& obj : baseScene->GetGameObjects()) {
+            if (obj && !obj->IsDestroyed()) {
+                if (auto camComp = obj->GetComponent<CameraComponent>()) {
+                    camComp->Start();
+                }
+            }
+        }
+
+        // 5. 退避していたメインシーンのカメラ名・位置・回転・FOV を完全復元
+        if (hasSavedCameraState_) {
+            if (!savedActiveCameraName_.empty() && cm->GetCamera(savedActiveCameraName_)) {
+                cm->SetActiveCamera(savedActiveCameraName_);
+            }
+            if (auto activeCam = cm->GetActiveCamera()) {
+                activeCam->SetTranslate(savedCameraTranslate_);
+                activeCam->SetRotate(savedCameraRotate_);
+                activeCam->SetFovY(savedCameraFov_);
+            }
+            hasSavedCameraState_ = false;
+        }
+    }
+
     baseScene->WarmUpRenderState();
 
     currentMode_ = EditorModeState::Edit;
@@ -348,6 +387,10 @@ void EditorManager::FramePrefabObject() {
         Irufemi::Vector3 diff = Irufemi::Math::Subtract(worldAABB.max, worldAABB.min);
         radius = (std::max)(radius, Irufemi::Math::Length(diff) * 0.5f);
         centerOffset = Irufemi::Math::Multiply(0.5f, Irufemi::Math::Add(worldAABB.min, worldAABB.max));
+    } else if (auto obb = editingPrefabRoot_->GetComponent<OBBColliderComponent>()) {
+        auto worldOBB = obb->GetWorldOBB();
+        radius = (std::max)(radius, Irufemi::Math::Length(worldOBB.size));
+        centerOffset = obb->GetLocalOffset();
     } else if (auto trans = editingPrefabRoot_->GetTransform()) {
         float scale = (std::max)({trans->GetWorldScale().x, trans->GetWorldScale().y, trans->GetWorldScale().z});
         radius = (std::max)(radius, scale * 1.5f);

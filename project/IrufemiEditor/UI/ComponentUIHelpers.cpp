@@ -15,6 +15,7 @@
 #include "Core/EditorManager.h"
 #include "Core/Utility/FileSystem.h"
 #include "Core/Utility/JsonUtility.h"
+#include "Commands/EditorCommands.h"
 #include <algorithm>
 #include <functional>
 #include <filesystem>
@@ -906,6 +907,85 @@ void ComponentUIHelpers::DrawPropertyResetButton(const char* id, bool isModified
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Reset to Default");
+        }
+    }
+}
+
+void ComponentUIHelpers::SwitchColliderType(GameObject* go, ColliderComponent* oldComp,
+                                           ColliderComponent::ColliderType newType,
+                                           EditorActionManager* actionManager) {
+    if (!go || !oldComp) {
+        return;
+    }
+
+    // 1. 共通プロパティの抽出
+    Irufemi::Vector3 localOffset = {0.0f, 0.0f, 0.0f};
+    bool isTrigger = oldComp->isTrigger_;
+    bool isStatic = oldComp->isStatic_;
+    uint32_t layer = oldComp->layer_;
+    uint32_t mask = oldComp->mask_;
+    Irufemi::Vector3 pushbackMask = oldComp->pushbackMask_;
+
+    // 2. 寸法とオフセットの相互変換
+    float convertedRadius = 1.0f;
+    Irufemi::Vector3 convertedSize = {1.0f, 1.0f, 1.0f};
+
+    if (oldComp->GetColliderType() == ColliderComponent::ColliderType::Sphere) {
+        auto* sphere = static_cast<SphereColliderComponent*>(oldComp);
+        localOffset = sphere->GetLocalOffset();
+        convertedRadius = sphere->GetLocalRadius();
+        convertedSize = {convertedRadius, convertedRadius, convertedRadius};
+    } else if (oldComp->GetColliderType() == ColliderComponent::ColliderType::AABB) {
+        auto* aabb = static_cast<AABBColliderComponent*>(oldComp);
+        localOffset = aabb->GetLocalOffset();
+        convertedSize = aabb->GetLocalSize();
+        convertedRadius = (std::max)({convertedSize.x, convertedSize.y, convertedSize.z});
+    } else if (oldComp->GetColliderType() == ColliderComponent::ColliderType::OBB) {
+        auto* obb = static_cast<OBBColliderComponent*>(oldComp);
+        localOffset = obb->GetLocalOffset();
+        convertedSize = obb->GetLocalSize();
+        convertedRadius = (std::max)({convertedSize.x, convertedSize.y, convertedSize.z});
+    }
+
+    // 3. 新しいコライダーコンポーネントの生成とプロパティ適用
+    std::shared_ptr<ColliderComponent> newComp = nullptr;
+    if (newType == ColliderComponent::ColliderType::Sphere) {
+        auto sphere = std::make_shared<SphereColliderComponent>();
+        sphere->SetLocalOffset(localOffset);
+        sphere->SetLocalRadius(convertedRadius);
+        newComp = sphere;
+    } else if (newType == ColliderComponent::ColliderType::OBB) {
+        auto obb = std::make_shared<OBBColliderComponent>();
+        obb->SetLocalOffset(localOffset);
+        obb->SetLocalSize(convertedSize);
+        newComp = obb;
+    } else if (newType == ColliderComponent::ColliderType::AABB) {
+        auto aabb = std::make_shared<AABBColliderComponent>();
+        aabb->SetLocalOffset(localOffset);
+        aabb->SetLocalSize(convertedSize);
+        newComp = aabb;
+    }
+
+    if (!newComp) {
+        return;
+    }
+
+    newComp->isTrigger_ = isTrigger;
+    newComp->isStatic_ = isStatic;
+    newComp->layer_ = layer;
+    newComp->mask_ = mask;
+    newComp->pushbackMask_ = pushbackMask;
+
+    // 4. コンポーネントの置換（Undo/Redo 対応）
+    auto oldShared = GetSharedComponent(go, oldComp);
+    if (oldShared) {
+        auto goShared = go->shared_from_this();
+        if (actionManager) {
+            actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(goShared, oldShared));
+            actionManager->PushAndExecute(std::make_unique<AddComponentCommand>(goShared, newComp));
+        } else {
+            go->RemoveComponent(oldComp);
+            go->AddComponent(newComp);
         }
     }
 }

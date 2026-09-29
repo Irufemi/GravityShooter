@@ -124,6 +124,17 @@ void SceneViewPanel::Draw() {
             ImGui::GetWindowDrawList()->PopClipRect();
         }
 
+        // --- モード切り替え（PrefabMode ⇄ 通常Editモード等）時のカメラコントローラー注視点・距離の再同期 ---
+        if (editorManager_) {
+            EditorModeState currentMode = editorManager_->GetCurrentMode();
+            if (currentMode != lastMode_) {
+                if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
+                    cameraController_.SyncTargetFromCamera(camera);
+                }
+                lastMode_ = currentMode;
+            }
+        }
+
         DrawImGuizmo(minPos, size);
         HandleDragAndDrop(minPos, size);
 

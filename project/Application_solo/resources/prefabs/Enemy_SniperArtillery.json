@@ -14,9 +14,9 @@
           0.0
         ],
         "scale": [
-          2.2,
-          2.2,
-          2.2
+          2.200000047683716,
+          2.200000047683716,
+          2.200000047683716
         ]
       },
       "type": "TransformComponent"
@@ -28,40 +28,33 @@
       "type": "MeshRendererComponent"
     },
     {
-      "data": {
-        "isStatic": false,
-        "isTrigger": true,
-        "layer": 4,
-        "localOffset": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "localRadius": 1.8,
-        "mask": 18,
-        "pushbackMask": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      },
-      "type": "SphereColliderComponent"
-    },
-    {
       "type": "TargetableComponent"
     },
     {
       "data": {
-        "BehaviorType": 2,
-        "BodyDamage": 15,
-        "BulletScale": 0.45,
-        "BulletSpeed": 40.0,
-        "CombatDuration": 8.5,
-        "HP": 120,
-        "ShootInterval": 2.5,
+        "BaseFormationOffsetX": 0.0,
+        "BaseFormationOffsetY": 0.0,
+        "BehaviorType": 0,
+        "BodyDamage": 20,
+        "BulletScale": 0.30000001192092896,
+        "BulletSpeed": 32.0,
+        "CombatDuration": 7.5,
+        "CurrentDistanceOffset": 85.0,
+        "HP": 100,
+        "ShootInterval": 1.7999999523162842,
+        "SniperLaserColor": [
+          1.0,
+          0.15000000596046448,
+          0.15000000596046448,
+          0.8500000238418579
+        ],
+        "SniperLaserLength": 200.0,
+        "SniperLaserRadius": 0.11999999731779099,
+        "SniperLockLeadTime": 0.25,
+        "SniperTelegraphDuration": 1.0,
         "SpawnProgress": 0.5,
-        "Speed": 12.0,
-        "TargetDistance": 75.0
+        "Speed": 15.0,
+        "TargetDistance": 65.0
       },
       "type": "RailShooterEnemyComponent"
     },
@@ -70,8 +63,8 @@
         "customEffectType": 6,
         "customParams": {
           "color1": [
-            0.85,
-            0.1,
+            0.8500000238418579,
+            0.10000000149011612,
             1.0,
             1.0
           ],
@@ -89,9 +82,33 @@
         "enableEffectMask": true
       },
       "type": "EffectMaskComponent"
+    },
+    {
+      "data": {
+        "isStatic": false,
+        "isTrigger": true,
+        "layer": 4,
+        "localOffset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "localSize": [
+          1.0,
+          0.5,
+          1.0
+        ],
+        "mask": 18,
+        "pushbackMask": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "OBBColliderComponent"
     }
   ],
-  "instanceId": 7391454204695923277,
+  "instanceId": 17846582121645965096,
   "name": "Enemy_SniperArtillery",
   "tag": "Untagged"
 }

@@ -198,6 +198,14 @@ public: // メンバ関数
         this->isDirtyProjection_ = true;
     }
 
+    /**
+     * @brief 垂直方向視野角を取得する
+     * @return 垂直方向視野角 (ラジアン)
+     */
+    float GetFovY() const {
+        return this->fovAngleY_;
+    }
+
     // ゲッター
 
     /**

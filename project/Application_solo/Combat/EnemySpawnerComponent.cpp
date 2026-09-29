@@ -8,6 +8,7 @@
 #include "RailMechanics/RailShooterEnemyComponent.h"
 #include "Core/Math/Random/Random.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
+#include "Framework/Component/Collider/OBBColliderComponent.h"
 #include "Player/TargetableComponent.h"
 #include "Framework/Prefab/PrefabUtility.h"
 #include "Core/Math/MathFunction.h"
@@ -92,6 +93,10 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
         poolData->modelPath = enemyModelPath_;
     }
     poolData->baseScale = metrics.baseScale;
+    poolData->hasOBBCollider = metrics.hasOBBCollider;
+    if (metrics.hasOBBCollider) {
+        poolData->baseOBBSize = metrics.obbSize;
+    }
     if (metrics.hasSphereCollider) {
         poolData->baseColliderRadius = (std::max)(metrics.colliderRadius, 1.3f);
     } else {
@@ -111,12 +116,13 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
     std::string capturedModelPath = poolData->modelPath;
     Irufemi::Vector3 capturedBaseScale = poolData->baseScale;
     float capturedColliderRadius = poolData->baseColliderRadius;
+    Irufemi::Vector3 capturedOBBSize = poolData->baseOBBSize;
 
     uint32_t effectivePoolSize = (poolSize > 0) ? poolSize : static_cast<uint32_t>(maxEnemies_);
 
     poolData->pool = std::make_unique<ObjectPool<GameObject>>(effectivePoolSize, [weakObj, capturedPrefabPath,
                                                                                   capturedModelPath, capturedBaseScale,
-                                                                                  capturedColliderRadius]() {
+                                                                                  capturedColliderRadius, capturedOBBSize]() {
         std::shared_ptr<GameObject> enemy = nullptr;
         if (auto spawnerObj = weakObj.lock()) {
             enemy = spawnerObj->Instantiate(capturedPrefabPath);
@@ -143,6 +149,8 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
         if (auto collider = enemy->GetComponent<SphereColliderComponent>()) {
             collider->SetLocalRadius(capturedColliderRadius);
+        } else if (auto obb = enemy->GetComponent<OBBColliderComponent>()) {
+            obb->SetLocalSize(capturedOBBSize);
         }
 
         if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {
@@ -337,6 +345,8 @@ GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabP
 
         if (auto collider = enemy->GetComponent<SphereColliderComponent>()) {
             collider->SetLocalRadius(poolData->baseColliderRadius * scaleMultiplier);
+        } else if (auto obb = enemy->GetComponent<OBBColliderComponent>()) {
+            obb->SetLocalSize(Irufemi::Math::Multiply(scaleMultiplier, poolData->baseOBBSize));
         }
 
         if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {
