@@ -4,6 +4,7 @@
 #include "Framework/Component/Renderer/SkinnedMeshRendererComponent.h"
 #include "Framework/Component/Effect/ScreenEffectComponent.h"
 #include "Framework/Component/Camera/CameraShakeComponent.h"
+#include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Core/System/IrufemiEngine.h"
@@ -119,19 +120,67 @@ void PlayerDamageVisualizerComponent::TriggerScreenEffect() {
     }
 }
 
+#include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
+#include "Effects/EffectManagerComponent.h"
+#include "RailMechanics/RailShooterPlayerComponent.h"
+
 void PlayerDamageVisualizerComponent::TriggerDeathVisuals() {
     if (!gameObject_) {
         return;
     }
 
-    // 死亡時に自機モデルを非表示
+    // 自機コンポーネントを Dying ステートへ移行（入力遮断・姿勢固定）
+    if (auto railPlayer = gameObject_->GetComponent<RailShooterPlayerComponent>()) {
+        railPlayer->SetState(PlayerFlightState::Dying);
+    }
+
+    auto engine = GetEngine();
+    auto transform = gameObject_->GetComponent<TransformComponent>();
+    Irufemi::Vector3 deathPos = transform ? transform->GetWorldPosition() : Irufemi::Vector3{0, 0, 0};
+    Irufemi::Vector3 deathRot = transform ? transform->GetWorldRotation() : Irufemi::Vector3{0, 0, 0};
+    Irufemi::Vector3 deathScale = transform ? transform->GetWorldScale() : Irufemi::Vector3{1, 1, 1};
+
+    // ① 自作エンジンの看板機能: 自機モデルの VoxelParticle 破砕四散爆発！
+    if (auto voxelManager = engine ? engine->GetVoxelParticleManager() : nullptr) {
+        VoxelEmitter p{};
+        p.particleType = 5; // Explosive
+        p.lifeTime = 2.0f;
+        p.gravity = 6.0f;
+        p.dispersion = 18.0f; // 激しい四散インパルス
+        p.scale = {0.6f, 0.6f, 0.6f};
+        p.startColor = {2.5f, 1.8f, 0.8f, 1.0f};       // 激しい閃光オレンジ
+        p.endColor = {0.1f, 0.1f, 0.1f, 1.0f};         // 煤・燃え尽き炭
+        p.dissolveEdgeColor = {0.2f, 0.8f, 1.0f, 1.0f}; // 自機シアンの余韻
+
+        voxelManager->PlayExplosion(
+            "resources/model/PlayerCraft/PlayerCraft.obj",
+            deathPos,
+            deathRot,
+            {0.0f, 0.0f, 0.0f},
+            deathScale,
+            p,
+            {3, 3, 3}
+        );
+    }
+
+    // ② 二次爆発エフェクトの重畳（火球・閃光）
+    if (auto fxMgr = EffectManagerComponent::GetInstance()) {
+        fxMgr->PlayEffect("Hit", deathPos);
+    }
+
+    // ③ 大インパルス・カメラシェイクを発火
+    if (cameraShakeComp_) {
+        cameraShakeComp_->PlayShakeSeconds(2.0f, 0.6f, 25.0f);
+    }
+
+    // ④ 自機モデルを非表示化
     if (auto mesh = gameObject_->GetComponent<MeshRendererComponent>()) {
         mesh->SetVisible(false);
     } else if (auto skinned = gameObject_->GetComponent<SkinnedMeshRendererComponent>()) {
         skinned->SetVisible(false);
     }
 
-    // 点滅状態を解除し元の色に戻す
+    // ⑤ 点滅状態を解除し元の色に戻す
     if (isFlashing_) {
         isFlashing_ = false;
         if (BaseModel* model = GetTargetModel()) {

@@ -1,0 +1,173 @@
+{
+  "name": "PlayerThrusterRoot",
+  "isFolder": false,
+  "isActive": true,
+  "components": [
+    {
+      "type": "TransformComponent",
+      "data": {
+        "position": [ 0.0, 0.0, 0.0 ],
+        "rotation": [ 0.0, 0.0, 0.0 ],
+        "scale": [ 1.0, 1.0, 1.0 ]
+      }
+    }
+  ],
+  "children": [
+    {
+      "name": "WhiteHotCore",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, 0.0 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 140.0,
+              "radius": 0.02,
+              "spread": 0.04,
+              "speedMin": 16.0,
+              "speedMax": 26.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.08,
+              "lifeTimeMax": 0.14,
+              "startScale": [ 0.14, 0.14, 0.14 ],
+              "midScale": [ 0.09, 0.09, 0.09 ],
+              "endScale": [ 0.01, 0.01, 0.01 ],
+              "color": [ 1.8, 1.8, 2.0, 1.0 ],
+              "midColor": [ 0.8, 1.2, 1.8, 0.9 ],
+              "endColor": [ 0.1, 0.4, 1.0, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "HeavyGravityPlume",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, -0.02 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 180.0,
+              "radius": 0.04,
+              "spread": 0.06,
+              "speedMin": 20.0,
+              "speedMax": 36.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.14,
+              "lifeTimeMax": 0.22,
+              "startScale": [ 0.22, 0.22, 0.22 ],
+              "midScale": [ 0.15, 0.15, 0.15 ],
+              "endScale": [ 0.03, 0.03, 0.03 ],
+              "color": [ 0.2, 0.8, 1.5, 1.0 ],
+              "midColor": [ 0.05, 0.35, 1.0, 0.7 ],
+              "endColor": [ 0.02, 0.05, 0.4, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GravityShockRings",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, -0.04 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/texture/ring.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 20.0,
+              "radius": 0.01,
+              "spread": 0.02,
+              "speedMin": 18.0,
+              "speedMax": 28.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.10,
+              "lifeTimeMax": 0.15,
+              "startScale": [ 0.12, 0.12, 0.12 ],
+              "midScale": [ 0.22, 0.22, 0.22 ],
+              "endScale": [ 0.32, 0.32, 0.32 ],
+              "color": [ 0.6, 1.2, 2.0, 0.9 ],
+              "midColor": [ 0.1, 0.5, 1.2, 0.6 ],
+              "endColor": [ 0.0, 0.1, 0.5, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CyberpunkSparks",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, -0.02 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 50.0,
+              "radius": 0.03,
+              "spread": 0.18,
+              "speedMin": 14.0,
+              "speedMax": 30.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.10,
+              "lifeTimeMax": 0.18,
+              "startScale": [ 0.05, 0.05, 0.05 ],
+              "midScale": [ 0.03, 0.03, 0.03 ],
+              "endScale": [ 0.005, 0.005, 0.005 ],
+              "color": [ 1.5, 1.8, 2.2, 1.0 ],
+              "midColor": [ 0.3, 0.8, 1.8, 0.8 ],
+              "endColor": [ 0.0, 0.2, 0.8, 0.0 ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

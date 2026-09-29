@@ -25,12 +25,14 @@ void EffectManagerComponent::OnDestroy() {
 void EffectManagerComponent::OnRegisterProperties() {
     RegisterProperty("Hit Effect Path", &hitEffectPath_);
     RegisterProperty("Dust Effect Path", &dustEffectPath_);
+    RegisterProperty("Thruster Effect Path", &thrusterEffectPath_);
 }
 
 void EffectManagerComponent::Initialize() {
     effectDictionary_["Hit"] = hitEffectPath_;
     effectDictionary_["Dust"] = dustEffectPath_;
     effectDictionary_["debris_dust_effect"] = dustEffectPath_;
+    effectDictionary_["Thruster"] = thrusterEffectPath_;
 }
 
 void EffectManagerComponent::Start() {
@@ -157,3 +159,34 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
         }
     }
 }
+
+std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(
+    const std::string& effectKey,
+    std::shared_ptr<GameObject> parent,
+    const Irufemi::Vector3& localOffset
+) {
+    if (!parent) {
+        return nullptr;
+    }
+
+    auto it = effectDictionary_.find(effectKey);
+    if (it == effectDictionary_.end() || it->second.empty()) {
+        return nullptr;
+    }
+
+    // 親GameObjectの子ノードとしてプレハブをインスタンス化（Transform階層が自動結合）
+    auto effectObj = parent->Instantiate(it->second, localOffset, true);
+    if (effectObj) {
+        effectObj->SetIsSerializable(false); // シーンセーブデータへの混入を防止
+        effectObj->SetHideInHierarchy(true); // エディタHierarchyの汚染を防止
+        effectObj->SetIsActive(true);
+
+        // すべてのパーティクルエミッターを起動
+        auto emitters = effectObj->GetComponentsInChildren<ParticleEmitterComponent>();
+        for (auto pe : emitters) {
+            pe->Play();
+        }
+    }
+    return effectObj;
+}
+

@@ -1,13 +1,12 @@
-# Blender 4.4.3 MTL File: 'None'
-# www.blender.org
-
+# Blender 4.4.3 MTL File - PBR / Specular Corrected
 newmtl tripo_material_ca217a44_49e1_4398_a4d5_510f2f7e3f52
-Ns 1000.000000
-Ka 1.000000 1.000000 1.000000
-Ks 0.000000 0.000000 0.000000
+Ns 64.000000
+Ka 0.250000 0.250000 0.250000
+Ks 0.600000 0.600000 0.650000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
-illum 1
+illum 2
 map_Kd PlayerCraft_basecolor.jpg
 map_Bump PlayerCraft_normal.png
+
