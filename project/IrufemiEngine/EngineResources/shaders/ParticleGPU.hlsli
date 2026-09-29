@@ -141,6 +141,10 @@ struct GPUParticleEmitter
 	// float4 x 22
 	float3 midScaleMax;
 	float midPoint;
+
+	// float4 x 23
+	float3 prevTranslate;
+	float pad10;
 };
 
 struct ParticleField
