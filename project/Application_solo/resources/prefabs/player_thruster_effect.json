@@ -106,6 +106,7 @@
           "type": "ParticleEmitterComponent",
           "data": {
             "ParticleData": {
+              "billboardMode": 0,
               "texturePath": "resources/texture/ring.png",
               "blendMode": 2,
               "depthWrite": 2,
