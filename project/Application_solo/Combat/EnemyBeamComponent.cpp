@@ -4,6 +4,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Camera/CameraShakeComponent.h"
 #include "Player/PlayerHealthComponent.h"
+#include "Physics/CollisionManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/System/Core/BaseModel.h"
 #include "Core/Math/MathFunction.h"
@@ -223,6 +224,25 @@ void EnemyBeamComponent::CheckBeamCollision() {
     float hitRadius = beamMaxRadius_ + hitCheckRadiusMargin_;
 
     if (distSq <= hitRadius * hitRadius) {
+        // 【AAA基準: 環境遮蔽（Line-of-Sight）チェック】
+        // 発射口から自機までの間に環境物（Environment）の壁や柱があればビームが遮断される
+        if (auto engine = GetEngine()) {
+            if (auto cm = engine->GetCollisionManager()) {
+                uint32_t envMask = cm->GetLayerMask("Environment");
+                Irufemi::Ray ray;
+                ray.origin = a;
+                ray.diff = playerPos - a;
+                float distToPlayer = std::sqrt(ray.diff.x * ray.diff.x + ray.diff.y * ray.diff.y + ray.diff.z * ray.diff.z);
+                if (distToPlayer > 0.001f) {
+                    RaycastHit hitInfo;
+                    if (cm->Raycast(ray, hitInfo, distToPlayer, envMask, gameObject_)) {
+                        // 壁に遮られているためダメージ適用をスキップ
+                        return;
+                    }
+                }
+            }
+        }
+
         hasHitCurrentBeam_ = true;
         health->TakeDamage(beamDamage_);
 

@@ -760,8 +760,18 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                     float moveDist = throwSpeed * deltaTime;
                     // 到達判定（フレーム移動距離以内、または近接2.5m以内）
                     if (len <= (std::max)(moveDist, 2.5f)) {
+                        // 【AAA基準: 権限消費チェック】物理コリジョンと競合しても多重ダメージを防ぐ
+                        if (!debris->ConsumeHitAuthority()) {
+                            continue; // 既に物理コライダー側でヒット済みの場合はスキップ
+                        }
+
                         pos = targetPos;
                         transform->SetWorldPosition(pos);
+
+                        // 【AAA基準: Game Juice】直撃ヒットストップ
+                        if (engine) {
+                            engine->TriggerHitStop(0.04f);
+                        }
 
                         // ターゲットへのダメージ適用（シールドまたは敵本体）
                         if (auto debrisComp = target->GetComponent<DebrisComponent>()) {

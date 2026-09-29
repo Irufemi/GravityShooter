@@ -2620,7 +2620,7 @@
               "data": {
                 "Default Life Time": 5.0,
                 "Hit Effect Key": "Dust",
-                "Hit Radius": 1.0,
+                "Hit Radius": 0.5,
                 "Max Bullets": 2000,
                 "Target Player": 372368188768739661
               },

@@ -125,6 +125,11 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         return;
     }
 
+    // 【AAA基準: 接触権限の検証】初回ヒットのみ通過させ多重ダメージを完全遮断
+    if (!ConsumeHitAuthority()) {
+        return;
+    }
+
     bool hit = false;
     if (auto debrisComp = otherObj->GetComponent<DebrisComponent>()) {
         if (debrisComp->GetState() == DebrisState::BossOrbiting) {
@@ -158,6 +163,11 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
     }
 
     if (hit) {
+        // 【AAA基準: Game Juice】直撃の重厚感を演出するヒットストップ（約2〜3フレーム）
+        if (auto engine = GetEngine()) {
+            engine->TriggerHitStop(0.04f);
+        }
+
         if (auto t = GetTransform()) {
             Irufemi::Vector3 hitPos = t->GetWorldPosition();
 
@@ -254,6 +264,7 @@ void DebrisComponent::ResetForPool() {
     throwDirection_ = {0.0f, 0.0f, 0.0f};
     throwOrigin_ = {0.0f, 0.0f, 0.0f};
 
+    ResetHitAuthority();
     UpdateAuraVisuals();
 
     if (auto collider = gameObject_ ? gameObject_->GetComponent<ColliderComponent>() : nullptr) {
@@ -294,10 +305,15 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
             switch (state_) {
             case DebrisState::Idle:
             case DebrisState::Pulled:
-            case DebrisState::Orbiting:
                 // Safe state: Doesn't hit anyone
                 collider->layer_ = neutralLayer;
-                collider->mask_ = 0; // Collides with nothing in this prototype
+                collider->mask_ = 0;
+                break;
+            case DebrisState::Orbiting:
+                // 【AAAアプローチ: シールド防壁化】
+                // 自機の周りを回転して敵弾を迎撃するシールドとして機能
+                collider->layer_ = playerLayer; // Debris_Player
+                collider->mask_ = maskEnemy;    // Enemy通常弾・敵本体と接触可能
                 break;
             case DebrisState::Thrown:
                 // Thrown by player: Hits enemies, environment, and Boss's debris

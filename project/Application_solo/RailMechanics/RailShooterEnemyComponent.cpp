@@ -537,15 +537,11 @@ void RailShooterEnemyComponent::OnCollisionEnter(GameObject* other) {
         return;
     }
 
-    // 1. 投擲されたガレキとの接触時
-    if (auto debris = other->GetComponent<DebrisComponent>()) {
-        if (debris->GetState() == DebrisState::Thrown) {
-            TakeDamage(debris->GetEnemyDamage());
-            return;
-        }
-    }
+    // 【AAA基準: 重複ダメージの完全撤廃】
+    // 投擲ガレキからの被弾は DebrisComponent 側の IDamageable::TakeDamage にて一元処理されるため、
+    // ここでの TakeDamage 呼び出しは行わない（二重ダメージバグの解消）
 
-    // 2. プレイヤー本体との接触時（体当たり）
+    // プレイヤー本体との接触時（体当たり自爆）
     if (auto health = other->GetComponent<PlayerHealthComponent>()) {
         if (!health->IsInvincible()) {
             health->TakeDamage(bodyDamage_);

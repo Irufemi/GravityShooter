@@ -91,7 +91,11 @@ void EnemyBulletManagerComponent::WarmupPool() {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
                 collider->layer_ = cm->GetLayerMask("Enemy");
-                collider->mask_ = cm->GetLayerMask("Player");
+                uint32_t maskPlayer = cm->GetLayerMask("Player");
+                uint32_t maskDebrisPlayer = cm->GetLayerMask("Debris_Player");
+                uint32_t maskEnvironment = cm->GetLayerMask("Environment");
+                // 【AAA基準: 自機シールドおよび建造物との衝突を有効化】
+                collider->mask_ = maskPlayer | maskDebrisPlayer | maskEnvironment;
             }
         }
 

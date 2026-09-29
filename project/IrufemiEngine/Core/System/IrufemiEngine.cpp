@@ -853,6 +853,15 @@ void IrufemiEngine::StartFrame() {
 
     totalTime_ = std::chrono::duration<float>(now - startTime_).count();
 
+    // ヒットストップの更新（実時間 deltaTime_ でカウントダウン）
+    if (hitStopTimer_ > 0.0f) {
+        hitStopTimer_ -= deltaTime_;
+        if (hitStopTimer_ <= 0.0f) {
+            hitStopTimer_ = 0.0f;
+            timeScale_ = defaultTimeScale_;
+        }
+    }
+
     // ゲーム内時間の更新（タイムスケールを適用）
     gameDeltaTime_ = deltaTime_ * timeScale_;
     gameTime_ += gameDeltaTime_;

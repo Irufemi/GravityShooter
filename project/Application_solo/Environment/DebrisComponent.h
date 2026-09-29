@@ -58,6 +58,32 @@ public:
     void ResetForPool();
 
     /**
+     * @brief 接触権限をアトミックに消費する（AAA基準: 多重ダメージの完全防止）
+     * @return 権限消費に成功した場合は true（初回のみ）、既にヒット済みの場合は false
+     */
+    bool ConsumeHitAuthority() {
+        if (hasConsumedHit_) {
+            return false;
+        }
+        hasConsumedHit_ = true;
+        return true;
+    }
+
+    /**
+     * @brief 接触権限をリセットする
+     */
+    void ResetHitAuthority() {
+        hasConsumedHit_ = false;
+    }
+
+    /**
+     * @brief 既に接触済みかどうかを取得する
+     */
+    bool HasConsumedHit() const {
+        return hasConsumedHit_;
+    }
+
+    /**
      * @brief 現在のステートに基づいてオーラの表示状態および色を更新する
      */
     void UpdateAuraVisuals();
@@ -156,6 +182,7 @@ public:
 private:
     friend class DebrisManagerComponent;
     DebrisState state_ = DebrisState::Idle;
+    bool hasConsumedHit_ = false;
 
     int virtualId_ = -1;
     int variationIndex_ = -1;
