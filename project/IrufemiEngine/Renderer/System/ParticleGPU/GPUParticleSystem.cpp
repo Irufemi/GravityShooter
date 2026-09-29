@@ -961,15 +961,6 @@ void GPUParticleSystem::DispatchComputeShaders(ID3D12GraphicsCommandList* comman
     for (size_t i = 0; i < emittersData_.size(); ++i) {
         uint32_t emitCount = emittersData_[i].burstCount;
         if (emitCount > 0) {
-
-#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-            Log::OutPutLog(std::cout,
-                           "[GPUParticleSystem] Emitting " + std::to_string(emitCount) +
-                               " particles for system at pos: " + std::to_string(emittersData_[i].translateX) + ", " +
-                               std::to_string(emittersData_[i].translateY) + ", " +
-                               std::to_string(emittersData_[i].translateZ) + "\n");
-#endif
-
             commandList->SetComputeRoot32BitConstant(9, (uint32_t)i,
                                                      0); // b2: gEmitterIndex
 
