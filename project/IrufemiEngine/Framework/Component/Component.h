@@ -49,6 +49,17 @@ struct ComponentProperty {
     std::string tooltip = "";
     nlohmann::json defaultValue;
     std::function<void()> onChanged = nullptr;
+    std::string prefabFilterComponent = ""; ///< プレハブ選択時に要求する必須コンポーネント型名（空なら全プレハブ許可）
+
+    /**
+     * @brief プレハブ選択時に要求するコンポーネントフィルタを設定する（Fluent API）
+     * @param[in] componentTypeName 要求するコンポーネントの型名（例: "RailShooterEnemyComponent"）
+     * @return 自身の参照
+     */
+    ComponentProperty& SetPrefabFilter(const std::string& componentTypeName) {
+        prefabFilterComponent = componentTypeName;
+        return *this;
+    }
 
     /**
      * @brief 指定した型のポインタを安全に取得する。型が一致しない場合は nullptr を返す。

@@ -13,8 +13,12 @@
 #include "Renderer/Object/Particle/ParticleObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Core/EditorManager.h"
+#include "Core/Utility/FileSystem.h"
+#include "Core/Utility/JsonUtility.h"
 #include <algorithm>
 #include <functional>
+#include <filesystem>
+#include <unordered_map>
 
 std::shared_ptr<Component> ComponentUIHelpers::GetSharedComponent(GameObject* go, Component* comp) {
     if (!go || !comp) {
@@ -581,6 +585,7 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                           lowerName.find("image") != std::string::npos);
                         bool isAnimation = (lowerName.find("animation") != std::string::npos ||
                                             lowerName.find("anim") != std::string::npos);
+                        bool isPrefabProp = (lowerName.find("prefab") != std::string::npos);
 
                         std::vector<std::string> comboItems;
                         IrufemiEngine* engine = nullptr;
@@ -629,14 +634,104 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                 }
                                 ImGui::EndCombo();
                             }
+                        } else if (isPrefabProp) {
+                            // プレハブディレクトリを走査して一覧取得（2秒間キャッシュ）
+                            static std::vector<std::string> cachedPrefabs;
+                            static float lastCacheTime = -10.0f;
+                            float curTime = static_cast<float>(ImGui::GetTime());
+                            if (curTime - lastCacheTime > 2.0f || cachedPrefabs.empty()) {
+                                cachedPrefabs.clear();
+                                std::string prefabDir = FileSystem::GetResourcePath("prefabs");
+                                if (!std::filesystem::exists(prefabDir)) {
+                                    prefabDir = "resources/prefabs";
+                                }
+                                if (std::filesystem::exists(prefabDir)) {
+                                    for (const auto& entry : std::filesystem::recursive_directory_iterator(prefabDir)) {
+                                        if (entry.is_regular_file()) {
+                                            auto ext = entry.path().extension().string();
+                                            if (ext == ".json" || ext == ".prefab") {
+                                                cachedPrefabs.push_back("resources/prefabs/" + entry.path().filename().generic_string());
+                                            }
+                                        }
+                                    }
+                                }
+                                std::sort(cachedPrefabs.begin(), cachedPrefabs.end());
+                                lastCacheTime = curTime;
+                            }
+
+                            ImGui::SetNextItemWidth((std::max)(50.0f, ImGui::GetContentRegionAvail().x - 70.0f));
+
+                            // 型安全メタデータフィルタリング（Unityの[RequireComponent] / UE5のAllowedClassesに相当）
+                            static std::unordered_map<std::string, std::vector<std::string>> prefabComponentCache;
+                            auto PrefabHasComponent = [](const std::string& path, const std::string& requiredComp) -> bool {
+                                if (requiredComp.empty()) {
+                                    return true;
+                                }
+                                auto it = prefabComponentCache.find(path);
+                                if (it == prefabComponentCache.end()) {
+                                    std::vector<std::string> compNames;
+                                    nlohmann::json j;
+                                    if (Irufemi::JsonUtility::LoadFromFile(path, j)) {
+                                        if (j.contains("components") && j["components"].is_array()) {
+                                            for (const auto& compObj : j["components"]) {
+                                                if (compObj.contains("type") && compObj["type"].is_string()) {
+                                                    compNames.push_back(compObj["type"].get<std::string>());
+                                                }
+                                            }
+                                        }
+                                    }
+                                    it = prefabComponentCache.emplace(path, std::move(compNames)).first;
+                                }
+                                return std::find(it->second.begin(), it->second.end(), requiredComp) != it->second.end();
+                            };
+
+                            std::vector<std::string> displayPrefabs;
+                            for (const auto& p : cachedPrefabs) {
+                                if (PrefabHasComponent(p, prop.prefabFilterComponent)) {
+                                    displayPrefabs.push_back(p);
+                                }
+                            }
+
+                            if (ImGui::BeginCombo(hiddenName.c_str(), str->c_str())) {
+                                for (const auto& item : displayPrefabs) {
+                                    bool isSelected = (*str == item);
+                                    if (ImGui::Selectable(item.c_str(), isSelected)) {
+                                        std::string oldVal = *str;
+                                        *str = item;
+                                        auto cb = prop.onChanged;
+                                        if (cb) {
+                                            cb();
+                                        }
+                                        actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::string>>(
+                                            oldVal, *str, [str, cb](const std::string& v) {
+                                                *str = v;
+                                                if (cb) {
+                                                    cb();
+                                                }
+                                            }));
+                                    }
+                                    if (isSelected) {
+                                        ImGui::SetItemDefaultFocus();
+                                    }
+                                }
+                                ImGui::EndCombo();
+                            }
+
+                            if (!str->empty()) {
+                                ImGui::SameLine();
+                                if (ImGui::Button((std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(),
+                                                  ImVec2(65.0f, 0))) {
+                                    if (auto em = EditorManager::GetInstance()) {
+                                        em->EnterPrefabMode(*str);
+                                    }
+                                }
+                                if (ImGui::IsItemHovered()) {
+                                    ImGui::SetTooltip("Open in Prefab Edit Mode");
+                                }
+                            }
                         } else {
                             char buffer[256];
                             strncpy_s(buffer, sizeof(buffer), str->c_str(), _TRUNCATE);
-
-                            bool isPrefabProp = (lowerName.find("prefab") != std::string::npos);
-                            if (isPrefabProp) {
-                                ImGui::SetNextItemWidth((std::max)(50.0f, ImGui::GetContentRegionAvail().x - 70.0f));
-                            }
 
                             static std::string startStr;
                             if (ImGui::InputText(hiddenName.c_str(), buffer, sizeof(buffer))) {
@@ -658,19 +753,6 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                             cb();
                                         }
                                     }));
-                            }
-
-                            if (isPrefabProp && !str->empty()) {
-                                ImGui::SameLine();
-                                if (ImGui::Button((std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(),
-                                                  ImVec2(65.0f, 0))) {
-                                    if (auto em = EditorManager::GetInstance()) {
-                                        em->EnterPrefabMode(*str);
-                                    }
-                                }
-                                if (ImGui::IsItemHovered()) {
-                                    ImGui::SetTooltip("Open in Prefab Edit Mode");
-                                }
                             }
                         }
 

@@ -7,6 +7,11 @@
 #include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
 #include "Framework/Component/TransformComponent.h"
+#include "Framework/Component/Camera/CameraComponent.h"
+#include "Framework/Component/Collider/SphereColliderComponent.h"
+#include "Framework/Component/Collider/AABBColliderComponent.h"
+#include "Renderer/Camera/CameraManager.h"
+#include "Core/Math/MathFunction.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Scene/IScene.h"
@@ -227,37 +232,58 @@ void EditorManager::EnterPrefabMode(const std::string& prefabPath) {
     }
 
     auto scene = engine_->GetSceneManager()->GetCurrentScene();
-    if (!scene) {
+    auto baseScene = dynamic_cast<BaseScene*>(scene);
+    if (!baseScene) {
         return;
     }
 
-    // 現在のシーン状態をバックアップ
+    // 1. 現在のメインシーン状態をバックアップ
     SceneSerializer::Save(scene, "temp/.temp_prefab_backup");
 
     ClearSelectedObject();
 
-    // GPUがすべての描画コマンドを完了するのを待機してからオブジェクトを破棄
+    // 2. GPU描画コマンド完了待機後に既存オブジェクトを一括破棄
     if (auto dxCommon = engine_->GetDirectXCommon()) {
         dxCommon->WaitForGPU();
     }
-    if (auto baseScene = dynamic_cast<BaseScene*>(scene)) {
-        baseScene->ClearGameObjects();
-    }
+    baseScene->ClearGameObjects();
 
-    // Prefabの読み込み
-    auto prefabObj = SceneSerializer::LoadPrefab(prefabPath);
-    if (prefabObj) {
-        // プレハブ編集モードでの表示名はファイル名（拡張子なし）に統一し、(Clone)が付かないようにする
-        std::string prefabName = std::filesystem::path(prefabPath).stem().string();
-        prefabObj->SetName(prefabName);
-
-        if (auto baseScene = dynamic_cast<BaseScene*>(scene)) {
-            baseScene->AddGameObject(prefabObj);
-            SetSelectedObject(prefabObj);
-        }
-    } else {
+    // 3. Prefabの読み込み
+    editingPrefabRoot_ = SceneSerializer::LoadPrefab(prefabPath);
+    if (!editingPrefabRoot_) {
         Log::OutPutLog(std::cerr, "Failed to load prefab: " + prefabPath);
+        // 読込失敗時はバックアップからシーンを復元して安全に脱出
+        SceneSerializer::Load(scene, "temp/.temp_prefab_backup");
+        baseScene->WarmUpRenderState();
+        return;
     }
+
+    // 表示名はファイル名（拡張子なし）に統一
+    std::string prefabName = std::filesystem::path(prefabPath).stem().string();
+    editingPrefabRoot_->SetName(prefabName);
+    baseScene->AddGameObject(editingPrefabRoot_);
+
+    // 4. PrefabStage 専用エディタカメラ（Transient: 保存・階層非表示）を自動プロビジョニング
+    stageCameraObject_ = std::make_shared<GameObject>();
+    stageCameraObject_->SetName("__PrefabStageCamera__");
+    stageCameraObject_->SetHideInHierarchy(true); // ヒエラルキーに余計なカメラを表示しない
+    auto camComp = stageCameraObject_->AddComponent<CameraComponent>();
+    if (camComp) {
+        camComp->SetNearZ(0.1f);
+        camComp->SetFarZ(1000.0f);
+        camComp->SetFovAngleY(45.0f * (Irufemi::Math::PI / 180.0f));
+    }
+    baseScene->AddGameObject(stageCameraObject_);
+    if (engine_ && engine_->GetCameraManager()) {
+        engine_->GetCameraManager()->SetActiveCamera(stageCameraObject_->GetName());
+    }
+
+    // 5. 描画ステートの事前同期（Transform・GPUデータウォームアップ）
+    baseScene->WarmUpRenderState();
+
+    // 6. オブジェクト選択 & Auto-Framing（画面中央へ最適フォーカス）
+    SetSelectedObject(editingPrefabRoot_);
+    FramePrefabObject();
 
     currentMode_ = EditorModeState::PrefabEdit;
     editingPrefabPath_ = prefabPath;
@@ -268,42 +294,94 @@ void EditorManager::ExitPrefabMode(bool saveChanges) {
         return;
     }
     auto scene = engine_->GetSceneManager()->GetCurrentScene();
-    if (!scene) {
+    auto baseScene = dynamic_cast<BaseScene*>(scene);
+    if (!baseScene) {
         return;
     }
 
-    if (saveChanges) {
-        if (auto baseScene = dynamic_cast<BaseScene*>(scene)) {
-            auto gameObjects = baseScene->GetGameObjects();
-            if (!gameObjects.empty()) {
-                auto rootObj = gameObjects.front();
-                // 保存時もプレハブ名に正規化
-                std::string prefabName = std::filesystem::path(editingPrefabPath_).stem().string();
-                rootObj->SetName(prefabName);
+    // 1. 決定論的プレハブ保存（保持している editingPrefabRoot_ のみを保存し、カメラ混入事故を完全防止）
+    if (saveChanges && editingPrefabRoot_) {
+        std::string prefabName = std::filesystem::path(editingPrefabPath_).stem().string();
+        editingPrefabRoot_->SetName(prefabName);
 
-                // シーン内の最初のルートオブジェクトをPrefabとして上書き保存
-                SceneSerializer::SavePrefab(rootObj, editingPrefabPath_);
-                // 保存したプレハブのメモリキャッシュをクリアして次回生成時に最新データをロード
-                SceneSerializer::ClearCache();
-                Log::OutPutLog(std::cout, "Prefab saved successfully: " + editingPrefabPath_);
-            }
-        }
+        SceneSerializer::SavePrefab(editingPrefabRoot_, editingPrefabPath_);
+        SceneSerializer::ClearCache();
+        Log::OutPutLog(std::cout, "Prefab saved successfully: " + editingPrefabPath_);
     }
 
     ClearSelectedObject();
+    editingPrefabRoot_ = nullptr;
+    stageCameraObject_ = nullptr;
 
+    // 2. GPU待機とステージクリーンアップ
     if (auto dxCommon = engine_->GetDirectXCommon()) {
         dxCommon->WaitForGPU();
     }
-    if (auto baseScene = dynamic_cast<BaseScene*>(scene)) {
-        baseScene->ClearGameObjects();
-    }
+    baseScene->ClearGameObjects();
 
-    // バックアップから元のシーンを復元
+    // 3. バックアップから元のメインシーンを完全復元
     SceneSerializer::Load(scene, "temp/.temp_prefab_backup");
+    baseScene->WarmUpRenderState();
 
     currentMode_ = EditorModeState::Edit;
     editingPrefabPath_ = "";
+}
+
+void EditorManager::FramePrefabObject() {
+    if (!editingPrefabRoot_ || !stageCameraObject_) {
+        return;
+    }
+
+    // プレハブのバウンディング球・サイズを算出
+    float radius = 2.0f;
+    Irufemi::Vector3 centerOffset{0.0f, 0.0f, 0.0f};
+
+    if (auto sphere = editingPrefabRoot_->GetComponent<SphereColliderComponent>()) {
+        float scale = 1.0f;
+        if (auto trans = editingPrefabRoot_->GetTransform()) {
+            scale = (std::max)({trans->GetWorldScale().x, trans->GetWorldScale().y, trans->GetWorldScale().z});
+        }
+        radius = (std::max)(radius, sphere->GetLocalRadius() * scale);
+        centerOffset = sphere->GetLocalOffset();
+    } else if (auto aabb = editingPrefabRoot_->GetComponent<AABBColliderComponent>()) {
+        auto worldAABB = aabb->GetWorldAABB();
+        Irufemi::Vector3 diff = Irufemi::Math::Subtract(worldAABB.max, worldAABB.min);
+        radius = (std::max)(radius, Irufemi::Math::Length(diff) * 0.5f);
+        centerOffset = Irufemi::Math::Multiply(0.5f, Irufemi::Math::Add(worldAABB.min, worldAABB.max));
+    } else if (auto trans = editingPrefabRoot_->GetTransform()) {
+        float scale = (std::max)({trans->GetWorldScale().x, trans->GetWorldScale().y, trans->GetWorldScale().z});
+        radius = (std::max)(radius, scale * 1.5f);
+    }
+
+    // 45度のFOVに基づいて、プレハブ全体が余裕を持って収まるカメラ距離を算出
+    float fovY = 45.0f * (Irufemi::Math::PI / 180.0f);
+    float distance = (radius / std::sin(fovY * 0.5f)) * 1.35f;
+
+    Irufemi::Vector3 targetCenter = centerOffset;
+    if (auto trans = editingPrefabRoot_->GetTransform()) {
+        targetCenter = Irufemi::Math::Add(trans->GetWorldPosition(), centerOffset);
+    }
+
+    if (auto camTrans = stageCameraObject_->GetTransform()) {
+        // 斜め上方から見下ろす位置にカメラを配置
+        Irufemi::Vector3 camPos = {
+            targetCenter.x,
+            targetCenter.y + radius * 0.5f,
+            targetCenter.z - distance
+        };
+        camTrans->SetPosition(camPos);
+        camTrans->SetRotation({8.0f * (Irufemi::Math::PI / 180.0f), 0.0f, 0.0f});
+    }
+
+    // CameraManager のアクティブカメラに即座に同期
+    if (engine_ && engine_->GetCameraManager()) {
+        if (auto cam = engine_->GetCameraManager()->GetActiveCamera()) {
+            if (auto camTrans = stageCameraObject_->GetTransform()) {
+                cam->SetTranslate(camTrans->GetWorldPosition());
+                cam->SetRotate(camTrans->GetWorldRotation());
+            }
+        }
+    }
 }
 
 void EditorManager::OnDrawUI() {
@@ -368,7 +446,13 @@ void EditorManager::OnDrawUI() {
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.3f, 0.6f, 1.0f));
         if (ImGui::BeginChild("PrefabModeBanner", ImVec2(0, 32), true, ImGuiWindowFlags_NoScrollbar)) {
             ImGui::Text("%s PREFAB MODE: %s", ICON_FA_CUBE, editingPrefabPath_.c_str());
-            ImGui::SameLine(ImGui::GetWindowWidth() - 220.0f);
+            ImGui::SameLine(ImGui::GetWindowWidth() - 320.0f);
+
+            if (ImGui::Button(ICON_FA_CROSSHAIRS " Focus (F)", ImVec2(90, 20))) {
+                FramePrefabObject();
+            }
+
+            ImGui::SameLine();
 
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
             if (ImGui::Button(ICON_FA_FLOPPY_DISK " Save & Exit", ImVec2(100, 20))) {

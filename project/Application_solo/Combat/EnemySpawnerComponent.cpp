@@ -39,10 +39,11 @@ EnemySpawnerComponent::~EnemySpawnerComponent() {
 void EnemySpawnerComponent::Initialize() {}
 
 void EnemySpawnerComponent::OnRegisterProperties() {
-    RegisterProperty("Enemy Model Path", &enemyModelPath_);
-    RegisterProperty("Enemy Prefab Path", &enemyPrefabPath_);
-    RegisterProperty("Base Enemy Scale", &baseEnemyScale_);
-    RegisterProperty("Base Collider Radius", &baseColliderRadius_);
+    // プレハブ内にモデル・スケール・コライダー・パラメータ等の全情報が一元化されているため、
+    // インスペクターにはプレハブ選択・編集プロパティのみを公開
+    RegisterProperty("Enemy Prefab Path", &enemyPrefabPath_)
+        .SetTooltip("スポーン対象の敵プレハブアセットを選択")
+        .SetPrefabFilter("RailShooterEnemyComponent"); // 敵コンポーネントを持つプレハブのみに型安全フィルタリング
 }
 
 void EnemySpawnerComponent::Start() {

@@ -93,12 +93,19 @@ public:
      */
     void ExitPrefabMode(bool saveChanges);
 
+    /**
+     * @brief プレハブ編集用カメラをプレハブ全体が収まる最適な位置へ自動フォーカス（Auto-Framing）する
+     */
+    void FramePrefabObject();
+
 private:
     IrufemiEngine* engine_ = nullptr;
 
     EditorModeState currentMode_ = EditorModeState::Edit;
     std::string playModeStartSceneName_ = "";
     std::string editingPrefabPath_ = "";
+    std::shared_ptr<GameObject> editingPrefabRoot_ = nullptr; ///< 編集中のプレハブルートオブジェクト（明示的保持）
+    std::shared_ptr<GameObject> stageCameraObject_ = nullptr;  ///< ステージ専用エディタカメラ（Transient）
     bool isStepRequested_ = false;            // コマ送りの予約フラグ
     bool isPickingAllowedInPlayMode_ = false; // プレイ中のオブジェクト選択（ピッキング）許可フラグ
 
