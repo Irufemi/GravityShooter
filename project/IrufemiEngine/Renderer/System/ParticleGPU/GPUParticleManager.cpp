@@ -132,7 +132,10 @@ void GPUParticleManager::UpdateEmitterData(const EmitterHandle& handle, const GP
             float dz = data.translateZ - prevZ;
             float distSq = dx * dx + dy * dy + dz * dz;
 
-            if (current.emit == 0 || distSq > 10000.0f || (prevX == 0.0f && prevY == 0.0f && prevZ == 0.0f)) {
+            // テレポート判定用のしきい値（1フレームで100unit以上離れた場合はワープとみなし補間をリセット）
+            constexpr float kMaxTeleportDistanceSq = 10000.0f; // 100.0f * 100.0f
+
+            if (current.emit == 0 || distSq > kMaxTeleportDistanceSq) {
                 prevX = data.translateX;
                 prevY = data.translateY;
                 prevZ = data.translateZ;

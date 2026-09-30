@@ -149,7 +149,9 @@ struct GPUParticleEmitter {
     float midPoint = 0.0f;
 
     // float4 x 23
+    /// @brief 前フレームのエミッター位置 (X, Y, Z)
     float prevTranslateX = 0, prevTranslateY = 0, prevTranslateZ = 0;
+    /// @brief メモリ整列用パディング
     float pad10 = 0;
 };
 
