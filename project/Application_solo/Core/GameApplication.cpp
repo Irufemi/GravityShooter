@@ -50,6 +50,7 @@
 #include "Scenes/Pause/PauseScene.h"
 #include "Scenes/TL1/TL1Scene.h"
 #include "Framework/Scene/OptionsScene.h"
+#include "Scenes/HowToPlay/HowToPlayScene.h"
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
 #include "Framework/Scene/DebugScene.h"
@@ -90,6 +91,7 @@ void RegisterScenes(SceneManager& sm) {
     sm.Register("Debug", [] { return std::make_unique<DebugScene>(); });
 #endif
     sm.Register("OptionsScene", [] { return std::make_unique<OptionsScene>(); });
+    sm.Register("HowToPlayScene", [] { return std::make_unique<HowToPlayScene>(); });
 }
 
 // --- シェーダー登録処理 ---

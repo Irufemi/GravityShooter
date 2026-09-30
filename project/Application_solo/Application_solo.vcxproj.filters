@@ -46,6 +46,9 @@
     <Filter Include="Scenes\title">
       <UniqueIdentifier>{f64a4eda-87c3-415f-e7ee-463d72828382}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes\HowToPlay">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Scenes\Result">
       <UniqueIdentifier>{abcdabcd-1234-5678-90ab-cdef12345678}</UniqueIdentifier>
     </Filter>
@@ -89,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="Scenes\title\TitleMenuControllerComponent.cpp">
       <Filter>Scenes\title</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\HowToPlay\HowToPlayScene.cpp">
+      <Filter>Scenes\HowToPlay</Filter>
     </ClCompile>
     <ClCompile Include="UI\LoadingScreen.cpp">
       <Filter>UI</Filter>
@@ -239,6 +245,9 @@
     </ClInclude>
     <ClInclude Include="Scenes\title\TitleMenuControllerComponent.h">
       <Filter>Scenes\title</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\HowToPlay\HowToPlayScene.h">
+      <Filter>Scenes\HowToPlay</Filter>
     </ClInclude>
     <ClInclude Include="UI\LoadingScreen.h">
       <Filter>UI</Filter>

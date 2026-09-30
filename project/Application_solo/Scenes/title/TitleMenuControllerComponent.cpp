@@ -11,6 +11,10 @@
 #include "Platform/Input/InputManager.h"
 #include "Audio/AudioManager.h"
 
+#ifdef EditorMode
+#include "Core/EditorManager.h"
+#endif
+
 #include <cmath>
 #include <algorithm>
 
@@ -40,27 +44,6 @@ void TitleMenuControllerComponent::Update() {
     }
 
     float deltaTime = engine->GetDeltaTime();
-
-    if (isHowToPlayOpen_) {
-        // --- 操作説明モーダル表示中 ---
-        auto inputManager = engine->GetInputManager();
-        if (inputManager) {
-            if (inputManager->IsButtonPressed(XINPUT_GAMEPAD_B) ||
-                inputManager->IsKeyPressed(VK_ESCAPE) ||
-                inputManager->IsKeyPressed(VK_BACK)) {
-                isHowToPlayOpen_ = false;
-                PlaySE("resources/audio/se_menu_cancel.wav", "se_menu_cancel", 0.7f);
-
-                // モーダルエンティティを非アクティブ化
-                if (auto scene = GetScene()) {
-                    if (auto modalObj = scene->FindGameObject("HowToPlayOverlay")) {
-                        modalObj->SetActive(false);
-                    }
-                }
-            }
-        }
-        return;
-    }
 
     // スティッククールダウン減衰
     if (stickCooldownTimer_ > 0.0f) {
@@ -120,6 +103,32 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
                 targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
             }
         }
+        return;
+    }
+
+    // --- マウスカーソルによるホバー検出 ---
+    if (auto mouse = inputManager->GetMouse()) {
+        const auto& mousePos = mouse->GetPosition();
+        if (auto scene = GetScene()) {
+            for (size_t i = 0; i < buttonNames_.size(); ++i) {
+                if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
+                    if (auto transform = btnObj->GetComponent<TransformComponent>()) {
+                        const auto& pos = transform->GetPosition();
+                        // ボタンの当たり判定領域 (横幅 ±180px, 縦幅 ±25px)
+                        if (std::abs(mousePos.x - pos.x) <= 180.0f && std::abs(mousePos.y - pos.y) <= 25.0f) {
+                            if (currentIndex_ != static_cast<int>(i)) {
+                                currentIndex_ = static_cast<int>(i);
+                                PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
+                                for (size_t k = 0; k < targetScales_.size(); ++k) {
+                                    targetScales_[k] = (static_cast<int>(k) == currentIndex_) ? 1.15f : 0.95f;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -131,9 +140,28 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
     if (!inputManager) return;
 
     // 決定キー (Aボタン / Space / Enter)
-    if (inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
-        inputManager->IsKeyPressed(VK_SPACE) ||
-        inputManager->IsKeyPressed(VK_RETURN)) {
+    bool isSelected = inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
+                      inputManager->IsKeyPressed(VK_SPACE) ||
+                      inputManager->IsKeyPressed(VK_RETURN);
+
+    // マウス左クリックによる決定判定（選択中のボタン領域内でのクリック）
+    if (!isSelected && inputManager->GetMouse()) {
+        if (inputManager->GetMouse()->IsButtonPressed(Mouse::Button::Left) || inputManager->IsKeyPressed(VK_LBUTTON)) {
+            if (auto scene = GetScene()) {
+                if (auto btnObj = scene->FindGameObject(buttonNames_[currentIndex_])) {
+                    if (auto transform = btnObj->GetComponent<TransformComponent>()) {
+                        const auto& mousePos = inputManager->GetMouse()->GetPosition();
+                        const auto& pos = transform->GetPosition();
+                        if (std::abs(mousePos.x - pos.x) <= 180.0f && std::abs(mousePos.y - pos.y) <= 25.0f) {
+                            isSelected = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (isSelected) {
         ExecuteSelection();
     }
 }
@@ -156,11 +184,8 @@ void TitleMenuControllerComponent::ExecuteSelection() {
         }
         case 1: // HOW TO PLAY
         {
-            isHowToPlayOpen_ = true;
-            if (auto scene = GetScene()) {
-                if (auto modalObj = scene->FindGameObject("HowToPlayOverlay")) {
-                    modalObj->SetActive(true);
-                }
+            if (auto sm = engine->GetSceneManager()) {
+                sm->PushScene("HowToPlayScene");
             }
             break;
         }
@@ -173,6 +198,12 @@ void TitleMenuControllerComponent::ExecuteSelection() {
         }
         case 3: // QUIT
         {
+#ifdef EditorMode
+            if (auto editor = EditorManager::GetInstance()) {
+                editor->ExitPlayMode();
+                break;
+            }
+#endif
             PostQuitMessage(0);
             break;
         }
@@ -185,6 +216,20 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
     auto scene = GetScene();
     if (!scene) return;
 
+    // 初回実行時にエディタ設定の初期スケールを自動キャッシュ（遅延取得）
+    if (initialScales_.size() < buttonNames_.size()) {
+        initialScales_.clear();
+        for (const auto& name : buttonNames_) {
+            if (auto btnObj = scene->FindGameObject(name)) {
+                if (auto transform = btnObj->GetComponent<TransformComponent>()) {
+                    initialScales_.push_back(transform->GetScale());
+                    continue;
+                }
+            }
+            initialScales_.push_back({1.0f, 1.0f, 1.0f});
+        }
+    }
+
     const float kLerpSpeed = 14.0f;
 
     for (size_t i = 0; i < buttonNames_.size(); ++i) {
@@ -195,10 +240,11 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
         if (!btnObj) continue;
 
         auto transform = btnObj->GetComponent<TransformComponent>();
-        if (transform) {
-            float baseScale = 0.35f; // UIの基準スケール
-            float s = baseScale * currentScales_[i];
-            transform->SetScale({s, s, 1.0f});
+        if (transform && i < initialScales_.size()) {
+            // エディタ設定の本来のスケール × 選択状態の乗率 (1.15倍 or 0.95倍)
+            Irufemi::Vector3 baseScale = initialScales_[i];
+            float s = currentScales_[i];
+            transform->SetScale({baseScale.x * s, baseScale.y * s, baseScale.z});
         }
 
         // テキストコンポーネントがある場合の色補正

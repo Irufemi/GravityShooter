@@ -249,6 +249,7 @@ exit 0</Command>
     <ClCompile Include="Scenes\stageSelect\SelectScene.cpp" />
     <ClCompile Include="Scenes\title\TitleScene.cpp" />
     <ClCompile Include="Scenes\title\TitleMenuControllerComponent.cpp" />
+    <ClCompile Include="Scenes\HowToPlay\HowToPlayScene.cpp" />
     <ClCompile Include="UI\LoadingScreen.cpp" />
     <ClCompile Include="UI\PromptController.cpp" />
     <ClCompile Include="RailMechanics\RailShooterPlayerComponent.cpp" />
@@ -304,6 +305,7 @@ exit 0</Command>
     <ClInclude Include="Scenes\stageSelect\SelectScene.h" />
     <ClInclude Include="Scenes\title\TitleScene.h" />
     <ClInclude Include="Scenes\title\TitleMenuControllerComponent.h" />
+    <ClInclude Include="Scenes\HowToPlay\HowToPlayScene.h" />
     <ClInclude Include="UI\LoadingScreen.h" />
     <ClInclude Include="UI\PromptController.h" />
     <ClInclude Include="RailMechanics\RailShooterPlayerComponent.h" />

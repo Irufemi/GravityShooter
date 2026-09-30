@@ -85,6 +85,7 @@ private: // メンバ変数
     // ボタンのスケール補間制御用
     std::vector<float> currentScales_ = {1.0f, 1.0f, 1.0f, 1.0f};
     std::vector<float> targetScales_ = {1.15f, 1.0f, 1.0f, 1.0f};
+    std::vector<Irufemi::Vector3> initialScales_; //!< エディタ(JSON)で設定された初期スケールキャッシュ
 
     // メニュー項目名
     const std::vector<std::string> buttonNames_ = {

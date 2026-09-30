@@ -1,0 +1,204 @@
+{
+  "gameObjects": [
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              360.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "color": [
+              0.02,
+              0.03,
+              0.05,
+              0.80
+            ],
+            "isFlipX": false,
+            "isFlipY": false,
+            "isTopMost": false,
+            "size": [
+              1280.0,
+              720.0
+            ],
+            "texturePath": "resources/texture/white.png"
+          },
+          "type": "SpriteRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000001,
+      "name": "DarkBackdrop",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              180.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 65.0,
+            "color": [
+              0.1,
+              0.95,
+              1.0,
+              1.0
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "--- HOW TO PLAY ---"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000002,
+      "name": "HeaderTitle",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              370.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 36.0,
+            "color": [
+              0.9,
+              0.95,
+              1.0,
+              0.95
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "[ MOVE ]            WASD  /  Left Stick\n[ LOCK-ON ]         Right Click  /  Right Trigger\n[ ATTRACT DEBRIS ]   E Key  /  Left Bumper\n[ THROW DEBRIS ]     Left Click  /  Right Bumper"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000003,
+      "name": "InstructionText",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              560.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 28.0,
+            "color": [
+              0.6,
+              0.7,
+              0.8,
+              0.75
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "[ PRESS B  /  ESC  /  CLICK TO CLOSE ]"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000004,
+      "name": "FooterCloseHint",
+      "tag": "Untagged"
+    }
+  ],
+  "settings": {
+    "directionalLight": {
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "direction": [
+        0.5,
+        -0.7,
+        1.0
+      ],
+      "intensity": 0.0
+    }
+  },
+  "version": 1
+}
