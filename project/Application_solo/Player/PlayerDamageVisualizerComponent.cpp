@@ -9,6 +9,9 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/System/Core/BaseModel.h"
+#include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
+#include "Effects/EffectManagerComponent.h"
+#include "RailMechanics/RailShooterPlayerComponent.h"
 #include "Core/Utility/Log.h"
 #include <cmath>
 #include <iostream>
@@ -119,10 +122,6 @@ void PlayerDamageVisualizerComponent::TriggerScreenEffect() {
         screenEffectComp_->Play();
     }
 }
-
-#include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
-#include "Effects/EffectManagerComponent.h"
-#include "RailMechanics/RailShooterPlayerComponent.h"
 
 void PlayerDamageVisualizerComponent::TriggerDeathVisuals() {
     if (!gameObject_) {

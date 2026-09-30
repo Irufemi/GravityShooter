@@ -232,8 +232,7 @@ void EnemyBeamComponent::CheckBeamCollision() {
                 Irufemi::Ray ray;
                 ray.origin = a;
                 ray.diff = playerPos - a;
-                float distToPlayer =
-                    std::sqrt(ray.diff.x * ray.diff.x + ray.diff.y * ray.diff.y + ray.diff.z * ray.diff.z);
+                float distToPlayer = ray.diff.Length();
                 if (distToPlayer > 0.001f) {
                     RaycastHit hitInfo;
                     if (cm->Raycast(ray, hitInfo, distToPlayer, envMask, gameObject_)) {

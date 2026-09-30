@@ -1,4 +1,5 @@
 #include "Player/PlayerThrusterVisualizerComponent.h"
+#include "RailMechanics/RailShooterPlayerComponent.h"
 #include "Effects/EffectManagerComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
@@ -33,10 +34,9 @@ void PlayerThrusterVisualizerComponent::Start() {
     }
 
     // 2. RailShooterPlayerComponent のイベントを購読 (Observer パターン)
-    playerComp_ = gameObject_->GetComponent<RailShooterPlayerComponent>();
-    if (playerComp_) {
-        playerComp_->AddOnThrottleChangeListener([this](float throttle) { OnThrottleChanged(throttle); });
-        playerComp_->AddOnStateChangeListener(
+    if (auto playerComp = gameObject_->GetComponent<RailShooterPlayerComponent>()) {
+        playerComp->AddOnThrottleChangeListener([this](float throttle) { OnThrottleChanged(throttle); });
+        playerComp->AddOnStateChangeListener(
             [this](PlayerFlightState newState, PlayerFlightState oldState) { OnStateChanged(newState, oldState); });
     }
 }

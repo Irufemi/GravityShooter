@@ -182,7 +182,7 @@ public:
 private:
     friend class DebrisManagerComponent;
     DebrisState state_ = DebrisState::Idle;
-    bool hasConsumedHit_ = false;
+    bool hasConsumedHit_ = false; ///< ヒット判定の消費フラグ (多重ダメージ防止用)
 
     int virtualId_ = -1;
     int variationIndex_ = -1;
