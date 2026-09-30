@@ -56,8 +56,10 @@ private: // メンバ変数
     float pulseTimer_ = 0.0f;
     bool isPulseActive_ = false;
 
-    // マウスカーソル追従・パララックス用
-    Irufemi::Vector2 smoothedMousePos_{640.0f, 360.0f}; //!< スムーズ補間済みマウス位置
-    Irufemi::Vector2 smoothedMouseUV_{0.5f, 0.5f};      //!< スムーズ補間済み正規化UV
-    Irufemi::Vector2 parallaxOffset_{0.0f, 0.0f};       //!< パララックスオフセット
+    // マウスカーソル追従・速度ベクトル場（Velocity-Aligned Wake）用
+    Irufemi::Vector2 smoothedMousePos_{640.0f, 360.0f};  //!< スムーズ補間済みマウス位置
+    Irufemi::Vector2 smoothedMouseUV_{0.5f, 0.5f};       //!< スムーズ補間済み正規化UV
+    Irufemi::Vector2 prevRawMouseUV_{0.5f, 0.5f};        //!< 前フレームのマウスUV
+    Irufemi::Vector2 smoothedVelocity_{0.0f, 0.0f};      //!< 平滑化されたマウス移動速度ベクトル
+    Irufemi::Vector2 parallaxOffset_{0.0f, 0.0f};        //!< パララックスオフセット
 };

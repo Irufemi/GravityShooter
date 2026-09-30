@@ -59,20 +59,23 @@ void TitleCosmicNebulaComponent::Update() {
         }
     }
 
-    // マウスカーソル追従（ゲーム画面論理解像度 1280 x 720 基準）
+    // マウスカーソル追従 & 移動アクティビティ計算（ゲーム画面論理解像度 1280 x 720 基準）
     Irufemi::Vector2 targetMousePos = smoothedMousePos_;
+    bool isLeftClicked = false;
     if (auto inputManager = engine->GetInputManager()) {
         if (auto mouse = inputManager->GetMouse()) {
             targetMousePos = mouse->GetPosition();
+            isLeftClicked = mouse->IsButtonPressed(Mouse::Button::Left);
         }
     }
+
 
     // ゲーム画面の解像度（SceneViewPanel の仮想マウス座標系と一致）
     constexpr float kGameWidth = 1280.0f;
     constexpr float kGameHeight = 720.0f;
 
     // 滑らかな追従補間 (Smooth Damp)
-    float lerpFactor = std::clamp(deltaTime * 10.0f, 0.0f, 1.0f);
+    float lerpFactor = std::clamp(deltaTime * 14.0f, 0.0f, 1.0f);
     smoothedMousePos_.x += (targetMousePos.x - smoothedMousePos_.x) * lerpFactor;
     smoothedMousePos_.y += (targetMousePos.y - smoothedMousePos_.y) * lerpFactor;
 
@@ -80,19 +83,36 @@ void TitleCosmicNebulaComponent::Update() {
     smoothedMouseUV_.x = std::clamp(smoothedMousePos_.x / kGameWidth, 0.0f, 1.0f);
     smoothedMouseUV_.y = std::clamp(smoothedMousePos_.y / kGameHeight, 0.0f, 1.0f);
 
-    // 背景全体は中央にドシッと固定（マウス移動で画面全体が揺れるのを完全に防止）
+    // --- 速度ベクトルの算出と平滑化（Velocity-Aligned Wake Field） ---
+    float safeDeltaTime = (deltaTime > 0.0001f) ? deltaTime : (1.0f / 60.0f);
+    Irufemi::Vector2 rawVelocity{
+        (smoothedMouseUV_.x - prevRawMouseUV_.x) / safeDeltaTime,
+        (smoothedMouseUV_.y - prevRawMouseUV_.y) / safeDeltaTime
+    };
+    prevRawMouseUV_ = smoothedMouseUV_;
+
+    // クリック時は出撃パルス（重力波インパルス）を発火
+    if (isLeftClicked) {
+        TriggerPulse(1.0f);
+    }
+
+    // 速度ベクトルの平滑化追従（過度な急激変化を緩和し、滑らかな流体の引き波を実現）
+    float velLerp = std::clamp(deltaTime * 10.0f, 0.0f, 1.0f);
+    smoothedVelocity_.x += (rawVelocity.x - smoothedVelocity_.x) * velLerp;
+    smoothedVelocity_.y += (rawVelocity.y - smoothedVelocity_.y) * velLerp;
+
+    // 背景全体は中央にドシッと固定
     float vortexCenterX = 0.5f;
     float vortexCenterY = 0.42f;
-    float parallaxX = 0.0f;
-    float parallaxY = 0.0f;
 
     // パラメータ更新
     params_.pulseIntensity = isPulseActive_ ? pulseTimer_ : 0.0f;
     params_.time = totalTime_;
     params_.swirlStrength = 0.65f;
     params_.density = 1.0f;
-    params_.centerUV = { vortexCenterX, vortexCenterY, parallaxX, parallaxY };
-    params_.mouseUV = { smoothedMouseUV_.x, smoothedMouseUV_.y, 1.0f, 0.0f };
+    params_.centerUV = { vortexCenterX, vortexCenterY, 0.0f, 0.0f };
+    // mouseUV: xy = カーソル正規化UV, zw = 平滑化移動速度ベクトル (Velocity)
+    params_.mouseUV = { smoothedMouseUV_.x, smoothedMouseUV_.y, smoothedVelocity_.x, smoothedVelocity_.y };
 
     if (mappedParams_) {
         *mappedParams_ = params_;
