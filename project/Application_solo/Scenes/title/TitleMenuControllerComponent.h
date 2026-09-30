@@ -1,0 +1,96 @@
+#pragma once
+
+#include "Framework/Component/Component.h"
+#include <vector>
+#include <string>
+
+/**
+ * @class TitleMenuControllerComponent
+ * @brief タイトル画面のメニュー選択・ゲームパッド/キーボード操作・モーダルを統括するコンポーネント
+ * @details 十字キー/スティック/WASDによるフォーカス移動、スケールアップアニメーション、
+ *          HOW TO PLAY モーダル、OPTIONS遷移、QUIT処理を管理します。
+ */
+class TitleMenuControllerComponent : public Component {
+public: // メンバ関数(システム)
+    TitleMenuControllerComponent() = default;
+    ~TitleMenuControllerComponent() override = default;
+
+    /**
+     * @brief 初期化処理
+     */
+    void Initialize() override;
+
+    /**
+     * @brief 毎フレーム更新処理
+     */
+    void Update() override;
+
+    /**
+     * @brief コンポーネント名を取得する
+     * @return コンポーネント名
+     */
+    std::string GetComponentName() const override {
+        return "TitleMenuControllerComponent";
+    }
+
+    /**
+     * @brief エディタ用プロパティ登録
+     */
+    void OnRegisterProperties() override;
+
+    /**
+     * @brief 現在選択中のメニューインデックスを取得する
+     * @return 0: START, 1: HOW TO PLAY, 2: OPTIONS, 3: QUIT
+     */
+    int GetCurrentIndex() const {
+        return currentIndex_;
+    }
+
+    /**
+     * @brief HOW TO PLAY モーダルが開いているか
+     */
+    bool IsHowToPlayOpen() const {
+        return isHowToPlayOpen_;
+    }
+
+    /**
+     * @brief 出撃演出中かどうか
+     */
+    bool IsLaunching() const {
+        return isLaunching_;
+    }
+
+    /**
+     * @brief 出撃演出開始フラグを設定する
+     */
+    void SetLaunching(bool launching) {
+        isLaunching_ = launching;
+    }
+
+private: // 内部処理
+    void HandleNavigationInput();
+    void HandleSelectionInput();
+    void UpdateButtonVisuals(float deltaTime);
+    void ExecuteSelection();
+    void PlaySE(const std::string& relativePath, const std::string& soundName, float volume = 0.8f);
+
+private: // メンバ変数
+    int currentIndex_ = 0;             //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
+    bool isHowToPlayOpen_ = false;     //!< 操作説明モーダル表示フラグ
+    bool isLaunching_ = false;         //!< 出撃シーケンス実行中フラグ
+
+    float stickCooldownTimer_ = 0.0f;  //!< スティック連続移動防止用タイマー
+    const float kStickCooldown_ = 0.22f;
+
+    // ボタンのスケール補間制御用
+    std::vector<float> currentScales_ = {1.0f, 1.0f, 1.0f, 1.0f};
+    std::vector<float> targetScales_ = {1.15f, 1.0f, 1.0f, 1.0f};
+
+    // メニュー項目名
+    const std::vector<std::string> buttonNames_ = {
+        "Btn_Start",
+        "Btn_HowToPlay",
+        "Btn_Options",
+        "Btn_Quit"
+    };
+};

@@ -44,6 +44,7 @@
 
 // シーンのインクルード
 #include "Scenes/title/TitleScene.h"
+#include "Scenes/title/TitleMenuControllerComponent.h"
 #include "Scenes/stageSelect/SelectScene.h"
 #include "Scenes/inGame/GameScene.h"
 #include "Scenes/Pause/PauseScene.h"
@@ -115,6 +116,11 @@ void RegisterShaders(IrufemiEngine& engine) {
     auto vsSpriteBatch = shaderManager->GetOrCompile(L"SpriteBatch.VS.hlsl", options);
     auto psLuminanceAlpha = shaderManager->GetOrCompile(L"LuminanceAlpha2D.PS.hlsl", options);
     psoManager->RegisterShader("LuminanceAlpha2D", {{vsSpriteBatch, psLuminanceAlpha}});
+
+    // GravitationalWave シェーダー (タイトル画面用 プロシージャル重力波＆高電圧プラズマ放電)
+    auto vsFullscreen = shaderManager->GetOrCompile(L"Fullscreen.VS.hlsl", options);
+    auto psGravitationalWave = shaderManager->GetOrCompile(L"GravitationalWave.PS.hlsl", options);
+    psoManager->RegisterShader("GravitationalWave", {{vsFullscreen, psGravitationalWave}});
 }
 
 // --- コンポーネント登録処理 ---
@@ -171,6 +177,8 @@ void RegisterComponents() {
                                []() { return std::make_shared<GameLoopManagerComponent>(); });
     ComponentFactory::Register("ResultManagerComponent", "Game",
                                []() { return std::make_shared<ResultManagerComponent>(); });
+    ComponentFactory::Register("TitleMenuControllerComponent", "Game",
+                               []() { return std::make_shared<TitleMenuControllerComponent>(); });
 }
 } // namespace
 

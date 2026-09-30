@@ -87,6 +87,9 @@
     <ClCompile Include="Scenes\title\TitleScene.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
+    <ClCompile Include="Scenes\title\TitleMenuControllerComponent.cpp">
+      <Filter>Scenes\title</Filter>
+    </ClCompile>
     <ClCompile Include="UI\LoadingScreen.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -232,6 +235,9 @@
       <Filter>Scenes\stageSelect</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\title\TitleScene.h">
+      <Filter>Scenes\title</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\TitleMenuControllerComponent.h">
       <Filter>Scenes\title</Filter>
     </ClInclude>
     <ClInclude Include="UI\LoadingScreen.h">
