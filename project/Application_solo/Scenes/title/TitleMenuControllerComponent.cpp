@@ -283,3 +283,21 @@ void TitleMenuControllerComponent::PlaySE(const std::string& relativePath, const
         audioManager->Play(soundData, false, volume);
     }
 }
+
+void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
+    auto scene = GetScene();
+    if (!scene) return;
+
+    // タイトルロゴの表示/非表示
+    if (auto titleObj = scene->FindGameObject("TitleText")) {
+        titleObj->SetActive(visible);
+    }
+
+    // 各ボタン項目の表示/非表示
+    for (const auto& name : buttonNames_) {
+        if (auto btnObj = scene->FindGameObject(name)) {
+            btnObj->SetActive(visible);
+        }
+    }
+}
+

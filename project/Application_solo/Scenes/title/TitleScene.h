@@ -27,4 +27,14 @@ public: // メンバ関数(システム)
      * @brief 描画処理
      */
     void Draw() override;
+
+    /**
+     * @brief 上に別のシーンがPushされた（バックグラウンド退避）時の処理
+     */
+    void OnSuspend() override;
+
+    /**
+     * @brief 上のシーンがPopされ、最前面に復帰した時の処理
+     */
+    void OnResume() override;
 };

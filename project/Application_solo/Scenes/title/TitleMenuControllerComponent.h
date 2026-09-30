@@ -67,6 +67,12 @@ public: // メンバ関数(システム)
         isLaunching_ = launching;
     }
 
+    /**
+     * @brief メニューUI（タイトルロゴ・各ボタン）の一括表示/非表示を設定する
+     * @param[in] visible 表示フラグ
+     */
+    void SetMenuVisible(bool visible);
+
 private: // 内部処理
     void HandleNavigationInput();
     void HandleSelectionInput();
