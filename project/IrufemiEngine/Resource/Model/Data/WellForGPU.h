@@ -11,8 +11,8 @@ namespace Irufemi {
  *       将来的に一様スケールモデル専用パスを導入する場合は64バイトへの削減が可能。
  */
 struct WellForGPU {
-    Matrix4x4 skeletonSpaceMatrix;                 // 位置用 (64B)
-    Matrix4x4 skeletonSpaceInverseTransposeMatrix; // 法線用 (64B)
+    Matrix4x4 skeletonSpaceMatrix;                 ///< 頂点位置変換用行列 (64B)
+    Matrix4x4 skeletonSpaceInverseTransposeMatrix; ///< 法線ベクトル変換用逆転置行列 (64B)
 };
 
 } // namespace Irufemi

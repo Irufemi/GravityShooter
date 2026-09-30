@@ -62,13 +62,18 @@ void main(uint3 DTid : SV_DispatchThreadID)
             gParticles[particleIndex].billboardMode = emitter.billboardMode;
             gParticles[particleIndex].atlasSize = (emitter.atlasRows << 16) | (emitter.atlasCols & 0xFFFF);
 
+            // フレーム間スポーン補間 (Sub-frame Spawning Interpolation)
+            // 高速移動時でもフレーム間の隙間を埋め、連続した光条・軌跡を形成する
+            float subframeT = (emitCount > 1) ? ((float)i / (float)(emitCount - 1)) : 1.0f;
+            float3 basePos = lerp(emitter.prevTranslate, emitter.translate, subframeT);
+
             // 放出形状別の初期位置・速度設定
             if (emitter.type == 0) // Sphere
             {
                 float phi = r_pos.x * 2.0f * 3.141592f;
                 float theta = r_pos.y * 3.141592f;
                 float3 offset = float3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi)) * (r_pos.z * emitter.radius);
-                gParticles[particleIndex].translate = emitter.translate + offset;
+                gParticles[particleIndex].translate = basePos + offset;
                 float3 radialDir = (length(offset) > 0.0001f) ? normalize(offset) : normalize(rng.Generate3d() * 2.0f - 1.0f);
                 gParticles[particleIndex].velocity = (emitter.direction + radialDir * emitter.spread) * emitter.velocity;
             }
@@ -84,7 +89,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
                 float dist = (0.9f + r_pos.y * 0.1f) * emitter.radius;
                 float3 offset = (side * cos(angle) + upVec * sin(angle)) * dist;
 
-                gParticles[particleIndex].translate = emitter.translate + offset;
+                gParticles[particleIndex].translate = basePos + offset;
                 
                 // パーティクルが外側へ広がらないよう、接線方向への初速を削除。
                 // 完全にビームの進行方向(L)に沿って直進させることで、太さを一定に保つ。
@@ -101,7 +106,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
                 float r = emitter.radius - (rng.Generate1d() * 0.1f);
                 float3 offset = float3(cos(angle), 0, sin(angle)) * r;
                 
-                gParticles[particleIndex].translate = emitter.translate + offset;
+                gParticles[particleIndex].translate = basePos + offset;
                 float3 radialDir = (length(offset) > 0.0001f) ? normalize(offset) : normalize(rng.Generate3d() * 2.0f - 1.0f);
                 gParticles[particleIndex].velocity = (emitter.direction + radialDir * emitter.spread) * emitter.velocity;
             }
@@ -118,13 +123,13 @@ void main(uint3 DTid : SV_DispatchThreadID)
                 float3 upVec = cross(L, side);
                 
                 float3 offset = (side * cos(angle) + upVec * sin(angle)) * r + L * h;
-                gParticles[particleIndex].translate = emitter.translate + offset;
+                gParticles[particleIndex].translate = basePos + offset;
                 gParticles[particleIndex].velocity = L * 0.05f;
             }
             else if (emitter.type == 4) // Box
             {
                 float3 offset = (r_pos - float3(0.5f, 0.5f, 0.5f)) * emitter.areaSize;
-                gParticles[particleIndex].translate = emitter.translate + offset;
+                gParticles[particleIndex].translate = basePos + offset;
                 float3 radialDir = (length(offset) > 0.0001f) ? normalize(offset) : normalize(rng.Generate3d() * 2.0f - 1.0f);
                 gParticles[particleIndex].velocity = (emitter.direction + radialDir * emitter.spread) * emitter.velocity;
             }
@@ -141,7 +146,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
                 float3 offset = float3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi)) * r;
                 // Y軸方向の高さを少し潰して、横に広いドーム状にする
                 offset.y *= 0.5f;
-                gParticles[particleIndex].translate = emitter.translate + offset;
+                gParticles[particleIndex].translate = basePos + offset;
                 
                 // 放射状に広がる速度
                 float3 radialDir = (length(offset) > 0.0001f) ? normalize(offset) : normalize(rng.Generate3d() * 2.0f - 1.0f);
@@ -161,7 +166,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
                     vertexIndex = min(vertexIndex, vertexCount - 1);
                     ObjectVertex v = gMeshVertices[vertexIndex];
                     
-                    float3 emitPos = v.position.xyz + emitter.translate;
+                    float3 emitPos = v.position.xyz + basePos;
                     float3 emitDir = normalize(v.normal);
                     
                     gParticles[particleIndex].translate = emitPos;

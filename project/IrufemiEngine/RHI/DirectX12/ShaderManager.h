@@ -56,10 +56,6 @@ public:
     void ClearCache();
 
 private:
-#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-#define RUNTIME_SHADER_COMPILE 1
-#endif
-
     /**
      * @struct ShaderKey
      * @brief キャッシュ用のキー構造体

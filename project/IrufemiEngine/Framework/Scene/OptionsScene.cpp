@@ -8,12 +8,15 @@
 #include "Audio/AudioManager.h"
 #include "Audio/Sound.h"
 #include "Framework/GameObject/GameObject.h"
+#include "Core/Utility/Log.h"
 
 void OptionsScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
 
     // Prefab（実際はシーン形式）からUI要素をロード
-    SceneSerializer::Load(this, "OptionsUI.prefab");
+    if (!SceneSerializer::Load(this, "OptionsUI.prefab")) {
+        Log::OutPutLog(std::cerr, "[OptionsScene] Warning: Failed to load 'OptionsUI.prefab'\n");
+    }
 
     uiBound_ = false;
 }
@@ -55,7 +58,10 @@ void OptionsScene::BindUIComponents() {
     // Apply ボタン
     if (auto obj = FindGameObject("Button_Apply")) {
         if (auto btn = obj->GetComponent<ButtonComponent>()) {
-            // ToDo: Apply logic
+            btn->SetOnClickCallback([this, closeScene]() {
+                ApplyPendingSettings();
+                closeScene();
+            });
         }
     }
 

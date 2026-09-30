@@ -267,6 +267,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Renderer\Pipeline\PSOManager.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\ComputePass.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\MainOpaquePass.cpp" />
+    <ClCompile Include="Renderer\Pipeline\RenderGraph\FogPass.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\TopMostPass.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\MainTransparentPass.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\PostProcessPass.cpp" />
@@ -311,8 +312,10 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Framework\Component\Effect\VoxelParticleComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\ScreenEffectComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\GlobalPostProcessComponent.cpp" />
+    <ClCompile Include="Framework\Component\Effect\FogComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\PostProcessSettings.cpp" />
     <ClCompile Include="Framework\Component\Renderer\MeshRendererComponent.cpp" />
+    <ClCompile Include="Framework\Component\Renderer\SkyDomeComponent.cpp" />
     <ClCompile Include="Framework\Component\Renderer\ModelBatchRendererComponent.cpp" />
     <ClCompile Include="Framework\Component\Renderer\PrimitiveRendererComponent.cpp" />
     <ClCompile Include="Framework\Component\Renderer\Primitive2DRendererComponent.cpp" />
@@ -442,6 +445,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Renderer\Data\CameraForGPU.h" />
     <ClInclude Include="Renderer\Data\DirectionalLight.h" />
     <ClInclude Include="Renderer\Data\ExplosionParams.h" />
+    <ClInclude Include="Renderer\Data\FogParams.h" />
     <ClInclude Include="Renderer\Data\LightCommonData.h" />
     <ClInclude Include="Renderer\Data\LightningParams.h" />
     <ClInclude Include="Renderer\Data\Material.h" />
@@ -473,6 +477,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Renderer\Pipeline\RenderGraph\ComputePass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\IRenderPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\MainOpaquePass.h" />
+    <ClInclude Include="Renderer\Pipeline\RenderGraph\FogPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\TopMostPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\MainTransparentPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\PostProcessPass.h" />
@@ -527,6 +532,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Component\Collider\OBBColliderComponent.h" />
     <ClInclude Include="Framework\Component\Collider\SphereColliderComponent.h" />
     <ClInclude Include="Framework\Component\Renderer\MeshRendererComponent.h" />
+    <ClInclude Include="Framework\Component\Renderer\SkyDomeComponent.h" />
     <ClInclude Include="Framework\Component\Renderer\ModelBatchRendererComponent.h" />
     <ClInclude Include="Framework\Component\Effect\ParticleEmitterComponent.h" />
     <ClInclude Include="Framework\Component\Renderer\PrimitiveRendererComponent.h" />
@@ -536,6 +542,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Component\Effect\VoxelParticleComponent.h" />
     <ClInclude Include="Framework\Component\Effect\ScreenEffectComponent.h" />
     <ClInclude Include="Framework\Component\Effect\GlobalPostProcessComponent.h" />
+    <ClInclude Include="Framework\Component\Effect\FogComponent.h" />
     <ClInclude Include="Framework\Component\Effect\PostProcessSettings.h" />
     <ClInclude Include="Framework\Component\UI\ButtonComponent.h" />
     <ClInclude Include="Framework\Component\UI\SliderComponent.h" />

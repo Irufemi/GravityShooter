@@ -13,6 +13,9 @@
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 #include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
 #include "RailMechanics/RailShooterEnemyComponent.h"
+#include "RailMechanics/SplineFollowerComponent.h"
+#include "Framework/Component/Utility/SplineComponent.h"
+#include "Core/Math/Vector2.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
 #include "Core/Math/MathFunction.h"
 #include <iostream>
@@ -54,7 +57,7 @@ std::vector<Irufemi::Vector3> SpawnEnemyHandler::CalculateSpawnPositions(WaveMan
         float oy = offsetJson.value("y", 0.0f);
         float oz = offsetJson.value("z", 0.0f);
 
-        Irufemi::Vector3 railUp = {0.0f, 1.0f, 0.0f};
+        Irufemi::Vector3 railUp = Irufemi::Math::Normalize(Irufemi::Math::Cross(railForward, railRight));
         spawnPos.x += railRight.x * ox + railUp.x * oy + railForward.x * oz;
         spawnPos.y += railRight.y * ox + railUp.y * oy + railForward.y * oz;
         spawnPos.z += railRight.z * ox + railUp.z * oy + railForward.z * oz;
@@ -111,13 +114,80 @@ void SpawnEnemyHandler::Execute(WaveManagerComponent* manager, const WaveEventDa
     float combatDuration = data.parameters.value("CombatDuration", 7.5f);
     float targetDistance = data.parameters.value("TargetDistance", 65.0f);
     float scaleMultiplier = data.parameters.value("Scale", 1.0f);
+    float shootInterval = data.parameters.value("ShootInterval", 1.8f);
+    float bulletSpeed = data.parameters.value("BulletSpeed", 32.0f);
+    float speed = data.parameters.value("Speed", 15.0f);
+
+    // プレイヤーのSplineFollowerComponentおよびスプラインを取得
+    SplineFollowerComponent* playerFollower = nullptr;
+    SplineComponent* spline = nullptr;
+    if (manager && manager->GetGameObject()) {
+        if (auto scene = manager->GetGameObject()->GetScene()) {
+            auto cartObj = scene->FindGameObject("PlayerCart");
+            if (!cartObj) {
+                cartObj = scene->FindGameObject("Player");
+            }
+            if (cartObj) {
+                playerFollower = cartObj->GetComponent<SplineFollowerComponent>();
+                if (playerFollower) {
+                    spline = playerFollower->GetCachedPath();
+                }
+            }
+        }
+    }
+
+    float ox = 0.0f, oy = 0.0f, oz = 0.0f;
+    if (data.parameters.contains("OffsetFromRail")) {
+        const auto& offsetJson = data.parameters["OffsetFromRail"];
+        ox = offsetJson.value("x", 0.0f);
+        oy = offsetJson.value("y", 0.0f);
+        oz = offsetJson.value("z", 0.0f);
+    }
+    std::string formation = data.parameters.value("Formation", "Center");
+    float formationSpacing = data.parameters.value("FormationSpacing", 5.0f);
+    int count = data.parameters.value("Count", 1);
 
     if (auto spawner = GetOrFindSpawner(manager)) {
-        for (const auto& pos : positions) {
-            if (auto enemyObj = spawner->SpawnEnemy(pos, spawnRot, scaleMultiplier)) {
+        for (size_t i = 0; i < positions.size(); ++i) {
+            const auto& pos = positions[i];
+
+            float distanceBack = 0.0f;
+            float distanceSide = 0.0f;
+            if (formation == "V_Shape" && count > 1) {
+                if (i > 0) {
+                    float sideSign = (i % 2 == 0) ? 1.0f : -1.0f;
+                    distanceBack = formationSpacing * static_cast<float>((i + 1) / 2);
+                    distanceSide = formationSpacing * static_cast<float>((i + 1) / 2) * sideSign;
+                }
+            } else if (formation == "Line" && count > 1) {
+                float sideSign = (i % 2 == 0) ? 1.0f : -1.0f;
+                distanceSide = formationSpacing * static_cast<float>((i + 1) / 2) * sideSign;
+            }
+
+            float initialDistOffset = oz - distanceBack;
+            Irufemi::Vector2 formationOffset = {ox + distanceSide, oy};
+
+            std::string prefabPath = data.parameters.value("Prefab", "");
+            GameObject* enemyObj = nullptr;
+            if (!prefabPath.empty()) {
+                enemyObj = spawner->SpawnEnemyByPrefab(prefabPath, pos, spawnRot, scaleMultiplier);
+            } else {
+                enemyObj = spawner->SpawnEnemy(pos, spawnRot, scaleMultiplier);
+            }
+
+            if (enemyObj) {
                 if (auto enemyComp = enemyObj->GetComponent<RailShooterEnemyComponent>()) {
                     enemyComp->SetCombatDuration(combatDuration);
                     enemyComp->SetTargetDistance(targetDistance);
+                    enemyComp->SetShootInterval(shootInterval);
+                    enemyComp->SetBulletSpeed(bulletSpeed);
+                    enemyComp->SetSpeed(speed);
+                    if (data.parameters.contains("BehaviorType")) {
+                        int bt = data.parameters["BehaviorType"].get<int>();
+                        enemyComp->SetBehaviorType(static_cast<EnemyBehaviorType>(bt));
+                    }
+                    enemyComp->SetRailTrackingParams(spline, playerFollower, initialDistOffset, targetDistance,
+                                                     formationOffset);
                 }
             }
         }
@@ -143,24 +213,20 @@ void SpawnEnemyHandler::DrawEditorPreview(WaveManagerComponent* manager, const W
         return;
     }
 
+    std::string prefabPath = data.parameters.value("Prefab", "resources/prefabs/Enemy_GravityGolem.json");
     std::string modelPath = "Enemy_GravityGolem_A/SM_Enemy_GravityGolem_A.obj";
     Irufemi::Vector3 baseScale = {1.2f, 1.2f, 1.2f};
     float baseRadius = 2.0f;
 
-    if (auto spawner = GetOrFindSpawner(manager)) {
+    auto metrics = PrefabUtility::ExtractMetrics(prefabPath);
+    if (!metrics.modelPath.empty()) {
+        modelPath = metrics.modelPath;
+    } else if (auto spawner = GetOrFindSpawner(manager)) {
         modelPath = spawner->GetEnemyModelPath();
-        baseScale = spawner->GetBaseEnemyScale();
-        baseRadius = spawner->GetBaseColliderRadius();
-    } else {
-        // スポナーが見つからない場合もプレハブから自動解決
-        auto metrics = PrefabUtility::ExtractMetrics("resources/prefabs/Enemy_GravityGolem.json");
-        if (!metrics.modelPath.empty()) {
-            modelPath = metrics.modelPath;
-        }
-        baseScale = metrics.baseScale;
-        if (metrics.hasSphereCollider) {
-            baseRadius = metrics.colliderRadius;
-        }
+    }
+    baseScale = metrics.baseScale;
+    if (metrics.hasSphereCollider) {
+        baseRadius = metrics.colliderRadius;
     }
 
     float scaleMultiplier = data.parameters.value("Scale", 1.0f);

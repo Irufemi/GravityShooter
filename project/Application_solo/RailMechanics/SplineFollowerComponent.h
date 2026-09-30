@@ -35,6 +35,12 @@ public:
         return targetPathID_;
     }
 
+    /**
+     * @brief 指定した進行距離に即時スナップし、Transformの座標と回転を更新します。
+     * @param dist スプライン上の距離 (m)
+     */
+    void SnapToDistance(float dist);
+
     void OnIDRemapped(const std::unordered_map<uint64_t, uint64_t>& idMap) override;
 
 private:

@@ -187,11 +187,14 @@ void CollisionManager::DispatchCollisionEvents(ColliderComponent* colA, Collider
             colB->onCollisionEnter_(colA);
         }
 
-        if (colA->GetGameObject()) {
-            colA->GetGameObject()->SendCollisionEnter(colB->GetGameObject());
+        auto goA = colA->GetGameObject();
+        auto goB = colB->GetGameObject();
+
+        if (goA && goA->GetIsActive()) {
+            goA->SendCollisionEnter(goB);
         }
-        if (colB->GetGameObject()) {
-            colB->GetGameObject()->SendCollisionEnter(colA->GetGameObject());
+        if (goB && goB->GetIsActive() && goA && goA->GetIsActive()) {
+            goB->SendCollisionEnter(goA);
         }
     } else {
         if (colA->onCollisionStay_) {
@@ -201,11 +204,14 @@ void CollisionManager::DispatchCollisionEvents(ColliderComponent* colA, Collider
             colB->onCollisionStay_(colA);
         }
 
-        if (colA->GetGameObject()) {
-            colA->GetGameObject()->SendCollisionStay(colB->GetGameObject());
+        auto goA = colA->GetGameObject();
+        auto goB = colB->GetGameObject();
+
+        if (goA && goA->GetIsActive()) {
+            goA->SendCollisionStay(goB);
         }
-        if (colB->GetGameObject()) {
-            colB->GetGameObject()->SendCollisionStay(colA->GetGameObject());
+        if (goB && goB->GetIsActive() && goA && goA->GetIsActive()) {
+            goB->SendCollisionStay(goA);
         }
     }
 }

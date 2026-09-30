@@ -30,10 +30,16 @@ Irufemi::OBB OBBColliderComponent::GetWorldOBB() const {
         obb.orientations[1] = transform->GetWorldUp();
         obb.orientations[2] = transform->GetWorldForward();
 
+        // 負のスケール（反転）適用時等に基底が左手系になるのを防ぎ、正規直交右手系を維持
+        if (Irufemi::Math::Dot(Irufemi::Math::Cross(obb.orientations[0], obb.orientations[1]), obb.orientations[2]) <
+            0.0f) {
+            obb.orientations[2] = -obb.orientations[2];
+        }
+
         // Offsetも回転・スケールを考慮
-        obb.center = worldPos + obb.orientations[0] * (localOffset_.x * worldScale.x) +
-                     obb.orientations[1] * (localOffset_.y * worldScale.y) +
-                     obb.orientations[2] * (localOffset_.z * worldScale.z);
+        obb.center = worldPos + obb.orientations[0] * (localOffset_.x * std::abs(worldScale.x)) +
+                     obb.orientations[1] * (localOffset_.y * std::abs(worldScale.y)) +
+                     obb.orientations[2] * (localOffset_.z * std::abs(worldScale.z));
 
         obb.size = {std::abs(localSize_.x * worldScale.x), std::abs(localSize_.y * worldScale.y),
                     std::abs(localSize_.z * worldScale.z)};

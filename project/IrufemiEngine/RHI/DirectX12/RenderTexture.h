@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include "Core/Math/Vector4.h"
+#include "RHI/DirectX12/DescriptorAllocator.h"
 
 class DirectXCommon;
 class DrawManager;
@@ -105,9 +106,9 @@ private:
     D3D12_GPU_DESCRIPTOR_HANDLE srvHandleGPU_{};
     D3D12_GPU_DESCRIPTOR_HANDLE imGuiSrvHandleGPU_{};
 
-    uint32_t rtvIndex_ = 0xFFFFFFFF;
-    uint32_t srvIndex_ = 0xFFFFFFFF;
-    uint32_t imGuiSrvIndex_ = 0xFFFFFFFF;
+    uint32_t rtvIndex_ = DescriptorAllocator::kInvalid;
+    uint32_t srvIndex_ = DescriptorAllocator::kInvalid;
+    uint32_t imGuiSrvIndex_ = DescriptorAllocator::kInvalid;
 
     uint32_t width_ = 0;
     uint32_t height_ = 0;

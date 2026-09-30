@@ -8,20 +8,31 @@
 #include "Framework/Component/Effect/VoxelParticleComponent.h"
 #include "Framework/Component/Utility/LifetimeComponent.h"
 #include "Core/System/IrufemiEngine.h"
-#include "Renderer/System/Core/BaseModel.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+EffectManagerComponent::EffectManagerComponent() {
+    s_instance_ = this;
+}
+
+void EffectManagerComponent::OnDestroy() {
+    if (s_instance_ == this) {
+        s_instance_ = nullptr;
+    }
+}
+
 void EffectManagerComponent::OnRegisterProperties() {
     RegisterProperty("Hit Effect Path", &hitEffectPath_);
     RegisterProperty("Dust Effect Path", &dustEffectPath_);
+    RegisterProperty("Thruster Effect Path", &thrusterEffectPath_);
 }
 
 void EffectManagerComponent::Initialize() {
     effectDictionary_["Hit"] = hitEffectPath_;
     effectDictionary_["Dust"] = dustEffectPath_;
     effectDictionary_["debris_dust_effect"] = dustEffectPath_;
+    effectDictionary_["Thruster"] = thrusterEffectPath_;
 }
 
 void EffectManagerComponent::Start() {
@@ -42,9 +53,12 @@ ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::strin
 
     int poolCapacity = (effectKey == "Hit") ? maxHitEffects_ : maxDustEffects_;
     auto pool = std::make_unique<ObjectPool<GameObject>>(poolCapacity, [this, prefabPath]() {
-        auto obj = gameObject_->Instantiate(prefabPath); // ☛Instantiate内部でシーン登録される
+        // makeChild = true でマネージャーの子として生成し、ルート直置きを解消
+        auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
         if (obj) {
-            obj->SetIsActive(false); // Removeせずに非アクティブ状態で休眠させる
+            obj->SetIsSerializable(false); // セーブデータへの混入を確実に防止
+            obj->SetHideInHierarchy(true); // エディタのヒエラルキーを汚染しないよう非表示設定
+            obj->SetIsActive(false);       // Removeせずに非アクティブ状態で休眠させる
 
             // 寿命コンポーネントがあれば、プール運用のためにDestroyではなくDisableに変更する
             if (auto lifetime = obj->GetComponent<LifetimeComponent>()) {
@@ -60,23 +74,26 @@ ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::strin
 }
 
 void EffectManagerComponent::Update() {
-    for (auto it = activeEffects_.begin(); it != activeEffects_.end();) {
-        auto poolIt = effectPools_.find(it->effectKey);
+    for (size_t i = 0; i < activeEffects_.size();) {
+        auto& active = activeEffects_[i];
+        auto poolIt = effectPools_.find(active.effectKey);
         if (poolIt == effectPools_.end() || !poolIt->second) {
-            // プールがないか不明なエフェクト
-            it = activeEffects_.erase(it);
+            // プールがないか不明なエフェクト: Swap-and-Pop で O(1) 削除
+            active = std::move(activeEffects_.back());
+            activeEffects_.pop_back();
             continue;
         }
 
         auto* pool = poolIt->second.get();
-        auto obj = pool->Resolve(it->handle);
+        auto obj = pool->Resolve(active.handle);
         if (obj && !obj->GetIsActive()) {
-            pool->Release(it->handle);
-            it = activeEffects_.erase(it);
+            pool->Release(active.handle);
+            active = std::move(activeEffects_.back());
+            activeEffects_.pop_back();
             continue;
         }
 
-        ++it;
+        ++i;
     }
 }
 
@@ -141,4 +158,32 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
             }
         }
     }
+}
+
+std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(const std::string& effectKey,
+                                                                       std::shared_ptr<GameObject> parent,
+                                                                       const Irufemi::Vector3& localOffset) {
+    if (!parent) {
+        return nullptr;
+    }
+
+    auto it = effectDictionary_.find(effectKey);
+    if (it == effectDictionary_.end() || it->second.empty()) {
+        return nullptr;
+    }
+
+    // 親GameObjectの子ノードとしてプレハブをインスタンス化（Transform階層が自動結合）
+    auto effectObj = parent->Instantiate(it->second, localOffset, true);
+    if (effectObj) {
+        effectObj->SetIsSerializable(false); // シーンセーブデータへの混入を防止
+        effectObj->SetHideInHierarchy(true); // エディタHierarchyの汚染を防止
+        effectObj->SetIsActive(true);
+
+        // すべてのパーティクルエミッターを起動
+        auto emitters = effectObj->GetComponentsInChildren<ParticleEmitterComponent>();
+        for (auto pe : emitters) {
+            pe->Play();
+        }
+    }
+    return effectObj;
 }

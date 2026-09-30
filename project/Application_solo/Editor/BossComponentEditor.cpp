@@ -40,44 +40,57 @@ void BossComponentEditor::Draw(Component* component, EditorActionManager* action
         }
 
         if (isJsonLoaded_) {
-            bool modified = false;
+            bool needSave = false;
+            if (ImGui::Button("Save JSON", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+                needSave = true;
+            }
 
             if (ImGui::TreeNodeEx("Gameplay Data (Saved in JSON)", ImGuiTreeNodeFlags_DefaultOpen)) {
 
                 float maxHp = cachedJson_.value("maxHp", 1000.0f);
                 if (ImGui::DragFloat("Max HP", &maxHp, 10.0f, 1.0f, 100000.0f)) {
                     cachedJson_["maxHp"] = maxHp;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 int maxShieldCount = cachedJson_.value("maxShieldCount", 100);
                 if (ImGui::DragInt("Max Shield Count", &maxShieldCount, 1, 0, 500)) {
                     cachedJson_["maxShieldCount"] = maxShieldCount;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 float shieldRadius = cachedJson_.value("shieldRadius", 8.0f);
                 if (ImGui::DragFloat("Shield Radius", &shieldRadius, 0.1f, 1.0f, 50.0f)) {
                     cachedJson_["shieldRadius"] = shieldRadius;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 float beamInterval = cachedJson_.value("beamInterval", 10.0f);
                 if (ImGui::DragFloat("Beam Interval", &beamInterval, 0.1f, 0.1f, 60.0f)) {
                     cachedJson_["beamInterval"] = beamInterval;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 float beamRange = cachedJson_.value("beamRange", 1000.0f);
                 if (ImGui::DragFloat("Beam Range", &beamRange, 10.0f, 10.0f, 10000.0f)) {
                     cachedJson_["beamRange"] = beamRange;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 ImGui::TreePop();
             }
 
-            if (modified) {
+            if (needSave) {
                 if (Irufemi::JsonUtility::SaveToFile(cachedPath_, cachedJson_, 4)) {
                     comp->LoadStatusFromJson();
                 }

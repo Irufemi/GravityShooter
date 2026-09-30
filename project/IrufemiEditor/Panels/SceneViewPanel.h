@@ -7,6 +7,8 @@
 #include "imgui/ImGuizmo.h"
 #include "Renderer/Camera/OrbitCameraController.h"
 
+#include "Core/EditorManager.h"
+
 /**
  * @class SceneViewPanel
  * @brief エディタのSceneビューを描画するパネル
@@ -22,6 +24,7 @@ public:
 private:
     EditorManager* editorManager_ = nullptr;
     OrbitCameraController cameraController_;
+    EditorModeState lastMode_ = EditorModeState::Edit;
 
     // --- ギズモ用状態 ---
     ImGuizmo::OPERATION currentGizmoOperation_ = ImGuizmo::TRANSLATE;
@@ -40,6 +43,7 @@ private:
     void DrawImGuizmo(ImVec2 minPos, ImVec2 size);
     void HandleDragAndDrop(ImVec2 minPos, ImVec2 size);
     void HandlePicking(ImVec2 mousePos, ImVec2 minPos, ImVec2 maxPos, ImVec2 size);
+    void SnapToGameCamera();
 };
 
 #endif // EditorMode

@@ -14,7 +14,12 @@
 #include "Core/System/IrufemiEngine.h"
 
 // デストラクタ
-DebugScene::~DebugScene() {}
+DebugScene::~DebugScene() {
+    if (lightningParamsResource_ && lightningParamsData_) {
+        lightningParamsResource_->Unmap(0, nullptr);
+        lightningParamsData_ = nullptr;
+    }
+}
 
 // 初期化
 void DebugScene::Initialize(IrufemiEngine* engine) {

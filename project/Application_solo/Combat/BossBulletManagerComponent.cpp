@@ -9,6 +9,7 @@
 #include "Player/PlayerHealthComponent.h"
 #include "Combat/IDamageable.h"
 #include "Environment/DestructibleEnvironmentComponent.h"
+#include "Environment/DebrisComponent.h"
 #include "Physics/CollisionManager.h"
 #include "Framework/Component/Collider/ColliderComponent.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
@@ -125,6 +126,8 @@ void BossBulletManagerComponent::Update() {
         GameObject* gameObject = nullptr;
         PlayerHealthComponent* playerHealth = nullptr;
         DestructibleEnvironmentComponent* destructible = nullptr;
+        DebrisComponent* debris = nullptr;
+        bool isEnvironment = false;
         bool isSphere = false;
         Irufemi::Sphere sphere{};
         Irufemi::AABB broadAABB{};
@@ -150,14 +153,16 @@ void BossBulletManagerComponent::Update() {
             // 被弾対象となるコンポーネントをチェック
             auto healthComp = obj->GetComponent<PlayerHealthComponent>();
             auto destructibleComp = obj->GetComponent<DestructibleEnvironmentComponent>();
+            auto debrisComp = obj->GetComponent<DebrisComponent>();
+            bool isEnv = (cm && (col->layer_ & cm->GetLayerMask("Environment")) != 0);
 
-            // プレイヤーでもなく、破壊可能環境物でもない場合はスキップ
-            if (!healthComp && !destructibleComp) {
-                continue;
+            // 自機シールド（Orbiting）以外のガレキは判定除外
+            if (debrisComp && debrisComp->GetState() != DebrisState::Orbiting) {
+                debrisComp = nullptr;
             }
 
-            // プレイヤーが無敵中の場合は被弾対象から除外
-            if (healthComp && healthComp->IsInvincible()) {
+            // プレイヤー、破壊可能物、自機シールド、環境壁のいずれでもない場合はスキップ
+            if (!healthComp && !destructibleComp && !debrisComp && !isEnv) {
                 continue;
             }
 
@@ -166,6 +171,8 @@ void BossBulletManagerComponent::Update() {
             proxy.gameObject = obj;
             proxy.playerHealth = healthComp;
             proxy.destructible = destructibleComp;
+            proxy.debris = debrisComp;
+            proxy.isEnvironment = isEnv;
 
             if (auto sphereCol = dynamic_cast<SphereColliderComponent*>(col)) {
                 proxy.isSphere = true;
@@ -227,14 +234,21 @@ void BossBulletManagerComponent::Update() {
                 if (proxy.playerHealth) {
                     const bool isTarget =
                         (targetPlayerID_ == 0 || proxy.gameObject->GetInstanceID() == targetPlayerID_);
-                    if (isTarget && !proxy.playerHealth->IsInvincible()) {
-                        proxy.playerHealth->TakeDamage(1);
+                    if (isTarget) {
+                        if (!proxy.playerHealth->IsInvincible()) {
+                            proxy.playerHealth->TakeDamage(1);
+                        }
+                        // 【AAA基準: 無敵時プロジェクタイル消費】素通りを防止
                         isHit = true;
                         break;
                     }
                 } else if (proxy.destructible) {
                     // 環境物破壊
                     proxy.destructible->TakeDamage(1);
+                    isHit = true;
+                    break;
+                } else if (proxy.debris || proxy.isEnvironment) {
+                    // 【AAA基準: シールド迎撃 & 環境遮蔽】自機シールドまたは壁に着弾して消滅
                     isHit = true;
                     break;
                 }

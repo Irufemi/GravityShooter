@@ -3,6 +3,7 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include "Renderer/System/ParticleGPU/GPUParticleSystem.h"
 #include <iostream>
+#include <atomic>
 #include <Windows.h>
 #include <cstdio>
 #include "Renderer/Camera/CameraManager.h"
@@ -79,7 +80,7 @@ void GPUParticleSystem::Initialize(const std::string& textureName) {
     CreateBuffersAndViews();
 
     // 各GPUParticleSystemインスタンスごとに異なるシードを持たせて、乱数系列が完全に被るのを防ぐ
-    static uint32_t s_uniqueSeed = 0;
+    static std::atomic<uint32_t> s_uniqueSeed{0};
     emittersData_[0].randomSeed = ++s_uniqueSeed;
 
     // 形状の初期設定 (デフォルトは Quad/Irufemi::Plane)
@@ -960,15 +961,6 @@ void GPUParticleSystem::DispatchComputeShaders(ID3D12GraphicsCommandList* comman
     for (size_t i = 0; i < emittersData_.size(); ++i) {
         uint32_t emitCount = emittersData_[i].burstCount;
         if (emitCount > 0) {
-
-#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-            Log::OutPutLog(std::cout,
-                           "[GPUParticleSystem] Emitting " + std::to_string(emitCount) +
-                               " particles for system at pos: " + std::to_string(emittersData_[i].translateX) + ", " +
-                               std::to_string(emittersData_[i].translateY) + ", " +
-                               std::to_string(emittersData_[i].translateZ) + "\n");
-#endif
-
             commandList->SetComputeRoot32BitConstant(9, (uint32_t)i,
                                                      0); // b2: gEmitterIndex
 

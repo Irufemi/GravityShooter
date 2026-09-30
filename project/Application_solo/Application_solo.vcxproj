@@ -272,6 +272,7 @@ exit 0</Command>
     <ClCompile Include="Player\GravityPlayerComponent.cpp" />
     <ClCompile Include="Player\PlayerHealthComponent.cpp" />
     <ClCompile Include="Player\PlayerDamageVisualizerComponent.cpp" />
+    <ClCompile Include="Player\PlayerThrusterVisualizerComponent.cpp" />
     <ClCompile Include="Core\GameLoopManagerComponent.cpp" />
     <ClCompile Include="Core\ResultManagerComponent.cpp" />
     <ClCompile Include="Combat\EnemySpawnerComponent.cpp" />
@@ -326,6 +327,7 @@ exit 0</Command>
     <ClInclude Include="Player\GravityPlayerComponent.h" />
     <ClInclude Include="Player\PlayerHealthComponent.h" />
     <ClInclude Include="Player\PlayerDamageVisualizerComponent.h" />
+    <ClInclude Include="Player\PlayerThrusterVisualizerComponent.h" />
     <ClInclude Include="Core\GameLoopManagerComponent.h" />
     <ClInclude Include="Core\ResultManagerComponent.h" />
     <ClInclude Include="Combat\EnemySpawnerComponent.h" />

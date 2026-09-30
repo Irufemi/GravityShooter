@@ -52,7 +52,7 @@ private:
     int maxBullets_ = 2000;
     float defaultLifeTime_ = 5.0f;
     Irufemi::Vector3 bulletScale_ = {0.5f, 0.5f, 0.5f};
-    float hitRadius_ = 2.0f;
+    float hitRadius_ = 0.5f;
     std::string hitEffectKey_ = "Dust";
     /// @brief 攻撃対象となるプレイヤーのGameObject ID
     uint64_t targetPlayerID_ = 0;

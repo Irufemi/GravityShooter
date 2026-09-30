@@ -20,6 +20,7 @@
 
 #include "Framework/Scene/SceneSerializer.h"
 #include "Framework/Component/TransformComponent.h"
+#include "Framework/Component/Camera/TargetFollowComponent.h"
 #include "Core/Utility/Log.h"
 #include <fstream>
 #include <iostream>
@@ -357,22 +358,41 @@ void BaseScene::WarmUpRenderState() {
         pendingRemoves_.clear();
     }
 
-    // 2. カメラマネージャーの最新化
+    // 2. 未実行オブジェクトの Start() を先行実行（Scene Priming: ゲーム実行中のみ開始し、Editモード時の暴発を防止）
+    if (engine_ && engine_->IsPlayMode()) {
+        for (auto& obj : gameObjects_) {
+            if (obj && !obj->GetParent() && !obj->IsDestroyed() && !obj->IsStarted()) {
+                obj->Start();
+            }
+        }
+    }
+
+    // 3. 全Transformのワールド行列を一括計算 (DOD) - 第1パス: 各オブジェクトの初期Transformを確定
+    TransformComponent::UpdateAll();
+
+    // 4. カメラ追従などの依存Transformの初期同期 (Camera Cut)
+    // 確定したターゲットのワールド座標を用いて、カメラを即座にスナップ
+    for (auto& obj : gameObjects_) {
+        if (obj && !obj->IsDestroyed()) {
+            if (auto followComp = obj->GetComponent<TargetFollowComponent>()) {
+                followComp->SnapToTarget();
+            }
+        }
+    }
+
+    // 5. カメラマネージャーの最新化
     if (engine_ && engine_->GetCameraManager()) {
         engine_->GetCameraManager()->Update();
     }
 
-    // 3. 全Transformのワールド行列を一括計算 (DOD)
-    TransformComponent::UpdateAll();
-
-    // 4. 全GameObjectの描画前ステート同期（スキニングの初期ポーズ計算 & ComputeTask先行登録）
+    // 6. 全GameObjectの描画前ステート同期（スキニングの初期ポーズ計算 & ComputeTask先行登録）
     for (const auto& obj : gameObjects_) {
         if (obj && !obj->GetParent() && !obj->IsDestroyed()) {
             obj->SyncRenderState();
         }
     }
 
-    // 5. 初回フレームデータ（カメラ行列、ライト、フォグ等）をレンダラーへ提出
+    // 7. 初回フレームデータ（カメラ行列、ライト、フォグ等）をレンダラーへ提出
     SubmitFrameData();
 
     // 6. 演出サブシステム（Voxel / GPU Particle）のシーン開始前ウォームアップ

@@ -5,6 +5,7 @@
 #include "Core/Utility/Log.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
 #include "Framework/Component/Renderer/SkinnedMeshRendererComponent.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include <iostream>
 
@@ -22,7 +23,7 @@ public:
             // 撃破イベントの通知（BossDamageVisualizerComponent が特大カメラシェイクを発火）
             boss->NotifyBossDied();
 
-            // 演出エフェクトが始まったタイミングでボスのモデル描画をすべて切る
+            // 演出エフェクトが始まったタイミングでボスのモデル描画およびアウトラインをすべて切る
             auto renderers = boss->GetGameObject()->GetComponentsInChildren<MeshRendererComponent>();
             for (auto* r : renderers) {
                 if (r) {
@@ -33,6 +34,12 @@ public:
             for (auto* r : skinnedRenderers) {
                 if (r) {
                     r->SetVisible(false);
+                }
+            }
+            auto effectMasks = boss->GetGameObject()->GetComponentsInChildren<EffectMaskComponent>();
+            for (auto* em : effectMasks) {
+                if (em) {
+                    em->SetEnableEffectMask(false);
                 }
             }
         }

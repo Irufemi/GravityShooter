@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d12.h>
+#include <array>
 #include <initializer_list>
 #include <vector>
 
@@ -46,23 +47,42 @@ inline void UAVBarrier(ID3D12GraphicsCommandList* cmdList, ID3D12Resource* resou
  * @param resources 対象リソースのリスト (例: { resA, resB, resC })
  */
 inline void UAVBarriers(ID3D12GraphicsCommandList* cmdList, std::initializer_list<ID3D12Resource*> resources) {
-    if (!cmdList) {
+    if (!cmdList || resources.size() == 0) {
         return;
     }
-    std::vector<D3D12_RESOURCE_BARRIER> barriers;
-    barriers.reserve(resources.size());
-    for (auto* res : resources) {
-        if (!res) {
-            continue;
+
+    constexpr size_t kStackBarrierCapacity = 16;
+    if (resources.size() <= kStackBarrierCapacity) {
+        std::array<D3D12_RESOURCE_BARRIER, kStackBarrierCapacity> barriers;
+        UINT count = 0;
+        for (auto* res : resources) {
+            if (!res) {
+                continue;
+            }
+            D3D12_RESOURCE_BARRIER& b = barriers[count++];
+            b.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+            b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+            b.UAV.pResource = res;
         }
-        D3D12_RESOURCE_BARRIER b{};
-        b.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-        b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        b.UAV.pResource = res;
-        barriers.push_back(b);
-    }
-    if (!barriers.empty()) {
-        cmdList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+        if (count > 0) {
+            cmdList->ResourceBarrier(count, barriers.data());
+        }
+    } else {
+        std::vector<D3D12_RESOURCE_BARRIER> barriers;
+        barriers.reserve(resources.size());
+        for (auto* res : resources) {
+            if (!res) {
+                continue;
+            }
+            D3D12_RESOURCE_BARRIER b{};
+            b.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+            b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+            b.UAV.pResource = res;
+            barriers.push_back(b);
+        }
+        if (!barriers.empty()) {
+            cmdList->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+        }
     }
 }
 

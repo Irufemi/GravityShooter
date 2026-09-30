@@ -6,6 +6,7 @@
 #include "Framework/Scene/SceneSerializer.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Environment/DebrisComponent.h"
+#include "Combat/IDamageable.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
 #include "Core/Math/Random/Random.h"
@@ -49,6 +50,11 @@ void DebrisManagerComponent::OnRegisterProperties() {
     RegisterProperty("Debris Collider Radius", &colliderRadius_);
     RegisterProperty("Debris Aura Scale", &auraScale_);
     RegisterProperty("Max Throw Distance", &maxThrowDistance_);
+
+    RegisterProperty("Auto Supply Enabled", &autoSupplyEnabled_);
+    RegisterProperty("Target Field Count", &targetFieldCount_);
+    RegisterProperty("Supply Check Interval", &supplyCheckInterval_);
+    RegisterProperty("Recycle Behind Distance", &recycleBehindDistance_);
 }
 
 void DebrisManagerComponent::Initialize() {
@@ -124,51 +130,132 @@ void DebrisManagerComponent::Initialize() {
         variations_.emplace_back(std::move(var));
         varIndex++;
     }
+
+    // ガレキ破砕用ボクセルモデルを事前確保（エンジン既存のReservePoolを呼び出してロード画面中に完了待機）
+    if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
+        if (auto engine = scene->GetEngine()) {
+            if (auto voxelMgr = engine->GetVoxelParticleManager()) {
+                voxelMgr->ReservePool("resources/model/Debris/Generic/Debris_Generic.obj", {2, 2, 2}, 16);
+            }
+        }
+    }
 }
 
-void DebrisManagerComponent::Update() {
-    auto input = GetEngine() ? GetEngine()->GetInputManager() : nullptr;
+void DebrisManagerComponent::SpawnDebrisInFrontOfPlayer(int count) {
+    if (count <= 0 || variations_.empty()) {
+        return;
+    }
 
-    auto spawnDebris = [&](int count) {
-        Irufemi::Vector3 spawnBase = {0.0f, 0.0f, 0.0f};
-        Irufemi::Vector3 forward = {0.0f, 0.0f, 1.0f};
-        Irufemi::Vector3 right = {1.0f, 0.0f, 0.0f};
+    Irufemi::Vector3 spawnBase = {0.0f, 0.0f, 0.0f};
+    Irufemi::Vector3 forward = {0.0f, 0.0f, 1.0f};
+    Irufemi::Vector3 right = {1.0f, 0.0f, 0.0f};
 
-        auto scene = gameObject_->GetScene();
-        if (scene) {
-            auto playerObj = scene->FindGameObject("Player");
-            if (playerObj) {
-                if (auto t = playerObj->GetComponent<TransformComponent>()) {
-                    spawnBase = t->GetPosition();
-                    float yaw = t->GetRotation().y;
-                    forward = {std::sin(yaw), 0.0f, std::cos(yaw)};
-                    right = {std::cos(yaw), 0.0f, -std::sin(yaw)};
-                }
+    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
+    if (scene) {
+        auto playerObj = scene->FindGameObject("Player");
+        if (playerObj) {
+            if (auto t = playerObj->GetComponent<TransformComponent>()) {
+                spawnBase = t->GetWorldPosition();
+                float yaw = t->GetWorldRotation().y;
+                forward = {std::sin(yaw), 0.0f, std::cos(yaw)};
+                right = {std::cos(yaw), 0.0f, -std::sin(yaw)};
+            }
+        }
+    }
+
+    int totalWeight = 0;
+    for (const auto& var : variations_) {
+        totalWeight += var.spawnWeight;
+    }
+    if (totalWeight <= 0) {
+        return;
+    }
+
+    for (int i = 0; i < count; ++i) {
+        float distFwd = (count > 100) ? Irufemi::Random::GeneratorFloat(10.0f, 300.0f)
+                                      : Irufemi::Random::GeneratorFloat(30.0f, 85.0f);
+        float distRight = (count > 100) ? Irufemi::Random::GeneratorFloat(-150.0f, 150.0f)
+                                        : Irufemi::Random::GeneratorFloat(-14.0f, 14.0f);
+        float height = (count > 100) ? Irufemi::Random::GeneratorFloat(-10.0f, 100.0f)
+                                     : Irufemi::Random::GeneratorFloat(-2.0f, 8.0f);
+
+        Irufemi::Vector3 pos = {spawnBase.x + forward.x * distFwd + right.x * distRight, spawnBase.y + height,
+                                spawnBase.z + forward.z * distFwd + right.z * distRight};
+
+        int randW = static_cast<int>(Irufemi::Random::GeneratorUint64(0, totalWeight - 1));
+        int selectedIndex = 0;
+        int currentW = 0;
+        for (size_t v = 0; v < variations_.size(); ++v) {
+            currentW += variations_[v].spawnWeight;
+            if (randW <= currentW) {
+                selectedIndex = static_cast<int>(v);
+                break;
             }
         }
 
-        int totalWeight = 0;
+        auto& var = variations_[selectedIndex];
+        if (!var.virtualManager) {
+            continue;
+        }
+
+        int vid = var.virtualManager->AddVirtualInstance(pos, {0, 0, 0}, debrisBaseScale_);
+        if (vid >= 0) {
+            DebrisAnimData anim;
+            anim.baseIdleY = pos.y;
+            anim.idleTimeY = Irufemi::Random::GeneratorFloat(0.0f, 100.0f);
+            var.animDataList[vid] = anim;
+            var.activeIds.push(vid);
+        }
+    }
+
+    for (auto& var : variations_) {
+        if (!var.virtualManager) {
+            continue;
+        }
+        while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
+            int oldestId = var.activeIds.front();
+            var.activeIds.pop();
+            var.virtualManager->RemoveVirtualInstance(oldestId);
+        }
+    }
+}
+
+void DebrisManagerComponent::SpawnDebrisCluster(const Irufemi::Vector3& centerPos, int count, float spreadRadius,
+                                                const std::string& specificVariationId) {
+    if (count <= 0 || variations_.empty()) {
+        return;
+    }
+
+    int forcedIndex = -1;
+    if (!specificVariationId.empty()) {
+        for (size_t v = 0; v < variations_.size(); ++v) {
+            if (variations_[v].id == specificVariationId) {
+                forcedIndex = static_cast<int>(v);
+                break;
+            }
+        }
+    }
+
+    int totalWeight = 0;
+    if (forcedIndex < 0) {
         for (const auto& var : variations_) {
             totalWeight += var.spawnWeight;
         }
-
         if (totalWeight <= 0) {
             return;
         }
+    }
 
-        for (int i = 0; i < count; ++i) {
-            float distFwd = (count > 100) ? Irufemi::Random::GeneratorFloat(10.0f, 300.0f)
-                                          : Irufemi::Random::GeneratorFloat(30.0f, 80.0f);
-            float distRight = (count > 100) ? Irufemi::Random::GeneratorFloat(-150.0f, 150.0f)
-                                            : Irufemi::Random::GeneratorFloat(-20.0f, 20.0f);
-            float height = (count > 100) ? Irufemi::Random::GeneratorFloat(-10.0f, 100.0f)
-                                         : Irufemi::Random::GeneratorFloat(-5.0f, 15.0f);
+    for (int i = 0; i < count; ++i) {
+        float offsetX = Irufemi::Random::GeneratorFloat(-spreadRadius, spreadRadius);
+        float offsetY = Irufemi::Random::GeneratorFloat(-spreadRadius * 0.5f, spreadRadius * 0.5f);
+        float offsetZ = Irufemi::Random::GeneratorFloat(-spreadRadius, spreadRadius);
 
-            Irufemi::Vector3 pos = {spawnBase.x + forward.x * distFwd + right.x * distRight, spawnBase.y + height,
-                                    spawnBase.z + forward.z * distFwd + right.z * distRight};
+        Irufemi::Vector3 pos = {centerPos.x + offsetX, centerPos.y + offsetY, centerPos.z + offsetZ};
 
+        int selectedIndex = forcedIndex;
+        if (selectedIndex < 0) {
             int randW = static_cast<int>(Irufemi::Random::GeneratorUint64(0, totalWeight - 1));
-            int selectedIndex = 0;
             int currentW = 0;
             for (size_t v = 0; v < variations_.size(); ++v) {
                 currentW += variations_[v].spawnWeight;
@@ -177,35 +264,125 @@ void DebrisManagerComponent::Update() {
                     break;
                 }
             }
-
-            auto& var = variations_[selectedIndex];
-            int vid = var.virtualManager->AddVirtualInstance(pos, {0, 0, 0}, {0.5f, 0.5f, 0.5f});
-            if (vid >= 0) {
-                DebrisAnimData anim;
-                anim.baseIdleY = pos.y;
-                anim.idleTimeY = Irufemi::Random::GeneratorFloat(0.0f, 100.0f);
-                var.animDataList[vid] = anim;
-                var.activeIds.push(vid);
-            }
         }
 
-        for (auto& var : variations_) {
-            while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
-                int oldestId = var.activeIds.front();
-                var.activeIds.pop();
-                var.virtualManager->RemoveVirtualInstance(oldestId);
-            }
+        if (selectedIndex < 0 || selectedIndex >= static_cast<int>(variations_.size())) {
+            continue;
         }
-    };
 
-    if (input->IsKeyPressed('1') || input->IsKeyPressedDIK(0x02)) {
-        spawnDebris(10);
-    }
-    if (input->IsKeyPressed('9') || input->IsKeyPressedDIK(0x0A)) {
-        spawnDebris(10000);
+        auto& var = variations_[selectedIndex];
+        if (!var.virtualManager) {
+            continue;
+        }
+
+        int vid = var.virtualManager->AddVirtualInstance(pos, {0, 0, 0}, debrisBaseScale_);
+        if (vid >= 0) {
+            DebrisAnimData anim;
+            anim.baseIdleY = pos.y;
+            anim.idleTimeY = Irufemi::Random::GeneratorFloat(0.0f, 100.0f);
+            var.animDataList[vid] = anim;
+            var.activeIds.push(vid);
+        }
     }
 
+    for (auto& var : variations_) {
+        if (!var.virtualManager) {
+            continue;
+        }
+        while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
+            int oldestId = var.activeIds.front();
+            var.activeIds.pop();
+            var.virtualManager->RemoveVirtualInstance(oldestId);
+        }
+    }
+}
+
+void DebrisManagerComponent::SpawnDebrisBurst(const Irufemi::Vector3& origin, const Irufemi::Vector3& targetPlayerPos,
+                                              int count, float spreadRadius, float forwardBias,
+                                              const std::string& specificVariationId) {
+    if (count <= 0 || variations_.empty()) {
+        return;
+    }
+
+    Irufemi::Vector3 toPlayer = {targetPlayerPos.x - origin.x, targetPlayerPos.y - origin.y,
+                                 targetPlayerPos.z - origin.z};
+    float dist = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
+
+    Irufemi::Vector3 burstCenter = origin;
+    if (dist > 15.0f && forwardBias > 0.0f) {
+        // 自機方向（手前）へ最大 forwardBias 分だけ寄せた位置を中心とする（引き寄せ有効射程内へ誘導）
+        float biasDist = (std::min)(forwardBias, dist - 15.0f);
+        Irufemi::Vector3 dir = {toPlayer.x / dist, toPlayer.y / dist, toPlayer.z / dist};
+        burstCenter.x += dir.x * biasDist;
+        burstCenter.y += dir.y * biasDist;
+        burstCenter.z += dir.z * biasDist;
+    }
+
+    // 算出した中心座標でクラスターをスポーン
+    SpawnDebrisCluster(burstCenter, count, spreadRadius, specificVariationId);
+}
+
+void DebrisManagerComponent::Update() {
+    auto input = GetEngine() ? GetEngine()->GetInputManager() : nullptr;
     float deltaTime = GetEngine() ? GetEngine()->GetGameDeltaTime() : 0.0f;
+
+    // --- ピラー1: 前方自動補充と後方リサイクル ---
+    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
+    if (autoSupplyEnabled_ && scene && deltaTime > 0.0f) {
+        supplyTimer_ += deltaTime;
+        if (supplyTimer_ >= supplyCheckInterval_) {
+            supplyTimer_ = 0.0f;
+
+            auto playerObj = scene->FindGameObject("Player");
+            if (playerObj) {
+                if (auto pt = playerObj->GetComponent<TransformComponent>()) {
+                    Irufemi::Vector3 playerPos = pt->GetWorldPosition();
+
+                    // 1. 自機後方に外れたガレキをリサイクル
+                    for (auto& var : variations_) {
+                        if (!var.virtualManager) {
+                            continue;
+                        }
+                        while (!var.activeIds.empty()) {
+                            int oldestId = var.activeIds.front();
+                            int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
+                            if (sparseIdx >= 0 &&
+                                sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
+                                const auto& inst = var.virtualManager->GetDenseInstances()[sparseIdx];
+                                if (inst.position.z < playerPos.z - recycleBehindDistance_) {
+                                    var.activeIds.pop();
+                                    var.virtualManager->RemoveVirtualInstance(oldestId);
+                                    continue;
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    // 2. 有効ガレキ数をカウントして不足分を補充
+                    int activeCount = 0;
+                    for (const auto& var : variations_) {
+                        activeCount += static_cast<int>(var.activeIds.size());
+                    }
+
+                    if (activeCount < targetFieldCount_) {
+                        int needed = targetFieldCount_ - activeCount;
+                        SpawnDebrisInFrontOfPlayer((std::min)(needed, 6)); // スムーズに分散補充
+                    }
+                }
+            }
+        }
+    }
+
+    if (input) {
+        if (input->IsKeyPressed('1') || input->IsKeyPressedDIK(0x02)) {
+            SpawnDebrisInFrontOfPlayer(10);
+        }
+        if (input->IsKeyPressed('9') || input->IsKeyPressedDIK(0x0A)) {
+            SpawnDebrisInFrontOfPlayer(10000);
+        }
+    }
+
     if (deltaTime > 0.0f) {
         UpdatePulledDebris(deltaTime);
         UpdateOrbitingDebris(deltaTime);
@@ -581,17 +758,63 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                     Irufemi::Vector3 diff = {targetPos.x - pos.x, targetPos.y - pos.y, targetPos.z - pos.z};
                     float len = std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
                     float moveDist = throwSpeed * deltaTime;
-                    if (len > 0.001f) {
-                        if (len <= moveDist) {
-                            debris->throwDirection_ = {diff.x / len, diff.y / len, diff.z / len};
-                            pos.x += diff.x;
-                            pos.y += diff.y;
-                            pos.z += diff.z;
-                            transform->SetWorldPosition(pos);
-                            continue; // 衝突処理はOnCollisionEnterに任せるためここでは移動のみ
-                        } else {
-                            debris->throwDirection_ = {diff.x / len, diff.y / len, diff.z / len};
+                    // 到達判定（フレーム移動距離以内、または近接2.5m以内）
+                    if (len <= (std::max)(moveDist, 2.5f)) {
+                        // 【AAA基準: 権限消費チェック】物理コリジョンと競合しても多重ダメージを防ぐ
+                        if (!debris->ConsumeHitAuthority()) {
+                            continue; // 既に物理コライダー側でヒット済みの場合はスキップ
                         }
+
+                        pos = targetPos;
+                        transform->SetWorldPosition(pos);
+
+                        // 【AAA基準: Game Juice】直撃ヒットストップ
+                        if (engine) {
+                            engine->TriggerHitStop(0.04f);
+                        }
+
+                        // ターゲットへのダメージ適用（シールドまたは敵本体）
+                        if (auto debrisComp = target->GetComponent<DebrisComponent>()) {
+                            if (debrisComp->GetState() == DebrisState::BossOrbiting) {
+                                debrisComp->DestroyAsShield();
+                            }
+                        } else if (auto damageable = target->GetComponentByInterface<IDamageable>()) {
+                            float damage = debris->GetEnemyDamage();
+                            if (damageable->GetDamageableType() == DamageableType::Boss) {
+                                damage = debris->GetBossDamage();
+                            }
+                            damageable->TakeDamage(damage);
+                        }
+
+                        // ヒット演出（エフェクト＋ボクセル破砕）
+                        if (effectManager) {
+                            effectManager->PlayEffect(debris->hitEffectKey_, pos);
+                        }
+                        if (voxelManager) {
+                            VoxelEmitter p{};
+                            p.particleType = 5; // DebrisExplosive
+                            p.lifeTime = 1.0f;
+                            p.gravity = 5.0f;
+                            p.dispersion = 12.0f;
+                            p.scale = {0.5f, 0.5f, 0.5f};
+                            Irufemi::Vector4 aura = debris->GetPlayerAuraColor();
+                            Irufemi::Vector4 rockColor = {1.5f, 1.2f, 1.0f, 1.0f};
+                            p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f,
+                                            rockColor.z + aura.z * 2.0f, 1.0f};
+                            p.endColor = {0.2f, 0.2f, 0.2f, 1.0f};
+                            p.dissolveEdgeColor = aura;
+                            voxelManager->PlayExplosion(debris->explosionModelPath_, pos, {0, 0, 0}, {0, 0, 0},
+                                                        {1, 1, 1}, p, {2, 2, 2});
+                        }
+
+                        // ガレキをプールへ安全に返却
+                        MarkForRelease(debris->gameObject_->shared_from_this());
+                        if (debris->virtualId_ >= 0) {
+                            MarkForDestroy(debris->virtualId_, debris->variationIndex_);
+                        }
+                        continue;
+                    } else if (len > 0.001f) {
+                        debris->throwDirection_ = {diff.x / len, diff.y / len, diff.z / len};
                     }
                     updatedWithTarget = true;
                 }

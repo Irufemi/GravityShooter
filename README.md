@@ -206,7 +206,7 @@ if (raycastFuture_.valid() && raycastFuture_.wait_for(std::chrono::seconds(0)) =
 
 ## 📁 プロジェクト構成 (Project Structure)
 
-本ソリューション (`Irufemi.sln`) は、エンジンコアとアプリケーション（ゲームロジック）、およびツール群を明確に分離（関心の分離）した以下の4プロジェクトで構成されています。
+本ソリューション (`Irufemi.slnx`) は、エンジンコアとアプリケーション（ゲームロジック）、およびツール群を明確に分離（関心の分離）した以下の4プロジェクトで構成されています。
 
 | プロジェクト | 種別 | 役割 |
 | :--- | :--- | :--- |
@@ -252,14 +252,14 @@ if (raycastFuture_.valid() && raycastFuture_.wait_for(std::chrono::seconds(0)) =
 ## ⚙️ 動作環境・計測環境
 
 - **OS**: Windows 10 / 11
-- **IDE**: Visual Studio 2026
+- **IDE**: Visual Studio 2022 (v17.10以降) / Visual Studio 2026
 - **SDK**: Windows SDK 10.0.26100.7175 以上推奨
 - **計測環境**: 
   - CPU: Intel Core i7 / AMD Ryzen 7 相当以上
   - GPU: NVIDIA RTX 2060 相当以上を想定
 
 **ビルド手順**:
-1. リポジトリをクローン後、VS2026で `Irufemi.sln` を開きます。
+1. リポジトリをクローン後、Visual Studio 2022 (v17.10以降) または VS2026 で `Irufemi.slnx` を開きます。
 2. 構成を選択しビルドを実行します。
   - `Debug` / `Development`: エンジン実行時に動的コンパイルされ、迅速なイテレーションが可能。
   - `Release`: Visual Studio の PreBuild イベントで最高レベルの最適化 (`/O3`) を適用したオフラインコンパイルが行われます。

@@ -52,6 +52,15 @@ void CameraComponent::Start() {
             if (makeActive_) {
                 engine->GetCameraManager()->SetActiveCamera(gameObject_->GetName());
             }
+
+            // 初期位置・角度を即座にCameraオブジェクトへ反映（第0フレーム同期）
+            if (auto transform = GetTransform()) {
+                camera_->SetTranslate(Irufemi::Math::Add(transform->GetWorldPosition(), positionOffset_));
+                camera_->SetRotate(Irufemi::Math::Add(transform->GetWorldRotation(), rotationOffset_));
+                camera_->SetFovY(fovAngleY_);
+                camera_->SetFarClip(farZ_);
+                camera_->UpdateMatrix();
+            }
         }
     }
 }

@@ -11,9 +11,15 @@
 #include "Physics/CollisionManager.h"
 #include "Core/Math/MathFunction.h"
 #include "Core/Shape/LinePrimitive.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <unordered_set>
+
+PlayerTargetingComponent::~PlayerTargetingComponent() {
+    RestoreAllOutlineHighlights();
+}
 
 void PlayerTargetingComponent::Initialize() {
     TryFindLockonMarkerUI();
@@ -73,6 +79,9 @@ void PlayerTargetingComponent::Update() {
         }
         markerUI->SyncTargets(displayTargets);
     }
+
+    // ロックオン・ホバー対象のアウトラインハイライトを同期更新 (Juice)
+    UpdateOutlineHighlights();
 }
 
 void PlayerTargetingComponent::OnRegisterProperties() {}
@@ -241,6 +250,7 @@ void PlayerTargetingComponent::MarkTarget(size_t maxLockOn) {
 }
 
 void PlayerTargetingComponent::ClearTargets() {
+    RestoreAllOutlineHighlights();
     queuedTargets_.clear();
 }
 
@@ -250,6 +260,7 @@ std::shared_ptr<GameObject> PlayerTargetingComponent::PopTarget() {
     }
     auto target = std::move(queuedTargets_.front());
     queuedTargets_.pop_front();
+    UpdateOutlineHighlights();
     return target;
 }
 
@@ -281,4 +292,75 @@ Irufemi::Vector3 PlayerTargetingComponent::CalculateAimPoint(float maxDistance) 
     }
 
     return Irufemi::Math::Add(ray.origin, Irufemi::Math::Multiply(maxDistance, ray.diff));
+}
+
+void PlayerTargetingComponent::UpdateOutlineHighlights() {
+    std::unordered_set<uint64_t> currentTargetIds;
+
+    // 【業界標準アプローチ】
+    // 照準ホバー（カーソル近傍）では3Dモデルのアウトライン色は変えず、
+    // プレイヤーが右クリックで明示的に確定したロックオンターゲット（queuedTargets_）のみをハイライトする
+    for (const auto& target : queuedTargets_) {
+        if (target && target->GetIsActive() && !target->IsDestroyed()) {
+            currentTargetIds.insert(target->GetInstanceID());
+        }
+    }
+
+    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
+
+    // 1. 今回ロック解除されたオブジェクトを元の色に戻す
+    for (auto it = originalOutlineColors_.begin(); it != originalOutlineColors_.end();) {
+        uint64_t id = it->first;
+        if (currentTargetIds.find(id) == currentTargetIds.end()) {
+            if (scene) {
+                if (auto obj = scene->FindGameObjectByID(id)) {
+                    if (auto maskComp = obj->GetComponent<EffectMaskComponent>()) {
+                        auto params = maskComp->GetCustomParams();
+                        params.color1 = it->second;
+                        maskComp->SetCustomParams(params);
+                    }
+                }
+            }
+            it = originalOutlineColors_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    // 2. 確定ロックオン中のターゲットを警告レモンイエローにハイライト
+    const Irufemi::Vector4 lockonYellow = {1.0f, 1.0f, 0.0f, 1.0f};
+    auto applyHighlight = [&](const std::shared_ptr<GameObject>& obj) {
+        if (!obj || !obj->GetIsActive() || obj->IsDestroyed()) {
+            return;
+        }
+        if (auto maskComp = obj->GetComponent<EffectMaskComponent>()) {
+            uint64_t id = obj->GetInstanceID();
+            if (originalOutlineColors_.find(id) == originalOutlineColors_.end()) {
+                originalOutlineColors_[id] = maskComp->GetCustomParams().color1;
+            }
+            auto params = maskComp->GetCustomParams();
+            params.color1 = lockonYellow;
+            maskComp->SetCustomParams(params);
+        }
+    };
+
+    for (const auto& target : queuedTargets_) {
+        applyHighlight(target);
+    }
+}
+
+void PlayerTargetingComponent::RestoreAllOutlineHighlights() {
+    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
+    if (scene) {
+        for (const auto& [id, color] : originalOutlineColors_) {
+            if (auto obj = scene->FindGameObjectByID(id)) {
+                if (auto maskComp = obj->GetComponent<EffectMaskComponent>()) {
+                    auto params = maskComp->GetCustomParams();
+                    params.color1 = color;
+                    maskComp->SetCustomParams(params);
+                }
+            }
+        }
+    }
+    originalOutlineColors_.clear();
 }

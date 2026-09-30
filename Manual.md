@@ -165,6 +165,9 @@ Unityライクな「オブジェクトのテンプレート化」をサポート
    - Scene View の右上に、半透明のオーバーレイパネルが常駐しています。
    - ここから、ギズモの操作モード（Local/World）、操作ツール（Translate, Rotate, Scale, Bounds）の切り替えや、コライダーのデバッグ表示のON/OFFが素早く行えます。
    - **Bounds ツール**: AABBやOBBコライダーなどのサイズを、Scene View上のハンドルをドラッグして視覚的に調整できる便利なツールです。
+   - **Game Camera スナップ機能 ([Cam] ボタン / [P] キー)**:
+     - ツールバー右端の **`[Cam]`** ボタンをクリックするか、Scene View上で **`P`** キー（または **`Ctrl + Shift + F`**）を押すと、シーン内の `MainCamera`（およびプレイヤー追従 `TargetFollowComponent`）からPlay開始時と全く同一のカメラ座標・回転角度・画角（FOV）を即座に算出し、Scene View の視点をゲーム視点へピタッとスナップ（同期）させます。
+     - Playモードに入ることなく、実際のプレイヤー視点からフォグや背景天球、エネミーの配置がどう見えるかを瞬時に確認できます。スナップ後も通常通りマウス操作でパン・オービット・ズームが可能です。
 
 #### 1.2.6 メニューバーの便利機能
 画面最上部のメニューバーからも、様々なアクションにアクセスできます。
@@ -664,6 +667,18 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
   - `Resolution`: ボクセルの分割数（例：32x32x32）。
   - **エフェクトの制御**: 以前のハードコード（固定寿命など）はすべて撤廃され、インスペクターから初速（Velocity）、回転（Angular Velocity）、重力（Gravity）、寿命（LifeTime）、基本サイズ（Size）を完全に動的に制御できるようになりました。また、放出終了後も寿命が尽きるまではシーン内に自然に滞留し、シーン遷移時には自動的に安全なリセットが行われます。
   - **再生方法**: C++コードから `GetComponent<VoxelParticleComponent>()->Explode();` を呼ぶことで、設定したパラメータに基づく破砕エフェクトが起動します。
+- **`SkyDomeComponent`**: 3Dメッシュ不要で無限遠の背景天球（プロシージャル天球）を描画する背景描画コンポーネントです。
+  - 頂点バッファや3Dモデルデータ（obj/mtl）を使わず、全画面最奥三角形（SV_VertexID）と逆射影レイキャストによってカメラの回転に応じた天球テクスチャを極低コストかつ境界破綻（クリッピング）ゼロでレンダリングします。
+  - `Texture Path`: 天球パノラマ画像のパス（例: `resources/texture/sky/skydome.png`）。
+  - `Color` / `Intensity`: 空のカラー乗数および輝度乗数。
+  - `UvOffset` / `UvTiling`: テクスチャの回転・オフセットおよびタイリング設定。
+- **`FogComponent`**: シーンの大気・距離フォグをリアルタイムに制御するコンポーネントです。
+  - 独立したレンダーパス（`FogPass`）で深度バッファを参照し、不透明オブジェクトから無限遠の天球の境界に至る空気遠近（大気効果）を自然にブレンドします。
+  - `Enabled`: フォグの有効/無効。
+  - `Color`: フォグのカラー（RGB）。天球（SkyDome）の地平線カラーと合わせることで、遠景のメッシュが空へ溶け込む表現が可能です。
+  - `Start Distance` / `End Distance`: フォグの開始距離および完全濃縮距離（m）。
+  - `Density`: フォグの密度。
+  - `Type (0:Lin, 1:Exp)`: 線形フォグ（Linear: 0）または指数関数フォグ（Exponential: 1）。
 
 #### UIコンポーネント (Canvas / Button / Text)
 ゲーム内の2D UIを構築するための専用コンポーネントです。
@@ -1046,6 +1061,51 @@ renderer->LoadModel("sample/cube.gltf");
 
 ※ アニメーションを行わないため、後述の `SkinnedMeshRendererComponent` よりも軽量に動作します。動かない物体にはこちらを優先して使用してください。
 
+### ライティングの有効/無効切替 (Unlit描画)
+スカイドーム（天球）や自己発光するオブジェクト、UI用3Dモデルなど、**「シーンの平行光源（DirectionalLight）による陰影計算を無視し、テクスチャ本来の色を100%忠実に出力させたい」** 場合は、ライティングを無効化（Unlit化）できます。
+
+- **C++ コードからの制御:**
+```cpp
+auto renderer = gameObject_->GetComponent<MeshRendererComponent>();
+renderer->SetEnableLighting(false); // Unlit（陰影なし・自己発光）モードに切り替え
+```
+
+- **Scene / Prefab JSON からの設定:**
+```json
+{
+    "type": "MeshRendererComponent",
+    "modelPath": "resources/models/skydome/skydome.obj",
+    "enableLighting": false
+}
+```
+※ デフォルトは `true`（通常ライティング有効）です。
+
+### スカイドームモード (最奥深度固定・Infinite Sky)
+天球モデル（`.obj` 等）を背景空として描画する場合、通常の3Dメッシュとして描画すると球殻の距離（例: 300m）が深度バッファに書き込まれ、**遠くの環境オブジェクト（ビル、浮遊島、山など）が空に隠れて近づいた時にひょっこり出現してしまう（クリッピング現象）** が発生します。
+`isSkydome: true`（または `SetIsSkydome(true)`）を設定することで、**業界標準の「最奥深度固定トリック（Infinite Sky）」** が有効になります。
+
+- **仕様と効果:**
+  - 頂点シェーダー（`Skydome.VS.hlsl`）でクリップ座標を `.xyww` 出力し、GPU深度値を常に最奥（$Z=1.0$）に固定。
+  - **深度書き込み無効（`DepthWrite: Disable`）** により、どれだけ遠くにある環境物・敵・雲も **100% 空の手前に描画** されます（境界の突き抜け・ひょっこり出現が完全消滅）。
+  - **前面カリング（`CullMode: Front`）** により天球の内側を正常描画。
+  - カメラの平行移動が無効化され、天球の中心が常にカメラに自動追従します。
+
+- **C++ コードからの制御:**
+```cpp
+auto renderer = gameObject_->GetComponent<MeshRendererComponent>();
+renderer->SetIsSkydome(true); // 最奥深度Skydomeパイプラインを適用
+```
+
+- **Scene / Prefab JSON からの設定:**
+```json
+{
+    "type": "MeshRendererComponent",
+    "modelName": "resources/model/skydome/skydome.obj",
+    "isSkydome": true,
+    "enableLighting": false
+}
+```
+
 ### 3Dプリミティブの描画 (PrimitiveRendererComponent)
 テスト用の床や障害物など、モデルファイルを用意せずに簡易的な立体を描画したい場合は `PrimitiveRendererComponent` を使用します。
 
@@ -1425,6 +1485,14 @@ gameObject->AddComponent<EffectMaskComponent>();
 // 発動時 (effectType, effectParam, duration(秒))
 gameObject->GetComponent<EffectMaskComponent>()->ApplyEffect(8, effectParam, 1.0f);
 ```
+
+#### 【仕様】アウター・シルエット方式アウトライン (Outer Silhouette)
+本エンジンの個別輪郭線（`LuminanceBasedOutline`）は、**モデル表面のテクスチャやライティングを100%保護し、外側の背景ピクセルのみに輪郭線を描画する「アウター・シルエット方式」**（AAAタイトル・Overwatch等と同様の方式）を採用しています。
+
+- モデルのスリットやモールドなどの細かなテクスチャデザインが塗り潰されることがなく、クオリティの高い輪郭強調が可能です。
+- 線幅の下限は `0.5px` に対応しており、極細でシャープなハイライトから太いアニメ調ラインまで自由に調整できます。
+- ロックオンシステム等で敵を強調する際は、モデル表面を汚さずに外周だけを高輝度イエロー等で際立たせることができます。
+
 
 ### 4. バッチ描画（環境物）への適用 (ModelBatchRendererComponent)
 大量に配置された静的・環境オブジェクトの、**特定のインスタンスにのみ** エフェクトを指定する方法です。

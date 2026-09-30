@@ -7,6 +7,10 @@
 #include <vector>
 #include <filesystem>
 
+#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
+#define RUNTIME_SHADER_COMPILE 1
+#endif
+
 #ifndef RUNTIME_SHADER_COMPILE
 // IDxcBlob を自作して dxcompiler.dll への依存を無くす
 class CustomBlob : public IDxcBlob {

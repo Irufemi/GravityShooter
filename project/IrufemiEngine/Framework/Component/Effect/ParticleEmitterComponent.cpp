@@ -54,12 +54,6 @@ void ParticleEmitterComponent::Restart(bool withChildren) {
             particleObj_->SetPosition(GetTransform()->GetWorldPosition());
         }
 
-#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-        auto pos = particleObj_->GetPosition();
-        Log::OutPutLog(std::cout, "[ParticleEmitterComponent] Restart. WorldPos: " + std::to_string(pos.x) + ", " +
-                                      std::to_string(pos.y) + ", " + std::to_string(pos.z) + "\n");
-#endif
-
         particleObj_->Restart();
     }
 

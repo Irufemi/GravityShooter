@@ -41,51 +41,66 @@ void GravityPlayerComponentEditor::Draw(Component* component, EditorActionManage
         }
 
         if (isJsonLoaded_) {
-            bool modified = false;
+            bool needSave = false;
+            if (ImGui::Button("Save JSON", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+                needSave = true;
+            }
 
             if (ImGui::TreeNodeEx("Gameplay Data (Saved in JSON)", ImGuiTreeNodeFlags_DefaultOpen)) {
 
                 int maxHp = cachedJson_.value("maxHp", 100);
                 if (ImGui::DragInt("Max HP", &maxHp, 1, 1, 10000)) {
                     cachedJson_["maxHp"] = maxHp;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 int maxOrbitCount = cachedJson_.value("maxOrbitCount", 5);
                 if (ImGui::DragInt("Max Orbit Count", &maxOrbitCount, 1, 1, 50)) {
                     cachedJson_["maxOrbitCount"] = maxOrbitCount;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 float pullRadius = cachedJson_.value("pullRadius", 100.0f);
                 if (ImGui::DragFloat("Pull Radius", &pullRadius, 1.0f, 1.0f, 1000.0f)) {
                     cachedJson_["pullRadius"] = pullRadius;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 float throwInterval = cachedJson_.value("throwInterval", 0.15f);
                 if (ImGui::DragFloat("Throw Interval", &throwInterval, 0.01f, 0.01f, 5.0f)) {
                     cachedJson_["throwInterval"] = throwInterval;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 float orbitRadiusMin = cachedJson_.value("orbitRadiusMin", 2.0f);
                 if (ImGui::DragFloat("Orbit Radius Min", &orbitRadiusMin, 0.1f, 0.1f, 20.0f)) {
                     cachedJson_["orbitRadiusMin"] = orbitRadiusMin;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 float orbitRadiusMax = cachedJson_.value("orbitRadiusMax", 4.0f);
                 if (ImGui::DragFloat("Orbit Radius Max", &orbitRadiusMax, 0.1f, 0.1f, 20.0f)) {
                     cachedJson_["orbitRadiusMax"] = orbitRadiusMax;
-                    modified = true;
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    needSave = true;
                 }
 
                 ImGui::TreePop();
             }
 
-            // ファイルへの上書き保存とコンポーネントへの反映
-            if (modified) {
+            // 編集完了時またはボタン押下時のみファイルへの保存とコンポーネントへの反映を行う
+            if (needSave) {
                 if (Irufemi::JsonUtility::SaveToFile(cachedPath_, cachedJson_, 4)) {
                     // コンポーネント側も即時反映
                     comp->LoadStatusFromJson();

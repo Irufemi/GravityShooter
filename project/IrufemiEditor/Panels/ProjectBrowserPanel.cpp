@@ -260,19 +260,33 @@ void ProjectBrowserPanel::Draw() {
                 }
 
                 // プレハブのダブルクリックによるPrefabモード移行
-                if (isDoubleClick && !isDir && (ext == ".prefab" || ext == ".json")) {
-                    // .json の場合はファイル名に .prefab が含まれるか確認する（現状のIrufemiEngineの慣例に合わせる）
-                    std::string filenameLower = filenameString;
-                    std::transform(filenameLower.begin(), filenameLower.end(), filenameLower.begin(), ::tolower);
-                    if (ext == ".prefab" || filenameLower.find(".prefab.json") != std::string::npos) {
-                        if (editorManager_) {
-                            editorManager_->EnterPrefabMode(path.string());
-                        }
+                bool isPrefabFile = false;
+                if (!isDir && (ext == ".prefab" || ext == ".json")) {
+                    std::string pathLower = path.generic_string();
+                    std::transform(pathLower.begin(), pathLower.end(), pathLower.begin(), ::tolower);
+                    if (ext == ".prefab" || pathLower.find(".prefab.json") != std::string::npos ||
+                        pathLower.find("prefabs/") != std::string::npos ||
+                        pathLower.find("prefabs\\") != std::string::npos) {
+                        isPrefabFile = true;
+                    }
+                }
+
+                if (isDoubleClick && isPrefabFile) {
+                    if (editorManager_) {
+                        editorManager_->EnterPrefabMode(path.generic_string());
                     }
                 }
 
                 // --- 右クリックメニュー ---
                 if (ImGui::BeginPopupContextItem()) {
+                    if (isPrefabFile) {
+                        if (ImGui::MenuItem(ICON_FA_CUBE " Edit Prefab")) {
+                            if (editorManager_) {
+                                editorManager_->EnterPrefabMode(path.generic_string());
+                            }
+                        }
+                        ImGui::Separator();
+                    }
                     if (ImGui::MenuItem("Rename")) {
                         renamingTarget_ = path;
                         strncpy_s(projectBrowserInputBuffer_, sizeof(projectBrowserInputBuffer_),

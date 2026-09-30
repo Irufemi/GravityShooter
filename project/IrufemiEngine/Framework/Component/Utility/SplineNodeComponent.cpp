@@ -5,6 +5,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
 #include "Core/Shape/LinePrimitive.h"
+#include "Core/Math/MathFunction.h"
 #include <cmath>
 
 void SplineNodeComponent::OnRegisterProperties() {
@@ -49,7 +50,7 @@ bool SplineNodeComponent::Raycast(const Irufemi::Ray& ray, float& outDistance) c
     }
 
     // レイの方向ベクトルが非正規化またはゼロの場合を考慮
-    float diffLengthSq = ray.diff.x * ray.diff.x + ray.diff.y * ray.diff.y + ray.diff.z * ray.diff.z;
+    float diffLengthSq = Irufemi::Math::Dot(ray.diff, ray.diff);
     if (diffLengthSq < 1e-6f) {
         return false;
     }
@@ -62,8 +63,8 @@ bool SplineNodeComponent::Raycast(const Irufemi::Ray& ray, float& outDistance) c
     // Rayと球の交差判定 (線分・直線の交点計算)
     Irufemi::Vector3 m = {ray.origin.x - center.x, ray.origin.y - center.y, ray.origin.z - center.z};
 
-    float b = m.x * dir.x + m.y * dir.y + m.z * dir.z;
-    float c = (m.x * m.x + m.y * m.y + m.z * m.z) - radius_ * radius_;
+    float b = Irufemi::Math::Dot(m, dir);
+    float c = Irufemi::Math::Dot(m, m) - (radius_ * radius_);
 
     // 始点が球の外側にあり、レイが球から遠ざかっている場合は交差しない
     if (c > 0.0f && b > 0.0f) {

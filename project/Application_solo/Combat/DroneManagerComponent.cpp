@@ -11,6 +11,7 @@
 #include "Combat/BossBulletManagerComponent.h"
 #include "Renderer/System/Core/BaseModel.h"
 #include "Framework/Scene/BaseScene.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
 
 DroneManagerComponent::DroneManagerComponent() {}
 
@@ -138,7 +139,15 @@ void DroneManagerComponent::Update() {
         if (t) {
             batchT.scale = t->GetScale();
         }
-        batchRenderer_->AddInstance(batchT);
+        int32_t effectType = 0;
+        float effectParam = 0.0f;
+        bool enableMask = false;
+        if (auto effectMask = gameObject_->GetComponent<EffectMaskComponent>()) {
+            enableMask = effectMask->GetEnableEffectMask();
+            effectType = effectMask->GetCustomEffectType();
+            effectParam = effectMask->GetCachedEffectParam();
+        }
+        batchRenderer_->AddInstance(batchT, effectType, effectParam, enableMask);
 
         ++i;
     }

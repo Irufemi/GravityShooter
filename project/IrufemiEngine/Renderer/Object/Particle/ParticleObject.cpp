@@ -47,10 +47,6 @@ void ParticleObject::Restart() {
     if (burstCountOnAwake_ > 0) {
         EmitBurst(burstCountOnAwake_);
     }
-#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-    Log::OutPutLog(std::cout, "[HitEffect-Trace] ParticleObject::Restart. Sending " +
-                                  std::to_string(burstCountPending_) + " bursts to GPU.\n");
-#endif
     // 1フレームのズレを防ぐため、GPUマネージャーへ最新情報を即座に送信する
     UpdateSystem();
     isDirty_ = false;
@@ -265,11 +261,6 @@ void ParticleObject::UpdateSystem() {
 
     if (burstCountPending_ > 0) {
         data.burstCount = burstCountPending_;
-#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-        Log::OutPutLog(std::cout,
-                       "[HitEffect-Trace] UpdateSystem: setting burstCount = " + std::to_string(burstCountPending_) +
-                           " for handle index " + std::to_string(emitterHandle_.emitterIndex) + "\n");
-#endif
         burstCountPending_ = 0;
     }
     if (gpuParticleManager_) {

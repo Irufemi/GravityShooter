@@ -55,7 +55,7 @@ void HierarchyPanel::Draw() {
 
             // 再帰描画用ラムダ関数
             auto DrawNode = [&](auto& self, const std::shared_ptr<GameObject>& obj) -> void {
-                if (!obj) {
+                if (!obj || obj->GetHideInHierarchy()) {
                     return;
                 }
 
@@ -209,7 +209,7 @@ void HierarchyPanel::Draw() {
             auto gameObjectsCopy = gameObjects; // 描画中のリスト変更対策
             for (auto& obj : gameObjectsCopy) {
                 // ルートオブジェクトのみを描画開始（子は再帰的に呼ばれる）
-                if (obj && !obj->GetParent()) {
+                if (obj && !obj->GetParent() && !obj->GetHideInHierarchy()) {
                     DrawNode(DrawNode, obj);
                 }
             }

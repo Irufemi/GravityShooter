@@ -20,7 +20,7 @@ public:
     }
 
     /**
-     * @brief 指定した座標・回転・スケール倍率でエネミーをスポーンする
+     * @brief 指定した座標・回転・スケール倍率でエネミーをスポーンする（デフォルトプレハブ）
      * @param[in] position スポーンワールド座標
      * @param[in] rotation スポーン回転角度
      * @param[in] scaleMultiplier スケール倍率
@@ -28,6 +28,17 @@ public:
      */
     GameObject* SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
                            float scaleMultiplier = 1.0f);
+
+    /**
+     * @brief 指定したプレハブ（JSON）に基づきエネミーをスポーンする（マルチモデルInstancing対応）
+     * @param[in] prefabPath プレハブファイルのパス（例: resources/prefabs/Enemy_DiveDrone.json）
+     * @param[in] position スポーンワールド座標
+     * @param[in] rotation スポーン回転角度
+     * @param[in] scaleMultiplier スケール倍率
+     * @return 生成またはプールから再利用された GameObject
+     */
+    GameObject* SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
+                                   const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
 
     /**
      * @brief エネミーのモデルパスを取得する
@@ -75,12 +86,26 @@ public:
     }
 
 private:
+    struct PrefabPoolData {
+        std::string prefabPath;
+        std::string modelPath;
+        Irufemi::Vector3 baseScale = {1.2f, 1.2f, 1.2f};
+        float baseColliderRadius = 1.8f;
+        Irufemi::Vector3 baseOBBSize = {1.0f, 1.0f, 1.0f};
+        bool hasOBBCollider = false;
+        std::shared_ptr<ModelBatchRendererComponent> batchRenderer;
+        std::unique_ptr<ObjectPool<GameObject>> pool;
+    };
+
+    PrefabPoolData* GetOrCreatePrefabPool(const std::string& prefabPath, uint32_t poolSize = 0);
+
+private:
     int maxEnemies_ = 50;
     std::string enemyModelPath_ = "Enemy_GravityGolem_A/SM_Enemy_GravityGolem_A.obj";
     std::string enemyPrefabPath_ = "resources/prefabs/Enemy_GravityGolem.json";
     Irufemi::Vector3 baseEnemyScale_ = {1.2f, 1.2f, 1.2f};
     float baseColliderRadius_ = 2.0f;
-    std::unique_ptr<ObjectPool<GameObject>> enemyPool_;
-    std::unordered_map<GameObject*, ObjectPool<GameObject>::Handle> activeEnemyHandles_;
-    std::shared_ptr<ModelBatchRendererComponent> batchRenderer_;
+
+    std::unordered_map<std::string, std::unique_ptr<PrefabPoolData>> prefabPools_;
+    std::unordered_map<GameObject*, std::pair<std::string, ObjectPool<GameObject>::Handle>> activeEnemyHandles_;
 };

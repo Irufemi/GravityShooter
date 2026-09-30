@@ -39,8 +39,9 @@ public:
     /**
      * @brief 更新処理（アニメーション進行、キー入力判定）
      * @param input InputManagerへのポインタ
+     * @param dt デルタ時間（秒、デフォルト: 1/60秒）
      */
-    void Update(InputManager* input);
+    void Update(InputManager* input, float dt = 1.0f / 60.0f);
 
     /**
      * @brief 描画処理（対象オブジェクトの Draw を呼び出す。フラッシュ時のスキップも行う）

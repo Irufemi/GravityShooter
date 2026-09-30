@@ -22,6 +22,7 @@
 #include <atomic>
 #include "Renderer/Compute/IComputeTask.h"
 #include "Renderer/Data/RenderPackets.h"
+#include "Renderer/Data/FogParams.h"
 
 class ShadowMap;
 
@@ -72,6 +73,7 @@ public:
         std::vector<RenderPackets::GPUParticlePacket> gpuParticleQueue;
         std::vector<RenderPackets::VoxelParticlePacket> voxelParticleQueue;
         std::vector<RenderPackets::SkyboxPacket> skyboxQueue;
+        std::vector<RenderPackets::SkydomePacket> skydomeQueue;
         std::vector<RenderPackets::PrimitiveBatchPacket> primitiveBatchQueue;
         std::vector<RenderPackets::Primitive2DBatchPacket> primitive2DBatchQueue;
         std::vector<RenderPackets::ModelBatchPacket> modelBatchQueue;
@@ -94,6 +96,7 @@ public:
             gpuParticleQueue.clear();
             voxelParticleQueue.clear();
             skyboxQueue.clear();
+            skydomeQueue.clear();
             primitiveBatchQueue.clear();
             primitive2DBatchQueue.clear();
             modelBatchQueue.clear();
@@ -120,6 +123,7 @@ private:
     std::vector<RenderPackets::GPUParticlePacket> gpuParticleQueue_;
     std::vector<RenderPackets::VoxelParticlePacket> voxelParticleQueue_;
     std::vector<RenderPackets::SkyboxPacket> skyboxQueue_;
+    std::vector<RenderPackets::SkydomePacket> skydomeQueue_;
     std::vector<RenderPackets::PrimitiveBatchPacket> primitiveBatchQueue_;
     std::vector<RenderPackets::Primitive2DBatchPacket> primitive2DBatchQueue_;
     std::vector<RenderPackets::ModelBatchPacket> modelBatchQueue_;
@@ -221,6 +225,13 @@ public:
         return skyboxQueue_;
     }
     /**
+     * @brief SkydomeQueue を取得する。
+     * @return 取得された SkydomeQueue
+     */
+    const std::vector<RenderPackets::SkydomePacket>& GetSkydomeQueue() const {
+        return skydomeQueue_;
+    }
+    /**
      * @brief PrimitiveBatchQueue を取得する。
      * @return 取得された PrimitiveBatchQueue
      */
@@ -314,6 +325,7 @@ public:
 
         PerFrameData* perFrameData = nullptr;
         LightCommonData* lightCommonData = nullptr;
+        FogParams* fogParams = nullptr;
 
         D3D12_GPU_DESCRIPTOR_HANDLE lightSrvHandle{};
         uint32_t lightSrvBaseIndex = 0xFFFFFFFFu;
@@ -322,6 +334,7 @@ public:
         struct FrameData {
             D3D12_GPU_VIRTUAL_ADDRESS camera;
             D3D12_GPU_VIRTUAL_ADDRESS lightCommon; // register b1
+            D3D12_GPU_VIRTUAL_ADDRESS fog;         // register b0 (FogPass)
         } frameData{};
     };
     std::array<FrameResource, kMaxFramesInFlight> frameResources_;
@@ -531,6 +544,9 @@ private:
     float shadowOrthoSize_{128.0f};
     bool useCustomShadowParams_{false};
 
+    // フォグパラメータ
+    FogParams fogParams_{};
+
     TextureManager* textureManager_ = nullptr; ///< 環境マップフォールバック等に使用するテクスチャマネージャー
 
 public:
@@ -717,6 +733,16 @@ public:
     void DrawSkybox(const RenderPackets::SkyboxPacket& packet);
 
     /**
+     * @brief プロシージャルスカイドームの描画コマンドを送信する
+     * @param[in] materialAddress マテリアル定数バッファのGPU仮想アドレス
+     */
+    void SubmitSkydome(D3D12_GPU_VIRTUAL_ADDRESS materialAddress);
+    /**
+     * @brief DrawSkydome を実行する。
+     */
+    void DrawSkydome(const RenderPackets::SkydomePacket& packet);
+
+    /**
      * @brief GPUパーティクルのインスタンス描画 (GPUParticle.hlsl)
      */
     void SubmitGPUParticle(const RenderPackets::GPUParticlePacket& packet);
@@ -754,6 +780,18 @@ public:
     ///@{
     PerFrameData* GetPerFrameData() const {
         return frameResources_[dxCommon_->GetFrameIndex()].perFrameData;
+    }
+    D3D12_GPU_VIRTUAL_ADDRESS GetCameraCBVAddress() const {
+        return frameResources_[dxCommon_->GetFrameIndex()].frameData.camera;
+    }
+    D3D12_GPU_VIRTUAL_ADDRESS GetFogCBVAddress() const {
+        return frameResources_[dxCommon_->GetFrameIndex()].frameData.fog;
+    }
+    void SetFogParams(const FogParams& params) {
+        fogParams_ = params;
+    }
+    const FogParams& GetFogParams() const {
+        return fogParams_;
     }
     /**
      * @brief RenderGraph を取得する。

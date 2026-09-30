@@ -27,6 +27,7 @@ uint32_t DescriptorAllocator::Allocate() {
         inUse_[idx] = true;
         return idx;
     }
+    IRUFEMI_ASSERT_MSG(false, "Descriptor heap exhausted in Allocate()!");
     return kInvalid;
 }
 
@@ -105,12 +106,14 @@ void DescriptorAllocator::ReservePrefix(uint32_t count) {
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE DescriptorAllocator::GetCPUHandle(uint32_t index) const {
+    IRUFEMI_ASSERT_MSG(index != kInvalid && index < capacity_, "Invalid descriptor index passed to GetCPUHandle!");
     D3D12_CPU_DESCRIPTOR_HANDLE h = heap_->GetCPUDescriptorHandleForHeapStart();
     h.ptr += static_cast<SIZE_T>(descriptorSize_) * index;
     return h;
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE DescriptorAllocator::GetGPUHandle(uint32_t index) const {
+    IRUFEMI_ASSERT_MSG(index != kInvalid && index < capacity_, "Invalid descriptor index passed to GetGPUHandle!");
     D3D12_GPU_DESCRIPTOR_HANDLE h = heap_->GetGPUDescriptorHandleForHeapStart();
     h.ptr += static_cast<UINT64>(descriptorSize_) * index;
     return h;

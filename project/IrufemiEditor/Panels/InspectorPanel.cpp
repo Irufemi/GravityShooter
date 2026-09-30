@@ -52,13 +52,14 @@ void InspectorPanel::Draw() {
 
         // --- オブジェクト削除ボタン（赤色で右端に配置） ---
         ImGui::SameLine(ImGui::GetWindowWidth() - 80);
-        EditorTheme::PushDangerButtonStyle();
-        if (ImGui::Button("Delete", ImVec2(70, 0))) {
-            if (auto actionManager = editorManager_->GetActionManager()) {
-                actionManager->DeleteObject(selected);
+        {
+            EditorTheme::ScopedDangerButton dangerStyle;
+            if (ImGui::Button("Delete", ImVec2(70, 0))) {
+                if (auto actionManager = editorManager_->GetActionManager()) {
+                    actionManager->DeleteObject(selected);
+                }
             }
         }
-        EditorTheme::PopButtonStyle();
         // ------------------------------------------------
 
         ImGui::Separator();

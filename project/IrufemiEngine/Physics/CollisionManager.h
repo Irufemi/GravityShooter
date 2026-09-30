@@ -80,7 +80,7 @@ public:
      * @brief LayerNames を取得する。
      * @return 取得された LayerNames
      */
-    std::vector<std::string>& GetLayerNames() {
+    const std::vector<std::string>& GetLayerNames() const {
         return layerNames_;
     }
     /**

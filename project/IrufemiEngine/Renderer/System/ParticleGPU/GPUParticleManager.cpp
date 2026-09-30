@@ -119,11 +119,31 @@ void GPUParticleManager::UpdateEmitterData(const EmitterHandle& handle, const GP
         if (handle.emitterIndex < ctx->slotGenerations.size() &&
             ctx->slotGenerations[handle.emitterIndex] == handle.generation &&
             handle.emitterIndex < ctx->system->emittersData_.size()) {
-            uint32_t burst = ctx->system->emittersData_[handle.emitterIndex].burstCount + data.burstCount;
-            float residue = ctx->system->emittersData_[handle.emitterIndex].emissionResidue;
-            ctx->system->emittersData_[handle.emitterIndex] = data;
-            ctx->system->emittersData_[handle.emitterIndex].burstCount = burst;
-            ctx->system->emittersData_[handle.emitterIndex].emissionResidue = residue;
+            auto& current = ctx->system->emittersData_[handle.emitterIndex];
+            uint32_t burst = current.burstCount + data.burstCount;
+            float residue = current.emissionResidue;
+
+            // 前フレーム位置を保持（初回・停止復帰・瞬間移動時は現在位置にリセットして飛び跳ね防止）
+            float prevX = current.translateX;
+            float prevY = current.translateY;
+            float prevZ = current.translateZ;
+            float dx = data.translateX - prevX;
+            float dy = data.translateY - prevY;
+            float dz = data.translateZ - prevZ;
+            float distSq = dx * dx + dy * dy + dz * dz;
+
+            if (current.emit == 0 || distSq > 10000.0f || (prevX == 0.0f && prevY == 0.0f && prevZ == 0.0f)) {
+                prevX = data.translateX;
+                prevY = data.translateY;
+                prevZ = data.translateZ;
+            }
+
+            current = data;
+            current.burstCount = burst;
+            current.emissionResidue = residue;
+            current.prevTranslateX = prevX;
+            current.prevTranslateY = prevY;
+            current.prevTranslateZ = prevZ;
         }
     }
 }

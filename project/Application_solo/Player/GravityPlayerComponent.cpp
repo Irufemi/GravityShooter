@@ -206,6 +206,17 @@ void GravityPlayerComponent::HandlePullInput() {
         if (auto debrisManagerObj = debrisManagerObj_.lock()) {
             if (auto debrisManager = debrisManagerObj->GetComponent<DebrisManagerComponent>()) {
                 auto debrisObj = debrisManager->ExtractNearestIdleDebris(transform->GetWorldPosition(), pullRadius_);
+
+                // 【ゼロ弾薬フェイルセーフ (Failsafe Fallback)】
+                // 周囲に浮遊ガレキが無く、自機の所持弾数もゼロの場合、自機前方に緊急ガレキを生成して即座に引き寄せる
+                if (!debrisObj && orbitingDebris_.empty()) {
+                    Irufemi::Vector3 forward = transform->GetWorldForward();
+                    Irufemi::Vector3 emergencyPos = transform->GetWorldPosition() + forward * 15.0f;
+                    debrisManager->SpawnDebrisCluster(emergencyPos, 1, 1.5f);
+                    debrisObj =
+                        debrisManager->ExtractNearestIdleDebris(transform->GetWorldPosition(), pullRadius_ + 20.0f);
+                }
+
                 if (debrisObj) {
                     if (auto debrisComp = debrisObj->GetComponent<DebrisComponent>()) {
                         debrisComp->SetState(DebrisState::Pulled);

@@ -30,14 +30,14 @@
     {
       "data": {
         "isStatic": false,
-        "isTrigger": false,
+        "isTrigger": true,
         "layer": 4,
         "localOffset": [
           0.0,
           0.0,
           0.0
         ],
-        "localRadius": 0.5,
+        "localRadius": 0.6000000238418579,
         "mask": 18,
         "pushbackMask": [
           1.0,
@@ -52,20 +52,59 @@
     },
     {
       "data": {
+        "BaseFormationOffsetX": 0.0,
+        "BaseFormationOffsetY": 0.0,
+        "BehaviorType": 0,
         "BodyDamage": 20,
         "BulletScale": 0.30000001192092896,
         "BulletSpeed": 32.0,
         "CombatDuration": 7.5,
+        "CurrentDistanceOffset": 85.0,
         "HP": 100,
         "ShootInterval": 1.7999999523162842,
+        "SniperLaserColor": [
+          1.0,
+          0.15000000596046448,
+          0.15000000596046448,
+          0.8500000238418579
+        ],
+        "SniperLaserLength": 200.0,
+        "SniperLaserRadius": 0.11999999731779099,
+        "SniperLockLeadTime": 0.25,
+        "SniperTelegraphDuration": 1.0,
         "SpawnProgress": 0.5,
         "Speed": 15.0,
         "TargetDistance": 65.0
       },
       "type": "RailShooterEnemyComponent"
+    },
+    {
+      "data": {
+        "customEffectType": 6,
+        "customParams": {
+          "color1": [
+            1.0,
+            0.44999998807907104,
+            0.0,
+            1.0
+          ],
+          "color2": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "param1": 2.0,
+          "param2": 0.0,
+          "param3": 0.0,
+          "param4": 0.0
+        },
+        "enableEffectMask": true
+      },
+      "type": "EffectMaskComponent"
     }
   ],
-  "instanceId": 7391454204695923275,
+  "instanceId": 5467413799160410578,
   "name": "Enemy_GravityGolem",
   "tag": "Untagged"
 }

@@ -8,10 +8,18 @@
 #include "Physics/CollisionManager.h"
 #include "Core/System/IrufemiEngine.h"
 
-EnemyBulletManagerComponent::EnemyBulletManagerComponent() = default;
+EnemyBulletManagerComponent::EnemyBulletManagerComponent() {
+    s_instance_ = this;
+}
+
+void EnemyBulletManagerComponent::OnRegisterProperties() {
+    Component::OnRegisterProperties();
+    RegisterProperty("Max Bullets", &maxBullets_);
+    RegisterProperty("Bullet Model Path", &bulletModelPath_);
+}
 
 void EnemyBulletManagerComponent::Initialize() {
-    WarmupPool();
+    // Editモード中（シーン編集時）の不要なプール生成を防止するため、Initializeではプレウォームを行わない
 }
 
 void EnemyBulletManagerComponent::Start() {
@@ -19,10 +27,16 @@ void EnemyBulletManagerComponent::Start() {
 }
 
 void EnemyBulletManagerComponent::OnDestroy() {
+    if (s_instance_ == this) {
+        s_instance_ = nullptr;
+    }
     bulletPool_.reset();
 }
 
 EnemyBulletManagerComponent* EnemyBulletManagerComponent::GetOrCreate(BaseScene* scene) {
+    if (s_instance_) {
+        return s_instance_;
+    }
     if (!scene) {
         return nullptr;
     }
@@ -61,6 +75,7 @@ void EnemyBulletManagerComponent::WarmupPool() {
 
         auto bullet = std::make_shared<GameObject>("EnemyBullet");
         bullet->SetIsSerializable(false);
+        bullet->SetHideInHierarchy(true); // エディタのヒエラルキーを汚染しないよう非表示設定
 
         // レンダラー設定
         auto meshRenderer = bullet->AddComponent<MeshRendererComponent>();
@@ -76,7 +91,11 @@ void EnemyBulletManagerComponent::WarmupPool() {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
                 collider->layer_ = cm->GetLayerMask("Enemy");
-                collider->mask_ = cm->GetLayerMask("Player");
+                uint32_t maskPlayer = cm->GetLayerMask("Player");
+                uint32_t maskDebrisPlayer = cm->GetLayerMask("Debris_Player");
+                uint32_t maskEnvironment = cm->GetLayerMask("Environment");
+                // 【AAA基準: 自機シールドおよび建造物との衝突を有効化】
+                collider->mask_ = maskPlayer | maskDebrisPlayer | maskEnvironment;
             }
         }
 
@@ -85,8 +104,8 @@ void EnemyBulletManagerComponent::WarmupPool() {
         bulletComp->Initialize();
         bulletComp->SetManager(this);
 
-        // シーンに登録し、非アクティブにして待機
-        scene->AddGameObject(bullet);
+        // マネージャーの子オブジェクトとして登録し、非アクティブにして待機（ルート直置きを解消）
+        gameObject_->AddChild(bullet);
         bullet->SetIsActive(false);
 
         return bullet;

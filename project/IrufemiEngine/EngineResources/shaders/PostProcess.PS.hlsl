@@ -18,6 +18,37 @@ SamplerState gSamplerPoint : register(s1);
 
 
 /**
+ * @brief 自機等の保護対象オブジェクトに対してスキップすべき視認性阻害エフェクトかどうかを判定する
+ * @param mode ポストプロセスモード
+ * @return true の場合、isProtected なピクセルではスキップされる
+ */
+bool IsDistortionOrBlurEffect(int32_t mode) {
+    switch (mode) {
+        case kPostProcessMode_Vignette:
+        case kPostProcessMode_Noise:
+        case kPostProcessMode_Slide:
+        case kPostProcessMode_Dissolve:
+        case kPostProcessMode_DepthBasedOutline:
+        case kPostProcessMode_RadialBlur:
+        case kPostProcessMode_Glitch:
+        case kPostProcessMode_LuminanceBasedOutline:
+        case kPostProcessMode_Pixelation:
+        case kPostProcessMode_Pointillism:
+        case kPostProcessMode_Posterization:
+        case kPostProcessMode_NightVision:
+        case kPostProcessMode_Kaleidoscope:
+        case kPostProcessMode_ChromaticAberration:
+        case kPostProcessMode_DisplacementMap:
+        case kPostProcessMode_DirectionalBlur:
+        case kPostProcessMode_Halftone:
+        case kPostProcessMode_DepthOfField:
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
  * @brief マスク（ID）ベースのカスタムアウトラインを適用する（AAAアプローチ）
  * 
  * 自身のピクセルだけでなく周囲のマスクIDをサンプリングし、エッジを検出します。
@@ -27,6 +58,14 @@ float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvS
     float32_t4 centerMask = maskTex.SampleLevel(smp, uv, 0);
     int centerEffect = round(centerMask.r * 255.0f);
     int centerInstance = round(centerMask.g * 255.0f);
+
+    // 【業界標準 Outer Silhouette 方式】
+    // 自身のピクセルがオブジェクト表面（centerInstance > 0）である場合は、
+    // モデル自体のテクスチャやライティング・ディテールを100%美しく保護するため、
+    // 内側への侵食アウトラインは描画せずそのままリターンする
+    if (centerInstance > 0) {
+        return color;
+    }
 
     float maxWeight = 0.0f;
     float32_t3 outlineColor = color;
@@ -44,13 +83,13 @@ float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvS
             float32_t4 neighborMask = maskTex.SampleLevel(smp, uv + offset, 0);
             int neighborInstance = round(neighborMask.g * 255.0f);
 
-            // 自分と異なるオブジェクトかチェック
-            if (neighborInstance != centerInstance && neighborInstance > 0 && neighborInstance < 256) {
+            // 近傍にアウトライン対象オブジェクトが存在する場合（背景ピクセルに外周アウトラインを描画）
+            if (neighborInstance > 0 && neighborInstance < 256) {
                 CustomEffectParams cParams = gCustomParams[neighborInstance];
                 
                 // 設定された太さ(param1)が 0 より大きい場合のみ、アウトラインを描画する
                 if (cParams.param1 > 0.0f) {
-                    float thickness = max(1.5f, cParams.param1); // 斜めピクセルをカバーしつつ、太い線を描く
+                    float thickness = max(0.5f, cParams.param1); // 繊細な細線(1px以下)から太線まで許容
                     if (dist <= thickness) {
                         float effectAlpha = cParams.color1.a > 0.0f ? cParams.color1.a : 1.0f; // Alpha0の時は強制的に1.0にする
                         float alpha = (1.0f - smoothstep(thickness - 0.5f, thickness + 0.5f, dist)) * effectAlpha;
@@ -61,35 +100,6 @@ float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvS
                     }
                 }
             }
-        }
-    }
-
-    // 内側のアウトライン（自身がアウトライン対象で、周囲が背景または別オブジェクトの場合）
-    if (centerInstance > 0 && centerInstance < 256) {
-        CustomEffectParams cParams = gCustomParams[centerInstance];
-        if (cParams.param1 > 0.0f) {
-            float thickness = max(1.5f, cParams.param1);
-            
-            for (int y = -kRadius; y <= kRadius; y++) {
-                for (int x = -kRadius; x <= kRadius; x++) {
-                if (x == 0 && y == 0) continue;
-                float dist = sqrt(float(x * x + y * y));
-                if (dist > thickness) continue;
-
-                float32_t2 offset = float32_t2(x, y) * uvStepSize;
-                float32_t4 neighborMask = maskTex.SampleLevel(smp, uv + offset, 0);
-                int neighborInstance = round(neighborMask.g * 255.0f);
-
-                if (neighborInstance != centerInstance) {
-                    float effectAlpha = cParams.color1.a > 0.0f ? cParams.color1.a : 1.0f;
-                    float alpha = (1.0f - smoothstep(thickness - 0.5f, thickness + 0.5f, dist)) * effectAlpha;
-                    if (alpha > maxWeight) {
-                        maxWeight = alpha;
-                        outlineColor = cParams.color1.rgb;
-                    }
-                }
-            }
-        }
         }
     }
 
@@ -224,15 +234,16 @@ PixelShaderOutput main(VertexShaderOutput input) {
         }
     }
     
-    // 2. 保護フラグの判定 (保護されていればここで終了)
-    if (isProtected) {
-        PixelShaderOutput output;
-        output.color = color;
-        return output;
-    }
-
+    // 2. グローバルポストプロセスループ
     for (int32_t i = 0; i < gParams.effectCount; ++i) {
         int32_t mode = gParams.effects[i / 4][i % 4];
+
+        // 一線級エンジン基準: 自機保護フラグ(isProtected)がある場合、
+        // 視認性を損なう画面破壊系・ボケ系・歪み系エフェクトのみを選択的にスキップし、
+        // トーンマッピングやカラーグレーディングなどの色調・露出調整は自機にも適用して白浮きを防ぐ
+        if (isProtected && IsDistortionOrBlurEffect(mode)) {
+            continue;
+        }
 
         switch (mode) {
             case kPostProcessMode_Grayscale:

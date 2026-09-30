@@ -107,14 +107,7 @@ void WaveManagerComponent::Draw() {
                     Irufemi::Vector3 pos = spline->GetPointAtDistance(ev.triggerDistance);
                     Irufemi::Vector3 fwd = spline->GetTangentAtDistance(ev.triggerDistance);
                     Irufemi::Vector3 up = {0.0f, 1.0f, 0.0f};
-                    Irufemi::Vector3 right = {up.y * fwd.z - up.z * fwd.y, up.z * fwd.x - up.x * fwd.z,
-                                              up.x * fwd.y - up.y * fwd.x};
-                    float len = std::sqrt(right.x * right.x + right.y * right.y + right.z * right.z);
-                    if (len > 0.0001f) {
-                        right.x /= len;
-                        right.y /= len;
-                        right.z /= len;
-                    }
+                    Irufemi::Vector3 right = Irufemi::Math::Normalize(Irufemi::Math::Cross(up, fwd));
 
                     it->second->DrawEditorPreview(this, ev, pos, fwd, right);
                 }

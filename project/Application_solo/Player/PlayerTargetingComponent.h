@@ -1,6 +1,7 @@
 #pragma once
 #include "Framework/Component/Component.h"
 #include "Core/Math/Vector3.h"
+#include "Core/Math/Vector4.h"
 #include "Player/TargetableComponent.h"
 #include <vector>
 #include <deque>
@@ -20,7 +21,7 @@ struct RaycastHit;
 class PlayerTargetingComponent : public Component {
 public:
     PlayerTargetingComponent() = default;
-    ~PlayerTargetingComponent() override = default;
+    ~PlayerTargetingComponent() override;
 
     void Initialize() override;
     void Start() override;
@@ -133,4 +134,9 @@ private:
     std::weak_ptr<LockonMarkerUIComponent> lockonMarkerUI_;
     float uiSearchTimer_ = 0.0f;                     ///< UI未検出時の再試行タイマー
     static constexpr float kUISearchInterval = 0.5f; ///< UI再検索の実行間隔（秒）
+
+    // ロックオン・ホバー時のアウトラインハイライト制御 (Juice)
+    void UpdateOutlineHighlights();
+    void RestoreAllOutlineHighlights();
+    std::unordered_map<uint64_t, Irufemi::Vector4> originalOutlineColors_; ///< ハイライト前の初期色キャッシュ
 };

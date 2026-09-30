@@ -13,8 +13,13 @@
 #include "Renderer/Object/Particle/ParticleObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Core/EditorManager.h"
+#include "Core/Utility/FileSystem.h"
+#include "Core/Utility/JsonUtility.h"
+#include "Commands/EditorCommands.h"
 #include <algorithm>
 #include <functional>
+#include <filesystem>
+#include <unordered_map>
 
 std::shared_ptr<Component> ComponentUIHelpers::GetSharedComponent(GameObject* go, Component* comp) {
     if (!go || !comp) {
@@ -206,10 +211,12 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                 auto drawResetButton = [&]() {
                     if (!prop.defaultValue.is_null()) {
                         bool isModified = false;
+                        auto isFloatDiff = [](float a, float b) { return std::abs(a - b) > 1e-5f; };
+
                         switch (prop.type) {
                         case ComponentPropertyType::Float: {
                             if (auto* v = prop.GetData<float>()) {
-                                isModified = (*v != prop.defaultValue.get<float>());
+                                isModified = isFloatDiff(*v, prop.defaultValue.get<float>());
                             }
                             break;
                         }
@@ -242,7 +249,8 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                             if (auto* v = prop.GetData<Irufemi::Vector2>()) {
                                 auto arr = prop.defaultValue;
                                 if (arr.is_array() && arr.size() >= 2) {
-                                    isModified = (v->x != arr[0].get<float>() || v->y != arr[1].get<float>());
+                                    isModified = (isFloatDiff(v->x, arr[0].get<float>()) ||
+                                                  isFloatDiff(v->y, arr[1].get<float>()));
                                 }
                             }
                             break;
@@ -251,8 +259,9 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                             if (auto* v = prop.GetData<Irufemi::Vector3>()) {
                                 auto arr = prop.defaultValue;
                                 if (arr.is_array() && arr.size() >= 3) {
-                                    isModified = (v->x != arr[0].get<float>() || v->y != arr[1].get<float>() ||
-                                                  v->z != arr[2].get<float>());
+                                    isModified = (isFloatDiff(v->x, arr[0].get<float>()) ||
+                                                  isFloatDiff(v->y, arr[1].get<float>()) ||
+                                                  isFloatDiff(v->z, arr[2].get<float>()));
                                 }
                             }
                             break;
@@ -261,8 +270,10 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                             if (auto* v = prop.GetData<Irufemi::Vector4>()) {
                                 auto arr = prop.defaultValue;
                                 if (arr.is_array() && arr.size() >= 4) {
-                                    isModified = (v->x != arr[0].get<float>() || v->y != arr[1].get<float>() ||
-                                                  v->z != arr[2].get<float>() || v->w != arr[3].get<float>());
+                                    isModified = (isFloatDiff(v->x, arr[0].get<float>()) ||
+                                                  isFloatDiff(v->y, arr[1].get<float>()) ||
+                                                  isFloatDiff(v->z, arr[2].get<float>()) ||
+                                                  isFloatDiff(v->w, arr[3].get<float>()));
                                 }
                             }
                             break;
@@ -528,9 +539,18 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                     }
                     case ComponentPropertyType::Float3: {
                         Irufemi::Vector3* ptr = reinterpret_cast<Irufemi::Vector3*>(prop.GetRawData());
-                        if (ImGui::DragFloat3(hiddenName.c_str(), &ptr->x, 0.1f)) {
-                            if (prop.onChanged) {
-                                prop.onChanged();
+                        if (prop.name.find("Color") != std::string::npos ||
+                            prop.name.find("color") != std::string::npos) {
+                            if (ImGui::ColorEdit3(hiddenName.c_str(), &ptr->x)) {
+                                if (prop.onChanged) {
+                                    prop.onChanged();
+                                }
+                            }
+                        } else {
+                            if (ImGui::DragFloat3(hiddenName.c_str(), &ptr->x, 0.1f)) {
+                                if (prop.onChanged) {
+                                    prop.onChanged();
+                                }
                             }
                         }
                         CheckUndoRedoDrag(actionManager, ptr, prop.onChanged);
@@ -566,6 +586,7 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                           lowerName.find("image") != std::string::npos);
                         bool isAnimation = (lowerName.find("animation") != std::string::npos ||
                                             lowerName.find("anim") != std::string::npos);
+                        bool isPrefabProp = (lowerName.find("prefab") != std::string::npos);
 
                         std::vector<std::string> comboItems;
                         IrufemiEngine* engine = nullptr;
@@ -614,14 +635,107 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                 }
                                 ImGui::EndCombo();
                             }
+                        } else if (isPrefabProp) {
+                            // プレハブディレクトリを走査して一覧取得（2秒間キャッシュ）
+                            static std::vector<std::string> cachedPrefabs;
+                            static float lastCacheTime = -10.0f;
+                            float curTime = static_cast<float>(ImGui::GetTime());
+                            if (curTime - lastCacheTime > 2.0f || cachedPrefabs.empty()) {
+                                cachedPrefabs.clear();
+                                std::string prefabDir = FileSystem::GetResourcePath("prefabs");
+                                if (!std::filesystem::exists(prefabDir)) {
+                                    prefabDir = "resources/prefabs";
+                                }
+                                if (std::filesystem::exists(prefabDir)) {
+                                    for (const auto& entry : std::filesystem::recursive_directory_iterator(prefabDir)) {
+                                        if (entry.is_regular_file()) {
+                                            auto ext = entry.path().extension().string();
+                                            if (ext == ".json" || ext == ".prefab") {
+                                                cachedPrefabs.push_back("resources/prefabs/" +
+                                                                        entry.path().filename().generic_string());
+                                            }
+                                        }
+                                    }
+                                }
+                                std::sort(cachedPrefabs.begin(), cachedPrefabs.end());
+                                lastCacheTime = curTime;
+                            }
+
+                            ImGui::SetNextItemWidth((std::max)(50.0f, ImGui::GetContentRegionAvail().x - 70.0f));
+
+                            // 型安全メタデータフィルタリング（Unityの[RequireComponent] / UE5のAllowedClassesに相当）
+                            static std::unordered_map<std::string, std::vector<std::string>> prefabComponentCache;
+                            auto PrefabHasComponent = [](const std::string& path,
+                                                         const std::string& requiredComp) -> bool {
+                                if (requiredComp.empty()) {
+                                    return true;
+                                }
+                                auto it = prefabComponentCache.find(path);
+                                if (it == prefabComponentCache.end()) {
+                                    std::vector<std::string> compNames;
+                                    nlohmann::json j;
+                                    if (Irufemi::JsonUtility::LoadFromFile(path, j)) {
+                                        if (j.contains("components") && j["components"].is_array()) {
+                                            for (const auto& compObj : j["components"]) {
+                                                if (compObj.contains("type") && compObj["type"].is_string()) {
+                                                    compNames.push_back(compObj["type"].get<std::string>());
+                                                }
+                                            }
+                                        }
+                                    }
+                                    it = prefabComponentCache.emplace(path, std::move(compNames)).first;
+                                }
+                                return std::find(it->second.begin(), it->second.end(), requiredComp) !=
+                                       it->second.end();
+                            };
+
+                            std::vector<std::string> displayPrefabs;
+                            for (const auto& p : cachedPrefabs) {
+                                if (PrefabHasComponent(p, prop.prefabFilterComponent)) {
+                                    displayPrefabs.push_back(p);
+                                }
+                            }
+
+                            if (ImGui::BeginCombo(hiddenName.c_str(), str->c_str())) {
+                                for (const auto& item : displayPrefabs) {
+                                    bool isSelected = (*str == item);
+                                    if (ImGui::Selectable(item.c_str(), isSelected)) {
+                                        std::string oldVal = *str;
+                                        *str = item;
+                                        auto cb = prop.onChanged;
+                                        if (cb) {
+                                            cb();
+                                        }
+                                        actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::string>>(
+                                            oldVal, *str, [str, cb](const std::string& v) {
+                                                *str = v;
+                                                if (cb) {
+                                                    cb();
+                                                }
+                                            }));
+                                    }
+                                    if (isSelected) {
+                                        ImGui::SetItemDefaultFocus();
+                                    }
+                                }
+                                ImGui::EndCombo();
+                            }
+
+                            if (!str->empty()) {
+                                ImGui::SameLine();
+                                if (ImGui::Button((std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(),
+                                                  ImVec2(65.0f, 0))) {
+                                    if (auto em = EditorManager::GetInstance()) {
+                                        em->EnterPrefabMode(*str);
+                                    }
+                                }
+                                if (ImGui::IsItemHovered()) {
+                                    ImGui::SetTooltip("Open in Prefab Edit Mode");
+                                }
+                            }
                         } else {
                             char buffer[256];
                             strncpy_s(buffer, sizeof(buffer), str->c_str(), _TRUNCATE);
-
-                            bool isPrefabProp = (lowerName.find("prefab") != std::string::npos);
-                            if (isPrefabProp) {
-                                ImGui::SetNextItemWidth((std::max)(50.0f, ImGui::GetContentRegionAvail().x - 70.0f));
-                            }
 
                             static std::string startStr;
                             if (ImGui::InputText(hiddenName.c_str(), buffer, sizeof(buffer))) {
@@ -643,19 +757,6 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                                             cb();
                                         }
                                     }));
-                            }
-
-                            if (isPrefabProp && !str->empty()) {
-                                ImGui::SameLine();
-                                if (ImGui::Button((std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(),
-                                                  ImVec2(65.0f, 0))) {
-                                    if (auto em = EditorManager::GetInstance()) {
-                                        em->EnterPrefabMode(*str);
-                                    }
-                                }
-                                if (ImGui::IsItemHovered()) {
-                                    ImGui::SetTooltip("Open in Prefab Edit Mode");
-                                }
                             }
                         }
 
@@ -754,62 +855,20 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
 
         if (component->GetComponentName() == "SplineComponent") {
             ImGui::Spacing();
-            if (ImGui::Button("Add Rail Node", ImVec2(-1, 0))) {
-                auto* go = component->GetGameObject();
-                if (go) {
-                    auto newChild = std::make_shared<GameObject>();
-                    newChild->SetName("RailPoint_" + std::to_string(go->GetChildren().size() + 1));
-                    newChild->SetIsSerializable(true);
-                    newChild->GetTransform();
-                    newChild->AddComponent<SplineNodeComponent>();
-                    go->AddChild(newChild);
-
-                    Irufemi::Vector3 newPos = {0, 0, 0};
-                    auto children = go->GetChildren();
-                    if (children.size() >= 2) {
-                        auto t1 = children[children.size() - 2]->GetComponent<TransformComponent>();
-                        auto t2 = children[children.size() - 1]->GetComponent<TransformComponent>();
-                        if (t1 && t2) {
-                            Irufemi::Vector3 p1 = t1->GetPosition();
-                            Irufemi::Vector3 p2 = t2->GetPosition();
-                            Irufemi::Vector3 dir = {p2.x - p1.x, p2.y - p1.y, p2.z - p1.z};
-                            newPos = {p2.x + dir.x, p2.y + dir.y, p2.z + dir.z};
-                        }
-                    } else if (children.size() == 1) {
-                        if (auto t1 = children[0]->GetComponent<TransformComponent>()) {
-                            Irufemi::Vector3 p1 = t1->GetPosition();
-                            newPos = {p1.x, p1.y, p1.z + 5.0f};
-                        }
-                    } else {
-                        if (auto parentT = go->GetComponent<TransformComponent>()) {
-                            newPos = parentT->GetPosition();
-                        }
-                    }
-                    if (auto t = newChild->GetComponent<TransformComponent>()) {
-                        t->SetPosition(newPos);
-                    }
-                    newChild->SetScene(go->GetScene());
+            auto* spline = static_cast<SplineComponent*>(component);
+            if (ImGui::Button("Add Waypoint at End", ImVec2(-1, 0))) {
+                auto waypoints = spline->GetWaypoints();
+                Irufemi::Vector3 newPos = {0.0f, 15.0f, 0.0f};
+                if (waypoints.size() >= 2) {
+                    const auto& p1 = waypoints[waypoints.size() - 2];
+                    const auto& p2 = waypoints[waypoints.size() - 1];
+                    Irufemi::Vector3 dir = {p2.x - p1.x, p2.y - p1.y, p2.z - p1.z};
+                    newPos = {p2.x + dir.x, p2.y + dir.y, p2.z + dir.z};
+                } else if (waypoints.size() == 1) {
+                    newPos = {waypoints[0].x, waypoints[0].y, waypoints[0].z + 20.0f};
                 }
-            }
-            if (ImGui::Button("Convert waypoints_ to Nodes", ImVec2(-1, 0))) {
-                auto* go = component->GetGameObject();
-                if (go) {
-                    auto* spline = static_cast<SplineComponent*>(component);
-                    auto waypoints = spline->GetWaypoints();
-                    if (!waypoints.empty() && go->GetChildren().empty()) {
-                        int idx = 1;
-                        for (const auto& wp : waypoints) {
-                            auto newChild = std::make_shared<GameObject>();
-                            newChild->SetName("RailPoint_" + std::to_string(idx++));
-                            newChild->SetIsSerializable(true);
-                            auto transform = newChild->GetTransform();
-                            newChild->AddComponent<SplineNodeComponent>();
-                            transform->SetPosition(wp);
-                            newChild->SetScene(go->GetScene());
-                            go->AddChild(newChild);
-                        }
-                    }
-                }
+                waypoints.push_back(newPos);
+                spline->SetWaypoints(waypoints);
             }
         }
     }
@@ -851,6 +910,85 @@ void ComponentUIHelpers::DrawPropertyResetButton(const char* id, bool isModified
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Reset to Default");
+        }
+    }
+}
+
+void ComponentUIHelpers::SwitchColliderType(GameObject* go, ColliderComponent* oldComp,
+                                            ColliderComponent::ColliderType newType,
+                                            EditorActionManager* actionManager) {
+    if (!go || !oldComp) {
+        return;
+    }
+
+    // 1. 共通プロパティの抽出
+    Irufemi::Vector3 localOffset = {0.0f, 0.0f, 0.0f};
+    bool isTrigger = oldComp->isTrigger_;
+    bool isStatic = oldComp->isStatic_;
+    uint32_t layer = oldComp->layer_;
+    uint32_t mask = oldComp->mask_;
+    Irufemi::Vector3 pushbackMask = oldComp->pushbackMask_;
+
+    // 2. 寸法とオフセットの相互変換
+    float convertedRadius = 1.0f;
+    Irufemi::Vector3 convertedSize = {1.0f, 1.0f, 1.0f};
+
+    if (oldComp->GetColliderType() == ColliderComponent::ColliderType::Sphere) {
+        auto* sphere = static_cast<SphereColliderComponent*>(oldComp);
+        localOffset = sphere->GetLocalOffset();
+        convertedRadius = sphere->GetLocalRadius();
+        convertedSize = {convertedRadius, convertedRadius, convertedRadius};
+    } else if (oldComp->GetColliderType() == ColliderComponent::ColliderType::AABB) {
+        auto* aabb = static_cast<AABBColliderComponent*>(oldComp);
+        localOffset = aabb->GetLocalOffset();
+        convertedSize = aabb->GetLocalSize();
+        convertedRadius = (std::max)({convertedSize.x, convertedSize.y, convertedSize.z});
+    } else if (oldComp->GetColliderType() == ColliderComponent::ColliderType::OBB) {
+        auto* obb = static_cast<OBBColliderComponent*>(oldComp);
+        localOffset = obb->GetLocalOffset();
+        convertedSize = obb->GetLocalSize();
+        convertedRadius = (std::max)({convertedSize.x, convertedSize.y, convertedSize.z});
+    }
+
+    // 3. 新しいコライダーコンポーネントの生成とプロパティ適用
+    std::shared_ptr<ColliderComponent> newComp = nullptr;
+    if (newType == ColliderComponent::ColliderType::Sphere) {
+        auto sphere = std::make_shared<SphereColliderComponent>();
+        sphere->SetLocalOffset(localOffset);
+        sphere->SetLocalRadius(convertedRadius);
+        newComp = sphere;
+    } else if (newType == ColliderComponent::ColliderType::OBB) {
+        auto obb = std::make_shared<OBBColliderComponent>();
+        obb->SetLocalOffset(localOffset);
+        obb->SetLocalSize(convertedSize);
+        newComp = obb;
+    } else if (newType == ColliderComponent::ColliderType::AABB) {
+        auto aabb = std::make_shared<AABBColliderComponent>();
+        aabb->SetLocalOffset(localOffset);
+        aabb->SetLocalSize(convertedSize);
+        newComp = aabb;
+    }
+
+    if (!newComp) {
+        return;
+    }
+
+    newComp->isTrigger_ = isTrigger;
+    newComp->isStatic_ = isStatic;
+    newComp->layer_ = layer;
+    newComp->mask_ = mask;
+    newComp->pushbackMask_ = pushbackMask;
+
+    // 4. コンポーネントの置換（Undo/Redo 対応）
+    auto oldShared = GetSharedComponent(go, oldComp);
+    if (oldShared) {
+        auto goShared = go->shared_from_this();
+        if (actionManager) {
+            actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(goShared, oldShared));
+            actionManager->PushAndExecute(std::make_unique<AddComponentCommand>(goShared, newComp));
+        } else {
+            go->RemoveComponent(oldComp);
+            go->AddComponent(newComp);
         }
     }
 }

@@ -160,7 +160,7 @@ private:
     EnemyBeamComponent* beamComponent_ = nullptr;
     float beamTimer_ = 0.0f;
     float beamInterval_ = 10.0f;
-    float beamOffsetZ_ = 25.0f;
-    float beamOffsetY_ = -2.0f;
+    float beamOffsetZ_ = 4.0f;
+    float beamOffsetY_ = -1.0f;
     float beamRange_ = 1000.0f;
 };

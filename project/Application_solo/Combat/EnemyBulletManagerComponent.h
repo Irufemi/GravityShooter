@@ -21,9 +21,18 @@ public:
     void Initialize() override;
     void Start() override;
     void OnDestroy() override;
+    void OnRegisterProperties() override;
 
     std::string GetComponentName() const override {
         return "EnemyBulletManagerComponent";
+    }
+
+    /**
+     * @brief アクティブな EnemyBulletManagerComponent の静的インスタンスを取得する（O(1)）
+     * @return EnemyBulletManagerComponent のポインタ（未登録時は nullptr）
+     */
+    static EnemyBulletManagerComponent* GetInstance() {
+        return s_instance_;
     }
 
     /**
@@ -60,7 +69,9 @@ public:
 private:
     void WarmupPool();
 
-    int maxBullets_ = 40;                                                         //!< プール最大容量
+    static inline EnemyBulletManagerComponent* s_instance_ = nullptr; //!< 静的サービスロケータインスタンス
+
+    int maxBullets_ = 64;                                                         //!< プール最大容量
     std::string bulletModelPath_ = "resources/model/EnemyBullet/EnemyBullet.obj"; //!< 弾の3Dモデルパス
     std::unique_ptr<ObjectPool<GameObject>> bulletPool_;                          //!< 弾のオブジェクトプール
     bool isWarmedUp_ = false; //!< 事前ウォームアップ完了フラグ

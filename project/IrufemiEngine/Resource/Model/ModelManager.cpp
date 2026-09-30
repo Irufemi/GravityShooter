@@ -27,6 +27,7 @@
 #include <thread>
 #include <algorithm>
 #include <limits>
+#include <unordered_set>
 
 //======================
 // キャッシュ系(インスタンス)
@@ -903,6 +904,114 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
             }
         }
     }
+
+    // 6. フォールバック処理（薄型モデル・オープンメッシュ対応）
+    // 閉じたソリッド（水密メッシュ）でない場合や解像度が粗い場合、insideVotes >= 2 に該当するボクセルが0個になる。
+    // その場合、メッシュ表面の各ポリゴン重心をボクセルグリッドにサンプリングして確実にボクセルを生成する。
+    if (result.voxels.empty()) {
+        std::unordered_set<uint64_t> occupiedCells;
+        auto getCellKey = [](int x, int y, int z) -> uint64_t {
+            return (static_cast<uint64_t>(x & 0x1FFFFF) << 42) | (static_cast<uint64_t>(y & 0x1FFFFF) << 21) |
+                   (static_cast<uint64_t>(z & 0x1FFFFF));
+        };
+
+        for (const auto& mesh : model.meshes) {
+            size_t faceCount = mesh.indices.empty() ? mesh.vertices.size() : mesh.indices.size();
+            for (size_t i = 0; i < faceCount; i += 3) {
+                VertexData v0 = mesh.indices.empty() ? mesh.vertices[i] : mesh.vertices[mesh.indices[i]];
+                VertexData v1 = mesh.indices.empty() ? mesh.vertices[i + 1] : mesh.vertices[mesh.indices[i + 1]];
+                VertexData v2 = mesh.indices.empty() ? mesh.vertices[i + 2] : mesh.vertices[mesh.indices[i + 2]];
+
+                Irufemi::Vector3 p0 = {v0.position.x, v0.position.y, v0.position.z};
+                Irufemi::Vector3 p1 = {v1.position.x, v1.position.y, v1.position.z};
+                Irufemi::Vector3 p2 = {v2.position.x, v2.position.y, v2.position.z};
+
+                // ポリゴンの重心位置
+                Irufemi::Vector3 centroid = {(p0.x + p1.x + p2.x) / 3.0f, (p0.y + p1.y + p2.y) / 3.0f,
+                                             (p0.z + p1.z + p2.z) / 3.0f};
+
+                int gx =
+                    std::clamp(static_cast<int>((centroid.x - result.aabbMin.x) / (std::max)(voxelSize.x, 0.0001f)), 0,
+                               resolution.x - 1);
+                int gy =
+                    std::clamp(static_cast<int>((centroid.y - result.aabbMin.y) / (std::max)(voxelSize.y, 0.0001f)), 0,
+                               resolution.y - 1);
+                int gz =
+                    std::clamp(static_cast<int>((centroid.z - result.aabbMin.z) / (std::max)(voxelSize.z, 0.0001f)), 0,
+                               resolution.z - 1);
+
+                uint64_t key = getCellKey(gx, gy, gz);
+                if (occupiedCells.find(key) != occupiedCells.end()) {
+                    continue;
+                }
+                occupiedCells.insert(key);
+
+                Irufemi::Voxel newVoxel;
+                newVoxel.position = {result.aabbMin.x + (gx + 0.5f) * voxelSize.x,
+                                     result.aabbMin.y + (gy + 0.5f) * voxelSize.y,
+                                     result.aabbMin.z + (gz + 0.5f) * voxelSize.z};
+
+                // 法線の平均
+                Irufemi::Vector3 avgNormal = {(v0.normal.x + v1.normal.x + v2.normal.x) / 3.0f,
+                                              (v0.normal.y + v1.normal.y + v2.normal.y) / 3.0f,
+                                              (v0.normal.z + v1.normal.z + v2.normal.z) / 3.0f};
+                newVoxel.normal = Irufemi::Math::Normalize(avgNormal);
+
+                // テクスチャサンプリングまたはマテリアルカラー
+                Irufemi::Vector2 avgUV = {(v0.texcoord.x + v1.texcoord.x + v2.texcoord.x) / 3.0f,
+                                          (v0.texcoord.y + v1.texcoord.y + v2.texcoord.y) / 3.0f};
+                newVoxel.uv = avgUV;
+
+                newVoxel.color = mesh.material.color;
+                if (!mesh.material.textureFilePath.empty() && textureManager) {
+                    const DirectX::ScratchImage* img = textureManager->GetScratchImage(mesh.material.textureFilePath);
+                    if (img) {
+                        int width = static_cast<int>(img->GetMetadata().width);
+                        int height = static_cast<int>(img->GetMetadata().height);
+                        if (width > 0 && height > 0) {
+                            int texX = static_cast<int>(avgUV.x * width) % width;
+                            int texY = static_cast<int>(avgUV.y * height) % height;
+                            if (texX < 0) {
+                                texX += width;
+                            }
+                            if (texY < 0) {
+                                texY += height;
+                            }
+
+                            const DirectX::Image* image = img->GetImage(0, 0, 0);
+                            if (image && !DirectX::IsCompressed(img->GetMetadata().format)) {
+                                uint8_t* pixels = image->pixels;
+                                size_t rowPitch = image->rowPitch;
+                                size_t pixelStride = DirectX::BitsPerPixel(img->GetMetadata().format) / 8;
+                                if (pixelStride >= 4) {
+                                    uint8_t* pixel = pixels + (texY * rowPitch) + (texX * pixelStride);
+                                    newVoxel.color.x = pixel[0] / 255.0f;
+                                    newVoxel.color.y = pixel[1] / 255.0f;
+                                    newVoxel.color.z = pixel[2] / 255.0f;
+                                    newVoxel.color.w = pixel[3] / 255.0f;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                result.voxels.push_back(newVoxel);
+            }
+        }
+    }
+
+    // 万一ポリゴンが0個の特殊メッシュでも空返却によるエラーを防止する安全ガード
+    if (result.voxels.empty()) {
+        Irufemi::Voxel fallbackVoxel;
+        fallbackVoxel.position = {(result.aabbMin.x + result.aabbMax.x) * 0.5f,
+                                  (result.aabbMin.y + result.aabbMax.y) * 0.5f,
+                                  (result.aabbMin.z + result.aabbMax.z) * 0.5f};
+        fallbackVoxel.normal = {0.0f, 1.0f, 0.0f};
+        fallbackVoxel.color = {1.0f, 1.0f, 1.0f, 1.0f};
+        fallbackVoxel.uv = {0.0f, 0.0f};
+        result.voxels.push_back(fallbackVoxel);
+    }
+
     return result;
 }
 

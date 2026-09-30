@@ -22,6 +22,21 @@ public:
      * @brief 適用したボタンスタイルを解除する
      */
     static void PopButtonStyle();
+
+    /**
+     * @struct ScopedDangerButton
+     * @brief 危険ボタンスタイルをRAIIで適用・自動破棄するスコープガード
+     */
+    struct ScopedDangerButton {
+        ScopedDangerButton() {
+            PushDangerButtonStyle();
+        }
+        ~ScopedDangerButton() {
+            PopButtonStyle();
+        }
+        ScopedDangerButton(const ScopedDangerButton&) = delete;
+        ScopedDangerButton& operator=(const ScopedDangerButton&) = delete;
+    };
 };
 
 #endif // EditorMode

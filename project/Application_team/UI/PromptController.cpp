@@ -15,9 +15,8 @@ void PromptController::SetTarget(Sprite* targetSprite) {
     targetSprite_ = targetSprite;
 }
 
-void PromptController::Update(InputManager* input) {
-    // 1フレームの時間を 1.0f / 60.0f と仮定
-    animator_.Update(1.0f / 60.0f);
+void PromptController::Update(InputManager* input, float dt) {
+    animator_.Update(dt);
 
     if (!isDecided_) {
         // --- 待機中 ---
@@ -41,7 +40,7 @@ void PromptController::Update(InputManager* input) {
         }
     } else {
         // --- 決定後 ---
-        transitionDelayTimer_ += 1.0f / 60.0f;
+        transitionDelayTimer_ += dt;
 
         // 高速フラッシュ
         isVisible_ = animator_.GetFlashVisibility(40.0f);

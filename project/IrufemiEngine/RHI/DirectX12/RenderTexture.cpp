@@ -6,13 +6,13 @@
 
 RenderTexture::~RenderTexture() {
     if (dxCommon_) {
-        if (dxCommon_->GetSrvPool() && srvIndex_ != 0xFFFFFFFF) {
+        if (dxCommon_->GetSrvPool() && srvIndex_ != DescriptorAllocator::kInvalid) {
             dxCommon_->GetSrvPool()->FreeAfterFence(srvIndex_, dxCommon_->GetCurrentFrameFenceValue());
         }
-        if (rtvIndex_ != 0xFFFFFFFF) {
+        if (rtvIndex_ != DescriptorAllocator::kInvalid) {
             dxCommon_->FreeRTVIndex(rtvIndex_);
         }
-        if (dxCommon_->GetSrvPool() && imGuiSrvIndex_ != 0xFFFFFFFF) {
+        if (dxCommon_->GetSrvPool() && imGuiSrvIndex_ != DescriptorAllocator::kInvalid) {
             dxCommon_->GetSrvPool()->FreeAfterFence(imGuiSrvIndex_, dxCommon_->GetCurrentFrameFenceValue());
         }
     }
@@ -20,13 +20,13 @@ RenderTexture::~RenderTexture() {
 
 void RenderTexture::Initialize(DirectXCommon* dxCommon, uint32_t width, uint32_t height, DXGI_FORMAT format,
                                const Irufemi::Vector4& clearColor, DXGI_FORMAT srvFormat) {
-    if (dxCommon_ && srvIndex_ != 0xFFFFFFFF) {
+    if (dxCommon_ && srvIndex_ != DescriptorAllocator::kInvalid) {
         dxCommon_->GetSrvPool()->FreeAfterFence(srvIndex_, dxCommon_->GetCurrentFrameFenceValue());
-        srvIndex_ = 0xFFFFFFFF;
+        srvIndex_ = DescriptorAllocator::kInvalid;
     }
-    if (dxCommon_ && imGuiSrvIndex_ != 0xFFFFFFFF) {
+    if (dxCommon_ && imGuiSrvIndex_ != DescriptorAllocator::kInvalid) {
         dxCommon_->GetSrvPool()->FreeAfterFence(imGuiSrvIndex_, dxCommon_->GetCurrentFrameFenceValue());
-        imGuiSrvIndex_ = 0xFFFFFFFF;
+        imGuiSrvIndex_ = DescriptorAllocator::kInvalid;
     }
 
     dxCommon_ = dxCommon;
@@ -40,7 +40,7 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, uint32_t width, uint32_t
     resource_ = dxCommon->CreateRenderTextureResource(dxCommon->GetDevice(), width, height, format, nullptr);
 
     // RTVの作成
-    if (rtvIndex_ == 0xFFFFFFFF) {
+    if (rtvIndex_ == DescriptorAllocator::kInvalid) {
         rtvIndex_ = dxCommon->AllocateRTVIndex();
     }
     rtvHandle_ = dxCommon->GetRTVCPUDescriptorHandle(rtvIndex_);
@@ -51,7 +51,7 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, uint32_t width, uint32_t
     dxCommon->GetDevice()->CreateRenderTargetView(resource_.Get(), &rtvDesc, rtvHandle_);
 
     // SRVの作成
-    if (srvIndex_ == 0xFFFFFFFF) {
+    if (srvIndex_ == DescriptorAllocator::kInvalid) {
         srvIndex_ = dxCommon->GetSrvPool()->Allocate();
     }
     srvHandleGPU_ = dxCommon->GetSrvPool()->GetGPUHandle(srvIndex_);
@@ -65,7 +65,7 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, uint32_t width, uint32_t
                                                     dxCommon->GetSrvPool()->GetCPUHandle(srvIndex_));
 
     // ImGui用のUNORM SRVの作成
-    if (imGuiSrvIndex_ == 0xFFFFFFFF) {
+    if (imGuiSrvIndex_ == DescriptorAllocator::kInvalid) {
         imGuiSrvIndex_ = dxCommon->GetSrvPool()->Allocate();
     }
     imGuiSrvHandleGPU_ = dxCommon->GetSrvPool()->GetGPUHandle(imGuiSrvIndex_);
@@ -83,14 +83,14 @@ void RenderTexture::Initialize(DirectXCommon* dxCommon, uint32_t width, uint32_t
 
 void RenderTexture::InitializeFromResource(DirectXCommon* dxCommon, ID3D12Resource* resource, DXGI_FORMAT format,
                                            DXGI_FORMAT srvFormat) {
-    if (dxCommon_ && srvIndex_ != 0xFFFFFFFF) {
+    if (dxCommon_ && srvIndex_ != DescriptorAllocator::kInvalid) {
         // 以前のフレームでGPUが参照している可能性があるため、フェンス解放キューに入れる
         dxCommon_->GetSrvPool()->FreeAfterFence(srvIndex_, dxCommon_->GetCurrentFrameFenceValue());
-        srvIndex_ = 0xFFFFFFFF;
+        srvIndex_ = DescriptorAllocator::kInvalid;
     }
-    if (dxCommon_ && imGuiSrvIndex_ != 0xFFFFFFFF) {
+    if (dxCommon_ && imGuiSrvIndex_ != DescriptorAllocator::kInvalid) {
         dxCommon_->GetSrvPool()->FreeAfterFence(imGuiSrvIndex_, dxCommon_->GetCurrentFrameFenceValue());
-        imGuiSrvIndex_ = 0xFFFFFFFF;
+        imGuiSrvIndex_ = DescriptorAllocator::kInvalid;
     }
 
     dxCommon_ = dxCommon;
@@ -102,7 +102,7 @@ void RenderTexture::InitializeFromResource(DirectXCommon* dxCommon, ID3D12Resour
     height_ = static_cast<uint32_t>(desc.Height);
 
     // RTVの作成
-    if (rtvIndex_ == 0xFFFFFFFF) {
+    if (rtvIndex_ == DescriptorAllocator::kInvalid) {
         rtvIndex_ = dxCommon->AllocateRTVIndex();
     }
     rtvHandle_ = dxCommon->GetRTVCPUDescriptorHandle(rtvIndex_);
@@ -113,7 +113,7 @@ void RenderTexture::InitializeFromResource(DirectXCommon* dxCommon, ID3D12Resour
     dxCommon->GetDevice()->CreateRenderTargetView(resource_.Get(), &rtvDesc, rtvHandle_);
 
     // SRVの作成
-    if (srvIndex_ == 0xFFFFFFFF) {
+    if (srvIndex_ == DescriptorAllocator::kInvalid) {
         srvIndex_ = dxCommon->GetSrvPool()->Allocate();
     }
     srvHandleGPU_ = dxCommon->GetSrvPool()->GetGPUHandle(srvIndex_);
@@ -126,7 +126,7 @@ void RenderTexture::InitializeFromResource(DirectXCommon* dxCommon, ID3D12Resour
     dxCommon->GetDevice()->CreateShaderResourceView(resource_.Get(), &srvDesc,
                                                     dxCommon->GetSrvPool()->GetCPUHandle(srvIndex_));
     // ImGui用のUNORM SRVの作成
-    if (imGuiSrvIndex_ == 0xFFFFFFFF) {
+    if (imGuiSrvIndex_ == DescriptorAllocator::kInvalid) {
         imGuiSrvIndex_ = dxCommon->GetSrvPool()->Allocate();
     }
     imGuiSrvHandleGPU_ = dxCommon->GetSrvPool()->GetGPUHandle(imGuiSrvIndex_);

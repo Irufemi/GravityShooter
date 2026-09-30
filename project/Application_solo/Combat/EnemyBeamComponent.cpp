@@ -1,5 +1,10 @@
 #include "Combat/EnemyBeamComponent.h"
 #include "Framework/GameObject/GameObject.h"
+#include "Framework/Scene/BaseScene.h"
+#include "Framework/Component/TransformComponent.h"
+#include "Framework/Component/Camera/CameraShakeComponent.h"
+#include "Player/PlayerHealthComponent.h"
+#include "Physics/CollisionManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/System/Core/BaseModel.h"
 #include "Core/Math/MathFunction.h"
@@ -21,6 +26,11 @@ void EnemyBeamComponent::OnRegisterProperties() {
     RegisterProperty("Beam Max Radius", &beamMaxRadius_);
     RegisterProperty("Charge Duration", &chargeDuration_);
     RegisterProperty("Fire Duration", &fireDuration_);
+
+    RegisterProperty("Lock Lead Time", &lockLeadTime_);
+    RegisterProperty("Beam Damage", &beamDamage_);
+    RegisterProperty("Hit Check Margin", &hitCheckRadiusMargin_);
+    RegisterProperty("Telegraph Color", &telegraphColor_);
 
     RegisterProperty("Charge Sphere Color", &chargeColor_);
     RegisterProperty("Beam Color", &beamColor_);
@@ -44,12 +54,19 @@ void EnemyBeamComponent::Initialize() {
     // --- チャージ球の初期化 ---
     chargeSphere_ = std::make_unique<Primitive3DObject>();
     chargeSphere_->Initialize(Irufemi::PrimitiveType::Sphere);
-    // 警戒色と赤黒さを混ぜたベース色（アルファ値は中心コアの透明度として利用）
-    chargeSphere_->SetColor(chargeColor_); // プロパティから適用
+    chargeSphere_->SetColor(chargeColor_);
     chargeSphere_->SetCullingEnabled(false);
     chargeSphere_->SetCustomPSO("EnergyCore", Irufemi::BlendMode::kBlendModePremultiplied,
                                 PSOManager::DepthWrite::Disable, PSOManager::CullMode::Back);
-    chargeSphere_->SetIsTransparent(true); // ★半透明パスでZソートして描画させる
+    chargeSphere_->SetIsTransparent(true);
+
+    // --- AOE予兆危険円柱の初期化 ---
+    telegraphCylinder_ = std::make_unique<Primitive3DObject>();
+    telegraphCylinder_->Initialize(Irufemi::PrimitiveType::Cylinder);
+    telegraphCylinder_->SetColor(telegraphColor_);
+    telegraphCylinder_->SetCastShadows(false);
+    telegraphCylinder_->SetCullingEnabled(false);
+    telegraphCylinder_->SetIsTransparent(true);
 
     // --- ビーム本体の初期化 ---
     attackCylinder_ = std::make_unique<Primitive3DObject>();
@@ -57,18 +74,25 @@ void EnemyBeamComponent::Initialize() {
     attackCylinder_->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
     attackCylinder_->SetCastShadows(false);
     attackCylinder_->SetCullingEnabled(false);
-    attackCylinder_->SetIsTransparent(true); // ★半透明パスでZソートして描画させる
+    attackCylinder_->SetIsTransparent(true);
 
     attackCylinderOuter_ = std::make_unique<Primitive3DObject>();
     attackCylinderOuter_->Initialize(Irufemi::PrimitiveType::Cylinder);
     attackCylinderOuter_->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
     attackCylinderOuter_->SetCastShadows(false);
     attackCylinderOuter_->SetCullingEnabled(false);
-    attackCylinderOuter_->SetIsTransparent(true); // ★半透明パスでZソートして描画させる
+    attackCylinderOuter_->SetIsTransparent(true);
 
     // --- シェーダーパラメータ定数バッファの初期化 ---
     auto dxCommon = engine->GetDirectXCommon();
     if (dxCommon) {
+        // AOEパラメータ用定数バッファ
+        aoeParamsBuffer_.Initialize(dxCommon);
+        aoeParamsData_ = AOEParams();
+        aoeParamsData_.shapeType = 2; // Cylinder用
+        aoeParamsData_.warningRatio = 0.0f;
+        aoeParamsBuffer_.UpdateAll(aoeParamsData_);
+
         // 内側（極太レーザーコア）用パラメータ
         beamParamsBuffer_.Initialize(dxCommon);
         beamParamsData_ = LightningParams();
@@ -103,10 +127,11 @@ void EnemyBeamComponent::Initialize() {
     }
 
     state_ = State::IDLE;
+    isAimLocked_ = false;
 }
 
 void EnemyBeamComponent::EnsureResources() {
-    if (!chargeSphere_ || !attackCylinder_ || !attackCylinderOuter_) {
+    if (!chargeSphere_ || !attackCylinder_ || !attackCylinderOuter_ || !telegraphCylinder_) {
         Initialize();
     }
 }
@@ -117,19 +142,126 @@ void EnemyBeamComponent::Fire(const Irufemi::Vector3& startPos, const Irufemi::V
     state_ = State::CHARGING;
     stateTimer_ = 0.0f;
     startPos_ = startPos;
+    isAimLocked_ = false;
+    hasHitCurrentBeam_ = false;
 
-    // 発射方向の計算 (演算子オーバーロードによる近代化)
+    // ボス本体に対する発射口のローカルオフセットを計算・保持（移動中の前進に追従させるため）
+    if (gameObject_ && gameObject_->GetTransform()) {
+        Irufemi::Matrix4x4 invWorld = Irufemi::Math::Inverse(gameObject_->GetTransform()->GetWorldMatrix());
+        muzzleLocalOffset_ = Irufemi::Math::Transform(startPos, invWorld);
+    } else {
+        muzzleLocalOffset_ = {0.0f, 0.0f, 0.0f};
+    }
+
+    // 発射方向の初期計算
     Irufemi::Vector3 diff = targetPos - startPos_;
     float diffDistSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
     if (diffDistSq > 1e-6f) {
         direction_ = Irufemi::Math::Normalize(diff);
     } else {
-        direction_ = {0.0f, 0.0f, 1.0f}; // ゼロ距離の場合はデフォルトのZ前方を設定
+        direction_ = {0.0f, 0.0f, 1.0f};
+    }
+}
+
+Irufemi::Vector3 EnemyBeamComponent::GetCurrentMuzzlePosition() const {
+    if (gameObject_) {
+        if (auto transform = gameObject_->GetTransform()) {
+            return Irufemi::Math::Transform(muzzleLocalOffset_, transform->GetWorldMatrix());
+        }
+    }
+    return startPos_;
+}
+
+GameObject* EnemyBeamComponent::GetPlayerObject() {
+    auto cached = playerObj_.lock();
+    if (cached && cached->GetIsActive()) {
+        return cached.get();
+    }
+    if (gameObject_ && gameObject_->GetScene()) {
+        auto player = gameObject_->GetScene()->FindGameObject("Player");
+        if (player) {
+            playerObj_ = player;
+            return player.get();
+        }
+    }
+    return nullptr;
+}
+
+void EnemyBeamComponent::CheckBeamCollision() {
+    if (hasHitCurrentBeam_) {
+        return; // 今回の照射で既にヒット済みの場合は多重ダメージ＆多重シェイクを抑止
+    }
+
+    auto player = GetPlayerObject();
+    if (!player) {
+        return;
+    }
+    auto health = player->GetComponent<PlayerHealthComponent>();
+    if (!health || health->IsDead() || health->IsInvincible()) {
+        return;
+    }
+    auto playerTransform = player->GetComponent<TransformComponent>();
+    if (!playerTransform) {
+        return;
+    }
+
+    Irufemi::Vector3 playerPos = playerTransform->GetWorldPosition();
+    Irufemi::Vector3 a = startPos_;
+    Irufemi::Vector3 ab = direction_ * beamLength_;
+    float abLenSq = beamLength_ * beamLength_;
+    if (abLenSq <= 1e-4f) {
+        return;
+    }
+
+    // 線分と自機ワールド座標との最短距離計算 (Point to Segment)
+    Irufemi::Vector3 ap = playerPos - a;
+    float dot = ap.x * ab.x + ap.y * ab.y + ap.z * ab.z;
+    float t = std::clamp(dot / abLenSq, 0.0f, 1.0f);
+    Irufemi::Vector3 closest = a + ab * t;
+
+    Irufemi::Vector3 diff = playerPos - closest;
+    float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+    float hitRadius = beamMaxRadius_ + hitCheckRadiusMargin_;
+
+    if (distSq <= hitRadius * hitRadius) {
+        // 【AAA基準: 環境遮蔽（Line-of-Sight）チェック】
+        // 発射口から自機までの間に環境物（Environment）の壁や柱があればビームが遮断される
+        if (auto engine = GetEngine()) {
+            if (auto cm = engine->GetCollisionManager()) {
+                uint32_t envMask = cm->GetLayerMask("Environment");
+                Irufemi::Ray ray;
+                ray.origin = a;
+                ray.diff = playerPos - a;
+                float distToPlayer =
+                    std::sqrt(ray.diff.x * ray.diff.x + ray.diff.y * ray.diff.y + ray.diff.z * ray.diff.z);
+                if (distToPlayer > 0.001f) {
+                    RaycastHit hitInfo;
+                    if (cm->Raycast(ray, hitInfo, distToPlayer, envMask, gameObject_)) {
+                        // 壁に遮られているためダメージ適用をスキップ
+                        return;
+                    }
+                }
+            }
+        }
+
+        hasHitCurrentBeam_ = true;
+        health->TakeDamage(beamDamage_);
+
+        // 特大カメラシェイクを発火（キャッシュを利用してミューテックス競合を回避）
+        auto cam = mainCameraObj_.lock();
+        if (!cam && gameObject_ && gameObject_->GetScene()) {
+            cam = gameObject_->GetScene()->FindGameObject("MainCamera");
+            mainCameraObj_ = cam;
+        }
+        if (cam) {
+            if (auto shake = cam->GetComponent<CameraShakeComponent>()) {
+                shake->PlayShake(2.0f, 25);
+            }
+        }
     }
 }
 
 void EnemyBeamComponent::UpdateParameters() {
-    // パラメータのリアルタイム反映（エディタからの調整用）
     if (chargeSphere_) {
         chargeSphere_->SetColor(chargeColor_);
     }
@@ -156,42 +288,87 @@ void EnemyBeamComponent::UpdateParameters() {
 void EnemyBeamComponent::UpdateCharging(float deltaTime) {
     auto engine = GetEngine();
 
+    // ボスの前進・旋回に合わせて発射口ワールド座標をリアルタイム同期
+    startPos_ = GetCurrentMuzzlePosition();
+
     // --- 溜め動作のアニメーション ---
     float t = std::min(stateTimer_ / chargeDuration_, 1.0f);
 
+    // 射線追従とロック判定
+    float timeLeft = chargeDuration_ - stateTimer_;
+    auto player = GetPlayerObject();
+    if (player && player->GetComponent<TransformComponent>()) {
+        if (timeLeft > lockLeadTime_) {
+            // 発射前（追尾フェーズ）: 自機座標を滑らかに追尾
+            isAimLocked_ = false;
+            Irufemi::Vector3 playerPos = player->GetComponent<TransformComponent>()->GetWorldPosition();
+            Irufemi::Vector3 diff = playerPos - startPos_;
+            if (diff.x * diff.x + diff.y * diff.y + diff.z * diff.z > 1e-4f) {
+                direction_ = Irufemi::Math::Normalize(diff);
+            }
+        } else {
+            // 発射直前（射線ロックフェーズ）: 追尾停止、射線を空間に固定
+            isAimLocked_ = true;
+        }
+    }
+
+    // AOE パラメータの更新 (warningRatio)
+    aoeParamsData_.shapeType = 2; // Cylinder
+    aoeParamsData_.warningRatio = t;
+    if (engine && engine->GetDirectXCommon()) {
+        uint32_t frameIndex = engine->GetDirectXCommon()->GetCurrentBackBufferIndex();
+        aoeParamsBuffer_.Update(aoeParamsData_, frameIndex);
+    }
+
+    // 予兆シリンダーの姿勢・サイズ更新
+    if (telegraphCylinder_) {
+        float currentLength = beamLength_;
+        Irufemi::Matrix4x4 rotMat = Irufemi::Math::DirectionToDirection({0.0f, 1.0f, 0.0f}, direction_);
+        Irufemi::Vector3 rotate = Irufemi::Math::ExtractEulerFromMatrix(rotMat);
+        Irufemi::Vector3 center = startPos_ + direction_ * (currentLength * 0.5f);
+
+        telegraphCylinder_->SetPosition(center);
+        telegraphCylinder_->SetRotate(rotate);
+        telegraphCylinder_->SetScale({beamMaxRadius_, currentLength, beamMaxRadius_});
+
+        // ロック中は激しく明滅させて危険度を最大化
+        if (isAimLocked_) {
+            float pulse = std::sin(stateTimer_ * 40.0f);
+            Irufemi::Vector4 c =
+                (pulse > 0.0f) ? Irufemi::Vector4{1.0f, 0.2f, 0.2f, 0.9f} : Irufemi::Vector4{1.0f, 1.0f, 1.0f, 0.95f};
+            telegraphCylinder_->SetColor(c);
+        } else {
+            telegraphCylinder_->SetColor(telegraphColor_);
+        }
+        telegraphCylinder_->Update();
+    }
+
     // イーズイン (急激に収縮してエネルギーが凝縮される表現) + 明滅
     float easeT = t * t * t;
-    // 最終的には少し大きめに膨張する
     float baseScale = std::lerp(0.1f, 4.0f, easeT);
-    float pulse = 1.0f + 0.3f * std::sin(t * 50.0f); // より激しく不安定な明滅
+    float pulse = 1.0f + 0.3f * std::sin(t * 50.0f);
     float currentScale = baseScale * pulse;
 
     if (chargeSphere_) {
         Irufemi::Transform tForm;
         tForm.scale = {currentScale, currentScale, currentScale};
 
-        // ビルボード処理（カメラに向ける）
         Irufemi::Vector3 cameraPos = startPos_;
         if (engine && engine->GetCameraManager() && engine->GetCameraManager()->GetActiveCamera()) {
             cameraPos = engine->GetCameraManager()->GetActiveCamera()->GetTranslate();
         }
 
-        // ベクトル演算子を用いた直感的な計算
         Irufemi::Vector3 toCamera = cameraPos - startPos_;
         float distSq = toCamera.x * toCamera.x + toCamera.y * toCamera.y + toCamera.z * toCamera.z;
         if (distSq > 1e-4f) {
             Irufemi::Vector3 toCameraDir = Irufemi::Math::Normalize(toCamera);
-
-            // 少しカメラ側に引き寄せてモデルに埋まらないようにする
             tForm.translate = startPos_ + toCameraDir * (currentScale * 0.5f);
-
             toCamera = cameraPos - tForm.translate;
             float distXZ = std::sqrt(toCamera.x * toCamera.x + toCamera.z * toCamera.z);
             tForm.rotate.y = std::atan2(-toCamera.x, -toCamera.z);
             tForm.rotate.x = std::atan2(toCamera.y, distXZ);
             tForm.rotate.z = 0.0f;
         } else {
-            // カメラと極端に近い/一致する場合はオフセットと回転計算をスキップ
             tForm.translate = startPos_;
             tForm.rotate = {0.0f, 0.0f, 0.0f};
         }
@@ -215,24 +392,20 @@ void EnemyBeamComponent::UpdateCharging(float deltaTime) {
 }
 
 void EnemyBeamComponent::UpdateFiring(float deltaTime) {
+    // ボスの前進・旋回に合わせて発射口ワールド座標をリアルタイム同期
+    startPos_ = GetCurrentMuzzlePosition();
+
     // --- ビーム発射動作のアニメーション ---
     float t = std::min(stateTimer_ / fireDuration_, 1.0f);
 
-    // 少し太さを維持し、最後にフェードアウトするように変更
     float easeThickness = 1.0f - (t * t * t);
     float currentThickness = beamMaxRadius_ * easeThickness;
-
-    // ビームの長さは一瞬で最大まで到達する想定
     float currentLength = beamLength_;
 
-    // 円柱の回転計算（Y軸方向のCylinderを direction_ に向ける）
     Irufemi::Matrix4x4 rotMat = Irufemi::Math::DirectionToDirection({0.0f, 1.0f, 0.0f}, direction_);
     Irufemi::Vector3 rotate = Irufemi::Math::ExtractEulerFromMatrix(rotMat);
-
-    // ベクトル演算子を用いた中心座標計算
     Irufemi::Vector3 center = startPos_ + direction_ * (currentLength * 0.5f);
 
-    // 内側コアの更新
     if (attackCylinder_) {
         attackCylinder_->SetPosition(center);
         attackCylinder_->SetRotate(rotate);
@@ -240,13 +413,15 @@ void EnemyBeamComponent::UpdateFiring(float deltaTime) {
         attackCylinder_->Update();
     }
 
-    // 外側オーラの更新
     if (attackCylinderOuter_) {
         attackCylinderOuter_->SetPosition(center);
         attackCylinderOuter_->SetRotate(rotate);
         attackCylinderOuter_->SetScale({currentThickness, currentLength, currentThickness});
         attackCylinderOuter_->Update();
     }
+
+    // 自機への当たり判定とダメージ処理
+    CheckBeamCollision();
 
     // 終了判定
     if (stateTimer_ >= fireDuration_) {
@@ -292,8 +467,17 @@ void EnemyBeamComponent::Draw() {
     uint32_t frameIndex = engine->GetDirectXCommon()->GetCurrentBackBufferIndex();
 
     if (state_ == State::CHARGING) {
+        // AOE予兆円柱の描画
+        if (telegraphCylinder_) {
+            telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
+                                             PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+            telegraphCylinder_->SetCustomCBVAddress(aoeParamsBuffer_.GetGPUVirtualAddress(frameIndex));
+            telegraphCylinder_->Draw();
+        }
+
+        // チャージ球の描画
         if (chargeSphere_ && chargeSphere_->GetTransform().transform.scale.x > 0.0f) {
-            chargeSphere_->Draw(); // 3D空間描画
+            chargeSphere_->Draw();
         }
     } else if (state_ == State::FIRING) {
         // 外側オーラ (LightningCrawl)
@@ -301,7 +485,6 @@ void EnemyBeamComponent::Draw() {
             attackCylinderOuter_->SetCustomPSO("LightningCrawl", Irufemi::BlendMode::kBlendModeAdd,
                                                PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
             attackCylinderOuter_->SetCustomCBVAddress(auraParamsBuffer_.GetGPUVirtualAddress(frameIndex));
-
             attackCylinderOuter_->Draw();
         }
 
@@ -310,7 +493,6 @@ void EnemyBeamComponent::Draw() {
             attackCylinder_->SetCustomPSO("EnergyBeam", Irufemi::BlendMode::kBlendModeAdd,
                                           PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
             attackCylinder_->SetCustomCBVAddress(beamParamsBuffer_.GetGPUVirtualAddress(frameIndex));
-
             attackCylinder_->Draw();
         }
     }
@@ -323,6 +505,10 @@ std::shared_ptr<Component> EnemyBeamComponent::Clone() {
     clone->beamMaxRadius_ = this->beamMaxRadius_;
     clone->chargeDuration_ = this->chargeDuration_;
     clone->fireDuration_ = this->fireDuration_;
+    clone->lockLeadTime_ = this->lockLeadTime_;
+    clone->beamDamage_ = this->beamDamage_;
+    clone->hitCheckRadiusMargin_ = this->hitCheckRadiusMargin_;
+    clone->telegraphColor_ = this->telegraphColor_;
     clone->chargeColor_ = this->chargeColor_;
     clone->beamColor_ = this->beamColor_;
     clone->beamCoreColor_ = this->beamCoreColor_;

@@ -170,6 +170,11 @@ public: // メンバ関数
     void SetDisplayMode(DisplayMode mode);
 
     /**
+     * @brief ディスプレイモード（ウィンドウ/仮想フルスクリーン）を切り替える
+     */
+    void ToggleDisplayMode();
+
+    /**
      * @brief VSync（垂直同期）の有効/無効を設定する
      */
     void SetVSync(bool enable);
@@ -632,6 +637,19 @@ public: // ゲッター
      */
     void SetTimeScale(float scale) {
         timeScale_ = scale;
+        defaultTimeScale_ = scale;
+    }
+    /**
+     * @brief 一定時間ゲーム全体を微小停止・減速させるヒットストップを発火する（AAA基準 Game Juice）
+     * @param[in] duration 停止時間（秒、実時間ベース）
+     * @param[in] slowScale 停止中のタイムスケール（0.0f で完全静止、0.1f 等でスロー）
+     */
+    void TriggerHitStop(float duration, float slowScale = 0.0f) {
+        if (duration <= 0.0f) {
+            return;
+        }
+        hitStopTimer_ = duration;
+        timeScale_ = slowScale;
     }
 
     float GetPureCpuTimeMs() const {
@@ -958,6 +976,8 @@ private: // メンバ変数
     float deltaTime_ = 0.0f;
     float gameDeltaTime_ = 0.0f;
     float timeScale_ = 1.0f;
+    float defaultTimeScale_ = 1.0f;
+    float hitStopTimer_ = 0.0f;
 
     // プロファイラ用
     float pureCpuTimeMs_ = 0.0f;

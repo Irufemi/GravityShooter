@@ -147,6 +147,10 @@ struct GPUParticleEmitter {
     // float4 x 22
     float midScaleMaxX = 1, midScaleMaxY = 1, midScaleMaxZ = 1;
     float midPoint = 0.0f;
+
+    // float4 x 23
+    float prevTranslateX = 0, prevTranslateY = 0, prevTranslateZ = 0;
+    float pad10 = 0;
 };
 
 /**

@@ -69,6 +69,35 @@ public:
      */
     bool DemoteFarthestIdleDebris(const Irufemi::Vector3& fromPos);
 
+    /**
+     * @brief 指定座標の周辺にガレキ（破片）をまとめてスポーンする（敵撃破時・ボス被弾時用）
+     * @param centerPos スポーンの中心座標（ワールド座標）
+     * @param count 生成する個数
+     * @param spreadRadius 飛び散る半径
+     * @param specificVariationId 特定のバリエーションIDを指定して生成する場合（空文字列の場合は通常ランダム）
+     */
+    void SpawnDebrisCluster(const Irufemi::Vector3& centerPos, int count = 3, float spreadRadius = 4.0f,
+                            const std::string& specificVariationId = "");
+
+    /**
+     * @brief 敵撃破時用：プレイヤー方向への手前バイアスを持ってガレキを散乱スポーンする
+     * @param origin 敵撃破位置（ワールド座標）
+     * @param targetPlayerPos プレイヤー機体の現在位置
+     * @param count 生成する個数
+     * @param spreadRadius 飛び散り半径
+     * @param forwardBias プレイヤー方向（手前）へ寄せる最大距離 (m)
+     * @param specificVariationId 特定のバリエーションIDを指定して生成する場合（空文字列の場合は通常ランダム）
+     */
+    void SpawnDebrisBurst(const Irufemi::Vector3& origin, const Irufemi::Vector3& targetPlayerPos, int count = 2,
+                          float spreadRadius = 3.5f, float forwardBias = 10.0f,
+                          const std::string& specificVariationId = "");
+
+    /**
+     * @brief 自機の前方にガレキを一定個数スポーンする
+     * @param count 生成する個数
+     */
+    void SpawnDebrisInFrontOfPlayer(int count);
+
     // Debris パラメータのゲッター
     float GetDebrisPullSpeed() const {
         return debrisPullSpeed_;
@@ -161,6 +190,13 @@ private:
     float colliderRadius_ = 0.5f;
     Irufemi::Vector3 auraScale_ = {2.2f, 2.2f, 2.2f};
     float maxThrowDistance_ = 1500.0f;
+
+    // --- Auto Supply Settings ---
+    bool autoSupplyEnabled_ = true;       ///< 前方ガレキの自動補充を有効にするか
+    int targetFieldCount_ = 30;           ///< 自機前方に維持する目標ガレキ数
+    float supplyCheckInterval_ = 0.5f;    ///< 補充チェック間隔（秒）
+    float supplyTimer_ = 0.0f;            ///< 補充タイマー
+    float recycleBehindDistance_ = 25.0f; ///< 自機後方何メートルで回収するか
 
     std::vector<std::shared_ptr<GameObject>> pendingReleases_;
     std::vector<std::pair<int, int>> pendingDestroys_;

@@ -430,12 +430,19 @@ std::vector<SceneManager::Key> SceneManager::GetRegisteredKeys() const {
 }
 
 bool SceneManager::IsLoading() const {
-    return (transitionPhase_ == TransitionPhase::Initializing) || engine_->IsAssetLoading();
+    // シーン遷移フェーズ中（非同期初期化中またはアセット完了待機中）のみロード状態とみなす
+    // ゲームプレイ進行中（Opening / None）にバックグラウンドタスク等で誤ってロード画面が割り込むのを防止
+    if (transitionPhase_ == TransitionPhase::Initializing) {
+        return true;
+    }
+    if (transitionPhase_ == TransitionPhase::LoadingWait) {
+        return engine_->IsAssetLoading();
+    }
+    return false;
 }
 
 bool SceneManager::ShouldDrawLoadingScreen() const {
     // チラつき防止：ロード状態になってから0.1秒以上経過した場合のみ描画する
-    // (初期化フェーズなどの場合は即座に表示してもよいが、ここでは一律でタイマー判定する)
     return IsLoading() && (loadingTimer_ >= 0.1f);
 }
 

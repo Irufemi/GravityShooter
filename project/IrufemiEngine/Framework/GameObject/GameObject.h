@@ -370,10 +370,14 @@ public:
 
     // --- 動的生成 ---
     /**
-     * @brief 所属するシーンにプレハブから新しい GameObject を生成して追加する
+     * @brief 所属するシーンにプレハブから新しい GameObject を生成する
+     * @param[in] prefabPath プレハブファイルのパス
+     * @param[in] position 配置座標
+     * @param[in] makeChild trueの場合、生成されたオブジェクトを自身の子（AddChild）として階層化する
+     * @return 生成された GameObject のポインタ
      */
-    std::shared_ptr<GameObject> Instantiate(const std::string& prefabPath,
-                                            const Irufemi::Vector3& position = {0, 0, 0});
+    std::shared_ptr<GameObject> Instantiate(const std::string& prefabPath, const Irufemi::Vector3& position = {0, 0, 0},
+                                            bool makeChild = false);
 
     // --- エディタ用フラグ ---
     /**
@@ -434,6 +438,21 @@ public:
         return sourcePrefabPath_;
     }
 
+    /**
+     * @brief エディタのヒエラルキーパネルでの非表示フラグを設定する
+     * @param[in] hide trueの場合、エディタのヒエラルキーに表示しない（内部管理・プール用など）
+     */
+    void SetHideInHierarchy(bool hide) {
+        hideInHierarchy_ = hide;
+    }
+    /**
+     * @brief エディタのヒエラルキーパネルでの非表示フラグを取得する
+     * @return 非表示フラグ
+     */
+    bool GetHideInHierarchy() const {
+        return hideInHierarchy_;
+    }
+
 private:
     uint64_t instanceId_ = 0;
     std::string tag_ = "Untagged";
@@ -444,6 +463,7 @@ private:
     GameObjectLifeState lifeState_ = GameObjectLifeState::Constructed;
     bool isFolder_ = false;
     bool isLocked_ = false;
+    bool hideInHierarchy_ = false; ///< エディタのヒエラルキーパネル非表示フラグ（プール・内部管理用）
     bool isSerializable_ = false; // デフォルトはfalse（動的生成とみなす）
     std::string sourcePrefabPath_ = "";
     BaseScene* scene_ = nullptr;

@@ -31,7 +31,7 @@ class IrufemiEngine;
 /**
  * @brief 同時実行フレーム数 (トリプルバッファリング)
  */
-static const uint32_t kMaxFramesInFlight = 3;
+inline constexpr uint32_t kMaxFramesInFlight = 3;
 
 /**
  * @class DirectXCommon
@@ -354,6 +354,13 @@ public: // ゲッター
      */
     D3D12_GPU_DESCRIPTOR_HANDLE GetDepthSRVGPUHandle() const {
         return srvPool_->GetGPUHandle(depthSRVIndex_);
+    }
+    /**
+     * @brief DepthSRVIndex を取得する。
+     * @return 深度テクスチャのSRVインデックス
+     */
+    uint32_t GetDepthSRVIndex() const {
+        return depthSRVIndex_;
     }
     ///@}
 

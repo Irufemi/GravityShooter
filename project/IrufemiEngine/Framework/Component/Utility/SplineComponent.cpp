@@ -1,6 +1,9 @@
 #include "Framework/Component/Utility/SplineComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
+#include "Framework/Scene/BaseScene.h"
+#include "Core/System/IrufemiEngine.h"
+#include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
 #include "Renderer/Object/Line/LineClass.h"
 #include <algorithm>
 #include <cmath>
@@ -9,6 +12,8 @@ void SplineComponent::OnRegisterProperties() {
     // 拡張した Float3Array を使ってウェイポイントをプロパティに登録
     RegisterProperty("Waypoints", &waypoints_);
     RegisterProperty("Draw Debug Rail", &drawDebugRail_);
+    RegisterProperty("Draw Debug Nodes", &drawDebugNodes_);
+    RegisterPropertyRange("Node Radius", &nodeRadius_, 0.1f, 5.0f);
 }
 
 void SplineComponent::Initialize() {
@@ -22,7 +27,10 @@ void SplineComponent::OnAwake() {
 }
 
 void SplineComponent::Update() {
-    UpdateWaypointsFromChildren();
+    // 既存の子オブジェクトが存在する場合のみ後方互換で同期（基本は空なので即リターン）
+    if (gameObject_ && !gameObject_->GetChildren().empty()) {
+        UpdateWaypointsFromChildren();
+    }
 }
 
 void SplineComponent::Draw() {
@@ -44,6 +52,24 @@ void SplineComponent::Draw() {
 
         debugLineBatch_->SyncBeforeDraw();
         debugLineBatch_->Draw();
+    }
+
+    // ウェイポイント球体ギズモの一括描画
+    if (drawDebugNodes_ && gameObject_ && !waypoints_.empty()) {
+        if (auto scene = gameObject_->GetScene()) {
+            if (auto engine = scene->GetEngine()) {
+                if (auto debugRenderer = engine->GetDebugPrimitiveRenderer()) {
+                    const Irufemi::Vector4 normalColor = {1.0f, 1.0f, 0.0f, 1.0f}; // 黄色 (中間点)
+                    const Irufemi::Vector4 startColor = {0.0f, 0.8f, 1.0f, 1.0f};  // シアン (始点)
+                    const Irufemi::Vector4 endColor = {1.0f, 0.2f, 0.2f, 1.0f};    // 赤 (終点)
+                    for (size_t i = 0; i < waypoints_.size(); ++i) {
+                        Irufemi::Vector4 c =
+                            (i == 0) ? startColor : ((i == waypoints_.size() - 1) ? endColor : normalColor);
+                        debugRenderer->AddSphere(waypoints_[i], nodeRadius_, c, DebugCategory::Path);
+                    }
+                }
+            }
+        }
     }
 #endif
 }

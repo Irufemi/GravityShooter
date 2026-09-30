@@ -17,17 +17,22 @@ description: "Designs engaging enemy wave formations, spawn timings, and advance
 （明示的な指定があった場合のみ `project/Application_team` を対象とします。）
 
 ### 主要参照ドキュメント & コード
-1. **ゲーム仕様書**:
-   - `project/Application_solo/GameDesignDocument.md`（レール移動、マルチロックオン、ガレキ投擲のテンポ感）
-   - `project/Application_solo/docs/レールシューティング_マップ構造設計.md`
-2. **シーンデータ & スポナー**:
+1. **ゲーム仕様書 & レベル設計**:
+   - `project/Application_solo/GameDesignDocument.md`（企画意図の把握用）
+   - `project/Application_solo/resources/GameData/WaveData_Stage1.json`（現行ステージ1の全ウェーブ定義データ）
+2. **シーンデータ & レベル・ウェーブ管理基盤**:
    - `project/Application_solo/resources/scenes/InGame.json`
-   - `project/Application_solo/Combat/DebugEnemySpawnerComponent.h/.cpp`
+   - `project/Application_solo/Level/WaveManagerComponent.h/.cpp`
+   - `project/Application_solo/Level/WaveEventHandlers.h/.cpp`（スポーン位置計算・ハンドラ）
 3. **敵・ボス制御コンポーネント**:
-   - `project/Application_solo/Combat/EnemyComponent.h/.cpp`
-   - `project/Application_solo/Combat/BossComponent.h/.cpp`
+   - `project/Application_solo/Combat/EnemySpawnerComponent.h/.cpp`
+   - `project/Application_solo/RailMechanics/RailShooterEnemyComponent.h/.cpp`
+   - `project/Application_solo/Combat/Boss/BossComponent.h/.cpp`
    - `project/Application_solo/Combat/BossBulletManagerComponent.h/.cpp`
    - `project/Application_solo/Combat/EnemyBeamComponent.h/.cpp`
+
+### 【誤診防止】実装境界の特定と既存資産の正当性評価（False-Negative Prevention）
+敵AIやウェーブの設計を行う際、既存の計算式や配置ロジック（`WaveEventHandlers.cpp` の局所基底計算など）を勝手に「未実装」と誤認せず、どこまでが動いているかを1行ずつトレースして把握した上で、既存資産と100%整合する設計を行うこと。
 
 ---
 

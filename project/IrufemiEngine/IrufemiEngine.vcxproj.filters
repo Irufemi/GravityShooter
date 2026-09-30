@@ -417,6 +417,9 @@
     <ClCompile Include="Renderer\Pipeline\RenderGraph\MainOpaquePass.cpp">
       <Filter>Renderer\Pipeline\RenderGraph</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Pipeline\RenderGraph\FogPass.cpp">
+      <Filter>Renderer\Pipeline\RenderGraph</Filter>
+    </ClCompile>
     <ClCompile Include="Renderer\Pipeline\RenderGraph\TopMostPass.cpp">
       <Filter>Renderer\Pipeline\RenderGraph</Filter>
     </ClCompile>
@@ -549,10 +552,16 @@
     <ClCompile Include="Framework\Component\Effect\GlobalPostProcessComponent.cpp">
       <Filter>Framework\Component\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\Component\Effect\FogComponent.cpp">
+      <Filter>Framework\Component\Effect</Filter>
+    </ClCompile>
     <ClCompile Include="Framework\Component\Effect\PostProcessSettings.cpp">
       <Filter>Framework\Component\Effect</Filter>
     </ClCompile>
     <ClCompile Include="Framework\Component\Renderer\MeshRendererComponent.cpp">
+      <Filter>Framework\Component\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Component\Renderer\SkyDomeComponent.cpp">
       <Filter>Framework\Component\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Framework\Component\Renderer\ModelBatchRendererComponent.cpp">
@@ -938,6 +947,9 @@
     <ClInclude Include="Renderer\Data\ExplosionParams.h">
       <Filter>Renderer\Data</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\Data\FogParams.h">
+      <Filter>Renderer\Data</Filter>
+    </ClInclude>
     <ClInclude Include="Renderer\Data\LightCommonData.h">
       <Filter>Renderer\Data</Filter>
     </ClInclude>
@@ -1029,6 +1041,9 @@
       <Filter>Renderer\Pipeline\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\Pipeline\RenderGraph\MainOpaquePass.h">
+      <Filter>Renderer\Pipeline\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Pipeline\RenderGraph\FogPass.h">
       <Filter>Renderer\Pipeline\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\Pipeline\RenderGraph\TopMostPass.h">
@@ -1196,6 +1211,9 @@
     <ClInclude Include="Framework\Component\Renderer\MeshRendererComponent.h">
       <Filter>Framework\Component\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\Component\Renderer\SkyDomeComponent.h">
+      <Filter>Framework\Component\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="Framework\Component\Renderer\ModelBatchRendererComponent.h">
       <Filter>Framework\Component\Renderer</Filter>
     </ClInclude>
@@ -1221,6 +1239,9 @@
       <Filter>Framework\Component\Effect</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Component\Effect\GlobalPostProcessComponent.h">
+      <Filter>Framework\Component\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Component\Effect\FogComponent.h">
       <Filter>Framework\Component\Effect</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Component\Effect\PostProcessSettings.h">

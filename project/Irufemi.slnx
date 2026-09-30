@@ -1,0 +1,22 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Development" />
+    <BuildType Name="Editor" />
+    <BuildType Name="Release" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="Application_solo/Application_solo.vcxproj" Id="b7a4c62a-5d11-40d9-98f4-0a1d6b8f42e0">
+    <BuildDependency Project="externals/imgui/imgui.vcxproj" />
+  </Project>
+  <Project Path="Application_team/Application_team.vcxproj" Id="b4625061-2145-449c-a473-66964bb0183a">
+    <BuildDependency Project="externals/imgui/imgui.vcxproj" />
+  </Project>
+  <Project Path="externals/DirectXTex/DirectXTex_Desktop_2022_Win10.vcxproj" Id="371b9fa9-4c90-4ac6-a123-aced756d6c77" />
+  <Project Path="externals/imgui/imgui.vcxproj" Id="665a39e3-3bbb-4705-abbe-36f254fbdab2" />
+  <Project Path="IrufemiEditor/IrufemiEditor.vcxproj" Id="6b9b6722-45b6-429c-a66d-5add2171ad79">
+    <BuildDependency Project="externals/imgui/imgui.vcxproj" />
+    <BuildDependency Project="IrufemiEngine/IrufemiEngine.vcxproj" />
+  </Project>
+  <Project Path="IrufemiEngine/IrufemiEngine.vcxproj" Id="e7d83bab-90f9-4841-b6eb-516d3e28214f" />
+</Solution>

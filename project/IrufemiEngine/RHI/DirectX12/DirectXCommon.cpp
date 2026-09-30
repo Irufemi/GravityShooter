@@ -311,6 +311,8 @@ void DirectXCommon::RegisterAllShaders() {
     auto vsSkin = shaderManager_->GetOrCompile(L"SkinningObject3D.VS.hlsl", options);
     auto vsSkybox = shaderManager_->GetOrCompile(L"Skybox.VS.hlsl", options);
     auto psSkybox = shaderManager_->GetOrCompile(L"Skybox.PS.hlsl", options);
+    auto vsSkydome = shaderManager_->GetOrCompile(L"Skydome.VS.hlsl", options);
+    auto psSkydome = shaderManager_->GetOrCompile(L"Skydome.PS.hlsl", options);
     auto vsGpuParticle = shaderManager_->GetOrCompile(L"ParticleGPU.VS.hlsl", options);
     auto psGpuParticle = shaderManager_->GetOrCompile(L"ParticleGPU.PS.hlsl", options);
 
@@ -319,12 +321,15 @@ void DirectXCommon::RegisterAllShaders() {
     auto vsShadow = shaderManager_->GetOrCompile(L"ShadowMap.VS.hlsl", options);
     auto vsShadowSkin = shaderManager_->GetOrCompile(L"ShadowMapSkinning.VS.hlsl", options);
     auto vsShadowBatch = shaderManager_->GetOrCompile(L"ShadowMapBatch.VS.hlsl", options);
+    auto psAOEWarning = shaderManager_->GetOrCompile(L"AOEWarning.PS.hlsl", options);
+
+    auto vsFullscreen = shaderManager_->GetOrCompile(L"Fullscreen.VS.hlsl", options);
+    auto psFog = shaderManager_->GetOrCompile(L"Fog.PS.hlsl", options);
 
 #ifdef EditorMode
     auto vsSelection = shaderManager_->GetOrCompile(L"SelectionMask.VS.hlsl", options);
     auto psSelection = shaderManager_->GetOrCompile(L"SelectionMask.PS.hlsl", options);
     auto psSelectionText = shaderManager_->GetOrCompile(L"SelectionMaskText.PS.hlsl", options);
-    auto vsFullscreen = shaderManager_->GetOrCompile(L"Fullscreen.VS.hlsl", options);
     auto psOutlineComp = shaderManager_->GetOrCompile(L"OutlineComposite.PS.hlsl", options);
 #endif
 
@@ -389,6 +394,11 @@ void DirectXCommon::RegisterAllShaders() {
     skyboxDesc.shaders = {vsSkybox, psSkybox};
     psoManager_->RegisterShader("Skybox", skyboxDesc);
 
+    PSOManager::PipelineStateDesc skydomeDesc = mrtDesc;
+    skydomeDesc.shaders = {vsSkydome, psSkydome};
+    skydomeDesc.useNullInputLayout = true; // 頂点バッファなし(SV_VertexID)
+    psoManager_->RegisterShader("Skydome", skydomeDesc);
+
     PSOManager::PipelineStateDesc gpuParticleDesc = mrtDesc;
     gpuParticleDesc.shaders = {vsGpuParticle, psGpuParticle};
     psoManager_->RegisterShader("GpuParticle", gpuParticleDesc);
@@ -396,6 +406,7 @@ void DirectXCommon::RegisterAllShaders() {
     PSOManager::PipelineStateDesc voxelParticleDesc = mrtDesc;
     voxelParticleDesc.shaders = {vsVoxel, psVoxel};
     psoManager_->RegisterShader("VoxelParticle", voxelParticleDesc);
+    psoManager_->RegisterShader("AOEWarning", {{vs3d, psAOEWarning}});
 
     // シャドウマップ(通常) - 深度のみ
     PSOManager::PipelineStateDesc shadowDesc{};
@@ -436,6 +447,16 @@ void DirectXCommon::RegisterAllShaders() {
     outlineCompDesc.dsvFormat = DXGI_FORMAT_UNKNOWN;
     psoManager_->RegisterShader("OutlineComposite", outlineCompDesc);
 #endif
+
+    // 大気・距離フォグ (全画面ブレンド)
+    PSOManager::PipelineStateDesc fogDesc{};
+    fogDesc.shaders = {vsFullscreen, psFog};
+    fogDesc.disableDepthTest = true;
+    fogDesc.noDSV = true;
+    fogDesc.useNullInputLayout = true;
+    fogDesc.rtvFormat = mrtDesc.rtvFormat;
+    fogDesc.dsvFormat = DXGI_FORMAT_UNKNOWN;
+    psoManager_->RegisterShader("Fog", fogDesc);
 
     // バックバッファ書き込み用のスプライト設定
     PSOManager::PipelineStateDesc spriteBBDesc{};

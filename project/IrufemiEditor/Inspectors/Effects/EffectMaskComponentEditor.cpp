@@ -93,7 +93,7 @@ void EffectMaskComponentEditor::Draw(Component* component, EditorActionManager* 
                 }
             };
 
-            if (type == 8) { // Dissolve
+            if (type == static_cast<int>(PostProcessMode::Dissolve)) {
                 if (ImGui::ColorEdit4("Edge Color", &params.color1.x)) {
                     changed = true;
                 }

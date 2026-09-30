@@ -1,0 +1,174 @@
+{
+  "name": "PlayerThrusterRoot",
+  "isFolder": false,
+  "isActive": true,
+  "components": [
+    {
+      "type": "TransformComponent",
+      "data": {
+        "position": [ 0.0, 0.0, 0.0 ],
+        "rotation": [ 0.0, 0.0, 0.0 ],
+        "scale": [ 1.0, 1.0, 1.0 ]
+      }
+    }
+  ],
+  "children": [
+    {
+      "name": "SingularityCore",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, 0.0 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 120.0,
+              "radius": 0.015,
+              "spread": 0.02,
+              "speedMin": 8.0,
+              "speedMax": 14.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.04,
+              "lifeTimeMax": 0.06,
+              "startScale": [ 0.06, 0.06, 0.06 ],
+              "midScale": [ 0.03, 0.03, 0.03 ],
+              "endScale": [ 0.005, 0.005, 0.005 ],
+              "color": [ 0.05, 0.85, 2.2, 1.0 ],
+              "midColor": [ 0.02, 0.45, 1.5, 0.8 ],
+              "endColor": [ 0.0, 0.1, 0.8, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GravityVectorStream",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, -0.02 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 360.0,
+              "radius": 0.02,
+              "spread": 0.01,
+              "speedMin": 22.0,
+              "speedMax": 34.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.12,
+              "lifeTimeMax": 0.16,
+              "startScale": [ 0.20, 0.20, 0.20 ],
+              "midScale": [ 0.24, 0.24, 0.24 ],
+              "endScale": [ 0.01, 0.01, 0.01 ],
+              "color": [ 0.01, 0.45, 1.6, 1.0 ],
+              "midColor": [ 0.0, 0.15, 0.9, 0.8 ],
+              "endColor": [ 0.0, 0.02, 0.4, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GravitationalWavefront",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, -0.02 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "billboardMode": 0,
+              "texturePath": "resources/texture/ring.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 42.0,
+              "radius": 0.01,
+              "spread": 0.01,
+              "speedMin": 20.0,
+              "speedMax": 30.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.08,
+              "lifeTimeMax": 0.12,
+              "startScale": [ 0.26, 0.26, 0.26 ],
+              "midScale": [ 0.42, 0.42, 0.42 ],
+              "endScale": [ 0.58, 0.58, 0.58 ],
+              "color": [ 0.01, 0.50, 1.7, 0.60 ],
+              "midColor": [ 0.0, 0.22, 1.0, 0.40 ],
+              "endColor": [ 0.0, 0.01, 0.2, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GravitonMotes",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, -0.02 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 30.0,
+              "radius": 0.03,
+              "spread": 0.12,
+              "speedMin": 2.0,
+              "speedMax": 4.0,
+              "direction": [ 0.0, 0.0, -1.0 ],
+              "lifeTimeMin": 0.20,
+              "lifeTimeMax": 0.30,
+              "startScale": [ 0.05, 0.05, 0.05 ],
+              "midScale": [ 0.03, 0.03, 0.03 ],
+              "endScale": [ 0.005, 0.005, 0.005 ],
+              "color": [ 0.02, 0.40, 1.2, 0.4 ],
+              "midColor": [ 0.0, 0.15, 0.6, 0.2 ],
+              "endColor": [ 0.0, 0.02, 0.3, 0.0 ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

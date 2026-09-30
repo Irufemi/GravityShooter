@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "Core/Math/Vector3.h"
 #include "Core/System/IEngineExtension.h"
 
 class IrufemiEngine;
@@ -93,14 +94,28 @@ public:
      */
     void ExitPrefabMode(bool saveChanges);
 
+    /**
+     * @brief プレハブ編集用カメラをプレハブ全体が収まる最適な位置へ自動フォーカス（Auto-Framing）する
+     */
+    void FramePrefabObject();
+
 private:
     IrufemiEngine* engine_ = nullptr;
 
     EditorModeState currentMode_ = EditorModeState::Edit;
     std::string playModeStartSceneName_ = "";
     std::string editingPrefabPath_ = "";
-    bool isStepRequested_ = false;            // コマ送りの予約フラグ
+    std::shared_ptr<GameObject> editingPrefabRoot_ = nullptr; ///< 編集中のプレハブルートオブジェクト（明示的保持）
+    std::shared_ptr<GameObject> stageCameraObject_ = nullptr; ///< ステージ専用エディタカメラ（Transient）
+    bool isStepRequested_ = false;                            // コマ送りの予約フラグ
     bool isPickingAllowedInPlayMode_ = false; // プレイ中のオブジェクト選択（ピッキング）許可フラグ
+
+    // PrefabMode 突入前のメインシーンカメラ状態の退避・復元
+    std::string savedActiveCameraName_ = "";
+    Irufemi::Vector3 savedCameraTranslate_{0.0f, 0.0f, -10.0f};
+    Irufemi::Vector3 savedCameraRotate_{0.0f, 0.0f, 0.0f};
+    float savedCameraFov_ = 0.785398f;
+    bool hasSavedCameraState_ = false;
 
     // レイアウトのリセット用フラグ
     bool resetLayout_ = false;

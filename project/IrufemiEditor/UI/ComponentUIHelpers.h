@@ -11,10 +11,14 @@
 #include "Commands/EditorActionManager.h"
 #include "Commands/EditorCommands.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
+#include "Framework/Component/Collider/AABBColliderComponent.h"
+#include "Framework/Component/Collider/OBBColliderComponent.h"
 
 class ComponentUIHelpers {
 public:
     static std::shared_ptr<Component> GetSharedComponent(GameObject* go, Component* comp);
+    static void SwitchColliderType(GameObject* go, ColliderComponent* oldComp, ColliderComponent::ColliderType newType,
+                                   EditorActionManager* actionManager);
 
     template <typename T> static void CheckUndoRedoDrag(EditorActionManager* actionManager, T* valuePtr) {
         static T startValue;
@@ -41,9 +45,12 @@ public:
                     std::make_unique<ChangeValueCommand<T>>(startValue, endValue, std::forward<Func>(callback)));
             } else if constexpr (std::is_invocable_v<Func>) {
                 actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<T>>(
-                    startValue, endValue, [valuePtr, cb = std::forward<Func>(callback)](const T& v) {
+                    startValue, endValue,
+                    [valuePtr, cb = std::function<void()>(std::forward<Func>(callback))](const T& v) {
                         *valuePtr = v;
-                        cb();
+                        if (cb) {
+                            cb();
+                        }
                     }));
             }
         }
@@ -72,6 +79,41 @@ public:
 
     template <typename T> static void DrawColliderCommonProperties(T* comp, EditorActionManager* actionManager) {
         if (BeginPropertyTable("ColliderProperties")) {
+            // Collider Type Switcher
+            ColliderComponent::ColliderType currentType = comp->GetColliderType();
+            int currentIdx = 0;
+            if (currentType == ColliderComponent::ColliderType::AABB) {
+                currentIdx = 0;
+            } else if (currentType == ColliderComponent::ColliderType::Sphere) {
+                currentIdx = 1;
+            } else if (currentType == ColliderComponent::ColliderType::OBB) {
+                currentIdx = 2;
+            }
+
+            const char* typeNames[] = {"Box (AABB)", "Sphere", "Box (OBB)"};
+            ImGui::TableNextRow();
+            DrawPropertyLabel("Collider Type");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::PushItemWidth(-1);
+            int selectedIdx = currentIdx;
+            if (ImGui::Combo("##ColliderType", &selectedIdx, typeNames, IM_ARRAYSIZE(typeNames))) {
+                if (selectedIdx != currentIdx) {
+                    ColliderComponent::ColliderType newType = ColliderComponent::ColliderType::Sphere;
+                    if (selectedIdx == 0) {
+                        newType = ColliderComponent::ColliderType::AABB;
+                    } else if (selectedIdx == 1) {
+                        newType = ColliderComponent::ColliderType::Sphere;
+                    } else if (selectedIdx == 2) {
+                        newType = ColliderComponent::ColliderType::OBB;
+                    }
+                    SwitchColliderType(comp->GetGameObject(), comp, newType, actionManager);
+                    ImGui::PopItemWidth();
+                    EndPropertyTable();
+                    return; // 置換後はコンポーネントが無効になるため即座にリターン
+                }
+            }
+            ImGui::PopItemWidth();
+
             Irufemi::Vector3 offset = comp->GetLocalOffset();
             ImGui::TableNextRow();
             DrawPropertyLabel("Offset");

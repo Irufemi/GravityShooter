@@ -33,13 +33,11 @@ void BossStateIdle::Update(BossComponent* boss) {
                 boss->beamTimer_ = 0.0f;
 
                 if (auto myTrans = boss->GetTransform()) {
-                    Irufemi::Vector3 startPos = myTrans->GetWorldPosition();
+                    // ボスの前面（プレイヤー側＝ローカル -Z方向）および口元（ローカルY）のオフセット
+                    Irufemi::Vector3 localMuzzle = {0.0f, boss->beamOffsetY_, -boss->beamOffsetZ_};
+                    Irufemi::Vector3 startPos = Irufemi::Math::Transform(localMuzzle, myTrans->GetWorldMatrix());
 
                     Irufemi::Vector3 forward = -myTrans->GetWorldForward();
-
-                    startPos = Irufemi::Math::Add(startPos, Irufemi::Math::Multiply(boss->beamOffsetZ_, forward));
-                    startPos.y += boss->beamOffsetY_;
-
                     Irufemi::Vector3 targetPos =
                         Irufemi::Math::Add(startPos, Irufemi::Math::Multiply(boss->beamRange_, forward));
                     boss->beamComponent_->Fire(startPos, targetPos);

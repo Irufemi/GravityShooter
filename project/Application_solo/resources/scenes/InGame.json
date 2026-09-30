@@ -1,1268 +1,6 @@
 {
   "gameObjects": [
     {
-      "children": [
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  0.0,
-                  0.0,
-                  0.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 15990837169312935882,
-          "name": "RailPoint_1",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  5.0,
-                  2.0,
-                  30.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 14567080655262411471,
-          "name": "RailPoint_2",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -5.0,
-                  -2.0,
-                  60.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 14989069445140453214,
-          "name": "RailPoint_3",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  0.0,
-                  4.0,
-                  90.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 2525963258151501503,
-          "name": "RailPoint_4",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  0.0,
-                  0.0,
-                  120.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 4158128591808947938,
-          "name": "RailPoint_5",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  19.5,
-                  -3.0,
-                  180.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 17512621890196651027,
-          "name": "RailPoint_6",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  13.5,
-                  -3.0,
-                  240.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 13220837367133637991,
-          "name": "RailPoint_7",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  2.799999952316284,
-                  1.7999999523162842,
-                  300.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 16177220668738014971,
-          "name": "RailPoint_8",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -8.899999618530273,
-                  14.5,
-                  360.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 16432431458636192611,
-          "name": "RailPoint_9",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -17.399999618530273,
-                  20.0,
-                  420.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 12913929943413953766,
-          "name": "RailPoint_10",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -19.899999618530273,
-                  14.100000381469727,
-                  480.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 6294460835863799098,
-          "name": "RailPoint_11",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -15.5,
-                  1.2999999523162842,
-                  540.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 14071950035934754607,
-          "name": "RailPoint_12",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -5.599999904632568,
-                  -3.0,
-                  600.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 5972104103662195234,
-          "name": "RailPoint_13",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  6.199999809265137,
-                  -3.0,
-                  660.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 17669126091705502178,
-          "name": "RailPoint_14",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  15.899999618530273,
-                  2.0999999046325684,
-                  720.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 17266935004060839793,
-          "name": "RailPoint_15",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  20.0,
-                  14.699999809265137,
-                  780.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 5310476124473169301,
-          "name": "RailPoint_16",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  17.100000381469727,
-                  20.0,
-                  840.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 16678087876044010193,
-          "name": "RailPoint_17",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  8.199999809265137,
-                  13.899999618530273,
-                  900.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 10799701070772345869,
-          "name": "RailPoint_18",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -3.5,
-                  1.100000023841858,
-                  960.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 9567806782538804558,
-          "name": "RailPoint_19",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -14.0,
-                  -3.0,
-                  1020.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 9323786642703464060,
-          "name": "RailPoint_20",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -19.600000381469727,
-                  -3.0,
-                  1080.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 15748488603148199910,
-          "name": "RailPoint_21",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -18.399999618530273,
-                  2.299999952316284,
-                  1140.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 7771524810274716849,
-          "name": "RailPoint_22",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -10.699999809265137,
-                  14.899999618530273,
-                  1200.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 8618871825872100141,
-          "name": "RailPoint_23",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  0.699999988079071,
-                  20.0,
-                  1260.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 17609468348674908256,
-          "name": "RailPoint_24",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  11.800000190734863,
-                  13.699999809265137,
-                  1320.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 1504206940307710063,
-          "name": "RailPoint_25",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  18.899999618530273,
-                  0.8999999761581421,
-                  1380.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 8978404921085253393,
-          "name": "RailPoint_26",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  19.299999237060547,
-                  -3.0,
-                  1440.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 4641971043922650569,
-          "name": "RailPoint_27",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  13.0,
-                  -3.0,
-                  1500.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 2855078342919790675,
-          "name": "RailPoint_28",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  2.200000047683716,
-                  2.5999999046325684,
-                  1560.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 1203938156923631009,
-          "name": "RailPoint_29",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -9.399999618530273,
-                  15.100000381469727,
-                  1620.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 16832033621142890288,
-          "name": "RailPoint_30",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -17.799999237060547,
-                  20.0,
-                  1680.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 14444588312077489248,
-          "name": "RailPoint_31",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -19.899999618530273,
-                  13.5,
-                  1740.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 10080996086731958642,
-          "name": "RailPoint_32",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -15.0,
-                  0.6000000238418579,
-                  1800.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 66485699584868390,
-          "name": "RailPoint_33",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  -4.900000095367432,
-                  -3.0,
-                  1860.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 10587347611369172520,
-          "name": "RailPoint_34",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  6.900000095367432,
-                  -3.0,
-                  1920.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 15768087816944912591,
-          "name": "RailPoint_35",
-          "tag": "Untagged"
-        },
-        {
-          "components": [
-            {
-              "data": {
-                "inheritScale": true,
-                "position": [
-                  16.299999237060547,
-                  2.799999952316284,
-                  1980.0
-                ],
-                "rotation": [
-                  0.0,
-                  -0.0,
-                  0.0
-                ],
-                "scale": [
-                  1.0,
-                  1.0,
-                  1.0
-                ]
-              },
-              "type": "TransformComponent"
-            },
-            {
-              "data": {
-                "Draw Debug": true,
-                "Radius": 0.5
-              },
-              "type": "SplineNodeComponent"
-            }
-          ],
-          "instanceId": 4167711264304225099,
-          "name": "RailPoint_36",
-          "tag": "Untagged"
-        }
-      ],
       "components": [
         {
           "data": {
@@ -1287,198 +25,193 @@
         },
         {
           "data": {
+            "Draw Debug Nodes": true,
             "Draw Debug Rail": true,
+            "Node Radius": 0.5,
             "Waypoints": [
               [
                 0.0,
-                0.0,
+                15.0,
                 0.0
               ],
               [
-                5.0,
-                2.0,
-                30.0
-              ],
-              [
-                -5.0,
-                -2.0,
-                60.0
-              ],
-              [
-                0.0,
-                4.0,
-                90.0
-              ],
-              [
-                0.0,
-                0.0,
-                120.0
-              ],
-              [
-                19.5,
-                -3.0,
-                180.0
-              ],
-              [
-                13.5,
-                -3.0,
-                240.0
-              ],
-              [
-                2.799999952316284,
                 1.7999999523162842,
-                300.0
+                15.199999809265137,
+                56.599998474121094
               ],
               [
-                -8.899999618530273,
-                14.5,
-                360.0
+                6.800000190734863,
+                15.699999809265137,
+                113.0999984741211
               ],
               [
-                -17.399999618530273,
+                14.0,
+                16.5,
+                169.6999969482422
+              ],
+              [
+                21.799999237060547,
+                17.600000381469727,
+                226.3000030517578
+              ],
+              [
+                28.799999237060547,
+                18.799999237060547,
+                282.8999938964844
+              ],
+              [
+                33.79999923706055,
                 20.0,
-                420.0
+                339.3999938964844
               ],
               [
-                -19.899999618530273,
-                14.100000381469727,
-                480.0
+                35.900001525878906,
+                21.0,
+                396.0
               ],
               [
-                -15.5,
-                1.2999999523162842,
-                540.0
+                34.400001525878906,
+                21.600000381469727,
+                452.6000061035156
               ],
               [
-                -5.599999904632568,
-                -3.0,
-                600.0
+                29.5,
+                21.799999237060547,
+                509.1000061035156
               ],
               [
-                6.199999809265137,
-                -3.0,
-                660.0
+                21.5,
+                21.399999618530273,
+                565.7000122070313
               ],
               [
-                15.899999618530273,
-                2.0999999046325684,
-                720.0
+                11.5,
+                20.299999237060547,
+                622.2999877929688
               ],
               [
-                20.0,
-                14.699999809265137,
-                780.0
+                0.800000011920929,
+                18.600000381469727,
+                678.9000244140625
               ],
               [
-                17.100000381469727,
-                20.0,
-                840.0
+                -9.199999809265137,
+                16.5,
+                735.4000244140625
               ],
               [
-                8.199999809265137,
-                13.899999618530273,
-                900.0
+                -17.200000762939453,
+                14.300000190734863,
+                792.0
               ],
               [
-                -3.5,
-                1.100000023841858,
-                960.0
+                -22.0,
+                12.300000190734863,
+                848.5999755859375
               ],
               [
-                -14.0,
-                -3.0,
-                1020.0
+                -22.799999237060547,
+                10.800000190734863,
+                905.0999755859375
               ],
               [
-                -19.600000381469727,
-                -3.0,
-                1080.0
+                -19.5,
+                10.0,
+                961.7000122070313
               ],
               [
-                -18.399999618530273,
-                2.299999952316284,
-                1140.0
+                -12.800000190734863,
+                10.199999809265137,
+                1018.2999877929688
               ],
               [
-                -10.699999809265137,
-                14.899999618530273,
-                1200.0
+                -3.700000047683716,
+                11.399999618530273,
+                1074.9000244140625
               ],
               [
-                0.699999988079071,
-                20.0,
-                1260.0
+                6.300000190734863,
+                13.600000381469727,
+                1131.4000244140625
               ],
               [
-                11.800000190734863,
-                13.699999809265137,
-                1320.0
+                15.399999618530273,
+                16.399999618530273,
+                1188.0
               ],
               [
-                18.899999618530273,
-                0.8999999761581421,
-                1380.0
-              ],
-              [
+                22.100000381469727,
                 19.299999237060547,
-                -3.0,
-                1440.0
+                1244.5999755859375
               ],
               [
-                13.0,
-                -3.0,
-                1500.0
+                25.200000762939453,
+                21.700000762939453,
+                1301.0999755859375
               ],
               [
-                2.200000047683716,
-                2.5999999046325684,
-                1560.0
+                24.0,
+                23.0,
+                1357.699951171875
               ],
               [
-                -9.399999618530273,
-                15.100000381469727,
-                1620.0
+                19.0,
+                23.0,
+                1414.300048828125
               ],
               [
-                -17.799999237060547,
+                11.100000381469727,
+                22.0,
+                1470.9000244140625
+              ],
+              [
+                2.0,
+                20.799999237060547,
+                1527.4000244140625
+              ],
+              [
+                -6.5,
                 20.0,
-                1680.0
+                1584.0
               ],
               [
-                -19.899999618530273,
-                13.5,
-                1740.0
+                -12.0,
+                20.0,
+                1640.5999755859375
               ],
               [
-                -15.0,
-                0.6000000238418579,
-                1800.0
+                -12.0,
+                20.0,
+                1697.0999755859375
               ],
               [
-                -4.900000095367432,
-                -3.0,
-                1860.0
+                -6.5,
+                20.0,
+                1753.699951171875
               ],
               [
-                6.900000095367432,
-                -3.0,
-                1920.0
+                2.0,
+                20.799999237060547,
+                1810.300048828125
               ],
               [
-                16.299999237060547,
-                2.799999952316284,
+                11.100000381469727,
+                22.0,
+                1866.9000244140625
+              ],
+              [
+                19.0,
+                23.0,
+                1923.4000244140625
+              ],
+              [
+                24.0,
+                23.0,
                 1980.0
               ]
             ]
           },
           "type": "SplineComponent"
-        },
-        {
-          "data": {
-            "Draw Debug": true,
-            "Radius": 0.5
-          },
-          "type": "SplineNodeComponent"
         }
       ],
       "instanceId": 8865338349013935913,
@@ -1503,38 +236,40 @@
                   0.0
                 ],
                 "scale": [
-                  5.0,
-                  5.0,
-                  5.0
+                  1.0,
+                  1.0,
+                  1.0
                 ]
               },
               "type": "TransformComponent"
             },
             {
               "data": {
-                "modelName": "resources/model/sci-fi+armored+robot+3d+model/tripo_convert_9e0a1eca-82b5-4145-953d-1f043ce8f5b3.obj"
+                "modelName": "resources/model/PlayerCraft/PlayerCraft.obj"
               },
               "type": "MeshRendererComponent"
             },
             {
               "data": {
-                "Acceleration": 150.0,
+                "Acceleration": 55.0,
                 "Friction": 10.0,
-                "HoverAmplitude": 0.5,
+                "HoverAmplitude": 0.30000001192092896,
                 "HoverFrequency": 2.0,
-                "MaxRollAngle": 1.0,
-                "MaxSpeed": 15.0,
+                "MaxPitchAngle": 0.4000000059604645,
+                "MaxRollAngle": 0.800000011920929,
+                "MaxSpeed": 8.0,
+                "MaxYawAngle": 0.20000000298023224,
                 "MoveLimitMax": [
-                  8.0,
-                  6.0,
+                  4.099999904632568,
+                  3.0,
                   0.0
                 ],
                 "MoveLimitMin": [
-                  -8.0,
-                  -6.0,
+                  -4.099999904632568,
+                  -1.0,
                   0.0
                 ],
-                "XYSpeed": 15.0
+                "XYSpeed": 8.0
               },
               "type": "RailShooterPlayerComponent"
             },
@@ -1551,6 +286,7 @@
             },
             {
               "data": {
+                "Death Sequence Duration": 3.0,
                 "God Mode": false,
                 "Status Data Path": "resources/GameData/PlayerStatus.json"
               },
@@ -1566,6 +302,18 @@
             },
             {
               "data": {
+                "Max Scale Z": 1.7999999523162842,
+                "Min Scale Z": 0.800000011920929,
+                "Nozzle Offset": [
+                  0.0,
+                  0.0,
+                  -0.47999998927116394
+                ]
+              },
+              "type": "PlayerThrusterVisualizerComponent"
+            },
+            {
+              "data": {
                 "isStatic": false,
                 "isTrigger": false,
                 "layer": 2,
@@ -1574,7 +322,7 @@
                   0.0,
                   0.0
                 ],
-                "localRadius": 0.30000001192092896,
+                "localRadius": 0.3499999940395355,
                 "mask": 4294967295,
                 "pushbackMask": [
                   1.0,
@@ -1615,9 +363,9 @@
                 "customEffectType": 6,
                 "customParams": {
                   "color1": [
-                    0.0,
-                    0.0,
-                    0.0,
+                    0.15000000596046448,
+                    0.8999999761581421,
+                    1.0,
                     1.0
                   ],
                   "color2": [
@@ -1626,7 +374,7 @@
                     0.0,
                     1.0
                   ],
-                  "param1": 1.0,
+                  "param1": 1.5,
                   "param2": 0.0,
                   "param3": 0.0,
                   "param4": 0.0
@@ -1647,7 +395,7 @@
             "inheritScale": true,
             "position": [
               0.0,
-              0.0,
+              15.0,
               0.0
             ],
             "rotation": [
@@ -1665,7 +413,7 @@
         },
         {
           "data": {
-            "Speed": 10.0,
+            "Speed": 15.0,
             "Target Path": 8865338349013935913
           },
           "type": "SplineFollowerComponent"
@@ -1682,8 +430,8 @@
             "inheritScale": true,
             "position": [
               0.0,
-              -5.0,
-              400.0
+              0.0,
+              1000.0
             ],
             "rotation": [
               1.5707963705062866,
@@ -1691,8 +439,8 @@
               0.0
             ],
             "scale": [
-              200.0,
-              1000.0,
+              400.0,
+              2500.0,
               1.0
             ]
           },
@@ -1737,6 +485,7 @@
         },
         {
           "data": {
+            "Auto Supply Enabled": true,
             "Boss Aura Color": [
               0.800000011920929,
               0.0,
@@ -1777,7 +526,10 @@
               0.800000011920929,
               1.0,
               0.4000000059604645
-            ]
+            ],
+            "Recycle Behind Distance": 25.0,
+            "Supply Check Interval": 0.5,
+            "Target Field Count": 30
           },
           "type": "DebrisManagerComponent"
         }
@@ -1795,7 +547,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   0.0
                 ],
                 "rotation": [
@@ -1848,7 +600,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   0.0
                 ],
                 "rotation": [
@@ -1901,7 +653,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   50.0
                 ],
                 "rotation": [
@@ -1954,7 +706,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   50.0
                 ],
                 "rotation": [
@@ -2007,7 +759,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   100.0
                 ],
                 "rotation": [
@@ -2060,7 +812,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   100.0
                 ],
                 "rotation": [
@@ -2113,7 +865,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   150.0
                 ],
                 "rotation": [
@@ -2166,7 +918,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   150.0
                 ],
                 "rotation": [
@@ -2219,7 +971,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   200.0
                 ],
                 "rotation": [
@@ -2272,7 +1024,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   200.0
                 ],
                 "rotation": [
@@ -2325,7 +1077,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   250.0
                 ],
                 "rotation": [
@@ -2378,7 +1130,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   250.0
                 ],
                 "rotation": [
@@ -2431,7 +1183,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   300.0
                 ],
                 "rotation": [
@@ -2484,7 +1236,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   300.0
                 ],
                 "rotation": [
@@ -2537,7 +1289,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   350.0
                 ],
                 "rotation": [
@@ -2590,7 +1342,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   350.0
                 ],
                 "rotation": [
@@ -2643,7 +1395,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   400.0
                 ],
                 "rotation": [
@@ -2696,7 +1448,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   400.0
                 ],
                 "rotation": [
@@ -2749,7 +1501,7 @@
                 "inheritScale": true,
                 "position": [
                   -20.0,
-                  -5.0,
+                  0.0,
                   450.0
                 ],
                 "rotation": [
@@ -2802,7 +1554,7 @@
                 "inheritScale": true,
                 "position": [
                   20.0,
-                  -5.0,
+                  0.0,
                   450.0
                 ],
                 "rotation": [
@@ -2855,7 +1607,7 @@
                 "inheritScale": true,
                 "position": [
                   0.0,
-                  -5.0,
+                  0.0,
                   100.0
                 ],
                 "rotation": [
@@ -2908,7 +1660,7 @@
                 "inheritScale": true,
                 "position": [
                   0.0,
-                  -5.0,
+                  0.0,
                   200.0
                 ],
                 "rotation": [
@@ -2961,7 +1713,7 @@
                 "inheritScale": true,
                 "position": [
                   0.0,
-                  -5.0,
+                  0.0,
                   300.0
                 ],
                 "rotation": [
@@ -3014,7 +1766,7 @@
                 "inheritScale": true,
                 "position": [
                   0.0,
-                  -5.0,
+                  0.0,
                   400.0
                 ],
                 "rotation": [
@@ -3067,7 +1819,7 @@
                 "inheritScale": true,
                 "position": [
                   0.0,
-                  -5.0,
+                  0.0,
                   500.0
                 ],
                 "rotation": [
@@ -3379,13 +2131,6 @@
         },
         {
           "data": {
-            "Base Collider Radius": 2.0,
-            "Base Enemy Scale": [
-              1.2000000476837158,
-              1.2000000476837158,
-              1.2000000476837158
-            ],
-            "Enemy Model Path": "Enemy_GravityGolem_A/SM_Enemy_GravityGolem_A.obj",
             "Enemy Prefab Path": "resources/prefabs/Enemy_GravityGolem.json"
           },
           "type": "EnemySpawnerComponent"
@@ -3413,16 +2158,16 @@
                   0.0
                 ],
                 "scale": [
-                  3.0,
-                  3.0,
-                  3.0
+                  8.0,
+                  8.0,
+                  8.0
                 ]
               },
               "type": "TransformComponent"
             },
             {
               "data": {
-                "modelName": "resources/model/sample/suzanne.obj"
+                "modelName": "resources/model/BossRing/BossRing.obj"
               },
               "type": "MeshRendererComponent"
             },
@@ -3431,9 +2176,9 @@
                 "customEffectType": 6,
                 "customParams": {
                   "color1": [
-                    0.0,
-                    0.0,
-                    0.0,
+                    1.0,
+                    0.05000000074505806,
+                    0.15000000596046448,
                     1.0
                   ],
                   "color2": [
@@ -3442,7 +2187,7 @@
                     0.0,
                     1.0
                   ],
-                  "param1": 1.0,
+                  "param1": 2.0,
                   "param2": 0.0,
                   "param3": 0.0,
                   "param4": 0.0
@@ -3463,7 +2208,7 @@
             "inheritScale": true,
             "position": [
               0.0,
-              10.0,
+              20.0,
               150.0
             ],
             "rotation": [
@@ -3481,8 +2226,8 @@
         },
         {
           "data": {
-            "Beam Offset Y": -2.0,
-            "Beam Offset Z": 25.0,
+            "Beam Offset Y": 0.0,
+            "Beam Offset Z": 4.0,
             "Status Data Path": "resources/GameData/BossStatus.json"
           },
           "type": "BossComponent"
@@ -3549,6 +2294,7 @@
               1.0
             ],
             "Beam Core Intensity": 40.0,
+            "Beam Damage": 30,
             "Beam Intensity": 6.0,
             "Beam Length": 200.0,
             "Beam Max Radius": 1.0,
@@ -3560,7 +2306,15 @@
               0.8999999761581421,
               1.0
             ],
-            "Fire Duration": 0.800000011920929
+            "Fire Duration": 0.800000011920929,
+            "Hit Check Margin": 0.5,
+            "Lock Lead Time": 0.4000000059604645,
+            "Telegraph Color": [
+              1.0,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.699999988079071
+            ]
           },
           "type": "EnemyBeamComponent"
         },
@@ -3587,8 +2341,8 @@
             "inheritScale": true,
             "position": [
               0.0,
-              4.0,
-              -15.0
+              16.200000762939453,
+              -6.5
             ],
             "rotation": [
               0.0,
@@ -3606,7 +2360,7 @@
         {
           "data": {
             "FOV": 0.785398006439209,
-            "FarZ": 1000.0,
+            "FarZ": 2500.0,
             "MakeActive": true,
             "NearZ": 0.10000000149011612
           },
@@ -3617,8 +2371,8 @@
             "FollowDelay": 0.009999999776482582,
             "Offset": [
               0.0,
-              4.0,
-              -18.0
+              1.2000000476837158,
+              -6.5
             ],
             "Target Object": 666616630839427138
           },
@@ -3667,7 +2421,8 @@
         {
           "data": {
             "Dust Effect Path": "resources/prefabs/debris_dust_effect.json",
-            "Hit Effect Path": "resources/prefabs/normal_attack_hit_effect.json"
+            "Hit Effect Path": "resources/prefabs/normal_attack_hit_effect.json",
+            "Thruster Effect Path": "resources/prefabs/player_thruster_effect.json"
           },
           "type": "EffectManagerComponent"
         }
@@ -3808,9 +2563,9 @@
                 "customEffectType": 6,
                 "customParams": {
                   "color1": [
-                    0.0,
-                    0.0,
-                    0.0,
+                    1.0,
+                    0.05000000074505806,
+                    0.05000000074505806,
                     1.0
                   ],
                   "color2": [
@@ -3819,7 +2574,7 @@
                     0.0,
                     1.0
                   ],
-                  "param1": 1.0,
+                  "param1": 1.5,
                   "param2": 0.0,
                   "param3": 0.0,
                   "param4": 0.0
@@ -3873,7 +2628,7 @@
               "data": {
                 "Default Life Time": 5.0,
                 "Hit Effect Key": "Dust",
-                "Hit Radius": 1.0,
+                "Hit Radius": 0.5,
                 "Max Bullets": 2000,
                 "Target Player": 372368188768739661
               },
@@ -3971,6 +2726,7 @@
         {
           "data": {
             "Editor Preview Distance": 0.0,
+            "Enemy Spawner": 0,
             "Level Data Path": "resources/GameData/WaveData_Stage1.json",
             "Target Spline": 8865338349013935913
           },
@@ -4035,6 +2791,108 @@
       ],
       "instanceId": 998877665544332211,
       "name": "GlobalPostProcessVolume",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "color": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "intensity": 1.0,
+            "texturePath": "resources/texture/sky/skydome.png",
+            "uvOffset": [
+              0.0,
+              0.0
+            ],
+            "uvTiling": [
+              1.0,
+              1.0
+            ]
+          },
+          "type": "SkyDomeComponent"
+        }
+      ],
+      "instanceId": 777111222333444555,
+      "name": "Skydome",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Color": [
+              0.550000011920929,
+              0.6499999761581421,
+              0.8199999928474426
+            ],
+            "Density": 1.0,
+            "Enabled": true,
+            "End Distance": 2200.0,
+            "Start Distance": 300.0,
+            "Type (0:Lin, 1:Exp)": 0,
+            "enabled": true,
+            "fogColor": [
+              0.550000011920929,
+              0.6499999761581421,
+              0.8199999928474426
+            ],
+            "fogDensity": 1.0,
+            "fogEnd": 2200.0,
+            "fogStart": 300.0,
+            "fogType": 0
+          },
+          "type": "FogComponent"
+        }
+      ],
+      "instanceId": 888111222333444555,
+      "name": "AtmosphericFog",
       "tag": "Untagged"
     }
   ],

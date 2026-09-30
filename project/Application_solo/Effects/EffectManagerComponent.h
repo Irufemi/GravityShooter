@@ -15,15 +15,24 @@ class GameObject;
  */
 class EffectManagerComponent : public Component {
 public:
-    EffectManagerComponent() = default;
+    EffectManagerComponent();
     ~EffectManagerComponent() override = default;
 
     void Initialize() override;
     void Start() override;
     void Update() override;
+    void OnDestroy() override;
     void OnRegisterProperties() override;
     std::string GetComponentName() const override {
         return "EffectManagerComponent";
+    }
+
+    /**
+     * @brief アクティブな EffectManagerComponent の静的インスタンスを取得する（O(1)）
+     * @return EffectManagerComponent のポインタ（未登録時は nullptr）
+     */
+    static EffectManagerComponent* GetInstance() {
+        return s_instance_;
     }
 
     /**
@@ -33,10 +42,23 @@ public:
      */
     void PlayEffect(const std::string& effectKey, const Irufemi::Vector3& worldPosition);
 
+    /**
+     * @brief 指定したGameObjectの子としてエフェクトをアタッチし、親の移動・3軸回転に自動追従させる (Niagara
+     * SpawnAttached方式)
+     * @param effectKey エフェクトプレハブの識別キー ("Thruster" 等)
+     * @param parent 追従先の親GameObject (自機、敵戦闘機等)
+     * @param localOffset 親ローカル空間での配置オフセット
+     * @return 生成されたエフェクトGameObjectへの共有ポインタ
+     */
+    std::shared_ptr<GameObject> PlayAttachedEffect(const std::string& effectKey, std::shared_ptr<GameObject> parent,
+                                                   const Irufemi::Vector3& localOffset = {0.0f, 0.0f, 0.0f});
+
 private:
+    static inline EffectManagerComponent* s_instance_ = nullptr; //!< 静的サービスロケータインスタンス
     // エディタから設定する、代表的なエフェクトのPrefabパス
     std::string hitEffectPath_ = "resources/prefabs/normal_attack_hit_effect.json";
     std::string dustEffectPath_ = "resources/prefabs/debris_dust_effect.json";
+    std::string thrusterEffectPath_ = "resources/prefabs/player_thruster_effect.json";
 
     // 内部的にキーからパスを引くための辞書
     std::unordered_map<std::string, std::string> effectDictionary_;

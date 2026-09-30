@@ -7,7 +7,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = $PSScriptRoot | Split-Path -Parent
-$solutionPath = Join-Path $projectRoot "project\Irufemi.sln"
+$slnxPath = Join-Path $projectRoot "project\Irufemi.slnx"
+$solutionPath = if (Test-Path $slnxPath) { $slnxPath } else { Join-Path $projectRoot "project\Irufemi.sln" }
 $outputDir = Join-Path $projectRoot "generated\outputs\$Configuration"
 $exePath = Join-Path $outputDir "Application.exe"
 $logDir = Join-Path $projectRoot "logs\build"
