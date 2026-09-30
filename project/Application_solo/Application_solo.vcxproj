@@ -249,7 +249,7 @@ exit 0</Command>
     <ClCompile Include="Scenes\stageSelect\SelectScene.cpp" />
     <ClCompile Include="Scenes\title\TitleScene.cpp" />
     <ClCompile Include="Scenes\title\TitleMenuControllerComponent.cpp" />
-    <ClCompile Include="Scenes\title\TitleGravityWaveComponent.cpp" />
+    <ClCompile Include="Scenes\title\TitleCosmicNebulaComponent.cpp" />
     <ClCompile Include="Scenes\title\TitleSceneDirectorComponent.cpp" />
     <ClCompile Include="Scenes\HowToPlay\HowToPlayScene.cpp" />
     <ClCompile Include="UI\LoadingScreen.cpp" />
@@ -307,7 +307,7 @@ exit 0</Command>
     <ClInclude Include="Scenes\stageSelect\SelectScene.h" />
     <ClInclude Include="Scenes\title\TitleScene.h" />
     <ClInclude Include="Scenes\title\TitleMenuControllerComponent.h" />
-    <ClInclude Include="Scenes\title\TitleGravityWaveComponent.h" />
+    <ClInclude Include="Scenes\title\TitleCosmicNebulaComponent.h" />
     <ClInclude Include="Scenes\title\TitleSceneDirectorComponent.h" />
     <ClInclude Include="Scenes\HowToPlay\HowToPlayScene.h" />
     <ClInclude Include="UI\LoadingScreen.h" />

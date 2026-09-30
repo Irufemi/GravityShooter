@@ -45,7 +45,7 @@
 // シーンのインクルード
 #include "Scenes/title/TitleScene.h"
 #include "Scenes/title/TitleMenuControllerComponent.h"
-#include "Scenes/title/TitleGravityWaveComponent.h"
+#include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Scenes/stageSelect/SelectScene.h"
 #include "Scenes/inGame/GameScene.h"
@@ -121,10 +121,10 @@ void RegisterShaders(IrufemiEngine& engine) {
     auto psLuminanceAlpha = shaderManager->GetOrCompile(L"LuminanceAlpha2D.PS.hlsl", options);
     psoManager->RegisterShader("LuminanceAlpha2D", {{vsSpriteBatch, psLuminanceAlpha}});
 
-    // GravitationalWave シェーダー (タイトル画面用 プロシージャル重力波＆高電圧プラズマ放電)
-    auto vsFullscreen = shaderManager->GetOrCompile(L"Fullscreen.VS.hlsl", options);
-    auto psGravitationalWave = shaderManager->GetOrCompile(L"GravitationalWave.PS.hlsl", options);
-    psoManager->RegisterShader("GravitationalWave", {{vsFullscreen, psGravitationalWave}});
+    // CosmicNebula シェーダー (タイトル画面用 神秘的な深宇宙星雲背景)
+    auto vsCosmicNebula = shaderManager->GetOrCompile(L"CosmicNebula.VS.hlsl", options);
+    auto psCosmicNebula = shaderManager->GetOrCompile(L"CosmicNebula.PS.hlsl", options);
+    psoManager->RegisterShader("CosmicNebula", {{vsCosmicNebula, psCosmicNebula}});
 }
 
 // --- コンポーネント登録処理 ---
@@ -183,8 +183,8 @@ void RegisterComponents() {
                                []() { return std::make_shared<ResultManagerComponent>(); });
     ComponentFactory::Register("TitleMenuControllerComponent", "Game",
                                []() { return std::make_shared<TitleMenuControllerComponent>(); });
-    ComponentFactory::Register("TitleGravityWaveComponent", "Game",
-                               []() { return std::make_shared<TitleGravityWaveComponent>(); });
+    ComponentFactory::Register("TitleCosmicNebulaComponent", "Game",
+                               []() { return std::make_shared<TitleCosmicNebulaComponent>(); });
     ComponentFactory::Register("TitleSceneDirectorComponent", "Game",
                                []() { return std::make_shared<TitleSceneDirectorComponent>(); });
 }

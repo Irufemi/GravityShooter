@@ -1,6 +1,6 @@
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 
-#include "Scenes/title/TitleGravityWaveComponent.h"
+#include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
@@ -66,15 +66,14 @@ void TitleSceneDirectorComponent::CacheEntities() {
         }
     }
 
-    // 重力波コンポーネントの取得
-    if (!gravityWaveComp_) {
-        gravityWaveComp_ = GetGameObject() ? GetGameObject()->GetComponent<TitleGravityWaveComponent>() : nullptr;
-        if (!gravityWaveComp_) {
-            // シーン全体から探索
+    // 神秘的な星雲コンポーネントの取得
+    if (!nebulaComp_) {
+        nebulaComp_ = GetGameObject() ? GetGameObject()->GetComponent<TitleCosmicNebulaComponent>() : nullptr;
+        if (!nebulaComp_) {
             for (const auto& obj : scene->GetGameObjects()) {
                 if (obj) {
-                    if (auto gwc = obj->GetComponent<TitleGravityWaveComponent>()) {
-                        gravityWaveComp_ = gwc;
+                    if (auto nc = obj->GetComponent<TitleCosmicNebulaComponent>()) {
+                        nebulaComp_ = nc;
                         break;
                     }
                 }
@@ -150,9 +149,9 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
 
-    // 重力波パルスを発火（全画面を大きく歪ませる）
-    if (gravityWaveComp_) {
-        gravityWaveComp_->TriggerImpulse(1.0f);
+    // 神秘的な星雲の重力パルスを発火（中心が眩く収束・発光）
+    if (nebulaComp_) {
+        nebulaComp_->TriggerPulse(1.0f);
     }
 
     // 出撃重力チャージSE再生

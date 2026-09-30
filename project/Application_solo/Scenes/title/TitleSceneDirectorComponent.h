@@ -7,7 +7,7 @@
 #include <vector>
 
 class TransformComponent;
-class TitleGravityWaveComponent;
+class TitleCosmicNebulaComponent;
 
 /**
  * @class TitleSceneDirectorComponent
@@ -52,7 +52,7 @@ private: // メンバ変数
     TransformComponent* cameraTransform_ = nullptr;
     std::vector<TransformComponent*> debrisTransforms_;
 
-    TitleGravityWaveComponent* gravityWaveComp_ = nullptr;
+    TitleCosmicNebulaComponent* nebulaComp_ = nullptr;
 
     // 初期トランスフォームのキャッシュ
     Irufemi::Vector3 initialShipPos_{0.0f, 0.0f, 0.0f};

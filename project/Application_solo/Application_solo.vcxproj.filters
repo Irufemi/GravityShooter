@@ -93,7 +93,7 @@
     <ClCompile Include="Scenes\title\TitleMenuControllerComponent.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
-    <ClCompile Include="Scenes\title\TitleGravityWaveComponent.cpp">
+    <ClCompile Include="Scenes\title\TitleCosmicNebulaComponent.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
     <ClCompile Include="Scenes\title\TitleSceneDirectorComponent.cpp">
@@ -252,7 +252,7 @@
     <ClInclude Include="Scenes\title\TitleMenuControllerComponent.h">
       <Filter>Scenes\title</Filter>
     </ClInclude>
-    <ClInclude Include="Scenes\title\TitleGravityWaveComponent.h">
+    <ClInclude Include="Scenes\title\TitleCosmicNebulaComponent.h">
       <Filter>Scenes\title</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\title\TitleSceneDirectorComponent.h">
