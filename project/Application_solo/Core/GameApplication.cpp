@@ -45,6 +45,8 @@
 // シーンのインクルード
 #include "Scenes/title/TitleScene.h"
 #include "Scenes/title/TitleMenuControllerComponent.h"
+#include "Scenes/title/TitleGravityWaveComponent.h"
+#include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Scenes/stageSelect/SelectScene.h"
 #include "Scenes/inGame/GameScene.h"
 #include "Scenes/Pause/PauseScene.h"
@@ -181,6 +183,10 @@ void RegisterComponents() {
                                []() { return std::make_shared<ResultManagerComponent>(); });
     ComponentFactory::Register("TitleMenuControllerComponent", "Game",
                                []() { return std::make_shared<TitleMenuControllerComponent>(); });
+    ComponentFactory::Register("TitleGravityWaveComponent", "Game",
+                               []() { return std::make_shared<TitleGravityWaveComponent>(); });
+    ComponentFactory::Register("TitleSceneDirectorComponent", "Game",
+                               []() { return std::make_shared<TitleSceneDirectorComponent>(); });
 }
 } // namespace
 

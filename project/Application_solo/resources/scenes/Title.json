@@ -520,6 +520,12 @@
         },
         {
           "type": "TitleMenuControllerComponent"
+        },
+        {
+          "type": "TitleGravityWaveComponent"
+        },
+        {
+          "type": "TitleSceneDirectorComponent"
         }
       ],
       "instanceId": 2000000000000000005,

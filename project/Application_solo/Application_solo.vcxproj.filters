@@ -93,6 +93,12 @@
     <ClCompile Include="Scenes\title\TitleMenuControllerComponent.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
+    <ClCompile Include="Scenes\title\TitleGravityWaveComponent.cpp">
+      <Filter>Scenes\title</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\TitleSceneDirectorComponent.cpp">
+      <Filter>Scenes\title</Filter>
+    </ClCompile>
     <ClCompile Include="Scenes\HowToPlay\HowToPlayScene.cpp">
       <Filter>Scenes\HowToPlay</Filter>
     </ClCompile>
@@ -244,6 +250,12 @@
       <Filter>Scenes\title</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\title\TitleMenuControllerComponent.h">
+      <Filter>Scenes\title</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\TitleGravityWaveComponent.h">
+      <Filter>Scenes\title</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\TitleSceneDirectorComponent.h">
       <Filter>Scenes\title</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\HowToPlay\HowToPlayScene.h">

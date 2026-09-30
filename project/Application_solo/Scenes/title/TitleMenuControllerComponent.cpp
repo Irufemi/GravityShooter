@@ -10,6 +10,7 @@
 #include "Irufemi.h"
 #include "Platform/Input/InputManager.h"
 #include "Audio/AudioManager.h"
+#include "Scenes/title/TitleSceneDirectorComponent.h"
 
 #ifdef EditorMode
 #include "Core/EditorManager.h"
@@ -176,7 +177,19 @@ void TitleMenuControllerComponent::ExecuteSelection() {
         case 0: // GAME START
         {
             isLaunching_ = true;
-            // 決定直後の出撃フェード遷移 (Step 4 で出撃シーケンスと統合)
+            SetMenuVisible(false); // 出撃時はメニューUIを退避
+
+            // TitleSceneDirectorComponent による出撃シーケンス（重力波パルス・自機加速・ドリーイン）を実行
+            if (auto scene = GetScene()) {
+                if (auto menuMgr = scene->FindGameObject("MenuManager")) {
+                    if (auto director = menuMgr->GetComponent<TitleSceneDirectorComponent>()) {
+                        director->StartLaunchSequence();
+                        break;
+                    }
+                }
+            }
+
+            // フォールバック遷移
             if (auto sm = engine->GetSceneManager()) {
                 sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.9f);
             }
