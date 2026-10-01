@@ -112,8 +112,8 @@ void OptionsScene::Update() {
         bool isOverCloseButton = (std::abs(cursorPos.x - kButtonCloseX) <= kButtonCloseHalfW &&
                                   std::abs(cursorPos.y - kButtonCloseY) <= kButtonCloseHalfH);
 
-        bool isDecidePressed = input->IsCursorActionPressed() || input->IsKeyPressed(VK_SPACE) ||
-                               input->IsKeyPressed(VK_RETURN);
+        bool isDecidePressed =
+            input->IsCursorActionPressed() || input->IsKeyPressed(VK_SPACE) || input->IsKeyPressed(VK_RETURN);
 
         if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
             PlaySE("resources/audio/se_menu_decide.wav", "se_menu_decide", 0.9f);
@@ -224,10 +224,10 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
     void* currentHovered = nullptr;
     bool isOverClose = (std::abs(cursorPos.x - kButtonCloseX) <= kButtonCloseHalfW &&
                         std::abs(cursorPos.y - kButtonCloseY) <= kButtonCloseHalfH);
-    bool isOverBgm = (std::abs(cursorPos.x - kSliderBgmX) <= kSliderHalfW &&
-                      std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
-    bool isOverSe = (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW &&
-                     std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
+    bool isOverBgm =
+        (std::abs(cursorPos.x - kSliderBgmX) <= kSliderHalfW && std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
+    bool isOverSe =
+        (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW && std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
     bool isOverSens = (std::abs(cursorPos.x - kSliderSensitivityX) <= kSliderHalfW &&
                        std::abs(cursorPos.y - kSliderSensitivityY) <= kSliderHalfH);
 
@@ -276,8 +276,9 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
         if (virtualCursorRenderer_) {
             // ゲームパッド操作中のみリングカーソルを表示し、物理マウス操作時はマウスカーソルに委ねる（非表示）
             if (input->IsUsingGamepadCursor()) {
-                virtualCursorRenderer_->SetColor((currentHovered != nullptr) ? Irufemi::Vector4{0.2f, 1.0f, 0.95f, 1.0f}
-                                                                             : Irufemi::Vector4{0.1f, 0.95f, 1.0f, 0.85f});
+                virtualCursorRenderer_->SetColor((currentHovered != nullptr)
+                                                     ? Irufemi::Vector4{0.2f, 1.0f, 0.95f, 1.0f}
+                                                     : Irufemi::Vector4{0.1f, 0.95f, 1.0f, 0.85f});
             } else {
                 virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
             }
@@ -299,10 +300,10 @@ void OptionsScene::UpdateSliderDrag() {
     float dt = engine->GetDeltaTime();
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
-    bool isOverBgm = (std::abs(cursorPos.x - kSliderBgmX) <= kSliderHalfW &&
-                      std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
-    bool isOverSe = (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW &&
-                     std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
+    bool isOverBgm =
+        (std::abs(cursorPos.x - kSliderBgmX) <= kSliderHalfW && std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
+    bool isOverSe =
+        (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW && std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
     bool isOverSens = (std::abs(cursorPos.x - kSliderSensitivityX) <= kSliderHalfW &&
                        std::abs(cursorPos.y - kSliderSensitivityY) <= kSliderHalfH);
 

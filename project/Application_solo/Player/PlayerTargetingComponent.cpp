@@ -104,8 +104,8 @@ void PlayerTargetingComponent::UpdateHoverTarget() {
     float viewHeight = camera->GetViewportHeight();
 
     auto inputManager = engine->GetInputManager();
-    Irufemi::Vector2 screenCenter = inputManager ? inputManager->GetVirtualCursorPosition()
-                                                 : Irufemi::Vector2{viewWidth * 0.5f, viewHeight * 0.5f};
+    Irufemi::Vector2 screenCenter =
+        inputManager ? inputManager->GetVirtualCursorPosition() : Irufemi::Vector2{viewWidth * 0.5f, viewHeight * 0.5f};
     float currentTime = engine->GetTotalTime();
 
     // 1. 保留中の非同期レイキャストをポーリングして視線キャッシュを更新

@@ -15,7 +15,8 @@ class GameObject;
  * @class OptionsScene
  * @brief ゲーム内設定(Options)を管理・表示するシーン
  * @details SceneManager::PushScene で呼び出され、背景ゲームをポーズしつつBGMやUI音を維持。
- *          Apex Legends風の仮想カーソル（Virtual Cursor）による左スティック操作とマウス操作のハイブリッド制御に対応します。
+ *          Apex Legends風の仮想カーソル（Virtual
+ * Cursor）による左スティック操作とマウス操作のハイブリッド制御に対応します。
  */
 class OptionsScene : public BaseScene {
 public:
@@ -78,7 +79,7 @@ private:
     void* lastHoveredTarget_ = nullptr;
 
     // カーソル設定定数
-    const float kStickyFriction_ = 0.45f;   // ホバー時の減速倍率
+    const float kStickyFriction_ = 0.45f; // ホバー時の減速倍率
 
     // 開いた直後の入力ガードタイマー
     float openCooldownTimer_ = 0.2f;

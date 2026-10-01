@@ -121,4 +121,3 @@ void ReticleUIComponent::Update() {
         primitiveRenderer_->SetColor(targetColor);
     }
 }
-

@@ -32,4 +32,3 @@ private:
 
     const float kMagnetFriction_ = 0.5f; //!< 敵ホバー時のエイム吸着摩擦
 };
-
