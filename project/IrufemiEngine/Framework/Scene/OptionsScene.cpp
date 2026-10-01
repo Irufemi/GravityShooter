@@ -248,8 +248,13 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
         }
 
         if (virtualCursorRenderer_) {
-            virtualCursorRenderer_->SetColor((currentHovered != nullptr) ? Irufemi::Vector4{0.2f, 1.0f, 0.95f, 1.0f}
-                                                                         : Irufemi::Vector4{0.1f, 0.95f, 1.0f, 0.85f});
+            // ゲームパッド操作中のみリングカーソルを表示し、物理マウス操作時はマウスカーソルに委ねる（非表示）
+            if (input->IsUsingGamepadCursor()) {
+                virtualCursorRenderer_->SetColor((currentHovered != nullptr) ? Irufemi::Vector4{0.2f, 1.0f, 0.95f, 1.0f}
+                                                                             : Irufemi::Vector4{0.1f, 0.95f, 1.0f, 0.85f});
+            } else {
+                virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+            }
         }
     }
 }
