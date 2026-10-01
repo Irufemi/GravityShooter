@@ -62,11 +62,12 @@ public:
         onClickCallback_ = std::move(callback);
     }
 
-private:
     /**
-     * @brief CheckBounds を実行する。
+     * @brief 指定したUI座標がボタンの当たり判定内にあるか判定
      */
     bool CheckBounds(const Irufemi::Vector2& mousePos);
+
+private:
 
     Irufemi::Vector4 normalColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
     Irufemi::Vector4 hoverColor_ = {0.8f, 0.8f, 0.8f, 1.0f};

@@ -140,6 +140,20 @@ public:
         return alignment_;
     }
 
+    /**
+     * @brief テキストの縦揃えアライメント（上揃え・中央揃え・下揃え）を設定します
+     * @param[in] vAlign 垂直アライメント指定
+     */
+    void SetVerticalAlignment(TextVerticalAlignment vAlign);
+
+    /**
+     * @brief テキストの縦揃えアライメントを取得します
+     * @return 垂直アライメント
+     */
+    TextVerticalAlignment GetVerticalAlignment() const {
+        return verticalAlignment_;
+    }
+
     // 文字色
     /**
      * @brief テキストの乗算カラー（RGBA）を設定します
@@ -223,5 +237,7 @@ private:
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};
     TextAlignment alignment_ = TextAlignment::Left;
     int alignmentInt_ = 0; // For Reflection (0:Left, 1:Center, 2:Right)
+    TextVerticalAlignment verticalAlignment_ = TextVerticalAlignment::Top;
+    int verticalAlignmentInt_ = 0; // For Reflection (0:Top, 1:Middle, 2:Bottom)
     bool isTopMost_ = false;
 };

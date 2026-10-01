@@ -223,7 +223,7 @@ void TitleMenuControllerComponent::ExecuteSelection() {
     {
 #ifdef EditorMode
         if (auto editor = EditorManager::GetInstance()) {
-            editor->ExitPlayMode();
+            editor->RequestExitPlayMode();
             break;
         }
 #endif

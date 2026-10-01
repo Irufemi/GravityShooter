@@ -14,6 +14,8 @@ DEFINE_CVAR_BOOL("r.VSync", true, "Enable Vertical Synchronization");
 
 // --- Audio Settings (将来用) ---
 DEFINE_CVAR_FLOAT("a.MasterVolume", 1.0f, "Master Volume multiplier");
+DEFINE_CVAR_FLOAT("a.BGMVolume", 1.0f, "BGM Volume multiplier");
+DEFINE_CVAR_FLOAT("a.SEVolume", 1.0f, "SE Volume multiplier");
 
 // --- Developer / Debug Settings ---
 DEFINE_CVAR_BOOL("d.ShowFPS", false, "Show FPS counter on screen");

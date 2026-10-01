@@ -335,7 +335,8 @@
             ],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "GRAVITY SHOOTER"
+            "text": "GRAVITY SHOOTER",
+            "verticalAlignment": 0
           },
           "type": "TextRendererComponent"
         }
@@ -379,7 +380,8 @@
             ],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "GAME START"
+            "text": "GAME START",
+            "verticalAlignment": 0
           },
           "type": "TextRendererComponent"
         }
@@ -423,7 +425,8 @@
             ],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "HOW TO PLAY"
+            "text": "HOW TO PLAY",
+            "verticalAlignment": 0
           },
           "type": "TextRendererComponent"
         }
@@ -467,7 +470,8 @@
             ],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "OPTIONS"
+            "text": "OPTIONS",
+            "verticalAlignment": 0
           },
           "type": "TextRendererComponent"
         }
@@ -511,7 +515,8 @@
             ],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "QUIT"
+            "text": "QUIT",
+            "verticalAlignment": 0
           },
           "type": "TextRendererComponent"
         }

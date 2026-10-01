@@ -52,8 +52,12 @@ public:
      */
     void SetHandleObjectID(uint64_t id);
 
-private:
+    /**
+     * @brief 指定したUI座標がスライダーの当たり判定内にあるか判定
+     */
     bool CheckBounds(const Irufemi::Vector2& mousePos);
+
+private:
     void UpdateHandlePosition();
     void ResolveHandleObject();
 

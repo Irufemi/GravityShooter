@@ -180,6 +180,10 @@ void FontManager::PrecacheText(const std::string& fontId, const std::wstring& te
     impl_->threadPool->Enqueue(impl_->taskGroup, [this, fontId, text]() { PrecacheTextInternal(fontId, text); });
 }
 
+void FontManager::PrecacheTextSync(const std::string& fontId, const std::wstring& text) {
+    PrecacheTextInternal(fontId, text);
+}
+
 void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wstring& text) {
     std::lock_guard<std::mutex> lock(impl_->cacheMutex);
     auto it = impl_->fonts.find(fontId);

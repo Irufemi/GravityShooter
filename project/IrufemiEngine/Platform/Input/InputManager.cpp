@@ -1,4 +1,6 @@
 #include "Platform/Input/InputManager.h"
+#include <algorithm>
+#include <cmath>
 
 void InputManager::Initialize(HWND hwnd) {
     hwnd_ = hwnd;
@@ -355,4 +357,85 @@ const Irufemi::Vector2& InputManager::GetMouseDelta() const {
 
 float InputManager::GetMouseWheelDelta() const {
     return mouse_->GetWheelDelta();
+}
+
+// --- 仮想カーソル（Virtual Cursor） ---
+void InputManager::UpdateVirtualCursor(float deltaTime, float speedMultiplier) {
+    // 1. 物理マウスの移動検出
+    if (mouse_) {
+        const Irufemi::Vector2& currentMousePos = mouse_->GetPosition();
+        float mouseDist =
+            std::hypot(currentMousePos.x - lastPhysicalMousePos_.x, currentMousePos.y - lastPhysicalMousePos_.y);
+        bool mouseClicked = mouse_->IsButtonPressed(Mouse::Button::Left) || IsKeyPressed(VK_LBUTTON);
+
+        // 物理マウスの現在地を常に記録（スティック操作では書き換えない）
+        lastPhysicalMousePos_ = currentMousePos;
+
+        // 実際にマウスが動かされたか、クリックされた場合のみマウス操作に切り替える
+        if (mouseDist > 2.0f || mouseClicked) {
+            isUsingGamepadCursor_ = false;
+            virtualCursorPos_ = currentMousePos;
+        }
+    }
+
+    // 2. ゲームパッド左スティック入力による移動
+    if (gamepad_ && gamepad_->IsConnected()) {
+        float stickX = gamepad_->GetLeftStickX();
+        float stickY = gamepad_->GetLeftStickY();
+        float stickMagnitude = std::hypot(stickX, stickY);
+
+        constexpr float kDeadZone = 0.15f;
+        if (stickMagnitude > kDeadZone) {
+            isUsingGamepadCursor_ = true;
+
+            float speed = virtualCursorBaseSpeed_ * speedMultiplier;
+            virtualCursorPos_.x += stickX * speed * deltaTime;
+            virtualCursorPos_.y -= stickY * speed * deltaTime; // スティック上(+)は画面上(-)
+        }
+    }
+
+    // 画面解像度枠内にクランプ (1280x720 空間)
+    virtualCursorPos_.x = std::clamp(virtualCursorPos_.x, 15.0f, 1265.0f);
+    virtualCursorPos_.y = std::clamp(virtualCursorPos_.y, 15.0f, 705.0f);
+}
+
+bool InputManager::IsCursorActionDown() const {
+    bool down = (gamepad_ && gamepad_->IsButtonDown(XINPUT_GAMEPAD_A));
+    if (mouse_ && mouse_->IsButtonDown(Mouse::Button::Left)) {
+        down = true;
+    }
+    if (IsKeyDown(VK_LBUTTON)) {
+        down = true;
+    }
+    return down;
+}
+
+bool InputManager::IsCursorActionPressed() const {
+    bool pressed = (gamepad_ && gamepad_->IsButtonPressed(XINPUT_GAMEPAD_A));
+    if (mouse_ && mouse_->IsButtonPressed(Mouse::Button::Left)) {
+        pressed = true;
+    }
+    if (IsKeyPressed(VK_LBUTTON)) {
+        pressed = true;
+    }
+    return pressed;
+}
+
+bool InputManager::IsCursorActionReleased() const {
+    bool released = (gamepad_ && gamepad_->IsButtonReleased(XINPUT_GAMEPAD_A));
+    if (mouse_ && mouse_->IsButtonReleased(Mouse::Button::Left)) {
+        released = true;
+    }
+    if (IsKeyReleased(VK_LBUTTON)) {
+        released = true;
+    }
+    return released;
+}
+
+bool InputManager::IsCancelPressed() const {
+    bool cancel = (gamepad_ && gamepad_->IsButtonPressed(XINPUT_GAMEPAD_B));
+    if (IsKeyPressed(VK_ESCAPE) || IsKeyPressed(VK_BACK)) {
+        cancel = true;
+    }
+    return cancel;
 }

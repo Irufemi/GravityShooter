@@ -105,6 +105,13 @@ void EditorManager::ClearSelectedObject() {
 }
 
 void EditorManager::OnUpdate(float deltaTime) {
+    // ゲームプレイ中のコンポーネント更新がすべて完了した安全なタイミングでプレイモードを終了
+    if (isExitPlayModeRequested_) {
+        isExitPlayModeRequested_ = false;
+        ExitPlayMode();
+        return;
+    }
+
     if (isStepRequested_) {
         // 次のフレームで再び停止
         if (engine_) {
