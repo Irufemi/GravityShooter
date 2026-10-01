@@ -409,4 +409,3 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
         }
     }
 }
-

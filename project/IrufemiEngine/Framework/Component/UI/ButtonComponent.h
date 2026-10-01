@@ -68,7 +68,6 @@ public:
     bool CheckBounds(const Irufemi::Vector2& mousePos);
 
 private:
-
     Irufemi::Vector4 normalColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
     Irufemi::Vector4 hoverColor_ = {0.8f, 0.8f, 0.8f, 1.0f};
     Irufemi::Vector4 clickColor_{0.5f, 0.5f, 0.5f, 1.0f};
