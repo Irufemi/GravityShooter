@@ -225,6 +225,16 @@ public:
         return isUsingGamepadCursor_;
     }
 
+    /** @brief 仮想カーソルの基準移動速度（ピクセル/秒）を取得する */
+    float GetVirtualCursorBaseSpeed() const {
+        return virtualCursorBaseSpeed_;
+    }
+
+    /** @brief 仮想カーソルの基準移動速度（ピクセル/秒）を設定する */
+    void SetVirtualCursorBaseSpeed(float speed) {
+        virtualCursorBaseSpeed_ = speed;
+    }
+
     /**
      * @brief 仮想カーソルを更新する（マウス移動検知・スティック移動・画面クランプ）
      * @param[in] deltaTime 経過時間

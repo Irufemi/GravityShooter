@@ -21,16 +21,22 @@
 namespace {
 // UI各要素の画面上レイアウト定数 (1280x720 空間)
 constexpr float kButtonCloseX = 640.0f;
-constexpr float kButtonCloseY = 510.0f;
+constexpr float kButtonCloseY = 530.0f;
 constexpr float kButtonCloseHalfW = 130.0f;
 constexpr float kButtonCloseHalfH = 30.0f;
 
 constexpr float kSliderBgmX = 640.0f;
-constexpr float kSliderBgmY = 280.0f;
+constexpr float kSliderBgmY = 210.0f;
 constexpr float kSliderSeX = 640.0f;
-constexpr float kSliderSeY = 390.0f;
+constexpr float kSliderSeY = 320.0f;
+constexpr float kSliderSensitivityX = 640.0f;
+constexpr float kSliderSensitivityY = 430.0f;
 constexpr float kSliderHalfW = 210.0f;
 constexpr float kSliderHalfH = 35.0f; // 当たり判定を縦幅70pxに拡大して操作性を向上
+
+// 感度マッピング定数（250.0f 〜 1250.0f、基準 650.0f = 0.4x）
+constexpr float kMinCursorSpeed = 250.0f;
+constexpr float kMaxCursorSpeed = 1250.0f;
 } // namespace
 
 void OptionsScene::Initialize(IrufemiEngine* engine) {
@@ -156,6 +162,19 @@ void OptionsScene::BindUIComponents() {
         }
     }
 
+    // SENSITIVITY スライダー
+    if (auto obj = FindGameObject("Slider_Sensitivity")) {
+        sliderSensitivity_ = obj->GetComponent<SliderComponent>();
+        if (sliderSensitivity_) {
+            float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
+            if (speed <= 0.0f) {
+                speed = 650.0f;
+            }
+            float val = std::clamp((speed - kMinCursorSpeed) / (kMaxCursorSpeed - kMinCursorSpeed), 0.0f, 1.0f);
+            sliderSensitivity_->SetValue(val);
+        }
+    }
+
     // CLOSE ボタン
     if (auto obj = FindGameObject("Button_Close")) {
         buttonClose_ = obj->GetComponent<ButtonComponent>();
@@ -167,6 +186,9 @@ void OptionsScene::BindUIComponents() {
     }
     if (auto obj = FindGameObject("ValueText_SE")) {
         valueTextSE_ = obj->GetComponent<TextRendererComponent>();
+    }
+    if (auto obj = FindGameObject("ValueText_Sensitivity")) {
+        valueTextSensitivity_ = obj->GetComponent<TextRendererComponent>();
     }
 
     // 仮想カーソルオブジェクト
@@ -206,11 +228,15 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
                       std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
     bool isOverSe = (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW &&
                      std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
+    bool isOverSens = (std::abs(cursorPos.x - kSliderSensitivityX) <= kSliderHalfW &&
+                       std::abs(cursorPos.y - kSliderSensitivityY) <= kSliderHalfH);
 
     if (isOverBgm) {
         currentHovered = sliderBGM_;
     } else if (isOverSe) {
         currentHovered = sliderSE_;
+    } else if (isOverSens) {
+        currentHovered = sliderSensitivity_;
     } else if (isOverClose) {
         currentHovered = buttonClose_;
     }
@@ -277,6 +303,8 @@ void OptionsScene::UpdateSliderDrag() {
                       std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
     bool isOverSe = (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW &&
                      std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
+    bool isOverSens = (std::abs(cursorPos.x - kSliderSensitivityX) <= kSliderHalfW &&
+                       std::abs(cursorPos.y - kSliderSensitivityY) <= kSliderHalfH);
 
     // =========================================================================
     // A. 十字キー左右による微調整 (カーソル通過時の誤動作を防ぐためスティック増減は撤廃)
@@ -300,6 +328,13 @@ void OptionsScene::UpdateSliderDrag() {
             sliderSE_->SetValue(val);
             Irufemi::CVarSystem::SetFloat("a.SEVolume", val);
             UpdateValueTexts();
+        } else if (isOverSens && sliderSensitivity_) {
+            float val = std::clamp(sliderSensitivity_->GetValue() + directAdjust, 0.0f, 1.0f);
+            sliderSensitivity_->SetValue(val);
+            float newSpeed = kMinCursorSpeed + val * (kMaxCursorSpeed - kMinCursorSpeed);
+            Irufemi::CVarSystem::SetFloat("i.CursorSpeed", newSpeed);
+            input->SetVirtualCursorBaseSpeed(newSpeed);
+            UpdateValueTexts();
         }
     }
 
@@ -318,13 +353,23 @@ void OptionsScene::UpdateSliderDrag() {
             } else if (isOverSe && sliderSE_) {
                 isDraggingSlider_ = true;
                 draggingSlider_ = sliderSE_;
+            } else if (isOverSens && sliderSensitivity_) {
+                isDraggingSlider_ = true;
+                draggingSlider_ = sliderSensitivity_;
             }
         }
     }
 
     // ドラッグ中処理
     if (isActionDown && isDraggingSlider_ && draggingSlider_) {
-        float left = (draggingSlider_ == sliderBGM_) ? (kSliderBgmX - kSliderHalfW) : (kSliderSeX - kSliderHalfW);
+        float left = kSliderBgmX - kSliderHalfW;
+        if (draggingSlider_ == sliderBGM_) {
+            left = kSliderBgmX - kSliderHalfW;
+        } else if (draggingSlider_ == sliderSE_) {
+            left = kSliderSeX - kSliderHalfW;
+        } else if (draggingSlider_ == sliderSensitivity_) {
+            left = kSliderSensitivityX - kSliderHalfW;
+        }
         float width = kSliderHalfW * 2.0f;
 
         float newValue = (cursorPos.x - left) / width;
@@ -337,6 +382,10 @@ void OptionsScene::UpdateSliderDrag() {
             Irufemi::CVarSystem::SetFloat("a.MasterVolume", newValue);
         } else if (draggingSlider_ == sliderSE_) {
             Irufemi::CVarSystem::SetFloat("a.SEVolume", newValue);
+        } else if (draggingSlider_ == sliderSensitivity_) {
+            float newSpeed = kMinCursorSpeed + newValue * (kMaxCursorSpeed - kMinCursorSpeed);
+            Irufemi::CVarSystem::SetFloat("i.CursorSpeed", newSpeed);
+            input->SetVirtualCursorBaseSpeed(newSpeed);
         }
         UpdateValueTexts();
     }
@@ -360,6 +409,11 @@ void OptionsScene::UpdateValueTexts() {
     if (valueTextSE_ && sliderSE_) {
         int percent = static_cast<int>(std::round(sliderSE_->GetValue() * 100.0f));
         valueTextSE_->SetText(std::to_wstring(percent) + L"%");
+    }
+
+    if (valueTextSensitivity_ && sliderSensitivity_) {
+        int percent = static_cast<int>(std::round(sliderSensitivity_->GetValue() * 100.0f));
+        valueTextSensitivity_->SetText(std::to_wstring(percent) + L"%");
     }
 }
 

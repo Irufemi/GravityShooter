@@ -30,7 +30,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [640.0, 130.0, 0.0],
+            "position": [640.0, 110.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -55,7 +55,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [360.0, 240.0, 0.0],
+            "position": [360.0, 175.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -80,7 +80,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [640.0, 280.0, 0.0],
+            "position": [640.0, 210.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -136,7 +136,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [880.0, 280.0, 0.0],
+            "position": [880.0, 210.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -162,7 +162,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [360.0, 350.0, 0.0],
+            "position": [360.0, 285.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -187,7 +187,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [640.0, 390.0, 0.0],
+            "position": [640.0, 320.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -243,7 +243,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [880.0, 390.0, 0.0],
+            "position": [880.0, 320.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -263,13 +263,120 @@
       ]
     },
     {
+      "name": "Label_Sensitivity",
+      "instanceId": 1014,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [360.0, 395.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "baseScale": 28.0,
+            "color": [0.75, 0.8, 0.85, 0.9],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "STICK SENSITIVITY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Slider_Sensitivity",
+      "instanceId": 1015,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [640.0, 430.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "SpriteRendererComponent",
+          "data": {
+            "texturePath": "resources/whiteTexture.png",
+            "size": [420.0, 10.0],
+            "anchor": [0.5, 0.5],
+            "color": [0.25, 0.3, 0.35, 1.0]
+          }
+        },
+        {
+          "type": "SliderComponent",
+          "data": {
+            "Handle Object ID": 1016,
+            "Hitbox Scale": [1.0, 3.5],
+            "Value": 0.5
+          }
+        }
+      ],
+      "children": [
+        {
+          "name": "Slider_Sensitivity_Handle",
+          "instanceId": 1016,
+          "components": [
+            {
+              "type": "TransformComponent",
+              "data": {
+                "position": [0.0, 0.0, 0.0],
+                "rotation": [0.0, 0.0, 0.0],
+                "scale": [1.0, 1.0, 1.0]
+              }
+            },
+            {
+              "type": "SpriteRendererComponent",
+              "data": {
+                "texturePath": "resources/whiteTexture.png",
+                "size": [16.0, 28.0],
+                "anchor": [0.5, 0.5],
+                "color": [0.1, 0.95, 1.0, 1.0]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ValueText_Sensitivity",
+      "instanceId": 1017,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [880.0, 430.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "verticalAlignment": 1,
+            "baseScale": 24.0,
+            "color": [0.1, 0.95, 1.0, 1.0],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "50%"
+          }
+        }
+      ]
+    },
+    {
       "name": "Button_Close",
       "instanceId": 1010,
       "components": [
         {
           "type": "TransformComponent",
           "data": {
-            "position": [640.0, 510.0, 0.0],
+            "position": [640.0, 530.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -330,7 +437,7 @@
         {
           "type": "TransformComponent",
           "data": {
-            "position": [640.0, 630.0, 0.0],
+            "position": [640.0, 635.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -343,7 +450,7 @@
             "color": [0.55, 0.6, 0.65, 0.75],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "[L-STICK / MOUSE] CURSOR   [A / L-CLICK] SELECT / DRAG   [B / ESC] BACK"
+            "text": "[L/R-STICK / MOUSE] CURSOR   [D-PAD] ADJUST   [A / L-CLICK] SELECT   [B / ESC] BACK"
           }
         }
       ]

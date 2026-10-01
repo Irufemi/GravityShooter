@@ -17,6 +17,9 @@ DEFINE_CVAR_FLOAT("a.MasterVolume", 1.0f, "Master Volume multiplier");
 DEFINE_CVAR_FLOAT("a.BGMVolume", 1.0f, "BGM Volume multiplier");
 DEFINE_CVAR_FLOAT("a.SEVolume", 1.0f, "SE Volume multiplier");
 
+// --- Input Settings ---
+DEFINE_CVAR_FLOAT("i.CursorSpeed", 650.0f, "Gamepad virtual cursor speed in pixels per second");
+
 // --- Developer / Debug Settings ---
 DEFINE_CVAR_BOOL("d.ShowFPS", false, "Show FPS counter on screen");
 

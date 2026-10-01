@@ -60,9 +60,11 @@ private:
     // キャッシュしたUIコンポーネント参照
     SliderComponent* sliderBGM_ = nullptr;
     SliderComponent* sliderSE_ = nullptr;
+    SliderComponent* sliderSensitivity_ = nullptr;
     ButtonComponent* buttonClose_ = nullptr;
     TextRendererComponent* valueTextBGM_ = nullptr;
     TextRendererComponent* valueTextSE_ = nullptr;
+    TextRendererComponent* valueTextSensitivity_ = nullptr;
 
     // 仮想カーソルGameObject参照
     std::shared_ptr<GameObject> virtualCursorObj_;

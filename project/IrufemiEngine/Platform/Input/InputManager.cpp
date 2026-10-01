@@ -1,4 +1,5 @@
 #include "Platform/Input/InputManager.h"
+#include "Framework/Utility/CVar.h"
 #include <algorithm>
 #include <cmath>
 
@@ -10,6 +11,11 @@ void InputManager::Initialize(HWND hwnd) {
     keyboard_->Initialize();
     gamepad_->Initialize();
     mouse_->Initialize(hwnd);
+
+    virtualCursorBaseSpeed_ = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
+    if (virtualCursorBaseSpeed_ <= 0.0f) {
+        virtualCursorBaseSpeed_ = 650.0f;
+    }
 }
 
 void InputManager::Update() {
@@ -401,12 +407,30 @@ void InputManager::UpdateVirtualCursor(float deltaTime, float speedMultiplier) {
             moveY = lStickY;
         }
 
-        if (std::hypot(moveX, moveY) > kDeadZone) {
+        float rawMag = std::hypot(moveX, moveY);
+        if (rawMag > kDeadZone) {
             isUsingGamepadCursor_ = true;
 
+            // 円形デッドゾーンを正規化 (0.0f ~ 1.0f)
+            float normalizedMag = std::clamp((rawMag - kDeadZone) / (1.0f - kDeadZone), 0.0f, 1.0f);
+
+            // AAA水準のレスポンス曲線（Apex/Destiny調の指数カーブ: x^1.4）
+            // 微小入力では精密に、深く倒した時は素早く移動
+            float curvedMag = std::pow(normalizedMag, 1.4f);
+
+            // 方向正規化
+            float dirX = moveX / rawMag;
+            float dirY = moveY / rawMag;
+
+            // CVar設定値との動的同期
+            float cvarSpeed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
+            if (cvarSpeed > 0.0f) {
+                virtualCursorBaseSpeed_ = cvarSpeed;
+            }
             float speed = virtualCursorBaseSpeed_ * speedMultiplier;
-            virtualCursorPos_.x += moveX * speed * deltaTime;
-            virtualCursorPos_.y -= moveY * speed * deltaTime; // スティック上(+)は画面上(-)
+
+            virtualCursorPos_.x += dirX * curvedMag * speed * deltaTime;
+            virtualCursorPos_.y -= dirY * curvedMag * speed * deltaTime; // スティック上(+)は画面上(-)
         }
     }
 
