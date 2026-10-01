@@ -33,7 +33,7 @@
               0.02,
               0.03,
               0.05,
-              0.85
+              0.88
             ],
             "isFlipX": false,
             "isFlipY": false,
@@ -58,7 +58,7 @@
             "inheritScale": true,
             "position": [
               640.0,
-              110.0,
+              95.0,
               0.0
             ],
             "rotation": [
@@ -77,7 +77,7 @@
         {
           "data": {
             "alignment": 1,
-            "baseScale": 52.0,
+            "baseScale": 46.0,
             "color": [
               0.1,
               0.95,
@@ -101,8 +101,8 @@
           "data": {
             "inheritScale": true,
             "position": [
-              640.0,
-              360.0,
+              260.0,
+              160.0,
               0.0
             ],
             "rotation": [
@@ -120,23 +120,111 @@
         },
         {
           "data": {
-            "alignment": 1,
-            "baseScale": 26.0,
+            "alignment": 0,
+            "baseScale": 22.0,
             "color": [
-              0.92,
-              0.96,
+              0.4,
+              0.8,
               1.0,
-              0.95
+              1.0
             ],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "ACTION               KEY / MOUSE         GAMEPAD\n----------------------------------------------------\nMOVE                 WASD                Left Stick\nAIM RETICLE          Mouse Move          Right Stick\nATTRACT DEBRIS       E Key               LT  /  LB\nLOCK-ON TARGET       Right Click         RB  /  A Button\nTHROW / ATTACK       Left Click  /  Q    RT (Trigger)\nCANCEL LOCK-ON       R Key               B Button\nPAUSE MENU           ESC                 START\n----------------------------------------------------\n* STEAL SHIELD : Lock Boss Shield & Attract (E / LT)\n* MULTI-THROW  : Throw fires all locked targets!"
+            "text": "ACTION"
           },
           "type": "TextRendererComponent"
         }
       ],
       "instanceId": 3000000000000000003,
-      "name": "InstructionText",
+      "name": "ColHeader_Action",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              540.0,
+              160.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 0,
+            "baseScale": 22.0,
+            "color": [
+              0.4,
+              0.8,
+              1.0,
+              1.0
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "KEY / MOUSE"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000004,
+      "name": "ColHeader_KeyMouse",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              830.0,
+              160.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 0,
+            "baseScale": 22.0,
+            "color": [
+              1.0,
+              0.82,
+              0.35,
+              1.0
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "GAMEPAD"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000005,
+      "name": "ColHeader_Gamepad",
       "tag": "Untagged"
     },
     {
@@ -146,7 +234,241 @@
             "inheritScale": true,
             "position": [
               640.0,
-              625.0,
+              190.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "color": [
+              0.2,
+              0.45,
+              0.7,
+              0.6
+            ],
+            "isFlipX": false,
+            "isFlipY": false,
+            "isTopMost": true,
+            "size": [
+              760.0,
+              2.0
+            ],
+            "texturePath": "resources/texture/white.png"
+          },
+          "type": "SpriteRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000006,
+      "name": "DividerTop",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              260.0,
+              215.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 0,
+            "baseScale": 20.0,
+            "color": [
+              0.95,
+              0.98,
+              1.0,
+              1.0
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "MOVE\nAIM RETICLE\nATTRACT DEBRIS\nLOCK-ON TARGET\nTHROW / ATTACK\nCANCEL LOCK-ON\nPAUSE MENU"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000007,
+      "name": "ColText_Action",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              540.0,
+              215.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 0,
+            "baseScale": 20.0,
+            "color": [
+              0.8,
+              0.9,
+              1.0,
+              0.9
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "WASD\nMouse Move\nE Key\nRight Click\nLeft Click / Q\nR Key\nESC"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000008,
+      "name": "ColText_KeyMouse",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              830.0,
+              215.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 0,
+            "baseScale": 20.0,
+            "color": [
+              1.0,
+              0.88,
+              0.5,
+              0.95
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "Left Stick\nRight Stick\nLT / LB\nRB / A Button\nRT (Trigger)\nB Button\nSTART"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000009,
+      "name": "ColText_Gamepad",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              480.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "color": [
+              0.2,
+              0.45,
+              0.7,
+              0.6
+            ],
+            "isFlipX": false,
+            "isFlipY": false,
+            "isTopMost": true,
+            "size": [
+              760.0,
+              2.0
+            ],
+            "texturePath": "resources/texture/white.png"
+          },
+          "type": "SpriteRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000010,
+      "name": "DividerBottom",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              515.0,
               0.0
             ],
             "rotation": [
@@ -165,12 +487,56 @@
         {
           "data": {
             "alignment": 1,
-            "baseScale": 24.0,
+            "baseScale": 18.0,
             "color": [
-              0.6,
-              0.72,
+              0.4,
+              0.95,
+              0.8,
+              0.9
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "* STEAL SHIELD: Lock Boss Shield & Attract (E / LT) to capture ammo!\n* MULTI-THROW: Throw fires debris to all locked targets simultaneously!"
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 3000000000000000011,
+      "name": "TipsText",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              615.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 22.0,
+            "color": [
+              0.65,
+              0.75,
               0.85,
-              0.75
+              0.8
             ],
             "fontId": "toro_glitch",
             "isTopMost": true,
@@ -179,7 +545,7 @@
           "type": "TextRendererComponent"
         }
       ],
-      "instanceId": 3000000000000000004,
+      "instanceId": 3000000000000000012,
       "name": "FooterCloseHint",
       "tag": "Untagged"
     }
