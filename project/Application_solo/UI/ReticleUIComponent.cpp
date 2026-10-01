@@ -3,6 +3,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/Primitive2DRendererComponent.h"
 #include "Framework/Scene/BaseScene.h"
+#include "Framework/Scene/SceneManager.h"
 #include "Player/PlayerTargetingComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
@@ -39,15 +40,16 @@ void ReticleUIComponent::Update() {
         return;
     }
 
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+
     auto transform = GetTransform();
     if (!transform) {
         return;
     }
 
-    auto engine = GetEngine();
-    if (!engine) {
-        return;
-    }
     auto inputManager = engine->GetInputManager();
     auto cameraManager = engine->GetCameraManager();
     if (!inputManager || !cameraManager || !cameraManager->GetActiveCamera()) {
