@@ -8,6 +8,7 @@
 
 class TransformComponent;
 class TitleCosmicNebulaComponent;
+class ParticleObject;
 
 /**
  * @class TitleSceneDirectorComponent
@@ -45,6 +46,7 @@ private:
     void CacheEntities();
     void UpdateIdling(float deltaTime);
     void UpdateLaunchSequence(float deltaTime);
+    void SetupThrusterEffect();
 
 private: // メンバ変数
     // 対象エンティティのTransform
@@ -53,6 +55,22 @@ private: // メンバ変数
     std::vector<TransformComponent*> debrisTransforms_;
 
     TitleCosmicNebulaComponent* nebulaComp_ = nullptr;
+
+    // 自機スラスター演出（GameScene完全同期）
+    std::weak_ptr<GameObject> thrusterObj_;
+    Irufemi::Vector3 nozzleOffset_{0.0f, 0.0f, -0.48f};
+    float currentThrusterScaleZ_ = 0.8f;
+    float targetThrusterScaleZ_ = 0.8f;
+
+    struct EmitterInitialParams {
+        ParticleObject* pObj = nullptr;
+        float baseVelocity = 18.0f;
+        float baseLifeTimeMax = 0.16f;
+        float baseEmissionRate = 200.0f;
+        Irufemi::Vector3 baseStartScale{ 1.0f, 1.0f, 1.0f };
+        Irufemi::Vector3 baseMidScale{ 1.0f, 1.0f, 1.0f };
+    };
+    std::vector<EmitterInitialParams> thrusterEmitters_;
 
     // 初期トランスフォームのキャッシュ
     Irufemi::Vector3 initialShipPos_{0.0f, 0.0f, 0.0f};

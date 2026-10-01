@@ -7,6 +7,8 @@
 #include "Framework/Scene/SceneManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Audio/AudioManager.h"
+#include "Framework/Component/Effect/ParticleEmitterComponent.h"
+#include "Renderer/Object/Particle/ParticleObject.h"
 #include <cmath>
 #include <algorithm>
 
@@ -80,6 +82,52 @@ void TitleSceneDirectorComponent::CacheEntities() {
             }
         }
     }
+
+    // 自機スラスターエフェクトのセットアップ（GameScene完全同期）
+    SetupThrusterEffect();
+}
+
+void TitleSceneDirectorComponent::SetupThrusterEffect() {
+    if (thrusterObj_.lock()) return;
+    auto scene = GetScene();
+    if (!scene) return;
+    auto shipObj = scene->FindGameObject("HeroShip");
+    if (!shipObj) return;
+
+    // GameSceneと全く同じ player_thruster_effect.json をノズル位置にアタッチ生成
+    auto thruster = shipObj->Instantiate("resources/prefabs/player_thruster_effect.json", nozzleOffset_, true);
+    if (thruster) {
+        thruster->SetIsSerializable(false); // シーン保存時の汚染防止
+        thruster->SetHideInHierarchy(true);
+        thrusterObj_ = thruster;
+        currentThrusterScaleZ_ = 0.8f;
+        targetThrusterScaleZ_ = 0.8f;
+
+        // 子エミッターの初期パラメータをキャッシュ
+        thrusterEmitters_.clear();
+        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+        for (auto emitter : emitters) {
+            if (auto pObj = emitter->GetParticleObject()) {
+                EmitterInitialParams p;
+                p.pObj = pObj;
+                p.baseVelocity = 18.0f; // アイドル時の基準初速
+                p.baseLifeTimeMax = pObj->GetLifeTimeMax();
+                if (p.baseLifeTimeMax <= 0.01f) p.baseLifeTimeMax = 0.16f;
+                p.baseEmissionRate = pObj->GetEmissionRate();
+                p.baseStartScale = pObj->GetStartScale();
+                p.baseMidScale = pObj->GetMidScale();
+
+                // アイドル初速を反映
+                pObj->SetVelocity(p.baseVelocity);
+                pObj->SetLifeTimeMax(p.baseLifeTimeMax);
+                thrusterEmitters_.push_back(p);
+            }
+        }
+
+        if (auto transform = thruster->GetComponent<TransformComponent>()) {
+            transform->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
+        }
+    }
 }
 
 void TitleSceneDirectorComponent::Update() {
@@ -140,6 +188,25 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         currentRot.y += deltaTime * 0.6f;
         t->SetRotation(currentRot);
     }
+
+    // 4. 自機スラスターの呼吸脈動（GameSceneアイドル時と完全同期）
+    targetThrusterScaleZ_ = 0.8f + std::sin(idleTimer_ * 2.2f) * 0.12f;
+    float lerpFactor = 1.0f - std::exp(-10.0f * deltaTime);
+    currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
+
+    if (auto thruster = thrusterObj_.lock()) {
+        if (auto t = thruster->GetComponent<TransformComponent>()) {
+            t->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
+        }
+    }
+
+    // パーティクルのアイドル初速を維持
+    for (auto& e : thrusterEmitters_) {
+        if (e.pObj) {
+            e.pObj->SetVelocity(e.baseVelocity * (currentThrusterScaleZ_ / 0.8f));
+            e.pObj->SetLifeTimeMax(e.baseLifeTimeMax);
+        }
+    }
 }
 
 void TitleSceneDirectorComponent::StartLaunchSequence() {
@@ -173,7 +240,7 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
     float t = std::clamp(launchTimer_ / kTotalLaunchDuration_, 0.0f, 1.0f);
 
-    // [フェーズ 1: 0.00s 〜 0.25s] 重力収束＆予備動作
+    // [フェーズ 1: 0.00s 〜 0.25s] 重力収束＆予備動作（タメ）
     if (launchTimer_ <= 0.25f) {
         float p1 = launchTimer_ / 0.25f;
         // 自機がわずかに沈み込む（タメ動作）
@@ -192,8 +259,17 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
                 dt->SetPosition({ cx, cy, cz });
             }
         }
+
+        // スラスター炎の引き絞り（チャージの予兆）
+        targetThrusterScaleZ_ = 0.45f;
+        for (auto& e : thrusterEmitters_) {
+            if (e.pObj) {
+                e.pObj->SetVelocity(e.baseVelocity * 0.5f);
+                e.pObj->SetLifeTimeMax(e.baseLifeTimeMax * 0.6f);
+            }
+        }
     }
-    // [フェーズ 2: 0.25s 〜 0.95s] スラスター点火＆前方急加速離脱
+    // [フェーズ 2: 0.25s 〜 0.95s] スラスター点火＆前方急加速離脱（アフターバーナー全開）
     else {
         float p2 = (launchTimer_ - 0.25f) / (kTotalLaunchDuration_ - 0.25f);
         float accelCurve = p2 * p2 * p2; // 3次急加速
@@ -203,10 +279,38 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
             shipTransform_->SetPosition({ initialShipPos_.x, initialShipPos_.y, boostZ });
         }
 
-        // カメラの自機追従ドリーイン
+        // カメラの自機追従ドリーイン（自機にしっかり食らいつき、迫力のアフターバーナーを至近距離で捉える）
         if (cameraTransform_) {
-            float camDollyZ = initialCameraPos_.z + p2 * 8.0f;
+            float camDollyZ = initialCameraPos_.z + accelCurve * 42.0f;
             cameraTransform_->SetPosition({ initialCameraPos_.x, initialCameraPos_.y, camDollyZ });
+        }
+
+        // アフターバーナー爆発的伸長（初速最大110m/s、寿命0.38秒へブーストし、後方に約35〜40mの細長い超高速火炎を形成！）
+        // ※パーティクルのXY太さ（startScale/midScale）を肥大化させると手前の視界を塞ぎ潰れて見えるため、
+        //   ノズル口径をキープしたまま、初速と寿命のみで後方へのシャープな長大噴流を実現する。
+        targetThrusterScaleZ_ = std::lerp(1.8f, 3.2f, p2);
+        for (auto& e : thrusterEmitters_) {
+            if (e.pObj) {
+                float boostVel = std::lerp(25.0f, 110.0f, p2);
+                float boostLife = std::lerp(0.18f, 0.38f, p2);
+
+                e.pObj->SetVelocity(boostVel);
+                e.pObj->SetLifeTimeMax(boostLife);
+                e.pObj->SetEmissionRate(e.baseEmissionRate * std::lerp(1.0f, 2.2f, p2));
+                // ノズル口径を維持し、カメラ前での球状肥大化・平面的潰れを完全に防止
+                e.pObj->SetStartScale(e.baseStartScale);
+                e.pObj->SetMidScale(e.baseMidScale);
+            }
+        }
+    }
+
+    // スラスターのスケールを急峻に追従
+    float lerpFactor = 1.0f - std::exp(-18.0f * deltaTime);
+    currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
+
+    if (auto thruster = thrusterObj_.lock()) {
+        if (auto transform = thruster->GetComponent<TransformComponent>()) {
+            transform->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
         }
     }
 
