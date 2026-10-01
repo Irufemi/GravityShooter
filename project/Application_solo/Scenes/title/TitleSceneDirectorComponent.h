@@ -47,8 +47,22 @@ private:
     void UpdateLaunchSequence(float deltaTime);
     void SetupThrusterEffect();
 
+    /**
+     * @brief 自機オブジェクトの TransformComponent を取得します。
+     * @return TransformComponent* 存在しない場合は nullptr
+     */
     TransformComponent* GetShipTransform() const;
+
+    /**
+     * @brief カメラオブジェクトの TransformComponent を取得します。
+     * @return TransformComponent* 存在しない場合は nullptr
+     */
     TransformComponent* GetCameraTransform() const;
+
+    /**
+     * @brief 星雲コンポーネントを取得します。
+     * @return TitleCosmicNebulaComponent* 存在しない場合は nullptr
+     */
     TitleCosmicNebulaComponent* GetNebulaComponent() const;
 
 private: // メンバ変数

@@ -29,14 +29,14 @@ void TitleSceneDirectorComponent::OnRegisterProperties() {
 
 TransformComponent* TitleSceneDirectorComponent::GetShipTransform() const {
     if (auto ship = shipObj_.lock()) {
-        return ship->GetComponent<TransformComponent>();
+        return ship->GetTransform();
     }
     return nullptr;
 }
 
 TransformComponent* TitleSceneDirectorComponent::GetCameraTransform() const {
     if (auto cam = cameraObj_.lock()) {
-        return cam->GetComponent<TransformComponent>();
+        return cam->GetTransform();
     }
     return nullptr;
 }
@@ -58,7 +58,7 @@ void TitleSceneDirectorComponent::CacheEntities() {
     if (shipObj_.expired()) {
         if (auto shipObj = scene->FindGameObject("HeroShip")) {
             shipObj_ = shipObj;
-            if (auto t = shipObj->GetComponent<TransformComponent>()) {
+            if (auto t = shipObj->GetTransform()) {
                 initialShipPos_ = t->GetPosition();
                 initialShipRot_ = t->GetRotation();
             }
@@ -69,7 +69,7 @@ void TitleSceneDirectorComponent::CacheEntities() {
     if (cameraObj_.expired()) {
         if (auto camObj = scene->FindGameObject("MainCamera")) {
             cameraObj_ = camObj;
-            if (auto t = camObj->GetComponent<TransformComponent>()) {
+            if (auto t = camObj->GetTransform()) {
                 initialCameraPos_ = t->GetPosition();
             }
         }
@@ -81,7 +81,7 @@ void TitleSceneDirectorComponent::CacheEntities() {
         for (const auto& name : debrisNames) {
             if (auto debrisObj = scene->FindGameObject(name)) {
                 debrisObjs_.push_back(debrisObj);
-                if (auto t = debrisObj->GetComponent<TransformComponent>()) {
+                if (auto t = debrisObj->GetTransform()) {
                     initialDebrisPositions_.push_back(t->GetPosition());
                 }
             }
@@ -92,7 +92,7 @@ void TitleSceneDirectorComponent::CacheEntities() {
     if (nebulaObj_.expired()) {
         if (auto myObj = GetGameObject()) {
             if (myObj->GetComponent<TitleCosmicNebulaComponent>()) {
-                nebulaObj_ = myObj;
+                nebulaObj_ = myObj->shared_from_this();
             }
         }
         if (nebulaObj_.expired()) {
@@ -131,7 +131,7 @@ void TitleSceneDirectorComponent::SetupThrusterEffect() {
         currentThrusterScaleZ_ = 0.85f;
         targetThrusterScaleZ_ = 0.85f;
 
-        if (auto transform = thruster->GetComponent<TransformComponent>()) {
+        if (auto transform = thruster->GetTransform()) {
             transform->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
         }
     }
@@ -186,7 +186,7 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         if (!debris || i >= debrisOrbits_.size()) {
             continue;
         }
-        auto t = debris->GetComponent<TransformComponent>();
+        auto t = debris->GetTransform();
         if (!t) {
             continue;
         }
@@ -213,7 +213,7 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
     currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
 
     if (auto thruster = thrusterObj_.lock()) {
-        if (auto t = thruster->GetComponent<TransformComponent>()) {
+        if (auto t = thruster->GetTransform()) {
             t->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
         }
     }
@@ -284,7 +284,7 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
         // ガレキが自機中心へキュッと収束
         for (size_t i = 0; i < debrisObjs_.size(); ++i) {
             if (auto debris = debrisObjs_[i].lock()) {
-                if (auto dt = debris->GetComponent<TransformComponent>()) {
+                if (auto dt = debris->GetTransform()) {
                     const auto& origPos = initialDebrisPositions_[i];
                     float cx = origPos.x * (1.0f - p1 * 0.45f);
                     float cy = origPos.y * (1.0f - p1 * 0.45f);
@@ -325,7 +325,7 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
     currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
 
     if (auto thruster = thrusterObj_.lock()) {
-        if (auto transform = thruster->GetComponent<TransformComponent>()) {
+        if (auto transform = thruster->GetTransform()) {
             transform->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
         }
     }
