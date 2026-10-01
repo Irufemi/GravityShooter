@@ -35,7 +35,7 @@ void GamePad::Update() {
     }
 }
 
-// ★ ラジアル正規化(円形DZ)
+// ラジアル正規化（円形デッドゾーン処理）
 std::pair<float, float> GamePad::RadialNormalize(short x, short y, int dz) {
     float fx = static_cast<float>(x);
     float fy = static_cast<float>(y);
@@ -49,7 +49,7 @@ std::pair<float, float> GamePad::RadialNormalize(short x, short y, int dz) {
     return {nx, ny}; // -1..1
 }
 
-// ★ 8方向化
+// 8方向判定
 Stick8 GamePad::Stick8From(short x, short y, int dz, bool invertY, float threshold) {
     auto [nx, ny] = RadialNormalize(x, y, dz);
     if (invertY) {
@@ -148,7 +148,7 @@ bool GamePad::LDownLeft(float th) const {
     return Left8Is(Stick8::DownLeft, th);
 }
 
-// ★ D-Pad 8方向(wButtons→8方向)
+// D-Pad 8方向判定（wButtonsから8方向へのマッピング）
 static Stick8 DPad8FromButtons(WORD w) {
     const bool up = (w & XINPUT_GAMEPAD_DPAD_UP) != 0;
     const bool right = (w & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
@@ -267,7 +267,7 @@ bool GamePad::DPadDownLeftReleased() const {
     return DPad8Released(Stick8::DownLeft);
 }
 
-// ★ トリガ：アナログ＋しきい値
+// トリガー: アナログ入力判定としきい値処理
 static inline bool _down(uint8_t now, uint8_t th) {
     return now > th;
 }
@@ -314,7 +314,7 @@ bool GamePad::TriggerReleased(bool right, uint8_t th) const {
     return right ? RightTriggerReleased(th) : LeftTriggerReleased(th);
 }
 
-// ★ RB/LB
+// RB / LB ボタン判定
 bool GamePad::LBDown() const {
     return IsButtonDown(XINPUT_GAMEPAD_LEFT_SHOULDER);
 }
@@ -334,7 +334,7 @@ bool GamePad::RBReleased() const {
     return IsButtonReleased(XINPUT_GAMEPAD_RIGHT_SHOULDER);
 }
 
-// ★ START ボタン
+// START ボタン判定
 bool GamePad::StartDown() const {
     return IsButtonDown(XINPUT_GAMEPAD_START);
 }

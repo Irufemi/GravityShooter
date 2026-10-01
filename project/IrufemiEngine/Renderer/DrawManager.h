@@ -476,7 +476,7 @@ public: // メンバ関数
     void MergeThreadLocalQueues();
 
     /**
-     * @brief パイプラインの指定ステージにカスタム描画関数を注入する（業界標準 RenderPass Injection）
+     * @brief パイプラインの指定ステージにカスタム描画関数を注入する（RenderPass Injection）
      * @param stage 描画ステージ（BeforeOpaque, BeforeTransparent, BeforePostProcess, AfterUI）
      * @param drawFunc 実行する描画ラムダ式
      */

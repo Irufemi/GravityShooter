@@ -297,7 +297,6 @@ Irufemi::Vector3 PlayerTargetingComponent::CalculateAimPoint(float maxDistance) 
 void PlayerTargetingComponent::UpdateOutlineHighlights() {
     std::unordered_set<uint64_t> currentTargetIds;
 
-    // 【業界標準アプローチ】
     // 照準ホバー（カーソル近傍）では3Dモデルのアウトライン色は変えず、
     // プレイヤーが右クリックで明示的に確定したロックオンターゲット（queuedTargets_）のみをハイライトする
     for (const auto& target : queuedTargets_) {

@@ -1019,7 +1019,7 @@ void GPUParticleSystem::DispatchComputeShaders(ID3D12GraphicsCommandList* comman
     // Wait for Init
     DirectXUtils::UAVBarriers(commandList, {sortResource_.Get()});
 
-    // 2. Execute Bitonic Sort (AAA Approach: ソート不要なブレンドモードはスキップ)
+    // 2. Execute Bitonic Sort（ソート不要なブレンドモードはスキップ）
     if (selectedBlend_ == Irufemi::BlendMode::kBlendModeNormal) {
         commandList->SetPipelineState(dxCommon_->GetPSOManager()->GetComputePSO("GpuParticleBitonicSort"));
         commandList->SetComputeRootDescriptorTable(8, sortUavHandleGPU_); // u0

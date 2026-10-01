@@ -125,7 +125,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         return;
     }
 
-    // 【AAA基準: 接触権限の検証】初回ヒットのみ通過させ多重ダメージを完全遮断
+    // 初回ヒットのみ通過させ多重ダメージを遮断
     if (!ConsumeHitAuthority()) {
         return;
     }
@@ -163,7 +163,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
     }
 
     if (hit) {
-        // 【AAA基準: Game Juice】直撃の重厚感を演出するヒットストップ（約2〜3フレーム）
+        // 直撃の重厚感を演出するヒットストップ（約2〜3フレーム）
         if (auto engine = GetEngine()) {
             engine->TriggerHitStop(0.04f);
         }
@@ -310,7 +310,6 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
                 collider->mask_ = 0;
                 break;
             case DebrisState::Orbiting:
-                // 【AAAアプローチ: シールド防壁化】
                 // 自機の周りを回転して敵弾を迎撃するシールドとして機能
                 collider->layer_ = playerLayer; // Debris_Player
                 collider->mask_ = maskEnemy;    // Enemy通常弾・敵本体と接触可能

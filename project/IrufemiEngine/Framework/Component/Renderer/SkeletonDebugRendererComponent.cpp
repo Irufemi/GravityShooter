@@ -198,7 +198,7 @@ void SkeletonDebugRendererComponent::Update() {
             Normalize(axisY);
             Normalize(axisZ);
 
-            // ボーンの長さに比例して軸の長さを決定（AAAアプローチ）
+            // ボーンの長さに比例して軸の長さを決定
             float lineLen = currentBoneLength * axisScale_;
 
             debugAxesLines_->AddInstance(jointPosition,

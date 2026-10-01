@@ -24,7 +24,7 @@ private:
     EnemySpawnerComponent* GetOrFindSpawner(WaveManagerComponent* manager);
 };
 
-// BGM変更用のハンドラ（ダミー実装）
+/// @brief ウェーブイベントによるBGM変更ハンドラ
 class PlayBGMHandler : public IWaveEventHandler {
 public:
     void Execute(WaveManagerComponent* manager, const WaveEventData& data, const Irufemi::Vector3& railPos,

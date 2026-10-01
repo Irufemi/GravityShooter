@@ -31,9 +31,7 @@ public:
     void InitializeFromResource(DirectXCommon* dxCommon, ID3D12Resource* resource, DXGI_FORMAT format,
                                 DXGI_FORMAT srvFormat = DXGI_FORMAT_UNKNOWN);
 
-    // スプライトの初期化 (廃止予定だが、互換性のために残すか?)
-    // 今回は全画面コピーに移行するため、基本的には不要
-    // void InitializeSprite(Camera* camera);
+    // 互換性メモ: スプライト描画方式は廃止され、RenderGraph/PostProcess経由の全画面描画に移行済み
 
     // 現在のターゲットに対して自身を描画
     /**

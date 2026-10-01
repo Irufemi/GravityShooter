@@ -55,7 +55,7 @@ public:
         return true;
     }
 
-    // ★オーディオ（BGMやUI）はポーズしない！
+    /// @brief オーディオをポーズせず継続再生する（BGMやUI音を維持）
     bool IsAudioBlocking() const override {
         return false;
     }

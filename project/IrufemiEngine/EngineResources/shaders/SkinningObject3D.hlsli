@@ -1,8 +1,3 @@
-
-/*テクスチャを貼ろう*/
-
-///Object3d/hlsliを使うようにする
-
 #include "BasePassVertexOutput.hlsli"
 #include "Transform.hlsli"
 

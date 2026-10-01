@@ -6,7 +6,7 @@ namespace Irufemi {
 /**
  * @enum RenderStage
  * @brief パイプライン内のカスタム描画注入ポイント（RenderPass Injection Point）
- * @details 業界標準の RenderGraph / FrameGraph 設計に基づき、
+ * @details RenderGraph / FrameGraph 設計に基づき、
  *          特定のパス直前・直後にカスタム描画コマンドを安全かつ明示的に挿入します。
  */
 enum class RenderStage : uint8_t {

@@ -397,7 +397,7 @@ std::optional<GlyphInfo> FontManager::GetGlyph(const std::string& fontId, char32
     }
 
     // ダミー登録 (複数スレッドからの二重生成リクエスト防止)
-    // 業界標準の分離設計: SDF描画は非同期にしつつ、メトリクス(advanceX)は即座に取得してレイアウト破綻を防ぐ
+    // SDF描画は非同期にしつつ、メトリクス(advanceX)は即座に取得してレイアウト破綻を防ぐ
     GlyphInfo dummy{};
     dummy.character = character;
     dummy.width = -1.0f; // 未生成状態を示すフラグとして width = -1 を使用

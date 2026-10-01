@@ -23,7 +23,7 @@ void PSOManager::Initialize(ID3D12Device* device, ID3D12RootSignature* rootSig,
                             D3D12_PRIMITIVE_TOPOLOGY_TYPE topology) {
     device_ = device;
     rootSig_ = rootSig;
-    // ★ディープコピー：要素配列を所有し、inputLayout_ には自前のポインタを設定
+    // ディープコピー: 要素配列を所有し、inputLayout_ には自前のポインタを設定
     inputElements_.assign(inputLayout.pInputElementDescs, inputLayout.pInputElementDescs + inputLayout.NumElements);
 
     // SemanticName の文字列実体もコピーして保持する必要がある

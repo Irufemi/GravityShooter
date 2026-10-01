@@ -238,7 +238,7 @@ void BossBulletManagerComponent::Update() {
                         if (!proxy.playerHealth->IsInvincible()) {
                             proxy.playerHealth->TakeDamage(1);
                         }
-                        // 【AAA基準: 無敵時プロジェクタイル消費】素通りを防止
+                        // 無敵時間中も弾を消費・消滅させて素通りを防止
                         isHit = true;
                         break;
                     }
@@ -248,7 +248,7 @@ void BossBulletManagerComponent::Update() {
                     isHit = true;
                     break;
                 } else if (proxy.debris || proxy.isEnvironment) {
-                    // 【AAA基準: シールド迎撃 & 環境遮蔽】自機シールドまたは壁に着弾して消滅
+                    // 自機シールドまたは壁に着弾して消滅
                     isHit = true;
                     break;
                 }

@@ -53,11 +53,11 @@ public:
         ShaderSet shaders;
         D3D12_PRIMITIVE_TOPOLOGY_TYPE topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN;  // UNKNOWNの場合はManagerのデフォルトを使用
-        uint32_t numRenderTargets = 1;                // ★ MRT対応: レンダリングターゲット数
-        DXGI_FORMAT rtvFormat1 = DXGI_FORMAT_UNKNOWN; // ★ MRT対応: SV_TARGET1 (Mask)
-        DXGI_FORMAT rtvFormat2 = DXGI_FORMAT_UNKNOWN; // ★ MRT対応: SV_TARGET2 (Normal)
-        DXGI_FORMAT rtvFormat3 = DXGI_FORMAT_UNKNOWN; // ★ MRT対応: SV_TARGET3 (Material)
-        DXGI_FORMAT rtvFormat4 = DXGI_FORMAT_UNKNOWN; // ★ MRT対応: SV_TARGET4 (Velocity)
+        uint32_t numRenderTargets = 1;                ///< MRT対応: レンダリングターゲット数
+        DXGI_FORMAT rtvFormat1 = DXGI_FORMAT_UNKNOWN; ///< MRT対応: SV_TARGET1 (Mask)
+        DXGI_FORMAT rtvFormat2 = DXGI_FORMAT_UNKNOWN; ///< MRT対応: SV_TARGET2 (Normal)
+        DXGI_FORMAT rtvFormat3 = DXGI_FORMAT_UNKNOWN; ///< MRT対応: SV_TARGET3 (Material)
+        DXGI_FORMAT rtvFormat4 = DXGI_FORMAT_UNKNOWN; ///< MRT対応: SV_TARGET4 (Velocity)
         DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN;  // UNKNOWNの場合、Managerのデフォルトを使用
         bool isDepthOnly = false;                     // シャドウマップなど、RTVを持たないパス用
         bool disableDepthTest = false; // バックバッファ書き込みなど、深度テストを無効化する用

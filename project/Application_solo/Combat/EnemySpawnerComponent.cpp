@@ -17,10 +17,9 @@
 #include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
 #include "Framework/Component/Effect/EffectMaskComponent.h"
 
-// AAAタイトルのアプローチ (Data-Oriented Design & Instancing)
+// データ指向設計とインスタンシング（Data-Oriented Design & Instancing）:
 // 個々の敵オブジェクトにMeshRendererを持たせるのではなく、Spawnerが一括でModelBatchRendererComponentを管理します。
-// これにより、数千体の敵を描画する際でもドローコールが1回（Instancing）に削減され、
-// CPUとGPUのオーバーヘッドが劇的に改善されます（Unreal EngineのHISMやUnityのDOTSに近いアーキテクチャ）。
+// これにより、大量の敵を描画する際でもドローコールが削減され、描画負荷を低減します。
 
 EnemySpawnerComponent::~EnemySpawnerComponent() {
     for (auto& pair : prefabPools_) {

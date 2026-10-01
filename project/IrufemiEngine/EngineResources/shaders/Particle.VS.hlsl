@@ -1,9 +1,5 @@
-/*テクスチャを貼ろう*/
-
 #include "Particle.hlsli"
 #include "VertexData.hlsli"
-
-/*三角形を動かそう*/
 
 struct ParticleForGPU
 {
@@ -22,33 +18,15 @@ StructuredBuffer<ParticleForGPU> gParticle : register(t0);
 #include "Camera.hlsli"
 ConstantBuffer<Camera> gCamera : register(b2);
 
-/*テクスチャを貼ろう*/
-
 VertexShaderOutput main(VertexInput input, uint32_t instanced : SV_InstanceID)
 {
 	VertexShaderOutput output;
-	//output.position = input.position;
-	
-	/*三角形を動かそう*/
 	
 	float32_t4 worldPos = mul(input.position, gParticle[instanced].World);
 	float4 viewPos = mul(worldPos, gCamera.view);
 	output.position = mul(viewPos, gCamera.projection);
-	
-	/*テクスチャを貼ろう*/
-	
-	///VertexShaderをtexcoord対応する
-	
 	output.texcoord = input.texcoord;
-	
-	
-	/*LambertianReflectance*/
-	
-	///法線の座標系を変換してPixelShaderに送る
-	
 	output.color = input.color * gParticle[instanced].color;
-	
-	/*三角形を表示しよう*/
 
 	return output;
 }

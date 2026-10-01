@@ -103,7 +103,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
     // パス解決機能の初期化 (一番最初に呼ぶ)
     FileSystem::Initialize();
 
-    // OSタイマー精度を1ミリ秒に引き上げる（AAA基準のペーシング用）
+    // OSタイマー精度を1ミリ秒に引き上げる（フレームペーシングの安定化）
     timeBeginPeriod(1);
 
     /*CrashHandler*/
@@ -284,7 +284,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
 
     Primitive3DObject::SetDebugUI(ui_.get());
 
-    // コリジョン管琁Eの初期化は後回し（DebugPrimitiveRenderer生成後）
+    // コリジョン管理の初期化は後続で実行（DebugPrimitiveRenderer生成後）
 
     // GPUパーティクル管理
     gpuParticleManager_ = std::make_unique<GPUParticleManager>();
@@ -299,7 +299,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
     debugPrimitiveRenderer_ = std::make_unique<DebugPrimitiveRenderer>();
     debugPrimitiveRenderer_->Initialize(dxCommon_.get(), drawManager_.get(), dxCommon_->GetSrvPool());
 
-    // コリジョン管琁E (描画に依存するためここで初期化)
+    // コリジョン管理 (デバッグ描画に依存するためここで初期化)
     collisionManager_ = std::make_unique<CollisionManager>();
     collisionManager_->Initialize(debugPrimitiveRenderer_.get());
     ColliderComponent::SetCollisionManager(collisionManager_.get());

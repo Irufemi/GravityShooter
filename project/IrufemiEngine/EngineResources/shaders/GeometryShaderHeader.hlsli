@@ -1,8 +1,3 @@
-
-/*テクスチャを貼ろう*/
-
-///Object3d/hlsliを使うようにする
-
 struct GeometryShaderOutput
 {
 	float32_t4 svpos : SV_POSITION;

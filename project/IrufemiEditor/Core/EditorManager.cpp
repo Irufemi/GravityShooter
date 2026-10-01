@@ -780,10 +780,6 @@ void EditorManager::OnDrawUI() {
         ImGui::End();
     }
 
-#ifdef USE_IMGUI
-    // 描画呼び出しをDebugUI.cppに移動しました
-#endif // USE_IMGUI
-
     // ショートカットキー 'G' で全デバッグ描画のトグル（テキスト入力中は無視）
     if (engine_ && engine_->GetDebugPrimitiveRenderer() && !ImGui::GetIO().WantTextInput) {
         if (ImGui::IsKeyPressed(ImGuiKey_G, false)) {

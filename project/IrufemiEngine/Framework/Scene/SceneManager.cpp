@@ -147,7 +147,7 @@ void SceneManager::PushScene(const Key& name) {
     item.name = name;
     item.scene = it->second();
 
-    // ★上に重なるシーンがAudioをブロックする場合、SEだけをポーズする（BGMとUIはそのまま）
+    // 重複シーンがAudioをブロックする場合、SEカテゴリのみポーズする（BGMとUI音は継続）
     if (!sceneStack_.empty() && item.scene->IsAudioBlocking()) {
         engine_->GetAudioManager()->PauseCategory(AudioCategory::SE);
     }
@@ -196,7 +196,7 @@ void SceneManager::PopScene() {
     if (!sceneStack_.empty()) {
         // 次のシーンが最前面に復帰するためレジューム処理を行う
         sceneStack_.back().scene->OnResume();
-        // ★ポーズしていたSEカテゴリを再開する
+        // ポーズしていたSEカテゴリを再開する
         engine_->GetAudioManager()->ResumeCategory(AudioCategory::SE);
         engine_->SetCursorLocked(!sceneStack_.back().scene->IsCursorVisible());
     } else {

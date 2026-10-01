@@ -1,26 +1,11 @@
-/*テクスチャを貼ろう*/
-
 #include "SkinningObject3D.hlsli"
 #include "Lighting.hlsli"
 
 ConstantBuffer<TransformationMatrix> gTransformationMatrix : register(b0);
 ConstantBuffer<LightCommonData> gLightCommonData : register(b1);
 
-/*三角形を表示しよう*/
-
-//struct VertexShaderOutput
-//{
-//	float32_t4 position : SV_POSITION;
-
-//};
-
 /*Skinning*/
 
-//struct Well
-//{
-//	float32_t4x4 skeletonSpaceMatrix;
-//	float32_t4x4 skeletonInverseTransposeMatrix;
-//};
 StructuredBuffer<Well> gMatrixPalette : register(t0);
 
 struct Skinned
@@ -32,15 +17,7 @@ struct Skinned
 struct VertexShaderInput
 {
 	float32_t4 position : POSITION0;
-	
-	/*テクスチャを貼ろう*/
-	
-	///VertexShaderをtexcoord対応する
-	
 	float32_t2 texcoord : TEXCOORD0;
-	
-    /*LambertianReflectance*/
-	
 	float32_t3 normal : NORMAL0;
 	
 	float32_t4 color : COLOR0;

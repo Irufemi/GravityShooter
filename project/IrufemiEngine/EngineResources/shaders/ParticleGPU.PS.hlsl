@@ -1,10 +1,5 @@
-/*テクスチャを貼ろう*/
-
 #include "ParticleGPU.hlsli"
 #include "DepthFade.hlsli"
-
-/*三角形の色を変えよう*/
-
 #include "Material.hlsli"
 
 ConstantBuffer<Material> gMaterial : register(b0);
@@ -16,17 +11,11 @@ ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
 
 #include "BasePassPixelOutput.hlsli"
 
-/*テクスチャを貼ろう*/
-
-///Textureを使う
-
 Texture2D<float> gDepthTexture : register(t6); // ソフトパーティクル用深度テクスチャ
 
-SamplerState gSamplerWrap : register(s0); //Samplerのregisterはs
+SamplerState gSamplerWrap : register(s0);
 SamplerState gSamplerClamp : register(s1);
 SamplerState gSamplerWrapClamp : register(s4); // U:Wrap, V:Clamp
-
-/*テクスチャを貼ろう*/
 
 PixelShaderOutput main(VertexShaderOutput input)
 {
