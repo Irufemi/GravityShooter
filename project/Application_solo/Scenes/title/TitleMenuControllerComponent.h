@@ -80,12 +80,12 @@ private: // 内部処理
     void ExecuteSelection();
     void PlaySE(const std::string& relativePath, const std::string& soundName, float volume = 0.8f);
 
-private: // メンバ変数
-    int currentIndex_ = 0;             //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
-    bool isHowToPlayOpen_ = false;     //!< 操作説明モーダル表示フラグ
-    bool isLaunching_ = false;         //!< 出撃シーケンス実行中フラグ
+private:                           // メンバ変数
+    int currentIndex_ = 0;         //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
+    bool isHowToPlayOpen_ = false; //!< 操作説明モーダル表示フラグ
+    bool isLaunching_ = false;     //!< 出撃シーケンス実行中フラグ
 
-    float stickCooldownTimer_ = 0.0f;  //!< スティック連続移動防止用タイマー
+    float stickCooldownTimer_ = 0.0f; //!< スティック連続移動防止用タイマー
     const float kStickCooldown_ = 0.22f;
 
     // ボタンのスケール補間制御用
@@ -94,10 +94,5 @@ private: // メンバ変数
     std::vector<Irufemi::Vector3> initialScales_; //!< エディタ(JSON)で設定された初期スケールキャッシュ
 
     // メニュー項目名
-    const std::vector<std::string> buttonNames_ = {
-        "Btn_Start",
-        "Btn_HowToPlay",
-        "Btn_Options",
-        "Btn_Quit"
-    };
+    const std::vector<std::string> buttonNames_ = {"Btn_Start", "Btn_HowToPlay", "Btn_Options", "Btn_Quit"};
 };

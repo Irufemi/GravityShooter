@@ -22,13 +22,12 @@ void HowToPlayScene::Update() {
     }
 
     // 閉じる入力判定 (Bボタン / ESC / BackSpace / マウス左クリック)
-    bool closeTrigger = inputManager->IsButtonPressed(XINPUT_GAMEPAD_B) ||
-                        inputManager->IsKeyPressed(VK_ESCAPE) ||
+    bool closeTrigger = inputManager->IsButtonPressed(XINPUT_GAMEPAD_B) || inputManager->IsKeyPressed(VK_ESCAPE) ||
                         inputManager->IsKeyPressed(VK_BACK);
 
     if (!closeTrigger && inputManager->GetMouse()) {
-        closeTrigger = inputManager->GetMouse()->IsButtonPressed(Mouse::Button::Left) ||
-                       inputManager->IsKeyPressed(VK_LBUTTON);
+        closeTrigger =
+            inputManager->GetMouse()->IsButtonPressed(Mouse::Button::Left) || inputManager->IsKeyPressed(VK_LBUTTON);
     }
 
     if (closeTrigger) {

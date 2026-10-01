@@ -80,7 +80,8 @@ public:
         std::vector<RenderPackets::Primitive2DBatchPacket> primitive2DBatchQueue;
         std::vector<RenderPackets::ModelBatchPacket> modelBatchQueue;
         std::vector<RenderPackets::DebugPrimitivePacket> debugPrimitiveQueue;
-        std::array<std::vector<std::function<void()>>, static_cast<size_t>(Irufemi::RenderStage::Count)> customPassQueues;
+        std::array<std::vector<std::function<void()>>, static_cast<size_t>(Irufemi::RenderStage::Count)>
+            customPassQueues;
         std::vector<RenderPackets::SpritePacket> topMostSpriteQueue;
         std::vector<RenderPackets::SpriteBatchPacket> topMostSpriteBatchQueue;
         std::vector<RenderPackets::SpritePacket> textQueue;
