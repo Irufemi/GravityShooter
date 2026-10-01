@@ -15,13 +15,14 @@
 class TitleCosmicNebulaComponent : public Component {
 public: // 定数バッファ構造体 (HLSL: register b6 / RootSlot::Special)
     struct alignas(256) CosmicNebulaParams {
-        float pulseIntensity = 0.0f;                         //!< 出撃・決定パルス [0.0 - 1.0]
-        float time = 0.0f;                                   //!< 経過時間
-        float swirlStrength = 0.65f;                         //!< 渦の回転強度
-        float density = 1.0f;                                //!< 星雲濃度
-        Irufemi::Vector4 centerUV{0.5f, 0.42f, 0.0f, 0.0f};  //!< 重力渦の中心UV (xy: 中心, zw: パララックスオフセット)
-        Irufemi::Vector4 mouseUV{0.5f, 0.5f, 0.0f, 0.0f};    //!< マウスカーソル (xy: 正規化UV, z: インタラクション強度, w: 予備)
-        float pad[52]{};                                     //!< 256バイトアライメントパディング
+        float pulseIntensity = 0.0f;                        //!< 出撃・決定パルス [0.0 - 1.0]
+        float time = 0.0f;                                  //!< 経過時間
+        float swirlStrength = 0.65f;                        //!< 渦の回転強度
+        float density = 1.0f;                               //!< 星雲濃度
+        Irufemi::Vector4 centerUV{0.5f, 0.42f, 0.0f, 0.0f}; //!< 重力渦の中心UV (xy: 中心, zw: パララックスオフセット)
+        Irufemi::Vector4 mouseUV{0.5f, 0.5f, 0.0f,
+                                 0.0f}; //!< マウスカーソル (xy: 正規化UV, z: インタラクション強度, w: 予備)
+        float pad[52]{};                //!< 256バイトアライメントパディング
     };
 
 public: // メンバ関数
@@ -57,9 +58,9 @@ private: // メンバ変数
     bool isPulseActive_ = false;
 
     // マウスカーソル追従・速度ベクトル場（Velocity-Aligned Wake）用
-    Irufemi::Vector2 smoothedMousePos_{640.0f, 360.0f};  //!< スムーズ補間済みマウス位置
-    Irufemi::Vector2 smoothedMouseUV_{0.5f, 0.5f};       //!< スムーズ補間済み正規化UV
-    Irufemi::Vector2 prevRawMouseUV_{0.5f, 0.5f};        //!< 前フレームのマウスUV
-    Irufemi::Vector2 smoothedVelocity_{0.0f, 0.0f};      //!< 平滑化されたマウス移動速度ベクトル
-    Irufemi::Vector2 parallaxOffset_{0.0f, 0.0f};        //!< パララックスオフセット
+    Irufemi::Vector2 smoothedMousePos_{640.0f, 360.0f}; //!< スムーズ補間済みマウス位置
+    Irufemi::Vector2 smoothedMouseUV_{0.5f, 0.5f};      //!< スムーズ補間済み正規化UV
+    Irufemi::Vector2 prevRawMouseUV_{0.5f, 0.5f};       //!< 前フレームのマウスUV
+    Irufemi::Vector2 smoothedVelocity_{0.0f, 0.0f};     //!< 平滑化されたマウス移動速度ベクトル
+    Irufemi::Vector2 parallaxOffset_{0.0f, 0.0f};       //!< パララックスオフセット
 };

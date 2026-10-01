@@ -20,10 +20,7 @@ void TitleSceneDirectorComponent::Initialize() {
 
     // ガレキの公転パラメータ初期化 (半径X, 半径Z, 速度, 初期位相, 高さオフセット)
     debrisOrbits_ = {
-        { 1.8f, 1.4f, 0.45f, 0.0f, 0.35f },
-        { 2.1f, 1.7f, -0.35f, 2.1f, -0.25f },
-        { 1.5f, 1.9f, 0.55f, 4.3f, 0.10f }
-    };
+        {1.8f, 1.4f, 0.45f, 0.0f, 0.35f}, {2.1f, 1.7f, -0.35f, 2.1f, -0.25f}, {1.5f, 1.9f, 0.55f, 4.3f, 0.10f}};
 }
 
 void TitleSceneDirectorComponent::OnRegisterProperties() {
@@ -32,7 +29,9 @@ void TitleSceneDirectorComponent::OnRegisterProperties() {
 
 void TitleSceneDirectorComponent::CacheEntities() {
     auto scene = GetScene();
-    if (!scene) return;
+    if (!scene) {
+        return;
+    }
 
     // 自機の取得
     if (!shipTransform_) {
@@ -57,7 +56,7 @@ void TitleSceneDirectorComponent::CacheEntities() {
 
     // ガレキの取得
     if (debrisTransforms_.empty()) {
-        const std::string debrisNames[] = { "OrbitDebris_1", "OrbitDebris_2", "OrbitDebris_3" };
+        const std::string debrisNames[] = {"OrbitDebris_1", "OrbitDebris_2", "OrbitDebris_3"};
         for (const auto& name : debrisNames) {
             if (auto debrisObj = scene->FindGameObject(name)) {
                 if (auto t = debrisObj->GetComponent<TransformComponent>()) {
@@ -88,11 +87,17 @@ void TitleSceneDirectorComponent::CacheEntities() {
 }
 
 void TitleSceneDirectorComponent::SetupThrusterEffect() {
-    if (thrusterObj_.lock()) return;
+    if (thrusterObj_.lock()) {
+        return;
+    }
     auto scene = GetScene();
-    if (!scene) return;
+    if (!scene) {
+        return;
+    }
     auto shipObj = scene->FindGameObject("HeroShip");
-    if (!shipObj) return;
+    if (!shipObj) {
+        return;
+    }
 
     // GameSceneと全く同じ player_thruster_effect.json をノズル位置にアタッチ生成
     auto thruster = shipObj->Instantiate("resources/prefabs/player_thruster_effect.json", nozzleOffset_, true);
@@ -104,14 +109,16 @@ void TitleSceneDirectorComponent::SetupThrusterEffect() {
         targetThrusterScaleZ_ = 0.85f;
 
         if (auto transform = thruster->GetComponent<TransformComponent>()) {
-            transform->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
+            transform->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
         }
     }
 }
 
 void TitleSceneDirectorComponent::Update() {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     float deltaTime = engine->GetDeltaTime();
     if (deltaTime <= 0.0f) {
@@ -136,21 +143,23 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         float rollZ = initialShipRot_.z + std::sin(idleTimer_ * 1.2f) * 0.035f;
         float pitchX = initialShipRot_.x + std::cos(idleTimer_ * 1.5f) * 0.020f;
 
-        shipTransform_->SetPosition({ initialShipPos_.x, hoverY, initialShipPos_.z });
-        shipTransform_->SetRotation({ pitchX, initialShipRot_.y, rollZ });
+        shipTransform_->SetPosition({initialShipPos_.x, hoverY, initialShipPos_.z});
+        shipTransform_->SetRotation({pitchX, initialShipRot_.y, rollZ});
     }
 
     // 2. カメラの呼吸揺れ
     if (cameraTransform_) {
         float swayX = initialCameraPos_.x + std::sin(idleTimer_ * 0.8f) * 0.03f;
         float swayY = initialCameraPos_.y + std::cos(idleTimer_ * 0.9f) * 0.025f;
-        cameraTransform_->SetPosition({ swayX, swayY, initialCameraPos_.z });
+        cameraTransform_->SetPosition({swayX, swayY, initialCameraPos_.z});
     }
 
     // 3. ガレキの公転運動と自転
     for (size_t i = 0; i < debrisTransforms_.size(); ++i) {
         auto t = debrisTransforms_[i];
-        if (!t || i >= debrisOrbits_.size()) continue;
+        if (!t || i >= debrisOrbits_.size()) {
+            continue;
+        }
 
         const auto& orbit = debrisOrbits_[i];
         float angle = orbit.phase + idleTimer_ * orbit.speed;
@@ -159,7 +168,7 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         float z = std::sin(angle) * orbit.radiusZ;
         float y = orbit.heightOffset + std::sin(angle * 1.5f) * 0.15f;
 
-        t->SetPosition({ x, y, z });
+        t->SetPosition({x, y, z});
 
         // 自転
         auto currentRot = t->GetRotation();
@@ -175,13 +184,15 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
 
     if (auto thruster = thrusterObj_.lock()) {
         if (auto t = thruster->GetComponent<TransformComponent>()) {
-            t->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
+            t->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
         }
     }
 }
 
 void TitleSceneDirectorComponent::StartLaunchSequence() {
-    if (isLaunching_) return;
+    if (isLaunching_) {
+        return;
+    }
 
     isLaunching_ = true;
     launchTimer_ = 0.0f;
@@ -226,14 +237,12 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
         // 自機の沈み込み＆斜め姿勢から正面水平([0, 0, 0])への整流
         if (shipTransform_) {
             float backZ = initialShipPos_.z - p1 * 0.35f;
-            shipTransform_->SetPosition({ initialShipPos_.x, initialShipPos_.y, backZ });
+            shipTransform_->SetPosition({initialShipPos_.x, initialShipPos_.y, backZ});
 
             // 機首とロールを正面水平へクイッと正す
-            shipTransform_->SetRotation({
-                std::lerp(launchStartRot_.x, 0.0f, alignT),
-                std::lerp(launchStartRot_.y, 0.0f, alignT),
-                std::lerp(launchStartRot_.z, 0.0f, alignT)
-            });
+            shipTransform_->SetRotation({std::lerp(launchStartRot_.x, 0.0f, alignT),
+                                         std::lerp(launchStartRot_.y, 0.0f, alignT),
+                                         std::lerp(launchStartRot_.z, 0.0f, alignT)});
         }
 
         // ガレキが自機中心へキュッと収束
@@ -243,7 +252,7 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
                 float cx = origPos.x * (1.0f - p1 * 0.45f);
                 float cy = origPos.y * (1.0f - p1 * 0.45f);
                 float cz = origPos.z * (1.0f - p1 * 0.45f);
-                dt->SetPosition({ cx, cy, cz });
+                dt->SetPosition({cx, cy, cz});
             }
         }
 
@@ -257,16 +266,16 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
         if (shipTransform_) {
             float boostZ = initialShipPos_.z - 0.35f + accelCurve * 50.0f;
-            shipTransform_->SetPosition({ initialShipPos_.x, initialShipPos_.y, boostZ });
+            shipTransform_->SetPosition({initialShipPos_.x, initialShipPos_.y, boostZ});
 
             // 正面水平姿勢を維持（推進ベクトルと進行方向を完全一致させ、GameSceneへシームレス接続）
-            shipTransform_->SetRotation({ 0.0f, 0.0f, 0.0f });
+            shipTransform_->SetRotation({0.0f, 0.0f, 0.0f});
         }
 
         // カメラの自機追従ドリーイン（自機にしっかり食らいつき、迫力のアフターバーナーを至近距離で捉える）
         if (cameraTransform_) {
             float camDollyZ = initialCameraPos_.z + accelCurve * 42.0f;
-            cameraTransform_->SetPosition({ initialCameraPos_.x, initialCameraPos_.y, camDollyZ });
+            cameraTransform_->SetPosition({initialCameraPos_.x, initialCameraPos_.y, camDollyZ});
         }
 
         // 出撃急加速：GameSceneのブースト時と同様にScale Zを自然に伸長（プレハブ本来のシャープな噴流）
@@ -279,7 +288,7 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
     if (auto thruster = thrusterObj_.lock()) {
         if (auto transform = thruster->GetComponent<TransformComponent>()) {
-            transform->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
+            transform->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
         }
     }
 

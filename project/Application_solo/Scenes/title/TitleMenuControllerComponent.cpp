@@ -63,10 +63,14 @@ void TitleMenuControllerComponent::Update() {
 
 void TitleMenuControllerComponent::HandleNavigationInput() {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     auto inputManager = engine->GetInputManager();
-    if (!inputManager) return;
+    if (!inputManager) {
+        return;
+    }
 
     int moveDelta = 0;
 
@@ -94,7 +98,8 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
     // フォーカス移動の実行
     if (moveDelta != 0) {
         int oldIndex = currentIndex_;
-        currentIndex_ = (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) % static_cast<int>(buttonNames_.size());
+        currentIndex_ =
+            (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) % static_cast<int>(buttonNames_.size());
 
         if (oldIndex != currentIndex_) {
             PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
@@ -135,14 +140,17 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
 
 void TitleMenuControllerComponent::HandleSelectionInput() {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     auto inputManager = engine->GetInputManager();
-    if (!inputManager) return;
+    if (!inputManager) {
+        return;
+    }
 
     // 決定キー (Aボタン / Space / Enter)
-    bool isSelected = inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
-                      inputManager->IsKeyPressed(VK_SPACE) ||
+    bool isSelected = inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) || inputManager->IsKeyPressed(VK_SPACE) ||
                       inputManager->IsKeyPressed(VK_RETURN);
 
     // マウス左クリックによる決定判定（選択中のボタン領域内でのクリック）
@@ -169,65 +177,69 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
 
 void TitleMenuControllerComponent::ExecuteSelection() {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     PlaySE("resources/audio/se_menu_decide.wav", "se_menu_decide", 0.9f);
 
     switch (currentIndex_) {
-        case 0: // GAME START
-        {
-            isLaunching_ = true;
-            SetMenuVisible(false); // 出撃時はメニューUIを退避
+    case 0: // GAME START
+    {
+        isLaunching_ = true;
+        SetMenuVisible(false); // 出撃時はメニューUIを退避
 
-            // TitleSceneDirectorComponent による出撃シーケンス（重力波パルス・自機加速・ドリーイン）を実行
-            if (auto scene = GetScene()) {
-                if (auto menuMgr = scene->FindGameObject("MenuManager")) {
-                    if (auto director = menuMgr->GetComponent<TitleSceneDirectorComponent>()) {
-                        director->StartLaunchSequence();
-                        break;
-                    }
+        // TitleSceneDirectorComponent による出撃シーケンス（重力波パルス・自機加速・ドリーイン）を実行
+        if (auto scene = GetScene()) {
+            if (auto menuMgr = scene->FindGameObject("MenuManager")) {
+                if (auto director = menuMgr->GetComponent<TitleSceneDirectorComponent>()) {
+                    director->StartLaunchSequence();
+                    break;
                 }
             }
+        }
 
-            // フォールバック遷移
-            if (auto sm = engine->GetSceneManager()) {
-                sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.9f);
-            }
-            break;
+        // フォールバック遷移
+        if (auto sm = engine->GetSceneManager()) {
+            sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.9f);
         }
-        case 1: // HOW TO PLAY
-        {
-            if (auto sm = engine->GetSceneManager()) {
-                sm->PushScene("HowToPlayScene");
-            }
-            break;
+        break;
+    }
+    case 1: // HOW TO PLAY
+    {
+        if (auto sm = engine->GetSceneManager()) {
+            sm->PushScene("HowToPlayScene");
         }
-        case 2: // OPTIONS
-        {
-            if (auto sm = engine->GetSceneManager()) {
-                sm->PushScene("OptionsScene");
-            }
-            break;
+        break;
+    }
+    case 2: // OPTIONS
+    {
+        if (auto sm = engine->GetSceneManager()) {
+            sm->PushScene("OptionsScene");
         }
-        case 3: // QUIT
-        {
+        break;
+    }
+    case 3: // QUIT
+    {
 #ifdef EditorMode
-            if (auto editor = EditorManager::GetInstance()) {
-                editor->ExitPlayMode();
-                break;
-            }
-#endif
-            PostQuitMessage(0);
+        if (auto editor = EditorManager::GetInstance()) {
+            editor->ExitPlayMode();
             break;
         }
-        default:
-            break;
+#endif
+        PostQuitMessage(0);
+        break;
+    }
+    default:
+        break;
     }
 }
 
 void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
     auto scene = GetScene();
-    if (!scene) return;
+    if (!scene) {
+        return;
+    }
 
     // 初回実行時にエディタ設定の初期スケールを自動キャッシュ（遅延取得）
     if (initialScales_.size() < buttonNames_.size()) {
@@ -247,10 +259,13 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
 
     for (size_t i = 0; i < buttonNames_.size(); ++i) {
         // スケール補間 (Spring/Lerp)
-        currentScales_[i] = std::lerp(currentScales_[i], targetScales_[i], std::clamp(deltaTime * kLerpSpeed, 0.0f, 1.0f));
+        currentScales_[i] =
+            std::lerp(currentScales_[i], targetScales_[i], std::clamp(deltaTime * kLerpSpeed, 0.0f, 1.0f));
 
         auto btnObj = scene->FindGameObject(buttonNames_[i]);
-        if (!btnObj) continue;
+        if (!btnObj) {
+            continue;
+        }
 
         auto transform = btnObj->GetComponent<TransformComponent>();
         if (transform && i < initialScales_.size()) {
@@ -286,10 +301,14 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
 
 void TitleMenuControllerComponent::PlaySE(const std::string& relativePath, const std::string& soundName, float volume) {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     auto audioManager = engine->GetAudioManager();
-    if (!audioManager) return;
+    if (!audioManager) {
+        return;
+    }
 
     auto soundData = audioManager->GetOrLoadSoundByFile(relativePath, soundName);
     if (soundData) {
@@ -299,7 +318,9 @@ void TitleMenuControllerComponent::PlaySE(const std::string& relativePath, const
 
 void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
     auto scene = GetScene();
-    if (!scene) return;
+    if (!scene) {
+        return;
+    }
 
     // タイトルロゴの表示/非表示
     if (auto titleObj = scene->FindGameObject("TitleText")) {
@@ -313,4 +334,3 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
         }
     }
 }
-

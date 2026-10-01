@@ -25,10 +25,14 @@ void TitleCosmicNebulaComponent::OnRegisterProperties() {
 
 void TitleCosmicNebulaComponent::CreateConstantBuffer() {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     auto dx = engine->GetDirectXCommon();
-    if (!dx) return;
+    if (!dx) {
+        return;
+    }
 
     constantBuffer_ = dx->CreateBufferResource(sizeof(CosmicNebulaParams));
     if (constantBuffer_) {
@@ -41,7 +45,9 @@ void TitleCosmicNebulaComponent::CreateConstantBuffer() {
 
 void TitleCosmicNebulaComponent::Update() {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     float deltaTime = engine->GetDeltaTime();
     if (deltaTime <= 0.0f) {
@@ -69,7 +75,6 @@ void TitleCosmicNebulaComponent::Update() {
         }
     }
 
-
     // ゲーム画面の解像度（SceneViewPanel の仮想マウス座標系と一致）
     constexpr float kGameWidth = 1280.0f;
     constexpr float kGameHeight = 720.0f;
@@ -85,10 +90,8 @@ void TitleCosmicNebulaComponent::Update() {
 
     // --- 速度ベクトルの算出と平滑化（Velocity-Aligned Wake Field） ---
     float safeDeltaTime = (deltaTime > 0.0001f) ? deltaTime : (1.0f / 60.0f);
-    Irufemi::Vector2 rawVelocity{
-        (smoothedMouseUV_.x - prevRawMouseUV_.x) / safeDeltaTime,
-        (smoothedMouseUV_.y - prevRawMouseUV_.y) / safeDeltaTime
-    };
+    Irufemi::Vector2 rawVelocity{(smoothedMouseUV_.x - prevRawMouseUV_.x) / safeDeltaTime,
+                                 (smoothedMouseUV_.y - prevRawMouseUV_.y) / safeDeltaTime};
     prevRawMouseUV_ = smoothedMouseUV_;
 
     // クリック時は出撃パルス（重力波インパルス）を発火
@@ -110,9 +113,9 @@ void TitleCosmicNebulaComponent::Update() {
     params_.time = totalTime_;
     params_.swirlStrength = 0.65f;
     params_.density = 1.0f;
-    params_.centerUV = { vortexCenterX, vortexCenterY, 0.0f, 0.0f };
+    params_.centerUV = {vortexCenterX, vortexCenterY, 0.0f, 0.0f};
     // mouseUV: xy = カーソル正規化UV, zw = 平滑化移動速度ベクトル (Velocity)
-    params_.mouseUV = { smoothedMouseUV_.x, smoothedMouseUV_.y, smoothedVelocity_.x, smoothedVelocity_.y };
+    params_.mouseUV = {smoothedMouseUV_.x, smoothedMouseUV_.y, smoothedVelocity_.x, smoothedVelocity_.y};
 
     if (mappedParams_) {
         *mappedParams_ = params_;
@@ -127,19 +130,27 @@ void TitleCosmicNebulaComponent::TriggerPulse(float power) {
 
 void TitleCosmicNebulaComponent::Draw() {
     auto engine = GetEngine();
-    if (!engine) return;
+    if (!engine) {
+        return;
+    }
 
     auto drawManager = engine->GetDrawManager();
-    if (!drawManager || !constantBuffer_) return;
+    if (!drawManager || !constantBuffer_) {
+        return;
+    }
 
     // 最奥深度 (Z=1.0) による星雲背景パスを BeforeOpaque（3D不透明パス直前・Skybox直後）に提出
     drawManager->SubmitCustomPass(Irufemi::RenderStage::BeforeOpaque, [this, engine]() {
         auto dx = engine->GetDirectXCommon();
-        if (!dx) return;
+        if (!dx) {
+            return;
+        }
 
         auto cmdList = dx->GetCommandList();
         auto psoManager = engine->GetPSOManager();
-        if (!cmdList || !psoManager) return;
+        if (!cmdList || !psoManager) {
+            return;
+        }
 
         // CosmicNebula PSO (CosmicNebula.VS.hlsl + CosmicNebula.PS.hlsl)
         // DepthWrite::Disable (深度テスト有効・書き込み無効) により、自機・ガレキの奥にのみ星雲が描画される
@@ -151,7 +162,7 @@ void TitleCosmicNebulaComponent::Draw() {
 
             // register(b6) / RootSlot::Special に定数バッファをバインド
             cmdList->SetGraphicsRootConstantBufferView(static_cast<UINT>(RootSlot::Special),
-                                                      constantBuffer_->GetGPUVirtualAddress());
+                                                       constantBuffer_->GetGPUVirtualAddress());
 
             // SV_VertexID による全画面最奥三角形描画 (3頂点)
             cmdList->DrawInstanced(3, 1, 0, 0);
