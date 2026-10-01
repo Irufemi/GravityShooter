@@ -7,6 +7,12 @@
 
 void HowToPlayScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
+    openCooldownTimer_ = 0.15f;
+}
+
+void HowToPlayScene::OnEnter() {
+    BaseScene::OnEnter();
+    openCooldownTimer_ = 0.15f;
 }
 
 void HowToPlayScene::Update() {
@@ -21,6 +27,12 @@ void HowToPlayScene::Update() {
         return;
     }
 
+    float dt = engine_->GetDeltaTime();
+    if (openCooldownTimer_ > 0.0f) {
+        openCooldownTimer_ -= dt;
+        return; // 開いた直後のクリック・ボタン入力残存による即時クローズをガード
+    }
+
     // 閉じる入力判定 (Bボタン / ESC / BackSpace / マウス左クリック)
     bool closeTrigger = inputManager->IsButtonPressed(XINPUT_GAMEPAD_B) || inputManager->IsKeyPressed(VK_ESCAPE) ||
                         inputManager->IsKeyPressed(VK_BACK);
@@ -31,14 +43,6 @@ void HowToPlayScene::Update() {
     }
 
     if (closeTrigger) {
-        // キャンセル音再生
-        if (auto audioManager = engine_->GetAudioManager()) {
-            auto sound = audioManager->GetOrLoadSoundByFile("resources/audio/se_menu_cancel.wav", "se_menu_cancel");
-            if (sound) {
-                audioManager->Play(sound, false, 0.7f);
-            }
-        }
-
         // タイトル画面へ戻る (スタックからポップ)
         if (auto sm = engine_->GetSceneManager()) {
             sm->PopScene();

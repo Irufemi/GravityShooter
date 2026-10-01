@@ -52,4 +52,12 @@ public: // メンバ関数(システム)
     bool IsAudioBlocking() const override {
         return false;
     }
+
+    /**
+     * @brief シーン開始時処理 (スタック積載時)
+     */
+    void OnEnter() override;
+
+private:
+    float openCooldownTimer_ = 0.0f; //!< 前画面からの入力残存防止用タイマー
 };
