@@ -76,6 +76,7 @@ public: // メンバ関数(システム)
 private: // 内部処理
     void HandleNavigationInput();
     void HandleSelectionInput();
+    void UpdateVirtualCursor(float deltaTime);
     void UpdateButtonVisuals(float deltaTime);
     void ExecuteSelection();
     void PlaySE(const std::string& relativePath, const std::string& soundName, float volume = 0.8f);
@@ -87,6 +88,11 @@ private:                           // メンバ変数
 
     float stickCooldownTimer_ = 0.0f; //!< スティック連続移動防止用タイマー
     const float kStickCooldown_ = 0.22f;
+
+    // 仮想カーソル用
+    std::shared_ptr<GameObject> virtualCursorObj_;
+    class Primitive2DRendererComponent* virtualCursorRenderer_ = nullptr;
+    const float kStickyFriction_ = 0.45f; //!< ボタンホバー時の減速倍率
 
     // ボタンのスケール補間制御用
     std::vector<float> currentScales_ = {1.0f, 1.0f, 1.0f, 1.0f};

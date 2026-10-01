@@ -6,6 +6,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
 #include "Framework/Component/Renderer/TextRendererComponent.h"
+#include "Framework/Component/Renderer/Primitive2DRendererComponent.h"
 #include "Framework/Scene/SceneTransition.h"
 #include "Irufemi.h"
 #include "Platform/Input/InputManager.h"
@@ -25,6 +26,9 @@ void TitleMenuControllerComponent::Initialize() {
     isLaunching_ = false;
     stickCooldownTimer_ = 0.0f;
 
+    virtualCursorObj_ = nullptr;
+    virtualCursorRenderer_ = nullptr;
+
     currentScales_ = {1.15f, 1.0f, 1.0f, 1.0f};
     targetScales_ = {1.15f, 0.95f, 0.95f, 0.95f};
 }
@@ -34,17 +38,20 @@ void TitleMenuControllerComponent::OnRegisterProperties() {
 }
 
 void TitleMenuControllerComponent::Update() {
-    if (isLaunching_) {
-        // 出撃シーケンス中は追加入力を受け付けない
-        return;
-    }
-
     auto engine = GetEngine();
     if (!engine) {
         return;
     }
 
     float deltaTime = engine->GetDeltaTime();
+
+    // 仮想カーソルの更新（出撃中や操作不能時は非表示処理を含む）
+    UpdateVirtualCursor(deltaTime);
+
+    if (isLaunching_) {
+        // 出撃シーケンス中は追加入力を受け付けない
+        return;
+    }
 
     // スティッククールダウン減衰
     if (stickCooldownTimer_ > 0.0f) {
@@ -83,19 +90,7 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
         moveDelta = 1;
     }
 
-    // 左スティック入力 (デッドゾーン考慮)
-    if (moveDelta == 0 && stickCooldownTimer_ <= 0.0f) {
-        float stickY = inputManager->GetLeftStickY();
-        if (stickY > 0.55f) {
-            moveDelta = -1;
-            stickCooldownTimer_ = kStickCooldown_;
-        } else if (stickY < -0.55f) {
-            moveDelta = 1;
-            stickCooldownTimer_ = kStickCooldown_;
-        }
-    }
-
-    // フォーカス移動の実行
+    // フォーカス移動の実行（キーボード / 十字キー）
     if (moveDelta != 0) {
         int oldIndex = currentIndex_;
         currentIndex_ =
@@ -112,25 +107,23 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
         return;
     }
 
-    // --- マウスカーソルによるホバー検出 ---
-    if (auto mouse = inputManager->GetMouse()) {
-        const auto& mousePos = mouse->GetPosition();
-        if (auto scene = GetScene()) {
-            for (size_t i = 0; i < buttonNames_.size(); ++i) {
-                if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
-                    if (auto transform = btnObj->GetComponent<TransformComponent>()) {
-                        const auto& pos = transform->GetPosition();
-                        // ボタンの当たり判定領域 (横幅 ±180px, 縦幅 ±25px)
-                        if (std::abs(mousePos.x - pos.x) <= 180.0f && std::abs(mousePos.y - pos.y) <= 25.0f) {
-                            if (currentIndex_ != static_cast<int>(i)) {
-                                currentIndex_ = static_cast<int>(i);
-                                PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
-                                for (size_t k = 0; k < targetScales_.size(); ++k) {
-                                    targetScales_[k] = (static_cast<int>(k) == currentIndex_) ? 1.15f : 0.95f;
-                                }
+    // --- 統合仮想カーソル（マウス / ゲームパッド左スティック）によるホバー検出 ---
+    const auto& cursorPos = inputManager->GetVirtualCursorPosition();
+    if (auto scene = GetScene()) {
+        for (size_t i = 0; i < buttonNames_.size(); ++i) {
+            if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
+                if (auto transform = btnObj->GetComponent<TransformComponent>()) {
+                    const auto& pos = transform->GetPosition();
+                    // ボタンの当たり判定領域 (横幅 ±180px, 縦幅 ±25px)
+                    if (std::abs(cursorPos.x - pos.x) <= 180.0f && std::abs(cursorPos.y - pos.y) <= 25.0f) {
+                        if (currentIndex_ != static_cast<int>(i)) {
+                            currentIndex_ = static_cast<int>(i);
+                            PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
+                            for (size_t k = 0; k < targetScales_.size(); ++k) {
+                                targetScales_[k] = (static_cast<int>(k) == currentIndex_) ? 1.15f : 0.95f;
                             }
-                            break;
                         }
+                        break;
                     }
                 }
             }
@@ -149,23 +142,29 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
         return;
     }
 
-    // 決定キー (Aボタン / Space / Enter)
+    // 決定キー (Aボタン / Space / Enter / マウス左クリック / RT等の仮想カーソルアクション)
     bool isSelected = inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) || inputManager->IsKeyPressed(VK_SPACE) ||
-                      inputManager->IsKeyPressed(VK_RETURN);
+                      inputManager->IsKeyPressed(VK_RETURN) || inputManager->IsCursorActionPressed();
 
-    // マウス左クリックによる決定判定（選択中のボタン領域内でのクリック）
-    if (!isSelected && inputManager->GetMouse()) {
-        if (inputManager->GetMouse()->IsButtonPressed(Mouse::Button::Left) || inputManager->IsKeyPressed(VK_LBUTTON)) {
-            if (auto scene = GetScene()) {
-                if (auto btnObj = scene->FindGameObject(buttonNames_[currentIndex_])) {
+    // マウス左クリックやRT等でカーソルアクションを押した場合は、カーソルがボタン領域内にあるかチェック
+    if (inputManager->IsCursorActionPressed()) {
+        const auto& cursorPos = inputManager->GetVirtualCursorPosition();
+        if (auto scene = GetScene()) {
+            bool clickedAny = false;
+            for (size_t i = 0; i < buttonNames_.size(); ++i) {
+                if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
                     if (auto transform = btnObj->GetComponent<TransformComponent>()) {
-                        const auto& mousePos = inputManager->GetMouse()->GetPosition();
                         const auto& pos = transform->GetPosition();
-                        if (std::abs(mousePos.x - pos.x) <= 180.0f && std::abs(mousePos.y - pos.y) <= 25.0f) {
-                            isSelected = true;
+                        if (std::abs(cursorPos.x - pos.x) <= 180.0f && std::abs(cursorPos.y - pos.y) <= 25.0f) {
+                            currentIndex_ = static_cast<int>(i);
+                            clickedAny = true;
+                            break;
                         }
                     }
                 }
+            }
+            if (!clickedAny) {
+                isSelected = false; // ボタン領域外のクリック時は決定しない
             }
         }
     }
@@ -333,4 +332,81 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
             btnObj->SetActive(visible);
         }
     }
+
+    // 仮想カーソルの表示/非表示
+    if (virtualCursorObj_) {
+        virtualCursorObj_->SetActive(visible);
+    }
 }
+
+void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+
+    auto inputManager = engine->GetInputManager();
+    if (!inputManager) {
+        return;
+    }
+
+    // 仮想カーソルGameObjectの取得（キャッシュ）
+    if (!virtualCursorObj_) {
+        if (auto scene = GetScene()) {
+            virtualCursorObj_ = scene->FindGameObject("VirtualCursor");
+            if (virtualCursorObj_) {
+                virtualCursorRenderer_ = virtualCursorObj_->GetComponent<Primitive2DRendererComponent>();
+            }
+        }
+    }
+
+    // 出撃シーケンス中または遊び方モーダル表示中はカーソルを隠す
+    if (isLaunching_ || isHowToPlayOpen_) {
+        if (virtualCursorRenderer_) {
+            virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+        }
+        return;
+    }
+
+    // 1. カーソルがボタン上にホバーしているか判定（マグネット摩擦用）
+    const auto& cursorPos = inputManager->GetVirtualCursorPosition();
+    bool isHoveringAnyButton = false;
+    if (auto scene = GetScene()) {
+        for (const auto& name : buttonNames_) {
+            if (auto btnObj = scene->FindGameObject(name)) {
+                if (auto transform = btnObj->GetComponent<TransformComponent>()) {
+                    const auto& pos = transform->GetPosition();
+                    if (std::abs(cursorPos.x - pos.x) <= 180.0f && std::abs(cursorPos.y - pos.y) <= 25.0f) {
+                        isHoveringAnyButton = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. InputManager に仮想カーソル更新を委譲（ホバー摩擦適用）
+    float speedMult = isHoveringAnyButton ? kStickyFriction_ : 1.0f;
+    inputManager->UpdateVirtualCursor(deltaTime, speedMult);
+
+    // 3. 仮想カーソルオブジェクトの座標・表示状態を同期
+    const auto& newPos = inputManager->GetVirtualCursorPosition();
+    if (virtualCursorObj_) {
+        if (auto trans = virtualCursorObj_->GetTransform()) {
+            trans->SetPosition({newPos.x, newPos.y, 0.0f});
+            float targetScale = isHoveringAnyButton ? 1.25f : 1.0f;
+            trans->SetScale({targetScale, targetScale, 1.0f});
+        }
+
+        if (virtualCursorRenderer_) {
+            // ゲームパッド操作中のみリングカーソルを表示し、物理マウス操作時はマウスカーソルに委ねる（非表示）
+            if (inputManager->IsUsingGamepadCursor()) {
+                virtualCursorRenderer_->SetColor(isHoveringAnyButton ? Irufemi::Vector4{0.2f, 1.0f, 0.95f, 1.0f}
+                                                                     : Irufemi::Vector4{0.1f, 0.95f, 1.0f, 0.85f});
+            } else {
+                virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+            }
+        }
+    }
+}
+

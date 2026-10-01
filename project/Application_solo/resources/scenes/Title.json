@@ -561,6 +561,58 @@
       "instanceId": 2000000000000000005,
       "name": "MenuManager",
       "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              360.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "color": [
+              0.10000000149011612,
+              0.949999988079071,
+              1.0,
+              1.0
+            ],
+            "currentTypeIndex": 3,
+            "isTopMost": true,
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "size": [
+              28.0,
+              28.0
+            ],
+            "subdivision": 32,
+            "texturePath": "",
+            "thickness": 3.0
+          },
+          "type": "Primitive2DRendererComponent"
+        }
+      ],
+      "instanceId": 2000000000000000006,
+      "name": "VirtualCursor",
+      "tag": "Untagged"
     }
   ],
   "settings": {
