@@ -378,19 +378,35 @@ void InputManager::UpdateVirtualCursor(float deltaTime, float speedMultiplier) {
         }
     }
 
-    // 2. ゲームパッド左スティック入力による移動
+    // 2. ゲームパッドスティック入力による移動（右スティックまたは左スティック）
     if (gamepad_ && gamepad_->IsConnected()) {
-        float stickX = gamepad_->GetLeftStickX();
-        float stickY = gamepad_->GetLeftStickY();
-        float stickMagnitude = std::hypot(stickX, stickY);
+        float rStickX = gamepad_->GetRightStickX();
+        float rStickY = gamepad_->GetRightStickY();
+        float rMagnitude = std::hypot(rStickX, rStickY);
+
+        float lStickX = gamepad_->GetLeftStickX();
+        float lStickY = gamepad_->GetLeftStickY();
+        float lMagnitude = std::hypot(lStickX, lStickY);
 
         constexpr float kDeadZone = 0.15f;
-        if (stickMagnitude > kDeadZone) {
+        float moveX = 0.0f;
+        float moveY = 0.0f;
+
+        // 右スティック（エイミング用）の入力を優先し、なければ左スティック（メニュー等）を採用
+        if (rMagnitude > kDeadZone) {
+            moveX = rStickX;
+            moveY = rStickY;
+        } else if (lMagnitude > kDeadZone) {
+            moveX = lStickX;
+            moveY = lStickY;
+        }
+
+        if (std::hypot(moveX, moveY) > kDeadZone) {
             isUsingGamepadCursor_ = true;
 
             float speed = virtualCursorBaseSpeed_ * speedMultiplier;
-            virtualCursorPos_.x += stickX * speed * deltaTime;
-            virtualCursorPos_.y -= stickY * speed * deltaTime; // スティック上(+)は画面上(-)
+            virtualCursorPos_.x += moveX * speed * deltaTime;
+            virtualCursorPos_.y -= moveY * speed * deltaTime; // スティック上(+)は画面上(-)
         }
     }
 

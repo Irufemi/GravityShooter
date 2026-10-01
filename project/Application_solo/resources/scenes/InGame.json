@@ -2457,20 +2457,20 @@
         {
           "data": {
             "color": [
+              0.10000000149011612,
+              0.8500000238418579,
               1.0,
-              0.0,
-              0.0,
-              1.0
+              0.6499999761581421
             ],
-            "currentTypeIndex": 2,
-            "isTopMost": false,
+            "currentTypeIndex": 3,
+            "isTopMost": true,
             "pivot": [
               0.5,
               0.5
             ],
             "size": [
-              100.0,
-              100.0
+              36.0,
+              36.0
             ],
             "subdivision": 32,
             "texturePath": "",

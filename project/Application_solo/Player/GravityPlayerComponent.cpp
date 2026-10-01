@@ -70,6 +70,8 @@ void GravityPlayerComponent::Initialize() {
     orbitingDebris_.clear();
     isThrowing_ = false;
     throwTimer_ = 0.0f;
+    prevLTDown_ = false;
+    prevRTDown_ = false;
 }
 
 void GravityPlayerComponent::Start() {
@@ -123,6 +125,13 @@ void GravityPlayerComponent::Update() {
         HandleMarkInput();
         HandleThrowInput();
     }
+
+    if (auto engine = GetEngine()) {
+        if (auto input = engine->GetInputManager()) {
+            prevLTDown_ = (input->GetLeftTrigger() >= 0.4f);
+            prevRTDown_ = (input->GetRightTrigger() >= 0.4f);
+        }
+    }
 }
 
 void GravityPlayerComponent::HandlePullInput() {
@@ -132,8 +141,10 @@ void GravityPlayerComponent::HandlePullInput() {
         return;
     }
 
-    // Eキー で引き寄せ (右クリックは廃止)
-    if (input->IsKeyPressed('E')) {
+    // Eキー または LTトリガー または LB で引き寄せ
+    bool isPullPressed = input->IsKeyPressed('E') || (!prevLTDown_ && input->GetLeftTrigger() >= 0.4f) ||
+                         input->IsButtonPressed(XINPUT_GAMEPAD_LEFT_SHOULDER);
+    if (isPullPressed) {
         if (static_cast<int>(orbitingDebris_.size()) >= maxOrbitCount_) {
             return;
         }
@@ -241,13 +252,16 @@ void GravityPlayerComponent::HandleMarkInput() {
         return;
     }
 
-    // Rキーでキャンセル
-    if (input->IsKeyDown('R')) {
+    // Rキー または Bボタン でキャンセル
+    if (input->IsKeyDown('R') || input->IsButtonPressed(XINPUT_GAMEPAD_B)) {
         targetingComp_->ClearTargets();
     }
 
-    // 右クリックでマーキング
-    if (input->IsMouseButtonPressed(Mouse::Button::Right)) {
+    // 右クリック または RB または Aボタン でマーキング
+    bool isMarkPressed = input->IsMouseButtonPressed(Mouse::Button::Right) ||
+                         input->IsButtonPressed(XINPUT_GAMEPAD_RIGHT_SHOULDER) ||
+                         input->IsButtonPressed(XINPUT_GAMEPAD_A);
+    if (isMarkPressed) {
         size_t maxLockOn = orbitingDebris_.size();
         if (maxLockOn == 0) {
             maxLockOn = 1; // シールド奪取用に最低1つはロック許可
@@ -263,8 +277,10 @@ void GravityPlayerComponent::HandleThrowInput() {
         return;
     }
 
-    // 左クリックで射撃
-    if (input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q')) {
+    // 左クリック または Qキー または RTトリガー で射撃
+    bool isThrowPressed = input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q') ||
+                          (!prevRTDown_ && input->GetRightTrigger() >= 0.4f);
+    if (isThrowPressed) {
         if (orbitingDebris_.empty()) {
             return;
         }

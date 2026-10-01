@@ -112,5 +112,8 @@ private:
 
     std::string statusDataPath_ = "resources/GameData/PlayerStatus.json"; ///< ステータス設定ファイルパス
 
+    bool prevLTDown_ = false; ///< 前フレームのLTトリガー状態
+    bool prevRTDown_ = false; ///< 前フレームのRTトリガー状態
+
     PlayerHealthComponent* healthComp_ = nullptr; ///< プレイヤー体力コンポーネントの参照
 };
