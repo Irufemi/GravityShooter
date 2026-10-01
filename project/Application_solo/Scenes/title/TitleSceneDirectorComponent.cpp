@@ -277,8 +277,8 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
             // 機首とロールを正面水平へクイッと正す
             shipTransform->SetRotation({std::lerp(launchStartRot_.x, 0.0f, alignT),
-                                         std::lerp(launchStartRot_.y, 0.0f, alignT),
-                                         std::lerp(launchStartRot_.z, 0.0f, alignT)});
+                                        std::lerp(launchStartRot_.y, 0.0f, alignT),
+                                        std::lerp(launchStartRot_.z, 0.0f, alignT)});
         }
 
         // ガレキが自機中心へキュッと収束
