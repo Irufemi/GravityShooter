@@ -215,7 +215,12 @@ void DebrisManagerComponent::SpawnDebrisInFrontOfPlayer(int count) {
         while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
             int oldestId = var.activeIds.front();
             var.activeIds.pop();
-            var.virtualManager->RemoveVirtualInstance(oldestId);
+            int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
+            if (sparseIdx >= 0 && sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
+                if (!var.virtualManager->GetDenseInstances()[sparseIdx].isPromoted) {
+                    var.virtualManager->RemoveVirtualInstance(oldestId);
+                }
+            }
         }
     }
 }
@@ -292,7 +297,12 @@ void DebrisManagerComponent::SpawnDebrisCluster(const Irufemi::Vector3& centerPo
         while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
             int oldestId = var.activeIds.front();
             var.activeIds.pop();
-            var.virtualManager->RemoveVirtualInstance(oldestId);
+            int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
+            if (sparseIdx >= 0 && sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
+                if (!var.virtualManager->GetDenseInstances()[sparseIdx].isPromoted) {
+                    var.virtualManager->RemoveVirtualInstance(oldestId);
+                }
+            }
         }
     }
 }
@@ -349,11 +359,20 @@ void DebrisManagerComponent::Update() {
                             if (sparseIdx >= 0 &&
                                 sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
                                 const auto& inst = var.virtualManager->GetDenseInstances()[sparseIdx];
+                                // 実体化（Promote中＝プレイヤー所持中やボスシールド）のガレキは空間キューからデタッチして実体を保護
+                                if (inst.isPromoted) {
+                                    var.activeIds.pop();
+                                    continue;
+                                }
+
                                 if (inst.position.z < playerPos.z - recycleBehindDistance_) {
                                     var.activeIds.pop();
                                     var.virtualManager->RemoveVirtualInstance(oldestId);
                                     continue;
                                 }
+                            } else {
+                                var.activeIds.pop();
+                                continue;
                             }
                             break;
                         }
