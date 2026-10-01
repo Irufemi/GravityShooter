@@ -274,14 +274,10 @@ void OptionsScene::UpdateSliderDrag() {
                      std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
 
     // =========================================================================
-    // A. スティック左右 ＆ 十字キー左右による直感操作 (Apex風UX)
+    // A. 十字キー左右による微調整 (カーソル通過時の誤動作を防ぐためスティック増減は撤廃)
     // =========================================================================
-    float stickX = input->GetLeftStickX();
     float directAdjust = 0.0f;
-
-    if (std::abs(stickX) > 0.3f) {
-        directAdjust = stickX * 0.6f * dt; // スティックアナログ増減
-    } else if (input->DPadRight() || input->IsKeyDown(VK_RIGHT) || input->IsKeyDown('D')) {
+    if (input->DPadRight() || input->IsKeyDown(VK_RIGHT) || input->IsKeyDown('D')) {
         directAdjust = 0.5f * dt;
     } else if (input->DPadLeft() || input->IsKeyDown(VK_LEFT) || input->IsKeyDown('A')) {
         directAdjust = -0.5f * dt;
