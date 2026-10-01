@@ -105,6 +105,22 @@ public:
     }
 
     /**
+     * @brief 投擲元（オーナー/Instigator）のゲームオブジェクトを設定する
+     * @param owner 発射元オブジェクトの弱参照
+     */
+    void SetOwnerObject(std::weak_ptr<GameObject> owner) {
+        ownerObject_ = owner;
+    }
+
+    /**
+     * @brief 投擲元（オーナー/Instigator）のゲームオブジェクトを取得する
+     * @return 発射元オブジェクトの弱参照
+     */
+    std::weak_ptr<GameObject> GetOwnerObject() const {
+        return ownerObject_;
+    }
+
+    /**
      * @brief 周回軌道パラメータを設定する
      * @param angle 周回角度（ラジアン）
      * @param radius 周回半径 (m)
@@ -190,6 +206,8 @@ private:
 
     // 追従・目標用の対象
     std::weak_ptr<GameObject> targetObject_;
+    // 投擲元（オーナー/Instigator）
+    std::weak_ptr<GameObject> ownerObject_;
 
     // パラメータ取得用ヘルパー（Managerから取得）
     float GetPullSpeed() const;

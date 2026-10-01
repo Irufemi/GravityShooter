@@ -125,18 +125,40 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         return;
     }
 
-    // 初回ヒットのみ通過させ多重ダメージを遮断
-    if (!ConsumeHitAuthority()) {
-        return;
+    // 1. オーナー（発射元自機）との相互除外 (Unreal Engine の IgnoreActor / Instigator パターン)
+    if (auto owner = ownerObject_.lock()) {
+        if (otherObj == owner.get()) {
+            return;
+        }
+    }
+
+    // 2. 自機レイヤー（Player）に属するオブジェクト（自機パーツ・コライダー）との衝突も完全に除外
+    if (auto engine = GetEngine()) {
+        if (auto cm = engine->GetCollisionManager()) {
+            if (auto otherCol = otherObj->GetComponent<ColliderComponent>()) {
+                uint32_t playerMask = cm->GetLayerMask("Player");
+                if ((otherCol->layer_ & playerMask) != 0) {
+                    return;
+                }
+            }
+        }
     }
 
     bool hit = false;
     if (auto debrisComp = otherObj->GetComponent<DebrisComponent>()) {
         if (debrisComp->GetState() == DebrisState::BossOrbiting) {
+            // 有効な衝突対象であることが確定した瞬間のみ、原子的（Atomic）に権限を消費
+            if (!ConsumeHitAuthority()) {
+                return;
+            }
             debrisComp->DestroyAsShield();
             hit = true;
         }
     } else if (auto damageable = otherObj->GetComponentByInterface<IDamageable>()) {
+        // 有効なダメージ対象であることが確定した瞬間のみ権限を消費
+        if (!ConsumeHitAuthority()) {
+            return;
+        }
         float damage = GetEnemyDamage();
         switch (damageable->GetDamageableType()) {
         case DamageableType::Boss:
@@ -157,6 +179,9 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         if (cm) {
             uint32_t envMask = cm->GetLayerMask("Environment");
             if ((collider->layer_ & envMask) != 0) {
+                if (!ConsumeHitAuthority()) {
+                    return;
+                }
                 hit = true;
             }
         }
@@ -260,6 +285,7 @@ void DebrisComponent::ResetForPool() {
     }
     state_ = DebrisState::Idle;
     targetObject_.reset();
+    ownerObject_.reset();
     orbitAngle_ = 0.0f;
     throwDirection_ = {0.0f, 0.0f, 0.0f};
     throwOrigin_ = {0.0f, 0.0f, 0.0f};
@@ -318,6 +344,7 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
                 // Thrown by player: Hits enemies, environment, and Boss's debris
                 collider->layer_ = playerLayer;
                 collider->mask_ = maskEnemy | maskEnvironment | enemyLayer;
+                ResetHitAuthority(); // 投擲開始時に判定権限（Arming）を確実にリセット
                 break;
             case DebrisState::BossOrbiting:
                 // Used by Boss: Hits player and Player's thrown debris
@@ -353,6 +380,7 @@ std::shared_ptr<Component> DebrisComponent::Clone() {
     clone->variationIndex_ = this->variationIndex_;
     clone->manager_ = this->manager_;
     clone->targetObject_ = this->targetObject_;
+    clone->ownerObject_ = this->ownerObject_;
     // No need to copy internal state variables like idleTimeY_, baseIdleY_ deeply, but doing default member copy is
     // fine since it's a new instance.
     return clone;

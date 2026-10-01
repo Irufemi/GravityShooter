@@ -781,7 +781,12 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                     if (len <= (std::max)(moveDist, 2.5f)) {
                         // 物理コリジョンとの競合による多重ダメージを防止
                         if (!debris->ConsumeHitAuthority()) {
-                            continue; // 既に物理コライダー側でヒット済みの場合はスキップ
+                            // 既に物理コライダー側でヒット・適用済みの場合は、敵前でのスタック・残留を防ぐため安全に回収
+                            MarkForRelease(debris->gameObject_->shared_from_this());
+                            if (debris->virtualId_ >= 0) {
+                                MarkForDestroy(debris->virtualId_, debris->variationIndex_);
+                            }
+                            continue;
                         }
 
                         pos = targetPos;

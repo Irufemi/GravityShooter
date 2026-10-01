@@ -329,12 +329,22 @@ void GravityPlayerComponent::UpdateThrowing() {
                     throwTarget = targetingComp_->PopTarget();
                 }
 
+                comp->SetOwnerObject(gameObject_->shared_from_this());
                 comp->SetState(DebrisState::Thrown);
+                Irufemi::Vector3 debrisPos = debris->GetComponent<TransformComponent>()->GetWorldPosition();
+
                 if (throwTarget && throwTarget->GetIsActive()) {
                     comp->SetTarget(throwTarget);
+                    // 射出初速ベクトルをターゲット方向へ正しく確立
+                    if (auto tt = throwTarget->GetComponent<TransformComponent>()) {
+                        Irufemi::Vector3 diff = Irufemi::Math::Subtract(tt->GetWorldPosition(), debrisPos);
+                        float len = Irufemi::Math::Length(diff);
+                        if (len > 0.001f) {
+                            comp->SetThrowDirection({diff.x / len, diff.y / len, diff.z / len});
+                        }
+                    }
                 } else {
                     comp->SetTarget(std::weak_ptr<GameObject>());
-                    Irufemi::Vector3 debrisPos = debris->GetComponent<TransformComponent>()->GetWorldPosition();
 
                     if (throwTarget) {
                         // ターゲットはいたが死んでいた場合、その死んだ座標へ直進させる
