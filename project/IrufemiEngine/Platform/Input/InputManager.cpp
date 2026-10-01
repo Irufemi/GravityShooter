@@ -290,22 +290,30 @@ float InputManager::GetRightTrigger() const {
     return gamepad_ ? gamepad_->GetRightTrigger() : 0.0f;
 }
 bool InputManager::IsLeftTriggerDown(float threshold) const {
-    if (!gamepad_) return false;
+    if (!gamepad_) {
+        return false;
+    }
     uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
     return gamepad_->LeftTriggerDown(byteTh);
 }
 bool InputManager::IsLeftTriggerPressed(float threshold) const {
-    if (!gamepad_) return false;
+    if (!gamepad_) {
+        return false;
+    }
     uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
     return gamepad_->LeftTriggerPressed(byteTh);
 }
 bool InputManager::IsRightTriggerDown(float threshold) const {
-    if (!gamepad_) return false;
+    if (!gamepad_) {
+        return false;
+    }
     uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
     return gamepad_->RightTriggerDown(byteTh);
 }
 bool InputManager::IsRightTriggerPressed(float threshold) const {
-    if (!gamepad_) return false;
+    if (!gamepad_) {
+        return false;
+    }
     uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
     return gamepad_->RightTriggerPressed(byteTh);
 }

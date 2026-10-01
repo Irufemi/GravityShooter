@@ -19,13 +19,7 @@ class GameObject;
  */
 class PauseScene : public BaseScene {
 public:
-    enum class MenuItem {
-        Resume = 0,
-        Retry,
-        Options,
-        Title,
-        Count
-    };
+    enum class MenuItem { Resume = 0, Retry, Options, Title, Count };
 
     PauseScene();
     ~PauseScene() override;

@@ -269,8 +269,8 @@ void GravityPlayerComponent::HandleThrowInput() {
     }
 
     // 左クリック または Qキー または RTトリガー で射撃
-    bool isThrowPressed = input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q') ||
-                          input->IsRightTriggerPressed();
+    bool isThrowPressed =
+        input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q') || input->IsRightTriggerPressed();
     if (isThrowPressed) {
         if (orbitingDebris_.empty()) {
             return;

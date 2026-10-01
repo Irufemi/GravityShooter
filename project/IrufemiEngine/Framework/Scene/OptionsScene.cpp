@@ -96,8 +96,8 @@ void OptionsScene::Update() {
     const auto& cursorPos = input->GetVirtualCursorPosition();
     bool isOverCloseButton = rectButtonClose_.Contains(cursorPos.x, cursorPos.y);
 
-    bool isDecidePressed = input->IsCursorActionPressed() || input->IsKeyPressed(VK_SPACE) ||
-                           input->IsKeyPressed(VK_RETURN);
+    bool isDecidePressed =
+        input->IsCursorActionPressed() || input->IsKeyPressed(VK_SPACE) || input->IsKeyPressed(VK_RETURN);
 
     if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
         PlaySE(seDecidePath_, "se_menu_decide", 0.9f);

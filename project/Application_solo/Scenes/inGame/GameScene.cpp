@@ -45,4 +45,3 @@ void GameScene::SetHUDActive(bool active) {
         lockon->SetActive(active);
     }
 }
-
