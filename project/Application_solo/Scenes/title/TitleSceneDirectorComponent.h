@@ -47,13 +47,16 @@ private:
     void UpdateLaunchSequence(float deltaTime);
     void SetupThrusterEffect();
 
-private: // メンバ変数
-    // 対象エンティティのTransform
-    TransformComponent* shipTransform_ = nullptr;
-    TransformComponent* cameraTransform_ = nullptr;
-    std::vector<TransformComponent*> debrisTransforms_;
+    TransformComponent* GetShipTransform() const;
+    TransformComponent* GetCameraTransform() const;
+    TitleCosmicNebulaComponent* GetNebulaComponent() const;
 
-    TitleCosmicNebulaComponent* nebulaComp_ = nullptr;
+private: // メンバ変数
+    // 対象エンティティの安全な弱参照（Dangling Pointer防止）
+    std::weak_ptr<GameObject> shipObj_;
+    std::weak_ptr<GameObject> cameraObj_;
+    std::vector<std::weak_ptr<GameObject>> debrisObjs_;
+    std::weak_ptr<GameObject> nebulaObj_;
 
     // 自機スラスター演出（GameScene完全準拠のTransform Scale制御）
     std::weak_ptr<GameObject> thrusterObj_;

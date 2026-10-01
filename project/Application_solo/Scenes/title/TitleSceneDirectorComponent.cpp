@@ -27,6 +27,27 @@ void TitleSceneDirectorComponent::OnRegisterProperties() {
     // インスペクタ用
 }
 
+TransformComponent* TitleSceneDirectorComponent::GetShipTransform() const {
+    if (auto ship = shipObj_.lock()) {
+        return ship->GetComponent<TransformComponent>();
+    }
+    return nullptr;
+}
+
+TransformComponent* TitleSceneDirectorComponent::GetCameraTransform() const {
+    if (auto cam = cameraObj_.lock()) {
+        return cam->GetComponent<TransformComponent>();
+    }
+    return nullptr;
+}
+
+TitleCosmicNebulaComponent* TitleSceneDirectorComponent::GetNebulaComponent() const {
+    if (auto nebula = nebulaObj_.lock()) {
+        return nebula->GetComponent<TitleCosmicNebulaComponent>();
+    }
+    return nullptr;
+}
+
 void TitleSceneDirectorComponent::CacheEntities() {
     auto scene = GetScene();
     if (!scene) {
@@ -34,33 +55,33 @@ void TitleSceneDirectorComponent::CacheEntities() {
     }
 
     // 自機の取得
-    if (!shipTransform_) {
+    if (shipObj_.expired()) {
         if (auto shipObj = scene->FindGameObject("HeroShip")) {
-            shipTransform_ = shipObj->GetComponent<TransformComponent>();
-            if (shipTransform_) {
-                initialShipPos_ = shipTransform_->GetPosition();
-                initialShipRot_ = shipTransform_->GetRotation();
+            shipObj_ = shipObj;
+            if (auto t = shipObj->GetComponent<TransformComponent>()) {
+                initialShipPos_ = t->GetPosition();
+                initialShipRot_ = t->GetRotation();
             }
         }
     }
 
     // カメラの取得
-    if (!cameraTransform_) {
+    if (cameraObj_.expired()) {
         if (auto camObj = scene->FindGameObject("MainCamera")) {
-            cameraTransform_ = camObj->GetComponent<TransformComponent>();
-            if (cameraTransform_) {
-                initialCameraPos_ = cameraTransform_->GetPosition();
+            cameraObj_ = camObj;
+            if (auto t = camObj->GetComponent<TransformComponent>()) {
+                initialCameraPos_ = t->GetPosition();
             }
         }
     }
 
     // ガレキの取得
-    if (debrisTransforms_.empty()) {
+    if (debrisObjs_.empty()) {
         const std::string debrisNames[] = {"OrbitDebris_1", "OrbitDebris_2", "OrbitDebris_3"};
         for (const auto& name : debrisNames) {
             if (auto debrisObj = scene->FindGameObject(name)) {
+                debrisObjs_.push_back(debrisObj);
                 if (auto t = debrisObj->GetComponent<TransformComponent>()) {
-                    debrisTransforms_.push_back(t);
                     initialDebrisPositions_.push_back(t->GetPosition());
                 }
             }
@@ -68,15 +89,17 @@ void TitleSceneDirectorComponent::CacheEntities() {
     }
 
     // 神秘的な星雲コンポーネントの取得
-    if (!nebulaComp_) {
-        nebulaComp_ = GetGameObject() ? GetGameObject()->GetComponent<TitleCosmicNebulaComponent>() : nullptr;
-        if (!nebulaComp_) {
+    if (nebulaObj_.expired()) {
+        if (auto myObj = GetGameObject()) {
+            if (myObj->GetComponent<TitleCosmicNebulaComponent>()) {
+                nebulaObj_ = myObj;
+            }
+        }
+        if (nebulaObj_.expired()) {
             for (const auto& obj : scene->GetGameObjects()) {
-                if (obj) {
-                    if (auto nc = obj->GetComponent<TitleCosmicNebulaComponent>()) {
-                        nebulaComp_ = nc;
-                        break;
-                    }
+                if (obj && obj->GetComponent<TitleCosmicNebulaComponent>()) {
+                    nebulaObj_ = obj;
+                    break;
                 }
             }
         }
@@ -137,27 +160,34 @@ void TitleSceneDirectorComponent::Update() {
 void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
     idleTimer_ += deltaTime;
 
+    auto shipTransform = GetShipTransform();
+    auto cameraTransform = GetCameraTransform();
+
     // 1. 自機のホバリング浮遊（上下微動 + ロール揺らぎ）
-    if (shipTransform_) {
+    if (shipTransform) {
         float hoverY = initialShipPos_.y + std::sin(idleTimer_ * 1.8f) * 0.07f;
         float rollZ = initialShipRot_.z + std::sin(idleTimer_ * 1.2f) * 0.035f;
         float pitchX = initialShipRot_.x + std::cos(idleTimer_ * 1.5f) * 0.020f;
 
-        shipTransform_->SetPosition({initialShipPos_.x, hoverY, initialShipPos_.z});
-        shipTransform_->SetRotation({pitchX, initialShipRot_.y, rollZ});
+        shipTransform->SetPosition({initialShipPos_.x, hoverY, initialShipPos_.z});
+        shipTransform->SetRotation({pitchX, initialShipRot_.y, rollZ});
     }
 
     // 2. カメラの呼吸揺れ
-    if (cameraTransform_) {
+    if (cameraTransform) {
         float swayX = initialCameraPos_.x + std::sin(idleTimer_ * 0.8f) * 0.03f;
         float swayY = initialCameraPos_.y + std::cos(idleTimer_ * 0.9f) * 0.025f;
-        cameraTransform_->SetPosition({swayX, swayY, initialCameraPos_.z});
+        cameraTransform->SetPosition({swayX, swayY, initialCameraPos_.z});
     }
 
     // 3. ガレキの公転運動と自転
-    for (size_t i = 0; i < debrisTransforms_.size(); ++i) {
-        auto t = debrisTransforms_[i];
-        if (!t || i >= debrisOrbits_.size()) {
+    for (size_t i = 0; i < debrisObjs_.size(); ++i) {
+        auto debris = debrisObjs_[i].lock();
+        if (!debris || i >= debrisOrbits_.size()) {
+            continue;
+        }
+        auto t = debris->GetComponent<TransformComponent>();
+        if (!t) {
             continue;
         }
 
@@ -198,16 +228,19 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
 
+    auto shipTransform = GetShipTransform();
+    auto nebulaComp = GetNebulaComponent();
+
     // 出撃開始時の姿勢をキャッシュ
-    if (shipTransform_) {
-        launchStartRot_ = shipTransform_->GetRotation();
+    if (shipTransform) {
+        launchStartRot_ = shipTransform->GetRotation();
     } else {
         launchStartRot_ = initialShipRot_;
     }
 
     // 神秘的な星雲の重力パルスを発火（中心が眩く収束・発光）
-    if (nebulaComp_) {
-        nebulaComp_->TriggerPulse(1.0f);
+    if (nebulaComp) {
+        nebulaComp->TriggerPulse(1.0f);
     }
 
     // 出撃重力チャージSE再生
@@ -229,30 +262,35 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
     float t = std::clamp(launchTimer_ / kTotalLaunchDuration_, 0.0f, 1.0f);
 
+    auto shipTransform = GetShipTransform();
+    auto cameraTransform = GetCameraTransform();
+
     // [フェーズ 1: 0.00s 〜 0.25s] 重力収束＆姿勢整流（タメ動作）
     if (launchTimer_ <= 0.25f) {
         float p1 = launchTimer_ / 0.25f;
         float alignT = 1.0f - std::pow(1.0f - p1, 2.0f); // スムーズなイーズアウト補間
 
         // 自機の沈み込み＆斜め姿勢から正面水平([0, 0, 0])への整流
-        if (shipTransform_) {
+        if (shipTransform) {
             float backZ = initialShipPos_.z - p1 * 0.35f;
-            shipTransform_->SetPosition({initialShipPos_.x, initialShipPos_.y, backZ});
+            shipTransform->SetPosition({initialShipPos_.x, initialShipPos_.y, backZ});
 
             // 機首とロールを正面水平へクイッと正す
-            shipTransform_->SetRotation({std::lerp(launchStartRot_.x, 0.0f, alignT),
+            shipTransform->SetRotation({std::lerp(launchStartRot_.x, 0.0f, alignT),
                                          std::lerp(launchStartRot_.y, 0.0f, alignT),
                                          std::lerp(launchStartRot_.z, 0.0f, alignT)});
         }
 
         // ガレキが自機中心へキュッと収束
-        for (size_t i = 0; i < debrisTransforms_.size(); ++i) {
-            if (auto dt = debrisTransforms_[i]) {
-                const auto& origPos = initialDebrisPositions_[i];
-                float cx = origPos.x * (1.0f - p1 * 0.45f);
-                float cy = origPos.y * (1.0f - p1 * 0.45f);
-                float cz = origPos.z * (1.0f - p1 * 0.45f);
-                dt->SetPosition({cx, cy, cz});
+        for (size_t i = 0; i < debrisObjs_.size(); ++i) {
+            if (auto debris = debrisObjs_[i].lock()) {
+                if (auto dt = debris->GetComponent<TransformComponent>()) {
+                    const auto& origPos = initialDebrisPositions_[i];
+                    float cx = origPos.x * (1.0f - p1 * 0.45f);
+                    float cy = origPos.y * (1.0f - p1 * 0.45f);
+                    float cz = origPos.z * (1.0f - p1 * 0.45f);
+                    dt->SetPosition({cx, cy, cz});
+                }
             }
         }
 
@@ -264,18 +302,18 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
         float p2 = (launchTimer_ - 0.25f) / (kTotalLaunchDuration_ - 0.25f);
         float accelCurve = p2 * p2 * p2; // 3次急加速
 
-        if (shipTransform_) {
+        if (shipTransform) {
             float boostZ = initialShipPos_.z - 0.35f + accelCurve * 50.0f;
-            shipTransform_->SetPosition({initialShipPos_.x, initialShipPos_.y, boostZ});
+            shipTransform->SetPosition({initialShipPos_.x, initialShipPos_.y, boostZ});
 
             // 正面水平姿勢を維持（推進ベクトルと進行方向を完全一致させ、GameSceneへシームレス接続）
-            shipTransform_->SetRotation({0.0f, 0.0f, 0.0f});
+            shipTransform->SetRotation({0.0f, 0.0f, 0.0f});
         }
 
         // カメラの自機追従ドリーイン（自機にしっかり食らいつき、迫力のアフターバーナーを至近距離で捉える）
-        if (cameraTransform_) {
+        if (cameraTransform) {
             float camDollyZ = initialCameraPos_.z + accelCurve * 42.0f;
-            cameraTransform_->SetPosition({initialCameraPos_.x, initialCameraPos_.y, camDollyZ});
+            cameraTransform->SetPosition({initialCameraPos_.x, initialCameraPos_.y, camDollyZ});
         }
 
         // 出撃急加速：GameSceneのブースト時と同様にScale Zを自然に伸長（プレハブ本来のシャープな噴流）

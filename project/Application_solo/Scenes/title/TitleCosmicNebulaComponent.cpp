@@ -7,6 +7,7 @@
 #include "Renderer/DrawManager.h"
 #include "Platform/Input/InputManager.h"
 #include <algorithm>
+#include <cassert>
 
 TitleCosmicNebulaComponent::~TitleCosmicNebulaComponent() {
     if (constantBuffer_ && mappedParams_) {
@@ -36,8 +37,9 @@ void TitleCosmicNebulaComponent::CreateConstantBuffer() {
 
     constantBuffer_ = dx->CreateBufferResource(sizeof(CosmicNebulaParams));
     if (constantBuffer_) {
-        constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedParams_));
-        if (mappedParams_) {
+        HRESULT hr = constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedParams_));
+        assert(SUCCEEDED(hr) && "Failed to map CosmicNebula constant buffer.");
+        if (SUCCEEDED(hr) && mappedParams_) {
             *mappedParams_ = params_;
         }
     }
