@@ -70,8 +70,6 @@ void GravityPlayerComponent::Initialize() {
     orbitingDebris_.clear();
     isThrowing_ = false;
     throwTimer_ = 0.0f;
-    prevLTDown_ = false;
-    prevRTDown_ = false;
 }
 
 void GravityPlayerComponent::Start() {
@@ -125,13 +123,6 @@ void GravityPlayerComponent::Update() {
         HandleMarkInput();
         HandleThrowInput();
     }
-
-    if (auto engine = GetEngine()) {
-        if (auto input = engine->GetInputManager()) {
-            prevLTDown_ = (input->GetLeftTrigger() >= 0.4f);
-            prevRTDown_ = (input->GetRightTrigger() >= 0.4f);
-        }
-    }
 }
 
 void GravityPlayerComponent::HandlePullInput() {
@@ -142,7 +133,7 @@ void GravityPlayerComponent::HandlePullInput() {
     }
 
     // Eキー または LTトリガー または LB で引き寄せ
-    bool isPullPressed = input->IsKeyPressed('E') || (!prevLTDown_ && input->GetLeftTrigger() >= 0.4f) ||
+    bool isPullPressed = input->IsKeyPressed('E') || input->IsLeftTriggerPressed() ||
                          input->IsButtonPressed(XINPUT_GAMEPAD_LEFT_SHOULDER);
     if (isPullPressed) {
         if (static_cast<int>(orbitingDebris_.size()) >= maxOrbitCount_) {
@@ -279,7 +270,7 @@ void GravityPlayerComponent::HandleThrowInput() {
 
     // 左クリック または Qキー または RTトリガー で射撃
     bool isThrowPressed = input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q') ||
-                          (!prevRTDown_ && input->GetRightTrigger() >= 0.4f);
+                          input->IsRightTriggerPressed();
     if (isThrowPressed) {
         if (orbitingDebris_.empty()) {
             return;

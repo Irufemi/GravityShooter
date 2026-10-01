@@ -153,6 +153,15 @@ public:
     /** @brief 右トリガー（RT）のアナログ押し込み量を取得する */
     float GetRightTrigger() const;
 
+    /** @brief 左トリガー（LT）がしきい値以上押されているか判定 */
+    bool IsLeftTriggerDown(float threshold = 0.4f) const;
+    /** @brief 左トリガー（LT）が押された瞬間か判定（立ち上がり検出） */
+    bool IsLeftTriggerPressed(float threshold = 0.4f) const;
+    /** @brief 右トリガー（RT）がしきい値以上押されているか判定 */
+    bool IsRightTriggerDown(float threshold = 0.4f) const;
+    /** @brief 右トリガー（RT）が押された瞬間か判定（立ち上がり検出） */
+    bool IsRightTriggerPressed(float threshold = 0.4f) const;
+
     /** @brief STARTボタンが押されているか判定 */
     bool StartDown() const;
     /** @brief STARTボタンが押された瞬間か判定（立ち上がり検出） */
@@ -235,6 +244,22 @@ public:
         virtualCursorBaseSpeed_ = speed;
     }
 
+    /** @brief 仮想カーソルの移動可能範囲（クランプ矩形）を設定する */
+    void SetVirtualCursorBounds(const Irufemi::Vector2& minBounds, const Irufemi::Vector2& maxBounds) {
+        virtualCursorBoundsMin_ = minBounds;
+        virtualCursorBoundsMax_ = maxBounds;
+    }
+
+    /** @brief 仮想カーソルの移動可能最小座標を取得する */
+    const Irufemi::Vector2& GetVirtualCursorBoundsMin() const {
+        return virtualCursorBoundsMin_;
+    }
+
+    /** @brief 仮想カーソルの移動可能最大座標を取得する */
+    const Irufemi::Vector2& GetVirtualCursorBoundsMax() const {
+        return virtualCursorBoundsMax_;
+    }
+
     /**
      * @brief 仮想カーソルを更新する（マウス移動検知・スティック移動・画面クランプ）
      * @param[in] deltaTime 経過時間
@@ -272,6 +297,8 @@ private:
 
     // 仮想カーソル管理
     Irufemi::Vector2 virtualCursorPos_ = {640.0f, 360.0f};
+    Irufemi::Vector2 virtualCursorBoundsMin_ = {15.0f, 15.0f};
+    Irufemi::Vector2 virtualCursorBoundsMax_ = {1265.0f, 705.0f};
     Irufemi::Vector2 lastPhysicalMousePos_ = {640.0f, 360.0f};
     bool isUsingGamepadCursor_ = false;
     float virtualCursorBaseSpeed_ = 650.0f;

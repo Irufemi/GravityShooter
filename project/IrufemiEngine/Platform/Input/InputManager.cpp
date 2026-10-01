@@ -284,10 +284,30 @@ float InputManager::GetRightStickY() const {
     return gamepad_->GetRightStickY();
 }
 float InputManager::GetLeftTrigger() const {
-    return gamepad_->GetLeftTrigger();
+    return gamepad_ ? gamepad_->GetLeftTrigger() : 0.0f;
 }
 float InputManager::GetRightTrigger() const {
-    return gamepad_->GetRightTrigger();
+    return gamepad_ ? gamepad_->GetRightTrigger() : 0.0f;
+}
+bool InputManager::IsLeftTriggerDown(float threshold) const {
+    if (!gamepad_) return false;
+    uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
+    return gamepad_->LeftTriggerDown(byteTh);
+}
+bool InputManager::IsLeftTriggerPressed(float threshold) const {
+    if (!gamepad_) return false;
+    uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
+    return gamepad_->LeftTriggerPressed(byteTh);
+}
+bool InputManager::IsRightTriggerDown(float threshold) const {
+    if (!gamepad_) return false;
+    uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
+    return gamepad_->RightTriggerDown(byteTh);
+}
+bool InputManager::IsRightTriggerPressed(float threshold) const {
+    if (!gamepad_) return false;
+    uint8_t byteTh = static_cast<uint8_t>(std::clamp(threshold * 255.0f, 0.0f, 255.0f));
+    return gamepad_->RightTriggerPressed(byteTh);
 }
 
 bool InputManager::IsKeyDownDIK(uint8_t d) const {
@@ -434,9 +454,9 @@ void InputManager::UpdateVirtualCursor(float deltaTime, float speedMultiplier) {
         }
     }
 
-    // 画面解像度枠内にクランプ (1280x720 空間)
-    virtualCursorPos_.x = std::clamp(virtualCursorPos_.x, 15.0f, 1265.0f);
-    virtualCursorPos_.y = std::clamp(virtualCursorPos_.y, 15.0f, 705.0f);
+    // 画面解像度枠内にクランプ（動的設定境界に準拠）
+    virtualCursorPos_.x = std::clamp(virtualCursorPos_.x, virtualCursorBoundsMin_.x, virtualCursorBoundsMax_.x);
+    virtualCursorPos_.y = std::clamp(virtualCursorPos_.y, virtualCursorBoundsMin_.y, virtualCursorBoundsMax_.y);
 }
 
 bool InputManager::IsCursorActionDown() const {

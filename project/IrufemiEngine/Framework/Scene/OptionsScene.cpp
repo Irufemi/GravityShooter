@@ -19,21 +19,6 @@
 #include <cmath>
 
 namespace {
-// UI各要素の画面上レイアウト定数 (1280x720 空間)
-constexpr float kButtonCloseX = 640.0f;
-constexpr float kButtonCloseY = 530.0f;
-constexpr float kButtonCloseHalfW = 130.0f;
-constexpr float kButtonCloseHalfH = 30.0f;
-
-constexpr float kSliderBgmX = 640.0f;
-constexpr float kSliderBgmY = 210.0f;
-constexpr float kSliderSeX = 640.0f;
-constexpr float kSliderSeY = 320.0f;
-constexpr float kSliderSensitivityX = 640.0f;
-constexpr float kSliderSensitivityY = 430.0f;
-constexpr float kSliderHalfW = 210.0f;
-constexpr float kSliderHalfH = 35.0f; // 当たり判定を縦幅70pxに拡大して操作性を向上
-
 // 感度マッピング定数（250.0f 〜 1250.0f、基準 650.0f = 0.4x）
 constexpr float kMinCursorSpeed = 250.0f;
 constexpr float kMaxCursorSpeed = 1250.0f;
@@ -86,13 +71,14 @@ void OptionsScene::Update() {
     float dt = engine->GetDeltaTime();
     if (openCooldownTimer_ > 0.0f) {
         openCooldownTimer_ -= dt;
+        return; // 開いた直後のクリック・ボタン入力残存による即時クローズをガード
     }
 
     // =========================================================================
     // 1. 即時脱出判定 (Bボタン / ESC / BackSpace)
     // =========================================================================
     if (input->IsCancelPressed()) {
-        PlaySE("resources/audio/se_menu_cancel.wav", "se_menu_cancel", 0.7f);
+        PlaySE(seCancelPath_, "se_menu_cancel", 0.7f);
         if (auto sm = engine->GetSceneManager()) {
             sm->PopScene();
         }
@@ -108,20 +94,17 @@ void OptionsScene::Update() {
     // 3. BACK / CLOSE ボタン判定 (確実な矩形判定 ＆ 決定入力)
     // =========================================================================
     const auto& cursorPos = input->GetVirtualCursorPosition();
-    if (openCooldownTimer_ <= 0.0f) {
-        bool isOverCloseButton = (std::abs(cursorPos.x - kButtonCloseX) <= kButtonCloseHalfW &&
-                                  std::abs(cursorPos.y - kButtonCloseY) <= kButtonCloseHalfH);
+    bool isOverCloseButton = rectButtonClose_.Contains(cursorPos.x, cursorPos.y);
 
-        bool isDecidePressed = input->IsCursorActionPressed() || input->IsKeyPressed(VK_SPACE) ||
-                               input->IsKeyPressed(VK_RETURN);
+    bool isDecidePressed = input->IsCursorActionPressed() || input->IsKeyPressed(VK_SPACE) ||
+                           input->IsKeyPressed(VK_RETURN);
 
-        if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
-            PlaySE("resources/audio/se_menu_decide.wav", "se_menu_decide", 0.9f);
-            if (auto sm = engine->GetSceneManager()) {
-                sm->PopScene();
-            }
-            return;
+    if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
+        PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
+        if (auto sm = engine->GetSceneManager()) {
+            sm->PopScene();
         }
+        return;
     }
 
     // =========================================================================
@@ -147,6 +130,10 @@ void OptionsScene::BindUIComponents() {
     // BGM スライダー
     if (auto obj = FindGameObject("Slider_BGM")) {
         sliderBGM_ = obj->GetComponent<SliderComponent>();
+        if (auto t = obj->GetTransform()) {
+            rectSliderBGM_.x = t->GetPosition().x;
+            rectSliderBGM_.y = t->GetPosition().y;
+        }
         if (sliderBGM_) {
             float bgmVol = Irufemi::CVarSystem::GetFloat("a.BGMVolume");
             sliderBGM_->SetValue(bgmVol);
@@ -156,6 +143,10 @@ void OptionsScene::BindUIComponents() {
     // SE スライダー
     if (auto obj = FindGameObject("Slider_SE")) {
         sliderSE_ = obj->GetComponent<SliderComponent>();
+        if (auto t = obj->GetTransform()) {
+            rectSliderSE_.x = t->GetPosition().x;
+            rectSliderSE_.y = t->GetPosition().y;
+        }
         if (sliderSE_) {
             float seVol = Irufemi::CVarSystem::GetFloat("a.SEVolume");
             sliderSE_->SetValue(seVol);
@@ -165,6 +156,10 @@ void OptionsScene::BindUIComponents() {
     // SENSITIVITY スライダー
     if (auto obj = FindGameObject("Slider_Sensitivity")) {
         sliderSensitivity_ = obj->GetComponent<SliderComponent>();
+        if (auto t = obj->GetTransform()) {
+            rectSliderSensitivity_.x = t->GetPosition().x;
+            rectSliderSensitivity_.y = t->GetPosition().y;
+        }
         if (sliderSensitivity_) {
             float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
             if (speed <= 0.0f) {
@@ -178,6 +173,10 @@ void OptionsScene::BindUIComponents() {
     // CLOSE ボタン
     if (auto obj = FindGameObject("Button_Close")) {
         buttonClose_ = obj->GetComponent<ButtonComponent>();
+        if (auto t = obj->GetTransform()) {
+            rectButtonClose_.x = t->GetPosition().x;
+            rectButtonClose_.y = t->GetPosition().y;
+        }
     }
 
     // 数値テキスト表示
@@ -222,14 +221,10 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
 
     // 1. ホバー判定
     void* currentHovered = nullptr;
-    bool isOverClose = (std::abs(cursorPos.x - kButtonCloseX) <= kButtonCloseHalfW &&
-                        std::abs(cursorPos.y - kButtonCloseY) <= kButtonCloseHalfH);
-    bool isOverBgm = (std::abs(cursorPos.x - kSliderBgmX) <= kSliderHalfW &&
-                      std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
-    bool isOverSe = (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW &&
-                     std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
-    bool isOverSens = (std::abs(cursorPos.x - kSliderSensitivityX) <= kSliderHalfW &&
-                       std::abs(cursorPos.y - kSliderSensitivityY) <= kSliderHalfH);
+    bool isOverClose = rectButtonClose_.Contains(cursorPos.x, cursorPos.y);
+    bool isOverBgm = rectSliderBGM_.Contains(cursorPos.x, cursorPos.y);
+    bool isOverSe = rectSliderSE_.Contains(cursorPos.x, cursorPos.y);
+    bool isOverSens = rectSliderSensitivity_.Contains(cursorPos.x, cursorPos.y);
 
     if (isOverBgm) {
         currentHovered = sliderBGM_;
@@ -244,7 +239,7 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
     // ホバー対象が変わった瞬間にカーソルSE再生
     if (currentHovered != lastHoveredTarget_) {
         if (currentHovered != nullptr) {
-            PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.5f);
+            PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
         }
         lastHoveredTarget_ = currentHovered;
     }
@@ -299,12 +294,9 @@ void OptionsScene::UpdateSliderDrag() {
     float dt = engine->GetDeltaTime();
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
-    bool isOverBgm = (std::abs(cursorPos.x - kSliderBgmX) <= kSliderHalfW &&
-                      std::abs(cursorPos.y - kSliderBgmY) <= kSliderHalfH);
-    bool isOverSe = (std::abs(cursorPos.x - kSliderSeX) <= kSliderHalfW &&
-                     std::abs(cursorPos.y - kSliderSeY) <= kSliderHalfH);
-    bool isOverSens = (std::abs(cursorPos.x - kSliderSensitivityX) <= kSliderHalfW &&
-                       std::abs(cursorPos.y - kSliderSensitivityY) <= kSliderHalfH);
+    bool isOverBgm = rectSliderBGM_.Contains(cursorPos.x, cursorPos.y);
+    bool isOverSe = rectSliderSE_.Contains(cursorPos.x, cursorPos.y);
+    bool isOverSens = rectSliderSensitivity_.Contains(cursorPos.x, cursorPos.y);
 
     // =========================================================================
     // A. 十字キー左右による微調整 (カーソル通過時の誤動作を防ぐためスティック増減は撤廃)
@@ -344,37 +336,36 @@ void OptionsScene::UpdateSliderDrag() {
     bool isActionDown = input->IsCursorActionDown();
     bool isActionReleased = input->IsCursorActionReleased();
 
-    // ガード期間終了後にドラッグ開始を受け付ける
-    if (openCooldownTimer_ <= 0.0f) {
-        if (isActionDown && !isDraggingSlider_) {
-            if (isOverBgm && sliderBGM_) {
-                isDraggingSlider_ = true;
-                draggingSlider_ = sliderBGM_;
-            } else if (isOverSe && sliderSE_) {
-                isDraggingSlider_ = true;
-                draggingSlider_ = sliderSE_;
-            } else if (isOverSens && sliderSensitivity_) {
-                isDraggingSlider_ = true;
-                draggingSlider_ = sliderSensitivity_;
-            }
+    if (isActionDown && !isDraggingSlider_) {
+        if (isOverBgm && sliderBGM_) {
+            isDraggingSlider_ = true;
+            draggingSlider_ = sliderBGM_;
+        } else if (isOverSe && sliderSE_) {
+            isDraggingSlider_ = true;
+            draggingSlider_ = sliderSE_;
+        } else if (isOverSens && sliderSensitivity_) {
+            isDraggingSlider_ = true;
+            draggingSlider_ = sliderSensitivity_;
         }
     }
 
     // ドラッグ中処理
     if (isActionDown && isDraggingSlider_ && draggingSlider_) {
-        float left = kSliderBgmX - kSliderHalfW;
+        float left = rectSliderBGM_.x - rectSliderBGM_.halfW;
+        float width = rectSliderBGM_.halfW * 2.0f;
         if (draggingSlider_ == sliderBGM_) {
-            left = kSliderBgmX - kSliderHalfW;
+            left = rectSliderBGM_.x - rectSliderBGM_.halfW;
+            width = rectSliderBGM_.halfW * 2.0f;
         } else if (draggingSlider_ == sliderSE_) {
-            left = kSliderSeX - kSliderHalfW;
+            left = rectSliderSE_.x - rectSliderSE_.halfW;
+            width = rectSliderSE_.halfW * 2.0f;
         } else if (draggingSlider_ == sliderSensitivity_) {
-            left = kSliderSensitivityX - kSliderHalfW;
+            left = rectSliderSensitivity_.x - rectSliderSensitivity_.halfW;
+            width = rectSliderSensitivity_.halfW * 2.0f;
         }
-        float width = kSliderHalfW * 2.0f;
 
         float newValue = (cursorPos.x - left) / width;
         newValue = std::clamp(newValue, 0.0f, 1.0f);
-
         draggingSlider_->SetValue(newValue);
 
         if (draggingSlider_ == sliderBGM_) {
@@ -393,7 +384,7 @@ void OptionsScene::UpdateSliderDrag() {
     // ドラッグ終了
     if (isActionReleased && isDraggingSlider_) {
         if (draggingSlider_ == sliderSE_) {
-            PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.7f);
+            PlaySE(seCursorPath_, "se_menu_cursor", 0.7f);
         }
         isDraggingSlider_ = false;
         draggingSlider_ = nullptr;

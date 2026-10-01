@@ -209,17 +209,21 @@ void DebrisManagerComponent::SpawnDebrisInFrontOfPlayer(int count) {
     }
 
     for (auto& var : variations_) {
-        if (!var.virtualManager) {
-            continue;
-        }
-        while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
-            int oldestId = var.activeIds.front();
-            var.activeIds.pop();
-            int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
-            if (sparseIdx >= 0 && sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
-                if (!var.virtualManager->GetDenseInstances()[sparseIdx].isPromoted) {
-                    var.virtualManager->RemoveVirtualInstance(oldestId);
-                }
+        TrimExcessVirtualInstances(var);
+    }
+}
+
+void DebrisManagerComponent::TrimExcessVirtualInstances(DebrisVariation& var) {
+    if (!var.virtualManager) {
+        return;
+    }
+    while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
+        int oldestId = var.activeIds.front();
+        var.activeIds.pop();
+        int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
+        if (sparseIdx >= 0 && sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
+            if (!var.virtualManager->GetDenseInstances()[sparseIdx].isPromoted) {
+                var.virtualManager->RemoveVirtualInstance(oldestId);
             }
         }
     }
@@ -291,19 +295,7 @@ void DebrisManagerComponent::SpawnDebrisCluster(const Irufemi::Vector3& centerPo
     }
 
     for (auto& var : variations_) {
-        if (!var.virtualManager) {
-            continue;
-        }
-        while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
-            int oldestId = var.activeIds.front();
-            var.activeIds.pop();
-            int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
-            if (sparseIdx >= 0 && sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
-                if (!var.virtualManager->GetDenseInstances()[sparseIdx].isPromoted) {
-                    var.virtualManager->RemoveVirtualInstance(oldestId);
-                }
-            }
-        }
+        TrimExcessVirtualInstances(var);
     }
 }
 
