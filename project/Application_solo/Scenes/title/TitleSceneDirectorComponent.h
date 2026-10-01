@@ -8,7 +8,6 @@
 
 class TransformComponent;
 class TitleCosmicNebulaComponent;
-class ParticleObject;
 
 /**
  * @class TitleSceneDirectorComponent
@@ -56,25 +55,16 @@ private: // メンバ変数
 
     TitleCosmicNebulaComponent* nebulaComp_ = nullptr;
 
-    // 自機スラスター演出（GameScene完全同期）
+    // 自機スラスター演出（GameScene完全準拠のTransform Scale制御）
     std::weak_ptr<GameObject> thrusterObj_;
     Irufemi::Vector3 nozzleOffset_{0.0f, 0.0f, -0.48f};
-    float currentThrusterScaleZ_ = 0.8f;
-    float targetThrusterScaleZ_ = 0.8f;
-
-    struct EmitterInitialParams {
-        ParticleObject* pObj = nullptr;
-        float baseVelocity = 18.0f;
-        float baseLifeTimeMax = 0.16f;
-        float baseEmissionRate = 200.0f;
-        Irufemi::Vector3 baseStartScale{ 1.0f, 1.0f, 1.0f };
-        Irufemi::Vector3 baseMidScale{ 1.0f, 1.0f, 1.0f };
-    };
-    std::vector<EmitterInitialParams> thrusterEmitters_;
+    float currentThrusterScaleZ_ = 0.85f;
+    float targetThrusterScaleZ_ = 0.85f;
 
     // 初期トランスフォームのキャッシュ
     Irufemi::Vector3 initialShipPos_{0.0f, 0.0f, 0.0f};
     Irufemi::Vector3 initialShipRot_{0.08f, -0.25f, 0.05f};
+    Irufemi::Vector3 launchStartRot_{0.08f, -0.25f, 0.05f};
     Irufemi::Vector3 initialCameraPos_{0.0f, 0.5f, -5.0f};
     std::vector<Irufemi::Vector3> initialDebrisPositions_;
 

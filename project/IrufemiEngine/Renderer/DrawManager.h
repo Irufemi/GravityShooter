@@ -17,11 +17,13 @@
 #include "RHI/DirectX12/RootSignatureConfig.h"
 #include "Core/Math/Vector4.h"
 #include <vector>
+#include <array>
 #include <memory>
 #include <mutex>
 #include <atomic>
 #include "Renderer/Compute/IComputeTask.h"
 #include "Renderer/Data/RenderPackets.h"
+#include "Renderer/Data/RenderStage.h"
 #include "Renderer/Data/FogParams.h"
 
 class ShadowMap;
@@ -78,7 +80,7 @@ public:
         std::vector<RenderPackets::Primitive2DBatchPacket> primitive2DBatchQueue;
         std::vector<RenderPackets::ModelBatchPacket> modelBatchQueue;
         std::vector<RenderPackets::DebugPrimitivePacket> debugPrimitiveQueue;
-        std::vector<std::function<void()>> postRenderQueue;
+        std::array<std::vector<std::function<void()>>, static_cast<size_t>(Irufemi::RenderStage::Count)> customPassQueues;
         std::vector<RenderPackets::SpritePacket> topMostSpriteQueue;
         std::vector<RenderPackets::SpriteBatchPacket> topMostSpriteBatchQueue;
         std::vector<RenderPackets::SpritePacket> textQueue;
@@ -101,7 +103,9 @@ public:
             primitive2DBatchQueue.clear();
             modelBatchQueue.clear();
             debugPrimitiveQueue.clear();
-            postRenderQueue.clear();
+            for (auto& q : customPassQueues) {
+                q.clear();
+            }
             topMostSpriteQueue.clear();
             topMostSpriteBatchQueue.clear();
             textQueue.clear();
@@ -128,7 +132,7 @@ private:
     std::vector<RenderPackets::Primitive2DBatchPacket> primitive2DBatchQueue_;
     std::vector<RenderPackets::ModelBatchPacket> modelBatchQueue_;
     std::vector<RenderPackets::DebugPrimitivePacket> debugPrimitiveQueue_;
-    std::vector<std::function<void()>> postRenderQueue_;
+    std::array<std::vector<std::function<void()>>, static_cast<size_t>(Irufemi::RenderStage::Count)> customPassQueues_;
 
     // 最前面UI描画用キュー (PostProcess適用後のバックバッファに直接描画)
     std::vector<RenderPackets::SpritePacket> topMostSpriteQueue_;
@@ -259,8 +263,20 @@ public:
     const std::vector<RenderPackets::DebugPrimitivePacket>& GetDebugPrimitiveQueue() const {
         return debugPrimitiveQueue_;
     }
+    /**
+     * @brief 指定ステージのカスタムパスキューを取得する。
+     * @param stage 取得対象の描画ステージ
+     * @return カスタムパスキュー
+     */
+    const std::vector<std::function<void()>>& GetCustomPassQueue(Irufemi::RenderStage stage) const {
+        return customPassQueues_[static_cast<size_t>(stage)];
+    }
+    /**
+     * @brief PostRenderQueue を取得する（AfterUIステージの後方互換ゲッター）。
+     * @return 取得された AfterUI カスタムパスキュー
+     */
     const std::vector<std::function<void()>>& GetPostRenderQueue() const {
-        return postRenderQueue_;
+        return customPassQueues_[static_cast<size_t>(Irufemi::RenderStage::AfterUI)];
     }
     /**
      * @brief TopMostSpriteQueue を取得する。
@@ -459,7 +475,17 @@ public: // メンバ関数
      */
     void MergeThreadLocalQueues();
 
-    // カスタム描画コールバック用キュー
+    /**
+     * @brief パイプラインの指定ステージにカスタム描画関数を注入する（業界標準 RenderPass Injection）
+     * @param stage 描画ステージ（BeforeOpaque, BeforeTransparent, BeforePostProcess, AfterUI）
+     * @param drawFunc 実行する描画ラムダ式
+     */
+    void SubmitCustomPass(Irufemi::RenderStage stage, std::function<void()> drawFunc);
+
+    /**
+     * @brief 画面最前面カスタム描画コールバック（非推奨: 今後は SubmitCustomPass を推奨）
+     * @param drawFunc 実行する描画ラムダ式
+     */
     void SubmitPostRender(std::function<void()> drawFunc);
     ///@}
 

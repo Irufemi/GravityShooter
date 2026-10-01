@@ -452,6 +452,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Renderer\Data\PointLight.h" />
     <ClInclude Include="Renderer\Data\RenderContext.h" />
     <ClInclude Include="Renderer\Data\RenderPackets.h" />
+    <ClInclude Include="Renderer\Data\RenderStage.h" />
     <ClInclude Include="Renderer\Data\SceneGPUStructs.h" />
     <ClInclude Include="Renderer\Data\SpotLight.h" />
     <ClInclude Include="Renderer\Data\Spring.h" />

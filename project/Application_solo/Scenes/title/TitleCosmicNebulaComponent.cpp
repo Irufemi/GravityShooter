@@ -132,8 +132,8 @@ void TitleCosmicNebulaComponent::Draw() {
     auto drawManager = engine->GetDrawManager();
     if (!drawManager || !constantBuffer_) return;
 
-    // 最奥深度 (Z=1.0) による星雲背景パスをポストレンダーキューに提出
-    drawManager->SubmitPostRender([this, engine]() {
+    // 最奥深度 (Z=1.0) による星雲背景パスを BeforeOpaque（3D不透明パス直前・Skybox直後）に提出
+    drawManager->SubmitCustomPass(Irufemi::RenderStage::BeforeOpaque, [this, engine]() {
         auto dx = engine->GetDirectXCommon();
         if (!dx) return;
 

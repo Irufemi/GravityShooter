@@ -100,29 +100,8 @@ void TitleSceneDirectorComponent::SetupThrusterEffect() {
         thruster->SetIsSerializable(false); // シーン保存時の汚染防止
         thruster->SetHideInHierarchy(true);
         thrusterObj_ = thruster;
-        currentThrusterScaleZ_ = 0.8f;
-        targetThrusterScaleZ_ = 0.8f;
-
-        // 子エミッターの初期パラメータをキャッシュ
-        thrusterEmitters_.clear();
-        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
-        for (auto emitter : emitters) {
-            if (auto pObj = emitter->GetParticleObject()) {
-                EmitterInitialParams p;
-                p.pObj = pObj;
-                p.baseVelocity = 18.0f; // アイドル時の基準初速
-                p.baseLifeTimeMax = pObj->GetLifeTimeMax();
-                if (p.baseLifeTimeMax <= 0.01f) p.baseLifeTimeMax = 0.16f;
-                p.baseEmissionRate = pObj->GetEmissionRate();
-                p.baseStartScale = pObj->GetStartScale();
-                p.baseMidScale = pObj->GetMidScale();
-
-                // アイドル初速を反映
-                pObj->SetVelocity(p.baseVelocity);
-                pObj->SetLifeTimeMax(p.baseLifeTimeMax);
-                thrusterEmitters_.push_back(p);
-            }
-        }
+        currentThrusterScaleZ_ = 0.85f;
+        targetThrusterScaleZ_ = 0.85f;
 
         if (auto transform = thruster->GetComponent<TransformComponent>()) {
             transform->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
@@ -189,22 +168,14 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         t->SetRotation(currentRot);
     }
 
-    // 4. 自機スラスターの呼吸脈動（GameSceneアイドル時と完全同期）
-    targetThrusterScaleZ_ = 0.8f + std::sin(idleTimer_ * 2.2f) * 0.12f;
+    // 4. 自機スラスターの呼吸脈動（GameSceneアイドル時と完全準拠）
+    targetThrusterScaleZ_ = 0.85f + std::sin(idleTimer_ * 2.2f) * 0.10f;
     float lerpFactor = 1.0f - std::exp(-10.0f * deltaTime);
     currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
 
     if (auto thruster = thrusterObj_.lock()) {
         if (auto t = thruster->GetComponent<TransformComponent>()) {
             t->SetScale({ 1.0f, 1.0f, currentThrusterScaleZ_ });
-        }
-    }
-
-    // パーティクルのアイドル初速を維持
-    for (auto& e : thrusterEmitters_) {
-        if (e.pObj) {
-            e.pObj->SetVelocity(e.baseVelocity * (currentThrusterScaleZ_ / 0.8f));
-            e.pObj->SetLifeTimeMax(e.baseLifeTimeMax);
         }
     }
 }
@@ -215,6 +186,13 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
     isLaunching_ = true;
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
+
+    // 出撃開始時の姿勢をキャッシュ
+    if (shipTransform_) {
+        launchStartRot_ = shipTransform_->GetRotation();
+    } else {
+        launchStartRot_ = initialShipRot_;
+    }
 
     // 神秘的な星雲の重力パルスを発火（中心が眩く収束・発光）
     if (nebulaComp_) {
@@ -240,13 +218,22 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
     float t = std::clamp(launchTimer_ / kTotalLaunchDuration_, 0.0f, 1.0f);
 
-    // [フェーズ 1: 0.00s 〜 0.25s] 重力収束＆予備動作（タメ）
+    // [フェーズ 1: 0.00s 〜 0.25s] 重力収束＆姿勢整流（タメ動作）
     if (launchTimer_ <= 0.25f) {
         float p1 = launchTimer_ / 0.25f;
-        // 自機がわずかに沈み込む（タメ動作）
+        float alignT = 1.0f - std::pow(1.0f - p1, 2.0f); // スムーズなイーズアウト補間
+
+        // 自機の沈み込み＆斜め姿勢から正面水平([0, 0, 0])への整流
         if (shipTransform_) {
             float backZ = initialShipPos_.z - p1 * 0.35f;
             shipTransform_->SetPosition({ initialShipPos_.x, initialShipPos_.y, backZ });
+
+            // 機首とロールを正面水平へクイッと正す
+            shipTransform_->SetRotation({
+                std::lerp(launchStartRot_.x, 0.0f, alignT),
+                std::lerp(launchStartRot_.y, 0.0f, alignT),
+                std::lerp(launchStartRot_.z, 0.0f, alignT)
+            });
         }
 
         // ガレキが自機中心へキュッと収束
@@ -262,14 +249,8 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
         // スラスター炎の引き絞り（チャージの予兆）
         targetThrusterScaleZ_ = 0.45f;
-        for (auto& e : thrusterEmitters_) {
-            if (e.pObj) {
-                e.pObj->SetVelocity(e.baseVelocity * 0.5f);
-                e.pObj->SetLifeTimeMax(e.baseLifeTimeMax * 0.6f);
-            }
-        }
     }
-    // [フェーズ 2: 0.25s 〜 0.95s] スラスター点火＆前方急加速離脱（アフターバーナー全開）
+    // [フェーズ 2: 0.25s 〜 0.95s] スラスター点火＆正面一直線急加速（アフターバーナー全開）
     else {
         float p2 = (launchTimer_ - 0.25f) / (kTotalLaunchDuration_ - 0.25f);
         float accelCurve = p2 * p2 * p2; // 3次急加速
@@ -277,6 +258,9 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
         if (shipTransform_) {
             float boostZ = initialShipPos_.z - 0.35f + accelCurve * 50.0f;
             shipTransform_->SetPosition({ initialShipPos_.x, initialShipPos_.y, boostZ });
+
+            // 正面水平姿勢を維持（推進ベクトルと進行方向を完全一致させ、GameSceneへシームレス接続）
+            shipTransform_->SetRotation({ 0.0f, 0.0f, 0.0f });
         }
 
         // カメラの自機追従ドリーイン（自機にしっかり食らいつき、迫力のアフターバーナーを至近距離で捉える）
@@ -285,23 +269,8 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
             cameraTransform_->SetPosition({ initialCameraPos_.x, initialCameraPos_.y, camDollyZ });
         }
 
-        // アフターバーナー爆発的伸長（初速最大110m/s、寿命0.38秒へブーストし、後方に約35〜40mの細長い超高速火炎を形成！）
-        // ※パーティクルのXY太さ（startScale/midScale）を肥大化させると手前の視界を塞ぎ潰れて見えるため、
-        //   ノズル口径をキープしたまま、初速と寿命のみで後方へのシャープな長大噴流を実現する。
-        targetThrusterScaleZ_ = std::lerp(1.8f, 3.2f, p2);
-        for (auto& e : thrusterEmitters_) {
-            if (e.pObj) {
-                float boostVel = std::lerp(25.0f, 110.0f, p2);
-                float boostLife = std::lerp(0.18f, 0.38f, p2);
-
-                e.pObj->SetVelocity(boostVel);
-                e.pObj->SetLifeTimeMax(boostLife);
-                e.pObj->SetEmissionRate(e.baseEmissionRate * std::lerp(1.0f, 2.2f, p2));
-                // ノズル口径を維持し、カメラ前での球状肥大化・平面的潰れを完全に防止
-                e.pObj->SetStartScale(e.baseStartScale);
-                e.pObj->SetMidScale(e.baseMidScale);
-            }
-        }
+        // 出撃急加速：GameSceneのブースト時と同様にScale Zを自然に伸長（プレハブ本来のシャープな噴流）
+        targetThrusterScaleZ_ = std::lerp(1.2f, 2.0f, p2);
     }
 
     // スラスターのスケールを急峻に追従

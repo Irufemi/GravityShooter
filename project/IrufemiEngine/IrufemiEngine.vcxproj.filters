@@ -968,6 +968,9 @@
     <ClInclude Include="Renderer\Data\RenderPackets.h">
       <Filter>Renderer\Data</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\Data\RenderStage.h">
+      <Filter>Renderer\Data</Filter>
+    </ClInclude>
     <ClInclude Include="Renderer\Data\SceneGPUStructs.h">
       <Filter>Renderer\Data</Filter>
     </ClInclude>
