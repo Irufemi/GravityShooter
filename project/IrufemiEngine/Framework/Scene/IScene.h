@@ -144,4 +144,12 @@ public:
     virtual bool IsAudioBlocking() const {
         return true;
     }
+
+    /**
+     * @brief シーンがPopされた際に、エンジン内のパーティクル（Voxel / GPU）を破棄するか
+     * @return true の場合のみパーティクルをクリアする（デフォルトは背景維持のため false）
+     */
+    virtual bool ShouldClearParticlesOnPop() const {
+        return false;
+    }
 };

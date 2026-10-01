@@ -180,17 +180,21 @@ void SceneManager::PopScene() {
 
     engine_->GetDirectXCommon()->WaitForGPU();
 
+    bool shouldClearParticles = sceneStack_.back().scene->ShouldClearParticlesOnPop();
+
     // 最前面のシーンの終了処理
     sceneStack_.back().scene->OnExit();
     sceneStack_.back().scene->Finalize();
     sceneStack_.pop_back();
 
-    // パーティクルの状態をクリア（Pop前のシーンから残ったパーティクルを消去）
-    if (engine_->GetVoxelParticleManager()) {
-        engine_->GetVoxelParticleManager()->Clear();
-    }
-    if (engine_->GetGPUParticleManager()) {
-        engine_->GetGPUParticleManager()->ClearAllParticles();
+    // オーバーレイ復帰時にゲーム内エフェクトが消滅するのを防ぐため、明示要求時のみクリア
+    if (shouldClearParticles) {
+        if (engine_->GetVoxelParticleManager()) {
+            engine_->GetVoxelParticleManager()->Clear();
+        }
+        if (engine_->GetGPUParticleManager()) {
+            engine_->GetGPUParticleManager()->ClearAllParticles();
+        }
     }
 
     if (!sceneStack_.empty()) {

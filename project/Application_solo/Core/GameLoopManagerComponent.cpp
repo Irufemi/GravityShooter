@@ -10,6 +10,7 @@
 
 #include "Player/PlayerHealthComponent.h"
 #include "Combat/Boss/BossComponent.h"
+#include "Platform/Input/InputManager.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
 
@@ -88,6 +89,18 @@ void GameLoopManagerComponent::Update() {
     if (state_ == State::Playing) {
         if (playerObj_.expired() || bossObj_.expired()) {
             BindTargets();
+        }
+
+        // ポーズ画面呼び出しトリガー（ESCキー または ゲームパッド STARTボタン）
+        if (auto engine = GetEngine()) {
+            if (auto input = engine->GetInputManager()) {
+                bool triggerPause = input->IsKeyPressed(VK_ESCAPE) || input->IsButtonPressed(XINPUT_GAMEPAD_START);
+                if (triggerPause) {
+                    if (auto sm = engine->GetSceneManager()) {
+                        sm->PushScene("Pause");
+                    }
+                }
+            }
         }
     }
 }
