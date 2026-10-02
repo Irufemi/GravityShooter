@@ -72,6 +72,17 @@ function Get-MSBuildPath {
     return $msbuild
 }
 
+function Get-DxcPath {
+    $dxcCmd = Get-Command dxc.exe -ErrorAction SilentlyContinue
+    if ($dxcCmd) { return $dxcCmd.Source }
+    $sdkBins = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Filter "dxc.exe" -Recurse -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName -match '\\x64\\dxc\.exe$' } | Sort-Object FullName -Descending
+    if ($sdkBins -and $sdkBins.Count -gt 0) {
+        return $sdkBins[0].FullName
+    }
+    return "dxc.exe"
+}
+
 function Invoke-ProjectBuild {
     param(
         [switch]$Rebuild
@@ -426,7 +437,24 @@ function Create-PlayablePackage {
         & robocopy @rcArgs | Out-Null
     }
 
-    # 4. プレイ用ドキュメント（Application_solo から正規の README.md を同梱）
+    # 4. オフラインシェーダーコンパイル（CompileShaders.bat による .cso 直接配置）
+    $compiledShaderDest = Join-Path $TargetDir "resources\shaders\compiled"
+    if (-not (Test-Path $compiledShaderDest)) {
+        New-Item -ItemType Directory -Path $compiledShaderDest -Force | Out-Null
+    }
+    $compileBat = Join-Path $RootDir "project\CompileShaders.bat"
+    $engineShaderSrc = Join-Path $RootDir "project\IrufemiEngine\EngineResources\shaders"
+    $appShaderSrc = Join-Path $RootDir "project\Application_solo\resources\shaders"
+    $dxcPath = Get-DxcPath
+
+    Write-Info "HLSLシェーダーを事前コンパイル中 (.cso を直接生成・配置)..."
+    & cmd.exe /c "`"$compileBat`" `"$engineShaderSrc`" `"$compiledShaderDest`" `"$dxcPath`"" | Out-Null
+    & cmd.exe /c "`"$compileBat`" `"$appShaderSrc`" `"$compiledShaderDest`" `"$dxcPath`"" | Out-Null
+
+    $csoCount = (Get-ChildItem -Path $compiledShaderDest -Filter "*.cso" -ErrorAction SilentlyContinue).Count
+    Write-Success ("シェーダーバイナリ直接配置完了: {0} 個の .cso を生成しました。" -f $csoCount)
+
+    # 5. プレイ用ドキュメント（Application_solo から正規の README.md を同梱）
     $appReadmeSrc = Join-Path $RootDir "project\Application_solo\README.md"
     if (Test-Path $appReadmeSrc) {
         Copy-Item -Path $appReadmeSrc -Destination (Join-Path $TargetDir "README.md") -Force
