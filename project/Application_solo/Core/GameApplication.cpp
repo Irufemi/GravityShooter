@@ -44,11 +44,15 @@
 
 // シーンのインクルード
 #include "Scenes/title/TitleScene.h"
+#include "Scenes/title/TitleMenuControllerComponent.h"
+#include "Scenes/title/TitleCosmicNebulaComponent.h"
+#include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Scenes/stageSelect/SelectScene.h"
 #include "Scenes/inGame/GameScene.h"
 #include "Scenes/Pause/PauseScene.h"
 #include "Scenes/TL1/TL1Scene.h"
 #include "Framework/Scene/OptionsScene.h"
+#include "Scenes/HowToPlay/HowToPlayScene.h"
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
 #include "Framework/Scene/DebugScene.h"
@@ -89,6 +93,7 @@ void RegisterScenes(SceneManager& sm) {
     sm.Register("Debug", [] { return std::make_unique<DebugScene>(); });
 #endif
     sm.Register("OptionsScene", [] { return std::make_unique<OptionsScene>(); });
+    sm.Register("HowToPlayScene", [] { return std::make_unique<HowToPlayScene>(); });
 }
 
 // --- シェーダー登録処理 ---
@@ -115,6 +120,11 @@ void RegisterShaders(IrufemiEngine& engine) {
     auto vsSpriteBatch = shaderManager->GetOrCompile(L"SpriteBatch.VS.hlsl", options);
     auto psLuminanceAlpha = shaderManager->GetOrCompile(L"LuminanceAlpha2D.PS.hlsl", options);
     psoManager->RegisterShader("LuminanceAlpha2D", {{vsSpriteBatch, psLuminanceAlpha}});
+
+    // CosmicNebula シェーダー (タイトル画面用 神秘的な深宇宙星雲背景)
+    auto vsCosmicNebula = shaderManager->GetOrCompile(L"CosmicNebula.VS.hlsl", options);
+    auto psCosmicNebula = shaderManager->GetOrCompile(L"CosmicNebula.PS.hlsl", options);
+    psoManager->RegisterShader("CosmicNebula", {{vsCosmicNebula, psCosmicNebula}});
 }
 
 // --- コンポーネント登録処理 ---
@@ -171,6 +181,12 @@ void RegisterComponents() {
                                []() { return std::make_shared<GameLoopManagerComponent>(); });
     ComponentFactory::Register("ResultManagerComponent", "Game",
                                []() { return std::make_shared<ResultManagerComponent>(); });
+    ComponentFactory::Register("TitleMenuControllerComponent", "Game",
+                               []() { return std::make_shared<TitleMenuControllerComponent>(); });
+    ComponentFactory::Register("TitleCosmicNebulaComponent", "Game",
+                               []() { return std::make_shared<TitleCosmicNebulaComponent>(); });
+    ComponentFactory::Register("TitleSceneDirectorComponent", "Game",
+                               []() { return std::make_shared<TitleSceneDirectorComponent>(); });
 }
 } // namespace
 

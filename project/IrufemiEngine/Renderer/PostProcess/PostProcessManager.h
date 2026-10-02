@@ -834,7 +834,7 @@ public:
         for (auto mode : modes) {
             pendingPreUI_.push_back({mode, GetDefaultPriority(mode)});
         }
-        pendingPostUI_.clear(); // 必要に応じて呼ぶか？
+        pendingPostUI_.clear(); // 一括指定時はPostUI側のエフェクトスタックもリセット
     }
 
     /** @brief エフェクトスタックをレイヤー別に設定 */

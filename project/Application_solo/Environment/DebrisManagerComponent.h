@@ -205,6 +205,7 @@ private:
     void UpdateOrbitingDebris(float deltaTime);
     void UpdateBossOrbitingDebris(float deltaTime);
     void UpdateThrownDebris(float deltaTime);
+    void TrimExcessVirtualInstances(DebrisVariation& var);
 
     std::vector<DebrisComponent*> pulledDebris_;
     std::vector<DebrisComponent*> orbitingDebris_;

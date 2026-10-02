@@ -120,8 +120,6 @@ public: // メンバ関数
      */
     static DirectX::TexMetadata GetTextureMetadata(const std::string& filePath);
 
-    // ShaderCompilerに委譲したため、ここからは削除
-
     /**
      * @brief 深度ステンシルテクスチャリソースの生成
      */

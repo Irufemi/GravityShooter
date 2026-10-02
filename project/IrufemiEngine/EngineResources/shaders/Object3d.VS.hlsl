@@ -1,6 +1,3 @@
-
-/*テクスチャを貼ろう*/
-
 #include "Transform.hlsli"
 #include "BasePassVertexOutput.hlsli"
 #include "Lighting.hlsli"
@@ -9,37 +6,19 @@
 ConstantBuffer<TransformationMatrix> gTransformationMatrix : register(b0);
 ConstantBuffer<LightCommonData> gLightCommonData : register(b1);
 
-/*三角形を表示しよう*/
-
-//struct VertexShaderOutput
-//{
-//	float32_t4 position : SV_POSITION;
-
-//};
-
 // struct VertexShaderInput は VertexData.hlsli にて定義
 
 #include "PerFrame.hlsli"
 
 ConstantBuffer<PerFrameData> gPerFrame : register(b2);
 
-/*テクスチャを貼ろう*/
-
 VertexShaderOutput main(VertexInput input)
 {
 	VertexShaderOutput output;
-	//output.position = input.position;
-	
-	/*三角形を動かそう*/
 	
 	float4 worldPos = mul(input.position, gTransformationMatrix.World);
 	float4 viewPos = mul(worldPos, gPerFrame.view);
 	output.position = mul(viewPos, gPerFrame.projection);
-	
-	/*テクスチャを貼ろう*/
-	
-	///VertexShaderをtexcoord対応する
-	
 	output.texcoord = input.texcoord;
 	
 	

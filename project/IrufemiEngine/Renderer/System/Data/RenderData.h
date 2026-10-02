@@ -68,7 +68,7 @@ private:
 struct MaterialDesc {
     std::string texturePath;                           //!< テクスチャパス
     std::string loadedTexturePath;                     //!< 前回ロードしたパス（変更検知用）
-    ResourceHandle textureHandle;                      //!< AAA: キャッシュ用ハンドル
+    ResourceHandle textureHandle;                      //!< テクスチャキャッシュ用ハンドル
     int selectedTextureIndex = 0;                      //!< ImGui選択用インデックス
     Irufemi::Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; //!< ベースカラー
     bool enableLighting = true;                        //!< ライティングの有無

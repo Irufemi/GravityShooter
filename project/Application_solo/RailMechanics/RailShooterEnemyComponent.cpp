@@ -537,9 +537,9 @@ void RailShooterEnemyComponent::OnCollisionEnter(GameObject* other) {
         return;
     }
 
-    // 【AAA基準: 重複ダメージの完全撤廃】
+    // 同一フレーム内の重複ダメージ防止:
     // 投擲ガレキからの被弾は DebrisComponent 側の IDamageable::TakeDamage にて一元処理されるため、
-    // ここでの TakeDamage 呼び出しは行わない（二重ダメージバグの解消）
+    // ここでの TakeDamage 呼び出しは行わない（二重ダメージの解消）
 
     // プレイヤー本体との接触時（体当たり自爆）
     if (auto health = other->GetComponent<PlayerHealthComponent>()) {

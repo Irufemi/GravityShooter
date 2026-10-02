@@ -6,8 +6,45 @@
           "data": {
             "inheritScale": true,
             "position": [
-              640.0,
-              500.0,
+              0.0,
+              0.518849790096283,
+              -5.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "FOV": 0.8500000238418579,
+            "FarZ": 2500.0,
+            "MakeActive": true,
+            "NearZ": 0.10000000149011612
+          },
+          "type": "CameraComponent"
+        }
+      ],
+      "instanceId": 1000000000000000001,
+      "name": "MainCamera",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
               0.0
             ],
             "rotation": [
@@ -16,8 +53,8 @@
               0.0
             ],
             "scale": [
-              0.4000000059604645,
-              0.4000000059604645,
+              1.0,
+              1.0,
               1.0
             ]
           },
@@ -25,69 +62,242 @@
         },
         {
           "data": {
-            "anchor": [
-              0.5,
-              0.5
-            ],
             "color": [
               1.0,
               1.0,
               1.0,
               1.0
             ],
-            "isFlipX": false,
-            "isFlipY": false,
-            "isTopMost": false,
-            "size": [
-              832.0,
-              305.0
+            "intensity": 1.0,
+            "texturePath": "resources/texture/sky/skydome.png",
+            "uvOffset": [
+              0.0,
+              0.0
             ],
-            "texturePath": "resources/UI/start_button.png"
+            "uvTiling": [
+              1.0,
+              1.0
+            ]
           },
-          "type": "SpriteRendererComponent"
-        },
+          "type": "SkyDomeComponent"
+        }
+      ],
+      "instanceId": 1000000000000000002,
+      "name": "Skydome",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
         {
           "data": {
-            "Click Color": [
-              0.20000000298023224,
-              0.5,
-              0.800000011920929,
-              1.0
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
             ],
-            "Enable Hover Pulse": true,
-            "Enable Idle Pulse": true,
-            "Hitbox Scale": [
-              0.8500000238418579,
-              0.699999988079071
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
             ],
-            "Hover Color": [
-              0.5,
-              0.800000011920929,
-              1.0,
-              1.0
-            ],
-            "Normal Color": [
-              1.0,
+            "scale": [
               1.0,
               1.0,
               1.0
             ]
           },
-          "type": "ButtonComponent"
+          "type": "TransformComponent"
         },
         {
           "data": {
-            "Click Anim Duration": 0.20000000298023224,
-            "Load Scene Name": "InGame",
-            "Transition Delay": 0.20000000298023224,
-            "Transition Duration": 1.0,
-            "Transition Type(0-3)": 2
+            "Color": [
+              0.550000011920929,
+              0.6499999761581421,
+              0.8199999928474426
+            ],
+            "Density": 1.0,
+            "Enabled": true,
+            "End Distance": 2200.0,
+            "Start Distance": 300.0,
+            "Type (0:Lin, 1:Exp)": 0,
+            "enabled": true,
+            "fogColor": [
+              0.550000011920929,
+              0.6499999761581421,
+              0.8199999928474426
+            ],
+            "fogDensity": 1.0,
+            "fogEnd": 2200.0,
+            "fogStart": 300.0,
+            "fogType": 0
           },
-          "type": "SceneTransitionButtonComponent"
+          "type": "FogComponent"
         }
       ],
-      "instanceId": 17668703084784663331,
-      "name": "StartButton",
+      "instanceId": 1000000000000000003,
+      "name": "AtmosphericFog",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.06933988630771637,
+              0.0
+            ],
+            "rotation": [
+              0.09243335574865341,
+              -0.24999991059303284,
+              0.05320189893245697
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "modelName": "resources/model/PlayerCraft/PlayerCraft.obj"
+          },
+          "type": "MeshRendererComponent"
+        },
+        {
+          "data": {
+            "customEffectType": 6,
+            "customParams": {
+              "color1": [
+                0.15000000596046448,
+                0.8999999761581421,
+                1.0,
+                1.0
+              ],
+              "color2": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ],
+              "param1": 1.5,
+              "param2": 0.0,
+              "param3": 0.0,
+              "param4": 0.0
+            },
+            "enableEffectMask": true
+          },
+          "type": "EffectMaskComponent"
+        }
+      ],
+      "instanceId": 1000000000000000004,
+      "name": "HeroShip",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              1.685665249824524,
+              0.42679932713508606,
+              0.49100664258003235
+            ],
+            "rotation": [
+              0.4065382480621338,
+              0.6098071336746216,
+              0.20000016689300537
+            ],
+            "scale": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "modelName": "resources/model/Debris/Generic/Debris_Generic.obj"
+          },
+          "type": "MeshRendererComponent"
+        }
+      ],
+      "instanceId": 1000000000000000005,
+      "name": "OrbitDebris_1",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              1.913158893585205,
+              -0.16071707010269165,
+              0.7009853720664978
+            ],
+            "rotation": [
+              -0.2869237959384918,
+              1.209807276725769,
+              0.5000001788139343
+            ],
+            "scale": [
+              0.4000000059604645,
+              0.4000000059604645,
+              0.4000000059604645
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "modelName": "resources/model/Debris/Generic/Debris_Generic.obj"
+          },
+          "type": "MeshRendererComponent"
+        }
+      ],
+      "instanceId": 1000000000000000006,
+      "name": "OrbitDebris_2",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              -1.4700654745101929,
+              -0.043292634189128876,
+              -0.3776865601539612
+            ],
+            "rotation": [
+              0.8196144104003906,
+              -0.39019298553466797,
+              0.8999993205070496
+            ],
+            "scale": [
+              0.3499999940395355,
+              0.3499999940395355,
+              0.3499999940395355
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "modelName": "resources/model/Debris/Generic/Debris_Generic.obj"
+          },
+          "type": "MeshRendererComponent"
+        }
+      ],
+      "instanceId": 1000000000000000007,
+      "name": "OrbitDebris_3",
       "tag": "Untagged"
     },
     {
@@ -97,7 +307,7 @@
             "inheritScale": true,
             "position": [
               640.0,
-              200.0,
+              150.0,
               0.0
             ],
             "rotation": [
@@ -116,16 +326,17 @@
         {
           "data": {
             "alignment": 1,
-            "baseScale": 120.0,
+            "baseScale": 95.0,
             "color": [
-              1.0,
-              1.0,
+              0.20000000298023224,
+              0.9200000166893005,
               1.0,
               1.0
             ],
             "fontId": "toro_glitch",
-            "isTopMost": false,
-            "text": "GravityShooter"
+            "isTopMost": true,
+            "text": "GRAVITY SHOOTER",
+            "verticalAlignment": 0
           },
           "type": "TextRendererComponent"
         }
@@ -133,14 +344,283 @@
       "instanceId": 216986397884451233,
       "name": "TitleText",
       "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              410.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              0.9502624869346619,
+              0.9502624869346619,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 42.0,
+            "color": [
+              0.699999988079071,
+              0.75,
+              0.800000011920929,
+              0.6499999761581421
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "GAME START",
+            "verticalAlignment": 0
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 2000000000000000001,
+      "name": "Btn_Start",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              475.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              0.949999988079071,
+              0.949999988079071,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 38.0,
+            "color": [
+              0.699999988079071,
+              0.75,
+              0.800000011920929,
+              0.6499999761581421
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "HOW TO PLAY",
+            "verticalAlignment": 0
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 2000000000000000002,
+      "name": "Btn_HowToPlay",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              540.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              0.949999988079071,
+              0.949999988079071,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 38.0,
+            "color": [
+              0.699999988079071,
+              0.75,
+              0.800000011920929,
+              0.6499999761581421
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "OPTIONS",
+            "verticalAlignment": 0
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 2000000000000000003,
+      "name": "Btn_Options",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              605.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.1497374773025513,
+              1.1497374773025513,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "alignment": 1,
+            "baseScale": 38.0,
+            "color": [
+              0.10000000149011612,
+              0.949999988079071,
+              1.0,
+              1.0
+            ],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "QUIT",
+            "verticalAlignment": 0
+          },
+          "type": "TextRendererComponent"
+        }
+      ],
+      "instanceId": 2000000000000000004,
+      "name": "Btn_Quit",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "type": "TitleMenuControllerComponent"
+        },
+        {
+          "type": "TitleCosmicNebulaComponent"
+        },
+        {
+          "type": "TitleSceneDirectorComponent"
+        }
+      ],
+      "instanceId": 2000000000000000005,
+      "name": "MenuManager",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              640.0,
+              360.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "color": [
+              0.10000000149011612,
+              0.949999988079071,
+              1.0,
+              1.0
+            ],
+            "currentTypeIndex": 3,
+            "isTopMost": true,
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "size": [
+              28.0,
+              28.0
+            ],
+            "subdivision": 32,
+            "texturePath": "",
+            "thickness": 3.0
+          },
+          "type": "Primitive2DRendererComponent"
+        }
+      ],
+      "instanceId": 2000000000000000006,
+      "name": "VirtualCursor",
+      "tag": "Untagged"
     }
   ],
   "settings": {
     "directionalLight": {
       "color": [
         1.0,
-        1.0,
-        1.0,
+        0.9800000190734863,
+        0.949999988079071,
         1.0
       ],
       "direction": [
@@ -148,7 +628,7 @@
         -0.699999988079071,
         1.0
       ],
-      "intensity": 0.0
+      "intensity": 1.2000000476837158
     }
   },
   "version": 1

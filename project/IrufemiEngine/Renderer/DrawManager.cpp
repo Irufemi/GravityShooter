@@ -179,7 +179,9 @@ void DrawManager::MergeThreadLocalQueues() {
         mergeVec(primitive2DBatchQueue_, lq->primitive2DBatchQueue);
         mergeVec(modelBatchQueue_, lq->modelBatchQueue);
         mergeVec(debugPrimitiveQueue_, lq->debugPrimitiveQueue);
-        mergeVec(postRenderQueue_, lq->postRenderQueue);
+        for (size_t s = 0; s < customPassQueues_.size(); ++s) {
+            mergeVec(customPassQueues_[s], lq->customPassQueues[s]);
+        }
         mergeVec(topMostSpriteQueue_, lq->topMostSpriteQueue);
         mergeVec(topMostSpriteBatchQueue_, lq->topMostSpriteBatchQueue);
         mergeVec(textQueue_, lq->textQueue);
@@ -187,10 +189,14 @@ void DrawManager::MergeThreadLocalQueues() {
     }
 }
 
-void DrawManager::SubmitPostRender(std::function<void()> drawFunc) {
-    if (drawFunc) {
-        GetLocalQueues().postRenderQueue.push_back(std::move(drawFunc));
+void DrawManager::SubmitCustomPass(Irufemi::RenderStage stage, std::function<void()> drawFunc) {
+    if (drawFunc && static_cast<size_t>(stage) < customPassQueues_.size()) {
+        GetLocalQueues().customPassQueues[static_cast<size_t>(stage)].push_back(std::move(drawFunc));
     }
+}
+
+void DrawManager::SubmitPostRender(std::function<void()> drawFunc) {
+    SubmitCustomPass(Irufemi::RenderStage::AfterUI, std::move(drawFunc));
 }
 
 void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
@@ -1658,7 +1664,9 @@ void DrawManager::ClearRenderQueues() {
     primitive2DBatchQueue_.clear();
     modelBatchQueue_.clear();
     debugPrimitiveQueue_.clear();
-    postRenderQueue_.clear();
+    for (auto& q : customPassQueues_) {
+        q.clear();
+    }
     textQueue_.clear();
     topMostTextQueue_.clear();
     topMostSpriteQueue_.clear();

@@ -1,8 +1,3 @@
-
-/*テクスチャを貼ろう*/
-
-///Object3d/hlsliを使うようにする
-
 struct VertexShaderOutput
 {
 	float32_t4 position : SV_POSITION;

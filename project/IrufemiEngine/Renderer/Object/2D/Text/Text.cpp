@@ -184,6 +184,23 @@ void Text::GenerateVertices() {
             localBoundsMin_.x -= geometricCenterX;
             localBoundsMax_.x -= geometricCenterX;
         }
+
+        // 垂直アライメント補正
+        if (verticalAlignment_ == TextVerticalAlignment::Middle) {
+            float geometricCenterY = (minY + maxY) * 0.5f;
+            for (auto& vertex : resource_->GetVertexDataList()) {
+                vertex.position.y -= geometricCenterY;
+            }
+            localBoundsMin_.y -= geometricCenterY;
+            localBoundsMax_.y -= geometricCenterY;
+        } else if (verticalAlignment_ == TextVerticalAlignment::Bottom) {
+            float offsetY = maxY;
+            for (auto& vertex : resource_->GetVertexDataList()) {
+                vertex.position.y -= offsetY;
+            }
+            localBoundsMin_.y -= offsetY;
+            localBoundsMax_.y -= offsetY;
+        }
     } else {
         localBoundsMin_ = {0.0f, 0.0f};
         localBoundsMax_ = {0.0f, 0.0f};

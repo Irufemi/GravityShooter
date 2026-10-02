@@ -17,4 +17,9 @@ public: // メンバ関数(システム)
     void Initialize(IrufemiEngine* engine) override;
     void Update() override;
     void Draw() override;
+    void OnSuspend() override;
+    void OnResume() override;
+
+private:
+    void SetHUDActive(bool active);
 };

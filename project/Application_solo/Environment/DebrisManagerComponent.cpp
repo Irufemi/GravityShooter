@@ -209,13 +209,22 @@ void DebrisManagerComponent::SpawnDebrisInFrontOfPlayer(int count) {
     }
 
     for (auto& var : variations_) {
-        if (!var.virtualManager) {
-            continue;
-        }
-        while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
-            int oldestId = var.activeIds.front();
-            var.activeIds.pop();
-            var.virtualManager->RemoveVirtualInstance(oldestId);
+        TrimExcessVirtualInstances(var);
+    }
+}
+
+void DebrisManagerComponent::TrimExcessVirtualInstances(DebrisVariation& var) {
+    if (!var.virtualManager) {
+        return;
+    }
+    while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
+        int oldestId = var.activeIds.front();
+        var.activeIds.pop();
+        int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
+        if (sparseIdx >= 0 && sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
+            if (!var.virtualManager->GetDenseInstances()[sparseIdx].isPromoted) {
+                var.virtualManager->RemoveVirtualInstance(oldestId);
+            }
         }
     }
 }
@@ -286,14 +295,7 @@ void DebrisManagerComponent::SpawnDebrisCluster(const Irufemi::Vector3& centerPo
     }
 
     for (auto& var : variations_) {
-        if (!var.virtualManager) {
-            continue;
-        }
-        while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
-            int oldestId = var.activeIds.front();
-            var.activeIds.pop();
-            var.virtualManager->RemoveVirtualInstance(oldestId);
-        }
+        TrimExcessVirtualInstances(var);
     }
 }
 
@@ -349,11 +351,20 @@ void DebrisManagerComponent::Update() {
                             if (sparseIdx >= 0 &&
                                 sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
                                 const auto& inst = var.virtualManager->GetDenseInstances()[sparseIdx];
+                                // 実体化（Promote中＝プレイヤー所持中やボスシールド）のガレキは空間キューからデタッチして実体を保護
+                                if (inst.isPromoted) {
+                                    var.activeIds.pop();
+                                    continue;
+                                }
+
                                 if (inst.position.z < playerPos.z - recycleBehindDistance_) {
                                     var.activeIds.pop();
                                     var.virtualManager->RemoveVirtualInstance(oldestId);
                                     continue;
                                 }
+                            } else {
+                                var.activeIds.pop();
+                                continue;
                             }
                             break;
                         }
@@ -760,15 +771,20 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                     float moveDist = throwSpeed * deltaTime;
                     // 到達判定（フレーム移動距離以内、または近接2.5m以内）
                     if (len <= (std::max)(moveDist, 2.5f)) {
-                        // 【AAA基準: 権限消費チェック】物理コリジョンと競合しても多重ダメージを防ぐ
+                        // 物理コリジョンとの競合による多重ダメージを防止
                         if (!debris->ConsumeHitAuthority()) {
-                            continue; // 既に物理コライダー側でヒット済みの場合はスキップ
+                            // 既に物理コライダー側でヒット・適用済みの場合は、敵前でのスタック・残留を防ぐため安全に回収
+                            MarkForRelease(debris->gameObject_->shared_from_this());
+                            if (debris->virtualId_ >= 0) {
+                                MarkForDestroy(debris->virtualId_, debris->variationIndex_);
+                            }
+                            continue;
                         }
 
                         pos = targetPos;
                         transform->SetWorldPosition(pos);
 
-                        // 【AAA基準: Game Juice】直撃ヒットストップ
+                        // 直撃ヒットストップの発動
                         if (engine) {
                             engine->TriggerHitStop(0.04f);
                         }

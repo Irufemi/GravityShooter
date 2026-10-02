@@ -90,7 +90,7 @@ void EnemyBulletComponent::OnCollisionEnter(GameObject* other) {
         }
     };
 
-    // 1. 【AAA基準: シールド迎撃】自機オービットガレキとの接触
+    // 1. 自機オービットガレキ（シールド）との接触判定
     if (auto debris = other->GetComponent<DebrisComponent>()) {
         if (debris->GetState() == DebrisState::Orbiting) {
             playBulletImpact();
@@ -99,7 +99,7 @@ void EnemyBulletComponent::OnCollisionEnter(GameObject* other) {
         }
     }
 
-    // 2. 【AAA基準: 無敵時プロジェクタイル消費】素通りバグの解消
+    // 2. 無敵時間中の弾消費（素通りの防止）
     if (auto health = other->GetComponent<PlayerHealthComponent>()) {
         if (!health->IsInvincible()) {
             health->TakeDamage(damage_);
@@ -110,7 +110,7 @@ void EnemyBulletComponent::OnCollisionEnter(GameObject* other) {
         return;
     }
 
-    // 3. 【AAA基準: 環境遮蔽】壁や柱（Environment）に着弾消滅
+    // 3. 環境遮蔽（壁や障害物への着弾消滅）
     if (auto collider = other->GetComponent<ColliderComponent>()) {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {

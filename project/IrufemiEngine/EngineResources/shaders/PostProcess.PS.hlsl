@@ -59,9 +59,9 @@ float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvS
     int centerEffect = round(centerMask.r * 255.0f);
     int centerInstance = round(centerMask.g * 255.0f);
 
-    // 【業界標準 Outer Silhouette 方式】
+    // Outer Silhouette 方式（自機・特定オブジェクトの外周シルエット保護）
     // 自身のピクセルがオブジェクト表面（centerInstance > 0）である場合は、
-    // モデル自体のテクスチャやライティング・ディテールを100%美しく保護するため、
+    // モデル自体のテクスチャやライティング・ディテールを保護するため、
     // 内側への侵食アウトラインは描画せずそのままリターンする
     if (centerInstance > 0) {
         return color;
@@ -125,7 +125,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
     
     PixelShaderOutput output;
     
-    // 0. 全画面でのマスクベースのアウトラインエッジ検出 (AAA Approach)
+    // 0. 全画面でのマスクベースのアウトラインエッジ検出
     // 背景ピクセルであっても、隣接するピクセルがアウトライン対象であれば描画する
     if (gParams.useMask != 0) {
         color.rgb = ApplyMaskBasedOutline(color.rgb, uv, uvStepSize, gMaskTexture, gSamplerPoint);

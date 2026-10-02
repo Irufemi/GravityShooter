@@ -66,6 +66,12 @@ void MainOpaquePass::Execute(const Irufemi::RenderContext& rc) {
         }
     }
 
+    // 1.5 Custom Background / Stage BeforeOpaque (星雲などの最奥背景パス)
+    const auto& beforeOpaqueQueue = drawManager->GetCustomPassQueue(Irufemi::RenderStage::BeforeOpaque);
+    for (auto& func : beforeOpaqueQueue) {
+        func();
+    }
+
     // Helper lambda to apply PSO efficiently
     auto DrawWithPSO = [&](const auto& queue, auto applyPSOFunc, auto drawFunc) {
         if (queue.empty()) {

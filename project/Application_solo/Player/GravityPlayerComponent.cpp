@@ -132,8 +132,10 @@ void GravityPlayerComponent::HandlePullInput() {
         return;
     }
 
-    // Eキー で引き寄せ (右クリックは廃止)
-    if (input->IsKeyPressed('E')) {
+    // Eキー または LTトリガー または LB で引き寄せ
+    bool isPullPressed = input->IsKeyPressed('E') || input->IsLeftTriggerPressed() ||
+                         input->IsButtonPressed(XINPUT_GAMEPAD_LEFT_SHOULDER);
+    if (isPullPressed) {
         if (static_cast<int>(orbitingDebris_.size()) >= maxOrbitCount_) {
             return;
         }
@@ -241,13 +243,16 @@ void GravityPlayerComponent::HandleMarkInput() {
         return;
     }
 
-    // Rキーでキャンセル
-    if (input->IsKeyDown('R')) {
+    // Rキー または Bボタン でキャンセル
+    if (input->IsKeyDown('R') || input->IsButtonPressed(XINPUT_GAMEPAD_B)) {
         targetingComp_->ClearTargets();
     }
 
-    // 右クリックでマーキング
-    if (input->IsMouseButtonPressed(Mouse::Button::Right)) {
+    // 右クリック または RB または Aボタン でマーキング
+    bool isMarkPressed = input->IsMouseButtonPressed(Mouse::Button::Right) ||
+                         input->IsButtonPressed(XINPUT_GAMEPAD_RIGHT_SHOULDER) ||
+                         input->IsButtonPressed(XINPUT_GAMEPAD_A);
+    if (isMarkPressed) {
         size_t maxLockOn = orbitingDebris_.size();
         if (maxLockOn == 0) {
             maxLockOn = 1; // シールド奪取用に最低1つはロック許可
@@ -263,8 +268,10 @@ void GravityPlayerComponent::HandleThrowInput() {
         return;
     }
 
-    // 左クリックで射撃
-    if (input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q')) {
+    // 左クリック または Qキー または RTトリガー で射撃
+    bool isThrowPressed =
+        input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q') || input->IsRightTriggerPressed();
+    if (isThrowPressed) {
         if (orbitingDebris_.empty()) {
             return;
         }
@@ -313,12 +320,22 @@ void GravityPlayerComponent::UpdateThrowing() {
                     throwTarget = targetingComp_->PopTarget();
                 }
 
+                comp->SetOwnerObject(gameObject_->shared_from_this());
                 comp->SetState(DebrisState::Thrown);
+                Irufemi::Vector3 debrisPos = debris->GetComponent<TransformComponent>()->GetWorldPosition();
+
                 if (throwTarget && throwTarget->GetIsActive()) {
                     comp->SetTarget(throwTarget);
+                    // 射出初速ベクトルをターゲット方向へ正しく確立
+                    if (auto tt = throwTarget->GetComponent<TransformComponent>()) {
+                        Irufemi::Vector3 diff = Irufemi::Math::Subtract(tt->GetWorldPosition(), debrisPos);
+                        float len = Irufemi::Math::Length(diff);
+                        if (len > 0.001f) {
+                            comp->SetThrowDirection({diff.x / len, diff.y / len, diff.z / len});
+                        }
+                    }
                 } else {
                     comp->SetTarget(std::weak_ptr<GameObject>());
-                    Irufemi::Vector3 debrisPos = debris->GetComponent<TransformComponent>()->GetWorldPosition();
 
                     if (throwTarget) {
                         // ターゲットはいたが死んでいた場合、その死んだ座標へ直進させる

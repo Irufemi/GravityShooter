@@ -26,3 +26,22 @@ void GameScene::Update() {
 void GameScene::Draw() {
     BaseScene::Draw(); // これにより GameObject 群の Draw が呼ばれる
 }
+
+void GameScene::OnSuspend() {
+    BaseScene::OnSuspend();
+    SetHUDActive(false); // ポーズ中・オーバーレイ表示中は自機レティクル等のHUDを確実に非表示化
+}
+
+void GameScene::OnResume() {
+    BaseScene::OnResume();
+    SetHUDActive(true); // ゲーム復帰時にHUDを再表示
+}
+
+void GameScene::SetHUDActive(bool active) {
+    if (auto reticle = FindGameObject("Reticle")) {
+        reticle->SetActive(active);
+    }
+    if (auto lockon = FindGameObject("LockonMarkerUI")) {
+        lockon->SetActive(active);
+    }
+}

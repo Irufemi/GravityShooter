@@ -17,19 +17,70 @@
           "data": {
             "texturePath": "resources/whiteTexture.png",
             "size": [1280.0, 720.0],
-            "color": [0.0, 0.0, 0.0, 0.8]
+            "anchor": [0.5, 0.5],
+            "color": [0.02, 0.03, 0.05, 0.85]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HeaderTitle",
+      "instanceId": 1001,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [640.0, 110.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 1,
+            "baseScale": 54.0,
+            "color": [0.1, 0.95, 1.0, 1.0],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "--- OPTIONS ---"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Label_BGM",
+      "instanceId": 1002,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [360.0, 175.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "baseScale": 28.0,
+            "color": [0.75, 0.8, 0.85, 0.9],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "BGM VOLUME"
           }
         }
       ]
     },
     {
       "name": "Slider_BGM",
-      "instanceId": 1001,
+      "instanceId": 1003,
       "components": [
         {
           "type": "TransformComponent",
           "data": {
-            "position": [640.0, 300.0, 0.0],
+            "position": [640.0, 210.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -38,16 +89,16 @@
           "type": "SpriteRendererComponent",
           "data": {
             "texturePath": "resources/whiteTexture.png",
-            "size": [400.0, 10.0],
+            "size": [420.0, 10.0],
             "anchor": [0.5, 0.5],
-            "color": [0.3, 0.3, 0.3, 1.0]
+            "color": [0.25, 0.3, 0.35, 1.0]
           }
         },
         {
           "type": "SliderComponent",
           "data": {
-            "Handle Object ID": 1002,
-            "Hitbox Scale": [1.0, 2.0],
+            "Handle Object ID": 1004,
+            "Hitbox Scale": [1.0, 3.5],
             "Value": 1.0
           }
         }
@@ -55,62 +106,6 @@
       "children": [
         {
           "name": "Slider_BGM_Handle",
-          "instanceId": 1002,
-          "components": [
-            {
-              "type": "TransformComponent",
-              "data": {
-                "position": [0.0, 0.0, 0.0],
-                "rotation": [0.0, 0.0, 0.0],
-                "scale": [1.0, 1.0, 1.0]
-              }
-            },
-            {
-              "type": "SpriteRendererComponent",
-              "data": {
-                "texturePath": "resources/whiteTexture.png",
-                "size": [20.0, 30.0],
-                "anchor": [0.5, 0.5],
-                "color": [1.0, 1.0, 1.0, 1.0]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Slider_SE",
-      "instanceId": 1003,
-      "components": [
-        {
-          "type": "TransformComponent",
-          "data": {
-            "position": [640.0, 400.0, 0.0],
-            "rotation": [0.0, 0.0, 0.0],
-            "scale": [1.0, 1.0, 1.0]
-          }
-        },
-        {
-          "type": "SpriteRendererComponent",
-          "data": {
-            "texturePath": "resources/whiteTexture.png",
-            "size": [400.0, 10.0],
-            "anchor": [0.5, 0.5],
-            "color": [0.3, 0.3, 0.3, 1.0]
-          }
-        },
-        {
-          "type": "SliderComponent",
-          "data": {
-            "Handle Object ID": 1004,
-            "Hitbox Scale": [1.0, 2.0],
-            "Value": 1.0
-          }
-        }
-      ],
-      "children": [
-        {
-          "name": "Slider_SE_Handle",
           "instanceId": 1004,
           "components": [
             {
@@ -125,9 +120,9 @@
               "type": "SpriteRendererComponent",
               "data": {
                 "texturePath": "resources/whiteTexture.png",
-                "size": [20.0, 30.0],
+                "size": [16.0, 28.0],
                 "anchor": [0.5, 0.5],
-                "color": [1.0, 1.0, 1.0, 1.0]
+                "color": [0.1, 0.95, 1.0, 1.0]
               }
             }
           ]
@@ -135,13 +130,64 @@
       ]
     },
     {
-      "name": "Button_Close",
+      "name": "ValueText_BGM",
       "instanceId": 1005,
       "components": [
         {
           "type": "TransformComponent",
           "data": {
-            "position": [640.0, 550.0, 0.0],
+            "position": [880.0, 210.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "verticalAlignment": 1,
+            "baseScale": 24.0,
+            "color": [0.1, 0.95, 1.0, 1.0],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "100%"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Label_SE",
+      "instanceId": 1006,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [360.0, 285.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "baseScale": 28.0,
+            "color": [0.75, 0.8, 0.85, 0.9],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "SE VOLUME"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Slider_SE",
+      "instanceId": 1007,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [640.0, 320.0, 0.0],
             "rotation": [0.0, 0.0, 0.0],
             "scale": [1.0, 1.0, 1.0]
           }
@@ -150,17 +196,288 @@
           "type": "SpriteRendererComponent",
           "data": {
             "texturePath": "resources/whiteTexture.png",
-            "size": [200.0, 50.0],
+            "size": [420.0, 10.0],
             "anchor": [0.5, 0.5],
-            "color": [0.8, 0.2, 0.2, 1.0]
+            "color": [0.25, 0.3, 0.35, 1.0]
+          }
+        },
+        {
+          "type": "SliderComponent",
+          "data": {
+            "Handle Object ID": 1008,
+            "Hitbox Scale": [1.0, 3.5],
+            "Value": 1.0
+          }
+        }
+      ],
+      "children": [
+        {
+          "name": "Slider_SE_Handle",
+          "instanceId": 1008,
+          "components": [
+            {
+              "type": "TransformComponent",
+              "data": {
+                "position": [0.0, 0.0, 0.0],
+                "rotation": [0.0, 0.0, 0.0],
+                "scale": [1.0, 1.0, 1.0]
+              }
+            },
+            {
+              "type": "SpriteRendererComponent",
+              "data": {
+                "texturePath": "resources/whiteTexture.png",
+                "size": [16.0, 28.0],
+                "anchor": [0.5, 0.5],
+                "color": [0.1, 0.95, 1.0, 1.0]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ValueText_SE",
+      "instanceId": 1009,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [880.0, 320.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "verticalAlignment": 1,
+            "baseScale": 24.0,
+            "color": [0.1, 0.95, 1.0, 1.0],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "100%"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Label_Sensitivity",
+      "instanceId": 1014,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [360.0, 395.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "baseScale": 28.0,
+            "color": [0.75, 0.8, 0.85, 0.9],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "STICK SENSITIVITY"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Slider_Sensitivity",
+      "instanceId": 1015,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [640.0, 430.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "SpriteRendererComponent",
+          "data": {
+            "texturePath": "resources/whiteTexture.png",
+            "size": [420.0, 10.0],
+            "anchor": [0.5, 0.5],
+            "color": [0.25, 0.3, 0.35, 1.0]
+          }
+        },
+        {
+          "type": "SliderComponent",
+          "data": {
+            "Handle Object ID": 1016,
+            "Hitbox Scale": [1.0, 3.5],
+            "Value": 0.5
+          }
+        }
+      ],
+      "children": [
+        {
+          "name": "Slider_Sensitivity_Handle",
+          "instanceId": 1016,
+          "components": [
+            {
+              "type": "TransformComponent",
+              "data": {
+                "position": [0.0, 0.0, 0.0],
+                "rotation": [0.0, 0.0, 0.0],
+                "scale": [1.0, 1.0, 1.0]
+              }
+            },
+            {
+              "type": "SpriteRendererComponent",
+              "data": {
+                "texturePath": "resources/whiteTexture.png",
+                "size": [16.0, 28.0],
+                "anchor": [0.5, 0.5],
+                "color": [0.1, 0.95, 1.0, 1.0]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ValueText_Sensitivity",
+      "instanceId": 1017,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [880.0, 430.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 0,
+            "verticalAlignment": 1,
+            "baseScale": 24.0,
+            "color": [0.1, 0.95, 1.0, 1.0],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "50%"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Button_Close",
+      "instanceId": 1010,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [640.0, 530.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "SpriteRendererComponent",
+          "data": {
+            "texturePath": "resources/whiteTexture.png",
+            "size": [240.0, 50.0],
+            "anchor": [0.5, 0.5],
+            "color": [0.08, 0.25, 0.35, 0.9]
           }
         },
         {
           "type": "ButtonComponent",
           "data": {
-            "Normal Color": [0.8, 0.2, 0.2, 1.0],
-            "Hover Color": [0.9, 0.4, 0.4, 1.0],
-            "Click Color": [0.5, 0.1, 0.1, 1.0]
+            "Normal Color": [0.08, 0.25, 0.35, 0.9],
+            "Hover Color": [0.15, 0.5, 0.7, 1.0],
+            "Click Color": [0.05, 0.15, 0.25, 1.0],
+            "Enable Hover Pulse": true,
+            "Hitbox Scale": [1.0, 1.0]
+          }
+        }
+      ],
+      "children": [
+        {
+          "name": "Button_Close_Text",
+          "instanceId": 1011,
+          "components": [
+            {
+              "type": "TransformComponent",
+              "data": {
+                "position": [0.0, 0.0, 0.0],
+                "rotation": [0.0, 0.0, 0.0],
+                "scale": [1.0, 1.0, 1.0]
+              }
+            },
+            {
+              "type": "TextRendererComponent",
+              "data": {
+                "alignment": 1,
+                "verticalAlignment": 1,
+                "baseScale": 28.0,
+                "color": [0.9, 0.95, 1.0, 1.0],
+                "fontId": "toro_glitch",
+                "isTopMost": true,
+                "text": "BACK / CLOSE"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Footer_Guide",
+      "instanceId": 1012,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [640.0, 635.0, 0.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "TextRendererComponent",
+          "data": {
+            "alignment": 1,
+            "baseScale": 22.0,
+            "color": [0.55, 0.6, 0.65, 0.75],
+            "fontId": "toro_glitch",
+            "isTopMost": true,
+            "text": "[L/R-STICK / MOUSE] CURSOR   [D-PAD] ADJUST   [A / L-CLICK] SELECT   [B / ESC] BACK"
+          }
+        }
+      ]
+    },
+    {
+      "name": "VirtualCursor",
+      "instanceId": 1013,
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [640.0, 360.0, -1.0],
+            "rotation": [0.0, 0.0, 0.0],
+            "scale": [1.0, 1.0, 1.0]
+          }
+        },
+        {
+          "type": "Primitive2DRendererComponent",
+          "data": {
+            "currentTypeIndex": 3,
+            "size": [28.0, 28.0],
+            "thickness": 3.0,
+            "color": [0.1, 0.95, 1.0, 1.0],
+            "pivot": [0.5, 0.5],
+            "subdivision": 32,
+            "isTopMost": true,
+            "texturePath": ""
           }
         }
       ]

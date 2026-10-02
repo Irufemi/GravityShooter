@@ -79,6 +79,13 @@ public:
     void ExitPlayMode();
 
     /**
+     * @brief ゲーム内から安全にプレイモードを終了するための遅延リクエスト
+     */
+    void RequestExitPlayMode() {
+        isExitPlayModeRequested_ = true;
+    }
+
+    /**
      * @brief プレイ中に一時停止/再開を切り替える
      */
     void TogglePauseMode();
@@ -109,6 +116,7 @@ private:
     std::shared_ptr<GameObject> stageCameraObject_ = nullptr; ///< ステージ専用エディタカメラ（Transient）
     bool isStepRequested_ = false;                            // コマ送りの予約フラグ
     bool isPickingAllowedInPlayMode_ = false; // プレイ中のオブジェクト選択（ピッキング）許可フラグ
+    bool isExitPlayModeRequested_ = false; // ゲーム内からのプレイモード終了遅延リクエストフラグ
 
     // PrefabMode 突入前のメインシーンカメラ状態の退避・復元
     std::string savedActiveCameraName_ = "";

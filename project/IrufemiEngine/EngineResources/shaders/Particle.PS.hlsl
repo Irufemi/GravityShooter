@@ -1,26 +1,18 @@
 #include "Particle.hlsli"
 #include "Material.hlsli"
 
-/*三角形の色を変えよう*/
-
 ConstantBuffer<Material> gMaterial : register(b0);
 #include "Bindless.hlsli"
 
 #include "BasePassPixelOutput.hlsli"
 
-/*テクスチャを貼ろう*/
-
-///Textureを使う
-
-SamplerState gSamplerWrap : register(s0); //Samplerのregisterはs
+SamplerState gSamplerWrap : register(s0);
 SamplerState gSamplerClamp : register(s1);
 
 /*LambertianReflectance*/
 
 #include "Lighting.hlsli"
 ConstantBuffer<DirectionalLight> gDirectionalLight : register(b1);
-
-/*テクスチャを貼ろう*/
 
 PixelShaderOutput main(VertexShaderOutput input)
 {

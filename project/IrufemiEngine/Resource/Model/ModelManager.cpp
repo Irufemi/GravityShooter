@@ -782,7 +782,7 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
                         if (!closestMesh->material.normalMapFilePath.empty() && textureManager) {
                             const DirectX::ScratchImage* nimg =
                                 textureManager->GetScratchImage(closestMesh->material.normalMapFilePath);
-                            if (nimg) {
+                            if (nimg && nimg->GetMetadata().width > 0 && nimg->GetMetadata().height > 0) {
                                 int nwidth = static_cast<int>(nimg->GetMetadata().width);
                                 int nheight = static_cast<int>(nimg->GetMetadata().height);
 
@@ -857,7 +857,7 @@ VoxelizedModel ModelManager::VoxelizeModel(const ObjModel& model, const Irufemi:
                             const DirectX::ScratchImage* img =
                                 textureManager->GetScratchImage(closestMesh->material.textureFilePath);
 
-                            if (img) {
+                            if (img && img->GetMetadata().width > 0 && img->GetMetadata().height > 0) {
                                 int width = static_cast<int>(img->GetMetadata().width);
                                 int height = static_cast<int>(img->GetMetadata().height);
 

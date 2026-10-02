@@ -1,6 +1,8 @@
 #include "UI/LockonMarkerUIComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
+#include "Framework/Scene/BaseScene.h"
+#include "Framework/Scene/SceneManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/Pipeline/PSOManager.h"
 #include "Core/Utility/Ease.h"

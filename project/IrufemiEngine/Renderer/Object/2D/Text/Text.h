@@ -16,6 +16,7 @@ class DebugUI;
 class CameraManager;
 
 enum class TextAlignment { Left, Center, Right };
+enum class TextVerticalAlignment { Top, Middle, Bottom };
 
 /**
  * @class Text
@@ -142,6 +143,15 @@ public:
     }
 
     /**
+     * @brief VerticalAlignment を設定する。
+     * @param[in] vAlign 設定する VerticalAlignment の値
+     */
+    void SetVerticalAlignment(TextVerticalAlignment vAlign) {
+        verticalAlignment_ = vAlign;
+        isTextDirty_ = true;
+    }
+
+    /**
      * @brief D3D12Resource を取得する。
      * @return 取得された D3D12Resource
      */
@@ -175,6 +185,14 @@ public:
      */
     TextAlignment GetAlignment() const {
         return alignment_;
+    }
+
+    /**
+     * @brief VerticalAlignment を取得する。
+     * @return 取得された VerticalAlignment
+     */
+    TextVerticalAlignment GetVerticalAlignment() const {
+        return verticalAlignment_;
     }
 
     /**
@@ -287,6 +305,7 @@ private:
     std::string fontId_ = "MainFont";
     float baseScale_ = 64.0f; // MSDF生成時のピクセルサイズを基準とするスケーリング
     TextAlignment alignment_ = TextAlignment::Left;
+    TextVerticalAlignment verticalAlignment_ = TextVerticalAlignment::Top;
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};
 
     Irufemi::Vector2 localBoundsMin_ = {0.0f, 0.0f};

@@ -1,9 +1,9 @@
 #pragma once
 #include "Framework/Component/Component.h"
-#include "RailMechanics/RailShooterPlayerComponent.h"
 #include <memory>
 
 class GameObject;
+enum class PlayerFlightState;
 
 /**
  * @class PlayerThrusterVisualizerComponent
@@ -24,16 +24,21 @@ public:
     }
 
 private:
+    /// @brief スロットル変更時のコールバック関数
+    /// @param throttle スロットル開度 (0.0 ~ 1.0)
     void OnThrottleChanged(float throttle);
+
+    /// @brief 飛行ステート変更時のコールバック関数
+    /// @param newState 遷移後のステート
+    /// @param oldState 遷移前のステート
     void OnStateChanged(PlayerFlightState newState, PlayerFlightState oldState);
 
 private:
     std::weak_ptr<GameObject> thrusterObj_; ///< アタッチされたスラスターGameObject
-    RailShooterPlayerComponent* playerComp_ = nullptr;
 
     Irufemi::Vector3 nozzleOffset_ = {0.0f, 0.0f, -0.48f}; ///< 機体ノズル相対座標
     float minScaleZ_ = 0.8f;                               ///< アイドル時のスケール
     float maxScaleZ_ = 1.8f;                               ///< 全力ブースト時のスケール
-    float currentScaleZ_ = 1.0f;
-    float targetScaleZ_ = 1.0f;
+    float currentScaleZ_ = 1.0f;                           ///< 現在のスラスターZスケール
+    float targetScaleZ_ = 1.0f;                            ///< 目標のスラスターZスケール
 };

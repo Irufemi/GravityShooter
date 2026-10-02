@@ -1,41 +1,32 @@
 #pragma once
 #include "Framework/Scene/BaseScene.h"
+#include "Core/Math/Vector2.h"
 #include <cstdint>
+#include <memory>
+#include <string>
+
+class SliderComponent;
+class ButtonComponent;
+class TextRendererComponent;
+class Primitive2DRendererComponent;
+class GameObject;
 
 /**
  * @class OptionsScene
  * @brief ゲーム内設定(Options)を管理・表示するシーン
- * @details SceneManager::PushScene で呼び出されることを想定し、
- *          背景ゲームをポーズしつつ、BGMやUI音は再生し続けるUXを提供します。
+ * @details SceneManager::PushScene で呼び出され、背景ゲームをポーズしつつBGMやUI音を維持。
+ *          Apex Legends風の仮想カーソル（Virtual
+ * Cursor）による左スティック操作とマウス操作のハイブリッド制御に対応します。
  */
 class OptionsScene : public BaseScene {
 public:
     OptionsScene() = default;
     ~OptionsScene() override = default;
 
-    /**
-     * @brief Initialize を実行する。
-     */
     void Initialize(IrufemiEngine* engine) override;
-
-    /**
-     * @brief Update を実行する。
-     */
     void Update() override;
-
-    /**
-     * @brief Finalize を実行する。
-     */
     void Finalize() override;
-
-    /**
-     * @brief OnEnter を実行する。
-     */
     void OnEnter() override;
-
-    /**
-     * @brief OnExit を実行する。
-     */
     void OnExit() override;
 
     // --- スタック管理用フラグ ---
@@ -55,20 +46,64 @@ public:
         return true;
     }
 
-    // ★オーディオ（BGMやUI）はポーズしない！
+    /// @brief オーディオをポーズせず継続再生する（BGMやUI音を維持）
     bool IsAudioBlocking() const override {
         return false;
     }
 
 private:
     void BindUIComponents();
-    void ApplyPendingSettings();
-    void RevertSettings();
+    void UpdateVirtualCursor(float deltaTime);
+    void UpdateSliderDrag();
+    void UpdateValueTexts();
+    void PlaySE(const std::string& filePath, const std::string& key, float volume = 0.7f);
 
-    // 内部状態（保留反映用）
-    int pendingResolutionIndex_ = -1;
-    bool pendingFullscreen_ = false;
+    // キャッシュしたUIコンポーネント参照
+    SliderComponent* sliderBGM_ = nullptr;
+    SliderComponent* sliderSE_ = nullptr;
+    SliderComponent* sliderSensitivity_ = nullptr;
+    ButtonComponent* buttonClose_ = nullptr;
+    TextRendererComponent* valueTextBGM_ = nullptr;
+    TextRendererComponent* valueTextSE_ = nullptr;
+    TextRendererComponent* valueTextSensitivity_ = nullptr;
+
+    // 仮想カーソルGameObject参照
+    std::shared_ptr<GameObject> virtualCursorObj_;
+    Primitive2DRendererComponent* virtualCursorRenderer_ = nullptr;
+
+    // ドラッグ状態
+    bool isDraggingSlider_ = false;
+    SliderComponent* draggingSlider_ = nullptr;
+
+    // ホバー検出＆SE用
+    void* lastHoveredTarget_ = nullptr;
+
+    // カーソル設定定数
+    const float kStickyFriction_ = 0.45f; // ホバー時の減速倍率
+
+    // 開いた直後の入力ガードタイマー
+    float openCooldownTimer_ = 0.2f;
 
     // UIの初期化が完了したか
     bool uiBound_ = false;
+
+    // 動的に取得されるUIレイアウト情報（Transform等から自動抽出）
+    struct UIRect {
+        float x = 0.0f;
+        float y = 0.0f;
+        float halfW = 0.0f;
+        float halfH = 0.0f;
+        bool Contains(float px, float py) const {
+            return std::abs(px - x) <= halfW && std::abs(py - y) <= halfH;
+        }
+    };
+    UIRect rectButtonClose_{640.0f, 530.0f, 130.0f, 30.0f};
+    UIRect rectSliderBGM_{640.0f, 210.0f, 210.0f, 35.0f};
+    UIRect rectSliderSE_{640.0f, 320.0f, 210.0f, 35.0f};
+    UIRect rectSliderSensitivity_{640.0f, 430.0f, 210.0f, 35.0f};
+
+    // 音声パス（外部・CVar設定可能）
+    std::string seCancelPath_ = "resources/audio/se_menu_cancel.wav";
+    std::string seDecidePath_ = "resources/audio/se_menu_decide.wav";
+    std::string seCursorPath_ = "resources/audio/se_menu_cursor.wav";
 };

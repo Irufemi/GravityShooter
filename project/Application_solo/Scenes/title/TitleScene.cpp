@@ -5,6 +5,8 @@
 #include "Irufemi.h"
 
 #include "Platform/Input/InputManager.h"
+#include "Framework/GameObject/GameObject.h"
+#include "Scenes/title/TitleMenuControllerComponent.h"
 
 // デストラクタ
 TitleScene::~TitleScene() {}
@@ -19,20 +21,30 @@ void TitleScene::Initialize(IrufemiEngine* engine) {
 // 更新
 void TitleScene::Update() {
     BaseScene::Update();
-
-    auto inputManager = engine_ ? engine_->GetInputManager() : nullptr;
-    if (inputManager) {
-        if (inputManager->IsKeyPressed(VK_SPACE) || inputManager->IsButtonPressed(XINPUT_GAMEPAD_A)) {
-            engine_->GetSceneManager()->TransitionTo("InGame", SceneTransition::Type::Fade, 1.0f);
-        }
-
-        // オプション画面のテスト用呼び出し
-        if (inputManager->IsKeyPressed('O') || inputManager->IsButtonPressed(XINPUT_GAMEPAD_START)) {
-            engine_->GetSceneManager()->PushScene("OptionsScene");
-        }
-    }
 }
 
 void TitleScene::Draw() {
     BaseScene::Draw();
+}
+
+void TitleScene::OnSuspend() {
+    BaseScene::OnSuspend();
+
+    // 他のシーン（HowToPlayやOptions）が重なった時は、タイトル文字被りを防ぐためメニューUIを非表示化
+    if (auto menuMgr = FindGameObject("MenuManager")) {
+        if (auto ctrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
+            ctrl->SetMenuVisible(false);
+        }
+    }
+}
+
+void TitleScene::OnResume() {
+    BaseScene::OnResume();
+
+    // スタックから復帰した時はメニューUIを再表示
+    if (auto menuMgr = FindGameObject("MenuManager")) {
+        if (auto ctrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
+            ctrl->SetMenuVisible(true);
+        }
+    }
 }

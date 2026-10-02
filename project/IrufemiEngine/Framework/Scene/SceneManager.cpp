@@ -147,7 +147,7 @@ void SceneManager::PushScene(const Key& name) {
     item.name = name;
     item.scene = it->second();
 
-    // ★上に重なるシーンがAudioをブロックする場合、SEだけをポーズする（BGMとUIはそのまま）
+    // 重複シーンがAudioをブロックする場合、SEカテゴリのみポーズする（BGMとUI音は継続）
     if (!sceneStack_.empty() && item.scene->IsAudioBlocking()) {
         engine_->GetAudioManager()->PauseCategory(AudioCategory::SE);
     }
@@ -180,23 +180,27 @@ void SceneManager::PopScene() {
 
     engine_->GetDirectXCommon()->WaitForGPU();
 
+    bool shouldClearParticles = sceneStack_.back().scene->ShouldClearParticlesOnPop();
+
     // 最前面のシーンの終了処理
     sceneStack_.back().scene->OnExit();
     sceneStack_.back().scene->Finalize();
     sceneStack_.pop_back();
 
-    // パーティクルの状態をクリア（Pop前のシーンから残ったパーティクルを消去）
-    if (engine_->GetVoxelParticleManager()) {
-        engine_->GetVoxelParticleManager()->Clear();
-    }
-    if (engine_->GetGPUParticleManager()) {
-        engine_->GetGPUParticleManager()->ClearAllParticles();
+    // オーバーレイ復帰時にゲーム内エフェクトが消滅するのを防ぐため、明示要求時のみクリア
+    if (shouldClearParticles) {
+        if (engine_->GetVoxelParticleManager()) {
+            engine_->GetVoxelParticleManager()->Clear();
+        }
+        if (engine_->GetGPUParticleManager()) {
+            engine_->GetGPUParticleManager()->ClearAllParticles();
+        }
     }
 
     if (!sceneStack_.empty()) {
         // 次のシーンが最前面に復帰するためレジューム処理を行う
         sceneStack_.back().scene->OnResume();
-        // ★ポーズしていたSEカテゴリを再開する
+        // ポーズしていたSEカテゴリを再開する
         engine_->GetAudioManager()->ResumeCategory(AudioCategory::SE);
         engine_->SetCursorLocked(!sceneStack_.back().scene->IsCursorVisible());
     } else {

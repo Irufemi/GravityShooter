@@ -105,7 +105,7 @@ void PlayerTargetingComponent::UpdateHoverTarget() {
 
     auto inputManager = engine->GetInputManager();
     Irufemi::Vector2 screenCenter =
-        inputManager ? inputManager->GetMousePosition() : Irufemi::Vector2{viewWidth * 0.5f, viewHeight * 0.5f};
+        inputManager ? inputManager->GetVirtualCursorPosition() : Irufemi::Vector2{viewWidth * 0.5f, viewHeight * 0.5f};
     float currentTime = engine->GetTotalTime();
 
     // 1. 保留中の非同期レイキャストをポーリングして視線キャッシュを更新
@@ -279,10 +279,10 @@ Irufemi::Vector3 PlayerTargetingComponent::CalculateAimPoint(float maxDistance) 
     auto camera = cameraManager->GetActiveCamera();
     float width = camera->GetViewportWidth();
     float height = camera->GetViewportHeight();
-    Irufemi::Vector2 mousePos = inputManager->GetMousePosition();
+    Irufemi::Vector2 cursorPos = inputManager->GetVirtualCursorPosition();
 
     Irufemi::Matrix4x4 viewProjInv = Irufemi::Math::Inverse(camera->GetViewProjectionMatrix3D());
-    Irufemi::Ray ray = Irufemi::Math::ScreenPointToRay(mousePos, width, height, viewProjInv);
+    Irufemi::Ray ray = Irufemi::Math::ScreenPointToRay(cursorPos, width, height, viewProjInv);
 
     RaycastHit hitInfo;
     if (auto collisionManager = engine->GetCollisionManager()) {
@@ -297,7 +297,6 @@ Irufemi::Vector3 PlayerTargetingComponent::CalculateAimPoint(float maxDistance) 
 void PlayerTargetingComponent::UpdateOutlineHighlights() {
     std::unordered_set<uint64_t> currentTargetIds;
 
-    // 【業界標準アプローチ】
     // 照準ホバー（カーソル近傍）では3Dモデルのアウトライン色は変えず、
     // プレイヤーが右クリックで明示的に確定したロックオンターゲット（queuedTargets_）のみをハイライトする
     for (const auto& target : queuedTargets_) {

@@ -30,6 +30,7 @@ void TextRendererComponent::OnAwake() {
     // リフレクション変数との同期を確実に保証
     text_ = ConvertString(textU8_);
     alignment_ = static_cast<TextAlignment>(alignmentInt_);
+    verticalAlignment_ = static_cast<TextVerticalAlignment>(verticalAlignmentInt_);
 
     textObj_->Initialize(fontId_);
     textObj_->SetText(text_);
@@ -37,6 +38,7 @@ void TextRendererComponent::OnAwake() {
     textObj_->SetColor(color_);
     textObj_->SetTopMost(isTopMost_);
     textObj_->SetAlignment(alignment_);
+    textObj_->SetVerticalAlignment(verticalAlignment_);
     // ロード画面中に生成を終わらせるため、初期化時に強制アップデート（非同期タスク待ち・頂点生成）
     textObj_->Update();
 }
@@ -154,15 +156,25 @@ void TextRendererComponent::SetAlignment(TextAlignment align) {
     }
 }
 
+void TextRendererComponent::SetVerticalAlignment(TextVerticalAlignment vAlign) {
+    verticalAlignment_ = vAlign;
+    verticalAlignmentInt_ = static_cast<int>(vAlign);
+    if (textObj_) {
+        textObj_->SetVerticalAlignment(verticalAlignment_);
+    }
+}
+
 void TextRendererComponent::OnRegisterProperties() {
     textU8_ = ConvertString(text_);
     alignmentInt_ = static_cast<int>(alignment_);
+    verticalAlignmentInt_ = static_cast<int>(verticalAlignment_);
 
     RegisterProperty("text", &textU8_);
     RegisterProperty("fontId", &fontId_);
     RegisterProperty("baseScale", &baseScale_);
     RegisterProperty("color", &color_);
     RegisterProperty("alignment", &alignmentInt_);
+    RegisterProperty("verticalAlignment", &verticalAlignmentInt_);
     RegisterProperty("isTopMost", &isTopMost_);
 }
 
@@ -172,6 +184,7 @@ void TextRendererComponent::Deserialize(const nlohmann::json& j) {
     // デシリアライズ直後に UTF-8文字列およびアライメント数値を型安全に即時同期
     text_ = ConvertString(textU8_);
     alignment_ = static_cast<TextAlignment>(alignmentInt_);
+    verticalAlignment_ = static_cast<TextVerticalAlignment>(verticalAlignmentInt_);
 
     if (textObj_) {
         textObj_->SetText(text_);
@@ -180,5 +193,6 @@ void TextRendererComponent::Deserialize(const nlohmann::json& j) {
         textObj_->SetColor(color_);
         textObj_->SetTopMost(isTopMost_);
         textObj_->SetAlignment(alignment_);
+        textObj_->SetVerticalAlignment(verticalAlignment_);
     }
 }

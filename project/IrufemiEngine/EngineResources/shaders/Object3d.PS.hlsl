@@ -1,24 +1,16 @@
-/*テクスチャを貼ろう*/
-
 #include "Transform.hlsli"
 #include "BasePassVertexOutput.hlsli"
 #include "Lighting.hlsli"
-
-/*三角形の色を変えよう*/
 
 ConstantBuffer<Material> gMaterial : register(b0);
 #include "Bindless.hlsli"
 
 #include "BasePassPixelOutput.hlsli"
 
-/*テクスチャを貼ろう*/
-
-///Textureを使う
-
-SamplerState gSamplerWrap : register(s0); //Samplerのregisterはs
-SamplerState gSamplerPointClamp : register(s1); // パーティクル用等POINT補間
-SamplerState gSamplerClamp : register(s3); // 新規: 完全クランプ・リニア補間
-SamplerState gSamplerWrapClamp : register(s4); // U:Wrap, V:Clamp (横スクロール対応等)
+SamplerState gSamplerWrap : register(s0);             // ラップ・リニア補間
+SamplerState gSamplerPointClamp : register(s1);       // クランプ・ポイント補間（パーティクル等）
+SamplerState gSamplerClamp : register(s3);            // クランプ・リニア補間
+SamplerState gSamplerWrapClamp : register(s4);        // U:Wrap, V:Clamp (横スクロール対応等)
 SamplerComparisonState gShadowSampler : register(s2); // 比較サンプラー
 
 /*Light Common & DirectionalLight*/
@@ -42,8 +34,6 @@ StructuredBuffer<AreaLight> gAreaLights : register(t4);
 /// 環境マップを追加する
 
 Texture2D<float32_t> gShadowMap : register(t5);
-
-/*テクスチャを貼ろう*/
 
 PixelShaderOutput main(VertexShaderOutput input)
 {

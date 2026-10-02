@@ -109,9 +109,9 @@ void UIPass::Execute(const Irufemi::RenderContext& rc) {
     // 8.5 UI 3D Objects (Always drawn on top of Sprites)
     DrawWithPSO(drawManager->GetUI3DQueue(), [&](const auto& p) { drawManager->DrawStandard3D(p); }, "Object3D");
 
-    // 9. Post Custom Draws
-    const auto& postRenderQueue = drawManager->GetPostRenderQueue();
-    for (auto& func : postRenderQueue) {
+    // 9. Post Custom Draws / Stage AfterUI (全UI描画完了後の最前面カスタム描画)
+    const auto& afterUIQueue = drawManager->GetCustomPassQueue(Irufemi::RenderStage::AfterUI);
+    for (auto& func : afterUIQueue) {
         func();
     }
 }

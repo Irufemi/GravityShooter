@@ -66,9 +66,14 @@ public:
 
     // 文字列を受け取り、まだ生成されていない文字があればMSDFを生成してアトラスに追加する
     /**
-     * @brief PrecacheText を実行する。
+     * @brief PrecacheText を実行する (非同期)。
      */
     void PrecacheText(const std::string& fontId, const std::wstring& text);
+
+    /**
+     * @brief 同期的にMSDFを生成してアトラスに追加する (UI表示前の文字飛び防止用)
+     */
+    void PrecacheTextSync(const std::string& fontId, const std::wstring& text);
 
     // 文字のグリフ情報を取得する (キャッシュにない場合は非同期または即座に生成する)
     /**

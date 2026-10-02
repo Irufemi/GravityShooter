@@ -151,7 +151,7 @@ void RailShooterPlayerComponent::Update() {
     currentOffset_.y = std::clamp(currentOffset_.y, moveLimitMin_.y, moveLimitMax_.y);
 
     // --- 現在の速度とスロットル開度の算出 ---
-    float currentSpeed = std::sqrt(currentVelocity_.x * currentVelocity_.x + currentVelocity_.y * currentVelocity_.y);
+    float currentSpeed = currentVelocity_.Length();
     float throttle = std::clamp(currentSpeed / maxSpeed_, 0.0f, 1.0f);
 
     // 1. ステート遷移の更新（Stateパターン）

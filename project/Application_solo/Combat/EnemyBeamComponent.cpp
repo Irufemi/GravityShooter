@@ -224,7 +224,7 @@ void EnemyBeamComponent::CheckBeamCollision() {
     float hitRadius = beamMaxRadius_ + hitCheckRadiusMargin_;
 
     if (distSq <= hitRadius * hitRadius) {
-        // 【AAA基準: 環境遮蔽（Line-of-Sight）チェック】
+        // 障害物による射線遮蔽（Line-of-Sight）チェック:
         // 発射口から自機までの間に環境物（Environment）の壁や柱があればビームが遮断される
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
@@ -232,8 +232,7 @@ void EnemyBeamComponent::CheckBeamCollision() {
                 Irufemi::Ray ray;
                 ray.origin = a;
                 ray.diff = playerPos - a;
-                float distToPlayer =
-                    std::sqrt(ray.diff.x * ray.diff.x + ray.diff.y * ray.diff.y + ray.diff.z * ray.diff.z);
+                float distToPlayer = ray.diff.Length();
                 if (distToPlayer > 0.001f) {
                     RaycastHit hitInfo;
                     if (cm->Raycast(ray, hitInfo, distToPlayer, envMask, gameObject_)) {

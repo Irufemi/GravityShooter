@@ -153,6 +153,15 @@ public:
     /** @brief 右トリガー（RT）のアナログ押し込み量を取得する */
     float GetRightTrigger() const;
 
+    /** @brief 左トリガー（LT）がしきい値以上押されているか判定 */
+    bool IsLeftTriggerDown(float threshold = 0.4f) const;
+    /** @brief 左トリガー（LT）が押された瞬間か判定（立ち上がり検出） */
+    bool IsLeftTriggerPressed(float threshold = 0.4f) const;
+    /** @brief 右トリガー（RT）がしきい値以上押されているか判定 */
+    bool IsRightTriggerDown(float threshold = 0.4f) const;
+    /** @brief 右トリガー（RT）が押された瞬間か判定（立ち上がり検出） */
+    bool IsRightTriggerPressed(float threshold = 0.4f) const;
+
     /** @brief STARTボタンが押されているか判定 */
     bool StartDown() const;
     /** @brief STARTボタンが押された瞬間か判定（立ち上がり検出） */
@@ -208,6 +217,69 @@ public:
     }
     ///@}
 
+    /** @name 仮想カーソル（Virtual Cursor / マウス・ゲームパッド統合カーソル） */
+    ///@{
+    /** @brief 統合仮想カーソルの現在座標（1280x720 空間）を取得する */
+    const Irufemi::Vector2& GetVirtualCursorPosition() const {
+        return virtualCursorPos_;
+    }
+
+    /** @brief 統合仮想カーソルの座標を設定する */
+    void SetVirtualCursorPosition(const Irufemi::Vector2& pos) {
+        virtualCursorPos_ = pos;
+    }
+
+    /** @brief 現在ゲームパッドスティックでカーソルを操作中かどうか */
+    bool IsUsingGamepadCursor() const {
+        return isUsingGamepadCursor_;
+    }
+
+    /** @brief 仮想カーソルの基準移動速度（ピクセル/秒）を取得する */
+    float GetVirtualCursorBaseSpeed() const {
+        return virtualCursorBaseSpeed_;
+    }
+
+    /** @brief 仮想カーソルの基準移動速度（ピクセル/秒）を設定する */
+    void SetVirtualCursorBaseSpeed(float speed) {
+        virtualCursorBaseSpeed_ = speed;
+    }
+
+    /** @brief 仮想カーソルの移動可能範囲（クランプ矩形）を設定する */
+    void SetVirtualCursorBounds(const Irufemi::Vector2& minBounds, const Irufemi::Vector2& maxBounds) {
+        virtualCursorBoundsMin_ = minBounds;
+        virtualCursorBoundsMax_ = maxBounds;
+    }
+
+    /** @brief 仮想カーソルの移動可能最小座標を取得する */
+    const Irufemi::Vector2& GetVirtualCursorBoundsMin() const {
+        return virtualCursorBoundsMin_;
+    }
+
+    /** @brief 仮想カーソルの移動可能最大座標を取得する */
+    const Irufemi::Vector2& GetVirtualCursorBoundsMax() const {
+        return virtualCursorBoundsMax_;
+    }
+
+    /**
+     * @brief 仮想カーソルを更新する（マウス移動検知・スティック移動・画面クランプ）
+     * @param[in] deltaTime 経過時間
+     * @param[in] speedMultiplier 移動速度乗数（UIホバー時の摩擦減速など）
+     */
+    void UpdateVirtualCursor(float deltaTime, float speedMultiplier = 1.0f);
+
+    /** @brief カーソルの決定・選択アクションが押されているか（Aボタン or マウス左ボタン） */
+    bool IsCursorActionDown() const;
+
+    /** @brief カーソルの決定・選択アクションが押された瞬間か（Aボタン or マウス左ボタン） */
+    bool IsCursorActionPressed() const;
+
+    /** @brief カーソルの決定・選択アクションが離された瞬間か（Aボタン or マウス左ボタン） */
+    bool IsCursorActionReleased() const;
+
+    /** @brief キャンセル・戻る操作が押された瞬間か（Bボタン or ESC or BackSpace） */
+    bool IsCancelPressed() const;
+    ///@}
+
 private:
     /** @brief 物理入力デバイスから現在の状態（アナログ値または0/1）を取得する内部関数 */
     float GetPhysicalInputValue(InputId id) const;
@@ -222,4 +294,12 @@ private:
     // 前フレームと現在のフレームのアクション値を保持（Triggered等の判定用）
     std::unordered_map<std::string, InputActionValue> currentActionValues_{};
     std::unordered_map<std::string, InputActionValue> previousActionValues_{};
+
+    // 仮想カーソル管理
+    Irufemi::Vector2 virtualCursorPos_ = {640.0f, 360.0f};
+    Irufemi::Vector2 virtualCursorBoundsMin_ = {15.0f, 15.0f};
+    Irufemi::Vector2 virtualCursorBoundsMax_ = {1265.0f, 705.0f};
+    Irufemi::Vector2 lastPhysicalMousePos_ = {640.0f, 360.0f};
+    bool isUsingGamepadCursor_ = false;
+    float virtualCursorBaseSpeed_ = 650.0f;
 };

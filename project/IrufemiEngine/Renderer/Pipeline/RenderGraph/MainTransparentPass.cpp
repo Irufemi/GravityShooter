@@ -157,6 +157,12 @@ void MainTransparentPass::Execute(const Irufemi::RenderContext& rc) {
         }
     };
 
+    // 2.5 Stage BeforeTransparent (不透明完了後・半透明パーティクル前のカスタムパス)
+    const auto& beforeTransparentQueue = drawManager->GetCustomPassQueue(Irufemi::RenderStage::BeforeTransparent);
+    for (auto& func : beforeTransparentQueue) {
+        func();
+    }
+
     // 3. Transparent 3D (エフェクト・半透明) - MRT(2)が必要
     const auto& transparentQueue = drawManager->GetTransparent3DQueue(); // コピーを撤廃し参照渡し
     if (!transparentQueue.empty()) {

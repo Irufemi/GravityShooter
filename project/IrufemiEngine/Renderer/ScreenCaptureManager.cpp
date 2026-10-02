@@ -326,7 +326,7 @@ void ScreenCaptureManager::ExecuteCopyTask(ID3D12Resource* sourceResource, D3D12
 }
 
 void ScreenCaptureManager::GenerateMetadataJson(const std::wstring& imagePath) {
-    // 諡｡蠑ｵ蟄舌ｒ .json 縺ｫ螟画峩
+    // 拡張子を .json に変更
     std::wstring jsonPath = imagePath;
     size_t dotPos = jsonPath.find_last_of(L".");
     if (dotPos != std::wstring::npos) {

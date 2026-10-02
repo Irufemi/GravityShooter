@@ -989,10 +989,10 @@ private: // メンバ変数
 
     // --- 全画面用 RenderTexture ---
     std::unique_ptr<RenderTexture> mainRenderTexture_ = nullptr;
-    std::unique_ptr<RenderTexture> effectMaskTexture_ = nullptr; // ★ MRT対応: マスク用
-    std::unique_ptr<RenderTexture> normalTexture_ = nullptr;     // MRT対応: 法線/深度用
-    std::unique_ptr<RenderTexture> materialTexture_ = nullptr;   // MRT対応: マテリアル用
-    std::unique_ptr<RenderTexture> velocityTexture_ = nullptr;   // MRT対応: モーションベクトル用
+    std::unique_ptr<RenderTexture> effectMaskTexture_ = nullptr; ///< MRT対応: マスク用
+    std::unique_ptr<RenderTexture> normalTexture_ = nullptr;     ///< MRT対応: 法線/深度用
+    std::unique_ptr<RenderTexture> materialTexture_ = nullptr;   ///< MRT対応: マテリアル用
+    std::unique_ptr<RenderTexture> velocityTexture_ = nullptr;   ///< MRT対応: モーションベクトル用
     std::unique_ptr<PostProcessManager> postProcessManager_ = nullptr;
     std::unique_ptr<SceneTransition> sceneTransition_ = nullptr;
 
