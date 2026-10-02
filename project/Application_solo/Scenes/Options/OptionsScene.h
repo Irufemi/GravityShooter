@@ -15,7 +15,8 @@ class GameObject;
  * @class OptionsScene
  * @brief ゲーム内設定(Options)を管理・表示するアプリケーションシーン
  * @details SceneManager::PushScene で呼び出され、背景ゲームをポーズしつつBGMやUI音を維持。
- *          Apex Legends風の仮想カーソル（Virtual Cursor）による左スティック操作とマウス操作のハイブリッド制御に対応します。
+ *          Apex Legends風の仮想カーソル（Virtual
+ * Cursor）による左スティック操作とマウス操作のハイブリッド制御に対応します。
  */
 class OptionsScene : public BaseScene {
 public:

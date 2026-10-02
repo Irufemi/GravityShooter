@@ -258,8 +258,8 @@ public:
      */
     void UpdateReferenceResolution(float width, float height, float padding = 15.0f) {
         float safePad = (std::max)(0.0f, padding);
-        virtualCursorBoundsMin_ = { safePad, safePad };
-        virtualCursorBoundsMax_ = { (std::max)(safePad, width - safePad), (std::max)(safePad, height - safePad) };
+        virtualCursorBoundsMin_ = {safePad, safePad};
+        virtualCursorBoundsMax_ = {(std::max)(safePad, width - safePad), (std::max)(safePad, height - safePad)};
     }
 
     /** @brief 仮想カーソルの移動可能最小座標を取得する */

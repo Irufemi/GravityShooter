@@ -19,7 +19,7 @@ void InputManager::Initialize(HWND hwnd) {
         float height = static_cast<float>(clientRect.bottom - clientRect.top);
         if (width > 0.0f && height > 0.0f) {
             UpdateReferenceResolution(width, height);
-            virtualCursorPos_ = { width * 0.5f, height * 0.5f };
+            virtualCursorPos_ = {width * 0.5f, height * 0.5f};
         }
     }
 
