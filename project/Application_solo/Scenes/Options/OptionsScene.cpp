@@ -1,4 +1,4 @@
-#include "Framework/Scene/OptionsScene.h"
+#include "Scenes/Options/OptionsScene.h"
 #include "Framework/Scene/SceneSerializer.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/Component/UI/ButtonComponent.h"
@@ -133,6 +133,9 @@ void OptionsScene::BindUIComponents() {
         if (auto t = obj->GetTransform()) {
             rectSliderBGM_.x = t->GetPosition().x;
             rectSliderBGM_.y = t->GetPosition().y;
+            if (t->GetScale().x > 1.0f) {
+                rectSliderBGM_.halfW = t->GetScale().x * 0.5f;
+            }
         }
         if (sliderBGM_) {
             float bgmVol = Irufemi::CVarSystem::GetFloat("a.BGMVolume");
@@ -146,6 +149,9 @@ void OptionsScene::BindUIComponents() {
         if (auto t = obj->GetTransform()) {
             rectSliderSE_.x = t->GetPosition().x;
             rectSliderSE_.y = t->GetPosition().y;
+            if (t->GetScale().x > 1.0f) {
+                rectSliderSE_.halfW = t->GetScale().x * 0.5f;
+            }
         }
         if (sliderSE_) {
             float seVol = Irufemi::CVarSystem::GetFloat("a.SEVolume");
@@ -159,6 +165,9 @@ void OptionsScene::BindUIComponents() {
         if (auto t = obj->GetTransform()) {
             rectSliderSensitivity_.x = t->GetPosition().x;
             rectSliderSensitivity_.y = t->GetPosition().y;
+            if (t->GetScale().x > 1.0f) {
+                rectSliderSensitivity_.halfW = t->GetScale().x * 0.5f;
+            }
         }
         if (sliderSensitivity_) {
             float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
@@ -176,6 +185,9 @@ void OptionsScene::BindUIComponents() {
         if (auto t = obj->GetTransform()) {
             rectButtonClose_.x = t->GetPosition().x;
             rectButtonClose_.y = t->GetPosition().y;
+            if (t->GetScale().x > 1.0f) {
+                rectButtonClose_.halfW = t->GetScale().x * 0.5f;
+            }
         }
     }
 

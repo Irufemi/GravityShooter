@@ -335,7 +335,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Framework\Prefab\PrefabManager.cpp" />
     <ClCompile Include="Framework\Prefab\PrefabUtility.cpp" />
     <ClCompile Include="Framework\Scene\SceneTransition.cpp" />
-    <ClCompile Include="Framework\Scene\OptionsScene.cpp" />
     <ClCompile Include="Framework\UI\UIAnimator.cpp" />
     <ClCompile Include="Framework\UI\UISelectionGroup.cpp" />
     <ClCompile Include="Renderer\Object\2D\Primitive\Primitive2DObject.cpp" />
@@ -515,7 +514,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Prefab\PrefabManager.h" />
     <ClInclude Include="Framework\Prefab\PrefabUtility.h" />
     <ClInclude Include="Framework\Scene\SceneTransition.h" />
-    <ClInclude Include="Framework\Scene\OptionsScene.h" />
     <ClInclude Include="Framework\UI\UIAnimator.h" />
     <ClInclude Include="Framework\UI\UISelectionGroup.h" />
     <ClInclude Include="Framework\Component\Audio\AudioSourceComponent.h" />

@@ -250,6 +250,18 @@ public:
         virtualCursorBoundsMax_ = maxBounds;
     }
 
+    /**
+     * @brief 論理参照解像度（Reference Resolution）に基づいて仮想カーソルの移動可能範囲を更新する
+     * @param[in] width 画面・論理ビューポート幅
+     * @param[in] height 画面・論理ビューポート高さ
+     * @param[in] padding 画面端の安全マージン（初期値: 15.0f）
+     */
+    void UpdateReferenceResolution(float width, float height, float padding = 15.0f) {
+        float safePad = (std::max)(0.0f, padding);
+        virtualCursorBoundsMin_ = { safePad, safePad };
+        virtualCursorBoundsMax_ = { (std::max)(safePad, width - safePad), (std::max)(safePad, height - safePad) };
+    }
+
     /** @brief 仮想カーソルの移動可能最小座標を取得する */
     const Irufemi::Vector2& GetVirtualCursorBoundsMin() const {
         return virtualCursorBoundsMin_;

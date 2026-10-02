@@ -12,6 +12,17 @@ void InputManager::Initialize(HWND hwnd) {
     gamepad_->Initialize();
     mouse_->Initialize(hwnd);
 
+    // ウィンドウクライアント領域から論理移動範囲を初期化
+    RECT clientRect{};
+    if (hwnd && GetClientRect(hwnd, &clientRect)) {
+        float width = static_cast<float>(clientRect.right - clientRect.left);
+        float height = static_cast<float>(clientRect.bottom - clientRect.top);
+        if (width > 0.0f && height > 0.0f) {
+            UpdateReferenceResolution(width, height);
+            virtualCursorPos_ = { width * 0.5f, height * 0.5f };
+        }
+    }
+
     virtualCursorBaseSpeed_ = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
     if (virtualCursorBaseSpeed_ <= 0.0f) {
         virtualCursorBaseSpeed_ = 650.0f;

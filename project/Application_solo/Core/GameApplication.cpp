@@ -51,7 +51,7 @@
 #include "Scenes/inGame/GameScene.h"
 #include "Scenes/Pause/PauseScene.h"
 #include "Scenes/TL1/TL1Scene.h"
-#include "Framework/Scene/OptionsScene.h"
+#include "Scenes/Options/OptionsScene.h"
 #include "Scenes/HowToPlay/HowToPlayScene.h"
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)

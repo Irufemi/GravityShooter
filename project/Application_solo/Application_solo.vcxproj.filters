@@ -52,6 +52,9 @@
     <Filter Include="Scenes\Result">
       <UniqueIdentifier>{abcdabcd-1234-5678-90ab-cdef12345678}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes\Options">
+      <UniqueIdentifier>{e8b1c2d3-4f5a-6b7c-8d9e-0f1a2b3c4d5e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="UI">
       <UniqueIdentifier>{71ff7152-6d15-db86-eb50-fcac245d183b}</UniqueIdentifier>
     </Filter>
@@ -101,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="Scenes\HowToPlay\HowToPlayScene.cpp">
       <Filter>Scenes\HowToPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\Options\OptionsScene.cpp">
+      <Filter>Scenes\Options</Filter>
     </ClCompile>
     <ClCompile Include="UI\LoadingScreen.cpp">
       <Filter>UI</Filter>
@@ -260,6 +266,9 @@
     </ClInclude>
     <ClInclude Include="Scenes\HowToPlay\HowToPlayScene.h">
       <Filter>Scenes\HowToPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\Options\OptionsScene.h">
+      <Filter>Scenes\Options</Filter>
     </ClInclude>
     <ClInclude Include="UI\LoadingScreen.h">
       <Filter>UI</Filter>

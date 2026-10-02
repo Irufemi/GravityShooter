@@ -22,7 +22,6 @@
 #include "scene/Clear/ClearScene.h"
 #include "scene/GameOver/GameOverScene.h"
 #include "scene/Pause/PauseScene.h"
-#include "Framework/Scene/OptionsScene.h"
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
 #include "Framework/Scene/DebugScene.h"
 #endif
@@ -55,7 +54,6 @@ void RegisterScenes(SceneManager& sm) {
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
     sm.Register("Debug", [] { return std::make_unique<DebugScene>(); });
 #endif
-    sm.Register("OptionsScene", [] { return std::make_unique<OptionsScene>(); });
 }
 } // namespace
 
