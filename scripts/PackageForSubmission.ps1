@@ -275,7 +275,8 @@ function Create-SourcePackage {
         "gakkousuraido",
         "_Submission",
         "logs",
-        "scratch"
+        "scratch",
+        "backup"
     )
 
     # project 配下等で除外する中間・作業ディレクトリ名
@@ -467,7 +468,7 @@ function Create-PlayablePackage {
         Copy-Item -Path $docPortfolio -Destination (Join-Path $TargetDir "LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf") -Force
         Write-Info "ポートフォリオ.pdf を同梱しました。"
     }
-    $docManual = Join-Path $RootDir "TL1\LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf"
+    $docManual = Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf"
     if (Test-Path $docManual) {
         Copy-Item -Path $docManual -Destination (Join-Path $TargetDir "LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf") -Force
         Write-Info "プログラム説明書.pdf を同梱しました。"

@@ -1,1 +1,0 @@
-"C:\Blender Foundation\Blender 4.5\blender.exe"
