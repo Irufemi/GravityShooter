@@ -1,13 +1,22 @@
 param (
     [ValidateSet("Source", "Build", "All", "Menu")]
-    [string]$Mode = "Menu"
+    [string]$Mode = "Menu",
+    [string]$ScriptDir = ""
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 # ルートディレクトリの特定
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $ScriptDir) {
+    if (Test-Path variable:PSScriptRoot -and $PSScriptRoot) {
+        $ScriptDir = $PSScriptRoot
+    } elseif ($MyInvocation.MyCommand -and ($MyInvocation.MyCommand | Get-Member -Name Path)) {
+        $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    } else {
+        $ScriptDir = $PWD.Path
+    }
+}
 $RootDir = (Resolve-Path "$ScriptDir\..").Path
 $OutputDir = Join-Path $RootDir "_Submission"
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmm"
