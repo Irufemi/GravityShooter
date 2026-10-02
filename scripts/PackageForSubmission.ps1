@@ -1,7 +1,8 @@
 param (
     [ValidateSet("Source", "Build", "All", "Menu")]
     [string]$Mode = "Menu",
-    [string]$ScriptDir = ""
+    [string]$ScriptDir = "",
+    [switch]$SkipBuild
 )
 
 Set-StrictMode -Version Latest
@@ -49,9 +50,6 @@ if (-not (Test-Path $OutputDir)) {
     New-Item -ItemType Directory -Path $OutputDir | Out-Null
 }
 
-# -----------------------------------------------------------------------------
-# 1. ソースコード提出用パッケージ作成
-# -----------------------------------------------------------------------------
 function Get-FolderSizeMB {
     param([string]$Path)
     $bytes = (Get-ChildItem -Path $Path -Recurse -File -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
@@ -60,10 +58,73 @@ function Get-FolderSizeMB {
 }
 
 # -----------------------------------------------------------------------------
-# 1. ソースコード提出用パッケージ作成
+# 0. ビルドパイプライン（Visual Studio 2026 MSBuild）
+# -----------------------------------------------------------------------------
+function Get-MSBuildPath {
+    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    if (-not (Test-Path $vswhere)) {
+        throw "vswhere.exe が見つかりません。Visual Studio 2026 がインストールされているか確認してください。"
+    }
+    $msbuild = & $vswhere -latest -prerelease -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | Select-Object -First 1
+    if (-not $msbuild -or -not (Test-Path $msbuild)) {
+        throw "MSBuild.exe が見つかりませんでした。"
+    }
+    return $msbuild
+}
+
+function Invoke-ProjectBuild {
+    param(
+        [switch]$Rebuild
+    )
+    Write-Header "Application_solo (Release) のビルドを開始します"
+
+    $msbuildPath = Get-MSBuildPath
+    Write-Info "使用する MSBuild: $msbuildPath"
+
+    $slnxPath = Join-Path $RootDir "project\Irufemi.slnx"
+    if (-not (Test-Path $slnxPath)) {
+        throw "ソリューションファイルが見つかりません: $slnxPath"
+    }
+
+    $target = if ($Rebuild) { "Application_solo:Rebuild" } else { "Application_solo:Build" }
+
+    $logDir = Join-Path $RootDir "logs\build"
+    if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
+    $buildLog = Join-Path $logDir "package_build_Release_$Timestamp.log"
+
+    $buildArgs = @(
+        $slnxPath,
+        "-restore",                         # 新規クローン環境での NuGet パッケージ (freetype2) 自動復元
+        "/t:$target",                       # ソリューション依存関係（エンジン層 .lib）を先に解決してビルド
+        "/p:Configuration=Release",
+        "/p:Platform=x64",
+        "/m",
+        "/v:minimal",
+        "/fl",
+        "/flp:logfile=$buildLog;Encoding=UTF-8;verbosity=normal"
+    )
+
+    Write-Info "ソリューション依存関係（エンジン層 + アプリ層）を解決してビルド中..."
+    Write-Info "ログ出力先: $buildLog"
+    $startTime = Get-Date
+
+    & $msbuildPath $buildArgs
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "`n[ERROR] ビルドに失敗しました。ログを確認してください: $buildLog" -ForegroundColor Red
+        return $false
+    }
+
+    $elapsed = (Get-Date) - $startTime
+    Write-Success ("ビルド成功! 所要時間: {0:F1} 秒" -f $elapsed.TotalSeconds)
+    return $true
+}
+
+# -----------------------------------------------------------------------------
+# 1. ソースコード提出用パッケージ作成（動的スキャン方式: アプローチA）
 # -----------------------------------------------------------------------------
 function Create-SourcePackage {
-    Write-Header "ソースコード提出用パッケージ（フォルダ）の作成を開始します"
+    Write-Header "ソースコード提出用パッケージの作成を開始します (動的スキャン方式)"
 
     $TargetDir = Join-Path $OutputDir "GravityShooter_SourceCode"
 
@@ -73,53 +134,45 @@ function Create-SourcePackage {
     }
     New-Item -ItemType Directory -Path $TargetDir | Out-Null
 
-    Write-Info "ファイルを抽出・出力中..."
+    Write-Info "ルートアイテムを動的に走査中..."
 
-    # コピー対象ルートアイテム（不要なgakkousuraidoは除外）
-    $IncludeItems = @(
-        ".github",
-        ".editorconfig",
-        ".gitattributes",
-        ".gitignore",
-        "_typos.toml",
-        "Doxyfile",
-        "LICENSE.txt",
-        "Manual.md",
-        "README.md",
-        "C_plus_plus_Setup_Workflow.md",
-        "TL1",
-        "project",
-        "scripts"
-    )
-
-    # 除外ディレクトリ名
-    $ExcludeDirs = @(
+    # ルート直下で絶対に提出物に含めないシステムフォルダ・作業フォルダ
+    $ExcludeRootNames = @(
         ".git",
         ".agents",
         ".vs",
         ".vscode",
         "generated",
         "Binaries",
-        "Debug",
-        "Release",
-        "x64",
-        "x86",
+        "gakkousuraido",
+        "_Submission",
+        "logs",
+        "scratch"
+    )
+
+    # project 配下等で除外する中間ディレクトリ名
+    # （※ assimp/lib/Release や resources/ を破壊しないよう、generated/obj 等のみを確実に除外）
+    $ExcludeDirs = @(
+        ".vs",
+        ".vscode",
+        "generated",
+        "Binaries",
         "obj",
         "bin",
-        "outputs",
-        "_Submission",
         ".cache",
         "cache",
         "__pycache__",
         ".venv",
         "venv",
-        "scratch",
-        "logs"
+        "logs",
+        "Logs",
+        "Dumps",
+        "asset_src"
     )
 
-    # 除外ファイル
+    # 除外ファイル拡張子
+    # （※ *.obj は 3Dモデルデータを保護するため絶対に除外しない。中間 obj は generated フォルダごと除外済み）
     $ExcludeExtensions = @(
-        "*.obj",
         "*.pdb",
         "*.ilk",
         "*.tlog",
@@ -143,15 +196,16 @@ function Create-SourcePackage {
         "*.tmp_prefab_backup.json"
     )
 
-    foreach ($item in $IncludeItems) {
-        $srcPath = Join-Path $RootDir $item
-        if (-not (Test-Path $srcPath)) {
+    $rootItems = Get-ChildItem -Path $RootDir -Force
+    foreach ($item in $rootItems) {
+        if ($item.Name -in $ExcludeRootNames) {
             continue
         }
 
-        $destPath = Join-Path $TargetDir $item
+        $srcPath = $item.FullName
+        $destPath = Join-Path $TargetDir $item.Name
 
-        if ((Get-Item $srcPath).PSIsContainer) {
+        if ($item.PSIsContainer) {
             New-Item -ItemType Directory -Path $destPath -Force | Out-Null
             $rcParams = @(
                 $srcPath,
@@ -177,15 +231,27 @@ function Create-SourcePackage {
 # 2. 実行ファイル（プレイ用）パッケージ作成
 # -----------------------------------------------------------------------------
 function Create-PlayablePackage {
-    Write-Header "実行ファイル（プレイ用）パッケージ（フォルダ）の作成を開始します"
+    param(
+        [switch]$SkipBuild
+    )
+    Write-Header "実行ファイル（プレイ用）パッケージの作成を開始します"
 
     $ExeReleasePath = Join-Path $RootDir "generated\outputs\Release\Application_solo.exe"
 
-    if (-not (Test-Path $ExeReleasePath)) {
-        Write-Warn "Release構成のビルド成果物が見つかりません:"
-        Write-Warn $ExeReleasePath
-        Write-Host "先に Visual Studio で [Release] 構成でビルドを行ってください。`n" -ForegroundColor Yellow
-        return
+    if (-not $SkipBuild) {
+        $buildOk = Invoke-ProjectBuild
+        if (-not $buildOk) {
+            Write-Warn "ビルドに失敗したため、プレイ用パッケージの作成を中断しました。"
+            return
+        }
+    } else {
+        if (-not (Test-Path $ExeReleasePath)) {
+            Write-Warn "Release構成のビルド成果物が見つかりません:"
+            Write-Warn $ExeReleasePath
+            Write-Host "ビルドを実行してからパッケージ化するか、Visual Studio でビルドを行ってください。`n" -ForegroundColor Yellow
+            return
+        }
+        Write-Info "既存のビルド成果物を使用します: $ExeReleasePath"
     }
 
     $TargetDir = Join-Path $OutputDir "GravityShooter_PlayableBuild"
@@ -238,8 +304,18 @@ function Create-PlayablePackage {
     if (Test-Path $appReadmeSrc) {
         Copy-Item -Path $appReadmeSrc -Destination (Join-Path $TargetDir "README.md") -Force
         Write-Info "README.md を同梱しました。"
-    } else {
-        Write-Warn "README.md が見つかりませんでした (project\Application_solo\README.md)"
+    }
+
+    # 5. 審査員向け資料（ポートフォリオPDF & プログラム説明書PDFの同梱）
+    $docPortfolio = Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf"
+    if (Test-Path $docPortfolio) {
+        Copy-Item -Path $docPortfolio -Destination (Join-Path $TargetDir "LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf") -Force
+        Write-Info "ポートフォリオ.pdf を同梱しました。"
+    }
+    $docManual = Join-Path $RootDir "TL1\LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf"
+    if (Test-Path $docManual) {
+        Copy-Item -Path $docManual -Destination (Join-Path $TargetDir "LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf") -Force
+        Write-Info "プログラム説明書.pdf を同梱しました。"
     }
 
     $fileSizeMB = Get-FolderSizeMB $TargetDir
@@ -252,37 +328,49 @@ function Create-PlayablePackage {
 # メインメニュー
 # -----------------------------------------------------------------------------
 if ($Mode -eq "Menu") {
-    Write-Header "就職活動・技術審査用 パッケージ生成ツール"
+    Write-Header "就職活動・技術審査用 パッケージ生成ツール (Pipeline Mode)"
     Write-Host "作成したいパッケージを選択してください:" -ForegroundColor Yellow
-    Write-Host "  [1] ソースコード提出用パッケージ (VSプロジェクト + .github + ドキュメント)" -ForegroundColor Cyan
-    Write-Host "  [2] 実行ファイル提出用パッケージ (遊べるExe + リソース + README.md)" -ForegroundColor Cyan
-    Write-Host "  [3] 両方一括生成" -ForegroundColor Cyan
+    Write-Host "  [1] プレイ用パッケージ（最新コードを Release ビルド して完全生成） ★推奨" -ForegroundColor Cyan
+    Write-Host "  [2] プレイ用パッケージ（既存の Exe を使用して即座に生成）" -ForegroundColor Cyan
+    Write-Host "  [3] ソースコード提出用パッケージ (動的スキャン方式・完全整合版)" -ForegroundColor Cyan
+    Write-Host "  [4] 両方一括生成（Release ビルド後に両パッケージを作成） ★審査提出時推奨" -ForegroundColor Cyan
     Write-Host "  [Q] 終了`n" -ForegroundColor Gray
 
-    $choice = Read-Host "選択 (1/2/3/Q)"
+    $choice = Read-Host "選択 (1/2/3/4/Q)"
     switch ($choice) {
-        "1" { $Mode = "Source" }
-        "2" { $Mode = "Build" }
-        "3" { $Mode = "All" }
+        "1" { 
+            Create-PlayablePackage -SkipBuild:$false
+        }
+        "2" { 
+            Create-PlayablePackage -SkipBuild:$true
+        }
+        "3" { 
+            Create-SourcePackage 
+        }
+        "4" { 
+            Create-PlayablePackage -SkipBuild:$false
+            Create-SourcePackage
+        }
         default {
             Write-Host "処理をキャンセルしました。" -ForegroundColor Gray
             exit 0
         }
     }
-}
-
-switch ($Mode) {
-    "Source" {
-        Create-SourcePackage
-    }
-    "Build" {
-        Create-PlayablePackage
-    }
-    "All" {
-        Create-SourcePackage
-        Create-PlayablePackage
+} else {
+    switch ($Mode) {
+        "Source" {
+            Create-SourcePackage
+        }
+        "Build" {
+            Create-PlayablePackage -SkipBuild:$SkipBuild
+        }
+        "All" {
+            Create-PlayablePackage -SkipBuild:$SkipBuild
+            Create-SourcePackage
+        }
     }
 }
 
 Write-Header "すべての処理が完了しました"
 Write-Host "出力先フォルダ: $OutputDir" -ForegroundColor White
+
