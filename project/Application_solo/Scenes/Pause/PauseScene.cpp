@@ -21,9 +21,9 @@ constexpr float kItemHalfWidth = 180.0f;
 constexpr float kItemHalfHeight = 30.0f;
 
 // カラー定数
-const Irufemi::Vector4 kColorSelected = {0.2f, 1.0f, 1.0f, 1.0f};   // 発光シアン
-const Irufemi::Vector4 kColorUnselected = {0.7f, 0.75f, 0.8f, 0.8f}; // 淡いブルーグレー
-const Irufemi::Vector4 kColorTitle = {0.1f, 0.95f, 1.0f, 1.0f};      // ネオンシアン
+const Irufemi::Vector4 kColorSelected = {0.2f, 1.0f, 1.0f, 1.0f};     // 発光シアン
+const Irufemi::Vector4 kColorUnselected = {0.7f, 0.75f, 0.8f, 0.8f};  // 淡いブルーグレー
+const Irufemi::Vector4 kColorTitle = {0.1f, 0.95f, 1.0f, 1.0f};       // ネオンシアン
 const Irufemi::Vector4 kColorDarkMask = {0.02f, 0.03f, 0.05f, 0.75f}; // 半透明ダークマスク
 } // namespace
 
@@ -143,12 +143,10 @@ void PauseScene::CreateUIElements() {
     titleObj_->Initialize();
 
     // 3. メニュー項目リスト
-    const std::vector<std::pair<std::wstring, MenuItem>> items = {
-        {L"RESUME", MenuItem::Resume},
-        {L"RETRY", MenuItem::Retry},
-        {L"OPTIONS", MenuItem::Options},
-        {L"TITLE", MenuItem::Title}
-    };
+    const std::vector<std::pair<std::wstring, MenuItem>> items = {{L"RESUME", MenuItem::Resume},
+                                                                  {L"RETRY", MenuItem::Retry},
+                                                                  {L"OPTIONS", MenuItem::Options},
+                                                                  {L"TITLE", MenuItem::Title}};
 
     menuItems_.clear();
     for (size_t i = 0; i < items.size(); ++i) {
@@ -263,7 +261,8 @@ void PauseScene::UpdateInput(float deltaTime) {
     }
 
     if (moveUp) {
-        selectedIndex_ = (selectedIndex_ - 1 + static_cast<int>(menuItems_.size())) % static_cast<int>(menuItems_.size());
+        selectedIndex_ =
+            (selectedIndex_ - 1 + static_cast<int>(menuItems_.size())) % static_cast<int>(menuItems_.size());
         PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
     } else if (moveDown) {
         selectedIndex_ = (selectedIndex_ + 1) % static_cast<int>(menuItems_.size());
@@ -271,8 +270,8 @@ void PauseScene::UpdateInput(float deltaTime) {
     }
 
     // 4. 決定判定（ENTER / SPACE / Aボタン / マウス左クリック）
-    bool isDecide = input->IsKeyPressed(VK_RETURN) || input->IsKeyPressed(VK_SPACE) ||
-                    input->IsButtonPressed(XINPUT_GAMEPAD_A);
+    bool isDecide =
+        input->IsKeyPressed(VK_RETURN) || input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A);
 
     if (mouseHoveredIndex >= 0 && input->IsCursorActionPressed()) {
         isDecide = true;
