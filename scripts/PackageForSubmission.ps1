@@ -86,7 +86,7 @@ function Invoke-ProjectBuild {
         throw "ソリューションファイルが見つかりません: $slnxPath"
     }
 
-    $target = if ($Rebuild) { "Application_solo:Rebuild" } else { "Application_solo:Build" }
+    $target = if ($Rebuild) { "Application_solo:Rebuild" } else { "Application_solo" }
 
     $logDir = Join-Path $RootDir "logs\build"
     if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
