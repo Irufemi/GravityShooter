@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 
 # ルートディレクトリの特定
 if (-not $ScriptDir) {
-    if (Test-Path variable:PSScriptRoot -and $PSScriptRoot) {
+    if ((Test-Path variable:PSScriptRoot) -and $PSScriptRoot) {
         $ScriptDir = $PSScriptRoot
     } elseif ($MyInvocation.MyCommand -and ($MyInvocation.MyCommand | Get-Member -Name Path)) {
         $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -121,10 +121,127 @@ function Invoke-ProjectBuild {
 }
 
 # -----------------------------------------------------------------------------
-# 1. ソースコード提出用パッケージ作成（動的スキャン方式: アプローチA）
+# 1. スマートアセットクッカー（手法B: 依存関係自動抽出）
+# -----------------------------------------------------------------------------
+function Get-CookedAssetMap {
+    param([string]$AppResDir)
+
+    Write-Info "アセット依存関係を解析中 (Release本編C++ ＋ シーンJSON ＋ マテリアル)..."
+
+    # 1. 探索対象テキストの収集（※ DebugScene.*, DebugUI.*, Editor/ はデバッグ専用のため除外）
+    $sourceFiles = Get-ChildItem -Path "$RootDir\project\Application_solo" -Recurse -File -Force | Where-Object {
+        $_.Extension -in @(".cpp", ".h", ".json", ".hlsl") -and 
+        $_.FullName -notmatch '\\\.cache\\' -and 
+        $_.FullName -notmatch '\\Editor\\'
+    }
+    $engineFiles = Get-ChildItem -Path "$RootDir\project\IrufemiEngine" -Recurse -File -Force | Where-Object {
+        $_.Extension -in @(".cpp", ".h", ".hlsl") -and 
+        $_.Name -notmatch '^Debug(Scene|UI)\.'
+    }
+
+    $allSearchFiles = @($sourceFiles) + @($engineFiles)
+    $sourceTexts = @()
+    foreach ($sf in $allSearchFiles) {
+        $sourceTexts += [System.IO.File]::ReadAllText($sf.FullName, [System.Text.Encoding]::UTF8)
+    }
+
+    $allAssets = Get-ChildItem -Path $AppResDir -Recurse -File -Force | Where-Object {
+        $_.FullName -notmatch '\\\.cache\\' -and 
+        $_.FullName -notmatch '\\shaders\\compiled\\'
+    }
+
+    # 強制セーフティブラックリスト（いかなる参照があっても配布用パッケージには含めない）
+    $hardBlacklistPatterns = @(
+        '\\screenshots\\',
+        '\\model\\sample\\',
+        '\\model\\CG4\\',
+        '\\shaders\\generated\\',
+        '\.blend$',
+        '\.blend1$',
+        '\.xcf$',
+        '\.aseprite$',
+        '\\\.cache\\'
+    )
+
+    $validRelPaths = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $referencedObjFiles = @()
+
+    foreach ($asset in $allAssets) {
+        $relPath = $asset.FullName.Substring($AppResDir.Length + 1).Replace('\', '/')
+
+        $isBlacklisted = $false
+        foreach ($pattern in $hardBlacklistPatterns) {
+            if ($asset.FullName -match $pattern) {
+                $isBlacklisted = $true
+                break
+            }
+        }
+        if ($isBlacklisted) { continue }
+
+        # コアシステムアセット（常に含めるもの）
+        if ($relPath -match '^(config|GameData)/' -or $relPath -eq 'fonts/toro_glitch.otf' -or $relPath -match '^scenes/.*\.json$' -or $relPath -match '^prefabs/.*\.json$') {
+            [void]$validRelPaths.Add($relPath)
+            continue
+        }
+
+        $filename = $asset.Name
+        $basename = [System.IO.Path]::GetFileNameWithoutExtension($asset.Name)
+
+        # 一次参照判定（C++ / JSON 全文走査）
+        $isReferenced = $false
+        foreach ($text in $sourceTexts) {
+            if ($text.IndexOf($relPath, [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+                ($filename.Length -gt 4 -and $text.IndexOf($filename, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) -or
+                ($basename.Length -ge 6 -and $text.IndexOf("""$basename""", [System.StringComparison]::OrdinalIgnoreCase) -ge 0)) {
+                $isReferenced = $true
+                break
+            }
+        }
+
+        if ($isReferenced) {
+            [void]$validRelPaths.Add($relPath)
+            if ($asset.Extension.ToLower() -eq ".obj") {
+                $referencedObjFiles += $asset
+            }
+        }
+    }
+
+    # 二次参照の解決 (.obj -> .mtl -> テクスチャ)
+    foreach ($objFile in $referencedObjFiles) {
+        $objDir = $objFile.DirectoryName
+        $objContent = [System.IO.File]::ReadAllText($objFile.FullName, [System.Text.Encoding]::UTF8)
+
+        $mtlMatches = [regex]::Matches($objContent, '(?im)^\s*mtllib\s+(.+)$')
+        foreach ($match in $mtlMatches) {
+            $mtlName = $match.Groups[1].Value.Trim()
+            $mtlPath = Join-Path $objDir $mtlName
+            if (Test-Path $mtlPath) {
+                $relMtl = $mtlPath.Substring($AppResDir.Length + 1).Replace('\', '/')
+                [void]$validRelPaths.Add($relMtl)
+
+                $mtlContent = [System.IO.File]::ReadAllText($mtlPath, [System.Text.Encoding]::UTF8)
+                $texMatches = [regex]::Matches($mtlContent, '(?im)^\s*map_[a-z0-9_]+\s+(?:-[^\s]+\s+)*(?:.*\\)?([^\s\r\n]+\.(?:png|jpg|jpeg|dds|tga|bmp))')
+                foreach ($tMatch in $texMatches) {
+                    $texName = $tMatch.Groups[1].Value.Trim()
+                    $texPath = Join-Path $objDir $texName
+                    if (Test-Path $texPath) {
+                        $relTex = $texPath.Substring($AppResDir.Length + 1).Replace('\', '/')
+                        [void]$validRelPaths.Add($relTex)
+                    }
+                }
+            }
+        }
+    }
+
+    Write-Info ("クック完了: {0} 個の正当な製品アセットを特定しました。" -f $validRelPaths.Count)
+    return $validRelPaths
+}
+
+# -----------------------------------------------------------------------------
+# 2. ソースコード提出用パッケージ作成（クリーン開発モード: アプローチA）
 # -----------------------------------------------------------------------------
 function Create-SourcePackage {
-    Write-Header "ソースコード提出用パッケージの作成を開始します (動的スキャン方式)"
+    Write-Header "ソースコード提出用パッケージの作成を開始します (クリーン開発モード)"
 
     $TargetDir = Join-Path $OutputDir "GravityShooter_SourceCode"
 
@@ -150,8 +267,7 @@ function Create-SourcePackage {
         "scratch"
     )
 
-    # project 配下等で除外する中間ディレクトリ名
-    # （※ assimp/lib/Release や resources/ を破壊しないよう、generated/obj 等のみを確実に除外）
+    # project 配下等で除外する中間・作業ディレクトリ名
     $ExcludeDirs = @(
         ".vs",
         ".vscode",
@@ -167,11 +283,12 @@ function Create-SourcePackage {
         "logs",
         "Logs",
         "Dumps",
-        "asset_src"
+        "asset_src",
+        "screenshots"                       # 開発用スクショを除外
     )
 
     # 除外ファイル拡張子
-    # （※ *.obj は 3Dモデルデータを保護するため絶対に除外しない。中間 obj は generated フォルダごと除外済み）
+    # （※ 3Dモデル *.obj は保護、DCC編集元データ *.blend や中間ファイルを除外）
     $ExcludeExtensions = @(
         "*.pdb",
         "*.ilk",
@@ -188,6 +305,10 @@ function Create-SourcePackage {
         "*.tmp",
         "*.bak",
         "*.ipch",
+        "*.blend",                          # Blender元データを除外
+        "*.blend1",
+        "*.xcf",
+        "*.aseprite",
         "build_error.log",
         "shader_error.txt",
         "files.txt",
@@ -228,13 +349,13 @@ function Create-SourcePackage {
 }
 
 # -----------------------------------------------------------------------------
-# 2. 実行ファイル（プレイ用）パッケージ作成
+# 3. 実行ファイル（プレイ用）パッケージ作成（完全スマートクックモード）
 # -----------------------------------------------------------------------------
 function Create-PlayablePackage {
     param(
         [switch]$SkipBuild
     )
-    Write-Header "実行ファイル（プレイ用）パッケージの作成を開始します"
+    Write-Header "実行ファイル（プレイ用）パッケージの作成を開始します (スマートクック適用)"
 
     $ExeReleasePath = Join-Path $RootDir "generated\outputs\Release\Application_solo.exe"
 
@@ -267,23 +388,29 @@ function Create-PlayablePackage {
     # 1. Exe本体（完全静的リンクのため単体で動作）
     Copy-Item -Path $ExeReleasePath -Destination (Join-Path $TargetDir "GravityShooter.exe") -Force
 
-    # 2. resources/
+    # 2. resources/（スマートクック転送）
     $resSrc = Join-Path $RootDir "project\Application_solo\resources"
     if (Test-Path $resSrc) {
         $resDest = Join-Path $TargetDir "resources"
         New-Item -ItemType Directory -Path $resDest -Force | Out-Null
-        $rcArgs = @(
-            $resSrc,
-            $resDest,
-            "/E",
-            "/NJH", "/NJS", "/NDL", "/NC", "/NS", "/NP",
-            "/XF", "*.pso", "*.blend1", "*.xcf", "*.aseprite",
-            "/XD", ".cache", "cache"
-        )
-        & robocopy @rcArgs | Out-Null
+
+        $cookedMap = Get-CookedAssetMap -AppResDir $resSrc
+        Write-Info "クック済みアセットを配置中..."
+
+        foreach ($rel in $cookedMap) {
+            $srcFile = Join-Path $resSrc $rel
+            $destFile = Join-Path $resDest $rel
+            $destSubDir = Split-Path -Parent $destFile
+            if (-not (Test-Path $destSubDir)) {
+                New-Item -ItemType Directory -Path $destSubDir -Force | Out-Null
+            }
+            if (Test-Path $srcFile) {
+                Copy-Item -Path $srcFile -Destination $destFile -Force
+            }
+        }
     }
 
-    # 3. EngineResources/
+    # 3. EngineResources/（グラフィックス基盤のため完全保護転送）
     $engineResSrc = Join-Path $RootDir "project\IrufemiEngine\EngineResources"
     if (Test-Path $engineResSrc) {
         $engineResDest = Join-Path $TargetDir "EngineResources"
@@ -319,7 +446,7 @@ function Create-PlayablePackage {
     }
 
     $fileSizeMB = Get-FolderSizeMB $TargetDir
-    Write-Success "実行ファイルパッケージ作成完了!"
+    Write-Success "実行ファイルパッケージ作成完了! (スマートクック適用済み)"
     Write-Host "   出力先: $TargetDir" -ForegroundColor White
     Write-Host "   サイズ: $fileSizeMB MB`n" -ForegroundColor Green
 }
@@ -328,11 +455,11 @@ function Create-PlayablePackage {
 # メインメニュー
 # -----------------------------------------------------------------------------
 if ($Mode -eq "Menu") {
-    Write-Header "就職活動・技術審査用 パッケージ生成ツール (Pipeline Mode)"
+    Write-Header "就職活動・技術審査用 パッケージ生成ツール (Cook & Pipeline Mode)"
     Write-Host "作成したいパッケージを選択してください:" -ForegroundColor Yellow
-    Write-Host "  [1] プレイ用パッケージ（最新コードを Release ビルド して完全生成） ★推奨" -ForegroundColor Cyan
-    Write-Host "  [2] プレイ用パッケージ（既存の Exe を使用して即座に生成）" -ForegroundColor Cyan
-    Write-Host "  [3] ソースコード提出用パッケージ (動的スキャン方式・完全整合版)" -ForegroundColor Cyan
+    Write-Host "  [1] プレイ用パッケージ（最新コードを Release ビルド ＋ スマートクックで極限軽量化） ★推奨" -ForegroundColor Cyan
+    Write-Host "  [2] プレイ用パッケージ（既存 Exe を使用 ＋ スマートクック生成）" -ForegroundColor Cyan
+    Write-Host "  [3] ソースコード提出用パッケージ (クリーン開発モード・完全整合版)" -ForegroundColor Cyan
     Write-Host "  [4] 両方一括生成（Release ビルド後に両パッケージを作成） ★審査提出時推奨" -ForegroundColor Cyan
     Write-Host "  [Q] 終了`n" -ForegroundColor Gray
 
@@ -373,4 +500,5 @@ if ($Mode -eq "Menu") {
 
 Write-Header "すべての処理が完了しました"
 Write-Host "出力先フォルダ: $OutputDir" -ForegroundColor White
+
 
