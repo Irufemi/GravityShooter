@@ -173,4 +173,7 @@ resources/shaders/generated/
 # Submission packages
 _Submission/
 
+# Asset Sanitizer Backups
+backup/
+
 
