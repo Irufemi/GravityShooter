@@ -113,6 +113,7 @@ bool WinApp::Initialize(HINSTANCE hInstance, int width, int height, const std::w
 }
 
 void WinApp::Finalize() {
+    SetWindowsKeyLock(false);
     if (hwnd_) {
         DestroyWindow(hwnd_);
         hwnd_ = nullptr;
@@ -251,6 +252,7 @@ LRESULT WinApp::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
     case WM_SETFOCUS: // ウィンドウがアクティブになった
+        activeHwnd_ = hwnd_;
         if (inputManager_) {
             if (auto* mouse = inputManager_->GetMouse()) {
                 mouse->SetLocked(cursorLocked_);
@@ -259,6 +261,9 @@ LRESULT WinApp::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_KILLFOCUS: // ウィンドウが非アクティブになった
+        if (activeHwnd_ == hwnd_) {
+            activeHwnd_ = nullptr;
+        }
         if (inputManager_) {
             if (auto* mouse = inputManager_->GetMouse()) {
                 mouse->SetLocked(false);
@@ -388,4 +393,44 @@ void WinApp::SetDisplayMode(DisplayMode mode) {
     }
 
     displayMode_ = mode;
+}
+
+void WinApp::SetWindowsKeyLock(bool enable) {
+    windowsKeyLockEnabled_ = enable;
+    globalKeyLockEnabled_ = enable;
+    activeHwnd_ = hwnd_;
+
+    if (enable) {
+        if (!keyboardHook_) {
+            keyboardHook_ =
+                SetWindowsHookExW(WH_KEYBOARD_LL, &WinApp::LowLevelKeyboardProc, GetModuleHandleW(nullptr), 0);
+        }
+    } else {
+        if (keyboardHook_) {
+            UnhookWindowsHookEx(keyboardHook_);
+            keyboardHook_ = nullptr;
+        }
+    }
+}
+
+LRESULT CALLBACK WinApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode >= HC_ACTION && globalKeyLockEnabled_) {
+        auto* pKbd = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
+        if (pKbd) {
+            // Alt + F4 は絶対にブロックせずOSへ通す（強制終了・脱出の保証）
+            bool isAltDown = (pKbd->flags & LLKHF_ALTDOWN) != 0;
+            if (isAltDown && pKbd->vkCode == VK_F4) {
+                return CallNextHookEx(keyboardHook_, nCode, wParam, lParam);
+            }
+
+            // 自ウィンドウがアクティブな時のみWindowsキー/アプリキーを破棄
+            if (GetForegroundWindow() == activeHwnd_) {
+                if (pKbd->vkCode == VK_LWIN || pKbd->vkCode == VK_RWIN || pKbd->vkCode == VK_APPS) {
+                    // 1 を返してOSへのキーイベント伝播を破棄
+                    return 1;
+                }
+            }
+        }
+    }
+    return CallNextHookEx(keyboardHook_, nCode, wParam, lParam);
 }

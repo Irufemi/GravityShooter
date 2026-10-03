@@ -139,9 +139,27 @@ public:
     }
 
     /**
+     * @brief Windowsキーの無効化（キオスクモード）の有効/無効を設定
+     * @param enable trueならWindowsキーをブロック、falseなら通常動作
+     */
+    void SetWindowsKeyLock(bool enable);
+
+    /**
+     * @brief Windowsキーが無効化されているかを取得
+     */
+    bool IsWindowsKeyLocked() const {
+        return windowsKeyLockEnabled_;
+    }
+
+    /**
      * @brief 静的ウィンドウプロシージャ
      */
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+    /**
+     * @brief 低レベルキーボードフックプロシージャ
+     */
+    static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
 
     /**
      * @brief 例外発生時のダンプ出力用
@@ -176,4 +194,9 @@ private:
     bool cursorLocked_ = true;         // カーソル固定状態デフォルト真
     DisplayMode displayMode_ = DisplayMode::Windowed;
     RECT windowedRect_{}; // ウィンドウモード時のサイズ保存用
+
+    bool windowsKeyLockEnabled_ = false; // Windowsキー無効化フラグ
+    static inline HHOOK keyboardHook_ = nullptr;
+    static inline HWND activeHwnd_ = nullptr;
+    static inline bool globalKeyLockEnabled_ = false;
 };

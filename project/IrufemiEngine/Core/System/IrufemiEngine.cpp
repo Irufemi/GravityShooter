@@ -456,6 +456,20 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
         bool vsync = Irufemi::CVarSystem::GetBool("r.VSync");
         this->SetVSync(vsync);
     });
+
+    // キオスクモード（Windowsキー無効化）のCVarバインドと初期反映
+    Irufemi::CVarSystem::SetOnChangeCallback("r.LockWindowsKey", [this]() {
+        bool lock = Irufemi::CVarSystem::GetBool("r.LockWindowsKey");
+        if (winApp_) {
+            winApp_->SetWindowsKeyLock(lock);
+        }
+    });
+    if (!Irufemi::CVarSystem::GetCVar("r.LockWindowsKey")) {
+        Irufemi::CVarSystem::RegisterBool("r.LockWindowsKey", true, "Lock Windows key in kiosk mode (1: lock, 0: unlock)");
+    }
+    if (winApp_) {
+        winApp_->SetWindowsKeyLock(Irufemi::CVarSystem::GetBool("r.LockWindowsKey"));
+    }
     // -------------------------------------------------------------
     telemetrySender_ = std::make_unique<TelemetrySender>();
     telemetrySender_->Initialize();
@@ -759,6 +773,18 @@ void IrufemiEngine::Execute() {
             if (shouldToggle) {
                 ToggleDisplayMode();
                 displayToggleCooldown_ = 0.3f; // 0.3秒のクールダウン（OS DWMとの過渡的競合を防止）
+            }
+        }
+
+        // 緊急脱出フェイルセーフ: ESCキーの2秒長押しで即時クリーンシャットダウン
+        if (inputManager_) {
+            if (inputManager_->IsKeyDown(VK_ESCAPE)) {
+                emergencyExitHoldTimer_ += deltaTime_;
+                if (emergencyExitHoldTimer_ >= 2.0f) {
+                    PostQuitMessage(0);
+                }
+            } else {
+                emergencyExitHoldTimer_ = 0.0f;
             }
         }
 

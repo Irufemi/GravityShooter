@@ -1022,6 +1022,7 @@ private: // メンバ変数
     int32_t pendingResizeWidth_ = 0;
     int32_t pendingResizeHeight_ = 0;
     float displayToggleCooldown_ = 0.0f; ///< 画面切り替えの連打防止クールダウンタイマー
+    float emergencyExitHoldTimer_ = 0.0f; ///< ESC長押し緊急脱出（Fail-Safe Exit）用タイマー
 
     /** @brief 保留中のウィンドウリサイズを安全なフレーム境界で適用する */
     void ApplyPendingResize();
