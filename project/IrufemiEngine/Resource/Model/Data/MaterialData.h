@@ -4,7 +4,6 @@
 
 /*objファイルを読んでみよう*/
 
-
 namespace Irufemi {
 
 /**
