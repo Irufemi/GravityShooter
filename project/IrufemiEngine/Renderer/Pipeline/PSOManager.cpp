@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include "Core/System/ThreadPool.h"
+#include "Core/System/TaskGroup.h"
 
 static const std::string kCacheDirectory = "generated/cache/pso/";
 
@@ -65,23 +67,18 @@ void PSOManager::RegisterShader(const std::string& name, const PipelineStateDesc
 ID3D12PipelineState* PSOManager::GetPSO(const std::string& name, Irufemi::BlendMode blend, DepthWrite depth,
                                         CullMode cull) {
     Key key{Hash(name, blend, depth, cull)};
+    PipelineStateDesc psoDesc;
     {
         std::shared_lock<std::shared_mutex> readLock(psoMutex_);
         if (auto cit = cache_.find(key); cit != cache_.end()) {
             return cit->second.Get();
         }
+        auto it = shaderRegistry_.find(name);
+        if (it == shaderRegistry_.end()) {
+            return nullptr;
+        }
+        psoDesc = it->second;
     }
-
-    std::unique_lock<std::shared_mutex> writeLock(psoMutex_);
-    if (auto cit = cache_.find(key); cit != cache_.end()) {
-        return cit->second.Get();
-    }
-
-    auto it = shaderRegistry_.find(name);
-    if (it == shaderRegistry_.end()) {
-        return nullptr;
-    }
-    const PipelineStateDesc& psoDesc = it->second;
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
     desc.pRootSignature = rootSig_.Get();
@@ -200,9 +197,15 @@ ID3D12PipelineState* PSOManager::GetPSO(const std::string& name, Irufemi::BlendM
         SaveCachedBlob(cacheFileName, pso.Get());
     }
 
-    cache_[key] = pso;
-    cacheKeysByName_[name].push_back(key);
-    return pso.Get();
+    {
+        std::unique_lock<std::shared_mutex> writeLock(psoMutex_);
+        if (auto cit = cache_.find(key); cit != cache_.end()) {
+            return cit->second.Get(); // 別スレッドで先行して登録されていればそれを返す
+        }
+        cache_[key] = pso;
+        cacheKeysByName_[name].push_back(key);
+        return pso.Get();
+    }
 }
 
 ID3D12PipelineState* PSOManager::GetCopyImage() {
@@ -359,54 +362,75 @@ void PSOManager::ClearCache() {
     }
 }
 
-void PSOManager::PreWarmCommonPSOs() {
+void PSOManager::PreWarmCommonPSOs(ThreadPool* threadPool) {
+    auto prewarm = [this, threadPool](std::shared_ptr<TaskGroup> group, const std::string& name,
+                                      Irufemi::BlendMode blend, DepthWrite depth, CullMode cull) {
+        if (threadPool && group) {
+            threadPool->Enqueue(group, [this, name, blend, depth, cull]() {
+                GetPSO(name, blend, depth, cull);
+            });
+        } else {
+            GetPSO(name, blend, depth, cull);
+        }
+    };
+
+    std::shared_ptr<TaskGroup> taskGroup;
+    if (threadPool) {
+        taskGroup = std::make_shared<TaskGroup>();
+    }
+
     // 1. 一般的な3Dオブジェクト (Opaque / 標準描画)
     for (CullMode cull : {CullMode::Back, CullMode::None}) {
-        GetPSO("Object3D", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Enable, cull);
-        GetPSO("Skinning", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Enable, cull);
+        prewarm(taskGroup, "Object3D", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Enable, cull);
+        prewarm(taskGroup, "Skinning", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Enable, cull);
     }
 
     // 2. エフェクト・パーティクル・HUD系 (Translucent, Additive等)
     for (Irufemi::BlendMode blend :
          {Irufemi::BlendMode::kBlendModeNormal, Irufemi::BlendMode::kBlendModeAdd,
           Irufemi::BlendMode::kBlendModeSubtract, Irufemi::BlendMode::kBlendModePremultiplied}) {
-        GetPSO("Particle", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("GpuParticle", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("VoxelParticle", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("Sprite", blend, DepthWrite::Off, CullMode::None);
-        GetPSO("SpriteBatch", blend, DepthWrite::Off, CullMode::None);
-        GetPSO("Text", blend, DepthWrite::Off, CullMode::None);
-        GetPSO("LightningCrawl", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("ExplosionFlame", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("EnergyCore", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("BombCore", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("StompExplosion", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("AOEWarning", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("Line", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("LineBatch", blend, DepthWrite::Disable, CullMode::None);
-        GetPSO("DebugPrimitive", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "Particle", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "GpuParticle", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "VoxelParticle", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "Sprite", blend, DepthWrite::Off, CullMode::None);
+        prewarm(taskGroup, "SpriteBatch", blend, DepthWrite::Off, CullMode::None);
+        prewarm(taskGroup, "Text", blend, DepthWrite::Off, CullMode::None);
+        prewarm(taskGroup, "LightningCrawl", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "ExplosionFlame", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "EnergyCore", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "BombCore", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "StompExplosion", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "AOEWarning", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "Line", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "LineBatch", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "DebugPrimitive", blend, DepthWrite::Disable, CullMode::None);
     }
 
     // 3. シャドウマップ出力用
-    GetPSO("Shadow", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);
-    GetPSO("Shadow", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Front);
-    GetPSO("ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);
-    GetPSO("ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Front);
+    prewarm(taskGroup, "Shadow", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);
+    prewarm(taskGroup, "Shadow", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Front);
+    prewarm(taskGroup, "ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);
+    prewarm(taskGroup, "ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Front);
 
     // 4. スカイボックス・スカイドーム
-    GetPSO("Skybox", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
-    GetPSO("Skydome", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
+    prewarm(taskGroup, "Skybox", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
+    prewarm(taskGroup, "Skydome", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
 
     // 5. デバッグ及びその他
-    GetPSO("Batch", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Disable, CullMode::None);
+    prewarm(taskGroup, "Batch", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Disable, CullMode::None);
     GetCopyImage();
 
     // 6. エディタ専用パス
 #ifdef EditorMode
-    GetPSO("SelectionMask", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Off, CullMode::None);
-    GetPSO("SelectionMaskText", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Off, CullMode::None);
-    GetPSO("OutlineComposite", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Off, CullMode::None);
+    prewarm(taskGroup, "SelectionMask", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Off, CullMode::None);
+    prewarm(taskGroup, "SelectionMaskText", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Off, CullMode::None);
+    prewarm(taskGroup, "OutlineComposite", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Off, CullMode::None);
 #endif
+
+    // 全タスクの完了を待機（並列実行完了）
+    if (taskGroup) {
+        taskGroup->Wait();
+    }
 }
 
 // Multiply : out = src * dst

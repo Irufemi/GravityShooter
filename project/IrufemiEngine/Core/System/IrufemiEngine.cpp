@@ -150,7 +150,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
     // AudioManagerの生成と初期化(Media Foundation含む)
     audioManager_ = std::make_unique<AudioManager>();
     audioManager_->Initialize();
-    audioManager_->LoadAllSoundsFromFolder("resources/audio");
+    audioManager_->LoadAllSoundsFromFolder("resources/audio", threadPool_.get());
 
     // DirectX 基盤
     dxCommon_ = std::make_unique<DirectXCommon>();
@@ -414,9 +414,9 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
     // WinAppに自身(Engine)のポインタを設定
     winApp_->SetEngine(this);
 
-    // PSO（パイプラインステート）の事前コンパイルを実行し、実行中のヒッチ（カクつき）を防止
+    // PSO（パイプラインステート）の事前コンパイルを実行し、実行中のヒッチ（カクつき）を防止（ThreadPoolによる並列コンパイル）
     if (GetPSOManager()) {
-        GetPSOManager()->PreWarmCommonPSOs();
+        GetPSOManager()->PreWarmCommonPSOs(threadPool_.get());
     }
 
     // 初回描画時の遅延ハードウェアコンパイル(JIT)を防止するためのダミー実行
@@ -901,7 +901,7 @@ void IrufemiEngine::StartFrame() {
 
             // 再コンパイル
             dxCommon_->RegisterAllShaders();
-            dxCommon_->GetPSOManager()->PreWarmCommonPSOs();
+            dxCommon_->GetPSOManager()->PreWarmCommonPSOs(threadPool_.get());
 
             if (log_) {
                 Log::OutPutLog(log_->GetLogStream(), "[Shader Hot Reload] Compilation finished.\n");

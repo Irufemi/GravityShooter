@@ -11,6 +11,8 @@
 
 // IXAudio2SourceVoice構造体を前方宣言
 struct IXAudio2SourceVoice;
+class ThreadPool;
+class TaskGroup;
 
 /**
  * @class AudioManager
@@ -28,6 +30,7 @@ private:
     IXAudio2MasteringVoice* pMasteringVoice_{nullptr}; ///< IUnknownを継承しないため生ポインタ管理
 
     // ロードした音声データをファイル名をキーにして保持するマップ
+    mutable std::mutex registryMutex_; ///< soundRegistry_ / categoryMap_ 保護用ミューテックス
     std::unordered_map<std::string, std::shared_ptr<Sound>> soundRegistry_;
 
     // 再生中の VoiceInstance を一元管理
@@ -73,17 +76,20 @@ public:
     void Finalize();
 
     /**
-     * @brief 指定フォルダから対応する音声ファイルをすべてロードする
+     * @brief 指定フォルダから対応する音声ファイルをすべてロードする（ThreadPool指定時は並列ロード）
      * @param[in] folderPath ロード対象のフォルダパス
+     * @param[in] threadPool 並列ロードに使用するThreadPool（nullptr時は同期ロード）
      */
-    void LoadAllSoundsFromFolder(const std::string& folderPath);
+    void LoadAllSoundsFromFolder(const std::string& folderPath, class ThreadPool* threadPool = nullptr);
 
     /**
      * @brief サブフォルダをカテゴリとしてロードする
      * @param[in] folderPath ロード対象のパス
      * @param[in] category カテゴリ名
+     * @param[in] threadPool 並列ロードに使用するThreadPool（nullptr時は同期ロード）
+     * @param[in] group 待機用のTaskGroup（内部用）
      */
-    void LoadSoundsFromFolder(const std::string& folderPath, const std::string& category);
+    void LoadSoundsFromFolder(const std::string& folderPath, const std::string& category, class ThreadPool* threadPool = nullptr, std::shared_ptr<class TaskGroup> group = nullptr);
 
     /**
      * @brief カテゴリ内のサウンド名一覧を取得（ソート済み）

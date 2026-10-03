@@ -117,7 +117,7 @@ public:
     void ClearCacheByName(const std::string& name);
 
     /** @brief ゲームプレイ中によく使われる PSO の組み合わせを事前にコンパイル・キャッシュします */
-    void PreWarmCommonPSOs();
+    void PreWarmCommonPSOs(class ThreadPool* threadPool = nullptr);
 
 private:
     using ComPtr = Microsoft::WRL::ComPtr<ID3D12PipelineState>;
