@@ -144,8 +144,8 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
     }
 
     // 決定キー (論理アクション UI_Submit または 仮想カーソルアクション)
-    bool isSelected = InputHelper::IsActionPressed(inputManager, GameAction::UI_Submit) ||
-                      inputManager->IsCursorActionPressed();
+    bool isSelected =
+        InputHelper::IsActionPressed(inputManager, GameAction::UI_Submit) || inputManager->IsCursorActionPressed();
 
     // マウス左クリックやRT等でカーソルアクションを押した場合は、カーソルがボタン領域内にあるかチェック
     if (inputManager->IsCursorActionPressed()) {

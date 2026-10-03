@@ -465,7 +465,8 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
         }
     });
     if (!Irufemi::CVarSystem::GetCVar("r.LockWindowsKey")) {
-        Irufemi::CVarSystem::RegisterBool("r.LockWindowsKey", true, "Lock Windows key in kiosk mode (1: lock, 0: unlock)");
+        Irufemi::CVarSystem::RegisterBool("r.LockWindowsKey", true,
+                                          "Lock Windows key in kiosk mode (1: lock, 0: unlock)");
     }
     if (winApp_) {
         winApp_->SetWindowsKeyLock(Irufemi::CVarSystem::GetBool("r.LockWindowsKey"));
@@ -824,7 +825,6 @@ void IrufemiEngine::Execute() {
             scene->DrawStandaloneDebugWindows();
         }
 #endif // USE_IMGUI
-
 
         // 更新
         audioManager_->Update();

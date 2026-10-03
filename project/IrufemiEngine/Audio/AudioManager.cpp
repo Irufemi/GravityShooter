@@ -143,7 +143,7 @@ void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath, Thread
 
 // サブフォルダ単位でロードするオーバーロード版
 void AudioManager::LoadSoundsFromFolder(const std::string& folderPath, const std::string& category,
-                                       ThreadPool* threadPool, std::shared_ptr<TaskGroup> group) {
+                                        ThreadPool* threadPool, std::shared_ptr<TaskGroup> group) {
     namespace fs = std::filesystem;
 
     if (!fs::exists(folderPath) || !fs::is_directory(folderPath)) {

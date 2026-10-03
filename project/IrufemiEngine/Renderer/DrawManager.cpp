@@ -519,7 +519,8 @@ void DrawManager::PostDraw() {
             // 画面切り替え過渡期（DXGI_ERROR_INVALID_CALL等）の一時的エラーは例外スローせず、
             // 警告ログを出力してフレームをスキップし、次フレームでの安全復帰を促す
             char str[256];
-            sprintf_s(str, "[DrawManager] Present returned non-fatal error: 0x%08X. Skipping frame presentation.\n", hr);
+            sprintf_s(str, "[DrawManager] Present returned non-fatal error: 0x%08X. Skipping frame presentation.\n",
+                      hr);
             Log::OutPutLog(std::cerr, std::string(str));
         }
     }

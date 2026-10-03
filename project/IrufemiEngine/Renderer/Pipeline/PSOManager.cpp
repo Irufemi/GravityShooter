@@ -366,9 +366,7 @@ void PSOManager::PreWarmCommonPSOs(ThreadPool* threadPool) {
     auto prewarm = [this, threadPool](std::shared_ptr<TaskGroup> group, const std::string& name,
                                       Irufemi::BlendMode blend, DepthWrite depth, CullMode cull) {
         if (threadPool && group) {
-            threadPool->Enqueue(group, [this, name, blend, depth, cull]() {
-                GetPSO(name, blend, depth, cull);
-            });
+            threadPool->Enqueue(group, [this, name, blend, depth, cull]() { GetPSO(name, blend, depth, cull); });
         } else {
             GetPSO(name, blend, depth, cull);
         }

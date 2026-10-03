@@ -89,7 +89,8 @@ public:
      * @param[in] threadPool 並列ロードに使用するThreadPool（nullptr時は同期ロード）
      * @param[in] group 待機用のTaskGroup（内部用）
      */
-    void LoadSoundsFromFolder(const std::string& folderPath, const std::string& category, class ThreadPool* threadPool = nullptr, std::shared_ptr<class TaskGroup> group = nullptr);
+    void LoadSoundsFromFolder(const std::string& folderPath, const std::string& category,
+                              class ThreadPool* threadPool = nullptr, std::shared_ptr<class TaskGroup> group = nullptr);
 
     /**
      * @brief カテゴリ内のサウンド名一覧を取得（ソート済み）

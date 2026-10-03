@@ -137,10 +137,10 @@ struct InputActionValue {
  * @brief 入力修飾キー（モディファイア）ビットフラグ
  */
 enum class InputModifier : uint8_t {
-    None  = 0,
-    Alt   = 1 << 0, ///< VK_MENU (Altキー)
-    Ctrl  = 1 << 1, ///< VK_CONTROL (Ctrlキー)
-    Shift = 1 << 2  ///< VK_SHIFT (Shiftキー)
+    None = 0,
+    Alt = 1 << 0,  ///< VK_MENU (Altキー)
+    Ctrl = 1 << 1, ///< VK_CONTROL (Ctrlキー)
+    Shift = 1 << 2 ///< VK_SHIFT (Shiftキー)
 };
 
 inline InputModifier operator|(InputModifier a, InputModifier b) {
@@ -202,4 +202,3 @@ bool StringToInputBinding(const std::string& name, InputId& outId, InputModifier
  * @brief InputId から標準文字列表現を取得する
  */
 const char* InputIdToString(InputId id);
-
