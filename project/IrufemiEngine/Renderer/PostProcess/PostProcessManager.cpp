@@ -653,3 +653,22 @@ bool PostProcessManager::TryIncrementCombinedOffset() {
                     "PostProcess combined constant buffer overflow! Consider increasing kMaxPostProcessBufferEntries.");
     return false;
 }
+
+D3D12_GPU_VIRTUAL_ADDRESS PostProcessManager::AllocateBindlessParams(uint32_t mainTextureIndex,
+                                                                     uint32_t extraTextureIndex,
+                                                                     uint32_t maskTextureIndex) {
+    if (!mappedBindless_ || !bindlessCB_) {
+        return 0;
+    }
+    mappedBindless_[bindlessBufferOffset_].mainTextureIndex = mainTextureIndex;
+    mappedBindless_[bindlessBufferOffset_].extraTextureIndex = extraTextureIndex;
+    mappedBindless_[bindlessBufferOffset_].maskTextureIndex = maskTextureIndex;
+    mappedBindless_[bindlessBufferOffset_].normalTextureIndex = 0;
+    mappedBindless_[bindlessBufferOffset_].materialTextureIndex = 0;
+    mappedBindless_[bindlessBufferOffset_].velocityTextureIndex = 0;
+
+    D3D12_GPU_VIRTUAL_ADDRESS gpuAddress =
+        bindlessCB_->GetGPUVirtualAddress() + bindlessBufferOffset_ * sizeof(BindlessParams);
+    TryIncrementBindlessOffset();
+    return gpuAddress;
+}

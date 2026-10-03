@@ -21,6 +21,5 @@ enum class RootSlot : UINT {
     Lights = 8,              ///< レガシーライトSRVテーブル (register t2, t3, t4) - PS
     ShadowMap = 9,           ///< レガシーシャドウマップ (register t5) - PS
     DepthMap = 10,           ///< レガシーメイン深度マップ (register t6) - PS
-    LegacyPSTexture = 11,    ///< レガシーテクスチャ (register t0) - PS
-    CustomEffectParams = 12, ///< 個別エフェクト用パラメータ配列 (register b3) - PS
+    CustomEffectParams = 11, ///< 個別エフェクト用パラメータ配列 (register b3) - PS
 };

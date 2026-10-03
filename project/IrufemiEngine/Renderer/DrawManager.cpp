@@ -669,9 +669,6 @@ void DrawManager::DrawSprite(const RenderPackets::SpritePacket& packet) {
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, resource->GetMaterialVAddress());
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Transform, resource->GetTransformVAddress());
 
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = textureManager_->Resolve(resource->GetTextureHandle());
-    commandList_->SetGraphicsRootDescriptorTable((UINT)RootSlot::LegacyPSTexture, gpuHandle);
-
     commandList_->DrawIndexedInstanced(resource->GetIndexCount(), 1, 0, 0, 0);
 }
 
@@ -741,9 +738,6 @@ void DrawManager::DrawText(const RenderPackets::SpritePacket& packet) {
     commandList_->IASetIndexBuffer(&resource->GetIndexBufferView());
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, resource->GetMaterialVAddress());
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Transform, resource->GetTransformVAddress());
-
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = textureManager_->Resolve(resource->GetTextureHandle());
-    commandList_->SetGraphicsRootDescriptorTable((UINT)RootSlot::LegacyPSTexture, gpuHandle);
 
     commandList_->DrawIndexedInstanced(resource->GetIndexCount(), 1, 0, 0, 0);
 }

@@ -612,6 +612,16 @@ public:
     bool TryIncrementCombinedOffset();
 
     /**
+     * @brief Bindless 定数バッファを割り当ててGPUアドレスを取得する
+     * @param mainTextureIndex メインテクスチャのSRVインデックス
+     * @param extraTextureIndex 追加テクスチャのSRVインデックス
+     * @param maskTextureIndex マスクテクスチャのSRVインデックス
+     * @return 割り当てられた定数バッファのGPU仮想アドレス
+     */
+    D3D12_GPU_VIRTUAL_ADDRESS AllocateBindlessParams(uint32_t mainTextureIndex, uint32_t extraTextureIndex = 0,
+                                                     uint32_t maskTextureIndex = 0);
+
+    /**
      * @brief 個別エフェクトの詳細パラメータを登録し、インスタンスID（1〜255）を発行する
      * @param params 個別エフェクトのパラメータ
      * @return インスタンスID (0はデフォルト/未登録)

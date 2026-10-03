@@ -6,6 +6,7 @@
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "RHI/DirectX12/ShaderManager.h"
 #include "RHI/DirectX12/RootSignatureConfig.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include "Resource/Texture/TextureManager.h"
 #include "Platform/WindowsAPI/WinApp.h"
 #include <commdlg.h>
@@ -116,12 +117,15 @@ void TL1Scene::Draw() {
         auto cmd = engine_->GetCommandList();
 
         // 入力されたテクスチャパス(名)があればそれをテクスチャとしてロードしてセット、無ければダミー(白)をセットする
-        D3D12_GPU_DESCRIPTOR_HANDLE texHandle = engine_->GetTextureManager()->GetWhiteTextureHandle();
+        uint32_t srvIdx = 0;
         if (!textureImagePath_.empty()) {
             ResourceHandle rHandle = engine_->GetTextureManager()->LoadTexture(textureImagePath_);
-            texHandle = engine_->GetTextureManager()->Resolve(rHandle);
+            srvIdx = engine_->GetTextureManager()->GetSrvIndex(rHandle);
         }
-        cmd->SetGraphicsRootDescriptorTable(static_cast<UINT>(RootSlot::LegacyPSTexture), texHandle);
+        if (auto ppMgr = engine_->GetPostProcessManager()) {
+            D3D12_GPU_VIRTUAL_ADDRESS bindlessCBV = ppMgr->AllocateBindlessParams(srvIdx);
+            cmd->SetGraphicsRootConstantBufferView(static_cast<UINT>(RootSlot::LightCommon), bindlessCBV);
+        }
 
         cmd->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         cmd->DrawInstanced(3, 1, 0, 0);

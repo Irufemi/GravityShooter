@@ -132,12 +132,11 @@
     - **音声PCM並列デコード**: `AudioManager::LoadAllSoundsFromFolder` を `ThreadPool` + `TaskGroup` に対応させ、Media Foundationによる重いPCMデコード処理をワーカースレッド群へ並列分散。ワーカースレッドのCOM MTA初期化を保証し、`registryMutex_` で内部レジストリを保護。
     - **低レイテンシ同期プリミティブ**: `TaskGroup` に `std::condition_variable` を用いた高効率な `Wait()` メソッドを新設し、CPU 100%スピンのないブロック待機を標準化。
     - **起動初動ストール防止**: 起動第1フレームにおける無駄なスワップチェーン再生成・二重 `WaitForGPU` をスキップするガードを導入。
-- [ ] **Bindless Resources (Descriptor Indexing) の完全移行完了**
-    - 全テクスチャ/リソースを巨大な Descriptor Heap に格納し、Shader にインデックス(uint)だけを渡す方式へ移行。
-    - **進行状況**: C++基盤、および `Application_solo` / `Application_team` 双方のほぼすべてのHLSLファイルの移行が完了。
-    - **残タスク**: エディタ用シェーダー `OutlineComposite.PS.hlsl` と `SelectionOutlinePass.cpp` を Bindless 経由でテクスチャを読むように修正する。
-    - **残タスク**: 上記の完了後、互換維持のために復刻した `RootSlot::LegacyPSTexture` を削除し、真の Bindless Root Signature を完成させる。
-    - **残タスク**: 既存の `RenderPackets` 系（PrimitiveBatchPacket, ModelBatchPacket 等）に残存している明示的なテクスチャバインドのコードを完全に撤去し、コードをシンプルにする。
+- [x] **Bindless Resources (Descriptor Indexing) の完全移行完了**
+    - 全テクスチャ/リソースを巨大な Descriptor Heap に格納し、Shader にインデックス(uint)だけを渡す方式へ完全移行。（完了）
+    - **エディタアウトラインのBindless化**: `OutlineComposite.PS.hlsl` および `SelectionOutlinePass.cpp` を `PostProcessManager` の動的バッファ経由でテクスチャインデックスを参照するように改修。
+    - **真の Bindless Root Signature の完成**: 互換維持用だった `RootSlot::LegacyPSTexture`（register t0, PS）を完全削除し、ルートパラメータ数を 13 → 12 に削減してルートシグネチャのフットプリントを最適化。
+    - **不要コードの撤去**: `DrawManager`（DrawSprite / DrawText）および `TL1Scene` に残存していたレガシーテクスチャバインドコードを完全撤去。
 - [ ] **マルチスレッドコマンド録画 (Multi-threaded Command Recording)**
     - Job System と連携し、D3D12 の CommandList 構築を複数スレッドで並列に行い、CPUの描画ボトルネックを解消する。
 - [ ] **DirectStorage API / GDeflate による超高速リソースロードの対応**
