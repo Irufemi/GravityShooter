@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gravity Shooter - 3D Rail Shooter & Custom C++ / DX12 Engine | Koichi Suehiro</title>
+  <meta name="description" content="DirectX 12 / C++ スクラッチ自作エンジン製 3D重力レールシューティングゲーム『Gravity Shooter』の就活向け技術ポートフォリオ。ゲームプレイの深さ、最大1万個負荷耐性、UDPテレメトリツール、自作エディタを解説。">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="#hero" class="nav-logo">
+        <span class="logo-badge">DX12</span>
+        GRAVITY SHOOTER
+      </a>
+      <ul class="nav-links">
+        <li><a href="#gameplay" class="active">Gameplay</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#engine">Engine & DX12</a></li>
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#track-record">Projects</a></li>
+        <li><a href="doxygen/index.html" class="btn-nav-doc" target="_blank">API Docs ↗</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header id="hero" class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="pulse-dot"></span>
+          C++20 / DirectX 12 Scratch Engine
+        </div>
+        <h1 class="hero-title">
+          重力を操り、<br>
+          <span class="text-gradient">無数の瓦礫を兵器へ。</span>
+        </h1>
+        <p class="hero-subtitle">
+          自作3Dゲームエンジン「IrufemiEngine」でゼロから開発された本格3Dレールシューティング。
+          スプライン相対追従ドッグファイト、3Dマルチロックオン、そして視認性を極めたガレキの物理循環バトル。
+        </p>
+
+        <div class="hero-actions">
+          <a href="https://github.com/Irufemi/GravityShooter/releases" class="btn btn-primary" target="_blank">
+            🎮 プレイ用パッケージ (exe)
+          </a>
+          <a href="https://github.com/Irufemi/GravityShooter" class="btn btn-secondary" target="_blank">
+            📂 GitHub リポジトリ
+          </a>
+          <a href="docs/LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf" class="btn btn-secondary" target="_blank">
+            📄 技術資料 (PDF)
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <h4>0.066 ms</h4>
+            <p>10,000体 制御負荷</p>
+          </div>
+          <div class="stat-item">
+            <h4>60 FPS</h4>
+            <p>本編 常時完全同期</p>
+          </div>
+          <div class="stat-item">
+            <h4>6 Titles</h4>
+            <p>エンジン共通制作実績</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-media">
+        <div class="video-frame">
+          <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" alt="Gravity Shooter Concept Visual">
+          <div class="video-overlay">
+            <span class="media-tag">3D Rail Shooter / Real-Time Physics</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section 1: Gameplay Showcase (Application重視) -->
+  <section id="gameplay" class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Application Highlights</div>
+        <h2 class="section-title">洗練された3Dゲームプレイ＆戦闘ロジック</h2>
+        <p class="section-desc">
+          エンジン機能の誇示に終わらない、プレイヤーの手触りと視認性を最優先した商用レベルのゲームメカニクス。
+        </p>
+      </div>
+
+      <div class="cards-grid">
+        <!-- Card 1 -->
+        <div class="card" data-modal="rail-mechanics">
+          <span class="card-badge">Rail Mechanics</span>
+          <div class="card-icon">🚀</div>
+          <h3>レール座標系 相対追従ドッグファイト</h3>
+          <p>
+            スプライン曲線に沿って前進しつつ、プレイヤーの前方を一定距離保ちながら左右上下に旋回・逃走するボスのチェイス戦闘を実現。
+          </p>
+          <div class="card-meta">
+            <span>RailRelativeFollowerComponent.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card" data-modal="targeting">
+          <span class="card-badge">Targeting & Combat</span>
+          <div class="card-icon">🎯</div>
+          <h3>3Dマルチロックオン＆遮蔽判定</h3>
+          <p>
+            レティクルホバーと深度スコアリングによるキュー登録。レイキャスト（Line of Sight）により遮蔽物の裏にいる敵への誤ロックを完全遮断。
+          </p>
+          <div class="card-meta">
+            <span>PlayerTargetingComponent.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="card" data-modal="debris-loop">
+          <span class="card-badge">Core Game Loop</span>
+          <div class="card-icon">🌀</div>
+          <h3>ガレキ物理循環ゲームループ</h3>
+          <p>
+            「引き寄せ ➔ 旋回防御 ➔ 射出攻撃 ➔ 敵撃破でドロップ」という流れるようなリサイクル循環。視認性を第一に数十〜100個の最適密度で制御。
+          </p>
+          <div class="card-meta">
+            <span>DebrisManagerComponent.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="card" data-modal="multi-boss">
+          <span class="card-badge">Boss Battle</span>
+          <div class="card-icon">👾</div>
+          <h3>ステートマシン式 マルチフェーズボス</h3>
+          <p>
+            Stateパターンによる行動制御。外装装甲の破壊によって内部弱点コアが露出し、激化する弾幕フェーズへシームレスに移行。被弾マテリアル点滅も完備。
+          </p>
+          <div class="card-meta">
+            <span>BossComponent.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Reality Check & Architecture -->
+  <section id="architecture" class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Engineering Balance</div>
+        <h2 class="section-title">スペック限界値と実機ゲーム運用の誠実な分離</h2>
+        <p class="section-desc">
+          商用プログラマーとして不可欠な「大量処理に耐えうる技術力」と「遊びやすさを最優先するゲームデザイン感覚」の両立。
+        </p>
+      </div>
+
+      <div class="comparison-box">
+        <div class="comparison-grid">
+          <div class="comp-col spec">
+            <h4>⚡ 技術的スケーラビリティ（限界値）</h4>
+            <p>
+              <strong>最大10,000オブジェクトの大量追尾ストレステストでCPU負荷わずか 0.066ms を達成。</strong><br>
+              ポインタを廃した密配列（Sparse Set / Virtual Entity）と保守的GPUカリングにより、将来的な大規模戦や無数の破片演算に耐えうる極限のスケーラビリティを証明しています。
+            </p>
+          </div>
+          <div class="comp-col gameplay">
+            <h4>🎮 ゲーム本編の実機運用（最適密度）</h4>
+            <p>
+              <strong>画面の視認性・敵弾把握・ゲームテンポを最優先し、数十〜100個にチューニング。</strong><br>
+              1万個出せる性能を持ちながら、画面が埋まって弾幕が見えなくなるのを避けるため適正数に抑制。余剰リソースをGPUボクセル破砕やAAAポストプロセスへ配分し、完全60FPSを担保しています。
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Custom Engine & Rendering (IrufemiEngine) -->
+  <section id="engine" class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Custom Engine Core</div>
+        <h2 class="section-title">DirectX 12 レンダリング＆コアアーキテクチャ</h2>
+        <p class="section-desc">
+          低レイヤAPIを限界まで活用した、モダンなDirectX 12パイプラインとデータ指向設計。
+        </p>
+      </div>
+
+      <div class="cards-grid">
+        <!-- Card 1 -->
+        <div class="card" data-modal="virtual-entity">
+          <span class="card-badge purple">Data-Oriented</span>
+          <div class="card-icon">⚡</div>
+          <h3>Virtual Entity & Sparse Set</h3>
+          <p>
+            連続した密配列でTransformを管理し、描画時のみPromote（実体化）するハイブリッドECS設計。キャッシュミスを根絶し0.066msのディスパッチを実現。
+          </p>
+          <div class="card-meta">
+            <span>VirtualEntityManagerComponent.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card" data-modal="render-graph">
+          <span class="card-badge purple">DirectX 12</span>
+          <div class="card-icon">📊</div>
+          <h3>RenderGraph＆一時リソース再利用</h3>
+          <p>
+            描画パスの依存関係を有向非巡回グラフ（DAG）化。パス間で寿命の重ならない一時テクスチャを自動エイリアシングし、VRAM消費量を大幅削減。
+          </p>
+          <div class="card-meta">
+            <span>RenderGraph.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="card" data-modal="gpu-voxel">
+          <span class="card-badge purple">Compute Shader</span>
+          <div class="card-icon">💥</div>
+          <h3>GPUボクセル破壊＆バイソニックソート</h3>
+          <p>
+            モデルを実行時にボクセル化し、Compute ShaderでOBB衝突物理をシミュレーション。GPUバイソニックソートにより半透明破片の深度前後関係を完全ソート。
+          </p>
+          <div class="card-meta">
+            <span>VoxelParticleSystem.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="card" data-modal="post-process">
+          <span class="card-badge purple">Graphics Pipeline</span>
+          <div class="card-icon">✨</div>
+          <h3>Dual Kawase Bloom ＆ ゴッドレイ</h3>
+          <p>
+            少パスで広範囲・美麗な発光を生むDual Kawase Blur。ラジアルブラーによるボリュメトリックな光条（ゴッドレイ）や被弾時ディゾルブ演出を統合。
+          </p>
+          <div class="card-meta">
+            <span>PostProcessManager.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Production Tools & Ecosystem -->
+  <section id="tools" class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Production Tools</div>
+        <h2 class="section-title">開発効率化を支える自作ツール・エコシステム</h2>
+        <p class="section-desc">
+          ゲームエンジン本体にとどまらず、プロファイリングと制作イテレーションを加速させる外部ツール群。
+        </p>
+      </div>
+
+      <div class="cards-grid">
+        <!-- Card 1 -->
+        <div class="card" data-modal="telemetry-monitor">
+          <span class="card-badge">C# / WPF / UDP</span>
+          <div class="card-icon">📈</div>
+          <h3>リアルタイム・テレメトリ監視ツール</h3>
+          <p>
+            <strong>【UDP採用の理由】</strong> 再送待ちによるゲームループ阻害を避けるためUDP:8888を採用。独立スレッドから非同期送信し、GPUパーティクル数やCPU負荷をゲーム負荷ゼロでリアルタイム監視。
+          </p>
+          <div class="card-meta">
+            <span>Tools/TelemetryMonitor</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card" data-modal="irufemi-editor">
+          <span class="card-badge">C++ / DX12 / ImGui</span>
+          <div class="card-icon">🛠️</div>
+          <h3>インハウスエディタ (IrufemiEditor)</h3>
+          <p>
+            Commandパターンによる完全なUndo/Redo、ドラッグ＆ドロップ、3Dシーンビュー、およびプランナー向けのコンポーネントインスペクター拡張基盤を完備。
+          </p>
+          <div class="card-meta">
+            <span>IrufemiEditor/Core/EditorManager.h</span>
+            <span class="card-link-text">詳細を見る →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Track Records -->
+  <section id="track-record" class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Track Record</div>
+        <h2 class="section-title">自作エンジンを共有した6タイトルの制作実績</h2>
+        <p class="section-desc">
+          単体の技術デモに終わらず、個人2回・チーム4回の制作現場で実際に稼働し、他職種との協調開発を支えた実用性。
+        </p>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-badge">個人制作 (4ヶ月)</span>
+          <h3>Gravity Shooter</h3>
+          <p>奥スクロール重力シューティング。最大1万体ベンチマーク耐性、スプライン相対追従、マルチロックオン、RenderGraph。</p>
+          <div class="card-meta"><span>1人開発</span><span>DirectX 12</span></div>
+        </div>
+        <div class="card">
+          <span class="card-badge purple">チーム制作 (4ヶ月)</span>
+          <h3>七転び八転び</h3>
+          <p>3Dアクションゲーム。Compute Shaderによる数十万ボクセル破壊表現、非同期アセットローダー、シーン遷移管理を提供。</p>
+          <div class="card-meta"><span>4人チーム</span><span>DirectX 12</span></div>
+        </div>
+        <div class="card">
+          <span class="card-badge purple">チーム制作 (1ヶ月)</span>
+          <h3>血管壊回</h3>
+          <p>見下ろし型 疑似3Dアクション。GPUパーティクルによるリアルタイム血流表現、2D/3D融合コリジョンシステムを提供。</p>
+          <div class="card-meta"><span>3人チーム</span><span>DirectX 12</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Modal Container -->
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <button id="modalClose" class="modal-close">&times;</button>
+      <div class="modal-header">
+        <h3 id="modalTitle">Modal Title</h3>
+        <div id="modalSubtitle" class="modal-subtitle">Sub Information</div>
+      </div>
+      <div id="modalBody" class="modal-body">
+        Modal Content
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div>
+        <p style="font-weight: 700; color: #fff; margin-bottom: 4px;">Gravity Shooter / Irufemi Engine</p>
+        <p style="font-size: 0.85rem; color: var(--text-dim);">Developed by Koichi Suehiro. Powered by C++20 & DirectX 12.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/Irufemi/GravityShooter" target="_blank">GitHub</a>
+        <a href="docs/LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf" target="_blank">Portfolio (PDF)</a>
+        <a href="doxygen/index.html" target="_blank">Online Doxygen Manual ↗</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
