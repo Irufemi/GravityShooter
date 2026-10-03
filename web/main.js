@@ -22,39 +22,49 @@ document.addEventListener('DOMContentLoaded', () => {
 void RailRelativeFollowerComponent::Update() {
     if (!targetFollower_ || !cachedPath_) return;
 
-    // プレイヤーのレール進行進捗に距離オフセットを加算
-    float targetDistance = targetFollower_->GetCurrentDistance() + distanceOffset_;
-    
-    // スプライン上のワールドTransformをサンプリング
-    Transform railTransform = cachedPath_->SampleTransformAtDistance(targetDistance);
-    
-    // レール基準のローカル回転・オフセットを合成して姿勢を決定
-    Vector3 finalPos = railTransform.position + railTransform.rotation * localOffset_;
-    GetOwner()->GetTransform()->SetPosition(finalPos);
+    // プレイヤーのレール進捗にオフセットを加算
+    float targetDistance = std::clamp(targetFollower_->GetCurrentDistance() + distanceOffset_,
+                                      0.0f, cachedPath_->GetTotalLength());
+
+    // スプライン座標と接線（進行方向ベクトル）を取得
+    Vector3 basePos = cachedPath_->GetPointAtDistance(targetDistance);
+    Vector3 tangent = cachedPath_->GetTangentAtDistance(targetDistance);
+
+    // 進行方向から姿勢を算出し、レール直交平面のXYローカルオフセットを合成
+    float yaw = std::atan2(tangent.x, tangent.z);
+    float pitch = std::asin(std::clamp(-tangent.y, -1.0f, 1.0f));
+    Matrix4x4 rotMat = Math::MakeRotateXYZMatrix({pitch, yaw, 0.0f});
+    Vector3 offsetWorld = Math::TransformNormal(localOffset_, rotMat);
+
+    gameObject_->SetWorldPosition(basePos + offsetWorld);
+    gameObject_->SetWorldRotation({pitch, yaw, 0.0f});
 }</code></pre>
       `
     },
     'targeting': {
-      title: '3Dマルチロックオン＆レイキャスト遮蔽判定',
+      title: '3Dマルチロックオン＆非同期レイキャスト遮蔽判定（Dynamic BVH連携）',
       subtitle: 'Application_solo/Player/PlayerTargetingComponent.h',
       githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/Player/PlayerTargetingComponent.h',
       content: `
-        <p>画面内の敵をレティクルでホバー検知し、距離・画角に基づきスコアリングして複数ターゲットをキューに登録。さらに、<strong>レイキャストによる障害物の遮蔽判定（Line of Sight）</strong>を行い、壁裏の敵に対する誤ロックを完全に遮断します。</p>
+        <p>画面内の敵をレティクルでホバー検知し、距離・画角スコアリングで複数ターゲットをキュー登録。さらに、自作エンジンの空間分割（<strong>Dynamic BVH</strong>）と連携したレイキャスト遮蔽判定（Line of Sight）を行い、壁裏の敵に対する誤ロックを完全遮断します。</p>
         <h4>技術的特徴</h4>
         <ul>
-          <li><strong>サテライトUI連携:</strong> 同一の敵に対する重複ロックオン数を検知し、マーカー周囲にサテライト状にサブマーカーを展開。</li>
-          <li><strong>ゼロアロケーション設計:</strong> 毎フレームの動的メモリ確保（new/malloc）を徹底排除し、事前割り当てキューで高速処理。</li>
+          <li><strong>非同期レイキャスト (Amortization):</strong> 初回は同期判定で即座に遮蔽を確定。2回目以降はフレームレート低下を防ぐため、<code>ThreadPool</code> を介した <code>RaycastAsync</code> で非同期に視線キャッシュを更新。</li>
+          <li><strong>サテライトUI連携:</strong> 同一敵への重複ロックオン数を検知し、マーカー周囲にサテライト状にサブマーカーを展開。</li>
         </ul>
         <h4>主要コードスニペット</h4>
-        <pre class="code-snippet"><code>// PlayerTargetingComponent.cpp (抜粋)
-void PlayerTargetingComponent::MarkTarget(size_t maxLockOn) {
-    if (queuedTargets_.size() >= maxLockOn) return;
-    
-    // ホバー中の対象が遮蔽されていないかRaycastで最終確認
-    if (hoverTarget_ && !IsOccluded(hoverTarget_->GetTransform()->GetWorldPosition())) {
-        queuedTargets_.push_back(hoverTarget_);
-        lockonUI_->AddSatelliteMarker(hoverTarget_);
-    }
+        <pre class="code-snippet"><code>// PlayerTargetingComponent.cpp (抜粋: 非同期遮蔽判定)
+if (!cache.hasCheckedOnce) {
+    // 初回: 即時レイキャストで壁裏敵の一瞬の透過ロックを完全防止
+    RaycastHit hitInfo{};
+    bool hit = engine->GetCollisionManager()->Raycast(ray, hitInfo, dist, mask, player);
+    cache.canSee = (!hit || hitInfo.hitObject == obj);
+    cache.hasCheckedOnce = true;
+} else if (currentTime - cache.lastCheckTime > 0.1f && !cache.pendingTask) {
+    // 2回目以降: ThreadPoolで非同期分散実行し、メインスレッド負荷をゼロ化
+    cache.pendingTask = std::make_shared<std::future<std::pair<bool, RaycastHit>>>(
+        engine->GetCollisionManager()->RaycastAsync(engine->GetThreadPool(), ray, dist, mask, player)
+    );
 }</code></pre>
       `
     },
@@ -98,13 +108,19 @@ void PlayerTargetingComponent::MarkTarget(size_t maxLockOn) {
           <li><strong>10,000個ストレステスト:</strong> CPUディスパッチ時間 <strong>0.066ms</strong> を達成。</li>
           <li><strong>本編実運用:</strong> 高い余力（ヘッドルーム）を維持することで、激しいボス戦中も常時完全60FPSを担保。</li>
         </ul>
-        <pre class="code-snippet"><code>// VirtualEntityManagerComponent.h (データ構造イメージ)
-struct VirtualEntityData {
+        <pre class="code-snippet"><code>// VirtualEntityManagerComponent.h (抜粋)
+struct VirtualInstance {
+    int id;
     Vector3 position;
-    Vector3 velocity;
-    uint32_t stateFlags;
+    Vector3 rotation;
+    Vector3 scale;
+    bool isPromoted = false;
+    bool isDestroyed = false;
+    ObjectPool<GameObject>::Handle promotedHandle;
 };
-std::vector<VirtualEntityData> denseEntities_; // 密配列でCPUキャッシュヒット率極大</code></pre>
+
+std::vector<VirtualInstance> dense_; // 密配列: 連続メモリ配置でCPUキャッシュミスを根絶
+std::vector<int> sparse_;             // 疎配列: 仮想IDから密配列インデックスへのO(1)即時逆引き</code></pre>
       `
     },
     'render-graph': {
@@ -116,11 +132,20 @@ std::vector<VirtualEntityData> denseEntities_; // 密配列でCPUキャッシュ
       `
     },
     'gpu-voxel': {
-      title: 'GPUボクセル破壊パーティクル ＆ バイソニックソート',
+      title: 'GPUボクセル破砕物理 ＆ GPUパーティクル（Bitonic Sort）',
       subtitle: 'IrufemiEngine/Renderer/System/VoxelParticle/VoxelParticleSystem.h',
       githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/System/VoxelParticle/VoxelParticleSystem.h',
       content: `
-        <p>3Dメッシュモデルを実行時にボクセル化（VoxelizedModel）し、Compute Shaderで数千〜数万のキューブ破片を完全GPU物理シミュレーション（OBB衝突・重力・分散）。半透明破片は <code>BitonicSort.CS.hlsl</code> によりGPU上で並列ソートされ、描画の破綻を防ぎます。</p>
+        <p>自作DirectX 12エンジンの看板機能である、Compute Shaderを活用した2つの高度な並列GPU物理パイプラインです。</p>
+        <h4>💥 実行時ボクセル破砕物理 (VoxelParticleSystem)</h4>
+        <ul>
+          <li><strong>メッシュの実行時ボクセル化:</strong> 3Dモデルからリアルタイムに立体キューブ破片群を生成（<code>VoxelizedModel</code>）。</li>
+          <li><strong>GPU OBB衝突・分散シミュレーション:</strong> Compute Shaderで数千〜数万のボクセル破片に対し、爆風・重力・地形OBB衝突判定を完全GPU駆動で並列演算。</li>
+        </ul>
+        <h4>✨ 超大規模半透明ソート (GPUParticleSystem)</h4>
+        <ul>
+          <li><strong>Bitonic Sort並列深度ソート:</strong> 最大数十万個の半透明パーティクルに対し、<code>BitonicSort.CS.hlsl</code> によりGPU上で並列ソーティングを実行。半透明オブジェクトの深度前後関係破綻（Zファイティング・描画順逆転）を完全解消。</li>
+        </ul>
       `
     },
     'post-process': {
