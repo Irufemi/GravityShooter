@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 
-static const std::string kCacheDirectory = "resources/.cache/pso/";
+static const std::string kCacheDirectory = "generated/cache/pso/";
 
 // 軽量ハッシュ(キャッシュキー用)
 static uint64_t FNV1a(const void* p, size_t n, uint64_t h = 1469598103934665603ull) {
