@@ -15,6 +15,10 @@
 class ColliderComponent;
 class GameObject;
 
+/**
+ * @namespace Irufemi::Collision
+ * @brief 空間分割(Dynamic BVH)および衝突検出機能を提供する名前空間
+ */
 namespace Irufemi::Collision {
 struct CollisionResult;
 }

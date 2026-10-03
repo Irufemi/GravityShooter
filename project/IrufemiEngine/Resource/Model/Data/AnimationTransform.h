@@ -3,10 +3,12 @@
 #include "Core/Math/Vector3.h"
 #include "Core/Math/Quaternion.h"
 
+namespace Irufemi {
+
 /**
+ * @struct AnimationTransform
  * @brief アニメーション用のトランスフォームデータを保持する構造体
  */
-namespace Irufemi {
 struct AnimationTransform {
     Irufemi::Vector3 scale_;     ///< スケール
     Irufemi::Quaternion rotate_; ///< 回転クォータニオン

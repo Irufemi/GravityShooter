@@ -11,6 +11,10 @@
 #include "Core/Math/Vector4.h"
 
 namespace Irufemi {
+/**
+ * @namespace Irufemi::JsonUtility
+ * @brief nlohmann/json を用いた数学型（Vector/Matrix等）のシリアライズ・ファイル保存・読込支援名前空間
+ */
 namespace JsonUtility {
 
 /**

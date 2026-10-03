@@ -70,6 +70,10 @@ inline const char* GameAxisToString(GameAxis axis) {
     }
 }
 
+/**
+ * @namespace InputHelper
+ * @brief ゲーム固有のアクションマッピング（キー・マウス・パッド）判定を簡潔に行うヘルパー名前空間
+ */
 namespace InputHelper {
 inline bool IsActionDown(const InputManager* input, GameAction action) {
     return input ? input->IsActionDown(GameActionToString(action)) : false;

@@ -20,6 +20,10 @@ class Object2DResource;
 class LineResource;
 struct GpuMesh;
 
+/**
+ * @namespace RenderPackets
+ * @brief レンダリングパイプラインにおいて描画パスへ投入されるコマンドパケット構造体群の名前空間
+ */
 namespace RenderPackets {
 
 struct Standard3DPacket {

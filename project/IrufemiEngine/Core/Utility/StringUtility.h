@@ -16,6 +16,10 @@ std::wstring ConvertString(const std::string& str);
  */
 std::string ConvertString(const std::wstring& str);
 
+/**
+ * @namespace StringUtility
+ * @brief 文字列変換（UTF-8 / WideChar 相互変換、サフィックス判定、キャッシュパス生成等）を提供する名前空間
+ */
 namespace StringUtility {
 /**
  * @brief EndsWith を実行する。

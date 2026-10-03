@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @namespace Irufemi
+ * @brief IrufemiEngine のコア型・数学ライブラリ・サブシステムを提供するルート名前空間
+ */
+namespace Irufemi {}
+
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "Core/Type/BlendMode.h"
 #include "Core/System/ILoadingScreen.h"

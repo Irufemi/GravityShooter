@@ -13,6 +13,10 @@ struct AABB;
 struct OBB;
 struct Frustum;
 
+/**
+ * @namespace Collision
+ * @brief プリミティブ形状（Sphere, AABB, OBB, Frustum等）の幾何学的交差判定およびめり込み押し出し計算を提供する名前空間
+ */
 namespace Collision {
 
 /// <summary>

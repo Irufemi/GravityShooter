@@ -18,6 +18,10 @@
 #include "Core/System/ResourceCachePool.h"
 
 // 前方宣言
+/**
+ * @namespace DirectX
+ * @brief DirectXTex および Microsoft 公式 DirectX 補助ライブラリの名前空間
+ */
 namespace DirectX {
 class ScratchImage;
 }

@@ -5,6 +5,10 @@
 #include <optional>
 #include <cstddef>
 
+/**
+ * @namespace Irufemi::Container
+ * @brief STLコンテナの高速操作（Swap&Pop等）や安全な検索ユーティリティを提供する名前空間
+ */
 namespace Irufemi::Container {
 
 /**
