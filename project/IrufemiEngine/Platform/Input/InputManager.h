@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <memory>
 #include "Platform/Input/Keyboard.h"
 #include "Platform/Input/GamePad.h"
