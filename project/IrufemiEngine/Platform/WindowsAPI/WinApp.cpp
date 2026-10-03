@@ -355,18 +355,36 @@ void WinApp::SetDisplayMode(DisplayMode mode) {
         // Change style back to WS_OVERLAPPEDWINDOW
         SetWindowLongW(hwnd_, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
-        // Restore saved rect (or default if it was empty)
-        if (windowedRect_.right - windowedRect_.left > 0) {
-            SetWindowPos(hwnd_, HWND_NOTOPMOST, windowedRect_.left, windowedRect_.top,
-                         windowedRect_.right - windowedRect_.left, windowedRect_.bottom - windowedRect_.top,
-                         SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOOWNERZORDER);
-        } else {
-            // Fallback if windowedRect_ is empty
-            RECT wrc = {0, 0, clientWidth_, clientHeight_};
-            AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
-            SetWindowPos(hwnd_, HWND_NOTOPMOST, 0, 0, wrc.right - wrc.left, wrc.bottom - wrc.top,
-                         SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+        // 規定のゲーム解像度（16:9）をクライアント領域として正確に復元
+        int targetClientW = 1280;
+        int targetClientH = 720;
+        if (engine_) {
+            targetClientW = engine_->GetGameResolutionWidth();
+            targetClientH = engine_->GetGameResolutionHeight();
         }
+
+        RECT wrc = {0, 0, targetClientW, targetClientH};
+        AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+        int winW = wrc.right - wrc.left;
+        int winH = wrc.bottom - wrc.top;
+
+        // 保存された位置があればその位置を基準に、なければ画面中央に配置
+        int winX = (windowedRect_.right - windowedRect_.left > 0) ? windowedRect_.left : 100;
+        int winY = (windowedRect_.right - windowedRect_.left > 0) ? windowedRect_.top : 100;
+
+        // モニター作業領域（タスクバー除く）を考慮して画面内に収める
+        HMONITOR monitor = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi = {sizeof(mi)};
+        GetMonitorInfoW(monitor, &mi);
+        if (winX + winW > mi.rcWork.right || winX < mi.rcWork.left) {
+            winX = mi.rcWork.left + (mi.rcWork.right - mi.rcWork.left - winW) / 2;
+        }
+        if (winY + winH > mi.rcWork.bottom || winY < mi.rcWork.top) {
+            winY = mi.rcWork.top + (mi.rcWork.bottom - mi.rcWork.top - winH) / 2;
+        }
+
+        SetWindowPos(hwnd_, HWND_NOTOPMOST, winX, winY, winW, winH,
+                     SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_SHOWWINDOW);
     }
 
     displayMode_ = mode;

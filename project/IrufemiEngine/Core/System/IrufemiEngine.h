@@ -1016,6 +1016,16 @@ private: // メンバ変数
     bool sceneRequestedCursorLock_ = false;
     bool isPlayMode_ = true;
     std::weak_ptr<GameObject> selectedObject_;
+
+    // --- 遅延リサイズ（Deferred Resize）管理 ---
+    bool isResizePending_ = false;
+    int32_t pendingResizeWidth_ = 0;
+    int32_t pendingResizeHeight_ = 0;
+    float displayToggleCooldown_ = 0.0f; ///< 画面切り替えの連打防止クールダウンタイマー
+
+    /** @brief 保留中のウィンドウリサイズを安全なフレーム境界で適用する */
+    void ApplyPendingResize();
+
 #if defined(_DEBUG) || defined(EditorMode)
     std::vector<std::unique_ptr<class DirectoryWatcher>> shaderWatchers_;
     std::atomic<bool> shouldReloadShaders_{false};

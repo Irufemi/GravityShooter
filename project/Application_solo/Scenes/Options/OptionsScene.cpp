@@ -15,6 +15,7 @@
 #include "Core/Utility/Log.h"
 #include "Platform/Input/InputManager.h"
 #include "Renderer/Font/FontManager.h"
+#include "Input/GameAction.h"
 #include <algorithm>
 #include <cmath>
 
@@ -97,7 +98,7 @@ void OptionsScene::Update() {
     bool isOverCloseButton = rectButtonClose_.Contains(cursorPos.x, cursorPos.y);
 
     bool isDecidePressed =
-        input->IsCursorActionPressed() || input->IsKeyPressed(VK_SPACE) || input->IsKeyPressed(VK_RETURN);
+        input->IsCursorActionPressed() || InputHelper::IsActionPressed(input, GameAction::UI_Submit);
 
     if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
         PlaySE(seDecidePath_, "se_menu_decide", 0.9f);

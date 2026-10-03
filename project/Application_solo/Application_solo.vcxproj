@@ -335,6 +335,7 @@ exit 0</Command>
     <ClInclude Include="Environment\EnvironmentManagerComponent.h" />
     <ClInclude Include="Environment\DestructibleEnvironmentComponent.h" />
     <ClInclude Include="Player\GravityPlayerComponent.h" />
+    <ClInclude Include="Input\GameAction.h" />
     <ClInclude Include="Player\PlayerHealthComponent.h" />
     <ClInclude Include="Player\PlayerDamageVisualizerComponent.h" />
     <ClInclude Include="Player\PlayerThrusterVisualizerComponent.h" />

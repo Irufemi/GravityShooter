@@ -43,6 +43,7 @@ public:
      * @param[in] scale 物理入力値を最終値に変換する際の係数（1.0f=そのまま, -1.0f=反転, 0.5f=感度半減 など）
      */
     void BindAction(const std::string& actionName, InputId inputId, float scale = 1.0f);
+    void BindAction(const std::string& actionName, InputId inputId, InputModifier modifiers, float scale = 1.0f);
 
     /** @brief 指定アクションのアナログ値（1D/2D）を取得する */
     InputActionValue GetActionValue(const std::string& actionName) const;
@@ -56,6 +57,13 @@ public:
 
     /** @brief 全てのアクションバインディングを解除する */
     void ClearActionBindings();
+
+    /**
+     * @brief JSONファイルからアクションバインディングを一括読み込み・登録する
+     * @param[in] filepath JSONファイルパス
+     * @return 読み込みに成功した場合 true
+     */
+    bool LoadBindingsFromJson(const std::string& filepath);
     ///@}
 
     /** @name デバイス取得（推奨API） */
@@ -88,6 +96,12 @@ public:
     bool IsKeyPressed(uint8_t key) const;
     /** @brief キーが離された瞬間か判定（立ち下がり） */
     bool IsKeyReleased(uint8_t key) const;
+    /**
+     * @brief 指定した仮想キーの入力状態を消費（クリア）する
+     * @param key 仮想キーコード (VK_xxx)
+     * @details 同一フレーム内の後続システムへキー入力を伝播させない（Handled状態にする）ために使用します。
+     */
+    void ConsumeKey(uint8_t key);
     ///@}
 
     /** @name DIK互換API */

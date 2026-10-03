@@ -27,6 +27,12 @@ public:
      * @brief 全キーの入力状態をクリア（非アクティブ時等）する
      */
     void Clear();
+    /**
+     * @brief 指定した仮想キーの入力状態を消費（クリア）する
+     * @param key 仮想キーコード (VK_xxx)
+     * @details 同一フレーム内の後続システムへキー入力を伝播させない（Handled状態にする）ために使用します。
+     */
+    void ConsumeKey(uint8_t key);
     ///@}
 
     /** @name キー状態の取得 */

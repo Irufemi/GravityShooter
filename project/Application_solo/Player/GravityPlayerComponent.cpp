@@ -1,5 +1,6 @@
 #include "Player/GravityPlayerComponent.h"
 #include "Player/PlayerHealthComponent.h"
+#include "Input/GameAction.h"
 #include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Framework/Component/Effect/VoxelParticleComponent.h"
 #include "Player/PlayerTargetingComponent.h"
@@ -132,9 +133,8 @@ void GravityPlayerComponent::HandlePullInput() {
         return;
     }
 
-    // Eキー または LTトリガー または LB で引き寄せ
-    bool isPullPressed = input->IsKeyPressed('E') || input->IsLeftTriggerPressed() ||
-                         input->IsButtonPressed(XINPUT_GAMEPAD_LEFT_SHOULDER);
+    // ガレキ引き寄せアクション
+    bool isPullPressed = InputHelper::IsActionPressed(input, GameAction::Pull);
     if (isPullPressed) {
         if (static_cast<int>(orbitingDebris_.size()) >= maxOrbitCount_) {
             return;
@@ -243,15 +243,13 @@ void GravityPlayerComponent::HandleMarkInput() {
         return;
     }
 
-    // Rキー または Bボタン でキャンセル
-    if (input->IsKeyDown('R') || input->IsButtonPressed(XINPUT_GAMEPAD_B)) {
+    // ロックオン解除アクション
+    if (InputHelper::IsActionDown(input, GameAction::ClearLock)) {
         targetingComp_->ClearTargets();
     }
 
-    // 右クリック または RB または Aボタン でマーキング
-    bool isMarkPressed = input->IsMouseButtonPressed(Mouse::Button::Right) ||
-                         input->IsButtonPressed(XINPUT_GAMEPAD_RIGHT_SHOULDER) ||
-                         input->IsButtonPressed(XINPUT_GAMEPAD_A);
+    // ロックオンマーキングアクション
+    bool isMarkPressed = InputHelper::IsActionPressed(input, GameAction::LockOn);
     if (isMarkPressed) {
         size_t maxLockOn = orbitingDebris_.size();
         if (maxLockOn == 0) {
@@ -268,9 +266,8 @@ void GravityPlayerComponent::HandleThrowInput() {
         return;
     }
 
-    // 左クリック または Qキー または RTトリガー で射撃
-    bool isThrowPressed =
-        input->IsMouseButtonPressed(Mouse::Button::Left) || input->IsKeyPressed('Q') || input->IsRightTriggerPressed();
+    // ガレキ射出アクション
+    bool isThrowPressed = InputHelper::IsActionPressed(input, GameAction::Fire);
     if (isThrowPressed) {
         if (orbitingDebris_.empty()) {
             return;

@@ -11,6 +11,7 @@
 #include "Player/PlayerHealthComponent.h"
 #include "Combat/Boss/BossComponent.h"
 #include "Platform/Input/InputManager.h"
+#include "Input/GameAction.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
 
@@ -94,7 +95,7 @@ void GameLoopManagerComponent::Update() {
         // ポーズ画面呼び出しトリガー（ESCキー または ゲームパッド STARTボタン）
         if (auto engine = GetEngine()) {
             if (auto input = engine->GetInputManager()) {
-                bool triggerPause = input->IsKeyPressed(VK_ESCAPE) || input->IsButtonPressed(XINPUT_GAMEPAD_START);
+                bool triggerPause = InputHelper::IsActionPressed(input, GameAction::Pause);
                 if (triggerPause) {
                     if (auto sm = engine->GetSceneManager()) {
                         sm->PushScene("Pause");

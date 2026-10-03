@@ -215,6 +215,13 @@ void GameApplication::Run() {
     }
 #endif
 
+    // 入力アクション設定（データドリブンバインディング）の読み込み
+    if (auto inputManager = engine->GetInputManager()) {
+        if (!inputManager->LoadBindingsFromJson("resources/config/input_actions.json")) {
+            inputManager->LoadBindingsFromJson("project/Application_solo/resources/config/input_actions.json");
+        }
+    }
+
     // アプリ固有のシェーダー登録
     RegisterShaders(*engine);
 

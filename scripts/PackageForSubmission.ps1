@@ -1,4 +1,4 @@
-param (
+﻿param (
     [ValidateSet("Source", "Build", "All", "Menu")]
     [string]$Mode = "Menu",
     [string]$ScriptDir = "",

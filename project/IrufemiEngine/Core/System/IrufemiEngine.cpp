@@ -740,6 +740,31 @@ void IrufemiEngine::Execute() {
     }
 
     while (winApp_->ProcessMessages()) {
+        // 画面切り替えのクールダウン更新
+        if (displayToggleCooldown_ > 0.0f) {
+            displayToggleCooldown_ -= deltaTime_;
+            if (displayToggleCooldown_ < 0.0f) {
+                displayToggleCooldown_ = 0.0f;
+            }
+        }
+
+        // 全画面/ウィンドウモードの切り替え（描画・ImGui開始前の最前線で実行）
+        if (inputManager_ && displayToggleCooldown_ <= 0.0f) {
+            bool shouldToggle = inputManager_->IsActionTriggered("ToggleFullscreen");
+            // アクション未バインド環境用のフェイルセーフ
+            if (!shouldToggle) {
+                shouldToggle = inputManager_->IsKeyPressed(VK_F11) ||
+                               (inputManager_->IsKeyDown(VK_MENU) && inputManager_->IsKeyPressed(VK_RETURN));
+            }
+            if (shouldToggle) {
+                ToggleDisplayMode();
+                displayToggleCooldown_ = 0.3f; // 0.3秒のクールダウン（OS DWMとの過渡的競合を防止）
+            }
+        }
+
+        // 保留中のウィンドウリサイズがあれば、ImGuiや描画開始前の安全なフレーム境界で適用 (Deferred Resize)
+        ApplyPendingResize();
+
         // フレーム開始時の時間更新
         StartFrame();
 
@@ -774,14 +799,6 @@ void IrufemiEngine::Execute() {
         }
 #endif // USE_IMGUI
 
-        // F11 または Alt + Enter で全画面/ウィンドウモードを切り替え
-        if (inputManager_) {
-            bool isF11 = inputManager_->IsKeyPressed(VK_F11);
-            bool isAltEnter = (inputManager_->IsKeyDown(VK_MENU) && inputManager_->IsKeyPressed(VK_RETURN));
-            if (isF11 || isAltEnter) {
-                ToggleDisplayMode();
-            }
-        }
 
         // 更新
         audioManager_->Update();
@@ -986,17 +1003,34 @@ void IrufemiEngine::OnResize(int32_t width, int32_t height) {
     if (width <= 0 || height <= 0) {
         return;
     }
+    // 現在のクライアント解像度と同一であれば、無駄なリサイズ要求（起動時の初期化ストール等）をスキップ
+    if (dxCommon_ && dxCommon_->GetClientWidth() == width && dxCommon_->GetClientHeight() == height) {
+        return;
+    }
+    // 即時リサイズせず、フレーム境界で安全に実行するよう保留する (Deferred Resize)
+    isResizePending_ = true;
+    pendingResizeWidth_ = width;
+    pendingResizeHeight_ = height;
+}
 
-    // 1. スワップチェーン、深度バッファのリサイズ
+void IrufemiEngine::ApplyPendingResize() {
+    if (!isResizePending_) {
+        return;
+    }
+    isResizePending_ = false;
+
+    int32_t width = pendingResizeWidth_;
+    int32_t height = pendingResizeHeight_;
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+    // 現在のサイズと同一であればスワップチェーン再生成・GPUストールをスキップ
+    if (dxCommon_ && dxCommon_->GetClientWidth() == width && dxCommon_->GetClientHeight() == height) {
+        return;
+    }
+
+    // 1. スワップチェーン、深度バッファのリサイズ (安全なフレーム境界で実行)
     dxCommon_->ResizeSwapChain(width, height);
-
-    // --- 警告 ---
-    // mainRenderTexture_ などの内部テクスチャは GameResolution (1280x720) に固定されているため、
-    // ウィンドウサイズが変更されてもここで Initialize() を呼び出してリサイズしてはいけません。
-    // リサイズすると、ImGuiの表示領域やPostProcessのUVマッピングがずれて表示がおかしくなります。
-
-    // 深度バッファ(DSV)はGameResolution固定であるため、ウィンドウサイズ変更時にはリサイズされない。
-    // したがって、SRVの再生成も不要。
 
     if (normalTexture_) {
         postProcessManager_->SetNormalSrvIndex(normalTexture_->GetSrvIndex());
@@ -1015,13 +1049,7 @@ void IrufemiEngine::OnResize(int32_t width, int32_t height) {
 
     // 4. カメラの解像度更新 (3D空間の歪み防止)
     if (cameraManager_) {
-#ifdef EditorMode
-        // EditorMode時は描画先が1280x720固定のため、ウィンドウサイズに関わらずゲーム解像度をアスペクト比計算に使用する
         cameraManager_->OnResize(gameResWidth_, gameResHeight_);
-#else
-        // Standalone環境でもPostProcess側でレターボックス処理を行うため、ゲーム解像度基準でアスペクト比を維持する
-        cameraManager_->OnResize(gameResWidth_, gameResHeight_);
-#endif
     }
 
     // 5. 描画マネージャーへの通知 (RenderGraph等のキャッシュクリア)

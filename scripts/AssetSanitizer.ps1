@@ -1,4 +1,4 @@
-param (
+﻿param (
     [ValidateSet("Audit", "DryRun", "Sanitize", "Restore", "CleanCache", "Menu")]
     [string]$Mode = "Menu",
     [string]$ScriptDir = "",

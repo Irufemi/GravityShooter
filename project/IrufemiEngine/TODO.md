@@ -111,8 +111,14 @@
             3. 開発者用の緊急終了ショートカット（例: F12キーやESC長押しでの強制終了）のフェイルセーフ用意。
 
 ### ⌨️ 入力システム (Input System) の AAA アーキテクチャ化
-- [ ] **同時押し (Chord) キーバインドのサポート**
-    - 現在1対1の物理キーバインドしかサポートしていない `InputManager` と `InputBinding` を拡張し、「Ctrl + Z」のようなモディファイアキーを含む複数キーの同時押し判定をサポートする。
+- [x] **入力消費 (Input Consumption / `FReply::Handled()`) 機構の導入**
+    - **実装完了**: `Keyboard` および `InputManager` に `ConsumeKey(uint8_t key)` を追加。`Alt + Enter` 全画面切り替え時に `ConsumeKey(VK_RETURN)` を発火させ、UI層の変更ゼロで決定ボタン（Enter）の誤爆を根本遮断。
+- [x] **画面トグル（全画面・ウィンドウ）の高速連打耐性と堅牢化 (Debounce & Non-fatal Present Recovery)**
+    - **実装完了**: メインループ最前線へのトグル判定移動、0.3秒のクールダウンタイマー（Debounce）、および `DrawManager::PostDraw` における過渡的一時エラー（`DXGI_ERROR_INVALID_CALL` 等）の安全回復機構を導入し、過酷な連打環境下でのクラッシュを根本防止。
+- [x] **データドリブン＆型安全な論理アクション入力システム (Enhanced Input) の構築**
+    - **実装完了**: `resources/config/input_actions.json` による外部データ定義と、型安全な `enum class GameAction`（`Pull`, `Fire`, `LockOn`, `ClearLock`, `Pause` 等）を新設。`InputManager::LoadBindingsFromJson` により起動時にバインディングを一括登録。`GravityPlayerComponent` および `GameLoopManagerComponent` を論理アクション駆動へリファクタリング完了。
+- [x] **同時押し (Chord / Modifier) キーバインドと厳格修飾子排他 (Strict Modifier Matching) の完全サポート**
+    - **実装完了**: `InputModifier`（Alt, Ctrl, Shift）を新設し、`InputBinding` に `requiredModifiers` を統合。`"Alt+Key_Enter"` などの複合プレフィックス記法をサポート。入力解決時に現在アクティブな修飾キーと完全一致しない単体キー判定（Alt押下中の単体Enter等）を自動除外する Strict Matching を導入。UI画面群（Title, Options, Pause）の決定入力を `GameAction::UI_Submit` へ完全統一。
 - [ ] **InputMappingContext によるコンテキストルーティングの本格化**
     - エディタ用の `InputMappingContext` を定義し、`ImGui::IsKeyPressed` で一時的に処理されているエディタのショートカット（Undo/Redo 等）をエンジンの入力パイプラインに完全統合する。
     - ゲームプレイ中とエディタ操作中で入力フォーカスを安全に切り替えられる仕組み（Input Context Priority）を構築する。

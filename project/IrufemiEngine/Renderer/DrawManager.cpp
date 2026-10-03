@@ -516,7 +516,11 @@ void DrawManager::PostDraw() {
             Log::OutPutLog(std::cerr, std::string(str));
             throw std::runtime_error(str);
         } else {
-            throw std::runtime_error("Present failed with an unknown error.");
+            // 画面切り替え過渡期（DXGI_ERROR_INVALID_CALL等）の一時的エラーは例外スローせず、
+            // 警告ログを出力してフレームをスキップし、次フレームでの安全復帰を促す
+            char str[256];
+            sprintf_s(str, "[DrawManager] Present returned non-fatal error: 0x%08X. Skipping frame presentation.\n", hr);
+            Log::OutPutLog(std::cerr, std::string(str));
         }
     }
 

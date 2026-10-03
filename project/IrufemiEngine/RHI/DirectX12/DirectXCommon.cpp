@@ -1025,6 +1025,10 @@ void DirectXCommon::ResizeSwapChain(int32_t width, int32_t height) {
     if (width <= 0 || height <= 0) {
         return;
     }
+    // 同一サイズの場合は、WaitForGPU を含む重いスワップチェーン再生成処理を完全スキップ
+    if (clientWidth_ == width && clientHeight_ == height) {
+        return;
+    }
 
     // 1. GPUの完了を待つ (Flush)
     for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {

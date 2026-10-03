@@ -7,6 +7,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
 #include "Audio/AudioManager.h"
+#include "Input/GameAction.h"
 #include "Audio/Sound.h"
 #include "Renderer/Font/FontManager.h"
 #include "Framework/Utility/CVar.h"
@@ -269,9 +270,8 @@ void PauseScene::UpdateInput(float deltaTime) {
         PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
     }
 
-    // 4. 決定判定（ENTER / SPACE / Aボタン / マウス左クリック）
-    bool isDecide =
-        input->IsKeyPressed(VK_RETURN) || input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A);
+    // 4. 決定判定（論理アクション UI_Submit または カーソルクリック）
+    bool isDecide = InputHelper::IsActionPressed(input, GameAction::UI_Submit);
 
     if (mouseHoveredIndex >= 0 && input->IsCursorActionPressed()) {
         isDecide = true;

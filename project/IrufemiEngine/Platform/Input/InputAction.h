@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include "Core/Math/Vector2.h"
 
 /**
@@ -132,11 +133,33 @@ struct InputActionValue {
 };
 
 /**
+ * @enum InputModifier
+ * @brief 入力修飾キー（モディファイア）ビットフラグ
+ */
+enum class InputModifier : uint8_t {
+    None  = 0,
+    Alt   = 1 << 0, ///< VK_MENU (Altキー)
+    Ctrl  = 1 << 1, ///< VK_CONTROL (Ctrlキー)
+    Shift = 1 << 2  ///< VK_SHIFT (Shiftキー)
+};
+
+inline InputModifier operator|(InputModifier a, InputModifier b) {
+    return static_cast<InputModifier>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
+inline InputModifier operator&(InputModifier a, InputModifier b) {
+    return static_cast<InputModifier>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+}
+inline bool HasModifier(InputModifier flags, InputModifier test) {
+    return (static_cast<uint8_t>(flags) & static_cast<uint8_t>(test)) != 0;
+}
+
+/**
  * @struct InputBinding
  * @brief どのアクションにどの物理入力を割り当てるかのバインディング情報
  */
 struct InputBinding {
     InputId id = InputId::Unknown;
+    InputModifier requiredModifiers = InputModifier::None; ///< 要求される修飾キー（None は修飾キー押下なしを要求）
     /**
      * @brief X軸に対するスケール値
      * @details 物理入力値を最終的なアクション値に変換する際の係数です。
@@ -150,5 +173,33 @@ struct InputBinding {
     float scaleY = 1.0f;
 
     InputBinding() = default;
-    InputBinding(InputId inputId, float sx = 1.0f, float sy = 1.0f) : id(inputId), scaleX(sx), scaleY(sy) {}
+    InputBinding(InputId inputId, float sx = 1.0f, float sy = 1.0f)
+        : id(inputId), requiredModifiers(InputModifier::None), scaleX(sx), scaleY(sy) {}
+    InputBinding(InputId inputId, InputModifier modifiers, float sx = 1.0f, float sy = 1.0f)
+        : id(inputId), requiredModifiers(modifiers), scaleX(sx), scaleY(sy) {}
 };
+
+/**
+ * @brief 指定した InputId がキーボード入力かどうかを判定する
+ */
+inline bool IsKeyboardInput(InputId id) {
+    return id >= InputId::Keyboard_A && id <= InputId::Keyboard_Right;
+}
+
+/**
+ * @brief 文字列から InputId を解決する
+ * @param name "Key_E", "Pad_A", "Mouse_Left" などの識別文字列
+ * @return 対応する InputId（見つからない場合は InputId::Unknown）
+ */
+InputId StringToInputId(const std::string& name);
+
+/**
+ * @brief "Alt+Key_Enter", "Ctrl+Key_S" などの修飾子付き文字列から InputId と InputModifier を解決する
+ */
+bool StringToInputBinding(const std::string& name, InputId& outId, InputModifier& outModifiers);
+
+/**
+ * @brief InputId から標準文字列表現を取得する
+ */
+const char* InputIdToString(InputId id);
+

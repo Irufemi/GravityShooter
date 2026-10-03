@@ -20,6 +20,11 @@ void Keyboard::Clear() {
     previousKeys_.fill(0);
 }
 
+void Keyboard::ConsumeKey(uint8_t key) {
+    currentKeys_[key] = 0;
+    previousKeys_[key] = 0;
+}
+
 bool Keyboard::IsKeyDown(uint8_t key) const {
     return (currentKeys_[key] & 0x80) != 0;
 }

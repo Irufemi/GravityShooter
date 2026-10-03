@@ -348,6 +348,7 @@
     <ClInclude Include="Player\GravityPlayerComponent.h">
       <Filter>Player</Filter>
     </ClInclude>
+    <ClInclude Include="Input\GameAction.h" />
     <ClInclude Include="Player\PlayerHealthComponent.h">
       <Filter>Player</Filter>
     </ClInclude>

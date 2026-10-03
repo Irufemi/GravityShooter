@@ -2,6 +2,8 @@
 #include "Framework/Utility/CVar.h"
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <nlohmann/json.hpp>
 
 void InputManager::Initialize(HWND hwnd) {
     hwnd_ = hwnd;
@@ -56,11 +58,33 @@ void InputManager::Update() {
         pair.second = InputActionValue{};
     }
 
+    // 現在のキーボード修飾キー状態を取得
+    InputModifier currentModifiers = InputModifier::None;
+    if (keyboard_) {
+        if (keyboard_->IsKeyDown(VK_MENU)) {
+            currentModifiers = currentModifiers | InputModifier::Alt;
+        }
+        if (keyboard_->IsKeyDown(VK_CONTROL)) {
+            currentModifiers = currentModifiers | InputModifier::Ctrl;
+        }
+        if (keyboard_->IsKeyDown(VK_SHIFT)) {
+            currentModifiers = currentModifiers | InputModifier::Shift;
+        }
+    }
+
     // 全てのバインディングを評価（直接参照でゼロアロケーション走査）
     for (const auto& [actionName, bindings] : mappingContext_.GetMappings()) {
         InputActionValue totalValue;
 
         for (const auto& binding : bindings) {
+            // キーボード入力の場合は厳格なモディファイアマッチング（Strict Modifier Matching）を適用
+            // 要求された修飾キーと現在の修飾キー状態が完全一致しない場合は無視（Alt押下中の単体Enter等を除外）
+            if (IsKeyboardInput(binding.id)) {
+                if (binding.requiredModifiers != currentModifiers) {
+                    continue;
+                }
+            }
+
             float rawValue = GetPhysicalInputValue(binding.id);
             // 簡易的に X 軸にマッピング（2Dスティックなどは別途分岐が必要な場合がありますが、今回は共通化）
             if (binding.id == InputId::GamePad_LeftStickY || binding.id == InputId::GamePad_RightStickY ||
@@ -80,7 +104,11 @@ void InputManager::Update() {
 
 // --- アクションベースAPI ---
 void InputManager::BindAction(const std::string& actionName, InputId inputId, float scale) {
-    mappingContext_.AddBinding(actionName, InputBinding(inputId, scale, scale));
+    BindAction(actionName, inputId, InputModifier::None, scale);
+}
+
+void InputManager::BindAction(const std::string& actionName, InputId inputId, InputModifier modifiers, float scale) {
+    mappingContext_.AddBinding(actionName, InputBinding(inputId, modifiers, scale, scale));
     // キーが追加されたら、現在のマップにもエントリーを作っておく
     if (currentActionValues_.find(actionName) == currentActionValues_.end()) {
         currentActionValues_[actionName] = InputActionValue{};
@@ -125,6 +153,151 @@ void InputManager::ClearActionBindings() {
     currentActionValues_.clear();
     previousActionValues_.clear();
 }
+
+InputId StringToInputId(const std::string& name) {
+    static const std::unordered_map<std::string, InputId> kMap = {
+        // Keyboard A-Z
+        {"Key_A", InputId::Keyboard_A}, {"Key_B", InputId::Keyboard_B}, {"Key_C", InputId::Keyboard_C},
+        {"Key_D", InputId::Keyboard_D}, {"Key_E", InputId::Keyboard_E}, {"Key_F", InputId::Keyboard_F},
+        {"Key_G", InputId::Keyboard_G}, {"Key_H", InputId::Keyboard_H}, {"Key_I", InputId::Keyboard_I},
+        {"Key_J", InputId::Keyboard_J}, {"Key_K", InputId::Keyboard_K}, {"Key_L", InputId::Keyboard_L},
+        {"Key_M", InputId::Keyboard_M}, {"Key_N", InputId::Keyboard_N}, {"Key_O", InputId::Keyboard_O},
+        {"Key_P", InputId::Keyboard_P}, {"Key_Q", InputId::Keyboard_Q}, {"Key_R", InputId::Keyboard_R},
+        {"Key_S", InputId::Keyboard_S}, {"Key_T", InputId::Keyboard_T}, {"Key_U", InputId::Keyboard_U},
+        {"Key_V", InputId::Keyboard_V}, {"Key_W", InputId::Keyboard_W}, {"Key_X", InputId::Keyboard_X},
+        {"Key_Y", InputId::Keyboard_Y}, {"Key_Z", InputId::Keyboard_Z},
+        // Keyboard 0-9
+        {"Key_0", InputId::Keyboard_0}, {"Key_1", InputId::Keyboard_1}, {"Key_2", InputId::Keyboard_2},
+        {"Key_3", InputId::Keyboard_3}, {"Key_4", InputId::Keyboard_4}, {"Key_5", InputId::Keyboard_5},
+        {"Key_6", InputId::Keyboard_6}, {"Key_7", InputId::Keyboard_7}, {"Key_8", InputId::Keyboard_8},
+        {"Key_9", InputId::Keyboard_9},
+        // Special
+        {"Key_Space", InputId::Keyboard_Space}, {"Key_Enter", InputId::Keyboard_Enter},
+        {"Key_Escape", InputId::Keyboard_Escape}, {"Key_Tab", InputId::Keyboard_Tab},
+        {"Key_Shift", InputId::Keyboard_Shift}, {"Key_Ctrl", InputId::Keyboard_Ctrl},
+        {"Key_Alt", InputId::Keyboard_Alt}, {"Key_Back", InputId::Keyboard_Backspace},
+        {"Key_Backspace", InputId::Keyboard_Backspace},
+        // Arrows
+        {"Key_Up", InputId::Keyboard_Up}, {"Key_Down", InputId::Keyboard_Down},
+        {"Key_Left", InputId::Keyboard_Left}, {"Key_Right", InputId::Keyboard_Right},
+        // Mouse
+        {"Mouse_Left", InputId::Mouse_Left}, {"Mouse_Right", InputId::Mouse_Right},
+        {"Mouse_Middle", InputId::Mouse_Middle},
+        {"Mouse_X", InputId::Mouse_X}, {"Mouse_Y", InputId::Mouse_Y}, {"Mouse_Wheel", InputId::Mouse_Wheel},
+        // GamePad
+        {"Pad_A", InputId::GamePad_A}, {"Pad_B", InputId::GamePad_B},
+        {"Pad_X", InputId::GamePad_X}, {"Pad_Y", InputId::GamePad_Y},
+        {"Pad_DPadUp", InputId::GamePad_DPadUp}, {"Pad_DPadDown", InputId::GamePad_DPadDown},
+        {"Pad_DPadLeft", InputId::GamePad_DPadLeft}, {"Pad_DPadRight", InputId::GamePad_DPadRight},
+        {"Pad_Start", InputId::GamePad_Start}, {"Pad_Select", InputId::GamePad_Select},
+        {"Pad_LeftBumper", InputId::GamePad_LeftBumper}, {"Pad_LB", InputId::GamePad_LeftBumper},
+        {"Pad_RightBumper", InputId::GamePad_RightBumper}, {"Pad_RB", InputId::GamePad_RightBumper},
+        {"Pad_LeftShoulder", InputId::GamePad_LeftBumper}, {"Pad_RightShoulder", InputId::GamePad_RightBumper},
+        {"Pad_LeftThumbClick", InputId::GamePad_LeftThumbClick}, {"Pad_RightThumbClick", InputId::GamePad_RightThumbClick},
+        {"Pad_LeftStickX", InputId::GamePad_LeftStickX}, {"Pad_LeftStickY", InputId::GamePad_LeftStickY},
+        {"Pad_RightStickX", InputId::GamePad_RightStickX}, {"Pad_RightStickY", InputId::GamePad_RightStickY},
+        {"Pad_LeftTrigger", InputId::GamePad_LeftTrigger}, {"Pad_LT", InputId::GamePad_LeftTrigger},
+        {"Pad_RightTrigger", InputId::GamePad_RightTrigger}, {"Pad_RT", InputId::GamePad_RightTrigger}
+    };
+    auto it = kMap.find(name);
+    return (it != kMap.end()) ? it->second : InputId::Unknown;
+}
+
+bool StringToInputBinding(const std::string& name, InputId& outId, InputModifier& outModifiers) {
+    outId = InputId::Unknown;
+    outModifiers = InputModifier::None;
+    if (name.empty()) {
+        return false;
+    }
+
+    size_t lastPlus = name.find_last_of('+');
+    std::string keyPart = (lastPlus != std::string::npos) ? name.substr(lastPlus + 1) : name;
+    outId = StringToInputId(keyPart);
+    if (outId == InputId::Unknown) {
+        return false;
+    }
+
+    if (lastPlus != std::string::npos) {
+        std::string modPart = name.substr(0, lastPlus);
+        if (modPart.find("Alt") != std::string::npos) {
+            outModifiers = outModifiers | InputModifier::Alt;
+        }
+        if (modPart.find("Ctrl") != std::string::npos || modPart.find("Control") != std::string::npos) {
+            outModifiers = outModifiers | InputModifier::Ctrl;
+        }
+        if (modPart.find("Shift") != std::string::npos) {
+            outModifiers = outModifiers | InputModifier::Shift;
+        }
+    }
+    return true;
+}
+
+const char* InputIdToString(InputId id) {
+    switch (id) {
+    case InputId::Keyboard_Space: return "Key_Space";
+    case InputId::Keyboard_Enter: return "Key_Enter";
+    case InputId::Keyboard_Escape: return "Key_Escape";
+    case InputId::Mouse_Left: return "Mouse_Left";
+    case InputId::Mouse_Right: return "Mouse_Right";
+    case InputId::GamePad_A: return "Pad_A";
+    case InputId::GamePad_B: return "Pad_B";
+    case InputId::GamePad_X: return "Pad_X";
+    case InputId::GamePad_Y: return "Pad_Y";
+    case InputId::GamePad_Start: return "Pad_Start";
+    case InputId::GamePad_LeftTrigger: return "Pad_LT";
+    case InputId::GamePad_RightTrigger: return "Pad_RT";
+    default: return "Unknown";
+    }
+}
+
+bool InputManager::LoadBindingsFromJson(const std::string& filepath) {
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        return false;
+    }
+    nlohmann::json root;
+    try {
+        file >> root;
+    } catch (...) {
+        return false;
+    }
+
+    if (root.contains("Actions") && root["Actions"].is_object()) {
+        for (auto& [actionName, keys] : root["Actions"].items()) {
+            if (keys.is_array()) {
+                for (const auto& keyItem : keys) {
+                    if (keyItem.is_string()) {
+                        InputId id = InputId::Unknown;
+                        InputModifier mod = InputModifier::None;
+                        if (StringToInputBinding(keyItem.get<std::string>(), id, mod)) {
+                            BindAction(actionName, id, mod, 1.0f);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (root.contains("Axes") && root["Axes"].is_object()) {
+        for (auto& [axisName, sources] : root["Axes"].items()) {
+            if (sources.is_array()) {
+                for (const auto& item : sources) {
+                    if (item.is_object() && item.contains("Source")) {
+                        std::string src = item["Source"].get<std::string>();
+                        float scale = item.value("Scale", 1.0f);
+                        InputId id = InputId::Unknown;
+                        InputModifier mod = InputModifier::None;
+                        if (StringToInputBinding(src, id, mod)) {
+                            BindAction(axisName, id, mod, scale);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+
 
 float InputManager::GetPhysicalInputValue(InputId id) const {
     switch (id) {
@@ -267,6 +440,11 @@ bool InputManager::IsKeyPressed(uint8_t k) const {
 }
 bool InputManager::IsKeyReleased(uint8_t k) const {
     return keyboard_->IsKeyReleased(k);
+}
+void InputManager::ConsumeKey(uint8_t key) {
+    if (keyboard_) {
+        keyboard_->ConsumeKey(key);
+    }
 }
 
 bool InputManager::IsButtonDown(WORD b) const {
