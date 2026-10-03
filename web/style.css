@@ -362,8 +362,22 @@ body {
 /* Cards Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 28px;
+}
+
+/* 4 Items: 2x2 Grid (PCで左右均等2列x2行に配置) */
+.cards-grid-4 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* 2 Items: 2 Columns */
+.cards-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* 3 Items: 3 Columns */
+.cards-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .card {
@@ -629,6 +643,11 @@ body {
     font-size: 2.8rem;
   }
   .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+  .cards-grid-4,
+  .cards-grid-3,
+  .cards-grid-2 {
     grid-template-columns: 1fr;
   }
   .nav-links {
