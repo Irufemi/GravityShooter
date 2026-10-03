@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'rail-mechanics': {
       title: 'スプライン曲線＆レール座標系 相対追従ドッグファイト',
       subtitle: 'Application_solo/RailMechanics/RailRelativeFollowerComponent.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/RailMechanics/RailRelativeFollowerComponent.h',
       content: `
         <p>単に見えないレール上を前進するだけでなく、<strong>「ボスがプレイヤーの前方を一定距離保ちつつ、レール座標系基準のローカルオフセットで左右上下に逃走・旋回する」</strong>という本格的な3Dレールシューターのチェイス戦闘を実現しています。</p>
         <h4>設計のポイント</h4>
@@ -36,6 +37,7 @@ void RailRelativeFollowerComponent::Update() {
     'targeting': {
       title: '3Dマルチロックオン＆レイキャスト遮蔽判定',
       subtitle: 'Application_solo/Player/PlayerTargetingComponent.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/Player/PlayerTargetingComponent.h',
       content: `
         <p>画面内の敵をレティクルでホバー検知し、距離・画角に基づきスコアリングして複数ターゲットをキューに登録。さらに、<strong>レイキャストによる障害物の遮蔽判定（Line of Sight）</strong>を行い、壁裏の敵に対する誤ロックを完全に遮断します。</p>
         <h4>技術的特徴</h4>
@@ -59,6 +61,7 @@ void PlayerTargetingComponent::MarkTarget(size_t maxLockOn) {
     'debris-loop': {
       title: 'ガレキ物理循環ゲームループ（最適密度チューニング）',
       subtitle: 'Application_solo/Environment/DebrisManagerComponent.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/Environment/DebrisManagerComponent.h',
       content: `
         <p>最大10,000個の生成に耐えうるアーキテクチャを持ちながら、<strong>「実際のゲームプレイでは画面の視認性と弾幕認識を最優先」</strong>し、あえて数十〜100個程度のガレキが高密度に循環するよう調整しています。</p>
         <h4>循環サイクルの4フェーズ</h4>
@@ -73,6 +76,7 @@ void PlayerTargetingComponent::MarkTarget(size_t maxLockOn) {
     'multi-boss': {
       title: 'ステートマシン式マルチフェーズボスバトル',
       subtitle: 'Application_solo/Combat/Boss/BossComponent.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/Combat/Boss/BossComponent.h',
       content: `
         <p>Stateパターンを用いて実装された本格ボス戦。外装装甲の破壊によって内部の弱点コアが露出し、より激化する弾幕フェーズへとドラマチックに移行します。</p>
         <h4>フェーズ遷移構造</h4>
@@ -86,6 +90,7 @@ void PlayerTargetingComponent::MarkTarget(size_t maxLockOn) {
     'virtual-entity': {
       title: 'Virtual Entity & Sparse Set キャッシュ最適化',
       subtitle: 'IrufemiEngine/Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h',
       content: `
         <p>ポインタベースのGameObjectを大量生成するとキャッシュミスでCPUが飽和します。本システムでは、連続した密配列（Dense Array）に座標データを保持し、<strong>描画・干渉時のみPromote（実体化）</strong>するハイブリッド設計を採用。</p>
         <h4>定量的成果</h4>
@@ -105,6 +110,7 @@ std::vector<VirtualEntityData> denseEntities_; // 密配列でCPUキャッシュ
     'render-graph': {
       title: 'DirectX 12 RenderGraph＆一時リソース再利用',
       subtitle: 'IrufemiEngine/Renderer/Pipeline/RenderGraph/RenderGraph.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/Pipeline/RenderGraph/RenderGraph.h',
       content: `
         <p>描画パス（Opaque, Transparent, Shadow, Fog, PostProcess, TopMost, UI）の依存関係を有向非巡回グラフ（DAG）として構築。パス間で寿命の重ならない一時レンダーターゲット（Transient Resource）を自動でエイリアシング（別名再利用）し、<strong>VRAM使用量を劇的に圧縮</strong>します。</p>
       `
@@ -112,6 +118,7 @@ std::vector<VirtualEntityData> denseEntities_; // 密配列でCPUキャッシュ
     'gpu-voxel': {
       title: 'GPUボクセル破壊パーティクル ＆ バイソニックソート',
       subtitle: 'IrufemiEngine/Renderer/System/VoxelParticle/VoxelParticleSystem.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/System/VoxelParticle/VoxelParticleSystem.h',
       content: `
         <p>3Dメッシュモデルを実行時にボクセル化（VoxelizedModel）し、Compute Shaderで数千〜数万のキューブ破片を完全GPU物理シミュレーション（OBB衝突・重力・分散）。半透明破片は <code>BitonicSort.CS.hlsl</code> によりGPU上で並列ソートされ、描画の破綻を防ぎます。</p>
       `
@@ -119,13 +126,15 @@ std::vector<VirtualEntityData> denseEntities_; // 密配列でCPUキャッシュ
     'post-process': {
       title: 'AAA級ポストプロセス（Dual Kawase Bloom & ゴッドレイ）',
       subtitle: 'IrufemiEngine/Renderer/PostProcess/PostProcessManager.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/PostProcess/PostProcessManager.h',
       content: `
         <p>モバイルおよび最新コンソールゲームで採用される <strong>Dual Kawase Blur</strong> を実装。従来のGaussian Blurに比べて極めて少ないパス数で滑らかかつ広範囲の発光（青白いエネルギーグロー）を実現。さらにラジアルブラーと輝度抽出を組み合わせたボリュメトリック・ゴッドレイ（光条）を合成しています。</p>
       `
     },
     'telemetry-monitor': {
       title: 'C# WPF リアルタイム・テレメトリ監視ツール (UDP:8888)',
-      subtitle: 'Tools/TelemetryMonitor & IrufemiEngine/Core/Profiler/TelemetrySender.h',
+      subtitle: 'Tools/TelemetryMonitor/MainWindow.xaml.cs',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/Tools/TelemetryMonitor/MainWindow.xaml.cs',
       content: `
         <p>C# / WPF (.NET 10) で開発された外部プロファイリングGUIツール。ゲームエンジン側のGPUパーティクル数、CPUディスパッチ時間、FPSをリアルタイムにグラフ監視します。</p>
         <h4>なぜTCPではなく「UDP」なのか？</h4>
@@ -142,6 +151,7 @@ void SetMetric(const std::string& key, const nlohmann::json& value);
     'irufemi-editor': {
       title: 'インハウス・ゲームエンジンエディタ (IrufemiEditor)',
       subtitle: 'IrufemiEditor/Core/EditorManager.h',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEditor/Core/EditorManager.h',
       content: `
         <p>ImGuiとDirectX 12を統合した本格的な自作エディタフレームワーク。UnityやUnreal Engineのような快適な制作環境を提供します。</p>
         <h4>主要な搭載機能</h4>
@@ -166,8 +176,26 @@ void SetMetric(const std::string& key, const nlohmann::json& value);
     if (!data) return;
 
     modalTitle.textContent = data.title;
-    modalSubtitle.textContent = data.subtitle;
-    modalBody.innerHTML = data.content;
+    
+    // Header Subtitle + Direct GitHub Link Button
+    modalSubtitle.innerHTML = `
+      <div class="modal-sub-row">
+        <span>${data.subtitle}</span>
+        ${data.githubUrl ? `<a href="${data.githubUrl}" target="_blank" class="modal-github-btn">📂 GitHubでコード原本を開く ↗</a>` : ''}
+      </div>
+    `;
+
+    // Modal Content + Bottom Link Button
+    modalBody.innerHTML = `
+      ${data.content}
+      ${data.githubUrl ? `
+        <div class="modal-footer-action">
+          <a href="${data.githubUrl}" target="_blank" class="btn btn-secondary">
+            📂 GitHubで該当ファイル全体を閲覧する (${data.subtitle.split('/').pop()}) ↗
+          </a>
+        </div>
+      ` : ''}
+    `;
 
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';

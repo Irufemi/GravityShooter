@@ -100,7 +100,7 @@
             スプライン曲線に沿って前進しつつ、プレイヤーの前方を一定距離保ちながら左右上下に旋回・逃走するボスのチェイス戦闘を実現。
           </p>
           <div class="card-meta">
-            <span>RailRelativeFollowerComponent.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/RailMechanics/RailRelativeFollowerComponent.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">RailRelativeFollowerComponent.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -114,7 +114,7 @@
             レティクルホバーと深度スコアリングによるキュー登録。レイキャスト（Line of Sight）により遮蔽物の裏にいる敵への誤ロックを完全遮断。
           </p>
           <div class="card-meta">
-            <span>PlayerTargetingComponent.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/Player/PlayerTargetingComponent.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">PlayerTargetingComponent.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -128,7 +128,7 @@
             「引き寄せ ➔ 旋回防御 ➔ 射出攻撃 ➔ 敵撃破でドロップ」という流れるようなリサイクル循環。視認性を第一に数十〜100個の最適密度で制御。
           </p>
           <div class="card-meta">
-            <span>DebrisManagerComponent.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/Environment/DebrisManagerComponent.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">DebrisManagerComponent.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -142,7 +142,7 @@
             Stateパターンによる行動制御。外装装甲の破壊によって内部弱点コアが露出し、激化する弾幕フェーズへシームレスに移行。被弾マテリアル点滅も完備。
           </p>
           <div class="card-meta">
-            <span>BossComponent.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/Application_solo/Combat/Boss/BossComponent.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">BossComponent.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -203,7 +203,7 @@
             連続した密配列でTransformを管理し、描画時のみPromote（実体化）するハイブリッドECS設計。キャッシュミスを根絶し0.066msのディスパッチを実現。
           </p>
           <div class="card-meta">
-            <span>VirtualEntityManagerComponent.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">VirtualEntityManagerComponent.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -217,7 +217,7 @@
             描画パスの依存関係を有向非巡回グラフ（DAG）化。パス間で寿命の重ならない一時テクスチャを自動エイリアシングし、VRAM消費量を大幅削減。
           </p>
           <div class="card-meta">
-            <span>RenderGraph.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/Pipeline/RenderGraph/RenderGraph.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">RenderGraph.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -231,7 +231,7 @@
             モデルを実行時にボクセル化し、Compute ShaderでOBB衝突物理をシミュレーション。GPUバイソニックソートにより半透明破片の深度前後関係を完全ソート。
           </p>
           <div class="card-meta">
-            <span>VoxelParticleSystem.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/System/VoxelParticle/VoxelParticleSystem.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">VoxelParticleSystem.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -245,7 +245,7 @@
             少パスで広範囲・美麗な発光を生むDual Kawase Blur。ラジアルブラーによるボリュメトリックな光条（ゴッドレイ）や被弾時ディゾルブ演出を統合。
           </p>
           <div class="card-meta">
-            <span>PostProcessManager.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/PostProcess/PostProcessManager.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">PostProcessManager.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -274,7 +274,7 @@
             <strong>【UDP採用の理由】</strong> 再送待ちによるゲームループ阻害を避けるためUDP:8888を採用。独立スレッドから非同期送信し、GPUパーティクル数やCPU負荷をゲーム負荷ゼロでリアルタイム監視。
           </p>
           <div class="card-meta">
-            <span>Tools/TelemetryMonitor</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/Tools/TelemetryMonitor/MainWindow.xaml.cs" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">TelemetryMonitor/MainWindow.xaml.cs ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
@@ -288,7 +288,7 @@
             Commandパターンによる完全なUndo/Redo、ドラッグ＆ドロップ、3Dシーンビュー、およびゲームバランスを直感的に調整できるコンポーネントインスペクター拡張基盤を完備。
           </p>
           <div class="card-meta">
-            <span>IrufemiEditor/Core/EditorManager.h</span>
+            <a href="https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEditor/Core/EditorManager.h" target="_blank" class="card-file-link" onclick="event.stopPropagation();" title="GitHubでコード原本を開く">IrufemiEditor/Core/EditorManager.h ↗</a>
             <span class="card-link-text">詳細を見る →</span>
           </div>
         </div>
