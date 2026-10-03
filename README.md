@@ -15,8 +15,8 @@ C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven 
 本エンジン、および実装ゲームシステムに関する詳細な技術解説・スライド資料を公開しています。
 
 > **【要約】自作エンジン「Irufemi Engine」の低レイヤにおける最適化（世代付きHandle、GPUフラスタムカリング、Bindless Resources）と、本エンジンを利用した個人2回・チーム4回のゲーム制作を支えたチーム開発支援機能の解説資料です。**
-* **📄 [スエヒロ_コウイチ_ポートフォリオ (PDF)](docs/LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf)**
-* **📄 [スエヒロ_コウイチ_プログラム説明書 (PDF)](docs/LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf)**
+* **📄 [末廣公一_ポートフォリオ (PDF)](docs/Portfolio_Koichi_Suehiro.pdf)**
+* **📄 [末廣公一_プログラム説明書 (PDF)](docs/ProgramSpec_Koichi_Suehiro.pdf)**
 * **🌐 [公式オンラインAPIリファレンス＆マニュアル (GitHub Pages)](https://irufemi.github.io/GravityShooter/)**
   * ※PDF資料は本リポジトリの `docs/` ディレクトリ内に格納しています。
 

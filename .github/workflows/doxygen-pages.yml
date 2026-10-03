@@ -29,8 +29,10 @@ jobs:
 
       - name: Prepare Combined Pages Directory
         run: |
-          mkdir -p public/doxygen
+          mkdir -p public/doxygen public/docs
+          touch public/.nojekyll
           cp -r web/* public/
+          cp docs/*.pdf public/docs/
           cp -r docs/html/* public/doxygen/
 
       - name: Setup Pages
