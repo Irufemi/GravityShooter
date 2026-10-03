@@ -234,6 +234,30 @@ if (raycastFuture_.valid() && raycastFuture_.wait_for(std::chrono::seconds(0)) =
 | **scene/** | 各シーンの初期化と状態管理 |
 | **resources/** | このゲーム専用のテクスチャ、モデル、JSON等のアセット群 |
 
+### 🛠️ Tools & External Editors (`tools/`)
+ゲーム制作イテレーションを高速化する外部ツール群です。
+- **`tools/BlenderLevelEditor/`**: Blenderを3Dレベルエディタとして拡張する公式アドオン群。
+  - レールシューターのスプライン軌道編集、敵配置オーサリング、JSONエクスポートに対応。
+  - 環境非依存の多層自動検出ランチャー（`Launch_BlenderLevelEditor.bat`、`Sync_BlenderAddon.bat`）および説明書PDF（`docs/`）を完備。
+
+### 💾 派生データとアセットの3層分離設計
+Unreal EngineのDDC（Derived Data Cache）思想を取り入れ、リポジトリの健全性を保つ3層分離を徹底しています。
+- **`asset_src/` (DCC原本層)**: `.blend` 元データ、原本フォント、高解像度テクスチャ（ランタイムには含めない）。
+- **`project/Application_solo/resources/` (ランタイム層)**: ゲーム実行に必要な最適化済みアセットのみを格納（未参照ファイルの混入ゼロ）。
+- **`generated/cache/` (派生データ・キャッシュ層)**: 高速パース済みモデル（`.model.ibin`）やDirectX12 PSOキャッシュ（`*.pso`）をアセット領域から完全隔離。
+
+---
+
+## 🛠️ 自動ビルド＆パッケージングパイプライン
+
+大手ゲーム会社のCI/CD・デリバリーパイプラインを模した自動化スクリプト群をリポジトリルートに配備しています。
+
+| ツール / スクリプト | 役割・特徴 |
+| :--- | :--- |
+| **`CompileShaders.bat`** | 全77種以上のHLSLシェーダーを `/O3` 最適化で先行オフラインコンパイル。審査員環境でのDirectXランタイムDLL依存クラッシュを根本から防止します。 |
+| **`CleanAssets.bat`** | `.gitignore` に準拠し、`generated/cache/` や `logs/` などの一時生成物を安全に一括消去するアセット＆ワークスペース健全化ツール。 |
+| **`scripts/PackageForSubmission.ps1`** | SEGA等の企業提出規定に完全準拠したパッケージ自動生成パイプライン。「クリーンなソースコード提出用ZIP」と「依存関係ゼロで即起動するプレイ用exeパッケージZIP」をワンクリックで生成します。 |
+
 ---
 
 ## 🎨 アセットパイプライン

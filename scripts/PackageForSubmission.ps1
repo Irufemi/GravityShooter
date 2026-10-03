@@ -15,10 +15,16 @@ if (-not $ScriptDir) {
     } elseif ($MyInvocation.MyCommand -and ($MyInvocation.MyCommand | Get-Member -Name Path)) {
         $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
     } else {
-        $ScriptDir = $PWD.Path
+        $ScriptDir = Join-Path $PWD.Path "scripts"
     }
 }
-$RootDir = (Resolve-Path "$ScriptDir\..").Path
+$RootDir = if (Test-Path (Join-Path $ScriptDir "..\project")) {
+    (Resolve-Path "$ScriptDir\..").Path
+} elseif (Test-Path (Join-Path $PWD.Path "project")) {
+    $PWD.Path
+} else {
+    (Resolve-Path "$ScriptDir\..").Path
+}
 $OutputDir = Join-Path $RootDir "_Submission"
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmm"
 

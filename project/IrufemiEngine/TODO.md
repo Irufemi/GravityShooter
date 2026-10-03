@@ -97,11 +97,8 @@
     - **デバッグUI統合 (Skeleton Tree View)**: ImGuiインスペクタ上にスケルトンの階層ツリービューを構築。メッシュ/ライン切替、色分けON/OFF、ラベル表示トグルなどを制御する専用のデバッグパネルを実装する。
 
 ### 🖥️ ディスプレイモード＆ウィンドウ制御の高度化 (Display & Window Management)
-- [ ] **OptionsScene と CVar (`r.DisplayMode`) の連携実装**
-    - **現状**: `WinApp` および `IrufemiEngine` 側にはボーダーレスフルスクリーンの切り替えとレターボックス追従、マウス補正が実装済みだが、`OptionsScene` 側の適用処理（`pendingFullscreen_`）が空実装（TODO）のままとなっている。
-    - **タスク**:
-        - `OptionsScene::ApplyPendingSettings()` で `Irufemi::CVarSystem::SetInt("r.DisplayMode", ...)` を発行し、UIからウィンドウ/ボーダーレスを動的に切り替え可能にする。
-        - 切り替え時にレターボックスとマウス座標系が即時正しく追従することの動作検証。
+- [x] **ディスプレイモード切替（F11 / Alt+Enter）のエンジンコア集約と OptionsScene UI ガイド統合**
+    - **実装完了**: 一線級エンジン（UE/Unity等）のアーキテクチャ標準に則り、ディスプレイモード切替（`F11` / `Alt + Enter`）の責務をエンジンコア（`IrufemiEngine::Update`）に集約・一元管理。CVar `r.DisplayMode` を経由してウィンドウとボーダーレスフルスクリーンを全シーン共通で即座に相互トグル可能に整備。`OptionsScene` には二重トグルを排除した上で親切な操作ガイド（`[F11] FULLSCREEN`）を統合。レターボックスおよび仮想カーソルの境界も動的に追従。
 - [ ] **展示・審査向け「キオスク（没入）モード（Windowsキー無効化）」オプションの追加検討**
     - **背景**: 展示会や審査プレイ中、プレイヤーの激しい操作（Ctrl / Shift / Alt等）によるWindowsキー誤爆（スタートメニューが飛び出してゲームが中断する事故）を防止する。
     - **実装仕様**:
