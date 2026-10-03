@@ -16,7 +16,7 @@ std::string GetCacheFilePath(const std::string& fullPath, const std::string& cac
     size_t pos = pathStr.find("resources/");
     if (pos != std::string::npos) {
         std::string relative = pathStr.substr(pos + 10);
-        return "resources/.cache/" + cacheCategory + "/" + relative + extension;
+        return "generated/cache/" + cacheCategory + "/" + relative + extension;
     }
     return fullPath + extension;
 }

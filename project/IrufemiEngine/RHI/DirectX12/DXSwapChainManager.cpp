@@ -159,15 +159,17 @@ void DXSwapChainManager::ResizeSwapChain(ID3D12Device* device, int32_t width, in
                                            isTearingSupported_ ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : desc.Flags);
     ASSERT_IF_FAILED(hr);
 
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
     for (uint32_t i = 0; i < desc.BufferCount; ++i) {
         hr = swapChain_->GetBuffer(i, IID_PPV_ARGS(swapChainResources_[i].GetAddressOf()));
         ASSERT_IF_FAILED(hr);
 
+        rtvHandles_[i].ptr = rtvStartHandle.ptr + (i * descriptorSizeRTV_);
         device->CreateRenderTargetView(swapChainResources_[i].Get(), &rtvDesc_, rtvHandles_[i]);
 
         D3D12_RENDER_TARGET_VIEW_DESC imGuiRtvDesc = rtvDesc_;
         imGuiRtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        rtvHandles_[i + 2].ptr = rtvHandles_[1].ptr + ((i + 1) * descriptorSizeRTV_);
+        rtvHandles_[i + 2].ptr = rtvStartHandle.ptr + ((i + 2) * descriptorSizeRTV_);
         device->CreateRenderTargetView(swapChainResources_[i].Get(), &imGuiRtvDesc, rtvHandles_[i + 2]);
     }
 

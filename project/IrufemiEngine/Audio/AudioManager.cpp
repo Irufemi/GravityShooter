@@ -1,5 +1,7 @@
 #include "Core/Utility/ErrorUtility.h"
 #include "Audio/AudioManager.h"
+#include "Core/System/ThreadPool.h"
+#include "Core/System/TaskGroup.h"
 #include <cassert>
 #include <filesystem> // フォルダ内のファイルを探索するために使用
 #include <algorithm>  // 文字列を小文字に変換するために使用
@@ -103,25 +105,45 @@ void AudioManager::Update() {
                   [](const std::shared_ptr<VoiceInstance>& instance) { return instance->GetCallback()->IsFinished(); });
 }
 
-void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath) {
-    soundRegistry_.clear();
-    categoryMap_.clear();
+void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath, ThreadPool* threadPool) {
+    {
+        std::lock_guard<std::mutex> lock(registryMutex_);
+        soundRegistry_.clear();
+        categoryMap_.clear();
+    }
     namespace fs = std::filesystem;
     if (!fs::exists(folderPath) || !fs::is_directory(folderPath)) {
         Log::OutPutLog(std::cerr,
                        "[AudioManager] Warning: Sound folder not found or is not a directory: " + folderPath + "\n");
         return;
     }
+
+    std::shared_ptr<TaskGroup> taskGroup = nullptr;
+    if (threadPool) {
+        taskGroup = std::make_shared<TaskGroup>();
+    }
+
     for (const auto& entry : fs::directory_iterator(folderPath)) {
         if (entry.is_directory()) {
             std::string category = entry.path().filename().string();
-            LoadSoundsFromFolder(entry.path().string(), category);
+            LoadSoundsFromFolder(entry.path().string(), category, threadPool, taskGroup);
         }
+    }
+
+    if (taskGroup) {
+        taskGroup->Wait();
+    }
+
+    // 全てのカテゴリ名リストをソート
+    std::lock_guard<std::mutex> lock(registryMutex_);
+    for (auto& [cat, names] : categoryMap_) {
+        std::sort(names.begin(), names.end());
     }
 }
 
 // サブフォルダ単位でロードするオーバーロード版
-void AudioManager::LoadSoundsFromFolder(const std::string& folderPath, const std::string& category) {
+void AudioManager::LoadSoundsFromFolder(const std::string& folderPath, const std::string& category,
+                                        ThreadPool* threadPool, std::shared_ptr<TaskGroup> group) {
     namespace fs = std::filesystem;
 
     if (!fs::exists(folderPath) || !fs::is_directory(folderPath)) {
@@ -146,22 +168,42 @@ void AudioManager::LoadSoundsFromFolder(const std::string& folderPath, const std
 
         // キーは "カテゴリ/ファイル名" にする
         std::string key = category + "/" + filename;
-        if (soundRegistry_.count(key) == 0) {
+
+        auto loadSoundTask = [this, wpath, key, category, filename]() {
+            // ワーカースレッド用のCOM初期化
+            HRESULT hrCo = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
             auto sd = std::make_shared<Sound>();
             if (sd->Load(wpath)) {
+                std::lock_guard<std::mutex> lock(registryMutex_);
                 soundRegistry_[key] = sd;
                 categoryMap_[category].push_back(filename);
             } else {
                 Log::OutPutLog(std::cerr, "[AudioManager] Warning: Failed to load sound file: " + key + "\n");
             }
+
+            if (SUCCEEDED(hrCo)) {
+                CoUninitialize();
+            }
+        };
+
+        if (threadPool && group) {
+            threadPool->Enqueue(group, loadSoundTask);
+        } else {
+            loadSoundTask();
         }
     }
-    // カテゴリごとにソート
-    auto& names = categoryMap_[category];
-    std::sort(names.begin(), names.end());
+
+    // threadPoolがない同期ロード時のみここでソート
+    if (!threadPool) {
+        std::lock_guard<std::mutex> lock(registryMutex_);
+        auto& names = categoryMap_[category];
+        std::sort(names.begin(), names.end());
+    }
 }
 
 std::vector<std::string> AudioManager::GetSoundNames(const std::string& category) const {
+    std::lock_guard<std::mutex> lock(registryMutex_);
     auto it = categoryMap_.find(category);
     if (it == categoryMap_.end()) {
         return {};
@@ -170,6 +212,7 @@ std::vector<std::string> AudioManager::GetSoundNames(const std::string& category
 }
 
 std::shared_ptr<Sound> AudioManager::GetSoundData(const std::string& name) const {
+    std::lock_guard<std::mutex> lock(registryMutex_);
     auto it = soundRegistry_.find(name);
     if (it != soundRegistry_.end()) {
         return it->second;
@@ -178,6 +221,7 @@ std::shared_ptr<Sound> AudioManager::GetSoundData(const std::string& name) const
 }
 
 std::vector<std::string> AudioManager::GetCategories() const {
+    std::lock_guard<std::mutex> lock(registryMutex_);
     std::vector<std::string> cats;
     cats.reserve(categoryMap_.size());
     for (auto const& [cat, _] : categoryMap_) {

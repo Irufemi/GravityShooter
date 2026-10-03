@@ -141,7 +141,7 @@ void DirectXCommon::Initialize(HWND hwnd, int32_t w, int32_t h) {
 #ifdef NDEBUG
     shaderManager_->SetBinaryPath(ConvertString(FileSystem::GetResourcePath("shaders/compiled") + "/"));
 #else
-    shaderManager_->SetBinaryPath(ConvertString(FileSystem::GetResourcePath(".cache/shaders") + "/"));
+    shaderManager_->SetBinaryPath(ConvertString("generated/cache/shaders/"));
 #endif
 
     EnableDebugLayer();
@@ -1023,6 +1023,10 @@ DirectXCommon::CreateRenderTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> 
 
 void DirectXCommon::ResizeSwapChain(int32_t width, int32_t height) {
     if (width <= 0 || height <= 0) {
+        return;
+    }
+    // 同一サイズの場合は、WaitForGPU を含む重いスワップチェーン再生成処理を完全スキップ
+    if (clientWidth_ == width && clientHeight_ == height) {
         return;
     }
 

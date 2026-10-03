@@ -10,10 +10,22 @@
   - ImGuiを用いたエディタ画面の構築や、シーンビュー、インスペクター等の実装ロジックが置かれます。
 - **`project/Application_solo/` / `project/Application_team/` (ゲームロジック)**
   - プレイヤーの動き、敵のAI、各種シーン（Title, InGame等）の処理はすべてプロジェクトに応じたこれらのディレクトリ内に作成します。
-- **`resources/` (リソースデータ)**
-  - 3Dモデル（`.obj`, `.gltf`）やテクスチャ（`.png`）、音声（`.wav`）は必ず各Applicationディレクトリ直下の `resources/` 内（`model/`, `ui/`, `audio/` 等）に配置してください。
+- **`resources/` (ランタイム・リソースデータ)**
+  - 3Dモデル（`.obj`, `.gltf`）やテクスチャ（`.png`）、音声（`.wav`）など、**ゲームの実行に直接必要な最適化済みアセットのみ**を各Applicationディレクトリ直下の `resources/` 内（`model/`, `ui/`, `audio/` 等）に配置してください。
+- **`asset_src/` (DCC制作原本データ)**
+  - `.blend` ファイル、フォント原本、未統合テクスチャなどの制作元データはリポジトリルートの `asset_src/` に隔離し、ランタイムパッケージを肥大化させないようにします。
+- **`generated/cache/` (派生データ・キャッシュ領域)**
+  - 高速ロード用モデルバイナリ（`.model.ibin`）やDirectX12 PSOキャッシュ（`*.pso`）はすべて `generated/cache/` へ出力されます。`resources/` の中にキャッシュフォルダを作成してはいけません。
 
-### 1.1.0 C++ コーディング規約（引数渡しのベストプラクティス）
+### 1.1.0 ワークスペース健全化ツール (CleanAssets.bat)
+リポジトリを常にクリーンで健全な状態に保つため、ルートディレクトリに `CleanAssets.bat` を配備しています。
+- **`[1] Audit Mode`**: ソースコード・シーン定義から逆引き走査し、未参照アセットのレポートを表示（ファイル変更なし）。
+- **`[2] Dry-Run Mode`**: クリーンアップ実行時の移動・削除プレビューを表示。
+- **`[3] Sanitize Mode`**: 未参照ファイルを `backup/` に安全に退避しつつ、ランタイムアセットを浄化。
+- **`[4] Restore Backup`**: 直前のバックアップからワンクリックで完全復元。
+- **`[5] Clean Cache & Logs`**: `.gitignore` に準拠し、`generated/cache/`、`logs/`、`__pycache__` などの一時生成物を安全に一括消去。
+
+### 1.1.0b C++ コーディング規約（引数渡しのベストプラクティス）
 
 IrufemiEngineのコアやコンポーネントを拡張する際、パフォーマンス（特にコピーコストやエイリアシング回避）を意識した以下の「モダンC++ / AAAエンジン基準」の引数渡しルールを厳守してください。
 
@@ -748,6 +760,29 @@ if (auto target = targetObject_.lock()) { // lock()で生存確認
 
 - **新規オブジェクトの生成**: 新しいオブジェクトをシーンにスポーンさせる場合、`scene->AddGameObject(obj)` は内部でスレッドセーフなキュー(`pendingAdds_`)に積まれるため、Update 中に呼んでも安全です。
 - **オブジェクトの破棄**: `gameObject_->Destroy()` も破棄フラグ (`isDestroyed_`) を立てるだけなので、Update 中に呼んでも安全です（次フレームの開始前に一括削除されます）。
+
+#### 2.3.3 ThreadPool と TaskGroup による並列タスク実行と待機
+重いアセットのデコードや大量の計算をマルチスレッドで並列実行し、すべてのタスクが完了するまで安全にブロック待機したい場合は、`ThreadPool` と `TaskGroup` を組み合わせて使用します。
+
+```cpp
+#include "Core/System/ThreadPool.h"
+#include "Core/System/TaskGroup.h"
+
+auto threadPool = engine_->GetThreadPool();
+auto taskGroup = std::make_shared<TaskGroup>();
+
+// 1. タスクグループを指定してワーカースレッドへタスクを並列投入
+for (int i = 0; i < 100; ++i) {
+    threadPool->Enqueue(taskGroup, [i]() {
+        // 重い計算やファイルデコードなど...
+    });
+}
+
+// 2. 全タスクが完了するまで低レイテンシで高効率にブロック待機
+// （std::condition_variable により、CPU 100%スピンせず全完了の瞬間に起床します）
+taskGroup->Wait();
+```
+
 ### 2.4 Data-Oriented Design (DOD) と ComponentPool
 
 コンポーネントシステムにおいて、同じ種類のコンポーネントを連続したメモリ空間（プール）に配置し、CPUキャッシュヒット率を劇的に向上させるための最適化の仕組みです。
@@ -1940,20 +1975,25 @@ ResourceHandle handle = engine_->GetModelManager()->LoadModel("enemy/enemy.obj")
 
 ### 6.3 AudioManager (サウンド管理)
 BGMやSEの再生・停止・音量調節を行います。
+内部マップ（レジストリ）はミューテックスによりスレッドセーフに保護されており、`ThreadPool` を渡すことで全コアによる並列PCMデコードが可能です。
 
 ```cpp
 // 1. サウンドの事前ロード
 engine_->GetAudioManager()->GetOrLoadSoundByFile("resources/audio/bgm_title.wav");
 
-// 2. フォルダごとの一括ロード (カテゴリ分け)
+// 2. フォルダごとの一括ロード (同期ロード)
 engine_->GetAudioManager()->LoadSoundsFromFolder("resources/audio/se", "SE");
 
-// 3. 再生
+// 3. 【高速化】ThreadPool を渡してマルチスレッド並列ロード（起動時やロード画面推奨）
+// ※ 全CPUコアのワーカースレッドへPCMデコードを分散し、ロード完了まで高速に並列待機します。
+engine_->GetAudioManager()->LoadAllSoundsFromFolder("resources/audio", engine_->GetThreadPool());
+
+// 4. 再生
 auto soundData = engine_->GetAudioManager()->GetOrLoadSoundByFile("resources/audio/bgm_title.wav");
 // (サウンドデータ, ループフラグ, 音量 0.0f~1.0f)
 std::weak_ptr<VoiceInstance> voice = engine_->GetAudioManager()->Play(soundData, true, 0.8f);
 
-// 4. 停止
+// 5. 停止
 engine_->GetAudioManager()->Stop(voice);
 ```
 
@@ -1974,7 +2014,7 @@ engine_->GetFontManager()->PrecacheText("my_font", L"このシーンで使う予
 本エンジンでは、人間が直接編集・管理するリソースデータ（`.obj`, `.png`, `.hlsl` 等）と、システムが自動生成する中間バイナリを明確に分離するため、**キャッシュファイルはすべて `resources/.cache/` 配下に集約して出力されます。**
 
 - **`resources/.cache/model/`**: `ModelManager` や `AnimationManager` がロードした `.obj` や `.gltf` 等を解析し、次回以降のロードを爆速にするための独自バイナリ (`.ibin`) が保存されます。
-- **`resources/.cache/pso/`**: `PSOManager` が生成した DirectX12 のパイプラインステートオブジェクト（PSO）の塊 (`.pso`) が保存されます。これによりゲーム起動時やシーン遷移時のカクつき（スタッター）を防ぎます。
+- **`resources/.cache/pso/`**: `PSOManager` が生成した DirectX12 のパイプラインステートオブジェクト（PSO）の塊 (`.pso`) が保存されます。これによりゲーム起動時やシーン遷移時のカクつき（スタッター）を防ぎます。さらに、エンジン起動時には全登録パイプラインを `ThreadPool` によるマルチスレッド並列ワーカージョブで一括ウォームアップ（PreWarm）するため、ゲームプレイ中の初回描画スタッターを完全にゼロに抑制します。
 - **`resources/.cache/shaders/`**: Releaseビルドなどで事前にコンパイルされたシェーダーバイナリ (`.cso`) が格納されます。
 
 ※ **【重要】** `.cache/` フォルダは `.gitignore` に登録されており、Git のバージョン管理から除外されています。また、キャッシュのバージョンが古かったり見つからない場合は、エンジンが**自動で元のソースファイルから再生成する（フォールバック機構）** ため、不具合が起きた際は `.cache/` フォルダごと手動で削除しても全く問題ありません。
@@ -2340,6 +2380,25 @@ engine->SetDisplayMode(DisplayMode::Borderless);
 engine->SetVSync(false);
 ```
 ※ エディタ実行時は、`EngineDebugWindow` の **[Display Settings]** タブから動的に切り替えと対応状況の確認が可能です。
+
+### 8.4 展示会・審査向けキオスクモードと緊急脱出 (Kiosk Mode & Fail-Safe)
+BitSummitや東京ゲームショウ（TGS）、審査員試遊などの展示・審査環境において、ゲームプレイ中の意図しないキー押下によるOSスタートメニュー表示・ゲームの中断・フォーカスアウトを防止する「キオスクモード」を標準搭載しています。
+
+**【キオスクモード仕様 (Windowsキー無効化)】**
+- **低レベルフック**: `WinApp` にて `WH_KEYBOARD_LL` (低レベルキーボードフック) を安全に登録。
+- **フォーカス連動パススルー**: 自ウィンドウがアクティブな場合のみ無効化（バックグラウンド移行時や他アプリフォーカス時は即座にパススルーし、OS全体の操作性を破壊しません）。
+- **`Alt + F4` 絶対保証**: システムショートカットである `Alt + F4` は常にスルーされ、強制終了が可能です。
+- **CVar 制御**: コンソール変数 `r.LockWindowsKey` (0: 無効, 1: 有効、デフォルト: 1) で動的に切り替え可能。
+```cpp
+// CVarからの動的トグル例 (開発時や設定画面)
+engine_->GetCVarManager()->SetBool("r.LockWindowsKey", false);
+```
+
+**【多重の安全脱出導線 (Fail-Safe Exit)】**
+展示会などでプレイヤーを閉じ込めないよう、3段階の脱出経路を保証しています。
+1. **ポーズ画面 [QUIT] メニュー**: ゲーム中に `ESC` キーを押してポーズ画面を開き、[QUIT] を選択してクリーン終了。
+2. **ESCキー 2秒長押し (ハードコード・フェイルセーフ)**: シーンやUIのスタック時でも、`ESC` キーを2秒間長押しし続けることでエンジンメインループから安全にシャットダウン (`PostQuitMessage(0)`) を発動。
+3. **`Alt + F4`**: OS標準の即時クローズ。
 
 ---
 

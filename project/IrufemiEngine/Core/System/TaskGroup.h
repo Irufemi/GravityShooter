@@ -1,6 +1,8 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <mutex>
+#include <condition_variable>
 
 /**
  * @class TaskGroup
@@ -22,11 +24,21 @@ public:
      * @brief タスクの完了を通知（カウントダウン）
      */
     void NotifyTaskFinished() {
-        uint32_t current = pendingCount_.load(std::memory_order_relaxed);
-        while (current > 0 && !pendingCount_.compare_exchange_weak(current, current - 1, std::memory_order_release,
-                                                                   std::memory_order_relaxed)) {
-            // CASループにより、0未満へのアンダーフロー（UINT32_MAX化）を防止
+        if (pendingCount_.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            cv_.notify_all();
         }
+    }
+
+    /**
+     * @brief 全てのタスクが完了するまでブロック待機
+     */
+    void Wait() {
+        if (IsAllDone()) {
+            return;
+        }
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait(lock, [this] { return pendingCount_.load(std::memory_order_acquire) == 0; });
     }
 
     /**
@@ -46,4 +58,6 @@ public:
 
 private:
     std::atomic<uint32_t> pendingCount_;
+    std::mutex mutex_;
+    std::condition_variable cv_;
 };

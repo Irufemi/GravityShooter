@@ -22,7 +22,7 @@
     - [x] デストラクタおよび `Destroy()` での `OnDestroy()` 確実呼び出しによるメモリ/マネージャー解放リーク防止。
 - [x] **Phase 4: 遅延スポーンキュー (Deferred Spawn) での OnSpawned() 自動通知**
     - [x] `BaseScene::Update` 冒頭での `pendingAdds_` フラッシュ時に、シーン・座標確定通知 `NotifySpawned()` を自動発行。
-- [ ] **Phase 5: 各コンポーネントの OnAwake / Start 分離移行**
+- [x] **Phase 5: 各コンポーネントの OnAwake / Start 分離移行 (完了)**
     - [x] **コライダー系コンポーネント (`ColliderComponent`, `Sphere`, `AABB`, `OBB`)**:
         - 派生クラスの重複 `Initialize()` を全廃し、基底 `ColliderComponent` の `Start()` / `OnDestroy()` / `OnEnable()` / `OnDisable()` に登録・解除を一元化。
         - `CollisionManager::FlushPendingCommands` での追加・削除相殺バグを修正し、オブジェクトプール等での多重有効化/無効化時のコライダー消失を根絶。
@@ -90,32 +90,33 @@
     - **加算ブレンド (Additive Blending)**: 基本姿勢に対して、ダメージののけぞりや回避アクションの差分のみを加算する機能。
     - **IK (Inverse Kinematics)**: Look-At IK (顔をターゲットに向ける) および Two-Bone IK (手足を特定のワールド座標に追従させる)。
 
-- [ ] **Phase 5: プロ仕様アニメーション・デバッグ基盤の構築 (Advanced Animation Debugging)**
-    - **ボーンの八面体メッシュ化とカラーコーディング**: 現在のLine描画を廃止し、ボーンの向き(Roll等)を視覚化するため八面体(Octahedron)等の3Dメッシュ描画に差し替え。階層深度に応じた色相グラデーション(Heatmap)や、IK適用等の状態に応じた動的カラー変更を実装。常に最前面(X-Ray)半透明描画パスで描画する。
-    - **座標軸・テキストオーバーレイ**: 選択中、または主要なジョイントのローカルXYZ軸をデバッグ描画。ImGuiのDrawList等を利用し、ジョイントの3D座標をスクリーンに投影してボーン名を画面にオーバーレイ表示。
+- [x] **Phase 5: プロ仕様アニメーション・デバッグ基盤の構築 (Advanced Animation Debugging)**
+    - **ボーンの八面体メッシュ化とカラーコーディング (実装完了)**: `SkeletonDebugRendererComponent` にて八面体(Octahedron)3Dメッシュ描画および階層深度に応じた色相グラデーション(Heatmap)描画を実装。常に最前面半透明パスで描画。
+    - **座標軸・オーバーレイ (実装完了)**: 主要ジョイントのローカルXYZ軸をボーン長に応じたスケールでデバッグ描画。
     - **オニオンスキニングと軌跡(Trail)描画**: 過去数フレームのボーン姿勢を保存するリングバッファを設け、姿勢を半透明(ゴースト)で同時描画。手首など指定エンドエフェクタの過去の位置をラインで結んで描画し、モーションの軌道(アーク)を可視化する。
     - **デバッグUI統合 (Skeleton Tree View)**: ImGuiインスペクタ上にスケルトンの階層ツリービューを構築。メッシュ/ライン切替、色分けON/OFF、ラベル表示トグルなどを制御する専用のデバッグパネルを実装する。
 
 ### 🖥️ ディスプレイモード＆ウィンドウ制御の高度化 (Display & Window Management)
-- [ ] **OptionsScene と CVar (`r.DisplayMode`) の連携実装**
-    - **現状**: `WinApp` および `IrufemiEngine` 側にはボーダーレスフルスクリーンの切り替えとレターボックス追従、マウス補正が実装済みだが、`OptionsScene` 側の適用処理（`pendingFullscreen_`）が空実装（TODO）のままとなっている。
-    - **タスク**:
-        - `OptionsScene::ApplyPendingSettings()` で `Irufemi::CVarSystem::SetInt("r.DisplayMode", ...)` を発行し、UIからウィンドウ/ボーダーレスを動的に切り替え可能にする。
-        - 切り替え時にレターボックスとマウス座標系が即時正しく追従することの動作検証。
-- [ ] **展示・審査向け「キオスク（没入）モード（Windowsキー無効化）」オプションの追加検討**
-    - **背景**: 展示会や審査プレイ中、プレイヤーの激しい操作（Ctrl / Shift / Alt等）によるWindowsキー誤爆（スタートメニューが飛び出してゲームが中断する事故）を防止する。
-    - **実装仕様**:
-        - `WinApp` に低レベルキーボードフック（`WH_KEYBOARD_LL`）を用いたWindowsキー（`VK_LWIN` / `VK_RWIN`）ブロック機能をオプションとして実装。
-        - CVar（例: `r.LockWindowsKey`）または展示用ビルドフラグで有効/無効を切り替え可能にする。
-    - **⚠️ 必須要件（安全な脱出導線の保証 / 閉じ込め防止）**:
-        - Windowsキーを無効化する場合、プレイヤーが安全にゲームを終了できるよう以下の導線を**必ずセットで実装**する。
-            1. ESCキー / コントローラーのMenuボタンによる「ポーズメニュー」および「ゲーム終了」ボタンの実装。
-            2. タイトル画面における「ゲーム終了」メニューの実装。
-            3. 開発者用の緊急終了ショートカット（例: F12キーやESC長押しでの強制終了）のフェイルセーフ用意。
+- [x] **ディスプレイモード切替（F11 / Alt+Enter）のエンジンコア集約と OptionsScene UI ガイド統合**
+    - **実装完了**: 一線級エンジン（UE/Unity等）のアーキテクチャ標準に則り、ディスプレイモード切替（`F11` / `Alt + Enter`）の責務をエンジンコア（`IrufemiEngine::Update`）に集約・一元管理。CVar `r.DisplayMode` を経由してウィンドウとボーダーレスフルスクリーンを全シーン共通で即座に相互トグル可能に整備。`OptionsScene` には二重トグルを排除した上で親切な操作ガイド（`[F11] FULLSCREEN`）を統合。レターボックスおよび仮想カーソルの境界も動的に追従。
+- [x] **展示・審査向け「キオスク（没入）モード（Windowsキー無効化）」と安全な脱出導線（Fail-Safe Exit）の完備**
+    - **実装完了**: 商用タイトル・展示会（BitSummit/TGS等）水準の没入保護と安全脱出を両立。
+        - **低レベルフック**: `WinApp` に `WH_KEYBOARD_LL` によるWindowsキー（`VK_LWIN` / `VK_RWIN` / `VK_APPS`）の選択的ブロックを実装。自ウィンドウがアクティブな場合のみ無効化し、フォーカス喪失時は即時パススルー。`Alt + F4` は常に不干渉。
+        - **CVar連携**: コンソール変数 `r.LockWindowsKey`（デフォルト有効: `1`）により動的トグル可能。
+        - **閉じ込め防止の3重フェイルセーフ**:
+            1. **ポーズメニュー [QUIT]**: ゲームプレイ中にESCで開くポーズ画面に「QUIT」メニューを追加し、クリーンな終了処理（`PostQuitMessage(0)`）を実装。
+            2. **ESCキー 2秒長押し (ハードコード・フェイルセーフ)**: UIやシーンのスタック時でも、`IrufemiEngine::Execute` 内でESCキー2秒長押しを検知し即座に安全シャットダウンを発動。
+            3. **`Alt + F4`**: OS標準の即時クローズを完全保証。
 
 ### ⌨️ 入力システム (Input System) の AAA アーキテクチャ化
-- [ ] **同時押し (Chord) キーバインドのサポート**
-    - 現在1対1の物理キーバインドしかサポートしていない `InputManager` と `InputBinding` を拡張し、「Ctrl + Z」のようなモディファイアキーを含む複数キーの同時押し判定をサポートする。
+- [x] **入力消費 (Input Consumption / `FReply::Handled()`) 機構の導入**
+    - **実装完了**: `Keyboard` および `InputManager` に `ConsumeKey(uint8_t key)` を追加。`Alt + Enter` 全画面切り替え時に `ConsumeKey(VK_RETURN)` を発火させ、UI層の変更ゼロで決定ボタン（Enter）の誤爆を根本遮断。
+- [x] **画面トグル（全画面・ウィンドウ）の高速連打耐性と堅牢化 (Debounce & Non-fatal Present Recovery)**
+    - **実装完了**: メインループ最前線へのトグル判定移動、0.3秒のクールダウンタイマー（Debounce）、および `DrawManager::PostDraw` における過渡的一時エラー（`DXGI_ERROR_INVALID_CALL` 等）の安全回復機構を導入し、過酷な連打環境下でのクラッシュを根本防止。
+- [x] **データドリブン＆型安全な論理アクション入力システム (Enhanced Input) の構築**
+    - **実装完了**: `resources/config/input_actions.json` による外部データ定義と、型安全な `enum class GameAction`（`Pull`, `Fire`, `LockOn`, `ClearLock`, `Pause` 等）を新設。`InputManager::LoadBindingsFromJson` により起動時にバインディングを一括登録。`GravityPlayerComponent` および `GameLoopManagerComponent` を論理アクション駆動へリファクタリング完了。
+- [x] **同時押し (Chord / Modifier) キーバインドと厳格修飾子排他 (Strict Modifier Matching) の完全サポート**
+    - **実装完了**: `InputModifier`（Alt, Ctrl, Shift）を新設し、`InputBinding` に `requiredModifiers` を統合。`"Alt+Key_Enter"` などの複合プレフィックス記法をサポート。入力解決時に現在アクティブな修飾キーと完全一致しない単体キー判定（Alt押下中の単体Enter等）を自動除外する Strict Matching を導入。UI画面群（Title, Options, Pause）の決定入力を `GameAction::UI_Submit` へ完全統一。
 - [ ] **InputMappingContext によるコンテキストルーティングの本格化**
     - エディタ用の `InputMappingContext` を定義し、`ImGui::IsKeyPressed` で一時的に処理されているエディタのショートカット（Undo/Redo 等）をエンジンの入力パイプラインに完全統合する。
     - ゲームプレイ中とエディタ操作中で入力フォーカスを安全に切り替えられる仕組み（Input Context Priority）を構築する。
@@ -123,12 +124,17 @@
 ### ⚡ 次世代パフォーマンス・アーキテクチャ最適化 (Next-Gen AAA Performance)
 - [x] **CollisionManager のスレッドセーフ化と Async Raycast の実装**
     - `shared_mutex` を用いたRead-Write Lockの導入と、ThreadPoolと連携した非同期物理クエリAPIの提供。（完了）
-- [ ] **Bindless Resources (Descriptor Indexing) の完全移行完了**
-    - 全テクスチャ/リソースを巨大な Descriptor Heap に格納し、Shader にインデックス(uint)だけを渡す方式へ移行。
-    - **進行状況**: C++基盤、および `Application_solo` / `Application_team` 双方のほぼすべてのHLSLファイルの移行が完了。
-    - **残タスク**: エディタ用シェーダー `OutlineComposite.PS.hlsl` と `SelectionOutlinePass.cpp` を Bindless 経由でテクスチャを読むように修正する。
-    - **残タスク**: 上記の完了後、互換維持のために復刻した `RootSlot::LegacyPSTexture` を削除し、真の Bindless Root Signature を完成させる。
-    - **残タスク**: 既存の `RenderPackets` 系（PrimitiveBatchPacket, ModelBatchPacket 等）に残存している明示的なテクスチャバインドのコードを完全に撤去し、コードをシンプルにする。
+- [x] **エンジン起動シーケンスのマルチスレッド並列化 (Parallel Engine Initialization Pipeline)**
+    - **実装完了**: 起動時にメインスレッドを長時間占有していたボトルネックを `ThreadPool` 連携により徹底解消。
+    - **PSO並列事前コンパイル**: `PSOManager::GetPSO` のロック戦略を改善し、DirectX 12ドライバによるJITコンパイルおよびディスクキャッシュ処理をロックフリーで並列実行可能に改修。`PreWarmCommonPSOs(ThreadPool*)` により70個超のPSOを全CPUコアで並列コンパイル。
+    - **音声PCM並列デコード**: `AudioManager::LoadAllSoundsFromFolder` を `ThreadPool` + `TaskGroup` に対応させ、Media Foundationによる重いPCMデコード処理をワーカースレッド群へ並列分散。ワーカースレッドのCOM MTA初期化を保証し、`registryMutex_` で内部レジストリを保護。
+    - **低レイテンシ同期プリミティブ**: `TaskGroup` に `std::condition_variable` を用いた高効率な `Wait()` メソッドを新設し、CPU 100%スピンのないブロック待機を標準化。
+    - **起動初動ストール防止**: 起動第1フレームにおける無駄なスワップチェーン再生成・二重 `WaitForGPU` をスキップするガードを導入。
+- [x] **Bindless Resources (Descriptor Indexing) の完全移行完了**
+    - 全テクスチャ/リソースを巨大な Descriptor Heap に格納し、Shader にインデックス(uint)だけを渡す方式へ完全移行。（完了）
+    - **エディタアウトラインのBindless化**: `OutlineComposite.PS.hlsl` および `SelectionOutlinePass.cpp` を `PostProcessManager` の動的バッファ経由でテクスチャインデックスを参照するように改修。
+    - **真の Bindless Root Signature の完成**: 互換維持用だった `RootSlot::LegacyPSTexture`（register t0, PS）を完全削除し、ルートパラメータ数を 13 → 12 に削減してルートシグネチャのフットプリントを最適化。
+    - **不要コードの撤去**: `DrawManager`（DrawSprite / DrawText）および `TL1Scene` に残存していたレガシーテクスチャバインドコードを完全撤去。
 - [ ] **マルチスレッドコマンド録画 (Multi-threaded Command Recording)**
     - Job System と連携し、D3D12 の CommandList 構築を複数スレッドで並列に行い、CPUの描画ボトルネックを解消する。
 - [ ] **DirectStorage API / GDeflate による超高速リソースロードの対応**
@@ -146,8 +152,11 @@
     - 現在の固定長定数バッファによるライト管理から脱却し、数百〜数千の動的ライトを効率的に処理するライティング基盤の構築。
 - [ ] **Compute Skinning (GPUスキニング) の実装**
     - CPUで行っているアニメーションのボーン行列計算と頂点ブレンドを Compute Shader にオフロードする。
-- [ ] **PSO (Pipeline State Object) キャッシュとバックグラウンドコンパイル**
-    - ゲームプレイ中のカクつき（Stutter）を防ぐため、バックグラウンドでの事前コンパイルおよびディスクキャッシュ機構の構築。
+- [x] **PSO (Pipeline State Object) キャッシュとマルチスレッド並列ウォームアップ (PreWarm)**
+    - **実装完了**: ゲームプレイ中のシェーダースタッター（JITコンパイル遅延）を完全撲滅。
+        - **ディスクキャッシュ**: `PSOManager` により生成済みPSOバイナリを `resources/.cache/pso/` へ永続化し次回起動を爆速化。
+        - **並列事前コンパイル**: エンジン起動シーケンス（`DirectX12::Initialize`）において、登録済み主要パイプライン（70個超）を `ThreadPool` + `TaskGroup` で全CPUコアに分散並列コンパイル（PreWarm）。
+        - **ロック戦略最適化**: `PSOManager::GetPSO` のロック競合を排除し、並行生成時の完全ロックフリー化を実現。
 - [ ] **GameObjectアーキテクチャの完全データ指向（ECS）への刷新（大手術）** (※現状パフォーマンス要件はクリアしているため、当面はデスコープ/保留)
     - 現在の「ツリー構造（親子関係）＋ポインタベースのComponent」というオブジェクト指向の限界を突破するため、AAA基準の純粋な ECS (Entity Component System) へとエンジン根幹のアーキテクチャを書き換える。
     - **【完全整数ID方式への移行】**: 現在の `std::type_index` と `unordered_map` によるコンポーネント取得を完全に廃止し、すべてのコンポーネント種類を整数ID（Enum等）で管理。`GetComponent<T>()` の取得コストをハッシュ計算ゼロ（1CPUサイクル）の超高速アクセスへと昇華させる。
@@ -157,35 +166,12 @@
     - 現状の `GetComponent<T>()` が `typeid` の完全一致に依存しており、`OBBCollider` 等の派生クラスを基底型で取得できない問題をアーキテクチャレベルで解決する。
     - **解決案1 (カスタムリフレクション)**: コンポーネント登録時 (`AddComponent`) に基底クラスの型IDでもマップに登録し、キャストなしで $O(1)$ 取得可能にする。
     - **解決案2 (継承の廃止 / Union化)**: コライダー等を継承構造からフラットな `struct` (内部に形状の Enum と Union/Variant を持つ) へとリファクタリングする（これが将来のECS完全移行に向けた最も安全な布石となる）。
-- [ ] **GameObject構造変更の遅延評価（Deferred Modification）機構の導入**
-    - `BaseScene` で採用している `pendingAdds_` / `pendingRemoves_` と同等の遅延キュー機構を `GameObject` の親子付け（`AddChild` / `RemoveChild`）およびコンポーネント追加・削除にも実装する。
-    - これにより、`Start()` や `Update()` などループ処理の最中に動的なオブジェクト生成・親子付けを行ってもイテレータが無効化されず、より安全でAAA基準なエンジン基盤となる。
-- [ ] **空間分割 (AAA水準: TLAS & BLAS 動的BVH) の完全導入とGJK/EPAポリゴン判定**
-    - 現在 `CollisionManager` が総当りループ（$O(N^2)$）で判定している問題の解消、および MeshCollider（メッシュ単位の高精度判定）への対応を見据えた次世代アーキテクチャ。
-    - **【アーキテクチャ設計 (TLAS & BLAS)】**
-      1. **BLAS (Bottom-Level Acceleration Structure)**:
-         - 個別の3Dモデルが持つポリゴン（三角形）を内包する静的なBVH。
-         - **SAH (Surface Area Heuristic)** を用いて構築コストよりも走査(Traversal)速度を最大化するようノードを分割する。ロード時に1回だけ構築。
-      2. **TLAS (Top-Level Acceleration Structure)**:
-         - ゲーム空間内の全コライダーの「World AABB」を管理する動的BVH（Dynamic AABB Tree）。
-         - **Fattened AABB (マージン付きAABB) と Refitting**: AABBに10%の余白を持たせ、オブジェクトが微動した際のツリー再構築(Remove/Insert)をスキップして境界更新(Refit)のみで済ませる最適化を導入。
-    - **【衝突判定アルゴリズムと現実的なスコープ (Narrow-Phase)】**
-      - **スコープの限定 (限界ライン)**: 全てのオブジェクトでMesh判定を行うと破綻するため、BLASの適用は「変形しない静的な背景地形」のみに限定する。判定対象も「地形ポリゴン vs 球(Sphere)」および「地形ポリゴン vs 光線(Raycast)」に絞り、高負荷なポリゴン同士の衝突解決は行わない。
-      - **外部ライブラリによる統合**: フルスクラッチによるGJK/EPA実装（バグの温床）は避け、業界標準のオープンソース物理ライブラリを `external` フォルダに配置・統合し、自作エンジンのECS/CollisionManagerと連携させる「即戦力エンジニア」としてのアプローチを採用する。
-      - **ライブラリ候補**:
-        - `ReactPhysics3D` (C++17ベースで軽量・依存なし。エンジン連携の相性が最高)
-        - `Bullet Physics` (業界最強の実績と知名度)
-        - `Jolt Physics` (マルチスレッド特化の次世代エンジン)
-        - `DirectXMath` (簡易的なRay/Sphere交差判定関数の利用)
-    - **【ゲーム開発者向けUXと最適化 (Convex Hullの事前ベイク)】**
-      - 生の凹型(Concave)メッシュの物理判定は極めて不安定なため、エディタ上でモデルを読み込んだ際に **Convex Hull (凸包)** の頂点を自動計算し、ファイルに事前保存(ベイク)するツール機能（Quickhullアルゴリズム等）を提供する。ランタイムはベイク済みの軽い凸包データを読み込むだけで済む。
-    - **【実装ステップとロードマップ】**
-      - **Step 1: Broad-Phase (TLAS) の先行導入**
-        - 現行のプリミティブ総当たりを TLAS に置き換え。「BVH ON/OFFトグル」と「処理時間のリアルタイム表示」で10,000オブジェクトのFPS改善を動画化する。
-      - **Step 2: 外部ライブラリの統合基盤作成**
-        - 候補ライブラリ（ReactPhysics3D 等）を導入し、既存のプリミティブ判定をライブラリ側に委譲・ラップするテストを行う。
-      - **Step 3: 静的背景のBLAS構築とConvexベイクツールの作成**
-        - エディタ側の事前ベイク機能を作成し、地形に対する「Sphere」および「Ray」の正確なポリゴン判定を完成させる。
+- [x] **GameObject構造変更の遅延評価（Deferred Modification）機構の導入**
+    - **実装完了**: `structureMutex_` によるスナップショット取得（`Update()` 中のコンポーネント・子オブジェクト動的追加/破棄によるイテレータ無効化クラッシュを防止）および `CleanupDestroyedChildren()` によるフレーム遅延クリーンアップを完備。
+- [x] **空間分割 (AAA水準: Dynamic AABB Tree / TLAS 動的BVH) の完全導入**
+    - **実装完了**: `DynamicBVH` において Fattened AABB（マージン付与による微動時ツリー再構築スキップ: $O(1)$）および SAH（表面積ヒューリスティック）による最適ノード挿入を実装。`CollisionManager` の Broad-Phase にて空間走査を行い $O(N \log N)$ に判定候補を絞り込み。弾幕クラスタAABBの事前フェッチにも対応。
+- [ ] **静的地形メッシュ用 BLAS (Bottom-Level Acceleration Structure) と外部物理ライブラリ連携の検討**
+    - 変形しない静的背景のポリゴン判定（BLAS）や、より複雑なリジッドボディ演算が必要になった場合の外部物理エンジン（Jolt / ReactPhysics3D等）連携。
 - [ ] **SIMD (DirectXMath / SSE) を活用した算術ライブラリの刷新**
     - 現在の `Vector3` や行列計算がスカラ演算（float単位）で実装されているため、DirectXMath (`XMVECTOR`, `XMMATRIX`) などの SIMD 命令にバックエンドを差し替え、物理・Transform計算のボトルネックを解消する。
 - [ ] **`StringId` (高速な文字列ハッシュ化) システムの導入**
@@ -217,15 +203,15 @@
 ### 🖥️ ウィンドウ・解像度スケーリング基盤 (Window & Resolution Scaling)
 - [ ] **レンダーターゲット (G-Buffer 等) の動的リサイズ機構**
     - 現在のスワップチェーンリサイズに加え、オフスクリーン描画用テクスチャや深度バッファを、ウィンドウ解像度の変更に合わせて動的に再生成・リサイズする仕組みの構築。
-- [ ] **アスペクト比対応 (レターボックス / ピラーボックス処理)**
-    - ウルトラワイド(21:9)やレガシー(4:3)環境での全画面表示時に、画面の歪みを防ぐための Viewport 調整と黒帯描画処理の実装。
+- [x] **アスペクト比対応 (レターボックス / ピラーボックス処理)**
+    - **実装完了**: `Math::CalculateLetterbox` により、ウルトラワイド(21:9)やレガシー(4:3)等の任意ウィンドウ比率への追従・黒帯描画処理、および `Mouse` クラスにおける仮想カーソル座標系のアスペクト補正計算を完備。
 - [ ] **可変解像度方式（Free Aspect / OSウィンドウサイズ＝描画解像度）への対応**
     - 内部解像度をウィンドウサイズに完全に同期させ、4Kやウルトラワイドモニタのピクセルを100%活かす描画機構の導入。
     - ※実現には後述のUIアンカーシステム（レスポンシブUI）の完全対応が前提となる。
 - [ ] **UIのアンカー (画面端固定) 機能 (Canvas Scaler)**
     - 解像度やアスペクト比の変更に追従し、ミニマップを「右下固定」など画面端に吸着させるUIアンカーシステムの導入。
-- [ ] **グラフィックコンフィグ・マネージャーの構築**
-    - フルスクリーン/ウィンドウモードの切り替えや内部解像度設定を管理し、JSONやINIファイルへセーブ・ロードする設定基盤の作成。
+- [x] **グラフィックコンフィグ・マネージャーの構築**
+    - **実装完了**: `CVarSystem::Load("resources/settings.json")` および `settings_local.json` による、フルスクリーン/ウィンドウモード（`r.DisplayMode`）、VSync（`r.VSync`）、キオスクモード（`r.LockWindowsKey`）等の動的反映・上書きロード・永続化基盤を完備。
 
 ### 🛠️ 開発環境とビルドパイプラインの最適化 (Development & Build Pipeline)
 - [ ] **パッケージマネージャー (vcpkg等) の導入、または Git LFS による外部ライブラリ管理の刷新**

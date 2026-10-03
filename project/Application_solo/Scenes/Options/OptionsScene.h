@@ -13,7 +13,7 @@ class GameObject;
 
 /**
  * @class OptionsScene
- * @brief ゲーム内設定(Options)を管理・表示するシーン
+ * @brief ゲーム内設定(Options)を管理・表示するアプリケーションシーン
  * @details SceneManager::PushScene で呼び出され、背景ゲームをポーズしつつBGMやUI音を維持。
  *          Apex Legends風の仮想カーソル（Virtual
  * Cursor）による左スティック操作とマウス操作のハイブリッド制御に対応します。
@@ -102,7 +102,7 @@ private:
     UIRect rectSliderSE_{640.0f, 320.0f, 210.0f, 35.0f};
     UIRect rectSliderSensitivity_{640.0f, 430.0f, 210.0f, 35.0f};
 
-    // 音声パス（外部・CVar設定可能）
+    // 音声パス（ゲームアセット）
     std::string seCancelPath_ = "resources/audio/se_menu_cancel.wav";
     std::string seDecidePath_ = "resources/audio/se_menu_decide.wav";
     std::string seCursorPath_ = "resources/audio/se_menu_cursor.wav";

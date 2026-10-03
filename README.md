@@ -1,9 +1,12 @@
-# Irufemi Engine
+# Gravity Shooter / Irufemi Engine
 
+[![GitHub Pages Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-2ea44f?logo=github&style=flat)](https://irufemi.github.io/GravityShooter/)
 [![DebugBuild](https://github.com/Irufemi/CG3/actions/workflows/DebugBuild.yml/badge.svg)](https://github.com/Irufemi/CG3/actions/workflows/DebugBuild.yml)
 [![ReleaseBuild](https://github.com/Irufemi/CG3/actions/workflows/ReleaseBuild.yml/badge.svg)](https://github.com/Irufemi/CG3/actions/workflows/ReleaseBuild.yml)
 [![DevelopmentBuild](https://github.com/Irufemi/CG3/actions/workflows/DevelopmentBuild.yml/badge.svg)](https://github.com/Irufemi/CG3/actions/workflows/DevelopmentBuild.yml)
-[![CheckUnwantedFiles](https://github.com/Irufemi/Irufemi/actions/workflows/CheckUnwantedFiles.yml/badge.svg)](https://github.com/Irufemi/Irufemi/actions/workflows/CheckUnwantedFiles.yml)
+[![CheckUnwantedFiles](https://github.com/Irufemi/GravityShooter/actions/workflows/CheckUnwantedFiles.yml/badge.svg)](https://github.com/Irufemi/GravityShooter/actions/workflows/CheckUnwantedFiles.yml)
+
+> 📖 **[【公式公開中】オンラインAPIドキュメント＆開発マニュアル (GitHub Pages)](https://irufemi.github.io/GravityShooter/)**
 
 C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven Rendering** および **Data-Oriented Design** 指向の自作3Dゲームエンジンプロジェクトです。
 商用AAAゲームエンジンにおけるパフォーマンス要求（ロード時間の極小化、万単位の動的オブジェクトの物理演算、空間分割による最適化）をクリアするための、最新アーキテクチャの実証を目的としています。
@@ -12,8 +15,10 @@ C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven 
 本エンジン、および実装ゲームシステムに関する詳細な技術解説・スライド資料を公開しています。
 
 > **【要約】自作エンジン「Irufemi Engine」の低レイヤにおける最適化（世代付きHandle、GPUフラスタムカリング、Bindless Resources）と、本エンジンを利用した個人2回・チーム4回のゲーム制作を支えたチーム開発支援機能の解説資料です。**
-* **📄 [スエヒロ_コウイチ_ポートフォリオ (PDF)](docs/LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf)** 
-  * ※本リポジトリの `docs/` ディレクトリ内に格納しています。
+* **📄 [スエヒロ_コウイチ_ポートフォリオ (PDF)](docs/LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf)**
+* **📄 [スエヒロ_コウイチ_プログラム説明書 (PDF)](docs/LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf)**
+* **🌐 [公式オンラインAPIリファレンス＆マニュアル (GitHub Pages)](https://irufemi.github.io/GravityShooter/)**
+  * ※PDF資料は本リポジトリの `docs/` ディレクトリ内に格納しています。
 
 ---
 
@@ -27,6 +32,30 @@ C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven 
 | **七転び八転び** | 3Dアクションゲーム | 4人 (約4ヶ月) | 非同期ローダー、Compute Shaderによる数十万ボクセル破壊、シーン管理・リソース管理 |
 | **血管壊回** | 見下ろし型 疑似3Dアクション | 3人 (約1ヶ月) | 3Dパーティクルによる血流表現、XY平面ベースの2D/3D融合コリジョン処理 |
 | **纏当て** | 3Dボスバトルアクション | 4人 (約1ヶ月) | DirectX 12 描画パイプラインの構築、デバッグUI環境の提供、描画用HLSLシェーダー |
+
+---
+
+## 🕹️ プレイ操作ガイド & キオスクモード (Controls & Kiosk Mode)
+
+『Gravity Shooter』および本エンジン製ゲームは、展示会（BitSummit / TGS）や審査試遊での快適性を最重視した入力・ウィンドウ制御を標準搭載しています。
+
+### 基本操作 (Controls)
+| アクション | キーボード & マウス | コントローラー (XInput) |
+| :--- | :--- | :--- |
+| **移動** | `W` / `A` / `S` / `D` | 左スティック |
+| **照準 (Aim)** | マウス移動 | 右スティック |
+| **ガレキ引き寄せ (Pull)** | `マウス右クリック` / `E` | `LT` / `L1` |
+| **ガレキ射撃 (Fire)** | `マウス左クリック` / `Space` | `RT` / `R1` |
+| **ロックオン (Lock-On)** | `Shift` | `LB` |
+| **ポーズ (Pause)** | `ESC` | `Start / Menu` |
+| **全画面切替 (Fullscreen)** | `F11` または `Alt + Enter` | - |
+
+### 🔒 展示・審査向けキオスクモード & 安全な終了導線 (Fail-Safe Exit)
+- **Windowsキー誤爆防止**: 激しい操作によるOSスタートメニューの飛び出しを防ぐため、ゲーム実行中はWindowsキーを低レベルフック（`WH_KEYBOARD_LL`）で安全に無効化しています（フォーカスが外れると自動復帰します）。
+- **ゲームの終了方法 (3系統の脱出経路)**:
+  1. **ポーズメニュー**: `ESC` キーを押してポーズ画面を開き、**[QUIT]** を選択してクリーン終了。
+  2. **ESCキー 2秒長押し**: 万が一の画面スタック時でも、`ESC` を2秒長押しすることでエンジンメインループから安全に強制シャットダウン（`PostQuitMessage(0)`）を発動。
+  3. **`Alt + F4`**: OS標準の即時終了ショートカットは常に保証されています。
 
 ---
 
@@ -146,6 +175,9 @@ graph LR
 
 本エンジンで実証・実装された主な機能群です。
 
+- [x] **入力システム (Enhanced Input)**: JSONデータ駆動の論理アクション、厳格修飾子排他 (Strict Modifier Matching)、入力消費 (`ConsumeKey`)
+- [x] **ウィンドウ & キオスク制御**: `F11` / `Alt+Enter` エンジンコア集約トグル、低レベルフックによるWindowsキー無効化と3重の安全脱出導線
+- [x] **PSOキャッシュ & 並列PreWarm**: 全CPUコアによる事前マルチスレッド並列JITコンパイル（初回到達時スタッター完全ゼロ化）
 - [x] **DirectX 12 描画基礎**: パイプライン、シェーダバインド、定数バッファ管理
 - [x] **アーキテクチャ最適化**: Bindless Resources (Descriptor Indexing) への対応
 - [x] **メモリ管理**: 世代(Generation)付きHandleによる安全なObjectPool、スタックアロケータ、遅延削除(Pending Kill)キュー
@@ -233,6 +265,30 @@ if (raycastFuture_.valid() && raycastFuture_.wait_for(std::chrono::seconds(0)) =
 | **components/** | ゲーム固有の振る舞い (DebrisManager, Boss 等) |
 | **scene/** | 各シーンの初期化と状態管理 |
 | **resources/** | このゲーム専用のテクスチャ、モデル、JSON等のアセット群 |
+
+### 🛠️ Tools & External Editors (`tools/`)
+ゲーム制作イテレーションを高速化する外部ツール群です。
+- **`tools/BlenderLevelEditor/`**: Blenderを3Dレベルエディタとして拡張する公式アドオン群。
+  - レールシューターのスプライン軌道編集、敵配置オーサリング、JSONエクスポートに対応。
+  - 環境非依存の多層自動検出ランチャー（`Launch_BlenderLevelEditor.bat`、`Sync_BlenderAddon.bat`）および説明書PDF（`docs/`）を完備。
+
+### 💾 派生データとアセットの3層分離設計
+Unreal EngineのDDC（Derived Data Cache）思想を取り入れ、リポジトリの健全性を保つ3層分離を徹底しています。
+- **`asset_src/` (DCC原本層)**: `.blend` 元データ、原本フォント、高解像度テクスチャ（ランタイムには含めない）。
+- **`project/Application_solo/resources/` (ランタイム層)**: ゲーム実行に必要な最適化済みアセットのみを格納（未参照ファイルの混入ゼロ）。
+- **`generated/cache/` (派生データ・キャッシュ層)**: 高速パース済みモデル（`.model.ibin`）やDirectX12 PSOキャッシュ（`*.pso`）をアセット領域から完全隔離。
+
+---
+
+## 🛠️ 自動ビルド＆パッケージングパイプライン
+
+大手ゲーム会社のCI/CD・デリバリーパイプラインを模した自動化スクリプト群をリポジトリルートに配備しています。
+
+| ツール / スクリプト | 役割・特徴 |
+| :--- | :--- |
+| **`CompileShaders.bat`** | 全77種以上のHLSLシェーダーを `/O3` 最適化で先行オフラインコンパイル。審査員環境でのDirectXランタイムDLL依存クラッシュを根本から防止します。 |
+| **`CleanAssets.bat`** | `.gitignore` に準拠し、`generated/cache/` や `logs/` などの一時生成物を安全に一括消去するアセット＆ワークスペース健全化ツール。 |
+| **`scripts/PackageForSubmission.ps1`** | SEGA等の企業提出規定に完全準拠したパッケージ自動生成パイプライン。「クリーンなソースコード提出用ZIP」と「依存関係ゼロで即起動するプレイ用exeパッケージZIP」をワンクリックで生成します。 |
 
 ---
 

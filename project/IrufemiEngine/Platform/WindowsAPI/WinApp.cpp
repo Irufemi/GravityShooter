@@ -113,6 +113,7 @@ bool WinApp::Initialize(HINSTANCE hInstance, int width, int height, const std::w
 }
 
 void WinApp::Finalize() {
+    SetWindowsKeyLock(false);
     if (hwnd_) {
         DestroyWindow(hwnd_);
         hwnd_ = nullptr;
@@ -251,6 +252,7 @@ LRESULT WinApp::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
     case WM_SETFOCUS: // ウィンドウがアクティブになった
+        activeHwnd_ = hwnd_;
         if (inputManager_) {
             if (auto* mouse = inputManager_->GetMouse()) {
                 mouse->SetLocked(cursorLocked_);
@@ -259,6 +261,9 @@ LRESULT WinApp::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_KILLFOCUS: // ウィンドウが非アクティブになった
+        if (activeHwnd_ == hwnd_) {
+            activeHwnd_ = nullptr;
+        }
         if (inputManager_) {
             if (auto* mouse = inputManager_->GetMouse()) {
                 mouse->SetLocked(false);
@@ -355,19 +360,77 @@ void WinApp::SetDisplayMode(DisplayMode mode) {
         // Change style back to WS_OVERLAPPEDWINDOW
         SetWindowLongW(hwnd_, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
-        // Restore saved rect (or default if it was empty)
-        if (windowedRect_.right - windowedRect_.left > 0) {
-            SetWindowPos(hwnd_, HWND_NOTOPMOST, windowedRect_.left, windowedRect_.top,
-                         windowedRect_.right - windowedRect_.left, windowedRect_.bottom - windowedRect_.top,
-                         SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOOWNERZORDER);
-        } else {
-            // Fallback if windowedRect_ is empty
-            RECT wrc = {0, 0, clientWidth_, clientHeight_};
-            AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
-            SetWindowPos(hwnd_, HWND_NOTOPMOST, 0, 0, wrc.right - wrc.left, wrc.bottom - wrc.top,
-                         SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+        // 規定のゲーム解像度（16:9）をクライアント領域として正確に復元
+        int targetClientW = 1280;
+        int targetClientH = 720;
+        if (engine_) {
+            targetClientW = engine_->GetGameResolutionWidth();
+            targetClientH = engine_->GetGameResolutionHeight();
         }
+
+        RECT wrc = {0, 0, targetClientW, targetClientH};
+        AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+        int winW = wrc.right - wrc.left;
+        int winH = wrc.bottom - wrc.top;
+
+        // 保存された位置があればその位置を基準に、なければ画面中央に配置
+        int winX = (windowedRect_.right - windowedRect_.left > 0) ? windowedRect_.left : 100;
+        int winY = (windowedRect_.right - windowedRect_.left > 0) ? windowedRect_.top : 100;
+
+        // モニター作業領域（タスクバー除く）を考慮して画面内に収める
+        HMONITOR monitor = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi = {sizeof(mi)};
+        GetMonitorInfoW(monitor, &mi);
+        if (winX + winW > mi.rcWork.right || winX < mi.rcWork.left) {
+            winX = mi.rcWork.left + (mi.rcWork.right - mi.rcWork.left - winW) / 2;
+        }
+        if (winY + winH > mi.rcWork.bottom || winY < mi.rcWork.top) {
+            winY = mi.rcWork.top + (mi.rcWork.bottom - mi.rcWork.top - winH) / 2;
+        }
+
+        SetWindowPos(hwnd_, HWND_NOTOPMOST, winX, winY, winW, winH,
+                     SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_SHOWWINDOW);
     }
 
     displayMode_ = mode;
+}
+
+void WinApp::SetWindowsKeyLock(bool enable) {
+    windowsKeyLockEnabled_ = enable;
+    globalKeyLockEnabled_ = enable;
+    activeHwnd_ = hwnd_;
+
+    if (enable) {
+        if (!keyboardHook_) {
+            keyboardHook_ =
+                SetWindowsHookExW(WH_KEYBOARD_LL, &WinApp::LowLevelKeyboardProc, GetModuleHandleW(nullptr), 0);
+        }
+    } else {
+        if (keyboardHook_) {
+            UnhookWindowsHookEx(keyboardHook_);
+            keyboardHook_ = nullptr;
+        }
+    }
+}
+
+LRESULT CALLBACK WinApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode >= HC_ACTION && globalKeyLockEnabled_) {
+        auto* pKbd = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
+        if (pKbd) {
+            // Alt + F4 は絶対にブロックせずOSへ通す（強制終了・脱出の保証）
+            bool isAltDown = (pKbd->flags & LLKHF_ALTDOWN) != 0;
+            if (isAltDown && pKbd->vkCode == VK_F4) {
+                return CallNextHookEx(keyboardHook_, nCode, wParam, lParam);
+            }
+
+            // 自ウィンドウがアクティブな時のみWindowsキー/アプリキーを破棄
+            if (GetForegroundWindow() == activeHwnd_) {
+                if (pKbd->vkCode == VK_LWIN || pKbd->vkCode == VK_RWIN || pKbd->vkCode == VK_APPS) {
+                    // 1 を返してOSへのキーイベント伝播を破棄
+                    return 1;
+                }
+            }
+        }
+    }
+    return CallNextHookEx(keyboardHook_, nCode, wParam, lParam);
 }

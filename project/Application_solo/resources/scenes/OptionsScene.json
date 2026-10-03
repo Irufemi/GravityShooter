@@ -450,7 +450,7 @@
             "color": [0.55, 0.6, 0.65, 0.75],
             "fontId": "toro_glitch",
             "isTopMost": true,
-            "text": "[L/R-STICK / MOUSE] CURSOR   [D-PAD] ADJUST   [A / L-CLICK] SELECT   [B / ESC] BACK"
+            "text": "[STICK / MOUSE] CURSOR   [D-PAD] ADJUST   [A] SELECT   [F11] FULLSCREEN   [B / ESC] BACK"
           }
         }
       ]

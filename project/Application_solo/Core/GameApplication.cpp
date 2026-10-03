@@ -51,7 +51,7 @@
 #include "Scenes/inGame/GameScene.h"
 #include "Scenes/Pause/PauseScene.h"
 #include "Scenes/TL1/TL1Scene.h"
-#include "Framework/Scene/OptionsScene.h"
+#include "Scenes/Options/OptionsScene.h"
 #include "Scenes/HowToPlay/HowToPlayScene.h"
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
@@ -214,6 +214,13 @@ void GameApplication::Run() {
         registry->RegisterEditor<BossComponent, BossComponentEditor>();
     }
 #endif
+
+    // 入力アクション設定（データドリブンバインディング）の読み込み
+    if (auto inputManager = engine->GetInputManager()) {
+        if (!inputManager->LoadBindingsFromJson("resources/config/input_actions.json")) {
+            inputManager->LoadBindingsFromJson("project/Application_solo/resources/config/input_actions.json");
+        }
+    }
 
     // アプリ固有のシェーダー登録
     RegisterShaders(*engine);

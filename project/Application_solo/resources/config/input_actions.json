@@ -1,0 +1,54 @@
+{
+  "Actions": {
+    "Pull": [
+      "Key_E",
+      "Pad_LeftTrigger",
+      "Pad_LeftShoulder"
+    ],
+    "Fire": [
+      "Mouse_Left",
+      "Key_Q",
+      "Pad_RightTrigger"
+    ],
+    "LockOn": [
+      "Mouse_Right",
+      "Pad_RightShoulder",
+      "Pad_A"
+    ],
+    "ClearLock": [
+      "Key_R",
+      "Pad_B"
+    ],
+    "Pause": [
+      "Key_Escape",
+      "Pad_Start"
+    ],
+    "ToggleFullscreen": [
+      "Alt+Key_Enter",
+      "Key_F11"
+    ],
+    "UI_Submit": [
+      "Pad_A",
+      "Key_Space",
+      "Key_Enter",
+      "Mouse_Left"
+    ],
+    "UI_Cancel": [
+      "Pad_B",
+      "Key_Escape",
+      "Key_Back"
+    ]
+  },
+  "Axes": {
+    "MoveX": [
+      { "Source": "Key_D", "Scale": 1.0 },
+      { "Source": "Key_A", "Scale": -1.0 },
+      { "Source": "Pad_LeftStickX", "Scale": 1.0 }
+    ],
+    "MoveY": [
+      { "Source": "Key_W", "Scale": 1.0 },
+      { "Source": "Key_S", "Scale": -1.0 },
+      { "Source": "Pad_LeftStickY", "Scale": 1.0 }
+    ]
+  }
+}

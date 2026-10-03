@@ -12,6 +12,7 @@
 #include "Platform/Input/InputManager.h"
 #include "Audio/AudioManager.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
+#include "Input/GameAction.h"
 
 #ifdef EditorMode
 #include "Core/EditorManager.h"
@@ -142,9 +143,9 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
         return;
     }
 
-    // 決定キー (Aボタン / Space / Enter / マウス左クリック / RT等の仮想カーソルアクション)
-    bool isSelected = inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) || inputManager->IsKeyPressed(VK_SPACE) ||
-                      inputManager->IsKeyPressed(VK_RETURN) || inputManager->IsCursorActionPressed();
+    // 決定キー (論理アクション UI_Submit または 仮想カーソルアクション)
+    bool isSelected =
+        InputHelper::IsActionPressed(inputManager, GameAction::UI_Submit) || inputManager->IsCursorActionPressed();
 
     // マウス左クリックやRT等でカーソルアクションを押した場合は、カーソルがボタン領域内にあるかチェック
     if (inputManager->IsCursorActionPressed()) {

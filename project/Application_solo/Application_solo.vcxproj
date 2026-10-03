@@ -252,6 +252,7 @@ exit 0</Command>
     <ClCompile Include="Scenes\title\TitleCosmicNebulaComponent.cpp" />
     <ClCompile Include="Scenes\title\TitleSceneDirectorComponent.cpp" />
     <ClCompile Include="Scenes\HowToPlay\HowToPlayScene.cpp" />
+    <ClCompile Include="Scenes\Options\OptionsScene.cpp" />
     <ClCompile Include="UI\LoadingScreen.cpp" />
     <ClCompile Include="UI\PromptController.cpp" />
     <ClCompile Include="RailMechanics\RailShooterPlayerComponent.cpp" />
@@ -310,6 +311,7 @@ exit 0</Command>
     <ClInclude Include="Scenes\title\TitleCosmicNebulaComponent.h" />
     <ClInclude Include="Scenes\title\TitleSceneDirectorComponent.h" />
     <ClInclude Include="Scenes\HowToPlay\HowToPlayScene.h" />
+    <ClInclude Include="Scenes\Options\OptionsScene.h" />
     <ClInclude Include="UI\LoadingScreen.h" />
     <ClInclude Include="UI\PromptController.h" />
     <ClInclude Include="RailMechanics\RailShooterPlayerComponent.h" />
@@ -333,6 +335,7 @@ exit 0</Command>
     <ClInclude Include="Environment\EnvironmentManagerComponent.h" />
     <ClInclude Include="Environment\DestructibleEnvironmentComponent.h" />
     <ClInclude Include="Player\GravityPlayerComponent.h" />
+    <ClInclude Include="Input\GameAction.h" />
     <ClInclude Include="Player\PlayerHealthComponent.h" />
     <ClInclude Include="Player\PlayerDamageVisualizerComponent.h" />
     <ClInclude Include="Player\PlayerThrusterVisualizerComponent.h" />

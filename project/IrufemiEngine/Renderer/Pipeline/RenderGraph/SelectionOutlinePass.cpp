@@ -6,6 +6,7 @@
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "RHI/DirectX12/RenderTexture.h"
 #include "RHI/DirectX12/RootSignatureConfig.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include "Renderer/Data/RenderContext.h"
 
 void SelectionOutlinePass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
@@ -97,7 +98,12 @@ void SelectionOutlinePass::Execute(const Irufemi::RenderContext& rc) {
     if (compPso) {
         cmdList->SetPipelineState(compPso);
         cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        cmdList->SetGraphicsRootDescriptorTable((UINT)RootSlot::LegacyPSTexture, maskTex->GetSrvHandleGPU());
+
+        if (auto ppMgr = engine->GetPostProcessManager()) {
+            D3D12_GPU_VIRTUAL_ADDRESS bindlessCBV = ppMgr->AllocateBindlessParams(maskTex->GetSrvIndex());
+            cmdList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon, bindlessCBV);
+        }
+
         // 3頂点でフルスクリーンを描画
         cmdList->DrawInstanced(3, 1, 0, 0);
     }

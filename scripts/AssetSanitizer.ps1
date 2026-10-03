@@ -1,7 +1,8 @@
-param (
-    [ValidateSet("Audit", "DryRun", "Sanitize", "Restore", "Menu")]
+﻿param (
+    [ValidateSet("Audit", "DryRun", "Sanitize", "Restore", "CleanCache", "Menu")]
     [string]$Mode = "Menu",
-    [string]$ScriptDir = ""
+    [string]$ScriptDir = "",
+    [switch]$Force
 )
 
 Set-StrictMode -Version Latest
@@ -14,10 +15,16 @@ if (-not $ScriptDir) {
     } elseif ($MyInvocation.MyCommand -and ($MyInvocation.MyCommand | Get-Member -Name Path)) {
         $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
     } else {
-        $ScriptDir = $PWD.Path
+        $ScriptDir = Join-Path $PWD.Path "scripts"
     }
 }
-$RootDir = (Resolve-Path "$ScriptDir\..").Path
+$RootDir = if (Test-Path (Join-Path $ScriptDir "..\project")) {
+    (Resolve-Path "$ScriptDir\..").Path
+} elseif (Test-Path (Join-Path $PWD.Path "project")) {
+    $PWD.Path
+} else {
+    (Resolve-Path "$ScriptDir\..").Path
+}
 $AppResDir = Join-Path $RootDir "project\Application_solo\resources"
 $AssetSrcDir = Join-Path $RootDir "asset_src"
 $BackupRootDir = Join-Path $RootDir "backup"
@@ -375,30 +382,139 @@ function Invoke-Restore {
 }
 
 # -----------------------------------------------------------------------------
+# 5. キャッシュ・ログ・一時生成物の一括クリーン (.gitignore 準拠)
+# -----------------------------------------------------------------------------
+function Invoke-CleanCacheAndLogs {
+    Write-Header "キャッシュ・ログ・一時生成物の一括クリーン (.gitignore 準拠)"
+
+    $cleanedCount = 0
+
+    # 1. git status --ignored --porcelain から Git 管理外の無視アイテムを自動取得
+    $ignoredItems = @()
+    try {
+        $gitOutput = git status --ignored --porcelain
+        foreach ($line in $gitOutput) {
+            if ($line.StartsWith("!! ")) {
+                $rel = $line.Substring(3).Trim().Trim('"')
+                $ignoredItems += $rel
+            }
+        }
+    } catch {
+        Write-Warn "Git からの無視ファイル取得に失敗しました。手動フォールバックパスで走査します。"
+    }
+
+    # 安全な削除対象パターン（キャッシュ・ログ・一時スクリプト生成物）
+    # ※ .vs, .env, settings_local, _Submission, backup, packages, externals, compiled shaders は除外保護
+    $safeDeletePatterns = @(
+        '^(?:project/)?(?:[a-zA-Z0-9_-]+/)?(?:logs|Logs)/',
+        '^logs/',
+        '^generated/cache/',
+        'resources/\.cache/',
+        '/__pycache__/',
+        'resources/scenes/temp/',
+        'resources/shaders/generated/',
+        'shader_error\.txt$',
+        '\.log$',
+        '\.pso$',
+        '\.cachefile$',
+        '\.tmp$'
+    )
+
+    $targetsToDelete = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    # Git の ignoredItems から安全なものを抽出
+    foreach ($item in $ignoredItems) {
+        $fullPath = Join-Path $RootDir $item
+        if (-not (Test-Path $fullPath)) { continue }
+
+        $normRel = $item.Replace('\', '/')
+        $matched = $false
+        foreach ($pat in $safeDeletePatterns) {
+            if ($normRel -match $pat) {
+                $matched = $true
+                break
+            }
+        }
+        if ($matched) {
+            [void]$targetsToDelete.Add($fullPath)
+        }
+    }
+
+    # フォールバックで直接存在する主要なキャッシュ・ログディレクトリも確実に含める
+    $manualTargets = @(
+        (Join-Path $RootDir "logs"),
+        (Join-Path $RootDir "project\Application_solo\Logs"),
+        (Join-Path $RootDir "generated\cache"),
+        (Join-Path $RootDir "project\Application_solo\resources\.cache")
+    )
+    foreach ($mt in $manualTargets) {
+        if (Test-Path $mt) {
+            [void]$targetsToDelete.Add($mt)
+        }
+    }
+
+    if ($targetsToDelete.Count -eq 0) {
+        Write-Success "削除対象のキャッシュ・ログはありません。クリーンな状態です。"
+        return
+    }
+
+    Write-Info "以下のキャッシュ・ログ・一時生成物を安全に消去します:"
+    foreach ($tgt in $targetsToDelete) {
+        $rel = $tgt.Substring($RootDir.Length + 1)
+        Write-Host "  [-] $rel" -ForegroundColor Gray
+    }
+
+    if (-not $Force) {
+        Write-Host ""
+        $confirm = Read-Host "上記の一時ファイルをすべて削除してもよろしいですか? (Y/N)"
+        if ($confirm -ne "Y" -and $confirm -ne "y") {
+            Write-Host "クリーン処理をキャンセルしました。" -ForegroundColor Gray
+            return
+        }
+    }
+
+    foreach ($tgt in $targetsToDelete) {
+        try {
+            if (Test-Path $tgt) {
+                Remove-Item -Path $tgt -Recurse -Force -ErrorAction SilentlyContinue
+                $cleanedCount++
+            }
+        } catch {
+            Write-Warn "削除をスキップしました: $tgt"
+        }
+    }
+
+    Write-Success "クリーンアップ完了: $cleanedCount 個のキャッシュ・ログアイテムを消去しました。"
+}
+
+# -----------------------------------------------------------------------------
 # メインメニュー
 # -----------------------------------------------------------------------------
 if ($Mode -eq "Menu") {
-    Write-Header "IrufemiEngine - プロ品質 アセット健全化ツール (Asset Sanitizer)"
+    Write-Header "IrufemiEngine - アセット＆ワークスペース健全化ツール (Asset Sanitizer)"
     Write-Host "実行したい処理を選択してください:" -ForegroundColor Yellow
-    Write-Host "  [1] Audit Mode     : 参照関係を完全走査し、アセット健全性レポートを表示（変更なし） ★推奨" -ForegroundColor Cyan
-    Write-Host "  [2] Dry-Run Mode   : クリーンアップ実行時の移動・削除プレビューを表示（変更なし）" -ForegroundColor Cyan
-    Write-Host "  [3] Sanitize Mode  : 自動バックアップ作成後、安全に整理・隔離・クリーンアップを実行" -ForegroundColor Cyan
-    Write-Host "  [4] Restore Backup : 直前のバックアップからワンクリックで元の状態に完全復元" -ForegroundColor Cyan
+    Write-Host "  [1] Audit Mode          : 参照関係を完全走査し、アセット健全性レポートを表示（変更なし） ★推奨" -ForegroundColor Cyan
+    Write-Host "  [2] Dry-Run Mode        : クリーンアップ実行時の移動・削除プレビューを表示（変更なし）" -ForegroundColor Cyan
+    Write-Host "  [3] Sanitize Mode       : 自動バックアップ作成後、安全に整理・隔離・クリーンアップを実行" -ForegroundColor Cyan
+    Write-Host "  [4] Restore Backup      : 直前のバックアップからワンクリックで元の状態に完全復元" -ForegroundColor Cyan
+    Write-Host "  [5] Clean Cache & Logs  : .gitignore準拠でキャッシュ・ログ・一時生成物を一括クリーン" -ForegroundColor Magenta
     Write-Host "  [Q] 終了`n" -ForegroundColor Gray
 
-    $choice = Read-Host "選択 (1/2/3/4/Q)"
+    $choice = Read-Host "選択 (1/2/3/4/5/Q)"
     switch ($choice) {
         "1" { Show-AuditReport }
         "2" { Show-DryRun }
         "3" { Invoke-Sanitize }
         "4" { Invoke-Restore }
+        "5" { Invoke-CleanCacheAndLogs }
         default { Write-Host "処理をキャンセルしました。" -ForegroundColor Gray; exit 0 }
     }
 } else {
     switch ($Mode) {
-        "Audit"    { Show-AuditReport }
-        "DryRun"   { Show-DryRun }
-        "Sanitize" { Invoke-Sanitize }
-        "Restore"  { Invoke-Restore }
+        "Audit"      { Show-AuditReport }
+        "DryRun"     { Show-DryRun }
+        "Sanitize"   { Invoke-Sanitize }
+        "Restore"    { Invoke-Restore }
+        "CleanCache" { Invoke-CleanCacheAndLogs }
     }
 }

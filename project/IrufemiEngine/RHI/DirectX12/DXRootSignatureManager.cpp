@@ -113,7 +113,7 @@ void DXRootSignatureManager::Initialize(ID3D12Device* device) {
         rangeDepthMap[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
         // --- ルートパラメータの定義 (Version 1.1) ---
-        D3D12_ROOT_PARAMETER1 rootParameters[13] = {};
+        D3D12_ROOT_PARAMETER1 rootParameters[12] = {};
 
         // Slot 0: Material (b0, PS)
         rootParameters[(UINT)RootSlot::Material].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -191,21 +191,7 @@ void DXRootSignatureManager::Initialize(ID3D12Device* device) {
         rootParameters[(UINT)RootSlot::DepthMap].DescriptorTable.pDescriptorRanges = rangeDepthMap;
         rootParameters[(UINT)RootSlot::DepthMap].DescriptorTable.NumDescriptorRanges = _countof(rangeDepthMap);
 
-        // Slot 11: LegacyPSTexture (t0, PS)
-        D3D12_DESCRIPTOR_RANGE1 rangeLegacyTex[1] = {};
-        rangeLegacyTex[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        rangeLegacyTex[0].NumDescriptors = 1;
-        rangeLegacyTex[0].BaseShaderRegister = 0;
-        rangeLegacyTex[0].RegisterSpace = 0;
-        rangeLegacyTex[0].Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE;
-        rangeLegacyTex[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-        rootParameters[(UINT)RootSlot::LegacyPSTexture].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        rootParameters[(UINT)RootSlot::LegacyPSTexture].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-        rootParameters[(UINT)RootSlot::LegacyPSTexture].DescriptorTable.pDescriptorRanges = rangeLegacyTex;
-        rootParameters[(UINT)RootSlot::LegacyPSTexture].DescriptorTable.NumDescriptorRanges = _countof(rangeLegacyTex);
-
-        // Slot 12: CustomEffectParams (b3, PS)
+        // Slot 11: CustomEffectParams (b3, PS)
         rootParameters[(UINT)RootSlot::CustomEffectParams].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
         rootParameters[(UINT)RootSlot::CustomEffectParams].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
         rootParameters[(UINT)RootSlot::CustomEffectParams].Descriptor.ShaderRegister = 3;

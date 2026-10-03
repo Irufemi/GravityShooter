@@ -516,7 +516,12 @@ void DrawManager::PostDraw() {
             Log::OutPutLog(std::cerr, std::string(str));
             throw std::runtime_error(str);
         } else {
-            throw std::runtime_error("Present failed with an unknown error.");
+            // 画面切り替え過渡期（DXGI_ERROR_INVALID_CALL等）の一時的エラーは例外スローせず、
+            // 警告ログを出力してフレームをスキップし、次フレームでの安全復帰を促す
+            char str[256];
+            sprintf_s(str, "[DrawManager] Present returned non-fatal error: 0x%08X. Skipping frame presentation.\n",
+                      hr);
+            Log::OutPutLog(std::cerr, std::string(str));
         }
     }
 
@@ -665,9 +670,6 @@ void DrawManager::DrawSprite(const RenderPackets::SpritePacket& packet) {
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, resource->GetMaterialVAddress());
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Transform, resource->GetTransformVAddress());
 
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = textureManager_->Resolve(resource->GetTextureHandle());
-    commandList_->SetGraphicsRootDescriptorTable((UINT)RootSlot::LegacyPSTexture, gpuHandle);
-
     commandList_->DrawIndexedInstanced(resource->GetIndexCount(), 1, 0, 0, 0);
 }
 
@@ -737,9 +739,6 @@ void DrawManager::DrawText(const RenderPackets::SpritePacket& packet) {
     commandList_->IASetIndexBuffer(&resource->GetIndexBufferView());
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, resource->GetMaterialVAddress());
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Transform, resource->GetTransformVAddress());
-
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = textureManager_->Resolve(resource->GetTextureHandle());
-    commandList_->SetGraphicsRootDescriptorTable((UINT)RootSlot::LegacyPSTexture, gpuHandle);
 
     commandList_->DrawIndexedInstanced(resource->GetIndexCount(), 1, 0, 0, 0);
 }

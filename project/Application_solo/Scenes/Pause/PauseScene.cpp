@@ -7,6 +7,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
 #include "Audio/AudioManager.h"
+#include "Input/GameAction.h"
 #include "Audio/Sound.h"
 #include "Renderer/Font/FontManager.h"
 #include "Framework/Utility/CVar.h"
@@ -15,8 +16,8 @@
 
 namespace {
 // メニュー項目のY座標
-constexpr float kMenuStartY = 280.0f;
-constexpr float kMenuItemSpacing = 75.0f;
+constexpr float kMenuStartY = 260.0f;
+constexpr float kMenuItemSpacing = 68.0f;
 constexpr float kItemHalfWidth = 180.0f;
 constexpr float kItemHalfHeight = 30.0f;
 
@@ -45,6 +46,7 @@ void PauseScene::Initialize(IrufemiEngine* engine) {
             fm->PrecacheText("toro_glitch", L"RETRY");
             fm->PrecacheText("toro_glitch", L"OPTIONS");
             fm->PrecacheText("toro_glitch", L"TITLE");
+            fm->PrecacheText("toro_glitch", L"QUIT");
         }
     }
 
@@ -146,7 +148,8 @@ void PauseScene::CreateUIElements() {
     const std::vector<std::pair<std::wstring, MenuItem>> items = {{L"RESUME", MenuItem::Resume},
                                                                   {L"RETRY", MenuItem::Retry},
                                                                   {L"OPTIONS", MenuItem::Options},
-                                                                  {L"TITLE", MenuItem::Title}};
+                                                                  {L"TITLE", MenuItem::Title},
+                                                                  {L"QUIT", MenuItem::Quit}};
 
     menuItems_.clear();
     for (size_t i = 0; i < items.size(); ++i) {
@@ -269,9 +272,8 @@ void PauseScene::UpdateInput(float deltaTime) {
         PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
     }
 
-    // 4. 決定判定（ENTER / SPACE / Aボタン / マウス左クリック）
-    bool isDecide =
-        input->IsKeyPressed(VK_RETURN) || input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A);
+    // 4. 決定判定（論理アクション UI_Submit または カーソルクリック）
+    bool isDecide = InputHelper::IsActionPressed(input, GameAction::UI_Submit);
 
     if (mouseHoveredIndex >= 0 && input->IsCursorActionPressed()) {
         isDecide = true;
@@ -333,6 +335,11 @@ void PauseScene::ExecuteAction(MenuItem item) {
         PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
         // タイトル画面へ遷移
         sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.6f);
+        break;
+
+    case MenuItem::Quit:
+        PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
+        PostQuitMessage(0);
         break;
 
     default:
