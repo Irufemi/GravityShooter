@@ -148,7 +148,7 @@ void SetMetric(const std::string& key, const nlohmann::json& value);
         <ul>
           <li><strong>Commandパターン Undo/Redo:</strong> 全てのオブジェクト移動やパラメータ変更をスタック管理し、Ctrl+Z / Ctrl+Y で完全に巻き戻し可能。</li>
           <li><strong>マルチビュー構成:</strong> 3Dシーンビュー、ヒエラルキーパネル、インスペクター、プロジェクトブラウザ、ログコンソールを統合。</li>
-          <li><strong>ゲーム専用インスペクター拡張:</strong> <code>BossComponentEditor</code> や <code>WaveManagerComponentEditor</code> により、プランナー・デザイナーが直感的にゲームバランスを調整可能。</li>
+          <li><strong>ゲーム専用インスペクター拡張:</strong> <code>BossComponentEditor</code> や <code>WaveManagerComponentEditor</code> により、他の開発メンバーが直感的にゲームバランスを調整可能。</li>
         </ul>
       `
     }
