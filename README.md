@@ -1,12 +1,12 @@
-# Irufemi Engine
+# Gravity Shooter / Irufemi Engine
 
-[![GitHub Pages Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-2ea44f?logo=github&style=flat)](https://irufemi.github.io/Irufemi/)
+[![GitHub Pages Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-2ea44f?logo=github&style=flat)](https://irufemi.github.io/GravityShooter/)
 [![DebugBuild](https://github.com/Irufemi/CG3/actions/workflows/DebugBuild.yml/badge.svg)](https://github.com/Irufemi/CG3/actions/workflows/DebugBuild.yml)
 [![ReleaseBuild](https://github.com/Irufemi/CG3/actions/workflows/ReleaseBuild.yml/badge.svg)](https://github.com/Irufemi/CG3/actions/workflows/ReleaseBuild.yml)
 [![DevelopmentBuild](https://github.com/Irufemi/CG3/actions/workflows/DevelopmentBuild.yml/badge.svg)](https://github.com/Irufemi/CG3/actions/workflows/DevelopmentBuild.yml)
-[![CheckUnwantedFiles](https://github.com/Irufemi/Irufemi/actions/workflows/CheckUnwantedFiles.yml/badge.svg)](https://github.com/Irufemi/Irufemi/actions/workflows/CheckUnwantedFiles.yml)
+[![CheckUnwantedFiles](https://github.com/Irufemi/GravityShooter/actions/workflows/CheckUnwantedFiles.yml/badge.svg)](https://github.com/Irufemi/GravityShooter/actions/workflows/CheckUnwantedFiles.yml)
 
-> 📖 **[【公式公開中】オンラインAPIドキュメント＆開発マニュアル (GitHub Pages)](https://irufemi.github.io/Irufemi/)**
+> 📖 **[【公式公開中】オンラインAPIドキュメント＆開発マニュアル (GitHub Pages)](https://irufemi.github.io/GravityShooter/)**
 
 C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven Rendering** および **Data-Oriented Design** 指向の自作3Dゲームエンジンプロジェクトです。
 商用AAAゲームエンジンにおけるパフォーマンス要求（ロード時間の極小化、万単位の動的オブジェクトの物理演算、空間分割による最適化）をクリアするための、最新アーキテクチャの実証を目的としています。
@@ -17,7 +17,7 @@ C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven 
 > **【要約】自作エンジン「Irufemi Engine」の低レイヤにおける最適化（世代付きHandle、GPUフラスタムカリング、Bindless Resources）と、本エンジンを利用した個人2回・チーム4回のゲーム制作を支えたチーム開発支援機能の解説資料です。**
 * **📄 [スエヒロ_コウイチ_ポートフォリオ (PDF)](docs/LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf)**
 * **📄 [スエヒロ_コウイチ_プログラム説明書 (PDF)](docs/LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf)**
-* **🌐 [公式オンラインAPIリファレンス＆マニュアル (GitHub Pages)](https://irufemi.github.io/Irufemi/)**
+* **🌐 [公式オンラインAPIリファレンス＆マニュアル (GitHub Pages)](https://irufemi.github.io/GravityShooter/)**
   * ※PDF資料は本リポジトリの `docs/` ディレクトリ内に格納しています。
 
 ---
