@@ -126,6 +126,12 @@
 ### ⚡ 次世代パフォーマンス・アーキテクチャ最適化 (Next-Gen AAA Performance)
 - [x] **CollisionManager のスレッドセーフ化と Async Raycast の実装**
     - `shared_mutex` を用いたRead-Write Lockの導入と、ThreadPoolと連携した非同期物理クエリAPIの提供。（完了）
+- [x] **エンジン起動シーケンスのマルチスレッド並列化 (Parallel Engine Initialization Pipeline)**
+    - **実装完了**: 起動時にメインスレッドを長時間占有していたボトルネックを `ThreadPool` 連携により徹底解消。
+    - **PSO並列事前コンパイル**: `PSOManager::GetPSO` のロック戦略を改善し、DirectX 12ドライバによるJITコンパイルおよびディスクキャッシュ処理をロックフリーで並列実行可能に改修。`PreWarmCommonPSOs(ThreadPool*)` により70個超のPSOを全CPUコアで並列コンパイル。
+    - **音声PCM並列デコード**: `AudioManager::LoadAllSoundsFromFolder` を `ThreadPool` + `TaskGroup` に対応させ、Media Foundationによる重いPCMデコード処理をワーカースレッド群へ並列分散。ワーカースレッドのCOM MTA初期化を保証し、`registryMutex_` で内部レジストリを保護。
+    - **低レイテンシ同期プリミティブ**: `TaskGroup` に `std::condition_variable` を用いた高効率な `Wait()` メソッドを新設し、CPU 100%スピンのないブロック待機を標準化。
+    - **起動初動ストール防止**: 起動第1フレームにおける無駄なスワップチェーン再生成・二重 `WaitForGPU` をスキップするガードを導入。
 - [ ] **Bindless Resources (Descriptor Indexing) の完全移行完了**
     - 全テクスチャ/リソースを巨大な Descriptor Heap に格納し、Shader にインデックス(uint)だけを渡す方式へ移行。
     - **進行状況**: C++基盤、および `Application_solo` / `Application_team` 双方のほぼすべてのHLSLファイルの移行が完了。

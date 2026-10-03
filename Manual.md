@@ -760,6 +760,29 @@ if (auto target = targetObject_.lock()) { // lock()で生存確認
 
 - **新規オブジェクトの生成**: 新しいオブジェクトをシーンにスポーンさせる場合、`scene->AddGameObject(obj)` は内部でスレッドセーフなキュー(`pendingAdds_`)に積まれるため、Update 中に呼んでも安全です。
 - **オブジェクトの破棄**: `gameObject_->Destroy()` も破棄フラグ (`isDestroyed_`) を立てるだけなので、Update 中に呼んでも安全です（次フレームの開始前に一括削除されます）。
+
+#### 2.3.3 ThreadPool と TaskGroup による並列タスク実行と待機
+重いアセットのデコードや大量の計算をマルチスレッドで並列実行し、すべてのタスクが完了するまで安全にブロック待機したい場合は、`ThreadPool` と `TaskGroup` を組み合わせて使用します。
+
+```cpp
+#include "Core/System/ThreadPool.h"
+#include "Core/System/TaskGroup.h"
+
+auto threadPool = engine_->GetThreadPool();
+auto taskGroup = std::make_shared<TaskGroup>();
+
+// 1. タスクグループを指定してワーカースレッドへタスクを並列投入
+for (int i = 0; i < 100; ++i) {
+    threadPool->Enqueue(taskGroup, [i]() {
+        // 重い計算やファイルデコードなど...
+    });
+}
+
+// 2. 全タスクが完了するまで低レイテンシで高効率にブロック待機
+// （std::condition_variable により、CPU 100%スピンせず全完了の瞬間に起床します）
+taskGroup->Wait();
+```
+
 ### 2.4 Data-Oriented Design (DOD) と ComponentPool
 
 コンポーネントシステムにおいて、同じ種類のコンポーネントを連続したメモリ空間（プール）に配置し、CPUキャッシュヒット率を劇的に向上させるための最適化の仕組みです。
@@ -1952,20 +1975,25 @@ ResourceHandle handle = engine_->GetModelManager()->LoadModel("enemy/enemy.obj")
 
 ### 6.3 AudioManager (サウンド管理)
 BGMやSEの再生・停止・音量調節を行います。
+内部マップ（レジストリ）はミューテックスによりスレッドセーフに保護されており、`ThreadPool` を渡すことで全コアによる並列PCMデコードが可能です。
 
 ```cpp
 // 1. サウンドの事前ロード
 engine_->GetAudioManager()->GetOrLoadSoundByFile("resources/audio/bgm_title.wav");
 
-// 2. フォルダごとの一括ロード (カテゴリ分け)
+// 2. フォルダごとの一括ロード (同期ロード)
 engine_->GetAudioManager()->LoadSoundsFromFolder("resources/audio/se", "SE");
 
-// 3. 再生
+// 3. 【高速化】ThreadPool を渡してマルチスレッド並列ロード（起動時やロード画面推奨）
+// ※ 全CPUコアのワーカースレッドへPCMデコードを分散し、ロード完了まで高速に並列待機します。
+engine_->GetAudioManager()->LoadAllSoundsFromFolder("resources/audio", engine_->GetThreadPool());
+
+// 4. 再生
 auto soundData = engine_->GetAudioManager()->GetOrLoadSoundByFile("resources/audio/bgm_title.wav");
 // (サウンドデータ, ループフラグ, 音量 0.0f~1.0f)
 std::weak_ptr<VoiceInstance> voice = engine_->GetAudioManager()->Play(soundData, true, 0.8f);
 
-// 4. 停止
+// 5. 停止
 engine_->GetAudioManager()->Stop(voice);
 ```
 
