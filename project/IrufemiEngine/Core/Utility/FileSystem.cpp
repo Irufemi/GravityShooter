@@ -58,6 +58,35 @@ std::string FileSystem::GetResourcePath(const std::string& relativePath) {
     return fullPath;
 }
 
+std::string FileSystem::GetCachePath(const std::string& relativePath) {
+    std::string path = "generated/cache";
+    if (!relativePath.empty()) {
+        std::string sub = relativePath;
+        // 先頭のスラッシュを除去
+        if (sub.find("./") == 0) {
+            sub = sub.substr(2);
+        }
+        if (sub.find("/") == 0 || sub.find("\\") == 0) {
+            sub = sub.substr(1);
+        }
+        path += "/" + sub;
+    }
+
+    std::string fullPath = projectRoot_ + "/" + path;
+    std::replace(fullPath.begin(), fullPath.end(), '\\', '/');
+
+    // キャッシュ保存先ディレクトリが存在しない場合は自動作成して整合性を担保
+    std::error_code ec;
+    fs::path fsPath(fullPath);
+    if (fsPath.has_extension()) {
+        fs::create_directories(fsPath.parent_path(), ec);
+    } else {
+        fs::create_directories(fsPath, ec);
+    }
+
+    return fullPath;
+}
+
 std::string FileSystem::GetLogPath() {
     std::string path = projectRoot_ + "/Logs";
     std::replace(path.begin(), path.end(), '\\', '/');

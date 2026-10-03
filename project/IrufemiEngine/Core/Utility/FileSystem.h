@@ -30,6 +30,13 @@ public:
     static std::string GetResourcePath(const std::string& relativePath);
 
     /**
+     * @brief キャッシュ・派生データ（generated/cache/）の保存先パスを取得します
+     * @param relativePath "generated/cache/" 配下の相対パス（例: "shaders"）
+     * @return 正規化されたキャッシュディレクトリパス
+     */
+    static std::string GetCachePath(const std::string& relativePath = "");
+
+    /**
      * @brief ログ保存先の絶対パスを取得します
      */
     static std::string GetLogPath();
