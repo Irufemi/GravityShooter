@@ -36,5 +36,5 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git commit -am "style: auto format by clang-format [skip ci]"
-          git push
+          git push || echo "::warning title=Branch Protection::Direct push was skipped due to branch protection rules. Please format code locally if needed."
 
