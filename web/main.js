@@ -124,11 +124,24 @@ std::vector<VirtualEntityData> denseEntities_; // 密配列でCPUキャッシュ
       `
     },
     'post-process': {
-      title: 'AAA級ポストプロセス（Dual Kawase Bloom & ゴッドレイ）',
+      title: 'AAA級ポストプロセスパイプライン（実機運用 ＆ 拡張エフェクト群）',
       subtitle: 'IrufemiEngine/Renderer/PostProcess/PostProcessManager.h',
       githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/IrufemiEngine/Renderer/PostProcess/PostProcessManager.h',
       content: `
-        <p>モバイルおよび最新コンソールゲームで採用される <strong>Dual Kawase Blur</strong> を実装。従来のGaussian Blurに比べて極めて少ないパス数で滑らかかつ広範囲の発光（青白いエネルギーグロー）を実現。さらにラジアルブラーと輝度抽出を組み合わせたボリュメトリック・ゴッドレイ（光条）を合成しています。</p>
+        <p>ゲームのグラフィックス品質を決定づけるポストプロセス基盤。本編のリアルタイム運用（完全60FPS）と、エンジンとしての多彩な拡張性を両立しています。</p>
+        <h4>🎮 ゲーム本編（InGame）での常時稼働パイプライン</h4>
+        <ul>
+          <li><strong>高輝度抽出＋2パス分離Bloom:</strong> 閾値（Threshold）以上の輝度を抽出し、水平（H）/垂直（V）の2パスガウシアンブラーを経て加算合成。レーザーや敵弾・ネオン発光の美しい光の滲みを低負荷で実現。</li>
+          <li><strong>ACES Color Grading:</strong> ACES（Academy Color Encoding System）トーンマッピングおよびHSV彩度・露出補正により、黒潰れ・白飛びを防ぎ映画的なコントラストを生成。</li>
+          <li><strong>Vignette（周辺減光）:</strong> 画面外周を緩やかに減光し、プレイヤーの視線を画面中央のレティクル・敵機へ自然に集中。</li>
+          <li><strong>GlobalPostProcessVolume:</strong> シーン単位で動的にポストプロセスパラメータを制御・シリアライズするVolume Framework設計。</li>
+        </ul>
+        <h4>⚡ エンジン基盤に搭載された高度な拡張エフェクト群</h4>
+        <ul>
+          <li><strong>Dual Kawase Blur:</strong> <code>DualKawaseDownsample.PS.hlsl</code> / <code>DualKawaseUpsample.PS.hlsl</code> を用いたピラミッド型ダウン/アップサンプリングにより、極小パスで画面全体への超広範囲ブラーを提供。</li>
+          <li><strong>ゴッドレイ（LightShafts）:</strong> 深度バッファからオクルージョン（遮蔽）を判定し、放射状ラジアルブラーによって太陽や高エネルギー光源から漏れる光条を合成。</li>
+          <li><strong>演出用シェーダー:</strong> 敵撃破時のディゾルブ（Dissolve）、被弾時のグリッチ（Glitch）、被写界深度（DoF）などを完備。</li>
+        </ul>
       `
     },
     'telemetry-monitor': {
