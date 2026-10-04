@@ -1,6 +1,7 @@
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 
 #include "Scenes/title/TitleCosmicNebulaComponent.h"
+#include "Framework/Component/Audio/AudioSourceComponent.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
@@ -246,12 +247,24 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
     // 出撃重力チャージSE再生
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            auto sound = am->GetOrLoadSoundByFile("resources/audio/se_player_boost.wav", "se_player_boost");
+            auto sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.wav", "se_player_boost");
             if (!sound) {
-                sound = am->GetOrLoadSoundByFile("resources/audio/se_menu_decision.wav", "se_menu_decision");
+                sound = am->GetOrLoadSoundByFile("resources/audio/se_player_boost.wav", "se_player_boost");
+            }
+            if (!sound) {
+                sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_menu_decide.wav", "se_menu_decide");
             }
             if (sound) {
-                am->Play(sound, false, 0.9f);
+                am->Play(sound, false, 0.9f, AudioCategory::SE);
+            }
+        }
+    }
+
+    // タイトルBGMを停止（データ駆動で配置された BGMPlayer の AudioSourceComponent を停止）
+    if (auto scene = GetScene()) {
+        if (auto bgmObj = scene->FindGameObject("BGMPlayer")) {
+            if (auto audioSource = bgmObj->GetComponent<AudioSourceComponent>()) {
+                audioSource->Stop();
             }
         }
     }

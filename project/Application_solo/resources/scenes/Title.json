@@ -613,6 +613,44 @@
       "instanceId": 2000000000000000006,
       "name": "VirtualCursor",
       "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Audio Path": "audio/BGM/title_bgm.mp3",
+            "Audio Type (0:BGM, 1:SE)": 0,
+            "Loop": true,
+            "Play On Awake": true,
+            "Volume": 0.699999988079071
+          },
+          "type": "AudioSourceComponent"
+        }
+      ],
+      "instanceId": 2000000000000000007,
+      "name": "BGMPlayer",
+      "tag": "Untagged"
     }
   ],
   "settings": {

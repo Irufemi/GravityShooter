@@ -4,14 +4,21 @@
 #include <chrono>
 
 namespace {
-// UIサウンドのファイルパスとキーの一元管理定数
-constexpr const char* kPathCursor = "resources/audio/se_menu_cursor.wav";
+// UIサウンドのファイルパスとキーの一元管理定数（resources/audio/SE/ 階層）
+constexpr const char* kPathCursor = "resources/audio/SE/se_menu_cursor.wav";
+constexpr const char* kPathCursorLegacy = "resources/audio/se_menu_cursor.wav";
 constexpr const char* kKeyCursor = "se_menu_cursor";
 constexpr float kBaseVolCursor = 0.6f;
 
-constexpr const char* kPathDecide = "resources/audio/se_menu_decide.wav";
+constexpr const char* kPathDecide = "resources/audio/SE/se_menu_decide.wav";
+constexpr const char* kPathDecideLegacy = "resources/audio/se_menu_decide.wav";
 constexpr const char* kKeyDecide = "se_menu_decide";
 constexpr float kBaseVolDecide = 0.9f;
+
+constexpr const char* kPathCancel = "resources/audio/SE/se_menu_cancel.wav";
+constexpr const char* kPathCancelLegacy = "resources/audio/se_menu_cancel.wav";
+constexpr const char* kKeyCancel = "se_menu_cancel";
+constexpr float kBaseVolCancel = 0.6f;
 
 AudioManager* s_audioManager = nullptr;
 
@@ -19,12 +26,15 @@ AudioManager* s_audioManager = nullptr;
 auto s_lastCursorPlayTime = std::chrono::steady_clock::now() - std::chrono::seconds(10);
 constexpr auto kCursorThrottlingInterval = std::chrono::milliseconds(45); // 45ms以内の再発音はスキップ
 
-void PlayOneShot(const char* filePath, const char* soundKey, float baseVolume, float multiplier) {
+void PlayOneShot(const char* filePath, const char* legacyPath, const char* soundKey, float baseVolume, float multiplier) {
     if (!s_audioManager) {
         return;
     }
 
     auto soundData = s_audioManager->GetOrLoadSoundByFile(filePath, soundKey);
+    if (!soundData && legacyPath) {
+        soundData = s_audioManager->GetOrLoadSoundByFile(legacyPath, soundKey);
+    }
     if (!soundData) {
         return;
     }
@@ -45,6 +55,7 @@ void Preload() {
     if (s_audioManager) {
         s_audioManager->GetOrLoadSoundByFile(kPathCursor, kKeyCursor);
         s_audioManager->GetOrLoadSoundByFile(kPathDecide, kKeyDecide);
+        s_audioManager->GetOrLoadSoundByFile(kPathCancel, kKeyCancel);
     }
 }
 
@@ -55,21 +66,21 @@ void PlayCursor(float volumeMultiplier) {
     }
     s_lastCursorPlayTime = now;
 
-    PlayOneShot(kPathCursor, kKeyCursor, kBaseVolCursor, volumeMultiplier);
+    PlayOneShot(kPathCursor, kPathCursorLegacy, kKeyCursor, kBaseVolCursor, volumeMultiplier);
 }
 
 void PlayDecide(float volumeMultiplier) {
-    PlayOneShot(kPathDecide, kKeyDecide, kBaseVolDecide, volumeMultiplier);
+    PlayOneShot(kPathDecide, kPathDecideLegacy, kKeyDecide, kBaseVolDecide, volumeMultiplier);
 }
 
 void PlayCancel(float volumeMultiplier) {
-    // キャンセル専用WAVがない場合はカーソル音をやや控えめに再生
-    PlayOneShot(kPathCursor, kKeyCursor, 0.5f, volumeMultiplier);
+    // キャンセル専用WAVがある場合は優先、無ければカーソル音で代替
+    PlayOneShot(kPathCancel, kPathCursor, kKeyCancel, kBaseVolCancel, volumeMultiplier);
 }
 
 void PlayInvalid(float volumeMultiplier) {
     // 選択不能・エラー音（現状はカーソル音を低音量で代替）
-    PlayOneShot(kPathCursor, kKeyCursor, 0.35f, volumeMultiplier);
+    PlayOneShot(kPathCursor, kPathCursorLegacy, kKeyCursor, 0.35f, volumeMultiplier);
 }
 
 } // namespace UISound
