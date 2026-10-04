@@ -56,7 +56,6 @@ private:
     void UpdateVirtualCursor(float deltaTime);
     void UpdateSliderDrag();
     void UpdateValueTexts();
-    void PlaySE(const std::string& filePath, const std::string& key, float volume = 0.7f);
 
     // キャッシュしたUIコンポーネント参照
     SliderComponent* sliderBGM_ = nullptr;
@@ -101,9 +100,4 @@ private:
     UIRect rectSliderBGM_{640.0f, 210.0f, 210.0f, 35.0f};
     UIRect rectSliderSE_{640.0f, 320.0f, 210.0f, 35.0f};
     UIRect rectSliderSensitivity_{640.0f, 430.0f, 210.0f, 35.0f};
-
-    // 音声パス（ゲームアセット）
-    std::string seCancelPath_ = "resources/audio/se_menu_cancel.wav";
-    std::string seDecidePath_ = "resources/audio/se_menu_decide.wav";
-    std::string seCursorPath_ = "resources/audio/se_menu_cursor.wav";
 };

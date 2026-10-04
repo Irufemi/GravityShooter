@@ -4,11 +4,13 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
+#include "Framework/Component/Renderer/TextRendererComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
 #include "Framework/Scene/SceneTransition.h"
 #include "Renderer/Camera/CameraManager.h"
 #include "Renderer/Camera/Camera.h"
+#include <algorithm>
 
 void ButtonComponent::OnRegisterProperties() {
     RegisterProperty("Normal Color", &normalColor_);
@@ -26,44 +28,61 @@ void ButtonComponent::Initialize() {
 void ButtonComponent::OnAwake() {
     if (gameObject_) {
         sprite_ = gameObject_->GetComponent<SpriteRendererComponent>();
+        text_ = gameObject_->GetComponent<TextRendererComponent>();
     }
 }
 
-bool ButtonComponent::CheckBounds(const Irufemi::Vector2& mousePos) {
-    if (!GetTransform() || !sprite_) {
+bool ButtonComponent::CheckBounds(const Irufemi::Vector2& cursorPos) {
+    if (!GetTransform()) {
         return false;
     }
 
     Irufemi::Vector3 pos = GetTransform()->GetWorldPosition();
     Irufemi::Vector3 scale = GetTransform()->GetWorldScale();
 
-    auto* s = sprite_->GetSprite();
-    if (!s) {
-        return false;
+    // 1. TextRendererComponent が存在する場合：文字幾何バウンディングボックスから判定
+    if (text_) {
+        const auto& minB = text_->GetLocalBoundsMin();
+        const auto& maxB = text_->GetLocalBoundsMax();
+        if (minB.x != maxB.x && minB.y != maxB.y) {
+            float width = (maxB.x - minB.x) * hitboxScale_.x;
+            float height = (maxB.y - minB.y) * hitboxScale_.y;
+            float centerX = pos.x + (minB.x + maxB.x) * 0.5f * scale.x;
+            float centerY = pos.y + (minB.y + maxB.y) * 0.5f * scale.y;
+            float halfW = width * 0.5f * scale.x;
+            float halfH = height * 0.5f * scale.y;
+
+            return (cursorPos.x >= centerX - halfW && cursorPos.x <= centerX + halfW &&
+                    cursorPos.y >= centerY - halfH && cursorPos.y <= centerY + halfH);
+        }
     }
 
-    // スプライトのアンカーとサイズを取得
-    Irufemi::Vector2 anchor = s->GetAnchor();
-    Irufemi::Vector2 baseSize = s->GetSize();
+    // 2. SpriteRendererComponent が存在する場合：スプライト矩形から判定
+    if (sprite_ && sprite_->GetSprite()) {
+        auto* s = sprite_->GetSprite();
+        Irufemi::Vector2 anchor = s->GetAnchor();
+        Irufemi::Vector2 baseSize = s->GetSize();
 
-    // Hitbox Scale を加味した幅・高さを算出
-    // （※sprite_->GetSize() は既に Irufemi::Transform の Scale が適用された描画上のサイズを返すため、
-    //  ここでは scale.x/y を二重に掛けないようにする）
-    float width = baseSize.x * hitboxScale_.x;
-    float height = baseSize.y * hitboxScale_.y;
+        float width = baseSize.x * hitboxScale_.x;
+        float height = baseSize.y * hitboxScale_.y;
 
-    // アンカー位置を加味して当たり判定矩形を計算
-    // （例えば anchor が 0.5 の場合、pos が中心になる）
-    float left = pos.x - width * anchor.x;
-    float right = pos.x + width * (1.0f - anchor.x);
-    float top = pos.y - height * anchor.y;
-    float bottom = pos.y + height * (1.0f - anchor.y);
+        float left = pos.x - width * anchor.x;
+        float right = pos.x + width * (1.0f - anchor.x);
+        float top = pos.y - height * anchor.y;
+        float bottom = pos.y + height * (1.0f - anchor.y);
 
-    return (mousePos.x >= left && mousePos.x <= right && mousePos.y >= top && mousePos.y <= bottom);
+        return (cursorPos.x >= left && cursorPos.x <= right && cursorPos.y >= top && cursorPos.y <= bottom);
+    }
+
+    // 3. 描画コンポーネントが無い場合：Transformのスケールを透明ヒットボックスとして判定
+    float halfW = scale.x * 0.5f * hitboxScale_.x;
+    float halfH = scale.y * 0.5f * hitboxScale_.y;
+    return (cursorPos.x >= pos.x - halfW && cursorPos.x <= pos.x + halfW &&
+            cursorPos.y >= pos.y - halfH && cursorPos.y <= pos.y + halfH);
 }
 
 void ButtonComponent::Update() {
-    if (!sprite_ || !gameObject_) {
+    if (!gameObject_) {
         return;
     }
 
@@ -77,32 +96,41 @@ void ButtonComponent::Update() {
     }
 
     auto input = engine->GetInputManager();
-    auto cameraManager = engine->GetCameraManager();
-    if (!input || !cameraManager || !cameraManager->GetActiveCamera()) {
+    if (!input) {
         return;
     }
 
-    Irufemi::Vector2 mousePos = input->GetMousePosition();
-    Irufemi::Vector2 uiPos = cameraManager->GetActiveCamera()->ScreenToUIPosition(mousePos);
+    // 統合仮想カーソル（マウス/ゲームパッド自動調停）のUI座標を取得
+    const Irufemi::Vector2& cursorPos = input->GetVirtualCursorPosition();
 
-    isHovered_ = CheckBounds(uiPos);
+    isHovered_ = CheckBounds(cursorPos);
     isClicked_ = false;
 
-    // アニメーターの更新（UIアニメーションのため非スケールデルタタイムを適用）
+    // アニメーターの更新
     animator_.Update(engine->GetDeltaTime());
+
+    // 色適用用ラムダ
+    auto applyColor = [this](const Irufemi::Vector4& col) {
+        if (sprite_ && sprite_->GetSprite()) {
+            sprite_->GetSprite()->SetColor(col);
+        }
+        if (text_) {
+            text_->SetColor(col);
+        }
+    };
 
     if (isHovered_) {
         // ホバーした瞬間に押下されたらフラグを立てる
-        if (input->IsMouseButtonPressed(Mouse::Button::Left)) {
+        if (input->IsCursorActionPressed()) {
             isPressedOnButton_ = true;
         }
 
-        if (input->IsMouseButtonDown(Mouse::Button::Left)) {
+        if (input->IsCursorActionDown()) {
             // 押下中（ボタン上で押下開始した場合のみ色を変える）
             if (isPressedOnButton_) {
-                sprite_->GetSprite()->SetColor(clickColor_);
+                applyColor(clickColor_);
             } else {
-                sprite_->GetSprite()->SetColor(normalColor_);
+                applyColor(normalColor_);
             }
         } else {
             // ホバー中
@@ -111,10 +139,10 @@ void ButtonComponent::Update() {
                 float animAlpha = animator_.GetPulseAlpha(0.7f, 0.3f, 5.0f);
                 color.w *= animAlpha;
             }
-            sprite_->GetSprite()->SetColor(color);
+            applyColor(color);
 
-            // 離された瞬間（クリック完了）
-            if (input->IsMouseButtonReleased(Mouse::Button::Left) && isPressedOnButton_) {
+            // 離された瞬間（同一ボタン上でのクリック完了）
+            if (input->IsCursorActionReleased() && isPressedOnButton_) {
                 isClicked_ = true;
                 if (onClickCallback_) {
                     onClickCallback_();
@@ -125,18 +153,16 @@ void ButtonComponent::Update() {
         // 通常状態（待機中）
         Irufemi::Vector4 color = normalColor_;
         if (enableIdlePulse_) {
-            // PromptControllerと同じパルスアニメーション（ベース0.6、振幅0.4、速度3.0）
             float animAlpha = animator_.GetPulseAlpha(0.6f, 0.4f, 3.0f);
             color.w *= animAlpha;
         } else {
-            // アニメーション無効時はリセットしておく
             animator_.Reset();
         }
-        sprite_->GetSprite()->SetColor(color);
+        applyColor(color);
     }
 
-    // どこかでマウスが離されたらフラグをリセットする
-    if (input->IsMouseButtonReleased(Mouse::Button::Left)) {
+    // どこかでカーソルアクションが離されたら押下フラグを安全にリセット
+    if (input->IsCursorActionReleased()) {
         isPressedOnButton_ = false;
     }
 }

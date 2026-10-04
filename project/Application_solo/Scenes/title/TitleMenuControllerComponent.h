@@ -80,7 +80,6 @@ private: // 内部処理
     void UpdateVirtualCursor(float deltaTime);
     void UpdateButtonVisuals(float deltaTime);
     void ExecuteSelection();
-    void PlaySE(const std::string& relativePath, const std::string& soundName, float volume = 0.8f);
 
     /**
      * @brief カーソル座標が指定インデックスのボタン幾何領域内（動的スケール・バウンディングボックス反映）にあるか判定する

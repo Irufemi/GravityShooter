@@ -114,6 +114,9 @@
     <ClCompile Include="UI\PromptController.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="UI\UISound.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
     <ClCompile Include="Core\main.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -274,6 +277,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UI\PromptController.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UISound.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\GameApplication.h">

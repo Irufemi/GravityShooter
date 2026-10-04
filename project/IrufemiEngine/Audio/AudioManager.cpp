@@ -10,6 +10,7 @@
 #include <iostream>
 #include "Framework/Utility/CVar.h"
 #include "Core/Utility/Log.h"
+#include "Core/Utility/FileSystem.h"
 
 #pragma comment(lib, "xaudio2.lib")
 #pragma comment(lib, "Mf.lib")
@@ -56,7 +57,18 @@ void AudioManager::Initialize() {
     hr = pXAudio2_->CreateMasteringVoice(&pMasteringVoice_);
     ASSERT_IF_FAILED(hr);
 
-    // マスターボリュームの変更時コールバックを登録（初期値もSetOnChangeCallbackにより即時適用される）
+    // 階層型サブミックス・バス（Audio Submix Graph）の構築
+    // BGM, SE, UI 用のサブミックスボイスを生成（自動でMasteringVoiceへルーティング）
+    hr = pXAudio2_->CreateSubmixVoice(&pSubmixBgm_, 2, 44100, 0, 0, nullptr, nullptr);
+    ASSERT_IF_FAILED(hr);
+
+    hr = pXAudio2_->CreateSubmixVoice(&pSubmixSe_, 2, 44100, 0, 0, nullptr, nullptr);
+    ASSERT_IF_FAILED(hr);
+
+    hr = pXAudio2_->CreateSubmixVoice(&pSubmixUi_, 2, 44100, 0, 0, nullptr, nullptr);
+    ASSERT_IF_FAILED(hr);
+
+    // CVar（コンソール変数）との自動データ同期コールバックを登録
     cachedMasterVolume_ = -1.0f;
     Irufemi::CVarSystem::SetOnChangeCallback("a.MasterVolume", [this]() {
         if (pMasteringVoice_) {
@@ -67,6 +79,48 @@ void AudioManager::Initialize() {
             }
         }
     });
+
+    cachedBgmVolume_ = -1.0f;
+    Irufemi::CVarSystem::SetOnChangeCallback("a.BGMVolume", [this]() {
+        if (pSubmixBgm_) {
+            float bgmVol = Irufemi::CVarSystem::GetFloat("a.BGMVolume");
+            if (bgmVol != cachedBgmVolume_) {
+                cachedBgmVolume_ = bgmVol;
+                pSubmixBgm_->SetVolume(bgmVol);
+            }
+        }
+    });
+
+    cachedSeVolume_ = -1.0f;
+    Irufemi::CVarSystem::SetOnChangeCallback("a.SEVolume", [this]() {
+        float seVol = Irufemi::CVarSystem::GetFloat("a.SEVolume");
+        if (seVol != cachedSeVolume_) {
+            cachedSeVolume_ = seVol;
+            if (pSubmixSe_) {
+                pSubmixSe_->SetVolume(seVol);
+            }
+            if (pSubmixUi_) {
+                pSubmixUi_->SetVolume(seVol);
+            }
+        }
+    });
+
+    // 初期音量の適用
+    if (pMasteringVoice_) {
+        cachedMasterVolume_ = Irufemi::CVarSystem::GetFloat("a.MasterVolume");
+        pMasteringVoice_->SetVolume(cachedMasterVolume_);
+    }
+    if (pSubmixBgm_) {
+        cachedBgmVolume_ = Irufemi::CVarSystem::GetFloat("a.BGMVolume");
+        pSubmixBgm_->SetVolume(cachedBgmVolume_);
+    }
+    if (pSubmixSe_) {
+        cachedSeVolume_ = Irufemi::CVarSystem::GetFloat("a.SEVolume");
+        pSubmixSe_->SetVolume(cachedSeVolume_);
+    }
+    if (pSubmixUi_) {
+        pSubmixUi_->SetVolume(cachedSeVolume_);
+    }
 }
 
 void AudioManager::Finalize() {
@@ -77,8 +131,24 @@ void AudioManager::Finalize() {
 
     // CVarコールバックの解除（ダングリング参照防止）
     Irufemi::CVarSystem::SetOnChangeCallback("a.MasterVolume", nullptr);
+    Irufemi::CVarSystem::SetOnChangeCallback("a.BGMVolume", nullptr);
+    Irufemi::CVarSystem::SetOnChangeCallback("a.SEVolume", nullptr);
 
     StopAll(); // すべてのVoiceを安全に停止＆Destroy
+
+    // サブミックスボイスの破棄（MasteringVoiceより先に破棄）
+    if (pSubmixUi_) {
+        pSubmixUi_->DestroyVoice();
+        pSubmixUi_ = nullptr;
+    }
+    if (pSubmixSe_) {
+        pSubmixSe_->DestroyVoice();
+        pSubmixSe_ = nullptr;
+    }
+    if (pSubmixBgm_) {
+        pSubmixBgm_->DestroyVoice();
+        pSubmixBgm_ = nullptr;
+    }
 
     if (pMasteringVoice_) {
         pMasteringVoice_->DestroyVoice();
@@ -112,9 +182,14 @@ void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath, Thread
         categoryMap_.clear();
     }
     namespace fs = std::filesystem;
-    if (!fs::exists(folderPath) || !fs::is_directory(folderPath)) {
-        Log::OutPutLog(std::cerr,
-                       "[AudioManager] Warning: Sound folder not found or is not a directory: " + folderPath + "\n");
+    std::string targetPath = folderPath;
+    if (!fs::exists(targetPath) || !fs::is_directory(targetPath)) {
+        targetPath = FileSystem::GetResourcePath(folderPath);
+    }
+    if (!fs::exists(targetPath) || !fs::is_directory(targetPath)) {
+        // オプショナルなディレクトリのため、存在しない場合は安全にスキップ
+        Log::OutPutLog(std::cout,
+                       "[AudioManager] Info: Bulk sound directory not found (skipping bulk preload): " + folderPath + "\n");
         return;
     }
 
@@ -123,7 +198,7 @@ void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath, Thread
         taskGroup = std::make_shared<TaskGroup>();
     }
 
-    for (const auto& entry : fs::directory_iterator(folderPath)) {
+    for (const auto& entry : fs::directory_iterator(targetPath)) {
         if (entry.is_directory()) {
             std::string category = entry.path().filename().string();
             LoadSoundsFromFolder(entry.path().string(), category, threadPool, taskGroup);
@@ -231,6 +306,62 @@ std::vector<std::string> AudioManager::GetCategories() const {
     return cats;
 }
 
+IXAudio2SubmixVoice* AudioManager::GetSubmixVoice(AudioCategory category) const {
+    switch (category) {
+    case AudioCategory::BGM:
+        return pSubmixBgm_;
+    case AudioCategory::SE:
+        return pSubmixSe_;
+    case AudioCategory::UI:
+        return pSubmixUi_;
+    case AudioCategory::Master:
+    default:
+        return nullptr;
+    }
+}
+
+void AudioManager::SetCategoryVolume(AudioCategory category, float volume) {
+    float clampedVol = std::clamp(volume, 0.0f, 1.0f);
+    if (category == AudioCategory::Master) {
+        if (pMasteringVoice_) {
+            pMasteringVoice_->SetVolume(clampedVol);
+            cachedMasterVolume_ = clampedVol;
+        }
+        Irufemi::CVarSystem::SetFloat("a.MasterVolume", clampedVol);
+    } else if (category == AudioCategory::BGM) {
+        if (pSubmixBgm_) {
+            pSubmixBgm_->SetVolume(clampedVol);
+            cachedBgmVolume_ = clampedVol;
+        }
+        Irufemi::CVarSystem::SetFloat("a.BGMVolume", clampedVol);
+    } else if (category == AudioCategory::SE) {
+        if (pSubmixSe_) {
+            pSubmixSe_->SetVolume(clampedVol);
+            cachedSeVolume_ = clampedVol;
+        }
+        Irufemi::CVarSystem::SetFloat("a.SEVolume", clampedVol);
+    } else if (category == AudioCategory::UI) {
+        if (pSubmixUi_) {
+            pSubmixUi_->SetVolume(clampedVol);
+        }
+    }
+}
+
+float AudioManager::GetCategoryVolume(AudioCategory category) const {
+    switch (category) {
+    case AudioCategory::Master:
+        return Irufemi::CVarSystem::GetFloat("a.MasterVolume");
+    case AudioCategory::BGM:
+        return Irufemi::CVarSystem::GetFloat("a.BGMVolume");
+    case AudioCategory::SE:
+        return Irufemi::CVarSystem::GetFloat("a.SEVolume");
+    case AudioCategory::UI:
+        return Irufemi::CVarSystem::GetFloat("a.SEVolume");
+    default:
+        return 1.0f;
+    }
+}
+
 std::weak_ptr<VoiceInstance> AudioManager::Play(std::shared_ptr<Sound> soundData, bool loop, float volume,
                                                 AudioCategory category) {
     if (finalized_) {
@@ -242,13 +373,28 @@ std::weak_ptr<VoiceInstance> AudioManager::Play(std::shared_ptr<Sound> soundData
 
     auto callback = std::make_unique<VoiceCallback>();
     IXAudio2SourceVoice* pSourceVoice{nullptr};
+
+    // 階層型サブミックス・バスへのルーティング設定（SendList）
+    IXAudio2SubmixVoice* targetSubmix = GetSubmixVoice(category);
+    XAUDIO2_VOICE_SENDS sendList{};
+    XAUDIO2_SEND_DESCRIPTOR sendDesc{};
+    const XAUDIO2_VOICE_SENDS* pSendList = nullptr;
+
+    if (targetSubmix) {
+        sendDesc.Flags = 0;
+        sendDesc.pOutputVoice = targetSubmix;
+        sendList.SendCount = 1;
+        sendList.pSends = &sendDesc;
+        pSendList = &sendList;
+    }
+
     HRESULT hr = pXAudio2_->CreateSourceVoice(&pSourceVoice, soundData->GetFormat(), 0, XAUDIO2_DEFAULT_FREQ_RATIO,
-                                              callback.get());
+                                              callback.get(), pSendList, nullptr);
     if (FAILED(hr) || !pSourceVoice) {
         return {};
     }
 
-    // 音量を設定
+    // 音量を設定（バス全体の音量はSubmixVoice側で自動乗算されるため、個別サウンド基準音量のみを適用）
     pSourceVoice->SetVolume(volume);
 
     // 再生するオーディオバッファの準備

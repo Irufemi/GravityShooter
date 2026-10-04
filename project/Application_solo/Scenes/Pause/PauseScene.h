@@ -54,8 +54,15 @@ private:
     void UpdateInput(float deltaTime);
     void UpdateSelectionVisuals(float deltaTime);
     void ExecuteAction(MenuItem item);
-    void PlaySE(const std::string& filePath, const std::string& key, float volume = 0.7f);
     void SetUIVisible(bool visible);
+
+    /**
+     * @brief カーソル座標が指定インデックスのメニュー項目の幾何領域内（動的スケール・バウンディングボックス反映）にあるか判定する
+     * @param[in] index 項目インデックス
+     * @param[in] cursorPos 判定するカーソル座標
+     * @return 領域内にある場合は true
+     */
+    bool IsCursorOverItem(int index, const Irufemi::Vector2& cursorPos) const;
 
     bool isSuspended_ = false;
 
@@ -71,15 +78,11 @@ private:
     std::vector<ItemData> menuItems_;
     int selectedIndex_ = 0;
     int lastHoveredIndex_ = -1;
+    int pressedItemIndex_ = -1;
 
     float openCooldownTimer_ = 0.2f;
     float originalBGMVolume_ = 1.0f;
 
     std::shared_ptr<GameObject> darkOverlayObj_;
     std::shared_ptr<GameObject> titleObj_;
-
-    // 音声パス
-    std::string seCancelPath_ = "resources/audio/se_menu_cancel.wav";
-    std::string seDecidePath_ = "resources/audio/se_menu_decide.wav";
-    std::string seCursorPath_ = "resources/audio/se_menu_cursor.wav";
 };

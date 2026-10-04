@@ -7,10 +7,13 @@
 
 class TransformComponent;
 class SpriteRendererComponent;
+class TextRendererComponent;
 
 /**
  * @class ButtonComponent
- * @brief マウスのホバー・クリックを判定し、色変更やシーン遷移を行うUIコンポーネント
+ * @brief スプライト画像またはテキストメッシュのホバー・クリックを自動判定する汎用UIコンポーネント
+ * @details 仮想カーソル（VirtualCursor）およびマウス入力の両対応、アンカー考慮のバウンディングボックス算出、
+ *          ホバー・押下アニメーション、およびクリック完了コールバックを提供します。
  */
 class ButtonComponent : public Component {
 public:
@@ -85,5 +88,6 @@ private:
     bool isClicked_ = false;         // クリックされた瞬間
     bool isPressedOnButton_ = false; // ボタン上で押下中かどうか
     SpriteRendererComponent* sprite_ = nullptr;
+    TextRendererComponent* text_ = nullptr;
     std::function<void()> onClickCallback_;
 };

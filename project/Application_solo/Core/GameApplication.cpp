@@ -41,6 +41,7 @@
 
 // UI
 #include "UI/LoadingScreen.h"
+#include "UI/UISound.h"
 
 // シーンのインクルード
 #include "Scenes/title/TitleScene.h"
@@ -231,6 +232,10 @@ void GameApplication::Run() {
     auto loadingScreen = std::make_shared<LoadingScreen>();
     loadingScreen->Initialize(engine.get());
     engine->SetLoadingScreen(loadingScreen);
+
+    // UIサウンドシステムの初期化・アセット事前ロード
+    UISound::Initialize(engine->GetAudioManager());
+    UISound::Preload();
 
     // シーンの登録
     engine->SetSceneRegistrar(RegisterScenes);

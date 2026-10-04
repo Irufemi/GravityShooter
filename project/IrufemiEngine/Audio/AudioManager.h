@@ -9,8 +9,9 @@
 #include <mutex>
 #include <wrl/client.h> // ComPtr用
 
-// IXAudio2SourceVoice構造体を前方宣言
+// IXAudio2SourceVoice構造体およびIXAudio2SubmixVoiceを前方宣言
 struct IXAudio2SourceVoice;
+struct IXAudio2SubmixVoice;
 class ThreadPool;
 class TaskGroup;
 
@@ -29,6 +30,11 @@ private:
     Microsoft::WRL::ComPtr<IXAudio2> pXAudio2_;
     IXAudio2MasteringVoice* pMasteringVoice_{nullptr}; ///< IUnknownを継承しないため生ポインタ管理
 
+    // 階層型サブミックス・バス（Audio Submix Graph）
+    IXAudio2SubmixVoice* pSubmixBgm_{nullptr}; ///< BGM専用バス
+    IXAudio2SubmixVoice* pSubmixSe_{nullptr};  ///< 効果音専用バス
+    IXAudio2SubmixVoice* pSubmixUi_{nullptr};  ///< UI効果音専用バス
+
     // ロードした音声データをファイル名をキーにして保持するマップ
     mutable std::mutex registryMutex_; ///< soundRegistry_ / categoryMap_ 保護用ミューテックス
     std::unordered_map<std::string, std::shared_ptr<Sound>> soundRegistry_;
@@ -43,8 +49,17 @@ private:
     // ファイナライズ済みフラグ
     bool finalized_{false};
 
-    // マスターボリュームのキャッシュ（不要なSetVolume呼び出し防止用）
+    // ボリュームキャッシュ（不要なSetVolume呼び出し防止用）
     float cachedMasterVolume_{-1.0f};
+    float cachedBgmVolume_{-1.0f};
+    float cachedSeVolume_{-1.0f};
+
+    /**
+     * @brief 指定カテゴリに対応するサブミックスボイスを取得する
+     * @param[in] category オーディオカテゴリ
+     * @return サブミックスボイスへのポインタ（Masterの場合はnullptr）
+     */
+    IXAudio2SubmixVoice* GetSubmixVoice(AudioCategory category) const;
 
     /**
      * @brief 管理対象のボイスかどうか判定する
@@ -54,6 +69,19 @@ private:
     bool IsManagedVoice(std::shared_ptr<VoiceInstance> instance) const;
 
 public:
+    /**
+     * @brief 指定したオーディオカテゴリのバス音量を設定する（再生中ボイスに即座に反映）
+     * @param[in] category 対象カテゴリ (Master, BGM, SE, UI)
+     * @param[in] volume 音量 (0.0f ～ 1.0f)
+     */
+    void SetCategoryVolume(AudioCategory category, float volume);
+
+    /**
+     * @brief 指定したオーディオカテゴリのバス音量を取得する
+     * @param[in] category 対象カテゴリ
+     * @return バス音量
+     */
+    float GetCategoryVolume(AudioCategory category) const;
     /**
      * @brief コンストラクタ
      */

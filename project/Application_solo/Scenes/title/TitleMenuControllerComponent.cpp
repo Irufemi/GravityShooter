@@ -11,6 +11,7 @@
 #include "Irufemi.h"
 #include "Platform/Input/InputManager.h"
 #include "Audio/AudioManager.h"
+#include "UI/UISound.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Input/GameAction.h"
 
@@ -99,7 +100,7 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
             (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) % static_cast<int>(buttonNames_.size());
 
         if (oldIndex != currentIndex_) {
-            PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
+            UISound::PlayCursor();
 
             // 目標スケールの更新
             for (size_t i = 0; i < targetScales_.size(); ++i) {
@@ -115,7 +116,7 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
         if (IsCursorOverButton(static_cast<int>(i), cursorPos)) {
             if (currentIndex_ != static_cast<int>(i)) {
                 currentIndex_ = static_cast<int>(i);
-                PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
+                UISound::PlayCursor();
                 for (size_t k = 0; k < targetScales_.size(); ++k) {
                     targetScales_[k] = (static_cast<int>(k) == currentIndex_) ? 1.15f : 0.95f;
                 }
@@ -178,7 +179,7 @@ void TitleMenuControllerComponent::ExecuteSelection() {
         return;
     }
 
-    PlaySE("resources/audio/se_menu_decide.wav", "se_menu_decide", 0.9f);
+    UISound::PlayDecide();
 
     switch (currentIndex_) {
     case 0: // GAME START
@@ -293,23 +294,6 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
                 sprite->SetColor({0.6f, 0.65f, 0.7f, 0.7f});
             }
         }
-    }
-}
-
-void TitleMenuControllerComponent::PlaySE(const std::string& relativePath, const std::string& soundName, float volume) {
-    auto engine = GetEngine();
-    if (!engine) {
-        return;
-    }
-
-    auto audioManager = engine->GetAudioManager();
-    if (!audioManager) {
-        return;
-    }
-
-    auto soundData = audioManager->GetOrLoadSoundByFile(relativePath, soundName);
-    if (soundData) {
-        audioManager->Play(soundData, false, volume);
     }
 }
 

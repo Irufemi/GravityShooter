@@ -11,6 +11,7 @@
 #include "Audio/Sound.h"
 #include "Renderer/Font/FontManager.h"
 #include "Framework/Utility/CVar.h"
+#include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
 
@@ -18,8 +19,6 @@ namespace {
 // メニュー項目のY座標
 constexpr float kMenuStartY = 260.0f;
 constexpr float kMenuItemSpacing = 68.0f;
-constexpr float kItemHalfWidth = 180.0f;
-constexpr float kItemHalfHeight = 30.0f;
 
 // カラー定数
 const Irufemi::Vector4 kColorSelected = {0.2f, 1.0f, 1.0f, 1.0f};     // 発光シアン
@@ -57,7 +56,7 @@ void PauseScene::Initialize(IrufemiEngine* engine) {
     CreateUIElements();
 
     // 突入時SE
-    PlaySE(seDecidePath_, "se_menu_pause", 0.75f);
+    UISound::PlayDecide(0.8f);
     openCooldownTimer_ = 0.2f;
 }
 
@@ -231,12 +230,10 @@ void PauseScene::UpdateInput(float deltaTime) {
     input->UpdateVirtualCursor(deltaTime);
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
-    // 2. マウス/仮想カーソルによるホバー判定
+    // 2. マウス/仮想カーソルによるホバー判定（動的Textバウンディングボックス＆スケール連動）
     int mouseHoveredIndex = -1;
     for (size_t i = 0; i < menuItems_.size(); ++i) {
-        float dy = std::abs(cursorPos.y - menuItems_[i].yPos);
-        float dx = std::abs(cursorPos.x - 640.0f);
-        if (dx <= kItemHalfWidth && dy <= kItemHalfHeight) {
+        if (IsCursorOverItem(static_cast<int>(i), cursorPos)) {
             mouseHoveredIndex = static_cast<int>(i);
             break;
         }
@@ -244,7 +241,7 @@ void PauseScene::UpdateInput(float deltaTime) {
 
     if (mouseHoveredIndex >= 0 && mouseHoveredIndex != selectedIndex_) {
         selectedIndex_ = mouseHoveredIndex;
-        PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
+        UISound::PlayCursor();
     }
 
     // 3. キーボード・ゲームパッドの上下移動判定
@@ -266,17 +263,32 @@ void PauseScene::UpdateInput(float deltaTime) {
     if (moveUp) {
         selectedIndex_ =
             (selectedIndex_ - 1 + static_cast<int>(menuItems_.size())) % static_cast<int>(menuItems_.size());
-        PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
+        UISound::PlayCursor();
     } else if (moveDown) {
         selectedIndex_ = (selectedIndex_ + 1) % static_cast<int>(menuItems_.size());
-        PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
+        UISound::PlayCursor();
     }
 
     // 4. 決定判定（論理アクション UI_Submit または カーソルクリック）
     bool isDecide = InputHelper::IsActionPressed(input, GameAction::UI_Submit);
 
-    if (mouseHoveredIndex >= 0 && input->IsCursorActionPressed()) {
-        isDecide = true;
+    // カーソル押下開始の追跡
+    if (input->IsCursorActionPressed()) {
+        pressedItemIndex_ = -1;
+        if (mouseHoveredIndex >= 0) {
+            pressedItemIndex_ = mouseHoveredIndex;
+            selectedIndex_ = mouseHoveredIndex;
+            isDecide = true; // 即時レスポンス
+        }
+    }
+
+    // 解放瞬間の確定（Drag-outキャンセル対応）
+    if (input->IsCursorActionReleased()) {
+        if (pressedItemIndex_ >= 0 && IsCursorOverItem(pressedItemIndex_, cursorPos)) {
+            selectedIndex_ = pressedItemIndex_;
+            isDecide = true;
+        }
+        pressedItemIndex_ = -1;
     }
 
     if (isDecide) {
@@ -315,30 +327,30 @@ void PauseScene::ExecuteAction(MenuItem item) {
 
     switch (item) {
     case MenuItem::Resume:
-        PlaySE(seCancelPath_, "se_menu_cancel", 0.7f);
+        UISound::PlayCancel();
         sm->PopScene();
         break;
 
     case MenuItem::Retry:
-        PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
+        UISound::PlayDecide();
         // 現在のインゲームシーンをリロード（スタックを破棄して再スタート）
         sm->LoadScene("InGame", SceneTransition::Type::Fade, 0.5f);
         break;
 
     case MenuItem::Options:
-        PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
+        UISound::PlayDecide();
         // ポーズ画面の上にOptionsSceneを重ねる
         sm->PushScene("OptionsScene");
         break;
 
     case MenuItem::Title:
-        PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
+        UISound::PlayDecide();
         // タイトル画面へ遷移
         sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.6f);
         break;
 
     case MenuItem::Quit:
-        PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
+        UISound::PlayDecide();
         PostQuitMessage(0);
         break;
 
@@ -347,14 +359,41 @@ void PauseScene::ExecuteAction(MenuItem item) {
     }
 }
 
-void PauseScene::PlaySE(const std::string& filePath, const std::string& key, float volume) {
-    if (!engine_) {
-        return;
+bool PauseScene::IsCursorOverItem(int index, const Irufemi::Vector2& cursorPos) const {
+    if (index < 0 || index >= static_cast<int>(menuItems_.size())) {
+        return false;
     }
-    if (auto am = engine_->GetAudioManager()) {
-        auto sound = am->GetOrLoadSoundByFile(filePath, key);
-        if (sound) {
-            am->Play(sound, false, volume, AudioCategory::UI);
-        }
+
+    const auto& item = menuItems_[index];
+    if (!item.gameObject || !item.textComp) {
+        return false;
     }
+
+    auto transform = item.gameObject->GetTransform();
+    if (!transform) {
+        return false;
+    }
+
+    const auto& pos = transform->GetPosition();
+    const auto& scale = transform->GetScale();
+    const auto& minB = item.textComp->GetLocalBoundsMin();
+    const auto& maxB = item.textComp->GetLocalBoundsMax();
+
+    // テキスト幾何バウンディングボックスが有効な場合
+    if (minB.x != maxB.x && minB.y != maxB.y) {
+        const float kPadX = 22.0f;
+        const float kPadY = 12.0f;
+
+        float left = pos.x + (minB.x - kPadX) * scale.x;
+        float right = pos.x + (maxB.x + kPadX) * scale.x;
+        float top = pos.y + (minB.y - kPadY) * scale.y;
+        float bottom = pos.y + (maxB.y + kPadY) * scale.y;
+
+        return (cursorPos.x >= left && cursorPos.x <= right && cursorPos.y >= top && cursorPos.y <= bottom);
+    }
+
+    // フォールバック
+    float halfW = 140.0f * scale.x;
+    float halfH = 26.0f * scale.y;
+    return (std::abs(cursorPos.x - pos.x) <= halfW && std::abs(cursorPos.y - pos.y) <= halfH);
 }

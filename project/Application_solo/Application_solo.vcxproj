@@ -292,6 +292,7 @@ exit 0</Command>
     <ClCompile Include="Editor\WaveManagerComponentEditor.cpp" />
     <ClCompile Include="Editor\GravityPlayerComponentEditor.cpp" />
     <ClCompile Include="Editor\BossComponentEditor.cpp" />
+    <ClCompile Include="UI\UISound.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\GameApplication.h" />
@@ -314,6 +315,7 @@ exit 0</Command>
     <ClInclude Include="Scenes\Options\OptionsScene.h" />
     <ClInclude Include="UI\LoadingScreen.h" />
     <ClInclude Include="UI\PromptController.h" />
+    <ClInclude Include="UI\UISound.h" />
     <ClInclude Include="RailMechanics\RailShooterPlayerComponent.h" />
     <ClInclude Include="RailMechanics\SplineFollowerComponent.h" />
     <ClInclude Include="RailMechanics\RailRelativeFollowerComponent.h" />

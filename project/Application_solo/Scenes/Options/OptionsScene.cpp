@@ -16,6 +16,7 @@
 #include "Platform/Input/InputManager.h"
 #include "Renderer/Font/FontManager.h"
 #include "Input/GameAction.h"
+#include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
 
@@ -79,7 +80,7 @@ void OptionsScene::Update() {
     // 1. 即時脱出判定 (Bボタン / ESC / BackSpace)
     // =========================================================================
     if (input->IsCancelPressed()) {
-        PlaySE(seCancelPath_, "se_menu_cancel", 0.7f);
+        UISound::PlayCancel();
         if (auto sm = engine->GetSceneManager()) {
             sm->PopScene();
         }
@@ -100,7 +101,7 @@ void OptionsScene::Update() {
     bool isDecidePressed = input->IsCursorActionPressed() || InputHelper::IsActionPressed(input, GameAction::UI_Submit);
 
     if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
-        PlaySE(seDecidePath_, "se_menu_decide", 0.9f);
+        UISound::PlayDecide();
         if (auto sm = engine->GetSceneManager()) {
             sm->PopScene();
         }
@@ -251,7 +252,7 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
     // ホバー対象が変わった瞬間にカーソルSE再生
     if (currentHovered != lastHoveredTarget_) {
         if (currentHovered != nullptr) {
-            PlaySE(seCursorPath_, "se_menu_cursor", 0.5f);
+            UISound::PlayCursor();
         }
         lastHoveredTarget_ = currentHovered;
     }
@@ -397,7 +398,7 @@ void OptionsScene::UpdateSliderDrag() {
     // ドラッグ終了
     if (isActionReleased && isDraggingSlider_) {
         if (draggingSlider_ == sliderSE_) {
-            PlaySE(seCursorPath_, "se_menu_cursor", 0.7f);
+            UISound::PlayCursor();
         }
         isDraggingSlider_ = false;
         draggingSlider_ = nullptr;
@@ -419,26 +420,4 @@ void OptionsScene::UpdateValueTexts() {
         int percent = static_cast<int>(std::round(sliderSensitivity_->GetValue() * 100.0f));
         valueTextSensitivity_->SetText(std::to_wstring(percent) + L"%");
     }
-}
-
-void OptionsScene::PlaySE(const std::string& filePath, const std::string& key, float volume) {
-    auto engine = GetEngine();
-    if (!engine) {
-        return;
-    }
-
-    auto audioManager = engine->GetAudioManager();
-    if (!audioManager) {
-        return;
-    }
-
-    auto sound = audioManager->GetOrLoadSoundByFile(filePath, key);
-    if (!sound) {
-        return;
-    }
-
-    float seVolumeMultiplier = Irufemi::CVarSystem::GetFloat("a.SEVolume");
-    float finalVolume = std::clamp(volume * seVolumeMultiplier, 0.0f, 1.0f);
-
-    audioManager->Play(sound, false, finalVolume, AudioCategory::UI);
 }
