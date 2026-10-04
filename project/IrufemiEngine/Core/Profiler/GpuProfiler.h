@@ -26,6 +26,11 @@ public:
     void Initialize(DirectXCommon* dxCommon);
 
     /**
+     * @brief 終了処理。クエリヒープおよびリードバックバッファを明示的に解放する
+     */
+    void Finalize();
+
+    /**
      * @brief コマンドリストの先頭（描画開始時）で呼び出し、開始タイムスタンプを記録する
      */
     void StartFrame(ID3D12GraphicsCommandList* commandList);

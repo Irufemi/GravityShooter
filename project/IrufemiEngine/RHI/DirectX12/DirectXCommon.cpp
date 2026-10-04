@@ -68,6 +68,12 @@ void DirectXCommon::Finalize() {
         commandManager_.reset();
     }
 
+    // GPUプロファイラのクエリヒープ・リードバックバッファを解放
+    if (gpuProfiler_) {
+        gpuProfiler_->Finalize();
+        gpuProfiler_.reset();
+    }
+
     // 全てのGPU処理が完了しているので、解放待ちのリソースを直ちに破棄する
     pendingResources_.clear();
 

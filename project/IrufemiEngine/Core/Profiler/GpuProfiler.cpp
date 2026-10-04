@@ -55,11 +55,19 @@ void GpuProfiler::Initialize(DirectXCommon* dxCommon) {
 }
 
 GpuProfiler::~GpuProfiler() {
+    Finalize();
+}
+
+void GpuProfiler::Finalize() {
     if (queryResultBuffer_ && mappedData_) {
         D3D12_RANGE writeRange = {0, 0};
         queryResultBuffer_->Unmap(0, &writeRange);
         mappedData_ = nullptr;
     }
+    queryResultBuffer_.Reset();
+    queryHeap_.Reset();
+    dxCommon_ = nullptr;
+    isInitialized_ = false;
 }
 
 void GpuProfiler::StartFrame(ID3D12GraphicsCommandList* commandList) {
