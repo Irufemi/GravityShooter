@@ -23,6 +23,7 @@
 
 void TitleMenuControllerComponent::Initialize() {
     currentIndex_ = 0;
+    pressedButtonIndex_ = -1;
     isHowToPlayOpen_ = false;
     isLaunching_ = false;
     stickCooldownTimer_ = 0.0f;
@@ -110,24 +111,16 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
 
     // --- 統合仮想カーソル（マウス / ゲームパッド左スティック）によるホバー検出 ---
     const auto& cursorPos = inputManager->GetVirtualCursorPosition();
-    if (auto scene = GetScene()) {
-        for (size_t i = 0; i < buttonNames_.size(); ++i) {
-            if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
-                if (auto transform = btnObj->GetComponent<TransformComponent>()) {
-                    const auto& pos = transform->GetPosition();
-                    // ボタンの当たり判定領域 (横幅 ±180px, 縦幅 ±25px)
-                    if (std::abs(cursorPos.x - pos.x) <= 180.0f && std::abs(cursorPos.y - pos.y) <= 25.0f) {
-                        if (currentIndex_ != static_cast<int>(i)) {
-                            currentIndex_ = static_cast<int>(i);
-                            PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
-                            for (size_t k = 0; k < targetScales_.size(); ++k) {
-                                targetScales_[k] = (static_cast<int>(k) == currentIndex_) ? 1.15f : 0.95f;
-                            }
-                        }
-                        break;
-                    }
+    for (size_t i = 0; i < buttonNames_.size(); ++i) {
+        if (IsCursorOverButton(static_cast<int>(i), cursorPos)) {
+            if (currentIndex_ != static_cast<int>(i)) {
+                currentIndex_ = static_cast<int>(i);
+                PlaySE("resources/audio/se_menu_cursor.wav", "se_menu_cursor", 0.6f);
+                for (size_t k = 0; k < targetScales_.size(); ++k) {
+                    targetScales_[k] = (static_cast<int>(k) == currentIndex_) ? 1.15f : 0.95f;
                 }
             }
+            break;
         }
     }
 }
@@ -143,34 +136,38 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
         return;
     }
 
-    // 決定キー (論理アクション UI_Submit または 仮想カーソルアクション)
-    bool isSelected =
-        InputHelper::IsActionPressed(inputManager, GameAction::UI_Submit) || inputManager->IsCursorActionPressed();
+    // 1. キーボード / ゲームパッドによるフォーカス項目の決定（Space, Enter, またはPad_A）
+    bool isSubmit = InputHelper::IsActionPressed(inputManager, GameAction::UI_Submit);
 
-    // マウス左クリックやRT等でカーソルアクションを押した場合は、カーソルがボタン領域内にあるかチェック
+    // 2. マウス / 仮想カーソルによるボタン内クリック決定
+    bool isCursorSubmit = false;
+    const auto& cursorPos = inputManager->GetVirtualCursorPosition();
+
+    // 押下瞬間の検知（ボタン上で押下されたか追跡）
     if (inputManager->IsCursorActionPressed()) {
-        const auto& cursorPos = inputManager->GetVirtualCursorPosition();
-        if (auto scene = GetScene()) {
-            bool clickedAny = false;
-            for (size_t i = 0; i < buttonNames_.size(); ++i) {
-                if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
-                    if (auto transform = btnObj->GetComponent<TransformComponent>()) {
-                        const auto& pos = transform->GetPosition();
-                        if (std::abs(cursorPos.x - pos.x) <= 180.0f && std::abs(cursorPos.y - pos.y) <= 25.0f) {
-                            currentIndex_ = static_cast<int>(i);
-                            clickedAny = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (!clickedAny) {
-                isSelected = false; // ボタン領域外のクリック時は決定しない
+        pressedButtonIndex_ = -1;
+        for (size_t i = 0; i < buttonNames_.size(); ++i) {
+            if (IsCursorOverButton(static_cast<int>(i), cursorPos)) {
+                pressedButtonIndex_ = static_cast<int>(i);
+                currentIndex_ = static_cast<int>(i);
+                isCursorSubmit = true; // 押下即時レスポンスを確保
+                break;
             }
         }
     }
 
-    if (isSelected) {
+    // 解放瞬間の検知（ドラッグ外れでなく同一ボタン上でのクリック完了）
+    if (inputManager->IsCursorActionReleased()) {
+        if (pressedButtonIndex_ >= 0) {
+            if (IsCursorOverButton(pressedButtonIndex_, cursorPos)) {
+                currentIndex_ = pressedButtonIndex_;
+                isCursorSubmit = true;
+            }
+            pressedButtonIndex_ = -1;
+        }
+    }
+
+    if (isSubmit || isCursorSubmit) {
         ExecuteSelection();
     }
 }
@@ -372,17 +369,10 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
     // 1. カーソルがボタン上にホバーしているか判定（マグネット摩擦用）
     const auto& cursorPos = inputManager->GetVirtualCursorPosition();
     bool isHoveringAnyButton = false;
-    if (auto scene = GetScene()) {
-        for (const auto& name : buttonNames_) {
-            if (auto btnObj = scene->FindGameObject(name)) {
-                if (auto transform = btnObj->GetComponent<TransformComponent>()) {
-                    const auto& pos = transform->GetPosition();
-                    if (std::abs(cursorPos.x - pos.x) <= 180.0f && std::abs(cursorPos.y - pos.y) <= 25.0f) {
-                        isHoveringAnyButton = true;
-                        break;
-                    }
-                }
-            }
+    for (size_t i = 0; i < buttonNames_.size(); ++i) {
+        if (IsCursorOverButton(static_cast<int>(i), cursorPos)) {
+            isHoveringAnyButton = true;
+            break;
         }
     }
 
@@ -409,4 +399,68 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
             }
         }
     }
+}
+
+bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const {
+    if (index < 0 || index >= static_cast<int>(buttonNames_.size())) {
+        return false;
+    }
+
+    auto scene = GetScene();
+    if (!scene) {
+        return false;
+    }
+
+    auto btnObj = scene->FindGameObject(buttonNames_[index]);
+    if (!btnObj) {
+        return false;
+    }
+
+    auto transform = btnObj->GetComponent<TransformComponent>();
+    if (!transform) {
+        return false;
+    }
+
+    const auto& pos = transform->GetPosition();
+    const auto& scale = transform->GetScale();
+
+    // 1. TextRendererComponent によるテキストメッシュ幾何バウンディングボックスの算出
+    auto textComp = btnObj->GetComponent<TextRendererComponent>();
+    if (textComp) {
+        const auto& minB = textComp->GetLocalBoundsMin();
+        const auto& maxB = textComp->GetLocalBoundsMax();
+
+        // テキストバウンディングボックスが正常に算出されている場合
+        if (minB.x != maxB.x && minB.y != maxB.y) {
+            // 操作感を快適にするためのパディング（UX Hitbox Padding）
+            // 拡大時（1.15倍）にも自然に吸い付き、クリックが外れにくくなるよう余裕を付与
+            const float kPaddingX = 24.0f;
+            const float kPaddingY = 12.0f;
+
+            float left = pos.x + (minB.x - kPaddingX) * scale.x;
+            float right = pos.x + (maxB.x + kPaddingX) * scale.x;
+            float top = pos.y + (minB.y - kPaddingY) * scale.y;
+            float bottom = pos.y + (maxB.y + kPaddingY) * scale.y;
+
+            return (cursorPos.x >= left && cursorPos.x <= right && cursorPos.y >= top && cursorPos.y <= bottom);
+        }
+    }
+
+    // 2. フォールバック（文字サイズ未計算またはスプライトのみの場合）
+    // ボタンの文字長に応じた基準半幅 × 現在のスケール
+    float baseHalfW = 160.0f;
+    if (index == 0) {
+        baseHalfW = 120.0f; // START
+    } else if (index == 1) {
+        baseHalfW = 210.0f; // HOW TO PLAY
+    } else if (index == 2) {
+        baseHalfW = 160.0f; // OPTIONS
+    } else if (index == 3) {
+        baseHalfW = 100.0f; // QUIT
+    }
+
+    float halfW = baseHalfW * scale.x;
+    float halfH = 28.0f * scale.y;
+
+    return (std::abs(cursorPos.x - pos.x) <= halfW && std::abs(cursorPos.y - pos.y) <= halfH);
 }

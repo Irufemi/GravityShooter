@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework/Component/Component.h"
+#include "Core/Math/Vector2.h"
 #include <vector>
 #include <string>
 
@@ -81,8 +82,17 @@ private: // 内部処理
     void ExecuteSelection();
     void PlaySE(const std::string& relativePath, const std::string& soundName, float volume = 0.8f);
 
+    /**
+     * @brief カーソル座標が指定インデックスのボタン幾何領域内（動的スケール・バウンディングボックス反映）にあるか判定する
+     * @param[in] index ボタンインデックス
+     * @param[in] cursorPos 判定するカーソル座標
+     * @return 領域内にある場合は true
+     */
+    bool IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const;
+
 private:                           // メンバ変数
     int currentIndex_ = 0;         //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
+    int pressedButtonIndex_ = -1;  //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
     bool isHowToPlayOpen_ = false; //!< 操作説明モーダル表示フラグ
     bool isLaunching_ = false;     //!< 出撃シーケンス実行中フラグ
 
