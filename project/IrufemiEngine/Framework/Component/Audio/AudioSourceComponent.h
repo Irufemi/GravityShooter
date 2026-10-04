@@ -46,6 +46,13 @@ public:
     std::string GetComponentName() const override {
         return "AudioSourceComponent";
     }
+
+    /**
+     * @brief Editモード時にUpdateを実行するかどうか
+     */
+    bool CanUpdateInEditMode() const override {
+        return true;
+    }
     /**
      * @brief インスペクター編集用プロパティの登録
      */

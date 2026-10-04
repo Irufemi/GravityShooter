@@ -32,6 +32,12 @@ void AudioSourceComponent::Start() {
     if (!player_) {
         InitializeAudio();
     }
+    auto engine = GetEngine();
+    if (playOnAwake_ && engine && engine->IsPlayMode()) {
+        if (player_ && !player_->IsPlaying()) {
+            Play();
+        }
+    }
 }
 
 void AudioSourceComponent::OnDisable() {
@@ -64,12 +70,24 @@ void AudioSourceComponent::InitializeAudio() {
         lastVolume_ = volume_;
     }
 
-    if (playOnAwake_) {
+    // スタンドアロン実行時、またはPlayMode実行中のみ即時再生する（Editモードでの誤発火を防止）
+    if (playOnAwake_ && engine->IsPlayMode()) {
         Play();
     }
 }
 
 void AudioSourceComponent::Update() {
+    auto engine = GetEngine();
+    bool isPlayMode = engine ? engine->IsPlayMode() : true;
+
+    // 非Playモード（Editモード）の場合は音声を停止し、エディタでの再生暴発を防止
+    if (!isPlayMode) {
+        if (player_ && player_->IsPlaying()) {
+            player_->Stop();
+        }
+        return;
+    }
+
     // インスペクターからの動的変更を反映（変更があった場合のみSetVolumeを実行）
     if (player_ && lastVolume_ != volume_) {
         player_->SetVolume(volume_);
