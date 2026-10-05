@@ -92,7 +92,14 @@ private: // 内部処理
     void UpdateVirtualCursor(float deltaTime);
     void UpdateButtonVisuals(float deltaTime);
     void UpdateDismissAnimation(float deltaTime);
+    void UpdateScreenFlash(float deltaTime);
+    void UpdateTitleTextVisual(float deltaTime);
     void ExecuteSelection();
+
+    /**
+     * @brief 全画面インパクト白光フラッシュを発火する
+     */
+    void TriggerScreenFlash();
 
     /**
      * @brief カーソル座標が指定インデックスのボタン幾何領域内（動的スケール・バウンディングボックス反映）にあるか判定する
@@ -107,6 +114,13 @@ private:                           // メンバ変数
     int pressedButtonIndex_ = -1;  //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
     bool isHowToPlayOpen_ = false; //!< 操作説明モーダル表示フラグ
     bool isLaunching_ = false;     //!< 出撃シーケンス実行中フラグ
+
+    // 全画面インパクトフラッシュ用状態
+    float flashTimer_ = 0.0f;
+    static constexpr float kFlashDuration_ = 0.22f;
+
+    // タイトルロゴ呼吸・パルス用タイマー
+    float titleBreatheTimer_ = 0.0f;
 
     // UIディゾルブ消滅用状態
     bool isDismissing_ = false;

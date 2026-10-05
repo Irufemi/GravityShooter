@@ -42,6 +42,11 @@ public:
     }
 
     /**
+     * @brief 出撃シーケンスを即座にスキップしてInGameシーンへフェード遷移する
+     */
+    void SkipLaunchSequence();
+
+    /**
      * @enum LaunchState
      * @brief 出撃シーケンスの有限状態機械（FSM）
      */
@@ -146,4 +151,5 @@ private: // メンバ変数
     bool isLaunching_ = false;
     float launchTimer_ = 0.0f;
     bool hasTriggeredSceneTransition_ = false;
+    bool hasExplodedDebris_ = false;
 };

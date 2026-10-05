@@ -14,6 +14,10 @@
 #include "Renderer/Object/Particle/ParticleObject.h"
 #include "Renderer/Camera/Camera.h"
 #include "Core/Math/MathFunction.h"
+#include "Framework/Component/Effect/VoxelParticleComponent.h"
+#include "Framework/Component/Renderer/MeshRendererComponent.h"
+#include "Input/GameAction.h"
+#include "Platform/Input/InputManager.h"
 #include <cmath>
 #include <algorithm>
 
@@ -21,6 +25,7 @@ void TitleSceneDirectorComponent::Initialize() {
     isLaunching_ = false;
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
+    hasExplodedDebris_ = false;
     launchState_ = LaunchState::Idle;
     stateTimer_ = 0.0f;
     idleTimer_ = 0.0f;
@@ -303,9 +308,23 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
     isLaunching_ = true;
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
+    hasExplodedDebris_ = false;
 
     // FSM: [Phase 1: 蓄勢 (Charge)] へ突入
     SetLaunchState(LaunchState::Charge);
+}
+
+void TitleSceneDirectorComponent::SkipLaunchSequence() {
+    if (hasTriggeredSceneTransition_) {
+        return;
+    }
+
+    hasTriggeredSceneTransition_ = true;
+    if (auto engine = GetEngine()) {
+        if (auto sm = engine->GetSceneManager()) {
+            sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.35f);
+        }
+    }
 }
 
 void TitleSceneDirectorComponent::SetLaunchState(LaunchState newState) {
@@ -365,7 +384,56 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
         break;
     }
     case LaunchState::Accelerate: {
-        // スラスター推進の猛烈な高周波パーリンノイズ振動（振幅 0.04m, 継続1.1秒, 周波数22Hz）
+        // 1. 周囲のガレキをスラスター噴流と重力波でVoxel粉砕飛散させる（粉塵エフェクト複合レイヤリング）
+        if (!hasExplodedDebris_) {
+            hasExplodedDebris_ = true;
+            auto scene = GetScene();
+            for (size_t i = 0; i < debrisObjs_.size(); ++i) {
+                if (auto debris = debrisObjs_[i].lock()) {
+                    Irufemi::Vector3 debrisPos{0.0f, 0.0f, 0.0f};
+                    if (auto dt = debris->GetTransform()) {
+                        debrisPos = dt->GetWorldPosition();
+                    }
+
+                    // A. Voxel破砕の発火（放射スピン＋超推力吹き飛ばし）
+                    if (auto voxelComp = debris->GetComponent<VoxelParticleComponent>()) {
+                        float angle = static_cast<float>(i) * 2.094395f; // 120度刻み
+                        Irufemi::Vector3 blowVelocity{
+                            std::cos(angle) * 11.0f,
+                            std::sin(angle) * 6.5f + 2.0f,
+                            -18.0f // スラスター後流へ強烈に吹き飛ばす
+                        };
+                        voxelComp->Explode(blowVelocity, {8.0f, 14.0f, 6.0f}, {1.0f, 1.0f, 1.0f});
+                    }
+
+                    // B. 複合レイヤー：破砕位置に粉塵・衝撃パーティクルを展開
+                    if (scene) {
+                        auto dust = scene->InstantiatePrefab("resources/prefabs/debris_dust_effect.json", debrisPos);
+                        if (dust) {
+                            dust->SetIsSerializable(false);
+                            dust->SetHideInHierarchy(true);
+                            auto emitters = dust->GetComponentsInChildren<ParticleEmitterComponent>();
+                            for (auto pe : emitters) {
+                                pe->Restart(false);
+                            }
+                        }
+                    }
+
+                    // 元のガレキオブジェクトを非アクティブ化してVoxel破砕粒子＆粉塵煙のみを描画
+                    debris->SetActive(false);
+                }
+            }
+        }
+
+        // 2. 自機スラスターノズル内のGPUパーティクルを瞬間オーバードライブ再点火
+        if (auto thruster = thrusterObj_.lock()) {
+            auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+            for (auto pe : emitters) {
+                pe->Restart(false);
+            }
+        }
+
+        // 3. スラスター推進の猛烈な高周波パーリンノイズ振動（振幅 0.04m, 継続1.1秒, 周波数22Hz）
         if (auto camObj = cameraObj_.lock()) {
             auto shake = camObj->GetComponent<CameraShakeComponent>();
             if (!shake) {
@@ -377,7 +445,7 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
             }
         }
 
-        // 星雲の衝撃パルス第2波（最大爆発波紋）
+        // 4. 星雲の衝撃パルス第2波（最大爆発波紋）
         if (nebulaComp) {
             nebulaComp->TriggerPulse(1.5f);
         }
@@ -564,6 +632,19 @@ void TitleSceneDirectorComponent::OnUpdateLaunchState(LaunchState state, float d
 
 void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
     launchTimer_ += deltaTime;
+
+    // プレイヤーによるクイック・スキップ判定（出撃開始から0.25秒後以降、決定キーまたはクリックで即フェード突入）
+    if (launchTimer_ > 0.25f && !hasTriggeredSceneTransition_) {
+        if (auto engine = GetEngine()) {
+            if (auto input = engine->GetInputManager()) {
+                if (InputHelper::IsActionPressed(input, GameAction::UI_Submit) ||
+                    input->IsCursorActionPressed()) {
+                    SkipLaunchSequence();
+                    return;
+                }
+            }
+        }
+    }
 
     // FSM更新
     OnUpdateLaunchState(launchState_, deltaTime);

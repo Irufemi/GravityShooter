@@ -36,6 +36,9 @@ void TitleMenuControllerComponent::Initialize() {
 
     currentScales_ = {1.15f, 1.0f, 1.0f, 1.0f};
     targetScales_ = {1.15f, 0.95f, 0.95f, 0.95f};
+
+    flashTimer_ = 0.0f;
+    titleBreatheTimer_ = 0.0f;
 }
 
 void TitleMenuControllerComponent::OnRegisterProperties() {
@@ -52,6 +55,12 @@ void TitleMenuControllerComponent::Update() {
 
     // 仮想カーソルの更新（出撃中や操作不能時は非表示処理を含む）
     UpdateVirtualCursor(deltaTime);
+
+    // 全画面インパクト白光フラッシュ更新
+    UpdateScreenFlash(deltaTime);
+
+    // タイトルロゴの呼吸脈動・シアン発光パルス更新
+    UpdateTitleTextVisual(deltaTime);
 
     // UIディゾルブ（重力拡散・フェード消滅）アニメーション更新
     if (isDismissing_) {
@@ -193,6 +202,7 @@ void TitleMenuControllerComponent::ExecuteSelection() {
     case 0: // GAME START
     {
         isLaunching_ = true;
+        TriggerScreenFlash();    // 決定瞬間の全画面インパクト白光フラッシュを発火
         StartDismissAnimation(); // 出撃時の重力拡散・フェード消滅アニメーションを発火
 
         // TitleSceneDirectorComponent による出撃シーケンス（重力波パルス・自機加速・ドリーイン）を実行
@@ -433,6 +443,70 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
     // 仮想カーソルの表示/非表示
     if (virtualCursorObj_) {
         virtualCursorObj_->SetActive(visible);
+    }
+}
+
+void TitleMenuControllerComponent::TriggerScreenFlash() {
+    flashTimer_ = kFlashDuration_;
+    if (auto scene = GetScene()) {
+        if (auto flashObj = scene->FindGameObject("ScreenFlash")) {
+            if (auto prim = flashObj->GetComponent<Primitive2DRendererComponent>()) {
+                prim->SetColor({1.0f, 1.0f, 1.0f, 0.75f});
+            }
+        }
+    }
+}
+
+void TitleMenuControllerComponent::UpdateScreenFlash(float deltaTime) {
+    if (flashTimer_ <= 0.0f) {
+        return;
+    }
+
+    flashTimer_ -= deltaTime;
+    float t = std::clamp(flashTimer_ / kFlashDuration_, 0.0f, 1.0f);
+    float alpha = t * t * 0.75f; // 2次減衰で鋭い光のキレ味を表現
+
+    if (auto scene = GetScene()) {
+        if (auto flashObj = scene->FindGameObject("ScreenFlash")) {
+            if (auto prim = flashObj->GetComponent<Primitive2DRendererComponent>()) {
+                prim->SetColor({1.0f, 1.0f, 1.0f, alpha});
+            }
+        }
+    }
+}
+
+void TitleMenuControllerComponent::UpdateTitleTextVisual(float deltaTime) {
+    if (isDismissing_ || isLaunching_) {
+        return; // 出撃・ディゾルブ中はそちらのフェード制御に委ねる
+    }
+
+    titleBreatheTimer_ += deltaTime;
+
+    auto scene = GetScene();
+    if (!scene) {
+        return;
+    }
+
+    if (auto titleObj = scene->FindGameObject("TitleText")) {
+        // 1. 呼吸スケール (周期約2.4秒、1.00〜1.025倍の穏やかな浮遊呼吸)
+        float breathe = 1.0f + std::sin(titleBreatheTimer_ * 2.4f) * 0.015f;
+        if (auto t = titleObj->GetTransform()) {
+            t->SetScale({breathe, breathe, 1.0f});
+        }
+
+        // 2. 定期的なシアン発光パルス (周期3.5秒、約0.25秒間の輝度ブースト)
+        float pulsePhase = std::fmod(titleBreatheTimer_, 3.5f);
+        float glow = 0.0f;
+        if (pulsePhase < 0.25f) {
+            glow = std::sin((pulsePhase / 0.25f) * 3.14159265f) * 0.35f;
+        }
+
+        if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
+            text->SetColor({std::clamp(0.20f + glow * 0.40f, 0.0f, 1.0f),
+                            std::clamp(0.92f + glow * 0.08f, 0.0f, 1.0f),
+                            1.0f,
+                            1.0f});
+        }
     }
 }
 
