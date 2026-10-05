@@ -2,39 +2,60 @@
 #include "Audio/AudioManager.h"
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
+#include <string>
 
 namespace {
-// UIサウンドのファイルパスとキーの一元管理定数（resources/audio/SE/ 階層）
-constexpr const char* kPathCursor = "resources/audio/SE/se_menu_cursor.wav";
-constexpr const char* kPathCursorLegacy = "resources/audio/se_menu_cursor.wav";
-constexpr const char* kKeyCursor = "se_menu_cursor";
+// UIサウンドの論理キーとデフォルト音量定義
+constexpr const char* kNameCursor = "se_menu_cursor";
 constexpr float kBaseVolCursor = 0.6f;
 
-constexpr const char* kPathDecide = "resources/audio/SE/se_menu_decide.wav";
-constexpr const char* kPathDecideLegacy = "resources/audio/se_menu_decide.wav";
-constexpr const char* kKeyDecide = "se_menu_decide";
+constexpr const char* kNameDecide = "se_menu_decide";
 constexpr float kBaseVolDecide = 0.9f;
 
-constexpr const char* kPathCancel = "resources/audio/SE/se_menu_cancel.wav";
-constexpr const char* kPathCancelLegacy = "resources/audio/se_menu_cancel.wav";
-constexpr const char* kKeyCancel = "se_menu_cancel";
+constexpr const char* kNameCancel = "se_menu_cancel";
 constexpr float kBaseVolCancel = 0.6f;
 
 AudioManager* s_audioManager = nullptr;
+
+// 拡張子に依存しないスマートパス解決（.mp3, .wav, .wma等を自動検出）
+std::string ResolveAudioPath(const std::string& baseName) {
+    namespace fs = std::filesystem;
+    const std::string primaryDir = "resources/audio/SE/";
+    const std::string legacyDir = "resources/audio/";
+    const std::string extensions[] = {".mp3", ".wav", ".wma"};
+
+    // 1. 新規推奨ディレクトリ (resources/audio/SE/) 配下を探索
+    for (const auto& ext : extensions) {
+        std::string p = primaryDir + baseName + ext;
+        if (fs::exists(p)) {
+            return p;
+        }
+    }
+
+    // 2. 旧ディレクトリ (resources/audio/) 配下をフォールバック探索
+    for (const auto& ext : extensions) {
+        std::string p = legacyDir + baseName + ext;
+        if (fs::exists(p)) {
+            return p;
+        }
+    }
+
+    // 見つからない場合は新規パスのデフォルト
+    return primaryDir + baseName + ".mp3";
+}
 
 // スティック高速操作時のマシンガン鳴り（音割れ・連続再生）防止用リミッター
 auto s_lastCursorPlayTime = std::chrono::steady_clock::now() - std::chrono::seconds(10);
 constexpr auto kCursorThrottlingInterval = std::chrono::milliseconds(45); // 45ms以内の再発音はスキップ
 
-void PlayOneShot(const char* filePath, const char* legacyPath, const char* soundKey, float baseVolume, float multiplier) {
+void PlayOneShot(const std::string& baseName, float baseVolume, float multiplier) {
     if (!s_audioManager) {
         return;
     }
 
-    auto soundData = s_audioManager->GetOrLoadSoundByFile(filePath, soundKey);
-    if (!soundData && legacyPath) {
-        soundData = s_audioManager->GetOrLoadSoundByFile(legacyPath, soundKey);
-    }
+    std::string resolvedPath = ResolveAudioPath(baseName);
+    auto soundData = s_audioManager->GetOrLoadSoundByFile(resolvedPath, baseName);
     if (!soundData) {
         return;
     }
@@ -53,9 +74,9 @@ void Initialize(AudioManager* audioManager) {
 
 void Preload() {
     if (s_audioManager) {
-        s_audioManager->GetOrLoadSoundByFile(kPathCursor, kKeyCursor);
-        s_audioManager->GetOrLoadSoundByFile(kPathDecide, kKeyDecide);
-        s_audioManager->GetOrLoadSoundByFile(kPathCancel, kKeyCancel);
+        s_audioManager->GetOrLoadSoundByFile(ResolveAudioPath(kNameCursor), kNameCursor);
+        s_audioManager->GetOrLoadSoundByFile(ResolveAudioPath(kNameDecide), kNameDecide);
+        s_audioManager->GetOrLoadSoundByFile(ResolveAudioPath(kNameCancel), kNameCancel);
     }
 }
 
@@ -66,21 +87,20 @@ void PlayCursor(float volumeMultiplier) {
     }
     s_lastCursorPlayTime = now;
 
-    PlayOneShot(kPathCursor, kPathCursorLegacy, kKeyCursor, kBaseVolCursor, volumeMultiplier);
+    PlayOneShot(kNameCursor, kBaseVolCursor, volumeMultiplier);
 }
 
 void PlayDecide(float volumeMultiplier) {
-    PlayOneShot(kPathDecide, kPathDecideLegacy, kKeyDecide, kBaseVolDecide, volumeMultiplier);
+    PlayOneShot(kNameDecide, kBaseVolDecide, volumeMultiplier);
 }
 
 void PlayCancel(float volumeMultiplier) {
-    // キャンセル専用WAVがある場合は優先、無ければカーソル音で代替
-    PlayOneShot(kPathCancel, kPathCursor, kKeyCancel, kBaseVolCancel, volumeMultiplier);
+    PlayOneShot(kNameCancel, kBaseVolCancel, volumeMultiplier);
 }
 
 void PlayInvalid(float volumeMultiplier) {
     // 選択不能・エラー音（現状はカーソル音を低音量で代替）
-    PlayOneShot(kPathCursor, kPathCursorLegacy, kKeyCursor, 0.35f, volumeMultiplier);
+    PlayOneShot(kNameCursor, 0.35f, volumeMultiplier);
 }
 
 } // namespace UISound

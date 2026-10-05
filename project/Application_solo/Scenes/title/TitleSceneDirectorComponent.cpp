@@ -247,9 +247,12 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
     // 出撃重力チャージSE再生
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            auto sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.wav", "se_player_boost");
+            auto sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.mp3", "se_player_boost");
             if (!sound) {
-                sound = am->GetOrLoadSoundByFile("resources/audio/se_player_boost.wav", "se_player_boost");
+                sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.wav", "se_player_boost");
+            }
+            if (!sound) {
+                sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_menu_decide.mp3", "se_menu_decide");
             }
             if (!sound) {
                 sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_menu_decide.wav", "se_menu_decide");
