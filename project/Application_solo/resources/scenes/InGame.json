@@ -2483,6 +2483,7 @@
         }
       ],
       "instanceId": 4541778554248896256,
+      "isActive": false,
       "name": "Reticle",
       "tag": "Untagged"
     },
@@ -2514,6 +2515,7 @@
         }
       ],
       "instanceId": 4009175389553285076,
+      "isActive": false,
       "name": "LockonMarkerUI",
       "tag": "Untagged"
     },
@@ -2731,6 +2733,15 @@
             "Target Spline": 8865338349013935913
           },
           "type": "WaveManagerComponent"
+        },
+        {
+          "data": {
+            "Arrival Duration": 0.5,
+            "Start Offset Z": -25.0,
+            "Target Ship Name": "Player",
+            "WarpIn Duration": 1.0
+          },
+          "type": "StageIntroDirectorComponent"
         }
       ],
       "instanceId": 8040492037901668950,

@@ -41,11 +41,35 @@ public:
         return isLaunching_;
     }
 
+    /**
+     * @enum LaunchState
+     * @brief 出撃シーケンスの有限状態機械（FSM）
+     */
+    enum class LaunchState {
+        Idle,       ///< 待機中（自機ホバリング・ガレキ公転・カメラ呼吸）
+        Charge,     ///< [Phase 1: 蓄勢] 0.00s〜0.50s (タメ・重力収束・整流)
+        Accelerate, ///< [Phase 2: 咆哮] 0.50s〜1.60s (アフターバーナー点火・急加速・動的FOV・微細振動)
+        Break,      ///< [Phase 3: 突破] 1.60s〜2.20s (超光速離脱・光の点に消滅・FOV復帰)
+        Afterglow   ///< [Phase 4: 余韻] 2.20s〜3.20s (自機消失後の静寂・残光・風の抜け・暗転発火)
+    };
+
+    /**
+     * @brief 現在の出撃ステートを取得する
+     */
+    LaunchState GetLaunchState() const {
+        return launchState_;
+    }
+
 private:
     void CacheEntities();
     void UpdateIdling(float deltaTime);
     void UpdateLaunchSequence(float deltaTime);
     void SetupThrusterEffect();
+
+    // --- State パターン管理メソッド ---
+    void SetLaunchState(LaunchState newState);
+    void OnEnterLaunchState(LaunchState state);
+    void OnUpdateLaunchState(LaunchState state, float deltaTime);
 
     /**
      * @brief 自機オブジェクトの TransformComponent を取得します。
@@ -105,15 +129,18 @@ private: // メンバ変数
     };
     std::vector<OrbitConfig> debrisOrbits_;
 
-    // 出撃シーケンスのステージ分割定数（全体長: 2.0秒）
+    // 出撃シーケンスのステージ分割定数（全体長: 約3.20秒）
     static constexpr float kDurationCharge_     = 0.50f; ///< [Phase 1: 蓄勢] タメ・重力収束
     static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
-    static constexpr float kDurationBreak_      = 0.40f; ///< [Phase 3: 突破] 空間突破・シーン遷移
-    static constexpr float kTotalLaunchDuration_ = kDurationCharge_ + kDurationAccelerate_ + kDurationBreak_;
+    static constexpr float kDurationBreak_      = 0.60f; ///< [Phase 3: 突破] 超光速離脱・消滅
+    static constexpr float kDurationAfterglow_  = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
+    static constexpr float kTotalLaunchDuration_ =
+        kDurationCharge_ + kDurationAccelerate_ + kDurationBreak_ + kDurationAfterglow_;
 
-    // 出撃シーケンス用状態フラグ
+    // 出撃シーケンス用状態
+    LaunchState launchState_ = LaunchState::Idle;
+    float stateTimer_ = 0.0f;
     bool isLaunching_ = false;
     float launchTimer_ = 0.0f;
     bool hasTriggeredSceneTransition_ = false;
-    bool hasPlayedShake_ = false;
 };

@@ -60,9 +60,26 @@ public:
      */
     void SetState(PlayerFlightState newState);
 
+    /**
+     * @brief プレイヤー入力の有効/無効を設定する（ステージ導入演出用）
+     * @param[in] enabled 入力を受け付けるかどうか
+     */
+    void SetInputEnabled(bool enabled) {
+        inputEnabled_ = enabled;
+    }
+
+    /**
+     * @brief プレイヤー入力が有効かどうかを取得する
+     * @return 有効なら true
+     */
+    bool IsInputEnabled() const {
+        return inputEnabled_;
+    }
+
 private:
     void UpdateStateTransitions(float inputLen, float currentSpeed);
 
+    bool inputEnabled_ = true; ///< プレイヤー操作入力の受付可否（ステージ開始演出時はfalse）
     PlayerFlightState currentState_ = PlayerFlightState::Idle;
     std::vector<StateChangeCallback> stateChangeListeners_;
     std::vector<ThrottleChangeCallback> throttleChangeListeners_;

@@ -179,10 +179,15 @@ std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(const std
         effectObj->SetHideInHierarchy(true); // エディタHierarchyの汚染を防止
         effectObj->SetIsActive(true);
 
-        // すべてのパーティクルエミッターを起動
+        // 親（自機）の現在位置を即座に反映してTransform行列を最新化
+        if (auto t = effectObj->GetComponent<TransformComponent>()) {
+            t->CheckAndComputeMatrix();
+        }
+
+        // 最新のワールド座標でパーティクルエミッターを安全に起動
         auto emitters = effectObj->GetComponentsInChildren<ParticleEmitterComponent>();
         for (auto pe : emitters) {
-            pe->Play();
+            pe->Restart(false);
         }
     }
     return effectObj;

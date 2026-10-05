@@ -91,28 +91,30 @@ void RailShooterPlayerComponent::Update() {
     }
     Irufemi::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
 
-    // WASD または 矢印キーで移動方向を入力 (長押し判定)
-    if (input->IsKeyDown('W') || input->IsKeyDown(VK_UP)) {
-        moveDir.y += 1.0f;
-    }
-    if (input->IsKeyDown('S') || input->IsKeyDown(VK_DOWN)) {
-        moveDir.y -= 1.0f;
-    }
-    if (input->IsKeyDown('A') || input->IsKeyDown(VK_LEFT)) {
-        moveDir.x -= 1.0f;
-    }
-    if (input->IsKeyDown('D') || input->IsKeyDown(VK_RIGHT)) {
-        moveDir.x += 1.0f;
-    }
+    if (inputEnabled_) {
+        // WASD または 矢印キーで移動方向を入力 (長押し判定)
+        if (input->IsKeyDown('W') || input->IsKeyDown(VK_UP)) {
+            moveDir.y += 1.0f;
+        }
+        if (input->IsKeyDown('S') || input->IsKeyDown(VK_DOWN)) {
+            moveDir.y -= 1.0f;
+        }
+        if (input->IsKeyDown('A') || input->IsKeyDown(VK_LEFT)) {
+            moveDir.x -= 1.0f;
+        }
+        if (input->IsKeyDown('D') || input->IsKeyDown(VK_RIGHT)) {
+            moveDir.x += 1.0f;
+        }
 
-    // ゲームパッド（左スティック）の入力
-    float padX = input->GetLeftStickX();
-    float padY = input->GetLeftStickY();
-    if (std::abs(padX) > 0.1f) {
-        moveDir.x += padX;
-    }
-    if (std::abs(padY) > 0.1f) {
-        moveDir.y += padY;
+        // ゲームパッド（左スティック）の入力
+        float padX = input->GetLeftStickX();
+        float padY = input->GetLeftStickY();
+        if (std::abs(padX) > 0.1f) {
+            moveDir.x += padX;
+        }
+        if (std::abs(padY) > 0.1f) {
+            moveDir.y += padY;
+        }
     }
 
     // 斜め移動したときに移動速度が速くならないように、ベクトルの長さを1に抑える
@@ -193,6 +195,7 @@ void RailShooterPlayerComponent::Update() {
     float hoverRollWobble = std::cos(hoverTimer_ * 0.65f) * 0.025f;
 
     // --- ローカル座標・3軸回転の適用 ---
-    transform->SetPosition({currentOffset_.x, currentOffset_.y + hoverY, 0.0f});
+    float currentZ = transform->GetPosition().z;
+    transform->SetPosition({currentOffset_.x, currentOffset_.y + hoverY, currentZ});
     transform->SetRotation({pitchAngle_ + hoverPitchWobble, yawAngle_, rollAngle_ + hoverRollWobble});
 }

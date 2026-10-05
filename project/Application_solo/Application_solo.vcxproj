@@ -289,6 +289,7 @@ exit 0</Command>
     <ClCompile Include="Player\PlayerTargetingComponent.cpp" />
     <ClCompile Include="Level\WaveEventHandlers.cpp" />
     <ClCompile Include="Level\WaveManagerComponent.cpp" />
+    <ClCompile Include="Level\StageIntroDirectorComponent.cpp" />
     <ClCompile Include="Editor\WaveManagerComponentEditor.cpp" />
     <ClCompile Include="Editor\GravityPlayerComponentEditor.cpp" />
     <ClCompile Include="Editor\BossComponentEditor.cpp" />
@@ -353,6 +354,7 @@ exit 0</Command>
     <ClInclude Include="Level\WaveEvent.h" />
     <ClInclude Include="Level\WaveEventHandlers.h" />
     <ClInclude Include="Level\WaveManagerComponent.h" />
+    <ClInclude Include="Level\StageIntroDirectorComponent.h" />
     <ClInclude Include="Editor\WaveManagerComponentEditor.h" />
     <ClInclude Include="Editor\GravityPlayerComponentEditor.h" />
     <ClInclude Include="Editor\BossComponentEditor.h" />

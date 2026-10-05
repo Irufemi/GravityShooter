@@ -18,6 +18,7 @@ void PlayerThrusterVisualizerComponent::OnRegisterProperties() {
 void PlayerThrusterVisualizerComponent::Initialize() {
     currentScaleZ_ = minScaleZ_;
     targetScaleZ_ = minScaleZ_;
+    isThrusterActive_ = false;
 }
 
 void PlayerThrusterVisualizerComponent::Start() {
@@ -30,6 +31,13 @@ void PlayerThrusterVisualizerComponent::Start() {
         auto thruster = fxMgr->PlayAttachedEffect("Thruster", gameObject_->shared_from_this(), nozzleOffset_);
         if (thruster) {
             thrusterObj_ = thruster;
+            if (!isThrusterActive_) {
+                thruster->SetIsActive(false);
+                auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+                for (auto pe : emitters) {
+                    pe->Stop();
+                }
+            }
         }
     }
 
@@ -38,6 +46,24 @@ void PlayerThrusterVisualizerComponent::Start() {
         playerComp->AddOnThrottleChangeListener([this](float throttle) { OnThrottleChanged(throttle); });
         playerComp->AddOnStateChangeListener(
             [this](PlayerFlightState newState, PlayerFlightState oldState) { OnStateChanged(newState, oldState); });
+    }
+}
+
+void PlayerThrusterVisualizerComponent::SetThrusterActive(bool active) {
+    isThrusterActive_ = active;
+    if (auto thruster = thrusterObj_.lock()) {
+        thruster->SetIsActive(active);
+        if (auto t = thruster->GetComponent<TransformComponent>()) {
+            t->CheckAndComputeMatrix();
+        }
+        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+        for (auto pe : emitters) {
+            if (active) {
+                pe->Restart(false);
+            } else {
+                pe->Stop();
+            }
+        }
     }
 }
 
@@ -59,6 +85,10 @@ void PlayerThrusterVisualizerComponent::OnStateChanged(PlayerFlightState newStat
 }
 
 void PlayerThrusterVisualizerComponent::Update() {
+    if (!isThrusterActive_) {
+        return;
+    }
+
     auto engine = GetEngine();
     if (!engine) {
         return;

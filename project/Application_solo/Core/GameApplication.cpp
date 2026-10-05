@@ -14,6 +14,7 @@
 #include "Player/TargetableComponent.h"
 #include "Environment/DebrisManagerComponent.h"
 #include "Level/WaveManagerComponent.h"
+#include "Level/StageIntroDirectorComponent.h"
 #include "Player/GravityPlayerComponent.h"
 #include "Player/PlayerHealthComponent.h"
 #include "Player/PlayerDamageVisualizerComponent.h"
@@ -144,6 +145,8 @@ void RegisterComponents() {
                                []() { return std::make_shared<DebrisManagerComponent>(); });
     ComponentFactory::Register("WaveManagerComponent", "Game",
                                []() { return std::make_shared<WaveManagerComponent>(); });
+    ComponentFactory::Register("StageIntroDirectorComponent", "Game",
+                               []() { return std::make_shared<StageIntroDirectorComponent>(); });
     ComponentFactory::Register("EnvironmentManagerComponent", "Game",
                                []() { return std::make_shared<EnvironmentManagerComponent>(); });
     ComponentFactory::Register("GravityPlayerComponent", "Game",
