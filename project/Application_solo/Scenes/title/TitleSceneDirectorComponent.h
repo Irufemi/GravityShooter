@@ -128,6 +128,9 @@ private: // メンバ変数
         float heightOffset;
     };
     std::vector<OrbitConfig> debrisOrbits_;
+    std::vector<Irufemi::Vector3> debrisRepelOffsets_; ///< マウス・カーソルによるガレキ反発変位オフセット
+    float initialBgmVolume_ = 0.70f;                   ///< BGM初期音量キャッシュ
+
 
     // 出撃シーケンスのステージ分割定数（全体長: 約3.20秒）
     static constexpr float kDurationCharge_     = 0.50f; ///< [Phase 1: 蓄勢] タメ・重力収束

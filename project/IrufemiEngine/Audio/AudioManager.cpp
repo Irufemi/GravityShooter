@@ -134,9 +134,23 @@ void AudioManager::Finalize() {
     Irufemi::CVarSystem::SetOnChangeCallback("a.BGMVolume", nullptr);
     Irufemi::CVarSystem::SetOnChangeCallback("a.SEVolume", nullptr);
 
-    StopAll(); // すべてのVoiceを安全に停止＆Destroy
+    // 【一線級エンジン規約 Step 1】XAudio2処理スレッドの即時停止（非同期コールバック競合を完全遮断）
+    if (pXAudio2_) {
+        pXAudio2_->StopEngine();
+    }
 
-    // サブミックスボイスの破棄（MasteringVoiceより先に破棄）
+    // 【一線級エンジン規約 Step 2: Leaves】すべての SourceVoice を安全に停止・破棄・解放
+    {
+        std::lock_guard<std::mutex> lock(voiceMutex_);
+        for (auto& voice : activeVoices_) {
+            if (voice) {
+                voice->Destroy();
+            }
+        }
+        activeVoices_.clear();
+    }
+
+    // 【一線級エンジン規約 Step 3: Branches】サブミックスボイスの破棄（MasteringVoiceより先に破棄）
     if (pSubmixUi_) {
         pSubmixUi_->DestroyVoice();
         pSubmixUi_ = nullptr;
@@ -445,9 +459,10 @@ void AudioManager::StopAll() {
     std::lock_guard<std::mutex> lock(voiceMutex_);
     for (auto& voice : activeVoices_) {
         if (voice) {
-            voice->Stop();
+            voice->Destroy();
         }
     }
+    activeVoices_.clear();
 }
 
 void AudioManager::PauseAll() {

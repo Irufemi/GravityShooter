@@ -17,6 +17,14 @@ public:
         : voice_(voice), callback_(std::move(callback)), category_(category) {}
 
     ~VoiceInstance() {
+        Destroy();
+    }
+
+    /**
+     * @brief ボイスリソースを安全に停止・破棄し、無効化する
+     * @details 一線級エンジンの設計規約に準拠し、エンジン終了時の一括無効化に対応します
+     */
+    void Destroy() {
         if (voice_) {
             voice_->Stop(0);
             voice_->FlushSourceBuffers();

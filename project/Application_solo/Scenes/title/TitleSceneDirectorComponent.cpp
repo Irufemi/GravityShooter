@@ -12,6 +12,8 @@
 #include "Audio/AudioManager.h"
 #include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Renderer/Object/Particle/ParticleObject.h"
+#include "Renderer/Camera/Camera.h"
+#include "Core/Math/MathFunction.h"
 #include <cmath>
 #include <algorithm>
 
@@ -22,6 +24,8 @@ void TitleSceneDirectorComponent::Initialize() {
     launchState_ = LaunchState::Idle;
     stateTimer_ = 0.0f;
     idleTimer_ = 0.0f;
+    debrisRepelOffsets_.clear();
+    initialBgmVolume_ = 0.70f;
 
     // ガレキの公転パラメータ初期化 (半径X, 半径Z, 速度, 初期位相, 高さオフセット)
     debrisOrbits_ = {
@@ -201,7 +205,20 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         cameraTransform->SetPosition({swayX, swayY, initialCameraPos_.z});
     }
 
-    // 3. ガレキの公転運動と自転
+    // 3. ガレキの公転運動と自転（＋マウスカーソルによる有機的重力反発）
+    if (debrisRepelOffsets_.size() != debrisObjs_.size()) {
+        debrisRepelOffsets_.assign(debrisObjs_.size(), {0.0f, 0.0f, 0.0f});
+    }
+
+    // 仮想カーソル座標およびカメラのビュー射影変換情報を取得
+    auto engine = GetEngine();
+    Irufemi::Vector2 cursorPos{640.0f, 360.0f};
+    if (engine && engine->GetInputManager()) {
+        cursorPos = engine->GetInputManager()->GetVirtualCursorPosition();
+    }
+    auto cameraComp = GetCameraComponent();
+    std::shared_ptr<Camera> camera = cameraComp ? cameraComp->GetCamera() : nullptr;
+
     for (size_t i = 0; i < debrisObjs_.size(); ++i) {
         auto debris = debrisObjs_[i].lock();
         if (!debris || i >= debrisOrbits_.size()) {
@@ -218,8 +235,46 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         float x = std::cos(angle) * orbit.radiusX;
         float z = std::sin(angle) * orbit.radiusZ;
         float y = orbit.heightOffset + std::sin(angle * 1.5f) * 0.15f;
+        Irufemi::Vector3 basePos{x, y, z};
 
-        t->SetPosition({x, y, z});
+        // --- マウス・カーソル接近による重力反発（2Dスクリーン投影判定） ---
+        Irufemi::Vector3 targetRepelOffset{0.0f, 0.0f, 0.0f};
+        if (camera) {
+            Irufemi::Matrix4x4 viewProj = camera->GetViewProjectionMatrix3D();
+            Irufemi::Vector3 clipPos = Irufemi::Math::Transform(basePos, viewProj);
+
+            // 画面手前にある場合のみ投影判定
+            if (clipPos.z > 0.0f && clipPos.z < 1.0f) {
+                float screenX = (clipPos.x + 1.0f) * 0.5f * camera->GetViewportWidth();
+                float screenY = (1.0f - clipPos.y) * 0.5f * camera->GetViewportHeight();
+                Irufemi::Vector2 uiPos = camera->ScreenToUIPosition({screenX, screenY});
+
+                float diffX = uiPos.x - cursorPos.x;
+                float diffY = uiPos.y - cursorPos.y;
+                float distSq = diffX * diffX + diffY * diffY;
+                const float kRepelRadius = 150.0f; // 反発影響半径 (px)
+
+                if (distSq < kRepelRadius * kRepelRadius && distSq > 1.0f) {
+                    float dist = std::sqrt(distSq);
+                    float factor = 1.0f - (dist / kRepelRadius);
+                    float force = factor * factor * 0.55f; // 最大55cm押し出し
+
+                    // カーソルから外側へ逃げるベクトル
+                    targetRepelOffset.x = (diffX / dist) * force;
+                    targetRepelOffset.y = -(diffY / dist) * force;
+                    targetRepelOffset.z = 0.0f;
+                }
+            }
+        }
+
+        // バネ・減衰追従（滑らかに目標オフセットへ移行し、離れたら公転軌道へ復帰）
+        float repelLerp = 1.0f - std::exp(-8.0f * deltaTime);
+        debrisRepelOffsets_[i].x = std::lerp(debrisRepelOffsets_[i].x, targetRepelOffset.x, repelLerp);
+        debrisRepelOffsets_[i].y = std::lerp(debrisRepelOffsets_[i].y, targetRepelOffset.y, repelLerp);
+        debrisRepelOffsets_[i].z = std::lerp(debrisRepelOffsets_[i].z, targetRepelOffset.z, repelLerp);
+
+        // 最終トランスフォーム適用
+        t->SetPosition(basePos + debrisRepelOffsets_[i]);
 
         // 自転
         auto currentRot = t->GetRotation();
@@ -299,11 +354,11 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
             }
         }
 
-        // タイトルBGMを停止（データ駆動で配置された BGMPlayer の AudioSourceComponent を停止）
+        // タイトルBGMの音量をキャッシュ（即座に停止せず、Charge進行に合わせて対数フェードアウト）
         if (auto scene = GetScene()) {
             if (auto bgmObj = scene->FindGameObject("BGMPlayer")) {
                 if (auto audioSource = bgmObj->GetComponent<AudioSourceComponent>()) {
-                    audioSource->Stop();
+                    initialBgmVolume_ = 0.70f;
                 }
             }
         }
@@ -385,6 +440,19 @@ void TitleSceneDirectorComponent::OnUpdateLaunchState(LaunchState state, float d
 
         if (camComp) {
             camComp->SetFovAngleY(initialCameraFov_);
+        }
+
+        // BGMシネマティック・フェードアウト（1.5乗の対数減衰で美しく消去）
+        if (auto scene = GetScene()) {
+            if (auto bgmObj = scene->FindGameObject("BGMPlayer")) {
+                if (auto audioSource = bgmObj->GetComponent<AudioSourceComponent>()) {
+                    float fadeT = std::pow(1.0f - p1, 1.5f);
+                    audioSource->SetVolume(initialBgmVolume_ * fadeT);
+                    if (p1 >= 1.0f) {
+                        audioSource->Stop();
+                    }
+                }
+            }
         }
 
         // 状態遷移判定

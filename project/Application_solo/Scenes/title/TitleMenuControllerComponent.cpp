@@ -27,6 +27,8 @@ void TitleMenuControllerComponent::Initialize() {
     pressedButtonIndex_ = -1;
     isHowToPlayOpen_ = false;
     isLaunching_ = false;
+    isDismissing_ = false;
+    dismissTimer_ = 0.0f;
     stickCooldownTimer_ = 0.0f;
 
     virtualCursorObj_ = nullptr;
@@ -50,6 +52,12 @@ void TitleMenuControllerComponent::Update() {
 
     // 仮想カーソルの更新（出撃中や操作不能時は非表示処理を含む）
     UpdateVirtualCursor(deltaTime);
+
+    // UIディゾルブ（重力拡散・フェード消滅）アニメーション更新
+    if (isDismissing_) {
+        UpdateDismissAnimation(deltaTime);
+        return;
+    }
 
     if (isLaunching_) {
         // 出撃シーケンス中は追加入力を受け付けない
@@ -185,7 +193,7 @@ void TitleMenuControllerComponent::ExecuteSelection() {
     case 0: // GAME START
     {
         isLaunching_ = true;
-        SetMenuVisible(false); // 出撃時はメニューUIを退避
+        StartDismissAnimation(); // 出撃時の重力拡散・フェード消滅アニメーションを発火
 
         // TitleSceneDirectorComponent による出撃シーケンス（重力波パルス・自機加速・ドリーイン）を実行
         if (auto scene = GetScene()) {
@@ -297,21 +305,128 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
     }
 }
 
+void TitleMenuControllerComponent::StartDismissAnimation() {
+    isDismissing_ = true;
+    dismissTimer_ = 0.0f;
+
+    auto scene = GetScene();
+    if (!scene) {
+        return;
+    }
+
+    // 各ボタンの初期座標をキャッシュ
+    dismissStartPositions_.clear();
+    for (const auto& name : buttonNames_) {
+        if (auto obj = scene->FindGameObject(name)) {
+            if (auto t = obj->GetTransform()) {
+                dismissStartPositions_.push_back(t->GetPosition());
+                continue;
+            }
+        }
+        dismissStartPositions_.push_back({640.0f, 360.0f, 0.0f});
+    }
+
+    // タイトルロゴの初期座標をキャッシュ
+    if (auto titleObj = scene->FindGameObject("TitleText")) {
+        if (auto t = titleObj->GetTransform()) {
+            titleTextStartPos_ = t->GetPosition();
+        }
+    }
+
+    // 仮想カーソルを即座に非表示
+    if (virtualCursorRenderer_) {
+        virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+    }
+}
+
+void TitleMenuControllerComponent::UpdateDismissAnimation(float deltaTime) {
+    dismissTimer_ += deltaTime;
+    float t = std::clamp(dismissTimer_ / kDismissDuration_, 0.0f, 1.0f);
+    float alpha = 1.0f - t;
+
+    auto scene = GetScene();
+    if (!scene) {
+        return;
+    }
+
+    // 1. 各ボタンのディゾルブ（GAME STARTは白発光、他は外側へ拡散透過）
+    for (size_t i = 0; i < buttonNames_.size(); ++i) {
+        auto obj = scene->FindGameObject(buttonNames_[i]);
+        if (!obj) {
+            continue;
+        }
+
+        auto transform = obj->GetTransform();
+        auto text = obj->GetComponent<TextRendererComponent>();
+
+        if (static_cast<int>(i) == currentIndex_) {
+            // 決定された GAME START: 白く純光フラッシュしながらスケール拡大
+            if (text) {
+                text->SetColor({std::lerp(0.1f, 1.0f, t), 1.0f, 1.0f, alpha});
+            }
+            if (transform && i < initialScales_.size()) {
+                float popScale = std::lerp(1.15f, 1.35f, t);
+                auto base = initialScales_[i];
+                transform->SetScale({base.x * popScale, base.y * popScale, base.z});
+            }
+        } else {
+            // 非選択項目: 上下へ拡散しながら急速に透明化
+            if (text) {
+                text->SetColor({0.7f, 0.75f, 0.8f, 0.65f * alpha});
+            }
+            if (transform && i < dismissStartPositions_.size()) {
+                float spreadY = (static_cast<int>(i) < currentIndex_) ? -40.0f * t : 40.0f * t;
+                const auto& startPos = dismissStartPositions_[i];
+                transform->SetPosition({startPos.x, startPos.y + spreadY, startPos.z});
+            }
+        }
+    }
+
+    // 2. タイトルロゴのディゾルブ（上方へフワッと透過消退）
+    if (auto titleObj = scene->FindGameObject("TitleText")) {
+        if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
+            text->SetColor({0.2f, 0.92f, 1.0f, alpha});
+        }
+        if (auto transform = titleObj->GetTransform()) {
+            transform->SetPosition({titleTextStartPos_.x, titleTextStartPos_.y - 35.0f * t, titleTextStartPos_.z});
+        }
+    }
+
+    // アニメーション完了時に非表示化
+    if (dismissTimer_ >= kDismissDuration_) {
+        isDismissing_ = false;
+        SetMenuVisible(false);
+    }
+}
+
 void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
     auto scene = GetScene();
     if (!scene) {
         return;
     }
 
-    // タイトルロゴの表示/非表示
+    // タイトルロゴの表示/非表示＆リセット
     if (auto titleObj = scene->FindGameObject("TitleText")) {
         titleObj->SetActive(visible);
+        if (visible) {
+            if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
+                text->SetColor({0.2f, 0.92f, 1.0f, 1.0f});
+            }
+            if (auto t = titleObj->GetTransform()) {
+                t->SetPosition({640.0f, 150.0f, 0.0f});
+            }
+        }
     }
 
-    // 各ボタン項目の表示/非表示
-    for (const auto& name : buttonNames_) {
-        if (auto btnObj = scene->FindGameObject(name)) {
+    // 各ボタン項目の表示/非表示＆リセット
+    for (size_t i = 0; i < buttonNames_.size(); ++i) {
+        if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
             btnObj->SetActive(visible);
+            if (visible && i < dismissStartPositions_.size()) {
+                if (auto t = btnObj->GetTransform()) {
+                    t->SetPosition(dismissStartPositions_[i]);
+                }
+            }
         }
     }
 

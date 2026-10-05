@@ -69,6 +69,18 @@ public: // メンバ関数(システム)
     }
 
     /**
+     * @brief GAME START 決定時のUI重力拡散・フェード消滅アニメーションを開始する
+     */
+    void StartDismissAnimation();
+
+    /**
+     * @brief UIディゾルブ消滅中かどうか
+     */
+    bool IsDismissing() const {
+        return isDismissing_;
+    }
+
+    /**
      * @brief メニューUI（タイトルロゴ・各ボタン）の一括表示/非表示を設定する
      * @param[in] visible 表示フラグ
      */
@@ -79,6 +91,7 @@ private: // 内部処理
     void HandleSelectionInput();
     void UpdateVirtualCursor(float deltaTime);
     void UpdateButtonVisuals(float deltaTime);
+    void UpdateDismissAnimation(float deltaTime);
     void ExecuteSelection();
 
     /**
@@ -94,6 +107,13 @@ private:                           // メンバ変数
     int pressedButtonIndex_ = -1;  //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
     bool isHowToPlayOpen_ = false; //!< 操作説明モーダル表示フラグ
     bool isLaunching_ = false;     //!< 出撃シーケンス実行中フラグ
+
+    // UIディゾルブ消滅用状態
+    bool isDismissing_ = false;
+    float dismissTimer_ = 0.0f;
+    static constexpr float kDismissDuration_ = 0.30f;
+    std::vector<Irufemi::Vector3> dismissStartPositions_;
+    Irufemi::Vector3 titleTextStartPos_{};
 
     float stickCooldownTimer_ = 0.0f; //!< スティック連続移動防止用タイマー
     const float kStickCooldown_ = 0.22f;
