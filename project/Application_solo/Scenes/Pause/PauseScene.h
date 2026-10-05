@@ -57,7 +57,8 @@ private:
     void SetUIVisible(bool visible);
 
     /**
-     * @brief カーソル座標が指定インデックスのメニュー項目の幾何領域内（動的スケール・バウンディングボックス反映）にあるか判定する
+     * @brief
+     * カーソル座標が指定インデックスのメニュー項目の幾何領域内（動的スケール・バウンディングボックス反映）にあるか判定する
      * @param[in] index 項目インデックス
      * @param[in] cursorPos 判定するカーソル座標
      * @return 領域内にある場合は true

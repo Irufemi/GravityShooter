@@ -66,9 +66,9 @@ private:
     void TriggerFCSBootupSequence();
 
     // インスペクター調整可能プロパティ
-    float warpInDuration_ = 1.00f;   ///< 飛来急減速にかける時間（秒）
-    float arrivalDuration_ = 0.50f;  ///< 到着整流にかける時間（秒）
-    float startOffsetZ_ = -25.00f;   ///< 飛来開始時の初期後方オフセット（メートル）
+    float warpInDuration_ = 1.00f;          ///< 飛来急減速にかける時間（秒）
+    float arrivalDuration_ = 0.50f;         ///< 到着整流にかける時間（秒）
+    float startOffsetZ_ = -25.00f;          ///< 飛来開始時の初期後方オフセット（メートル）
     std::string targetShipName_ = "Player"; ///< 演出対象の自機オブジェクト名
 
     // 内部状態管理

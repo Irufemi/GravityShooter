@@ -399,8 +399,7 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
                     if (auto voxelComp = debris->GetComponent<VoxelParticleComponent>()) {
                         float angle = static_cast<float>(i) * 2.094395f; // 120度刻み
                         Irufemi::Vector3 blowVelocity{
-                            std::cos(angle) * 11.0f,
-                            std::sin(angle) * 6.5f + 2.0f,
+                            std::cos(angle) * 11.0f, std::sin(angle) * 6.5f + 2.0f,
                             -18.0f // スラスター後流へ強烈に吹き飛ばす
                         };
                         voxelComp->Explode(blowVelocity, {8.0f, 14.0f, 6.0f}, {1.0f, 1.0f, 1.0f});
@@ -496,8 +495,7 @@ void TitleSceneDirectorComponent::OnUpdateLaunchState(LaunchState state, float d
             if (auto debris = debrisObjs_[i].lock()) {
                 if (auto dt = debris->GetTransform()) {
                     const auto& origPos = initialDebrisPositions_[i];
-                    dt->SetPosition({origPos.x * (1.0f - p1 * 0.50f),
-                                     origPos.y * (1.0f - p1 * 0.50f),
+                    dt->SetPosition({origPos.x * (1.0f - p1 * 0.50f), origPos.y * (1.0f - p1 * 0.50f),
                                      origPos.z * (1.0f - p1 * 0.50f)});
                 }
             }
@@ -584,7 +582,8 @@ void TitleSceneDirectorComponent::OnUpdateLaunchState(LaunchState state, float d
 
         // FOVを通常視野角へスムーズに戻す
         if (camComp) {
-            float returnFov = std::lerp(initialCameraFov_ + (16.0f * 3.14159265f / 180.0f) * 0.15f, initialCameraFov_, p3);
+            float returnFov =
+                std::lerp(initialCameraFov_ + (16.0f * 3.14159265f / 180.0f) * 0.15f, initialCameraFov_, p3);
             camComp->SetFovAngleY(returnFov);
         }
 
@@ -637,8 +636,7 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
     if (launchTimer_ > 0.25f && !hasTriggeredSceneTransition_) {
         if (auto engine = GetEngine()) {
             if (auto input = engine->GetInputManager()) {
-                if (InputHelper::IsActionPressed(input, GameAction::UI_Submit) ||
-                    input->IsCursorActionPressed()) {
+                if (InputHelper::IsActionPressed(input, GameAction::UI_Submit) || input->IsCursorActionPressed()) {
                     SkipLaunchSequence();
                     return;
                 }

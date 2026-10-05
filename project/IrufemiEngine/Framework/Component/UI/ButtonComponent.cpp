@@ -77,8 +77,8 @@ bool ButtonComponent::CheckBounds(const Irufemi::Vector2& cursorPos) {
     // 3. 描画コンポーネントが無い場合：Transformのスケールを透明ヒットボックスとして判定
     float halfW = scale.x * 0.5f * hitboxScale_.x;
     float halfH = scale.y * 0.5f * hitboxScale_.y;
-    return (cursorPos.x >= pos.x - halfW && cursorPos.x <= pos.x + halfW &&
-            cursorPos.y >= pos.y - halfH && cursorPos.y <= pos.y + halfH);
+    return (cursorPos.x >= pos.x - halfW && cursorPos.x <= pos.x + halfW && cursorPos.y >= pos.y - halfH &&
+            cursorPos.y <= pos.y + halfH);
 }
 
 void ButtonComponent::Update() {

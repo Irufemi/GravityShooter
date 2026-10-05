@@ -202,8 +202,8 @@ void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath, Thread
     }
     if (!fs::exists(targetPath) || !fs::is_directory(targetPath)) {
         // オプショナルなディレクトリのため、存在しない場合は安全にスキップ
-        Log::OutPutLog(std::cout,
-                       "[AudioManager] Info: Bulk sound directory not found (skipping bulk preload): " + folderPath + "\n");
+        Log::OutPutLog(std::cout, "[AudioManager] Info: Bulk sound directory not found (skipping bulk preload): " +
+                                      folderPath + "\n");
         return;
     }
 

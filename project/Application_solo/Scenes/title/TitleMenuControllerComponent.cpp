@@ -502,10 +502,8 @@ void TitleMenuControllerComponent::UpdateTitleTextVisual(float deltaTime) {
         }
 
         if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
-            text->SetColor({std::clamp(0.20f + glow * 0.40f, 0.0f, 1.0f),
-                            std::clamp(0.92f + glow * 0.08f, 0.0f, 1.0f),
-                            1.0f,
-                            1.0f});
+            text->SetColor({std::clamp(0.20f + glow * 0.40f, 0.0f, 1.0f), std::clamp(0.92f + glow * 0.08f, 0.0f, 1.0f),
+                            1.0f, 1.0f});
         }
     }
 }

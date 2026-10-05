@@ -51,11 +51,11 @@ public:
      * @brief 出撃シーケンスの有限状態機械（FSM）
      */
     enum class LaunchState {
-        Idle,       ///< 待機中（自機ホバリング・ガレキ公転・カメラ呼吸）
-        Charge,     ///< [Phase 1: 蓄勢] 0.00s〜0.50s (タメ・重力収束・整流)
+        Idle,   ///< 待機中（自機ホバリング・ガレキ公転・カメラ呼吸）
+        Charge, ///< [Phase 1: 蓄勢] 0.00s〜0.50s (タメ・重力収束・整流)
         Accelerate, ///< [Phase 2: 咆哮] 0.50s〜1.60s (アフターバーナー点火・急加速・動的FOV・微細振動)
-        Break,      ///< [Phase 3: 突破] 1.60s〜2.20s (超光速離脱・光の点に消滅・FOV復帰)
-        Afterglow   ///< [Phase 4: 余韻] 2.20s〜3.20s (自機消失後の静寂・残光・風の抜け・暗転発火)
+        Break,    ///< [Phase 3: 突破] 1.60s〜2.20s (超光速離脱・光の点に消滅・FOV復帰)
+        Afterglow ///< [Phase 4: 余韻] 2.20s〜3.20s (自機消失後の静寂・残光・風の抜け・暗転発火)
     };
 
     /**
@@ -136,12 +136,11 @@ private: // メンバ変数
     std::vector<Irufemi::Vector3> debrisRepelOffsets_; ///< マウス・カーソルによるガレキ反発変位オフセット
     float initialBgmVolume_ = 0.70f;                   ///< BGM初期音量キャッシュ
 
-
     // 出撃シーケンスのステージ分割定数（全体長: 約3.20秒）
-    static constexpr float kDurationCharge_     = 0.50f; ///< [Phase 1: 蓄勢] タメ・重力収束
+    static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
     static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
-    static constexpr float kDurationBreak_      = 0.60f; ///< [Phase 3: 突破] 超光速離脱・消滅
-    static constexpr float kDurationAfterglow_  = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
+    static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速離脱・消滅
+    static constexpr float kDurationAfterglow_ = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
     static constexpr float kTotalLaunchDuration_ =
         kDurationCharge_ + kDurationAccelerate_ + kDurationBreak_ + kDurationAfterglow_;
 

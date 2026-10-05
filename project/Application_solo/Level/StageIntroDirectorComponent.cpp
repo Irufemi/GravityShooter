@@ -66,8 +66,8 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
     transform->CheckAndComputeMatrix();
 
     SetHUDActive(false);
-    SetShipThrusterScale(2.5f, true);  // 高速突入用の超高出力ブースト炎（2.5倍）を展開
-    SetShipThrusterActive(true);        // 突入開始位置（後方）でスラスター点火
+    SetShipThrusterScale(2.5f, true); // 高速突入用の超高出力ブースト炎（2.5倍）を展開
+    SetShipThrusterActive(true);      // 突入開始位置（後方）でスラスター点火
 
     hasInitializedShip_ = true;
     return true;
