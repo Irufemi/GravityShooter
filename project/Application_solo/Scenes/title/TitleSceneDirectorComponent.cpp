@@ -3,6 +3,8 @@
 #include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Framework/Component/Audio/AudioSourceComponent.h"
 #include "Framework/Component/TransformComponent.h"
+#include "Framework/Component/Camera/CameraComponent.h"
+#include "Framework/Component/Camera/CameraShakeComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Scene/SceneManager.h"
@@ -17,6 +19,7 @@ void TitleSceneDirectorComponent::Initialize() {
     isLaunching_ = false;
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
+    hasPlayedShake_ = false;
     idleTimer_ = 0.0f;
 
     // ガレキの公転パラメータ初期化 (半径X, 半径Z, 速度, 初期位相, 高さオフセット)
@@ -38,6 +41,13 @@ TransformComponent* TitleSceneDirectorComponent::GetShipTransform() const {
 TransformComponent* TitleSceneDirectorComponent::GetCameraTransform() const {
     if (auto cam = cameraObj_.lock()) {
         return cam->GetTransform();
+    }
+    return nullptr;
+}
+
+CameraComponent* TitleSceneDirectorComponent::GetCameraComponent() const {
+    if (auto cam = cameraObj_.lock()) {
+        return cam->GetComponent<CameraComponent>();
     }
     return nullptr;
 }
@@ -72,6 +82,9 @@ void TitleSceneDirectorComponent::CacheEntities() {
             cameraObj_ = camObj;
             if (auto t = camObj->GetTransform()) {
                 initialCameraPos_ = t->GetPosition();
+            }
+            if (auto camComp = camObj->GetComponent<CameraComponent>()) {
+                initialCameraFov_ = camComp->GetFovAngleY();
             }
         }
     }
@@ -228,6 +241,7 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
     isLaunching_ = true;
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
+    hasPlayedShake_ = false;
 
     auto shipTransform = GetShipTransform();
     auto nebulaComp = GetNebulaComponent();
@@ -241,10 +255,10 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
 
     // 神秘的な星雲の重力パルスを発火（中心が眩く収束・発光）
     if (nebulaComp) {
-        nebulaComp->TriggerPulse(1.0f);
+        nebulaComp->TriggerPulse(1.2f);
     }
 
-    // 出撃重力チャージSE再生
+    // 出撃SE再生（Springin' Sound Stock 製「強風1」を第一優先）
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
             auto sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.mp3", "se_player_boost");
@@ -258,7 +272,7 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
                 sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_menu_decide.wav", "se_menu_decide");
             }
             if (sound) {
-                am->Play(sound, false, 0.9f, AudioCategory::SE);
+                am->Play(sound, false, 0.95f, AudioCategory::SE);
             }
         }
     }
@@ -276,19 +290,21 @@ void TitleSceneDirectorComponent::StartLaunchSequence() {
 void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
     launchTimer_ += deltaTime;
 
-    float t = std::clamp(launchTimer_ / kTotalLaunchDuration_, 0.0f, 1.0f);
-
     auto shipTransform = GetShipTransform();
     auto cameraTransform = GetCameraTransform();
+    auto camComp = GetCameraComponent();
+    auto nebulaComp = GetNebulaComponent();
 
-    // [フェーズ 1: 0.00s 〜 0.25s] 重力収束＆姿勢整流（タメ動作）
-    if (launchTimer_ <= 0.25f) {
-        float p1 = launchTimer_ / 0.25f;
+    // =========================================================================
+    // [Phase 1: 蓄勢 (Charge)] 0.00s 〜 0.50s (タメ・重力収束・水平整流)
+    // =========================================================================
+    if (launchTimer_ <= kDurationCharge_) {
+        float p1 = launchTimer_ / kDurationCharge_;
         float alignT = 1.0f - std::pow(1.0f - p1, 2.0f); // スムーズなイーズアウト補間
 
         // 自機の沈み込み＆斜め姿勢から正面水平([0, 0, 0])への整流
         if (shipTransform) {
-            float backZ = initialShipPos_.z - p1 * 0.35f;
+            float backZ = initialShipPos_.z - p1 * 0.45f;
             shipTransform->SetPosition({initialShipPos_.x, initialShipPos_.y, backZ});
 
             // 機首とロールを正面水平へクイッと正す
@@ -302,38 +318,100 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
             if (auto debris = debrisObjs_[i].lock()) {
                 if (auto dt = debris->GetTransform()) {
                     const auto& origPos = initialDebrisPositions_[i];
-                    float cx = origPos.x * (1.0f - p1 * 0.45f);
-                    float cy = origPos.y * (1.0f - p1 * 0.45f);
-                    float cz = origPos.z * (1.0f - p1 * 0.45f);
+                    float cx = origPos.x * (1.0f - p1 * 0.50f);
+                    float cy = origPos.y * (1.0f - p1 * 0.50f);
+                    float cz = origPos.z * (1.0f - p1 * 0.50f);
                     dt->SetPosition({cx, cy, cz});
                 }
             }
         }
 
-        // スラスター炎の引き絞り（チャージの予兆）
-        targetThrusterScaleZ_ = 0.45f;
+        // スラスター炎の引き絞り（点火直前のエネルギー圧縮）
+        targetThrusterScaleZ_ = 0.35f;
+
+        // FOVは通常を維持
+        if (camComp) {
+            camComp->SetFovAngleY(initialCameraFov_);
+        }
     }
-    // [フェーズ 2: 0.25s 〜 0.95s] スラスター点火＆正面一直線急加速（アフターバーナー全開）
-    else {
-        float p2 = (launchTimer_ - 0.25f) / (kTotalLaunchDuration_ - 0.25f);
-        float accelCurve = p2 * p2 * p2; // 3次急加速
-
-        if (shipTransform) {
-            float boostZ = initialShipPos_.z - 0.35f + accelCurve * 50.0f;
-            shipTransform->SetPosition({initialShipPos_.x, initialShipPos_.y, boostZ});
-
-            // 正面水平姿勢を維持（推進ベクトルと進行方向を完全一致させ、GameSceneへシームレス接続）
-            shipTransform->SetRotation({0.0f, 0.0f, 0.0f});
+    // =========================================================================
+    // [Phase 2: 咆哮 (Accelerate)] 0.50s 〜 1.60s (アフターバーナー点火・急加速・動的FOV)
+    // =========================================================================
+    else if (launchTimer_ <= (kDurationCharge_ + kDurationAccelerate_)) {
+        // 0.50s 点火瞬間のワンショット処理（カメラシェイク & 星雲衝撃パルス）
+        if (!hasPlayedShake_) {
+            hasPlayedShake_ = true;
+            if (auto camObj = cameraObj_.lock()) {
+                auto shake = camObj->GetComponent<CameraShakeComponent>();
+                if (!shake) {
+                    auto newShake = camObj->AddComponent<CameraShakeComponent>();
+                    shake = newShake.get();
+                }
+                if (shake) {
+                    // スラスター推進の猛烈な高周波バイブレーション（振幅 0.04m, 継続1.1秒, 周波数22Hz）
+                    shake->PlayShakeSeconds(0.04f, kDurationAccelerate_, 22.0f);
+                }
+            }
+            if (nebulaComp) {
+                nebulaComp->TriggerPulse(1.5f);
+            }
         }
 
-        // カメラの自機追従ドリーイン（自機にしっかり食らいつき、迫力のアフターバーナーを至近距離で捉える）
+        float p2 = (launchTimer_ - kDurationCharge_) / kDurationAccelerate_;
+        float accelCurve = p2 * p2 * p2; // 3次急加速曲線
+
+        // 自機の超推力突進
+        if (shipTransform) {
+            float boostZ = initialShipPos_.z - 0.45f + accelCurve * 65.0f;
+            shipTransform->SetPosition({initialShipPos_.x, initialShipPos_.y, boostZ});
+            shipTransform->SetRotation({0.0f, 0.0f, 0.0f}); // 正面水平姿勢を完全維持
+        }
+
+        // カメラの自機追従ドリーイン（自機に食らいつき、迫力のバーニア噴流を間近で捉える）
         if (cameraTransform) {
-            float camDollyZ = initialCameraPos_.z + accelCurve * 42.0f;
+            float camDollyZ = initialCameraPos_.z + accelCurve * 52.0f;
             cameraTransform->SetPosition({initialCameraPos_.x, initialCameraPos_.y, camDollyZ});
         }
 
-        // 出撃急加速：GameSceneのブースト時と同様にScale Zを自然に伸長（プレハブ本来のシャープな噴流）
-        targetThrusterScaleZ_ = std::lerp(1.2f, 2.0f, p2);
+        // 動的FOV（ワープスピード効果）: 加速中盤で画面周辺がワイドに歪み、超光速感を演出
+        if (camComp) {
+            float fovSin = std::sin(p2 * 3.14159265f); // 0 -> 1 -> 0 の滑らかな山型
+            float extraFov = (16.0f * 3.14159265f / 180.0f) * fovSin; // 最大+16度拡大
+            camComp->SetFovAngleY(initialCameraFov_ + extraFov);
+        }
+
+        // スラスター急伸長（アフターバーナー全開）
+        targetThrusterScaleZ_ = std::lerp(1.2f, 2.4f, p2);
+    }
+    // =========================================================================
+    // [Phase 3: 突破 (Hyperspace Break)] 1.60s 〜 2.00s (空間突破・InGameフェード遷移)
+    // =========================================================================
+    else {
+        float p3 = std::clamp((launchTimer_ - (kDurationCharge_ + kDurationAccelerate_)) / kDurationBreak_, 0.0f, 1.0f);
+
+        // 自機は光の彼方へ突き抜ける
+        if (shipTransform) {
+            float boostZ = initialShipPos_.z - 0.45f + 65.0f + p3 * 35.0f;
+            shipTransform->SetPosition({initialShipPos_.x, initialShipPos_.y, boostZ});
+        }
+
+        // FOVを通常視野角へスムーズに戻す
+        if (camComp) {
+            float returnFov = std::lerp(initialCameraFov_ + (16.0f * 3.14159265f / 180.0f) * 0.15f, initialCameraFov_, p3);
+            camComp->SetFovAngleY(returnFov);
+        }
+
+        targetThrusterScaleZ_ = 2.4f;
+
+        // 1.60s 到達時に InGame シーンへのシームレスフェード遷移（0.5秒）を発火
+        if (!hasTriggeredSceneTransition_) {
+            hasTriggeredSceneTransition_ = true;
+            if (auto engine = GetEngine()) {
+                if (auto sm = engine->GetSceneManager()) {
+                    sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.5f);
+                }
+            }
+        }
     }
 
     // スラスターのスケールを急峻に追従
@@ -343,16 +421,6 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
     if (auto thruster = thrusterObj_.lock()) {
         if (auto transform = thruster->GetTransform()) {
             transform->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
-        }
-    }
-
-    // [フェーズ 3: 0.88s] InGame シーンへのシームレスフェード遷移
-    if (launchTimer_ >= 0.88f && !hasTriggeredSceneTransition_) {
-        hasTriggeredSceneTransition_ = true;
-        if (auto engine = GetEngine()) {
-            if (auto sm = engine->GetSceneManager()) {
-                sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.5f);
-            }
         }
     }
 }
