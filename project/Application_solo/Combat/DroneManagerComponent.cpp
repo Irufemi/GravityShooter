@@ -146,6 +146,10 @@ void DroneManagerComponent::Update() {
             enableMask = effectMask->GetEnableEffectMask();
             effectType = effectMask->GetCustomEffectType();
             effectParam = effectMask->GetCachedEffectParam();
+            if (enableMask && effectParam == 0.0f) {
+                effectMask->Update();
+                effectParam = effectMask->GetCachedEffectParam();
+            }
         }
         batchRenderer_->AddInstance(batchT, effectType, effectParam, enableMask);
 

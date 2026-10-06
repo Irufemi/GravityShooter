@@ -266,6 +266,10 @@ void EnemySpawnerComponent::Update() {
                         enableMask = effectMask->GetEnableEffectMask();
                         effectType = effectMask->GetCustomEffectType();
                         effectParam = effectMask->GetCachedEffectParam();
+                        if (enableMask && effectParam == 0.0f) {
+                            effectMask->Update();
+                            effectParam = effectMask->GetCachedEffectParam();
+                        }
                     }
                     poolIt->second->batchRenderer->AddInstanceWorld(transform->GetWorldMatrix(), effectType,
                                                                     effectParam, enableMask);

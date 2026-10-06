@@ -13,7 +13,7 @@ void GlobalPostProcessComponent::Start() {
     auto engine = GetEngine();
     if (engine) {
         if (auto pp = engine->GetPostProcessManager()) {
-            pp->Reset(); // 以前のプレイセッションやエディタ状態で残っているエフェクトスタックを完全にクリア
+            pp->Reset(false); // 遷移フェード(PostUI)を維持しつつ環境エフェクトスタックをリセット
         }
     }
     Update();
@@ -38,7 +38,7 @@ void GlobalPostProcessComponent::OnDisable() {
     auto engine = GetEngine();
     if (engine) {
         if (auto pp = engine->GetPostProcessManager()) {
-            pp->Reset();
+            pp->Reset(false);
         }
     }
 }

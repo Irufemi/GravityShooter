@@ -21,6 +21,7 @@ void PostProcessManager::Initialize(IrufemiEngine* engine, DirectXCommon* dxComm
 
     CreateConstantBuffers();
     CreatePSOs();
+    ResetCustomEffectSlots();
 }
 
 void PostProcessManager::ResetAllParams(bool clearPostUI) {
@@ -192,10 +193,9 @@ void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderText
         combinedBufferOffset_ = 0;
 
         std::lock_guard<std::mutex> lock(customParamsMutex_);
-        size_t count = std::min<size_t>(customEffectParamsList_.size(), kMaxCustomEffectParams - 1);
-        if (count > 0 && mappedCustomEffectParams_) {
-            std::memcpy(mappedCustomEffectParams_ + 1, customEffectParamsList_.data(),
-                        count * sizeof(CustomEffectParams));
+        if (mappedCustomEffectParams_) {
+            std::memcpy(mappedCustomEffectParams_ + 1, persistentCustomParams_.data() + 1,
+                        (kMaxCustomEffectParams - 1) * sizeof(CustomEffectParams));
         }
     }
 
@@ -672,3 +672,58 @@ D3D12_GPU_VIRTUAL_ADDRESS PostProcessManager::AllocateBindlessParams(uint32_t ma
     TryIncrementBindlessOffset();
     return gpuAddress;
 }
+
+uint32_t PostProcessManager::RegisterCustomEffectParams(uint64_t objectId, const CustomEffectParams& params) {
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+
+    // 既にスロットが割り当てられている場合はパラメータのみ更新 (スロット番号は完全維持)
+    if (objectId != 0) {
+        auto it = objectToSlotMap_.find(objectId);
+        if (it != objectToSlotMap_.end()) {
+            uint32_t slot = it->second;
+            persistentCustomParams_[slot] = params;
+            return slot;
+        }
+    }
+
+    // 新規スロットの割り当て
+    uint32_t slot = 1;
+    if (!freeSlots_.empty()) {
+        slot = freeSlots_.back();
+        freeSlots_.pop_back();
+    } else {
+        slot = kMaxCustomEffectParams - 1; // 上限超過時は最終スロット
+    }
+
+    if (objectId != 0) {
+        objectToSlotMap_[objectId] = slot;
+    }
+    persistentCustomParams_[slot] = params;
+    return slot;
+}
+
+void PostProcessManager::UnregisterCustomEffectParams(uint64_t objectId) {
+    if (objectId == 0) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+    auto it = objectToSlotMap_.find(objectId);
+    if (it != objectToSlotMap_.end()) {
+        uint32_t slot = it->second;
+        persistentCustomParams_[slot] = CustomEffectParams{}; // ゼロクリア
+        freeSlots_.push_back(slot);
+        objectToSlotMap_.erase(it);
+    }
+}
+
+void PostProcessManager::ResetCustomEffectSlots() {
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+    persistentCustomParams_.fill(CustomEffectParams{});
+    objectToSlotMap_.clear();
+    freeSlots_.clear();
+    freeSlots_.reserve(kMaxCustomEffectParams - 1);
+    for (int i = static_cast<int>(kMaxCustomEffectParams - 1); i >= 1; --i) {
+        freeSlots_.push_back(static_cast<uint32_t>(i));
+    }
+}
+

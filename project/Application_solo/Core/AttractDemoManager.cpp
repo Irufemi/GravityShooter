@@ -84,12 +84,25 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
             inGameTimer_ = 0.0f;
             hasTriggeredReturn_ = false;
             isDemoPlaying_ = false; // タイトル用デモフラグは終了
+
+            // ゲームシーンへの入力リーク防止：仮想マウスを即座にサニタイズ（手動マウス復帰）
+            if (auto input = engine_->GetInputManager()) {
+                if (auto mouse = input->GetMouse()) {
+                    mouse->SetVirtualPosition({0.0f, 0.0f}, false);
+                }
+            }
         } else if (currentScene == "Title") {
             // InGame から Title に帰還した瞬間
             isDemoInGame_ = false;
             hasTriggeredReturn_ = false;
             demoTimeline_ = 0.0f;
             idleTimer_ = 0.0f;
+
+            if (auto input = engine_->GetInputManager()) {
+                if (auto mouse = input->GetMouse()) {
+                    mouse->SetVirtualPosition({0.0f, 0.0f}, false);
+                }
+            }
         }
         previousScene_ = currentScene;
     }
@@ -266,10 +279,16 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
             }
         }
 
-        // 仮想カーソル座標を反映（星雲シェーダー、ガレキ反発、ボタンホバーが完全連動）
-        inputManager->SetVirtualCursorPosition(targetCursorPos);
-        if (auto mouse = inputManager->GetMouse()) {
-            mouse->SetVirtualPosition(targetCursorPos, true);
+        // 仮想カーソル座標を反映（出撃決定後は上書きを終了してサニタイズ）
+        if (!hasSubmitted_) {
+            inputManager->SetVirtualCursorPosition(targetCursorPos);
+            if (auto mouse = inputManager->GetMouse()) {
+                mouse->SetVirtualPosition(targetCursorPos, true);
+            }
+        } else {
+            if (auto mouse = inputManager->GetMouse()) {
+                mouse->SetVirtualPosition({0.0f, 0.0f}, false);
+            }
         }
     }
     // 通常待機中の場合（無操作アイドル監視）

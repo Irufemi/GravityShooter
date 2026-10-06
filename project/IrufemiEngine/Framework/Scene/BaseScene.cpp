@@ -21,6 +21,7 @@
 #include "Framework/Scene/SceneSerializer.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Camera/TargetFollowComponent.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
 #include "Core/Utility/Log.h"
 #include <fstream>
 #include <iostream>
@@ -385,10 +386,16 @@ void BaseScene::WarmUpRenderState() {
         engine_->GetCameraManager()->Update();
     }
 
-    // 6. 全GameObjectの描画前ステート同期（スキニングの初期ポーズ計算 & ComputeTask先行登録）
+    // 6. 全GameObjectの描画前ステート同期（スキニングの初期ポーズ計算 & ComputeTask先行登録 & マスク描画パラメータ初期化）
     for (const auto& obj : gameObjects_) {
         if (obj && !obj->GetParent() && !obj->IsDestroyed()) {
             obj->SyncRenderState();
+            auto maskComps = obj->GetComponentsInChildren<EffectMaskComponent>();
+            for (auto mask : maskComps) {
+                if (mask) {
+                    mask->Update();
+                }
+            }
         }
     }
 

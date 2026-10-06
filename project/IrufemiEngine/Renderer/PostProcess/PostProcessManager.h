@@ -13,6 +13,7 @@ typedef struct IInspectable IInspectable;
 #include <memory>
 #include <vector>
 #include <array>
+#include <unordered_map>
 #include <cstdint>
 #include <algorithm>
 #include <mutex>
@@ -622,31 +623,36 @@ public:
                                                      uint32_t maskTextureIndex = 0);
 
     /**
-     * @brief 個別エフェクトの詳細パラメータを登録し、インスタンスID（1〜255）を発行する
+     * @brief オブジェクト固有IDに紐づく永続スロット（1〜255）に個別エフェクトパラメータを登録・更新する (AAA Persistent Slot Allocation)
+     * @param objectId オブジェクトの固有インスタンスID (GameObject::GetInstanceID() 等)
      * @param params 個別エフェクトのパラメータ
-     * @return インスタンスID (0はデフォルト/未登録)
+     * @return 永続インスタンスID (1〜255)
+     */
+    uint32_t RegisterCustomEffectParams(uint64_t objectId, const CustomEffectParams& params);
+
+    /**
+     * @brief 互換用：単一パラメータを登録する
      */
     uint32_t RegisterCustomEffectParams(const CustomEffectParams& params) {
-        /**
-         * @brief lock を実行する。
-         */
-        std::lock_guard<std::mutex> lock(customParamsMutex_);
-        if (customEffectParamsList_.size() >= kMaxCustomEffectParams - 1) { // 0 is reserved
-            return kMaxCustomEffectParams - 1;                              // Fallback to last available
-        }
-        customEffectParamsList_.push_back(params);
-        return static_cast<uint32_t>(customEffectParamsList_.size()); // 1-indexed
+        return RegisterCustomEffectParams(0, params);
     }
 
     /**
-     * @brief 個別エフェクトの詳細パラメータのリストをクリアする（毎フレーム呼び出す）
+     * @brief オブジェクト破棄時に永続スロットを解放する
+     * @param objectId オブジェクトの固有インスタンスID
+     */
+    void UnregisterCustomEffectParams(uint64_t objectId);
+
+    /**
+     * @brief 全永続スロットをリセットする（シーン完全切り替え時用）
+     */
+    void ResetCustomEffectSlots();
+
+    /**
+     * @brief 個別エフェクトの詳細パラメータのリストをクリアする（互換用）
      */
     void ClearCustomEffectParams() {
-        /**
-         * @brief lock を実行する。
-         */
-        std::lock_guard<std::mutex> lock(customParamsMutex_);
-        customEffectParamsList_.clear();
+        // 永続スロット方式では毎フレームの配列消去は行わず、スロットの状態を維持する
     }
 
     // --- Getters & Setters ---
@@ -830,6 +836,7 @@ public:
         if (clearPostUI) {
             pendingPostUI_.clear();
             activePostUI_.clear();
+            ResetCustomEffectSlots();
         }
         ResetAllParams(clearPostUI);
     }
@@ -1173,7 +1180,9 @@ private:
     std::vector<PostProcessModeInfo> pendingPostUI_;
 
     std::mutex customParamsMutex_;
-    std::vector<CustomEffectParams> customEffectParamsList_;
+    std::array<CustomEffectParams, kMaxCustomEffectParams> persistentCustomParams_{};
+    std::unordered_map<uint64_t, uint32_t> objectToSlotMap_;
+    std::vector<uint32_t> freeSlots_;
     Microsoft::WRL::ComPtr<ID3D12Resource> customEffectParamsCB_;
     CustomEffectParams* mappedCustomEffectParams_ = nullptr;
 

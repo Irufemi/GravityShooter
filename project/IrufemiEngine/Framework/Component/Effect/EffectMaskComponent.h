@@ -32,6 +32,10 @@ public:
      * @brief Update を実行する。
      */
     void Update() override;
+    /**
+     * @brief 破棄時のスロット解放を行います
+     */
+    void OnDestroy() override;
 
     /**
      * @brief インスペクターおよびシリアライズ用のプロパティ登録を行う
@@ -109,9 +113,7 @@ public:
      * @brief CustomParams を設定する。
      * @param[in] params 設定する CustomEffectParams の値
      */
-    void SetCustomParams(const PostProcessManager::CustomEffectParams& params) {
-        customParams_ = params;
-    }
+    void SetCustomParams(const PostProcessManager::CustomEffectParams& params);
 
     /**
      * @brief CustomParams を取得する。
@@ -133,6 +135,9 @@ private:
     int32_t customEffectType_ = 0;
     float cachedEffectParam_ = 0.0f;
     PostProcessManager::CustomEffectParams customParams_;
+
+    uint32_t assignedSlot_ = 0;
+    uint64_t ownerId_ = 0;
 
     bool lastEnable_ = false;
     int32_t lastType_ = -1;

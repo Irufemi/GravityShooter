@@ -7,7 +7,9 @@
 
 EffectMaskComponent::EffectMaskComponent() {}
 
-EffectMaskComponent::~EffectMaskComponent() {}
+EffectMaskComponent::~EffectMaskComponent() {
+    OnDestroy();
+}
 
 void EffectMaskComponent::Initialize() {
     OnAwake();
@@ -22,6 +24,32 @@ void EffectMaskComponent::OnSpawned() {
     }
 }
 
+void EffectMaskComponent::OnDestroy() {
+    if (cachedPostProcessManager_ && ownerId_ != 0) {
+        cachedPostProcessManager_->UnregisterCustomEffectParams(ownerId_);
+        ownerId_ = 0;
+        assignedSlot_ = 0;
+    }
+}
+
+void EffectMaskComponent::SetCustomParams(const PostProcessManager::CustomEffectParams& params) {
+    customParams_ = params;
+    if (enableEffectMask_ && customEffectType_ > 0) {
+        if (!cachedPostProcessManager_) {
+            if (auto* engine = GetEngine()) {
+                cachedPostProcessManager_ = engine->GetPostProcessManager();
+            }
+        }
+        if (cachedPostProcessManager_) {
+            if (ownerId_ == 0) {
+                ownerId_ = gameObject_ ? gameObject_->GetInstanceID() : reinterpret_cast<uint64_t>(this);
+            }
+            assignedSlot_ = cachedPostProcessManager_->RegisterCustomEffectParams(ownerId_, customParams_);
+            cachedEffectParam_ = static_cast<float>(assignedSlot_) / 255.0f;
+        }
+    }
+}
+
 void EffectMaskComponent::Update() {
     if (enableEffectMask_ && customEffectType_ > 0) {
         if (!cachedPostProcessManager_) {
@@ -31,8 +59,9 @@ void EffectMaskComponent::Update() {
         }
 
         if (cachedPostProcessManager_) {
-            uint32_t id = cachedPostProcessManager_->RegisterCustomEffectParams(customParams_);
-            cachedEffectParam_ = static_cast<float>(id) / 255.0f;
+            ownerId_ = gameObject_ ? gameObject_->GetInstanceID() : reinterpret_cast<uint64_t>(this);
+            assignedSlot_ = cachedPostProcessManager_->RegisterCustomEffectParams(ownerId_, customParams_);
+            cachedEffectParam_ = static_cast<float>(assignedSlot_) / 255.0f;
         }
     } else {
         cachedEffectParam_ = 0.0f;
