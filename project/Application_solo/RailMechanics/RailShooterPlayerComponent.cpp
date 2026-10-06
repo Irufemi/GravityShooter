@@ -3,6 +3,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
+#include "Core/AttractDemoManager.h"
 #include <algorithm>
 #include <cmath>
 
@@ -91,7 +92,8 @@ void RailShooterPlayerComponent::Update() {
     }
     Irufemi::Vector3 moveDir = {0.0f, 0.0f, 0.0f};
 
-    if (inputEnabled_) {
+    bool allowInput = inputEnabled_ && !AttractDemoManager::IsAttractModeActive();
+    if (allowInput) {
         // WASD または 矢印キーで移動方向を入力 (長押し判定)
         if (input->IsKeyDown('W') || input->IsKeyDown(VK_UP)) {
             moveDir.y += 1.0f;

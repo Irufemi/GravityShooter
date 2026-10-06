@@ -12,6 +12,7 @@
 #include "Combat/Boss/BossComponent.h"
 #include "Platform/Input/InputManager.h"
 #include "Input/GameAction.h"
+#include "Core/AttractDemoManager.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
 
@@ -93,12 +94,15 @@ void GameLoopManagerComponent::Update() {
         }
 
         // ポーズ画面呼び出しトリガー（ESCキー または ゲームパッド STARTボタン）
-        if (auto engine = GetEngine()) {
-            if (auto input = engine->GetInputManager()) {
-                bool triggerPause = InputHelper::IsActionPressed(input, GameAction::Pause);
-                if (triggerPause) {
-                    if (auto sm = engine->GetSceneManager()) {
-                        sm->PushScene("Pause");
+        // ※ デモプレイ中（放置デモまたはF8キオスク固定展示）はポーズ画面を呼び出さない
+        if (!AttractDemoManager::IsAttractModeActive()) {
+            if (auto engine = GetEngine()) {
+                if (auto input = engine->GetInputManager()) {
+                    bool triggerPause = InputHelper::IsActionPressed(input, GameAction::Pause);
+                    if (triggerPause) {
+                        if (auto sm = engine->GetSceneManager()) {
+                            sm->PushScene("Pause");
+                        }
                     }
                 }
             }

@@ -22,6 +22,7 @@
 #include "Combat/Boss/BossComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
 #include "Framework/Component/Renderer/SkinnedMeshRendererComponent.h"
+#include "Core/AttractDemoManager.h"
 #include <algorithm>
 #include <cmath>
 #include "Core/Utility/Log.h"
@@ -112,7 +113,7 @@ void GravityPlayerComponent::Update() {
 
     if (isThrowing_) {
         UpdateThrowing();
-    } else {
+    } else if (!AttractDemoManager::IsAttractModeActive()) {
         if (targetingComp_) {
             size_t maxLockOn = orbitingDebris_.size();
             if (maxLockOn == 0) {

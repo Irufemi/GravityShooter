@@ -42,10 +42,14 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
     hasInitializedMousePos_ = false;
+    s_isKioskModeActive_ = false;
+    s_isAttractModeActive_ = false;
 }
 
 void AttractDemoManager::OnFinalize() {
     StopAllDemo(false);
+    s_isKioskModeActive_ = false;
+    s_isAttractModeActive_ = false;
     engine_ = nullptr;
 }
 
@@ -60,6 +64,10 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
 
     // 1. F8キーの監視（全シーン共通・最優先処理、多重発火防止クールダウン適用）
     UpdateF8Input(deltaTime);
+
+    // 静的フラグの同期更新（ゲームコンポーネントからの入力遮断判定用）
+    s_isKioskModeActive_ = isKioskLoopMode_;
+    s_isAttractModeActive_ = (isKioskLoopMode_ || isDemoPlaying_ || isDemoInGame_);
 
     auto sm = engine_->GetSceneManager();
     if (!sm) {
@@ -103,17 +111,18 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
     }
 
     auto inputManager = engine_->GetInputManager();
-
-    // 物理的に今キーが押されているかを判定 (0x8000 = 現在物理的に押下中フラグ)
-    bool isF8Down = false;
-    if (inputManager && inputManager->IsKeyDown(kToggleKey_)) {
-        isF8Down = true;
-    }
-    if ((::GetAsyncKeyState(kToggleKey_) & 0x8000) != 0) {
-        isF8Down = true;
+    if (!inputManager) {
+        return;
     }
 
-    // 立ち上がりエッジ検知（前フレームOFF かつ 今フレームONの瞬間のみ）
+    // InputManager の状態と Win32 GetAsyncKeyState の両面でF8キー押下を確実に検知
+    SHORT asyncState = GetAsyncKeyState(VK_F8);
+    bool isF8Down = (asyncState & 0x8000) != 0;
+    if (inputManager->IsKeyPressed(VK_F8) || inputManager->IsKeyDown(VK_F8)) {
+        isF8Down = true;
+    }
+
+    // 物理的なキー押下エッジ判定（前フレームOFF → 今フレームON）
     bool f8Triggered = isF8Down && !wasF8Down_;
     wasF8Down_ = isF8Down;
 
@@ -176,7 +185,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
     // デモ再生中の場合
     if (isDemoPlaying_) {
-        // キオスク固定モードでない場合は手動入力で即座にデモ解除
+        // キオスク固定モードでない場合は手動入力で即座にデモ解除（Wake-up on any input）
         if (!isKioskLoopMode_) {
             Irufemi::Vector2 rawMousePos = inputManager->GetVirtualCursorPosition();
             if (auto mouse = inputManager->GetMouse()) {
@@ -185,8 +194,17 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
             float mouseMoveDist = std::hypot(rawMousePos.x - lastRawMousePos_.x, rawMousePos.y - lastRawMousePos_.y);
             lastRawMousePos_ = rawMousePos;
 
-            if (mouseMoveDist > 3.0f || inputManager->IsCursorActionPressed() || inputManager->IsKeyPressed(VK_SPACE) ||
-                inputManager->IsKeyPressed(VK_RETURN) || inputManager->IsKeyPressed(VK_ESCAPE)) {
+            bool hasUserInput = (mouseMoveDist > 3.0f) || inputManager->IsCursorActionPressed() ||
+                                inputManager->IsKeyPressed(VK_SPACE) || inputManager->IsKeyPressed(VK_RETURN) ||
+                                inputManager->IsKeyPressed(VK_ESCAPE) ||
+                                inputManager->IsKeyPressed('W') || inputManager->IsKeyPressed('S') ||
+                                inputManager->IsKeyPressed('A') || inputManager->IsKeyPressed('D') ||
+                                inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed(VK_DOWN) ||
+                                inputManager->IsKeyPressed(VK_LEFT) || inputManager->IsKeyPressed(VK_RIGHT) ||
+                                inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
+                                inputManager->IsButtonPressed(XINPUT_GAMEPAD_START);
+
+            if (hasUserInput) {
                 StopTitleDemo();
                 return;
             }
@@ -270,10 +288,14 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
         lastRawMousePos_ = rawMousePos;
 
         bool hasUserInput = (mouseMoveDist > 2.0f) || inputManager->IsCursorActionPressed() ||
-                             inputManager->IsKeyPressed(VK_SPACE) || inputManager->IsKeyPressed(VK_RETURN) ||
-                             inputManager->IsKeyPressed('W') || inputManager->IsKeyPressed('S') ||
-                             inputManager->IsKeyPressed('A') || inputManager->IsKeyPressed('D') ||
-                             inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed(VK_DOWN);
+                            inputManager->IsKeyPressed(VK_SPACE) || inputManager->IsKeyPressed(VK_RETURN) ||
+                            inputManager->IsKeyPressed(VK_ESCAPE) ||
+                            inputManager->IsKeyPressed('W') || inputManager->IsKeyPressed('S') ||
+                            inputManager->IsKeyPressed('A') || inputManager->IsKeyPressed('D') ||
+                            inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed(VK_DOWN) ||
+                            inputManager->IsKeyPressed(VK_LEFT) || inputManager->IsKeyPressed(VK_RIGHT) ||
+                            inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
+                            inputManager->IsButtonPressed(XINPUT_GAMEPAD_START);
 
         if (hasUserInput) {
             idleTimer_ = 0.0f;
@@ -311,17 +333,23 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
 
     auto inputManager = engine_->GetInputManager();
 
-    // スキップ判定（画面表示後 0.30秒以降、クリックまたは決定キーによる即時復帰）
+    // スキップ判定（画面表示後 0.30秒以降）
+    // ※ F8キオスク固定展示中は操作遮断のため手動スキップしない
+    // ※ 通常放置デモから遷移した場合のみ、プレイヤーが操作した瞬間に即座にタイトルへ戻す
     bool userSkip = false;
-    if (inputManager && inGameTimer_ > 0.30f) {
+    if (!isKioskLoopMode_ && inputManager && inGameTimer_ > 0.30f) {
         if (inputManager->IsCursorActionPressed() || inputManager->IsKeyPressed(VK_SPACE) ||
-            inputManager->IsKeyPressed(VK_RETURN) || inputManager->IsKeyPressed(VK_ESCAPE)) {
+            inputManager->IsKeyPressed(VK_RETURN) || inputManager->IsKeyPressed(VK_ESCAPE) ||
+            inputManager->IsKeyPressed('W') || inputManager->IsKeyPressed('A') ||
+            inputManager->IsKeyPressed('S') || inputManager->IsKeyPressed('D') ||
+            inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
+            inputManager->IsButtonPressed(XINPUT_GAMEPAD_START)) {
             userSkip = true;
         }
     }
 
     if (userSkip) {
-        // 手動スキップされた場合はキオスクループも解除して通常タイトルに戻す
+        // 手動スキップされた場合はデモを完全解除して通常タイトルに戻す
         StopAllDemo(true);
         return;
     }
@@ -338,6 +366,7 @@ void AttractDemoManager::StartTitleDemo() {
     isDemoPlaying_ = true;
     demoTimeline_ = 0.0f;
     hasSubmitted_ = false;
+    s_isAttractModeActive_ = true;
 
     // 各ボタンの最新スクリーン座標を取得・キャッシュ
     posStart_ = GetButtonCenter("Btn_Start", {640.0f, 420.0f});
@@ -359,6 +388,7 @@ void AttractDemoManager::StopTitleDemo() {
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     hasSubmitted_ = false;
+    s_isAttractModeActive_ = (isKioskLoopMode_ || isDemoInGame_);
 
     // 仮想マウスの上書きを解除して手動マウスへ復帰
     if (auto input = engine_->GetInputManager()) {
@@ -376,6 +406,8 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
+    s_isKioskModeActive_ = false;
+    s_isAttractModeActive_ = false;
 
     // 仮想マウス解除
     if (engine_) {

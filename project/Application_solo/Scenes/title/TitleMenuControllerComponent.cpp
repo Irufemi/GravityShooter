@@ -14,6 +14,7 @@
 #include "UI/UISound.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Input/GameAction.h"
+#include "Core/AttractDemoManager.h"
 
 #ifdef EditorMode
 #include "Core/EditorManager.h"
@@ -99,32 +100,35 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
         return;
     }
 
-    int moveDelta = 0;
+    // デモ再生中（放置デモまたはF8キオスク固定展示）は手動キーボード・十字キー入力を遮断
+    if (!AttractDemoManager::IsAttractModeActive()) {
+        int moveDelta = 0;
 
-    // キーボード / 十字キー
-    if (inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed('W') ||
-        inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP)) {
-        moveDelta = -1;
-    } else if (inputManager->IsKeyPressed(VK_DOWN) || inputManager->IsKeyPressed('S') ||
-               inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN)) {
-        moveDelta = 1;
-    }
-
-    // フォーカス移動の実行（キーボード / 十字キー）
-    if (moveDelta != 0) {
-        int oldIndex = currentIndex_;
-        currentIndex_ =
-            (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) % static_cast<int>(buttonNames_.size());
-
-        if (oldIndex != currentIndex_) {
-            UISound::PlayCursor();
-
-            // 目標スケールの更新
-            for (size_t i = 0; i < targetScales_.size(); ++i) {
-                targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
-            }
+        // キーボード / 十字キー
+        if (inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed('W') ||
+            inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP)) {
+            moveDelta = -1;
+        } else if (inputManager->IsKeyPressed(VK_DOWN) || inputManager->IsKeyPressed('S') ||
+                   inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN)) {
+            moveDelta = 1;
         }
-        return;
+
+        // フォーカス移動の実行（キーボード / 十字キー）
+        if (moveDelta != 0) {
+            int oldIndex = currentIndex_;
+            currentIndex_ =
+                (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) % static_cast<int>(buttonNames_.size());
+
+            if (oldIndex != currentIndex_) {
+                UISound::PlayCursor();
+
+                // 目標スケールの更新
+                for (size_t i = 0; i < targetScales_.size(); ++i) {
+                    targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
+                }
+            }
+            return;
+        }
     }
 
     // --- 統合仮想カーソル（マウス / ゲームパッド左スティック）によるホバー検出 ---
@@ -144,6 +148,11 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
 }
 
 void TitleMenuControllerComponent::HandleSelectionInput() {
+    // デモ再生中（放置デモまたはF8キオスク固定展示）は手動決定入力を遮断
+    if (AttractDemoManager::IsAttractModeActive()) {
+        return;
+    }
+
     auto engine = GetEngine();
     if (!engine) {
         return;
