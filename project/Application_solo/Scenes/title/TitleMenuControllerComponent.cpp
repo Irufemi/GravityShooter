@@ -661,3 +661,4 @@ bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::
 
     return (std::abs(cursorPos.x - pos.x) <= halfW && std::abs(cursorPos.y - pos.y) <= halfH);
 }
+

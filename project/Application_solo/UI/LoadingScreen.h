@@ -7,6 +7,7 @@ class IrufemiEngine;
 class Sprite;
 class Primitive2DObject;
 class Camera;
+class Text;
 
 /**
  * @class LoadingScreen
@@ -34,6 +35,10 @@ private:
     std::unique_ptr<Sprite> bgSprite_;
     std::unique_ptr<Sprite> nowLoadingText_;
     std::vector<std::unique_ptr<Primitive2DObject>> dots_;
+
+    // アトラクトデモ中のシステムオーバーレイHUD
+    std::unique_ptr<Text> demoText_;
+    float demoBlinkTimer_ = 0.0f;
 
     float animationTimer_ = 0.0f;
     int dotCount_ = 0;

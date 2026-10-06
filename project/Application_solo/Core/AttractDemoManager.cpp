@@ -9,6 +9,7 @@
 #include "Platform/Input/Mouse.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Scenes/title/TitleMenuControllerComponent.h"
+#include "Framework/Component/Renderer/TextRendererComponent.h"
 #include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
@@ -49,6 +50,7 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
 
 void AttractDemoManager::OnFinalize() {
     StopAllDemo(false);
+    CleanupDemoHud();
     s_isKioskModeActive_ = false;
     s_isAttractModeActive_ = false;
     engine_ = nullptr;
@@ -80,6 +82,9 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
 
     // 2. シーン遷移（Enter）時の初期化処理
     if (sceneChanged) {
+        demoHudObj_.reset();
+        demoHudText_ = nullptr;
+
         if (currentScene == "InGame") {
             // Title から本編 InGame に突入した瞬間
             inGameTimer_ = 0.0f;
@@ -117,6 +122,9 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
         // その他のシーン（OptionsやHowToPlay等）では無操作タイマーをリセット
         idleTimer_ = 0.0f;
     }
+
+    // 4. デモ案内HUD（AUTO DEMO / DEMO LOOP）の動的描画・点滅更新
+    UpdateDemoHud(deltaTime);
 }
 
 void AttractDemoManager::UpdateF8Input(float deltaTime) {
@@ -411,6 +419,9 @@ void AttractDemoManager::StopTitleDemo() {
     demoTimeline_ = 0.0f;
     hasSubmitted_ = false;
     s_isAttractModeActive_ = (isKioskLoopMode_ || isDemoInGame_);
+    if (demoHudObj_ && !s_isAttractModeActive_) {
+        demoHudObj_->SetActive(false);
+    }
 
     // 仮想マウスの上書きを解除して手動マウスへ復帰
     if (auto input = engine_->GetInputManager()) {
@@ -430,6 +441,9 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     inGameTimer_ = 0.0f;
     s_isKioskModeActive_ = false;
     s_isAttractModeActive_ = false;
+    if (demoHudObj_) {
+        demoHudObj_->SetActive(false);
+    }
 
     // 仮想マウス解除
     if (engine_) {
@@ -484,4 +498,91 @@ Irufemi::Vector2 AttractDemoManager::GetButtonCenter(const std::string& btnName,
         }
     }
     return fallbackPos;
+}
+
+void AttractDemoManager::UpdateDemoHud(float deltaTime) {
+    if (!engine_) {
+        return;
+    }
+    auto sm = engine_->GetSceneManager();
+    if (!sm) {
+        return;
+    }
+    auto baseScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene());
+    if (!baseScene) {
+        return;
+    }
+
+    bool isDemoActive = s_isAttractModeActive_;
+
+    if (!isDemoActive) {
+        if (demoHudObj_) {
+            demoHudObj_->SetActive(false);
+        }
+        demoHudBlinkTimer_ = 0.0f;
+        return;
+    }
+
+    // シーン遷移や未初期化時に現在のシーンへHUDを生成・バインド
+    if (!demoHudObj_ || demoHudObj_->GetScene() != baseScene) {
+        if (auto existing = baseScene->FindGameObject("DemoAttractHUD")) {
+            demoHudObj_ = existing;
+            demoHudText_ = existing->GetComponent<TextRendererComponent>();
+        } else {
+            auto hudObj = std::make_shared<GameObject>("DemoAttractHUD");
+            baseScene->AddGameObject(hudObj);
+            hudObj->SetIsSerializable(false); // シーン保存汚染を防止
+            hudObj->SetHideInHierarchy(true);
+
+            if (auto t = hudObj->GetTransform()) {
+                // 画面右上（右端マージン 55px, 上部マージン 42px）
+                t->SetPosition({1225.0f, 42.0f, 0.0f});
+            }
+
+            auto textComp = hudObj->AddComponent<TextRendererComponent>();
+            if (textComp) {
+                textComp->SetFontId("toro_glitch");
+                textComp->SetText(L"AUTO DEMO   |   PRESS ANY KEY");
+                textComp->SetAlignment(TextAlignment::Right);
+                textComp->SetBaseScale(22.0f);
+                textComp->SetTopMost(true);
+                textComp->SetColor({0.30f, 0.90f, 1.0f, 0.0f});
+                demoHudText_ = textComp.get();
+            }
+            hudObj->Initialize();
+            demoHudObj_ = hudObj;
+        }
+    }
+
+    if (!demoHudObj_ || !demoHudText_) {
+        return;
+    }
+
+    demoHudObj_->SetActive(true);
+    demoHudBlinkTimer_ += deltaTime * 2.8f;
+
+    // サイン波による優雅なアルファ脈動（0.30〜0.85）
+    float pulse = std::sin(demoHudBlinkTimer_) * 0.5f + 0.5f;
+    float blinkAlpha = 0.30f + pulse * 0.55f;
+
+    // F8ループ展示中なら誰でも直感的にわかる専用文言（黄金色）に切り替え
+    if (isKioskLoopMode_) {
+        if (demoHudText_->GetText() != L"DEMO LOOP   |   PRESS F8 TO EXIT") {
+            demoHudText_->SetText(L"DEMO LOOP   |   PRESS F8 TO EXIT");
+        }
+        demoHudText_->SetColor({1.0f, 0.85f, 0.25f, blinkAlpha}); // 黄金色
+    } else {
+        if (demoHudText_->GetText() != L"AUTO DEMO   |   PRESS ANY KEY") {
+            demoHudText_->SetText(L"AUTO DEMO   |   PRESS ANY KEY");
+        }
+        demoHudText_->SetColor({0.30f, 0.90f, 1.0f, blinkAlpha}); // サイバーシアン
+    }
+}
+
+void AttractDemoManager::CleanupDemoHud() {
+    if (demoHudObj_) {
+        demoHudObj_->Destroy();
+        demoHudObj_.reset();
+        demoHudText_ = nullptr;
+    }
 }

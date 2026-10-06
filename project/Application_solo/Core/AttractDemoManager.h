@@ -66,6 +66,16 @@ private:
 
     Irufemi::Vector2 GetButtonCenter(const std::string& btnName, const Irufemi::Vector2& fallbackPos) const;
 
+    /**
+     * @brief デモ案内HUD（AUTO DEMO / DEMO LOOP）の動的描画・点滅更新
+     */
+    void UpdateDemoHud(float deltaTime);
+
+    /**
+     * @brief デモ案内HUDの破棄・クリーンアップ
+     */
+    void CleanupDemoHud();
+
 private:
     IrufemiEngine* engine_ = nullptr;
 
@@ -100,4 +110,9 @@ private:
     Irufemi::Vector2 posHowToPlay_{640.0f, 490.0f};
     Irufemi::Vector2 posOptions_{640.0f, 560.0f};
     Irufemi::Vector2 posStart_{640.0f, 420.0f};
+
+    // --- デモ案内HUD表示用 ---
+    std::shared_ptr<class GameObject> demoHudObj_;
+    class TextRendererComponent* demoHudText_ = nullptr;
+    float demoHudBlinkTimer_ = 0.0f;
 };

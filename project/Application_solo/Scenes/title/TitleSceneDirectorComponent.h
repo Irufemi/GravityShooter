@@ -19,10 +19,11 @@ class TitleCosmicNebulaComponent;
 class TitleSceneDirectorComponent : public Component {
 public:
     TitleSceneDirectorComponent() = default;
-    ~TitleSceneDirectorComponent() override = default;
+    ~TitleSceneDirectorComponent() override;
 
     void Initialize() override;
     void Update() override;
+    void OnDestroy() override;
     void OnRegisterProperties() override;
 
     std::string GetComponentName() const override {
@@ -85,6 +86,17 @@ private:
     void UpdateIdling(float deltaTime);
     void UpdateLaunchSequence(float deltaTime);
     void SetupThrusterEffect();
+
+    /**
+     * @brief 出撃加速・離脱時のラジアルブラー動的ポストプロセス制御
+     * @param[in] deltaTime 経過時間
+     */
+    void UpdateRadialBlur(float deltaTime);
+
+    /**
+     * @brief ラジアルブラーの安全なクリーンアップ（ポストプロセススタックからの完全除去）
+     */
+    void CleanupRadialBlur();
 
     // --- State パターン管理メソッド ---
     void SetLaunchState(LaunchState newState);
@@ -180,5 +192,6 @@ private: // メンバ変数
     bool isMicroFreezing_ = false;       ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
     float freezeTimer_ = 0.0f;           ///< マイクロフリーズ経過タイマー
     bool hasTriggeredRelease_ = false;   ///< 臨界解放マイルストーン発火済みフラグ
+    bool isRadialBlurActive_ = false;    ///< ラジアルブラーポストプロセス稼働中フラグ
     std::string nextSceneName_ = "InGame"; ///< 出撃完了時の遷移先シーン名
 };

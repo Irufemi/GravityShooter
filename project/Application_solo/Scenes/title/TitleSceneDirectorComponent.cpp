@@ -16,10 +16,19 @@
 #include "Core/Math/MathFunction.h"
 #include "Framework/Component/Effect/VoxelParticleComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include "Input/GameAction.h"
 #include "Platform/Input/InputManager.h"
 #include <cmath>
 #include <algorithm>
+
+TitleSceneDirectorComponent::~TitleSceneDirectorComponent() {
+    CleanupRadialBlur();
+}
+
+void TitleSceneDirectorComponent::OnDestroy() {
+    CleanupRadialBlur();
+}
 
 void TitleSceneDirectorComponent::Initialize() {
     isLaunching_ = false;
@@ -29,6 +38,7 @@ void TitleSceneDirectorComponent::Initialize() {
     isMicroFreezing_ = false;
     freezeTimer_ = 0.0f;
     hasTriggeredRelease_ = false;
+    isRadialBlurActive_ = false;
     launchState_ = LaunchState::Idle;
     stateTimer_ = 0.0f;
     idleTimer_ = 0.0f;
@@ -404,6 +414,7 @@ void TitleSceneDirectorComponent::SkipLaunchSequence() {
         return;
     }
 
+    CleanupRadialBlur();
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
@@ -701,6 +712,9 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
     // FSM更新
     OnUpdateLaunchState(launchState_, deltaTime);
 
+    // 出撃加速・離脱時の動的ラジアルブラー更新
+    UpdateRadialBlur(deltaTime);
+
     // スラスターのスケールを急峻に追従
     float lerpFactor = 1.0f - std::exp(-18.0f * deltaTime);
     currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
@@ -711,3 +725,65 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
         }
     }
 }
+
+void TitleSceneDirectorComponent::UpdateRadialBlur(float deltaTime) {
+    (void)deltaTime;
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+    auto ppm = engine->GetPostProcessManager();
+    if (!ppm) {
+        return;
+    }
+
+    bool shouldBlur = false;
+    float blurProgress = 0.0f;
+
+    // 1. Accelerate終盤（残り0.35秒）から急峻に立ち上げ
+    if (launchState_ == LaunchState::Accelerate) {
+        float triggerStartTime = kDurationAccelerate_ - 0.35f;
+        if (stateTimer_ >= triggerStartTime) {
+            shouldBlur = true;
+            float t = std::clamp((stateTimer_ - triggerStartTime) / 0.35f, 0.0f, 1.0f);
+            blurProgress = t * t; // 2次曲線で鋭い加速感
+        }
+    }
+    // 2. Breakフェーズ（超光速離脱・消滅）：高強度を維持し、終盤で急減衰
+    else if (launchState_ == LaunchState::Break) {
+        shouldBlur = true;
+        float t = std::clamp(stateTimer_ / kDurationBreak_, 0.0f, 1.0f);
+        if (t < 0.60f) {
+            blurProgress = 1.0f;
+        } else {
+            blurProgress = 1.0f - ((t - 0.60f) / 0.40f);
+        }
+    }
+
+    if (shouldBlur && blurProgress > 0.001f) {
+        if (!isRadialBlurActive_) {
+            ppm->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
+            isRadialBlurActive_ = true;
+        }
+        auto& rb = ppm->GetRadialBlurParams();
+        rb.center = {0.5f, 0.42f}; // 自機の加速消失中心
+        rb.blurWidth = 0.038f * blurProgress;
+        rb.numSamples = 16;
+    } else {
+        CleanupRadialBlur();
+    }
+}
+
+void TitleSceneDirectorComponent::CleanupRadialBlur() {
+    if (isRadialBlurActive_) {
+        if (auto engine = GetEngine()) {
+            if (auto ppm = engine->GetPostProcessManager()) {
+                ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
+                auto& rb = ppm->GetRadialBlurParams();
+                rb.blurWidth = 0.0f;
+            }
+        }
+        isRadialBlurActive_ = false;
+    }
+}
+

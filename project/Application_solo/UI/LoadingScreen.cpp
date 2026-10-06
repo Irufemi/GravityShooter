@@ -2,8 +2,11 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/Object/2D/Sprite/Sprite.h"
 #include "Renderer/Object/2D/Primitive/Primitive2DObject.h"
+#include "Renderer/Object/2D/Text/Text.h"
 #include "Renderer/Camera/Camera.h"
 #include "Renderer/Pipeline/PSOManager.h"
+#include "Core/AttractDemoManager.h"
+#include <cmath>
 
 LoadingScreen::LoadingScreen() = default;
 LoadingScreen::~LoadingScreen() = default;
@@ -12,6 +15,7 @@ void LoadingScreen::Finalize() {
     dots_.clear();
     nowLoadingText_.reset();
     bgSprite_.reset();
+    demoText_.reset();
     camera_.reset();
 }
 
@@ -23,6 +27,16 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     camera_ = std::make_unique<Camera>();
     camera_->Initialize(engine->GetGameResolutionWidth(), engine->GetGameResolutionHeight());
     camera_->UpdateMatrix();
+
+    // デモ案内HUD用テキスト初期化
+    demoText_ = std::make_unique<Text>();
+    demoText_->SetFontManagerInstance(engine->GetFontManager());
+    demoText_->SetDrawManagerInstance(engine->GetDrawManager());
+    demoText_->SetCameraManagerInstance(engine->GetCameraManager());
+    demoText_->Initialize("toro_glitch");
+    demoText_->SetAlignment(TextAlignment::Right);
+    demoText_->SetBaseScale(22.0f);
+    demoText_->SetTopMost(true);
 
     nowLoadingText_ = std::make_unique<Sprite>();
     // 生成した「Now Loading」画像をセット
@@ -92,6 +106,26 @@ void LoadingScreen::Update(float deltaTime) {
     for (auto& dot : dots_) {
         dot->Update();
     }
+
+    // デモHUDアニメーション更新
+    if (AttractDemoManager::IsAttractModeActive() && demoText_) {
+        demoBlinkTimer_ += deltaTime * 2.8f;
+        float pulse = std::sin(demoBlinkTimer_) * 0.5f + 0.5f;
+        float blinkAlpha = 0.30f + pulse * 0.55f;
+
+        if (AttractDemoManager::IsKioskModeActive()) {
+            if (demoText_->GetText() != L"DEMO LOOP   |   PRESS F8 TO EXIT") {
+                demoText_->SetText(L"DEMO LOOP   |   PRESS F8 TO EXIT");
+            }
+            demoText_->SetColor({1.0f, 0.85f, 0.25f, blinkAlpha}); // 黄金色
+        } else {
+            if (demoText_->GetText() != L"AUTO DEMO   |   PRESS ANY KEY") {
+                demoText_->SetText(L"AUTO DEMO   |   PRESS ANY KEY");
+            }
+            demoText_->SetColor({0.30f, 0.90f, 1.0f, blinkAlpha}); // サイバーシアン
+        }
+        demoText_->Update();
+    }
 }
 
 void LoadingScreen::Draw(IrufemiEngine* engine) {
@@ -134,4 +168,10 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
 
     // 描画後、安全のために元の通常ブレンドに戻す
     engine->SetBlend(Irufemi::BlendMode::kBlendModeNormal);
+
+    // アトラクトデモ稼働中ならローディング画面の最前面右上にシステムHUDを描画
+    if (AttractDemoManager::IsAttractModeActive() && demoText_) {
+        demoText_->SetPosition(screenW - 55.0f * uiScale, 42.0f * uiScale);
+        demoText_->Draw();
+    }
 }
