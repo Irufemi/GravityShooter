@@ -556,25 +556,42 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
         }
     }
 
-    // 2. InputManager に仮想カーソル更新を委譲（ホバー摩擦適用）
-    float speedMult = isHoveringAnyButton ? kStickyFriction_ : 1.0f;
-    inputManager->UpdateVirtualCursor(deltaTime, speedMult);
+    // 2. InputManager に仮想カーソル更新を委譲（※ デモ中以外のみ実行）
+    if (!AttractDemoManager::IsAttractModeActive()) {
+        float speedMult = isHoveringAnyButton ? kStickyFriction_ : 1.0f;
+        inputManager->UpdateVirtualCursor(deltaTime, speedMult);
+    }
 
     // 3. 仮想カーソルオブジェクトの座標・表示状態を同期
     const auto& newPos = inputManager->GetVirtualCursorPosition();
     if (virtualCursorObj_) {
+        bool isAttractDemo = AttractDemoManager::IsAttractModeActive();
+        bool showCursor = inputManager->IsUsingGamepadCursor() || isAttractDemo;
+
         if (auto trans = virtualCursorObj_->GetTransform()) {
             trans->SetPosition({newPos.x, newPos.y, 0.0f});
-            float targetScale = isHoveringAnyButton ? 1.25f : 1.0f;
-            trans->SetScale({targetScale, targetScale, 1.0f});
+
+            float baseTargetScale = isHoveringAnyButton ? 1.30f : 1.0f;
+            if (isAttractDemo && isHoveringAnyButton) {
+                // デモ中のホバー時は微細な呼吸パルスで「フォーカス中」を強調
+                baseTargetScale += std::sin(titleBreatheTimer_ * 6.0f) * 0.08f;
+            }
+
+            const auto& curScale = trans->GetScale();
+            float smoothScale = std::lerp(curScale.x, baseTargetScale, std::clamp(deltaTime * 14.0f, 0.0f, 1.0f));
+            trans->SetScale({smoothScale, smoothScale, 1.0f});
         }
 
         if (virtualCursorRenderer_) {
-            // ゲームパッド操作中のみリングカーソルを表示し、物理マウス操作時はマウスカーソルに委ねる（非表示）
-            if (inputManager->IsUsingGamepadCursor()) {
-                virtualCursorRenderer_->SetColor(isHoveringAnyButton ? Irufemi::Vector4{0.2f, 1.0f, 0.95f, 1.0f}
-                                                                     : Irufemi::Vector4{0.1f, 0.95f, 1.0f, 0.85f});
+            if (showCursor) {
+                // ゲームパッド操作中またはデモ実演中はリングカーソルを明瞭に表示
+                if (isHoveringAnyButton) {
+                    virtualCursorRenderer_->SetColor({0.30f, 1.0f, 0.98f, 1.0f});
+                } else {
+                    virtualCursorRenderer_->SetColor({0.10f, 0.92f, 1.0f, 0.85f});
+                }
             } else {
+                // 通常のマウス操作時はOSカーソルに委ねるため非表示
                 virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
             }
         }
