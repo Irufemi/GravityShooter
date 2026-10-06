@@ -9,6 +9,7 @@
 #include "Platform/Input/Mouse.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Scenes/title/TitleMenuControllerComponent.h"
+#include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
 
@@ -262,10 +263,12 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
             if (!hasSubmitted_) {
                 hasSubmitted_ = true;
+                UISound::PlayDecide(); // 通常決定時と完全に同一の決定音を発音！
 
                 if (currentScenePtr) {
                     if (auto menuMgr = currentScenePtr->FindGameObject("MenuManager")) {
                         if (auto menuCtrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
+                            menuCtrl->TriggerScreenFlash(); // 決定瞬間の白光フラッシュ
                             menuCtrl->StartDismissAnimation();
                             menuCtrl->SetLaunching(true);
                         }

@@ -74,6 +74,11 @@ public: // メンバ関数(システム)
     void StartDismissAnimation();
 
     /**
+     * @brief 全画面インパクト白光フラッシュを発火する
+     */
+    void TriggerScreenFlash();
+
+    /**
      * @brief UIディゾルブ消滅中かどうか
      */
     bool IsDismissing() const {
@@ -95,11 +100,6 @@ private: // 内部処理
     void UpdateScreenFlash(float deltaTime);
     void UpdateTitleTextVisual(float deltaTime);
     void ExecuteSelection();
-
-    /**
-     * @brief 全画面インパクト白光フラッシュを発火する
-     */
-    void TriggerScreenFlash();
 
     /**
      * @brief
