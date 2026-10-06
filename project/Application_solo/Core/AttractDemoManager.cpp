@@ -196,30 +196,36 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
         Irufemi::Vector2 targetCursorPos = posSweepStart_;
 
-        // 【Phase 1】 0.00s 〜 2.50s : 空間の歪み＆ガレキ反発スイープ実演
-        if (demoTimeline_ < 2.50f) {
-            float t = SmoothStep(demoTimeline_ / 2.50f);
+        // 【Phase 1】 0.00s 〜 3.80s : 空間の歪み＆ガレキ反発スイープ実演（ゆったりと優雅に弧を描く）
+        if (demoTimeline_ < 3.80f) {
+            float t = SmoothStep(demoTimeline_ / 3.80f);
             targetCursorPos = EvaluateQuadraticBezier(posSweepStart_, posSweepMid_, posSweepEnd_, t);
         }
-        // 【Phase 2-1】 2.50s 〜 3.30s : 「HOW TO PLAY」へ移動（ボタン拡大ホバー）
-        else if (demoTimeline_ < 3.30f) {
-            float t = SmoothStep((demoTimeline_ - 2.50f) / 0.80f);
+        // 【Phase 2-1】 3.80s 〜 5.20s : 「HOW TO PLAY」へ移動し、ピタッと静止ホバー（拡大演出をじっくり魅せる）
+        else if (demoTimeline_ < 5.20f) {
+            float t = SmoothStep(std::clamp((demoTimeline_ - 3.80f) / 0.60f, 0.0f, 1.0f));
             targetCursorPos.x = std::lerp(posSweepEnd_.x, posHowToPlay_.x, t);
             targetCursorPos.y = std::lerp(posSweepEnd_.y, posHowToPlay_.y, t);
+            // 4.40s 〜 5.20s の間は posHowToPlay_ 上で完全静止し、ボタン拡大を鑑賞
         }
-        // 【Phase 2-2】 3.30s 〜 4.00s : 「OPTIONS」へ移動（ボタン拡大縮小の行き来）
-        else if (demoTimeline_ < 4.00f) {
-            float t = SmoothStep((demoTimeline_ - 3.30f) / 0.70f);
+        // 【Phase 2-2】 5.20s 〜 6.60s : 「OPTIONS」へ移動し、ピタッと静止ホバー（UI行き来の心地よさ）
+        else if (demoTimeline_ < 6.60f) {
+            float t = SmoothStep(std::clamp((demoTimeline_ - 5.20f) / 0.50f, 0.0f, 1.0f));
             targetCursorPos.x = std::lerp(posHowToPlay_.x, posOptions_.x, t);
             targetCursorPos.y = std::lerp(posHowToPlay_.y, posOptions_.y, t);
+            // 5.70s 〜 6.60s の間は posOptions_ 上で完全静止
         }
-        // 【Phase 2-3】 4.00s 〜 4.70s : 「GAME START」へスッと吸い寄せ
-        else if (demoTimeline_ < 4.70f) {
-            float t = SmoothStep((demoTimeline_ - 4.00f) / 0.70f);
+        // 【Phase 2-3】 6.60s 〜 7.60s : 本命「GAME START」へスッと吸い寄せ
+        else if (demoTimeline_ < 7.60f) {
+            float t = SmoothStep(std::clamp((demoTimeline_ - 6.60f) / 0.70f, 0.0f, 1.0f));
             targetCursorPos.x = std::lerp(posOptions_.x, posStart_.x, t);
             targetCursorPos.y = std::lerp(posOptions_.y, posStart_.y, t);
         }
-        // 【Phase 3】 4.70s 〜 : GAME START クリック決定 ＆ 出撃演出発火
+        // 【Phase 2-4】 7.60s 〜 8.20s : STARTボタン上で一瞬のタメ（呼吸・出撃への期待感）
+        else if (demoTimeline_ < 8.20f) {
+            targetCursorPos = posStart_;
+        }
+        // 【Phase 3】 8.20s 〜 : GAME START クリック決定 ＆ 出撃演出発火
         else {
             targetCursorPos = posStart_;
 

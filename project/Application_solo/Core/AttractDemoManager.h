@@ -70,7 +70,7 @@ private:
     float inGameTimer_ = 0.0f;      ///< InGameデモタイマー（秒）
 
     static constexpr float kIdleThreshold_ = 8.0f;     ///< 自動デモ開始までの無操作秒数
-    static constexpr float kInGameDuration_ = 3.50f;    ///< 本編デモ映像の表示秒数
+    static constexpr float kInGameDuration_ = 5.50f;    ///< 本編デモ映像の表示秒数（じっくり魅せる5.5秒）
     static constexpr uint8_t kToggleKey_ = VK_F8;      ///< キオスク固定展示トグルキー (F8)
 
     // 前フレームの生マウス座標（手動操作検知用）
