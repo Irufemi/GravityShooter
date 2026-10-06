@@ -71,14 +71,16 @@ void TitleCosmicNebulaComponent::Update() {
     Irufemi::Vector2 targetMousePos = smoothedMousePos_;
     bool isLeftClicked = false;
     if (auto inputManager = engine->GetInputManager()) {
-        if (auto mouse = inputManager->GetMouse()) {
-            targetMousePos = mouse->GetPosition();
-            isLeftClicked = mouse->IsButtonPressed(Mouse::Button::Left);
-        } else {
-            targetMousePos = inputManager->GetVirtualCursorPosition();
-        }
+        // マウス、ゲームパッド、およびデモ自動巡回に対応する統合仮想カーソル座標を取得
+        targetMousePos = inputManager->GetVirtualCursorPosition();
+
         if (inputManager->IsCursorActionPressed()) {
             isLeftClicked = true;
+        }
+        if (auto mouse = inputManager->GetMouse()) {
+            if (mouse->IsButtonPressed(Mouse::Button::Left)) {
+                isLeftClicked = true;
+            }
         }
     }
 
