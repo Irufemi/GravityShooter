@@ -158,6 +158,31 @@ public:
                                       AudioCategory category = AudioCategory::SE);
 
     /**
+     * @brief サウンドをピッチ（周波数比率）指定で再生する
+     * @param[in] soundData ロード済みのサウンドデータ
+     * @param[in] loop ループ再生するか
+     * @param[in] volume 音量 (0.0 ～ 1.0)
+     * @param[in] pitch 周波数比率 (1.0fが等倍, 0.5f〜2.0f等)
+     * @param[in] category 再生するカテゴリ (デフォルト: SE)
+     * @return 再生中インスタンスへの弱参照
+     */
+    std::weak_ptr<VoiceInstance> Play(std::shared_ptr<Sound> soundData, bool loop, float volume, float pitch,
+                                      AudioCategory category = AudioCategory::SE);
+
+    /**
+     * @brief ファイルパスから直接サウンドをロード・再生する（フォールバック指定・ピッチ指定対応）
+     * @param[in] filePath 再生対象のサウンドファイルパス
+     * @param[in] volume 音量 (0.0 ～ 1.0)
+     * @param[in] pitch 周波数比率 (1.0fが等倍)
+     * @param[in] category 再生するカテゴリ (デフォルト: SE)
+     * @param[in] fallbackPath 指定ファイルが存在しない場合の代替ファイルパス（空文字可）
+     * @return 再生中インスタンスへの弱参照
+     */
+    std::weak_ptr<VoiceInstance> PlayByFile(const std::string& filePath, float volume = 1.0f, float pitch = 1.0f,
+                                            AudioCategory category = AudioCategory::SE,
+                                            const std::string& fallbackPath = "");
+
+    /**
      * @brief 再生中のサウンドを停止する
      * @param[in] instance 停止させたいインスタンスの弱参照
      */

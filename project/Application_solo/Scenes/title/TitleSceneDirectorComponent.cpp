@@ -26,6 +26,9 @@ void TitleSceneDirectorComponent::Initialize() {
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
     hasExplodedDebris_ = false;
+    isMicroFreezing_ = false;
+    freezeTimer_ = 0.0f;
+    hasTriggeredRelease_ = false;
     launchState_ = LaunchState::Idle;
     stateTimer_ = 0.0f;
     idleTimer_ = 0.0f;
@@ -164,6 +167,88 @@ void TitleSceneDirectorComponent::SetupThrusterEffect() {
         for (auto pe : emitters) {
             pe->Play();
         }
+    }
+}
+
+void TitleSceneDirectorComponent::TriggerDebrisExplosion() {
+    if (hasExplodedDebris_) {
+        return;
+    }
+    hasExplodedDebris_ = true;
+
+    auto scene = GetScene();
+    for (size_t i = 0; i < debrisObjs_.size(); ++i) {
+        if (auto debris = debrisObjs_[i].lock()) {
+            Irufemi::Vector3 debrisPos{0.0f, 0.0f, 0.0f};
+            if (auto dt = debris->GetTransform()) {
+                debrisPos = dt->GetWorldPosition();
+            }
+
+            // A. Voxel破砕の発火（放射スピン＋超推力吹き飛ばし）
+            if (auto voxelComp = debris->GetComponent<VoxelParticleComponent>()) {
+                float angle = static_cast<float>(i) * 2.094395f; // 120度刻み
+                Irufemi::Vector3 blowVelocity{
+                    std::cos(angle) * 11.0f, std::sin(angle) * 6.5f + 2.0f,
+                    -18.0f // スラスター後流へ強烈に吹き飛ばす
+                };
+                voxelComp->Explode(blowVelocity, {8.0f, 14.0f, 6.0f}, {1.0f, 1.0f, 1.0f});
+            }
+
+            // B. 複合レイヤー：破砕位置に粉塵・衝撃パーティクルを展開
+            if (scene) {
+                auto dust = scene->InstantiatePrefab("resources/prefabs/debris_dust_effect.json", debrisPos);
+                if (dust) {
+                    dust->SetIsSerializable(false);
+                    dust->SetHideInHierarchy(true);
+                    auto emitters = dust->GetComponentsInChildren<ParticleEmitterComponent>();
+                    for (auto pe : emitters) {
+                        pe->Restart(false);
+                    }
+                }
+            }
+
+            // 元のガレキオブジェクトを非アクティブ化してVoxel破砕粒子＆粉塵煙のみを描画
+            debris->SetActive(false);
+        }
+    }
+}
+
+void TitleSceneDirectorComponent::OnImpactRelease() {
+    if (hasTriggeredRelease_) {
+        return;
+    }
+    hasTriggeredRelease_ = true;
+    isMicroFreezing_ = false;
+
+    // 1. ガレキのVoxel粉砕飛散を一斉発火！
+    TriggerDebrisExplosion();
+
+    // 2. 音響の多重レイヤー同時炸裂！（エンジンのPlayByFileを活用した極めてクリーンな呼び出し）
+    if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            // A: 爆砕重低音（se_debris_shatter）
+            am->PlayByFile("resources/audio/SE/se_debris_shatter.mp3", 0.95f, 1.0f, AudioCategory::SE,
+                           "resources/audio/SE/se_menu_decide.mp3");
+            // B: 推進点火・ドップラー遠ざかり音（se_player_boost）
+            am->PlayByFile("resources/audio/SE/se_player_boost.mp3", 1.0f, 1.0f, AudioCategory::SE);
+        }
+    }
+
+    // 3. カメラの大激震シェイク発火（振幅 0.045m, 継続1.1秒, 22Hz）
+    if (auto camObj = cameraObj_.lock()) {
+        auto shake = camObj->GetComponent<CameraShakeComponent>();
+        if (!shake) {
+            auto newShake = camObj->AddComponent<CameraShakeComponent>();
+            shake = newShake.get();
+        }
+        if (shake) {
+            shake->PlayShakeSeconds(0.045f, kDurationAccelerate_, 22.0f);
+        }
+    }
+
+    // 4. 星雲の衝撃パルス第2波（最大爆発波紋）
+    if (auto nebulaComp = GetNebulaComponent()) {
+        nebulaComp->TriggerPulse(1.5f);
     }
 }
 
@@ -354,22 +439,11 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
             nebulaComp->TriggerPulse(1.2f);
         }
 
-        // 出撃SE再生（Springin' Sound Stock 製「強風1」を第一優先）
+        // 出撃SE再生（Springin' Sound Stock 製「気を溜める1」によるエネルギー充填・タメ）
         if (auto engine = GetEngine()) {
             if (auto am = engine->GetAudioManager()) {
-                auto sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.mp3", "se_player_boost");
-                if (!sound) {
-                    sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.wav", "se_player_boost");
-                }
-                if (!sound) {
-                    sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_menu_decide.mp3", "se_menu_decide");
-                }
-                if (!sound) {
-                    sound = am->GetOrLoadSoundByFile("resources/audio/SE/se_menu_decide.wav", "se_menu_decide");
-                }
-                if (sound) {
-                    am->Play(sound, false, 0.95f, AudioCategory::SE);
-                }
+                am->PlayByFile("resources/audio/SE/se_launch_charge.mp3", 0.95f, 1.0f, AudioCategory::SE,
+                               "resources/audio/SE/se_player_boost.mp3");
             }
         }
 
@@ -384,47 +458,12 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
         break;
     }
     case LaunchState::Accelerate: {
-        // 1. 周囲のガレキをスラスター噴流と重力波でVoxel粉砕飛散させる（粉塵エフェクト複合レイヤリング）
-        if (!hasExplodedDebris_) {
-            hasExplodedDebris_ = true;
-            auto scene = GetScene();
-            for (size_t i = 0; i < debrisObjs_.size(); ++i) {
-                if (auto debris = debrisObjs_[i].lock()) {
-                    Irufemi::Vector3 debrisPos{0.0f, 0.0f, 0.0f};
-                    if (auto dt = debris->GetTransform()) {
-                        debrisPos = dt->GetWorldPosition();
-                    }
+        // 臨界蓄圧（マイクロフリーズ）開始：直ちにガレキ破砕せず、0.045秒のタメを作る
+        isMicroFreezing_ = true;
+        freezeTimer_ = 0.0f;
+        hasTriggeredRelease_ = false;
 
-                    // A. Voxel破砕の発火（放射スピン＋超推力吹き飛ばし）
-                    if (auto voxelComp = debris->GetComponent<VoxelParticleComponent>()) {
-                        float angle = static_cast<float>(i) * 2.094395f; // 120度刻み
-                        Irufemi::Vector3 blowVelocity{
-                            std::cos(angle) * 11.0f, std::sin(angle) * 6.5f + 2.0f,
-                            -18.0f // スラスター後流へ強烈に吹き飛ばす
-                        };
-                        voxelComp->Explode(blowVelocity, {8.0f, 14.0f, 6.0f}, {1.0f, 1.0f, 1.0f});
-                    }
-
-                    // B. 複合レイヤー：破砕位置に粉塵・衝撃パーティクルを展開
-                    if (scene) {
-                        auto dust = scene->InstantiatePrefab("resources/prefabs/debris_dust_effect.json", debrisPos);
-                        if (dust) {
-                            dust->SetIsSerializable(false);
-                            dust->SetHideInHierarchy(true);
-                            auto emitters = dust->GetComponentsInChildren<ParticleEmitterComponent>();
-                            for (auto pe : emitters) {
-                                pe->Restart(false);
-                            }
-                        }
-                    }
-
-                    // 元のガレキオブジェクトを非アクティブ化してVoxel破砕粒子＆粉塵煙のみを描画
-                    debris->SetActive(false);
-                }
-            }
-        }
-
-        // 2. 自機スラスターノズル内のGPUパーティクルを瞬間オーバードライブ再点火
+        // 自機スラスターノズル内のGPUパーティクルを瞬間オーバードライブ再点火
         if (auto thruster = thrusterObj_.lock()) {
             auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
             for (auto pe : emitters) {
@@ -432,7 +471,7 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
             }
         }
 
-        // 3. スラスター推進の猛烈な高周波パーリンノイズ振動（振幅 0.04m, 継続1.1秒, 周波数22Hz）
+        // 予兆としての単発衝撃インパルス（振幅 0.02m の瞬間シェイク）
         if (auto camObj = cameraObj_.lock()) {
             auto shake = camObj->GetComponent<CameraShakeComponent>();
             if (!shake) {
@@ -440,13 +479,8 @@ void TitleSceneDirectorComponent::OnEnterLaunchState(LaunchState state) {
                 shake = newShake.get();
             }
             if (shake) {
-                shake->PlayShakeSeconds(0.04f, kDurationAccelerate_, 22.0f);
+                shake->PlayShakeSeconds(0.02f, kDurationFreeze_, 30.0f);
             }
-        }
-
-        // 4. 星雲の衝撃パルス第2波（最大爆発波紋）
-        if (nebulaComp) {
-            nebulaComp->TriggerPulse(1.5f);
         }
         break;
     }
@@ -532,8 +566,28 @@ void TitleSceneDirectorComponent::OnUpdateLaunchState(LaunchState state, float d
     // [Phase 2: 咆哮 (Accelerate)] 0.50s 〜 1.60s (アフターバーナー急加速・動的FOV)
     // =========================================================================
     case LaunchState::Accelerate: {
-        float p2 = std::clamp(stateTimer_ / kDurationAccelerate_, 0.0f, 1.0f);
-        float accelCurve = p2 * p2 * p2; // 3次急加速曲線
+        // --- 臨界蓄圧（マイクロフリーズ・身震い）制御 ---
+        if (isMicroFreezing_) {
+            freezeTimer_ += deltaTime;
+
+            // 0.045秒間は前進をロックし、超推力に耐える80Hz高周波ジッター（身震い）を重畳
+            if (freezeTimer_ < kDurationFreeze_) {
+                if (shipTransform) {
+                    float jitter = std::sin(freezeTimer_ * 180.0f) * 0.008f;
+                    shipTransform->SetPosition({initialShipPos_.x + jitter, initialShipPos_.y, initialShipPos_.z - 0.45f});
+                    shipTransform->SetRotation({0.0f, 0.0f, jitter * 1.5f});
+                }
+                return; // フリーズ待機（前進加速・破砕展開を一時保留）
+            }
+
+            // 臨界解放マイルストーン発火！（大爆発・Voxel破砕・多重音響・激震の解き放ち）
+            OnImpactRelease();
+        }
+
+        // フリーズ解除後の実効加速時間
+        float effectiveTimer = stateTimer_ - kDurationFreeze_;
+        float p2 = std::clamp(effectiveTimer / (kDurationAccelerate_ - kDurationFreeze_), 0.0f, 1.0f);
+        float accelCurve = p2 * p2 * p2 * p2; // 4次急加速曲線（初速ゼロから猛烈な爆発的射出）
 
         // 自機の超推力突進
         if (shipTransform) {

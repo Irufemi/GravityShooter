@@ -437,6 +437,29 @@ std::weak_ptr<VoiceInstance> AudioManager::Play(std::shared_ptr<Sound> soundData
     return instance;
 }
 
+std::weak_ptr<VoiceInstance> AudioManager::Play(std::shared_ptr<Sound> soundData, bool loop, float volume, float pitch,
+                                                AudioCategory category) {
+    auto instance = Play(soundData, loop, volume, category);
+    if (auto v = instance.lock()) {
+        if (pitch != 1.0f && v->GetVoice()) {
+            v->GetVoice()->SetFrequencyRatio(std::clamp(pitch, 0.5f, 2.0f));
+        }
+    }
+    return instance;
+}
+
+std::weak_ptr<VoiceInstance> AudioManager::PlayByFile(const std::string& filePath, float volume, float pitch,
+                                                      AudioCategory category, const std::string& fallbackPath) {
+    auto sound = GetOrLoadSoundByFile(filePath);
+    if (!sound && !fallbackPath.empty()) {
+        sound = GetOrLoadSoundByFile(fallbackPath);
+    }
+    if (!sound) {
+        return {};
+    }
+    return Play(sound, false, volume, pitch, category);
+}
+
 void AudioManager::Stop(std::weak_ptr<VoiceInstance>& instance) {
     auto locked = instance.lock();
     if (!locked) {

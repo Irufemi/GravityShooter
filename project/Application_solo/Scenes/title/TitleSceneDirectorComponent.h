@@ -92,6 +92,16 @@ private:
     void OnUpdateLaunchState(LaunchState state, float deltaTime);
 
     /**
+     * @brief ガレキVoxel粉砕および複合粉塵パーティクルの発火処理
+     */
+    void TriggerDebrisExplosion();
+
+    /**
+     * @brief 臨界解放マイルストーン（フリーズ解除瞬間の大爆破・音響同時点火・慣性開放）
+     */
+    void OnImpactRelease();
+
+    /**
      * @brief 自機オブジェクトの TransformComponent を取得します。
      * @return TransformComponent* 存在しない場合は nullptr
      */
@@ -155,7 +165,8 @@ private: // メンバ変数
     static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
     static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
     static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速離脱・消滅
-    static constexpr float kDurationAfterglow_ = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
+    static constexpr float kDurationAfterglow_ = 1.00f;  ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
+    static constexpr float kDurationFreeze_ = 0.045f;    ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
     static constexpr float kTotalLaunchDuration_ =
         kDurationCharge_ + kDurationAccelerate_ + kDurationBreak_ + kDurationAfterglow_;
 
@@ -166,5 +177,8 @@ private: // メンバ変数
     float launchTimer_ = 0.0f;
     bool hasTriggeredSceneTransition_ = false;
     bool hasExplodedDebris_ = false;
+    bool isMicroFreezing_ = false;       ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
+    float freezeTimer_ = 0.0f;           ///< マイクロフリーズ経過タイマー
+    bool hasTriggeredRelease_ = false;   ///< 臨界解放マイルストーン発火済みフラグ
     std::string nextSceneName_ = "InGame"; ///< 出撃完了時の遷移先シーン名
 };
