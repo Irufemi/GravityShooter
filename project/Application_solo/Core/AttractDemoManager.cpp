@@ -9,6 +9,7 @@
 #include "Platform/Input/Mouse.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
 #include "Scenes/title/TitleMenuControllerComponent.h"
+#include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Framework/Component/Renderer/TextRendererComponent.h"
 #include "UI/UISound.h"
 #include <algorithm>
@@ -236,36 +237,55 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
         Irufemi::Vector2 targetCursorPos = posSweepStart_;
 
-        // 【Phase 1】 0.00s 〜 3.80s : 空間の歪み＆ガレキ反発スイープ実演（ゆったりと優雅に弧を描く）
-        if (demoTimeline_ < 3.80f) {
-            float t = SmoothStep(demoTimeline_ / 3.80f);
-            targetCursorPos = EvaluateQuadraticBezier(posSweepStart_, posSweepMid_, posSweepEnd_, t);
+        // 【Phase 1】 0.00s 〜 4.20s : S字重力スラローム＆星雲歪み・パルス実演
+        if (demoTimeline_ < 1.40f) {
+            // 区間1 (0.00s〜1.40s): 画面下部から右ガレキ密集エリアへ鋭く加速侵入（星雲引き波が大きく伸びる）
+            float t = SmoothStep(demoTimeline_ / 1.40f);
+            targetCursorPos.x = std::lerp(posSweepStart_.x, posSweepRight_.x, t);
+            targetCursorPos.y = std::lerp(posSweepStart_.y, posSweepRight_.y, t);
+        } else if (demoTimeline_ < 2.80f) {
+            // 区間2 (1.40s〜2.80s): 右ガレキから自機頭上を経由し、左ガレキへS字クロス通過
+            float t = (demoTimeline_ - 1.40f) / 1.40f;
+            targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
+
+            // 自機頭上クロス（t ≒ 0.5 付近）で重力光彩パルス ＆ 全ガレキ一斉衝撃波を発火！
+            if (t >= 0.45f && !hasTriggeredDemoPulse_) {
+                hasTriggeredDemoPulse_ = true;
+                if (dirComp) {
+                    if (auto nebulaComp = dirComp->GetNebulaComponent()) {
+                        nebulaComp->TriggerPulse(1.0f);
+                    }
+                    dirComp->TriggerGravitationalShockwave(1.0f);
+                }
+            }
+        } else if (demoTimeline_ < 4.20f) {
+            // 区間3 (2.80s〜4.20s): 左ガレキからメニュー「HOW TO PLAY」へ滑らかに吸い寄せ合流
+            float t = SmoothStep((demoTimeline_ - 2.80f) / 1.40f);
+            targetCursorPos.x = std::lerp(posSweepLeft_.x, posHowToPlay_.x, t);
+            targetCursorPos.y = std::lerp(posSweepLeft_.y, posHowToPlay_.y, t);
         }
-        // 【Phase 2-1】 3.80s 〜 5.20s : 「HOW TO PLAY」へ移動し、ピタッと静止ホバー（拡大演出をじっくり魅せる）
-        else if (demoTimeline_ < 5.20f) {
-            float t = SmoothStep(std::clamp((demoTimeline_ - 3.80f) / 0.60f, 0.0f, 1.0f));
-            targetCursorPos.x = std::lerp(posSweepEnd_.x, posHowToPlay_.x, t);
-            targetCursorPos.y = std::lerp(posSweepEnd_.y, posHowToPlay_.y, t);
-            // 4.40s 〜 5.20s の間は posHowToPlay_ 上で完全静止し、ボタン拡大を鑑賞
+        // 【Phase 2-1】 4.20s 〜 5.60s : 「HOW TO PLAY」上でピタッと静止ホバー（拡大演出をじっくり魅せる）
+        else if (demoTimeline_ < 5.60f) {
+            targetCursorPos = posHowToPlay_;
         }
-        // 【Phase 2-2】 5.20s 〜 6.60s : 「OPTIONS」へ移動し、ピタッと静止ホバー（UI行き来の心地よさ）
-        else if (demoTimeline_ < 6.60f) {
-            float t = SmoothStep(std::clamp((demoTimeline_ - 5.20f) / 0.50f, 0.0f, 1.0f));
+        // 【Phase 2-2】 5.60s 〜 7.00s : 「OPTIONS」へ移動し、ピタッと静止ホバー（UI行き来の心地よさ）
+        else if (demoTimeline_ < 7.00f) {
+            float t = SmoothStep(std::clamp((demoTimeline_ - 5.60f) / 0.50f, 0.0f, 1.0f));
             targetCursorPos.x = std::lerp(posHowToPlay_.x, posOptions_.x, t);
             targetCursorPos.y = std::lerp(posHowToPlay_.y, posOptions_.y, t);
-            // 5.70s 〜 6.60s の間は posOptions_ 上で完全静止
+            // 6.10s 〜 7.00s の間は posOptions_ 上で完全静止
         }
-        // 【Phase 2-3】 6.60s 〜 7.60s : 本命「GAME START」へスッと吸い寄せ
-        else if (demoTimeline_ < 7.60f) {
-            float t = SmoothStep(std::clamp((demoTimeline_ - 6.60f) / 0.70f, 0.0f, 1.0f));
+        // 【Phase 2-3】 7.00s 〜 8.00s : 本命「GAME START」へスッと吸い寄せ
+        else if (demoTimeline_ < 8.00f) {
+            float t = SmoothStep(std::clamp((demoTimeline_ - 7.00f) / 0.60f, 0.0f, 1.0f));
             targetCursorPos.x = std::lerp(posOptions_.x, posStart_.x, t);
             targetCursorPos.y = std::lerp(posOptions_.y, posStart_.y, t);
         }
-        // 【Phase 2-4】 7.60s 〜 8.20s : STARTボタン上で一瞬のタメ（呼吸・出撃への期待感）
-        else if (demoTimeline_ < 8.20f) {
+        // 【Phase 2-4】 8.00s 〜 8.60s : STARTボタン上で一瞬のタメ（呼吸・出撃への期待感）
+        else if (demoTimeline_ < 8.60f) {
             targetCursorPos = posStart_;
         }
-        // 【Phase 3】 8.20s 〜 : GAME START クリック決定 ＆ 出撃演出発火
+        // 【Phase 3】 8.60s 〜 : GAME START クリック決定 ＆ 出撃演出発火
         else {
             targetCursorPos = posStart_;
 
@@ -396,12 +416,38 @@ void AttractDemoManager::StartTitleDemo() {
     isDemoPlaying_ = true;
     demoTimeline_ = 0.0f;
     hasSubmitted_ = false;
+    hasTriggeredDemoPulse_ = false;
     s_isAttractModeActive_ = true;
 
     // 各ボタンの最新スクリーン座標を取得・キャッシュ
     posStart_ = GetButtonCenter("Btn_Start", {640.0f, 420.0f});
     posHowToPlay_ = GetButtonCenter("Btn_HowToPlay", {640.0f, 490.0f});
     posOptions_ = GetButtonCenter("Btn_Options", {640.0f, 560.0f});
+
+    // 画面手前にいるガレキの最新スクリーン座標を取得し、必中かすめポイントとして動的設定
+    posSweepRight_ = {820.0f, 310.0f};
+    if (auto sm = engine_->GetSceneManager()) {
+        if (auto currentScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene())) {
+            TitleSceneDirectorComponent* dirComp = nullptr;
+            if (auto menuMgr = currentScene->FindGameObject("MenuManager")) {
+                dirComp = menuMgr->GetComponent<TitleSceneDirectorComponent>();
+            }
+            if (!dirComp) {
+                for (auto& obj : currentScene->GetGameObjects()) {
+                    if (obj && (dirComp = obj->GetComponent<TitleSceneDirectorComponent>())) {
+                        break;
+                    }
+                }
+            }
+            if (dirComp) {
+                Irufemi::Vector2 debrisPos;
+                if (dirComp->GetClosestFrontDebrisScreenPos(debrisPos)) {
+                    // ガレキの至近距離（反発半径の内側約40px）を確実に通過
+                    posSweepRight_ = {debrisPos.x + 40.0f, debrisPos.y};
+                }
+            }
+        }
+    }
 
     // 初期仮想カーソル位置を設定
     if (auto input = engine_->GetInputManager()) {
@@ -418,6 +464,7 @@ void AttractDemoManager::StopTitleDemo() {
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     hasSubmitted_ = false;
+    hasTriggeredDemoPulse_ = false;
     s_isAttractModeActive_ = (isKioskLoopMode_ || isDemoInGame_);
     if (demoHudObj_ && !s_isAttractModeActive_) {
         demoHudObj_->SetActive(false);
@@ -436,6 +483,7 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
     hasSubmitted_ = false;
+    hasTriggeredDemoPulse_ = false;
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;

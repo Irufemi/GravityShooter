@@ -104,12 +104,14 @@ private:
     bool hasInitializedMousePos_ = false;
 
     // タイムライン用ターゲット座標キャッシュ
-    Irufemi::Vector2 posSweepStart_{640.0f, 620.0f};
-    Irufemi::Vector2 posSweepMid_{1020.0f, 200.0f};
-    Irufemi::Vector2 posSweepEnd_{260.0f, 160.0f};
+    Irufemi::Vector2 posSweepStart_{640.0f, 650.0f};
+    Irufemi::Vector2 posSweepRight_{820.0f, 310.0f};
+    Irufemi::Vector2 posSweepCenter_{640.0f, 210.0f};
+    Irufemi::Vector2 posSweepLeft_{460.0f, 330.0f};
     Irufemi::Vector2 posHowToPlay_{640.0f, 490.0f};
     Irufemi::Vector2 posOptions_{640.0f, 560.0f};
     Irufemi::Vector2 posStart_{640.0f, 420.0f};
+    bool hasTriggeredDemoPulse_ = false; ///< デモ中の重力光彩パルス発火済みフラグ
 
     // --- デモ案内HUD表示用 ---
     std::shared_ptr<class GameObject> demoHudObj_;

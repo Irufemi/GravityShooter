@@ -81,6 +81,43 @@ public:
         return launchState_;
     }
 
+    /**
+     * @brief 自機オブジェクトの TransformComponent を取得します。
+     * @return TransformComponent* 存在しない場合は nullptr
+     */
+    TransformComponent* GetShipTransform() const;
+
+    /**
+     * @brief カメラオブジェクトの TransformComponent を取得します。
+     * @return TransformComponent* 存在しない場合は nullptr
+     */
+    TransformComponent* GetCameraTransform() const;
+
+    /**
+     * @brief カメラオブジェクトの CameraComponent を取得します。
+     * @return CameraComponent* 存在しない場合は nullptr
+     */
+    class CameraComponent* GetCameraComponent() const;
+
+    /**
+     * @brief 星雲コンポーネントを取得します。
+     * @return TitleCosmicNebulaComponent* 存在しない場合は nullptr
+     */
+    TitleCosmicNebulaComponent* GetNebulaComponent() const;
+
+    /**
+     * @brief 画面手前で現在最も見えやすい（反発実演に適した）ガレキの2DスクリーンUI座標を取得します
+     * @param[out] outUIPos ガレキのスクリーンUI座標
+     * @return true ガレキが画面手前に存在して取得成功した場合
+     */
+    bool GetClosestFrontDebrisScreenPos(Irufemi::Vector2& outUIPos) const;
+
+    /**
+     * @brief タイトル画面での重力波衝撃波（全ガレキ一斉共鳴・外周押し出し）を発火します
+     * @param[in] power 衝撃波強度
+     */
+    void TriggerGravitationalShockwave(float power = 1.0f);
+
 private:
     void CacheEntities();
     void UpdateIdling(float deltaTime);
@@ -112,30 +149,6 @@ private:
      * @brief 臨界解放マイルストーン（フリーズ解除瞬間の大爆破・音響同時点火・慣性開放）
      */
     void OnImpactRelease();
-
-    /**
-     * @brief 自機オブジェクトの TransformComponent を取得します。
-     * @return TransformComponent* 存在しない場合は nullptr
-     */
-    TransformComponent* GetShipTransform() const;
-
-    /**
-     * @brief カメラオブジェクトの TransformComponent を取得します。
-     * @return TransformComponent* 存在しない場合は nullptr
-     */
-    TransformComponent* GetCameraTransform() const;
-
-    /**
-     * @brief カメラオブジェクトの CameraComponent を取得します。
-     * @return CameraComponent* 存在しない場合は nullptr
-     */
-    class CameraComponent* GetCameraComponent() const;
-
-    /**
-     * @brief 星雲コンポーネントを取得します。
-     * @return TitleCosmicNebulaComponent* 存在しない場合は nullptr
-     */
-    TitleCosmicNebulaComponent* GetNebulaComponent() const;
 
 private: // メンバ変数
     // 対象エンティティの安全な弱参照（Dangling Pointer防止）
@@ -171,6 +184,7 @@ private: // メンバ変数
     };
     std::vector<OrbitConfig> debrisOrbits_;
     std::vector<Irufemi::Vector3> debrisRepelOffsets_; ///< マウス・カーソルによるガレキ反発変位オフセット
+    float shockwaveIntensity_ = 0.0f;                  ///< 重力波衝撃波の現在強度（全ガレキ外周押し出し・減衰）
     float initialBgmVolume_ = 0.70f;                   ///< BGM初期音量キャッシュ
 
     // 出撃シーケンスのステージ分割定数（全体長: 約3.20秒）

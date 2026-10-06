@@ -75,58 +75,65 @@ PixelShaderOutput main(VertexShaderOutput input) {
     float wakeDistort = 0.0;
     float swirlTorque = 0.0; // 背後の渦巻きへ波及する回転トルク変調量
 
-    // マウスが動いている時のみ、進行方向に沿った押し分けと航跡が発生（静止時は完全にゼロで静謐）
-    if (mouseSpeed > 0.005) {
-        float2 delta = rotP - mouseRotP;
-        float cursorDist = length(delta);
+    // --- 空間歪み計算（A. 常時発動する重力レンズ ＋ B. 進行方向・速度同期の流体押し分け＆航跡） ---
+    float2 deltaCursor = rotP - mouseRotP;
+    float cursorDist = length(deltaCursor);
 
-        // カーソル周囲（半径約0.22以内）にのみ影響を完全封じ込め（反対側・遠隔地への漏れを100%遮断）
-        float localMask = exp(-pow(cursorDist / 0.22, 3.0));
+    // A. 常時発動する重力レンズ屈折（静止時・微動時でもカーソル直下の星雲がプクッと歪み、存在感を主張）
+    float lensMask = exp(-pow(cursorDist / 0.28, 2.0));
+    float2 lensDisplacement = (deltaCursor / (cursorDist + 0.035)) * (lensMask * 0.075);
+
+    float2 dynamicDisplacement = float2(0.0, 0.0);
+
+    // B. マウス移動時の動的押し分け・航跡場（速度感度・変位量を大幅強化）
+    if (mouseSpeed > 0.003) {
+        // カーソル周囲（半径約0.32）へ影響範囲を拡大
+        float localMask = exp(-pow(cursorDist / 0.32, 2.5));
 
         float2 moveDir = mouseVel / mouseSpeed;
         float2 sideDir = float2(-moveDir.y, moveDir.x);
 
-        float distFwd = dot(delta, moveDir);
-        float distSide = dot(delta, sideDir);
+        float distFwd = dot(deltaCursor, moveDir);
+        float distSide = dot(deltaCursor, sideDir);
 
-        // A. 先端左右押し分け（完全連続な双極子変位場: 中心線上 distSide=0 で変位ゼロ、左右へ滑らかに分岐）
-        float normSide = distSide / 0.15;
-        // f(x) = x * exp(-x^2): 切れ込み（符号不連続）が数学的に絶対に生じない連続押し分け関数
+        // 先端左右押し分け（完全連続な双極子変位場）
+        float normSide = distSide / 0.18;
         float smoothLateralFactor = normSide * exp(-normSide * normSide);
-        float forwardDecay = exp(-pow((distFwd - 0.015) / 0.10, 2.0));
-        float bowShockPower = forwardDecay * saturate(mouseSpeed * 1.6);
-        float2 bowShockPush = sideDir * (smoothLateralFactor * bowShockPower * 0.06);
+        float forwardDecay = exp(-pow((distFwd - 0.02) / 0.14, 2.0));
+        float bowShockPower = forwardDecay * saturate(mouseSpeed * 3.5);
+        float2 bowShockPush = sideDir * (smoothLateralFactor * bowShockPower * 0.18);
 
-        // B. 後方引き波（完全連続な航跡場: smoothstep による境界のない減衰）
-        float rearFactor = smoothstep(0.04, -0.04, distFwd); // 前後境界の滑らかな連続ブレンド
+        // 後方引き波（完全連続な航跡場）
+        float rearFactor = smoothstep(0.06, -0.06, distFwd);
         float wakeLength = max(0.0, -distFwd);
-        // 航跡幅を局所に制限（無限拡大を防止）
-        float wakeWidth = clamp(0.07 + wakeLength * 0.25, 0.07, 0.13);
+        float wakeWidth = clamp(0.09 + wakeLength * 0.30, 0.09, 0.18);
         float normWakeSide = distSide / wakeWidth;
         float wakeSideDecay = exp(-normWakeSide * normWakeSide);
-        float maxTrailLength = saturate(mouseSpeed * 0.75) * 0.22;
-        float wakeLongDecay = exp(-pow(wakeLength / (maxTrailLength + 0.001), 1.6));
-        float wakePower = rearFactor * wakeSideDecay * wakeLongDecay * saturate(mouseSpeed * 2.0);
+        float maxTrailLength = saturate(mouseSpeed * 1.5) * 0.35;
+        float wakeLongDecay = exp(-pow(wakeLength / (maxTrailLength + 0.001), 1.5));
+        float wakePower = rearFactor * wakeSideDecay * wakeLongDecay * saturate(mouseSpeed * 4.0);
 
-        // C. 背後の渦流（接線方向）に沿った流送ベクトル（Streamline Advection）
-        float2 vortexTangent = float2(-rotP.y, rotP.x); // その地点での渦の回転接線
+        // 背後の渦流（接線方向）に沿った流送ベクトル
+        float2 vortexTangent = float2(-rotP.y, rotP.x);
         float rLen = length(vortexTangent);
         if (rLen > 0.001) {
             vortexTangent /= rLen;
         }
 
-        // 航跡内での流体引きずり（渦の接線流に乗って円弧状に巻き込まれつつ広がる）
-        float2 wakePull = (-moveDir * 0.25 + vortexTangent * 0.35 + sideDir * (normWakeSide * exp(-normWakeSide * normWakeSide) * 0.5)) * (wakePower * 0.045);
+        // 航跡内での流体引きずり
+        float2 wakePull = (-moveDir * 0.35 + vortexTangent * 0.40 + sideDir * (normWakeSide * exp(-normWakeSide * normWakeSide) * 0.70)) * (wakePower * 0.14);
 
-        // 空間変位の合成適用（局所マスクを乗算し、遠隔・反対側への変位を完全ゼロ化）
-        float2 totalDisplacement = (bowShockPush + wakePull) * localMask;
-        rotP -= totalDisplacement;
-        wakeDistort = length(totalDisplacement) * 18.0;
+        dynamicDisplacement = (bowShockPush + wakePull) * localMask;
 
-        // D. 中心に対するカーソルの2D回転角運動量（トルク）を背後の渦の位相（Swirl）に波及（局所マスク適用）
+        // 中心に対するカーソルの回転角運動量（トルク）を背後の渦の位相（Swirl）に波及
         float crossTorque = (mouseRotP.x * mouseVel.y - mouseRotP.y * mouseVel.x);
-        swirlTorque = (bowShockPower * 0.4 + wakePower * 1.2) * crossTorque * 0.45 * localMask;
+        swirlTorque = (bowShockPower * 0.6 + wakePower * 1.8) * crossTorque * 0.70 * localMask;
     }
+
+    // 重力レンズ変位と動的流体変位を合成適用
+    float2 totalDisplacement = lensDisplacement + dynamicDisplacement;
+    rotP -= totalDisplacement;
+    wakeDistort = length(totalDisplacement) * 22.0;
 
     // --- 3. 巨大な重力リング（Accretion Nebula Ring）と「中央の深淵（Void）」 ---
     float dist = length(float2(rotP.x, rotP.y * 1.25));

@@ -319,6 +319,9 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
     auto cameraComp = GetCameraComponent();
     std::shared_ptr<Camera> camera = cameraComp ? cameraComp->GetCamera() : nullptr;
 
+    // 衝撃波の減衰更新
+    shockwaveIntensity_ = (std::max)(0.0f, shockwaveIntensity_ - deltaTime * 1.6f);
+
     for (size_t i = 0; i < debrisObjs_.size(); ++i) {
         auto debris = debrisObjs_[i].lock();
         if (!debris || i >= debrisOrbits_.size()) {
@@ -352,18 +355,30 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
                 float diffX = uiPos.x - cursorPos.x;
                 float diffY = uiPos.y - cursorPos.y;
                 float distSq = diffX * diffX + diffY * diffY;
-                const float kRepelRadius = 150.0f; // 反発影響半径 (px)
+                const float kRepelRadius = 260.0f; // 反発影響半径を拡大 (185px -> 260px)
 
                 if (distSq < kRepelRadius * kRepelRadius && distSq > 1.0f) {
                     float dist = std::sqrt(distSq);
                     float factor = 1.0f - (dist / kRepelRadius);
-                    float force = factor * factor * 0.55f; // 最大55cm押し出し
+                    float force = factor * factor * 0.95f; // 最大95cm押し出し
 
                     // カーソルから外側へ逃げるベクトル
                     targetRepelOffset.x = (diffX / dist) * force;
                     targetRepelOffset.y = -(diffY / dist) * force;
                     targetRepelOffset.z = 0.0f;
                 }
+            }
+        }
+
+        // --- 重力波衝撃波（全ガレキ一斉共鳴・外周放射押し出し）の重畳 ---
+        if (shockwaveIntensity_ > 0.001f) {
+            float radialLen = std::hypot(basePos.x, basePos.y);
+            if (radialLen > 0.05f) {
+                float normX = basePos.x / radialLen;
+                float normY = basePos.y / radialLen;
+                float shockForce = shockwaveIntensity_ * 1.30f;
+                targetRepelOffset.x += normX * shockForce;
+                targetRepelOffset.y += normY * shockForce;
             }
         }
 
@@ -785,5 +800,51 @@ void TitleSceneDirectorComponent::CleanupRadialBlur() {
         }
         isRadialBlurActive_ = false;
     }
+}
+
+bool TitleSceneDirectorComponent::GetClosestFrontDebrisScreenPos(Irufemi::Vector2& outUIPos) const {
+    auto cameraComp = GetCameraComponent();
+    if (!cameraComp) {
+        return false;
+    }
+    auto camera = cameraComp->GetCamera();
+    if (!camera) {
+        return false;
+    }
+
+    Irufemi::Matrix4x4 viewProj = camera->GetViewProjectionMatrix3D();
+    float bestZ = 9999.0f;
+    bool found = false;
+
+    for (size_t i = 0; i < debrisObjs_.size(); ++i) {
+        auto debris = debrisObjs_[i].lock();
+        if (!debris || i >= debrisOrbits_.size()) {
+            continue;
+        }
+        auto t = debris->GetTransform();
+        if (!t) {
+            continue;
+        }
+
+        Irufemi::Vector3 worldPos = t->GetWorldPosition();
+        Irufemi::Vector3 clipPos = Irufemi::Math::Transform(worldPos, viewProj);
+
+        // 画面手前にあり、カメラ視野内
+        if (clipPos.z > 0.05f && clipPos.z < 1.0f) {
+            // より手前（カメラに近いもの）を優先
+            if (clipPos.z < bestZ) {
+                bestZ = clipPos.z;
+                float screenX = (clipPos.x + 1.0f) * 0.5f * camera->GetViewportWidth();
+                float screenY = (1.0f - clipPos.y) * 0.5f * camera->GetViewportHeight();
+                outUIPos = camera->ScreenToUIPosition({screenX, screenY});
+                found = true;
+            }
+        }
+    }
+    return found;
+}
+
+void TitleSceneDirectorComponent::TriggerGravitationalShockwave(float power) {
+    shockwaveIntensity_ = (std::max)(shockwaveIntensity_, power);
 }
 
