@@ -47,6 +47,21 @@ public:
     void SkipLaunchSequence();
 
     /**
+     * @brief 出撃完了時の遷移先シーン名を設定する（通常: "InGame", デモ時: "InGameDemo"）
+     * @param[in] sceneName 遷移先シーン名
+     */
+    void SetNextSceneName(const std::string& sceneName) {
+        nextSceneName_ = sceneName;
+    }
+
+    /**
+     * @brief 出撃完了時の遷移先シーン名を取得する
+     */
+    const std::string& GetNextSceneName() const {
+        return nextSceneName_;
+    }
+
+    /**
      * @enum LaunchState
      * @brief 出撃シーケンスの有限状態機械（FSM）
      */
@@ -151,4 +166,5 @@ private: // メンバ変数
     float launchTimer_ = 0.0f;
     bool hasTriggeredSceneTransition_ = false;
     bool hasExplodedDebris_ = false;
+    std::string nextSceneName_ = "InGame"; ///< 出撃完了時の遷移先シーン名
 };

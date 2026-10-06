@@ -123,6 +123,9 @@
     <ClCompile Include="Core\GameApplication.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\AttractDemoManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="RailMechanics\RailShooterPlayerComponent.cpp">
       <Filter>RailMechanics</Filter>
     </ClCompile>
@@ -286,6 +289,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="Core\GameApplication.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\AttractDemoManager.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="UI\ReticleUIComponent.h">

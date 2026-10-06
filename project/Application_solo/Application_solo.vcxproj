@@ -229,6 +229,7 @@ exit 0</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core\GameApplication.cpp" />
+    <ClCompile Include="Core\AttractDemoManager.cpp" />
 
     <ClCompile Include="Scenes\TL1\TL1Scene.cpp" />
     <ClCompile Include="Scenes\TL1\TL1LevelLoader.cpp" />
@@ -297,6 +298,7 @@ exit 0</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\GameApplication.h" />
+    <ClInclude Include="Core\AttractDemoManager.h" />
 
     <ClInclude Include="Scenes\TL1\TL1Scene.h" />
     <ClInclude Include="Scenes\TL1\TL1LevelLoader.h" />

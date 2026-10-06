@@ -684,6 +684,10 @@ void IrufemiEngine::Finalize() {
         audioManager_->Finalize();
         audioManager_.reset();
     }
+    // WinAppが保持するInputManager生ポインタを先にクリアして、ウィンドウ破棄時（WM_KILLFOCUS等）のアクセス違反を防止
+    if (winApp_) {
+        winApp_->SetInputManager(nullptr);
+    }
     if (inputManager_) {
         inputManager_.reset();
     }

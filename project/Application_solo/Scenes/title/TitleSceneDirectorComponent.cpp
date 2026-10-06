@@ -322,7 +322,7 @@ void TitleSceneDirectorComponent::SkipLaunchSequence() {
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.35f);
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, 0.35f);
         }
     }
 }
@@ -613,12 +613,12 @@ void TitleSceneDirectorComponent::OnUpdateLaunchState(LaunchState state, float d
             }
         }
 
-        // 余韻開始から 0.50秒（全体約2.70秒地点）で InGame への優雅なフェードアウト（0.6秒）を発火
+        // 余韻開始から 0.50秒（全体約2.70秒地点）で 指定シーンへの優雅なフェードアウト（0.6秒）を発火
         if (stateTimer_ >= 0.50f && !hasTriggeredSceneTransition_) {
             hasTriggeredSceneTransition_ = true;
             if (auto engine = GetEngine()) {
                 if (auto sm = engine->GetSceneManager()) {
-                    sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.6f);
+                    sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, 0.6f);
                 }
             }
         }

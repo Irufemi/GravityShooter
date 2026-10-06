@@ -55,6 +55,7 @@
 #include "Scenes/TL1/TL1Scene.h"
 #include "Scenes/Options/OptionsScene.h"
 #include "Scenes/HowToPlay/HowToPlayScene.h"
+#include "Core/AttractDemoManager.h"
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
 #include "Framework/Scene/DebugScene.h"
@@ -206,6 +207,9 @@ void GameApplication::Run() {
     auto editorManager = std::make_shared<EditorManager>();
     engine->AddExtension(editorManager);
 #endif
+
+    // アトラクトデモ＆キオスク固定展示マネージャを拡張として事前登録
+    engine->AddExtension(std::make_shared<AttractDemoManager>());
 
     // エンジンの初期化
     engine->Initialize(kTitle, kClientWidth, kClientHeight, kClearColor);

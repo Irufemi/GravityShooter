@@ -146,6 +146,11 @@ public:
     /** @brief ロード画面を表示すべきロード中（または遷移中）かどうかを取得 */
     bool IsLoading() const;
 
+    /** @brief シーン遷移演出（フェードアウト/イン）中かどうかを取得 */
+    bool IsTransitioning() const {
+        return transitionPhase_ != TransitionPhase::None;
+    }
+
     /** @brief チラつき防止（アンチフリッカー）機能付きで、ローディング画面を描画すべきかを取得 */
     bool ShouldDrawLoadingScreen() const;
     ///@}

@@ -74,6 +74,11 @@ void TitleCosmicNebulaComponent::Update() {
         if (auto mouse = inputManager->GetMouse()) {
             targetMousePos = mouse->GetPosition();
             isLeftClicked = mouse->IsButtonPressed(Mouse::Button::Left);
+        } else {
+            targetMousePos = inputManager->GetVirtualCursorPosition();
+        }
+        if (inputManager->IsCursorActionPressed()) {
+            isLeftClicked = true;
         }
     }
 
