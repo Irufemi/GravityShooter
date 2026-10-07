@@ -249,6 +249,11 @@ public:
         return isUsingGamepadCursor_;
     }
 
+    /** @brief ゲームパッドによるカーソル操作状態を明示的に設定する */
+    void SetIsUsingGamepadCursor(bool inUse) {
+        isUsingGamepadCursor_ = inUse;
+    }
+
     /** @brief 仮想カーソルの基準移動速度（ピクセル/秒）を取得する */
     float GetVirtualCursorBaseSpeed() const {
         return virtualCursorBaseSpeed_;
@@ -305,6 +310,15 @@ public:
 
     /** @brief キャンセル・戻る操作が押された瞬間か（Bボタン or ESC or BackSpace） */
     bool IsCancelPressed() const;
+
+    /**
+     * @brief 今フレームで何らかの意図的なユーザー入力が行われたか（Activity / Any Input検知）
+     * @details キーボードの全キー、マウスの物理移動（ジッター閾値超過）・クリック・ホイール、
+     *          ゲームパッドの全ボタン・トリガー・ドリフト考慮済みスティック傾きを一元評価します。
+     *          無操作アイドル監視、アトラクトデモ、省電力制御などの入力活動検知に使用します。
+     * @return ユーザー入力があった場合は true
+     */
+    bool HasAnyInput() const;
     ///@}
 
 private:

@@ -99,10 +99,6 @@ private:
     static constexpr float kInGameDuration_ = 5.50f;    ///< 本編デモ映像の表示秒数（じっくり魅せる5.5秒）
     static constexpr uint8_t kToggleKey_ = VK_F8;      ///< キオスク固定展示トグルキー (F8)
 
-    // 前フレームの生マウス座標（手動操作検知用）
-    Irufemi::Vector2 lastRawMousePos_{640.0f, 360.0f};
-    bool hasInitializedMousePos_ = false;
-
     // タイムライン用ターゲット座標キャッシュ
     Irufemi::Vector2 posSweepStart_{640.0f, 650.0f};
     Irufemi::Vector2 posSweepRight_{820.0f, 310.0f};

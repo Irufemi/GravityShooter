@@ -44,7 +44,6 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
-    hasInitializedMousePos_ = false;
     s_isKioskModeActive_ = false;
     s_isAttractModeActive_ = false;
 }
@@ -210,24 +209,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
     if (isDemoPlaying_) {
         // キオスク固定モードでない場合は手動入力で即座にデモ解除（Wake-up on any input）
         if (!isKioskLoopMode_) {
-            Irufemi::Vector2 rawMousePos = inputManager->GetVirtualCursorPosition();
-            if (auto mouse = inputManager->GetMouse()) {
-                rawMousePos = mouse->GetPosition();
-            }
-            float mouseMoveDist = std::hypot(rawMousePos.x - lastRawMousePos_.x, rawMousePos.y - lastRawMousePos_.y);
-            lastRawMousePos_ = rawMousePos;
-
-            bool hasUserInput = (mouseMoveDist > 3.0f) || inputManager->IsCursorActionPressed() ||
-                                inputManager->IsKeyPressed(VK_SPACE) || inputManager->IsKeyPressed(VK_RETURN) ||
-                                inputManager->IsKeyPressed(VK_ESCAPE) ||
-                                inputManager->IsKeyPressed('W') || inputManager->IsKeyPressed('S') ||
-                                inputManager->IsKeyPressed('A') || inputManager->IsKeyPressed('D') ||
-                                inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed(VK_DOWN) ||
-                                inputManager->IsKeyPressed(VK_LEFT) || inputManager->IsKeyPressed(VK_RIGHT) ||
-                                inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
-                                inputManager->IsButtonPressed(XINPUT_GAMEPAD_START);
-
-            if (hasUserInput) {
+            if (inputManager->HasAnyInput()) {
                 StopTitleDemo();
                 return;
             }
@@ -324,30 +306,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
     }
     // 通常待機中の場合（無操作アイドル監視）
     else {
-        Irufemi::Vector2 rawMousePos = inputManager->GetVirtualCursorPosition();
-        if (auto mouse = inputManager->GetMouse()) {
-            rawMousePos = mouse->GetPosition();
-        }
-
-        if (!hasInitializedMousePos_) {
-            lastRawMousePos_ = rawMousePos;
-            hasInitializedMousePos_ = true;
-        }
-
-        float mouseMoveDist = std::hypot(rawMousePos.x - lastRawMousePos_.x, rawMousePos.y - lastRawMousePos_.y);
-        lastRawMousePos_ = rawMousePos;
-
-        bool hasUserInput = (mouseMoveDist > 2.0f) || inputManager->IsCursorActionPressed() ||
-                            inputManager->IsKeyPressed(VK_SPACE) || inputManager->IsKeyPressed(VK_RETURN) ||
-                            inputManager->IsKeyPressed(VK_ESCAPE) ||
-                            inputManager->IsKeyPressed('W') || inputManager->IsKeyPressed('S') ||
-                            inputManager->IsKeyPressed('A') || inputManager->IsKeyPressed('D') ||
-                            inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed(VK_DOWN) ||
-                            inputManager->IsKeyPressed(VK_LEFT) || inputManager->IsKeyPressed(VK_RIGHT) ||
-                            inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
-                            inputManager->IsButtonPressed(XINPUT_GAMEPAD_START);
-
-        if (hasUserInput) {
+        if (inputManager->HasAnyInput()) {
             idleTimer_ = 0.0f;
         } else {
             idleTimer_ += deltaTime;
@@ -388,12 +347,7 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
     // ※ 通常放置デモから遷移した場合のみ、プレイヤーが操作した瞬間に即座にタイトルへ戻す
     bool userSkip = false;
     if (!isKioskLoopMode_ && inputManager && inGameTimer_ > 0.30f) {
-        if (inputManager->IsCursorActionPressed() || inputManager->IsKeyPressed(VK_SPACE) ||
-            inputManager->IsKeyPressed(VK_RETURN) || inputManager->IsKeyPressed(VK_ESCAPE) ||
-            inputManager->IsKeyPressed('W') || inputManager->IsKeyPressed('A') ||
-            inputManager->IsKeyPressed('S') || inputManager->IsKeyPressed('D') ||
-            inputManager->IsButtonPressed(XINPUT_GAMEPAD_A) ||
-            inputManager->IsButtonPressed(XINPUT_GAMEPAD_START)) {
+        if (inputManager->HasAnyInput()) {
             userSkip = true;
         }
     }
@@ -454,7 +408,6 @@ void AttractDemoManager::StartTitleDemo() {
         input->SetVirtualCursorPosition(posSweepStart_);
         if (auto mouse = input->GetMouse()) {
             mouse->SetVirtualPosition(posSweepStart_, true);
-            lastRawMousePos_ = mouse->GetPosition();
         }
     }
 }

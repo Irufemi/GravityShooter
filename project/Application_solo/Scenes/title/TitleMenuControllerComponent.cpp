@@ -105,6 +105,9 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
         int moveDelta = 0;
 
         // キーボード / 十字キー
+        bool isPadDpad = inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP) ||
+                         inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN);
+
         if (inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed('W') ||
             inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP)) {
             moveDelta = -1;
@@ -121,6 +124,21 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
 
             if (oldIndex != currentIndex_) {
                 UISound::PlayCursor();
+
+                // 選択されたボタンの位置へ仮想カーソルをスナップ同期（星雲トレイルおよびUI整合性の両立）
+                if (auto scene = GetScene()) {
+                    if (auto btn = scene->FindGameObject(buttonNames_[currentIndex_])) {
+                        if (auto t = btn->GetTransform()) {
+                            const auto& btnPos = t->GetPosition();
+                            inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
+                        }
+                    }
+                }
+
+                // ゲームパッド十字キー操作時はリングカーソルを明瞭に表示
+                if (isPadDpad) {
+                    inputManager->SetIsUsingGamepadCursor(true);
+                }
 
                 // 目標スケールの更新
                 for (size_t i = 0; i < targetScales_.size(); ++i) {

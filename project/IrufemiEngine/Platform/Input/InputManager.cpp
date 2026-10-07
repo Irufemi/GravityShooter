@@ -752,3 +752,59 @@ bool InputManager::IsCancelPressed() const {
     }
     return cancel;
 }
+
+bool InputManager::HasAnyInput() const {
+    // 1. ゲームパッドの入力判定（接続時のみ）
+    if (gamepad_ && gamepad_->IsConnected()) {
+        const auto& state = gamepad_->GetState();
+        // A. いずれかのボタンが押されているか（十字キー、ABXY、LB/RB、START/BACK、LS/RS等）
+        if (state.Gamepad.wButtons != 0) {
+            return true;
+        }
+
+        // B. アナログトリガー（LT / RT）が押されているか
+        if (gamepad_->GetLeftTrigger() > 0.15f || gamepad_->GetRightTrigger() > 0.15f) {
+            return true;
+        }
+
+        // C. アナログスティック（左 / 右）がドリフト耐性閾値を超えて意図的に倒されているか
+        constexpr float kIntentionalStickThreshold = 0.20f;
+        float lMag = std::hypot(gamepad_->GetLeftStickX(), gamepad_->GetLeftStickY());
+        float rMag = std::hypot(gamepad_->GetRightStickX(), gamepad_->GetRightStickY());
+        if (lMag > kIntentionalStickThreshold || rMag > kIntentionalStickThreshold) {
+            return true;
+        }
+    }
+
+    // 2. マウスの入力判定
+    if (mouse_) {
+        // A. いずれかのマウスボタンが押されているか（左 / 右 / 中）
+        if (mouse_->IsButtonDown(Mouse::Button::Left) || mouse_->IsButtonDown(Mouse::Button::Right) ||
+            mouse_->IsButtonDown(Mouse::Button::Middle)) {
+            return true;
+        }
+
+        // B. マウスホイールが回転されたか
+        if (std::abs(mouse_->GetWheelDelta()) > 0.001f) {
+            return true;
+        }
+
+        // C. 物理マウスが机の振動ノイズ（ジッター）を超えて意図的に移動されたか
+        const auto& delta = mouse_->GetDelta();
+        if (std::hypot(delta.x, delta.y) > 2.0f) {
+            return true;
+        }
+    }
+
+    // 3. キーボードの入力判定（標準キー 0x08[BackSpace] 〜 0xDF[OEM記号] の走査）
+    // ※ 0x01〜0x06 (マウス仮想キー) はマウス側で判定済み、0xE0〜0xFF は日本語IME/OEM常時ONビットのため除外
+    if (keyboard_) {
+        for (size_t i = 0x08; i <= 0xDF; ++i) {
+            if (keyboard_->IsKeyDown(static_cast<uint8_t>(i))) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
