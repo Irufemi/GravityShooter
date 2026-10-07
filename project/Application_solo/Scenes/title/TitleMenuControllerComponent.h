@@ -91,6 +91,11 @@ public: // メンバ関数(システム)
      */
     void SetMenuVisible(bool visible);
 
+    /**
+     * @brief 上位シーン（OptionsやHowToPlay）から復帰した際に、選択中ボタンへフォーカスと仮想カーソルを同期復帰する
+     */
+    void RestoreFocusOnResume();
+
 private: // 内部処理
     void HandleNavigationInput();
     void HandleSelectionInput();

@@ -402,7 +402,14 @@ void TitleMenuControllerComponent::UpdateDismissAnimation(float deltaTime) {
                 text->SetColor({std::lerp(0.1f, 1.0f, t), 1.0f, 1.0f, alpha});
             }
             if (transform && i < initialScales_.size()) {
-                float popScale = std::lerp(1.15f, 1.35f, t);
+                float popScale;
+                if (t < 0.20f) {
+                    // [0.00s 〜 0.06s]: 物理的な押し込み（クリック沈み込み）
+                    popScale = std::lerp(1.15f, 0.90f, t / 0.20f);
+                } else {
+                    // [0.06s 〜 0.30s]: 弾けるような拡大拡散
+                    popScale = std::lerp(0.90f, 1.35f, (t - 0.20f) / 0.80f);
+                }
                 auto base = initialScales_[i];
                 transform->SetScale({base.x * popScale, base.y * popScale, base.z});
             }
@@ -470,6 +477,39 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
     // 仮想カーソルの表示/非表示
     if (virtualCursorObj_) {
         virtualCursorObj_->SetActive(visible);
+    }
+}
+
+void TitleMenuControllerComponent::RestoreFocusOnResume() {
+    pressedButtonIndex_ = -1;
+    isLaunching_ = false;
+    isDismissing_ = false;
+    dismissTimer_ = 0.0f;
+
+    // 目標スケールの更新
+    for (size_t i = 0; i < targetScales_.size(); ++i) {
+        targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
+    }
+
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+    auto inputManager = engine->GetInputManager();
+    if (!inputManager) {
+        return;
+    }
+
+    // 選択中ボタンの座標へ仮想カーソルをピタッと同期復帰
+    if (auto scene = GetScene()) {
+        if (currentIndex_ >= 0 && currentIndex_ < static_cast<int>(buttonNames_.size())) {
+            if (auto btn = scene->FindGameObject(buttonNames_[currentIndex_])) {
+                if (auto t = btn->GetTransform()) {
+                    const auto& btnPos = t->GetPosition();
+                    inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
+                }
+            }
+        }
     }
 }
 

@@ -2400,10 +2400,36 @@ engine_->GetCVarManager()->SetBool("r.LockWindowsKey", false);
 2. **ESCキー 2秒長押し (ハードコード・フェイルセーフ)**: シーンやUIのスタック時でも、`ESC` キーを2秒間長押しし続けることでエンジンメインループから安全にシャットダウン (`PostQuitMessage(0)`) を発動。
 3. **`Alt + F4`**: OS標準の即時クローズ。
 
+### 8.5 包括的入力検知とゲームパッド仮想カーソル制御 (Input Activity & Gamepad Virtual Cursor)
+展示会のアトラクトデモ（放置デモ）やUIナビゲーションにおいて、あらゆる入力デバイスの活動状態の正確な検知と、ゲームパッド仮想カーソルの制御APIを提供しています。
+
+**1. あらゆる入力デバイスの包括的活動検知 (`InputManager::HasAnyInput()`)**
+展示会や店頭での無操作（Idle）タイマー計測において、「キーボード（任意のキー）」「マウス（移動・クリック・ホイール）」「ゲームパッド（全ボタン・左右スティック・左右トリガー）」のいずれかが操作されたかを1行で判定できます。
+- Windows API の `GetKeyboardState` で日本語環境特有のシステム常時ONビット（0xE0〜0xFF）を除外した安全なキー走査（0x08〜0xDF）を実装。
+- マウス移動（微小なジッターを吸収する閾値判定）やホイール回転、ゲームパッドのスティック不感帯（デッドゾーン 0.2f）を考慮した高精度な入力判定を行います。
+
+```cpp
+// 毎フレームの更新処理でのアトラクトデモタイマー判定例
+if (input->HasAnyInput()) {
+    idleTimer_ = 0.0f; // 何らかの入力があればタイマーリセット
+} else {
+    idleTimer_ += dt;
+    if (idleTimer_ >= kAttractTimeout) {
+        // デモシーンやHowToPlayへ自動遷移
+    }
+}
+```
+
+**2. ゲームパッド仮想カーソル状態制御 (`InputManager::SetIsUsingGamepadCursor()`)**
+ゲームパッドの右スティック等で画面上のカーソルを操作する「仮想カーソル方式」を採用している際、UIのボタン選択（十字キーフォーカス）やシーン遷移時に仮想カーソルの位置同期や表示状態を直接制御できます。
+```cpp
+// ゲームパッドでのフォーカス移動時に、仮想カーソルをボタン中央へスナップ＆使用中フラグ更新
+input->SetVirtualCursorPosition(buttonCenter);
+input->SetIsUsingGamepadCursor(true);
+```
+
 ---
 
-
-## 9. トラブルシューティング (Troubleshooting)
 
 ### 9.1 アプリケーション終了時に `LIVE_DEVICE` エラーでクラッシュする
 **現象**: Visual Studio の出力ウィンドウに `D3D12 WARNING: Live ID3D12Device` と表示され、`D3DResourceLeakChecker` でブレークポイントが止まる。

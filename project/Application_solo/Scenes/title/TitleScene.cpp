@@ -41,10 +41,11 @@ void TitleScene::OnSuspend() {
 void TitleScene::OnResume() {
     BaseScene::OnResume();
 
-    // スタックから復帰した時はメニューUIを再表示
+    // スタックから復帰した時はメニューUIを再表示し、カーソル位置を現在フォーカスボタンに同期
     if (auto menuMgr = FindGameObject("MenuManager")) {
         if (auto ctrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
             ctrl->SetMenuVisible(true);
+            ctrl->RestoreFocusOnResume();
         }
     }
 }
