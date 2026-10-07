@@ -117,6 +117,37 @@ void TitleCosmicNebulaComponent::Update() {
     float vortexCenterX = 0.5f;
     float vortexCenterY = 0.42f;
 
+    // --- 曲線トレイル履歴の更新（手で水面を切ったような曲線の引き波） ---
+    // 既存ノードの生存時間を減衰（約0.6秒で滑らかにフェードアウト）
+    for (auto& node : trailHistory_) {
+        node.life = (std::max)(0.0f, node.life - deltaTime * 1.6f);
+    }
+
+    // 移動距離と速度の判定（マウスが動いたら新しい軌跡ノードを登録）
+    float distFromLast = std::hypot(smoothedMouseUV_.x - lastSpawnUV_.x, smoothedMouseUV_.y - lastSpawnUV_.y);
+    float currentSpeed = std::hypot(smoothedVelocity_.x, smoothedVelocity_.y);
+
+    if (distFromLast > 0.012f && currentSpeed > 0.05f) {
+        // 後ろへシフトして新規点を先頭に挿入
+        for (size_t i = kMaxTrailPoints - 1; i > 0; --i) {
+            trailHistory_[i] = trailHistory_[i - 1];
+        }
+        trailHistory_[0].uv = smoothedMouseUV_;
+        trailHistory_[0].life = std::clamp(currentSpeed * 0.9f, 0.4f, 1.0f);
+        lastSpawnUV_ = smoothedMouseUV_;
+    } else {
+        // 微小移動・静止時は先頭ノードの座標を現在位置に同期
+        trailHistory_[0].uv = smoothedMouseUV_;
+        if (currentSpeed < 0.02f) {
+            trailHistory_[0].life = (std::max)(0.0f, trailHistory_[0].life - deltaTime * 3.0f);
+        }
+    }
+
+    // 定数バッファのトレイル配列に反映
+    for (size_t i = 0; i < kMaxTrailPoints; ++i) {
+        params_.trailPoints[i] = {trailHistory_[i].uv.x, trailHistory_[i].uv.y, trailHistory_[i].life, 0.0f};
+    }
+
     // パラメータ更新
     params_.pulseIntensity = isPulseActive_ ? pulseTimer_ : 0.0f;
     params_.time = totalTime_;

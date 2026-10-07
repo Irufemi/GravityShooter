@@ -17,7 +17,8 @@ struct CosmicNebulaParams {
     float swirlStrength;  //!< 渦の回転強度
     float density;        //!< 星雲濃度
     float4 centerUV;      //!< 重力渦の中心 (xy: 追従中心, zw: パララックスオフセット)
-    float4 mouseUV;       //!< マウスカーソル (xy: マウス正規化UV, z: インタラクション強度, w: 予備)
+    float4 mouseUV;       //!< マウスカーソル (xy: マウス正規化UV, z: スピード/強度, w: 予備)
+    float4 trailPoints[8]; //!< 過去のマウス軌跡点 (xy: UV, z: 強度・生存率 [0-1], w: 予備)
 };
 ConstantBuffer<CosmicNebulaParams> gNebula : register(b6);
 
@@ -54,88 +55,100 @@ PixelShaderOutput main(VertexShaderOutput input) {
         p.x * 0.26 + p.y * 0.96
     );
 
-    // --- 2. 進行方向・速度ベクトル同期 流体押し分け & 航跡場（Velocity-Aligned Wake & Dispersion Field） ---
-    // マウスカーソルの移動速度ベクトル (gNebula.mouseUV.zw) を rotP 空間に変換
-    float2 mousePosUV = gNebula.mouseUV.xy;
-    float2 mouseVelUV = gNebula.mouseUV.zw;
+    // --- 2. 曲線トレイル流体場（Curved Trail Wake & Dispersion Field） ---
+    // 手で水面を切ったように、マウスが通った実際の曲線の軌跡に沿って星雲ガスが左右に割れ、尾を引く
+    float2 gasFluidWisp = float2(0.0, 0.0); // 煙・インクがほどける流体たなびきオフセット
+    float gasCoreGap = 0.0;                 // 指先が通った跡の煙の割れ（中心がほどけて薄まる）
+    float gasCrestVeil = 0.0;               // 両脇にふわっとたなびく煙のヴェール
+    float gasExcitation = 0.0;              // 撫でられたガスの淡いオーロラ励起光
 
-    // ゲーム論理UVから rotP 座標系への変換
-    float2 mouseP = float2((mousePosUV.x - center.x) * aspect, mousePosUV.y - center.y);
-    float2 mouseRotP = float2(
-        mouseP.x * 0.96 - mouseP.y * 0.26,
-        mouseP.x * 0.26 + mouseP.y * 0.96
-    );
-
-    float2 mouseVel = float2(
-        mouseVelUV.x * aspect * 0.96 - mouseVelUV.y * 0.26,
-        mouseVelUV.x * aspect * 0.26 + mouseVelUV.y * 0.96
-    );
-
-    float mouseSpeed = length(mouseVel);
-    float wakeDistort = 0.0;
-    float swirlTorque = 0.0; // 背後の渦巻きへ波及する回転トルク変調量
-
-    // --- 空間歪み計算（A. 常時発動する重力レンズ ＋ B. 進行方向・速度同期の流体押し分け＆航跡） ---
-    float2 deltaCursor = rotP - mouseRotP;
-    float cursorDist = length(deltaCursor);
-
-    // A. 常時発動する重力レンズ屈折（コンパクトな範囲で直下の微細な手応えとして残す）
-    float lensMask = exp(-pow(cursorDist / 0.20, 2.5));
-    float2 lensDisplacement = (deltaCursor / (cursorDist + 0.035)) * (lensMask * 0.05);
-
-    float2 dynamicDisplacement = float2(0.0, 0.0);
-
-    // B. マウス移動時の動的押し分け・航跡場（高感度は維持しつつ、範囲・変位量を元のシャープな大きさに戻す）
-    if (mouseSpeed > 0.003) {
-        // カーソル周囲（元の半径約0.22以内）に局所集中
-        float localMask = exp(-pow(cursorDist / 0.22, 3.0));
-
-        float2 moveDir = mouseVel / mouseSpeed;
-        float2 sideDir = float2(-moveDir.y, moveDir.x);
-
-        float distFwd = dot(deltaCursor, moveDir);
-        float distSide = dot(deltaCursor, sideDir);
-
-        // 先端左右押し分け（元のシャープな幅・変位量に戻す）
-        float normSide = distSide / 0.15;
-        float smoothLateralFactor = normSide * exp(-normSide * normSide);
-        float forwardDecay = exp(-pow((distFwd - 0.015) / 0.10, 2.0));
-        float bowShockPower = forwardDecay * saturate(mouseSpeed * 2.5);
-        float2 bowShockPush = sideDir * (smoothLateralFactor * bowShockPower * 0.06);
-
-        // 後方引き波（元のコンパクトな航跡長・幅に戻す）
-        float rearFactor = smoothstep(0.04, -0.04, distFwd);
-        float wakeLength = max(0.0, -distFwd);
-        float wakeWidth = clamp(0.07 + wakeLength * 0.25, 0.07, 0.13);
-        float normWakeSide = distSide / wakeWidth;
-        float wakeSideDecay = exp(-normWakeSide * normWakeSide);
-        float maxTrailLength = saturate(mouseSpeed * 1.0) * 0.22;
-        float wakeLongDecay = exp(-pow(wakeLength / (maxTrailLength + 0.001), 1.6));
-        float wakePower = rearFactor * wakeSideDecay * wakeLongDecay * saturate(mouseSpeed * 2.5);
-
-        // 背後の渦流（接線方向）に沿った流送ベクトル
-        float2 vortexTangent = float2(-rotP.y, rotP.x);
-        float rLen = length(vortexTangent);
-        if (rLen > 0.001) {
-            vortexTangent /= rLen;
-        }
-
-        // 航跡内での流体引きずり（元の繊細な変位量に戻す）
-        float2 wakePull = (-moveDir * 0.25 + vortexTangent * 0.35 + sideDir * (normWakeSide * exp(-normWakeSide * normWakeSide) * 0.50)) * (wakePower * 0.045);
-
-        dynamicDisplacement = (bowShockPush + wakePull) * localMask;
-
-        // 中心に対するカーソルの回転角運動量（トルク）を背後の渦の位相（Swirl）に波及
-        float crossTorque = (mouseRotP.x * mouseVel.y - mouseRotP.y * mouseVel.x);
-        swirlTorque = (bowShockPower * 0.4 + wakePower * 1.2) * crossTorque * 0.45 * localMask;
+    // rotP 空間におけるトレイル点の座標と重みを準備
+    float2 trailP[8];
+    float trailWeight[8];
+    [unroll]
+    for (int t = 0; t < 8; ++t) {
+        float2 tUV = gNebula.trailPoints[t].xy;
+        float2 pRaw = float2((tUV.x - center.x) * aspect, tUV.y - center.y);
+        trailP[t] = float2(
+            pRaw.x * 0.96 - pRaw.y * 0.26,
+            pRaw.x * 0.26 + pRaw.y * 0.96
+        );
+        trailWeight[t] = saturate(gNebula.trailPoints[t].z);
     }
 
-    // 重力レンズ変位と動的流体変位を合成適用
-    float2 totalDisplacement = lensDisplacement + dynamicDisplacement;
-    rotP -= totalDisplacement;
-    wakeDistort = length(totalDisplacement) * 18.0;
+    // 各軌跡線分（P[i] -> P[i+1]）を評価し、曲線の引き波を合成
+    [unroll]
+    for (int i = 0; i < 7; ++i) {
+        float wA = trailWeight[i];
+        float wB = trailWeight[i + 1];
+        if (wA <= 0.005 && wB <= 0.005) {
+            continue;
+        }
+
+        float2 pA = trailP[i];
+        float2 pB = trailP[i + 1];
+        float2 segVec = pB - pA;
+        float segLen = length(segVec);
+
+        if (segLen < 0.0005) {
+            // 静止時の点周辺の微細な緩衝
+            float d = length(rotP - pA);
+            float core = exp(-pow(d / 0.06, 2.0)) * wA * 0.35;
+            gasCoreGap = max(gasCoreGap, core);
+            continue;
+        }
+
+        float2 dir = segVec / segLen;
+        float2 side = float2(-dir.y, dir.x);
+
+        // 線分への正射影パラメータ
+        float2 toP = rotP - pA;
+        float proj = dot(toP, dir);
+        float tClamped = saturate(proj / segLen);
+        float2 closestP = pA + dir * (tClamped * segLen);
+
+        float2 delta = rotP - closestP;
+        float dist = length(delta);
+        float sideDist = dot(delta, side);
+
+        // 過去の軌跡ほど自然に幅が広がり、手元ほどシャープに切れ込む
+        float progress = (float)i / 7.0; // 0: 手元(最新), 1: 尾の先端(最古)
+        float width = 0.055 + progress * 0.035;
+        float normSide = sideDist / width;
+
+        // 線分上の生存強度（線形補間）
+        float segLife = lerp(wA, wB, tClamped);
+
+        // 線分両端の外側への滑らかな減衰
+        float endDist = 0.0;
+        if (proj < 0.0) {
+            endDist = -proj;
+        } else if (proj > segLen) {
+            endDist = proj - segLen;
+        }
+        float endFade = exp(-pow(endDist / width, 2.0));
+
+        // 手で水面を切ったときの山型引き波プロファイル
+        float wakeProfile = exp(-normSide * normSide * 1.5) * segLife * endFade;
+
+        // 1. 水が左右に柔らかく押し分けられる流体変位
+        float sidePush = normSide * exp(-normSide * normSide * 1.2);
+        gasFluidWisp += side * (sidePush * 0.09 * wakeProfile);
+
+        // 2. 指先が切った中心線がスーッと透き通る（抜けの尾）
+        float coreGap = exp(-normSide * normSide * 3.2) * (wakeProfile * 0.65);
+        gasCoreGap = max(gasCoreGap, coreGap);
+
+        // 3. 水面を切った跡にキラキラと尾を引く光条ヴェール
+        float crestVeil = abs(normSide) * exp(-normSide * normSide * 1.4) * (wakeProfile * 0.70);
+        gasCrestVeil = max(gasCrestVeil, crestVeil);
+
+        // 4. 撫でられたガスの淡いオーロラ励起光
+        gasExcitation = max(gasExcitation, wakeProfile * 0.25);
+    }
 
     // --- 3. 巨大な重力リング（Accretion Nebula Ring）と「中央の深淵（Void）」 ---
+    // 空間座標 rotP 自体は歪ませず、クリーンで自然な深宇宙の幾何学を維持
     float dist = length(float2(rotP.x, rotP.y * 1.25));
 
     // 参考画像準拠: 中央（dist < 0.28）は漆黒の深淵、半径0.48付近に光の環が展開
@@ -146,33 +159,39 @@ PixelShaderOutput main(VertexShaderOutput input) {
     // 事象の地平面（Event Horizon）近傍の微細な境界リング光
     float innerEdge = exp(-pow(dist - 0.28, 2.0) * 55.0) * 0.35;
 
-    // --- 4. 2D回転行列による連続渦巻き（背後の渦への波及・トルク適用） ---
-    // atan2の角度不連続(±π)を一切使わず、連続な cos/sin 回転行列で空間をねじる
+    // --- 4. 2D回転行列による連続渦巻き ---
+    // ★ 【重要】回転する前の画面座標（rotP）に変位を適用！
+    // 自転している swirlP に画面ベクトルを足すと直線上でくるくる回転してしまうため、
+    // 変位をかけた画面座標 displacedP を回転行列に通すことで、直線上での自転巻き込みを完全防止
+    float2 displacedP = rotP - gasFluidWisp;
+    float displacedDist = length(float2(displacedP.x, displacedP.y * 1.25));
+
     // 内周ほど吸い込まれ、全体として心地よい流動感をもたらす回転速度
-    float swirlSpeed = 0.38 + 0.18 / (dist + 0.20);
-    float swirlAmount = 3.6 * log(dist + 0.15) - time * swirlSpeed + swirlTorque;
+    float swirlSpeed = 0.38 + 0.18 / (displacedDist + 0.20);
+    float swirlAmount = 3.6 * log(displacedDist + 0.15) - time * swirlSpeed;
     float s = sin(swirlAmount);
     float c = cos(swirlAmount);
     float2 swirlP = float2(
-        rotP.x * c - rotP.y * s,
-        rotP.x * s + rotP.y * c
+        displacedP.x * c - displacedP.y * s,
+        displacedP.x * s + displacedP.y * c
     );
 
-    // 連続なベクトル空間 swirlP から幾重にも重なるシルクの光条（フィラメント）を生成
+    // ★ 星雲の美しい渦巻きフィラメント
     float f1 = ridgedNoise(swirlP * 2.6 + float2(time * 0.12, 0.0));
     float f2 = ridgedNoise(swirlP * 5.0 - float2(time * 0.08, f1 * 1.2));
     float filament = pow(saturate(f1 * 0.65 + f2 * 0.50), 1.9);
 
-    // 航跡・押し分けによるフィラメントガスの自然なヨレとちぎれ（Fluid Filament Dispersion）
-    if (wakeDistort > 0.001) {
-        float tearNoise = ridgedNoise(swirlP * 6.5 + float2(dist * 3.0, 0.0));
-        float tearFactor = smoothstep(0.25, 0.80, tearNoise) * saturate(wakeDistort);
-        filament = lerp(filament, filament * (1.0 - tearFactor * 0.50) + tearFactor * 0.20, saturate(wakeDistort * 0.8));
+    // ★ 手が水を切った部分の自然な透き通し
+    if (gasCoreGap > 0.001) {
+        filament *= (1.0 - gasCoreGap * 0.65);
     }
 
-    // 微細な煙・ヴェールの揺らぎ
+    // ★ 水面を切った跡に長く尾を引く光の筋（光条ヴェール）
+    filament += gasCrestVeil * 0.45;
+
+    // 微細な煙・ヴェールの揺らぎ ＋ 励起光
     float wisps = noise(float2(rotP.x * 4.0 + time * 0.08, rotP.y * 5.0 - time * 0.06));
-    filament *= (0.75 + 0.35 * wisps);
+    filament = filament * (0.75 + 0.35 * wisps) + gasExcitation * 0.20;
 
     // --- 5. 参考画像完全準拠のカラーパレット ---
     // ベース: 完全に締まった深宇宙の漆黒（中央の深淵と外周奥）
@@ -194,6 +213,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
 
     // --- 6. 発光加算合成（Emissive Accumulation） ---
     float gasBody = totalRing * (0.28 + 0.85 * filament);
+    gasBody = gasBody * (1.0 - gasCoreGap * 0.70);
     gasBody = smoothstep(0.08, 0.95, gasBody);
 
     float3 finalColor = colDeepSpace;
@@ -202,28 +222,97 @@ PixelShaderOutput main(VertexShaderOutput input) {
     finalColor += colWhite * (pow(filament * ringMask, 4.2) * 2.80);
     finalColor += colCyan * innerEdge;
 
-    // --- 7. 星屑の瞬き（深宇宙の静止した星空） ---
-    float2 starUV1 = uv * 360.0;
+    // --- 7. 星屑・コズミックダスト（深宇宙全体に充満する多重浮遊粉塵・星間チリ） ---
+    // A. 最奥の静止星空（深宇宙の基準面・立体感の奥行き対比用）
+    float2 starUV1 = uv * 320.0;
     float2 cell1 = floor(starUV1);
     float rnd1 = rand(cell1);
-    if (rnd1 > 0.985) {
+    if (rnd1 > 0.988) {
         float2 frac1 = frac(starUV1) - 0.5;
-        float starGlow = exp(-length(frac1) * 22.0) * (rnd1 - 0.985) * 70.0;
-        float twinkle = sin(time * 5.0 + rnd1 * 50.0) * 0.35 + 0.65;
-        finalColor += float3(0.85, 0.92, 1.0) * starGlow * twinkle;
+        float starGlow = exp(-length(frac1) * 24.0) * (rnd1 - 0.988) * 55.0;
+        float twinkle = sin(time * 4.0 + rnd1 * 50.0) * 0.30 + 0.70;
+        finalColor += float3(0.80, 0.90, 1.0) * starGlow * twinkle * 0.60;
     }
 
-    float2 starUV2 = uv * 140.0;
-    float2 cell2 = floor(starUV2);
-    float rnd2 = rand(cell2 + float2(12.3, 45.6));
-    if (rnd2 > 0.994) {
-        float2 frac2 = frac(starUV2) - 0.5;
-        float starDist = length(frac2);
-        float starGlow = exp(-starDist * 14.0) * (rnd2 - 0.994) * 160.0;
-        float twinkle = sin(time * 7.0 + rnd2 * 70.0) * 0.45 + 0.55;
-        float spike = exp(-abs(frac2.x) * 24.0) * exp(-abs(frac2.y) * 3.5)
-                    + exp(-abs(frac2.y) * 24.0) * exp(-abs(frac2.x) * 3.5);
-        finalColor += (float3(0.90, 0.96, 1.0) * starGlow + colCyan * spike * 0.35) * twinkle;
+    // B. 星雲の重力渦牽引ベクトル（Swirl Pull Vector）
+    float2 swirlOffset = swirlP - rotP;
+    // 内周ほど引力が強く、外周ほど自由に漂う牽引勾配
+    float coreDrag = clamp(0.18 + 0.45 / (dist + 0.32), 0.18, 0.70);
+
+    // C. 空間全体を照らす星雲光の環境照明度（Ambient Nebula Illumination）
+    // 参考画像準拠: ダストは画面全体に存在するが、星雲ガスに近い場所ほど光に照らされて鮮やかに浮き彫りになる
+    float dustIllum = saturate(gasBody * 1.3 + filament * 0.8 + 0.28);
+
+    // -------------------------------------------------------------------------
+    // レイヤー1: 【超微細パウダーダスト（Micro Dust & Space Powder）】
+    // 画面全体・四隅に至るまで空間を満たす無数の粉末状チリ。星雲ガスのたなびきに乗ってフワッと流れる
+    // -------------------------------------------------------------------------
+    float2 ambientDriftPowder = float2(time * 0.035, -time * 0.020);
+    float2 powderP = rotP + ambientDriftPowder + swirlOffset * (coreDrag * 0.38) - gasFluidWisp * 1.0;
+    float2 powderUV = powderP * 170.0;
+    float2 powderCell = floor(powderUV);
+    float powderRnd = rand(powderCell);
+    // 高密度: 約28%のセルに微細な粉塵が存在
+    if (powderRnd > 0.72) {
+        // セル内でランダムに位置をオフセット（格子状の均一感を完全に破壊）
+        float2 pOff = float2(rand(powderCell + 1.2), rand(powderCell + 7.4)) * 0.70 + 0.15;
+        float2 pFrac = frac(powderUV) - pOff;
+        float pDist = length(pFrac);
+        float pGlow = exp(-pDist * 34.0) * (powderRnd - 0.72) * 28.0;
+        float pTwinkle = sin(time * 5.0 + powderRnd * 90.0) * 0.25 + 0.75;
+        // マウスがガスを撫でた瞬間、微細な粉がふわっと光る（割れの中心は抜け、縁で煌めく）
+        float pExcitation = (1.0 - gasCoreGap * 0.50) * (1.0 + gasExcitation * 4.5);
+        float3 pCol = lerp(float3(0.55, 0.75, 0.85), colCyan, dustIllum);
+        finalColor += pCol * (pGlow * dustIllum * pTwinkle * pExcitation);
+    }
+
+    // -------------------------------------------------------------------------
+    // レイヤー2: 【中粒浮遊コズミックダスト（Floating Cosmic Grains）】
+    // 参考画像準拠: 大小様々なランダムな粒径を持ち、星雲の渦とたなびきの流れに沿って漂うチリ
+    // -------------------------------------------------------------------------
+    float2 ambientDriftGrain = float2(time * 0.025, -time * 0.015);
+    float2 grainP = rotP + ambientDriftGrain + swirlOffset * (coreDrag * 0.45) - gasFluidWisp * 1.15;
+    float2 grainUV = grainP * 85.0;
+    float2 grainCell = floor(grainUV);
+    float grainRnd = rand(grainCell + float2(19.2, 53.8));
+    // 中密度: 約16%のセルに浮遊ダストが存在
+    if (grainRnd > 0.84) {
+        float2 gOff = float2(rand(grainCell + 3.9), rand(grainCell + 8.1)) * 0.75 + 0.12;
+        float2 gFrac = frac(grainUV) - gOff;
+        float gDist = length(gFrac);
+        // ランダムなサイズ・輝度のばらつき（大小のチリが混ざり合う）
+        float gSize = lerp(18.0, 30.0, rand(grainCell + 11.5));
+        float gGlow = exp(-gDist * gSize) * (grainRnd - 0.84) * 48.0;
+        float gTwinkle = sin(time * 6.5 + grainRnd * 70.0) * 0.35 + 0.65;
+        // ガスの撫でられ励起
+        float gExcitation = (1.0 - gasCoreGap * 0.50) * (1.0 + gasExcitation * 5.0);
+        float3 gCol = lerp(colTeal, colCyan, grainRnd * 0.9) * 1.4;
+        finalColor += gCol * (gGlow * dustIllum * gTwinkle * gExcitation);
+    }
+
+    // -------------------------------------------------------------------------
+    // レイヤー3: 【鮮烈な浮遊結晶・ジュエル（Heavy Floating Stardust Crystals）】
+    // 参考画像準拠: 時折キラリと輝く大きめの星屑結晶。質量が重く、ガスからあまり引っ張られずにゆったり漂う
+    // -------------------------------------------------------------------------
+    float2 ambientDriftJewel = float2(-time * 0.018, -time * 0.028);
+    float2 jewelP = rotP + ambientDriftJewel + swirlOffset * (coreDrag * 0.20) - gasFluidWisp * 0.70;
+    float2 jewelUV = jewelP * 34.0;
+    float2 jewelCell = floor(jewelUV);
+    float jewelRnd = rand(jewelCell + float2(33.7, 77.1));
+    if (jewelRnd > 0.975) {
+        float2 jOff = float2(rand(jewelCell + 5.1), rand(jewelCell + 9.3)) * 0.60 + 0.20;
+        float2 jewelFrac = frac(jewelUV) - jOff;
+        float jDist = length(jewelFrac);
+        float coreGlow = exp(-jDist * 16.0) * (jewelRnd - 0.975) * 80.0;
+        float outerHalo = exp(-jDist * 6.0) * (jewelRnd - 0.975) * 22.0;
+        // 十字スパイク（光条）
+        float spike = exp(-abs(jewelFrac.x) * 24.0) * exp(-abs(jewelFrac.y) * 4.0)
+                    + exp(-abs(jewelFrac.y) * 24.0) * exp(-abs(jewelFrac.x) * 4.0);
+        float jTwinkle = sin(time * 5.0 + jewelRnd * 65.0) * 0.40 + 0.60;
+        // ガスの撫でられ励起
+        float cutSpike = 1.0 + gasExcitation * 4.0;
+        float3 jewelCol = lerp(colCyan, colWhite, saturate((jewelRnd - 0.975) * 50.0));
+        finalColor += (jewelCol * (coreGlow + outerHalo * 0.6) + colWhite * spike * 0.40) * (jTwinkle * cutSpike);
     }
 
     // --- 8. 出撃決定時の重力パルス光（Launch Pulse Glow） ---
