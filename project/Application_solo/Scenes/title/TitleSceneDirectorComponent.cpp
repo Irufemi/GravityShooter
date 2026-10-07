@@ -355,12 +355,12 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
                 float diffX = uiPos.x - cursorPos.x;
                 float diffY = uiPos.y - cursorPos.y;
                 float distSq = diffX * diffX + diffY * diffY;
-                const float kRepelRadius = 260.0f; // 反発影響半径を拡大 (185px -> 260px)
+                const float kRepelRadius = 150.0f; // 反発影響半径 (px)
 
                 if (distSq < kRepelRadius * kRepelRadius && distSq > 1.0f) {
                     float dist = std::sqrt(distSq);
                     float factor = 1.0f - (dist / kRepelRadius);
-                    float force = factor * factor * 0.95f; // 最大95cm押し出し
+                    float force = factor * factor * 0.55f; // 最大55cm押し出し
 
                     // カーソルから外側へ逃げるベクトル
                     targetRepelOffset.x = (diffX / dist) * force;

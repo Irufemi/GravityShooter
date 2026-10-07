@@ -79,16 +79,16 @@ PixelShaderOutput main(VertexShaderOutput input) {
     float2 deltaCursor = rotP - mouseRotP;
     float cursorDist = length(deltaCursor);
 
-    // A. 常時発動する重力レンズ屈折（静止時・微動時でもカーソル直下の星雲がプクッと歪み、存在感を主張）
-    float lensMask = exp(-pow(cursorDist / 0.28, 2.0));
-    float2 lensDisplacement = (deltaCursor / (cursorDist + 0.035)) * (lensMask * 0.075);
+    // A. 常時発動する重力レンズ屈折（コンパクトな範囲で直下の微細な手応えとして残す）
+    float lensMask = exp(-pow(cursorDist / 0.20, 2.5));
+    float2 lensDisplacement = (deltaCursor / (cursorDist + 0.035)) * (lensMask * 0.05);
 
     float2 dynamicDisplacement = float2(0.0, 0.0);
 
-    // B. マウス移動時の動的押し分け・航跡場（速度感度・変位量を大幅強化）
+    // B. マウス移動時の動的押し分け・航跡場（高感度は維持しつつ、範囲・変位量を元のシャープな大きさに戻す）
     if (mouseSpeed > 0.003) {
-        // カーソル周囲（半径約0.32）へ影響範囲を拡大
-        float localMask = exp(-pow(cursorDist / 0.32, 2.5));
+        // カーソル周囲（元の半径約0.22以内）に局所集中
+        float localMask = exp(-pow(cursorDist / 0.22, 3.0));
 
         float2 moveDir = mouseVel / mouseSpeed;
         float2 sideDir = float2(-moveDir.y, moveDir.x);
@@ -96,22 +96,22 @@ PixelShaderOutput main(VertexShaderOutput input) {
         float distFwd = dot(deltaCursor, moveDir);
         float distSide = dot(deltaCursor, sideDir);
 
-        // 先端左右押し分け（完全連続な双極子変位場）
-        float normSide = distSide / 0.18;
+        // 先端左右押し分け（元のシャープな幅・変位量に戻す）
+        float normSide = distSide / 0.15;
         float smoothLateralFactor = normSide * exp(-normSide * normSide);
-        float forwardDecay = exp(-pow((distFwd - 0.02) / 0.14, 2.0));
-        float bowShockPower = forwardDecay * saturate(mouseSpeed * 3.5);
-        float2 bowShockPush = sideDir * (smoothLateralFactor * bowShockPower * 0.18);
+        float forwardDecay = exp(-pow((distFwd - 0.015) / 0.10, 2.0));
+        float bowShockPower = forwardDecay * saturate(mouseSpeed * 2.5);
+        float2 bowShockPush = sideDir * (smoothLateralFactor * bowShockPower * 0.06);
 
-        // 後方引き波（完全連続な航跡場）
-        float rearFactor = smoothstep(0.06, -0.06, distFwd);
+        // 後方引き波（元のコンパクトな航跡長・幅に戻す）
+        float rearFactor = smoothstep(0.04, -0.04, distFwd);
         float wakeLength = max(0.0, -distFwd);
-        float wakeWidth = clamp(0.09 + wakeLength * 0.30, 0.09, 0.18);
+        float wakeWidth = clamp(0.07 + wakeLength * 0.25, 0.07, 0.13);
         float normWakeSide = distSide / wakeWidth;
         float wakeSideDecay = exp(-normWakeSide * normWakeSide);
-        float maxTrailLength = saturate(mouseSpeed * 1.5) * 0.35;
-        float wakeLongDecay = exp(-pow(wakeLength / (maxTrailLength + 0.001), 1.5));
-        float wakePower = rearFactor * wakeSideDecay * wakeLongDecay * saturate(mouseSpeed * 4.0);
+        float maxTrailLength = saturate(mouseSpeed * 1.0) * 0.22;
+        float wakeLongDecay = exp(-pow(wakeLength / (maxTrailLength + 0.001), 1.6));
+        float wakePower = rearFactor * wakeSideDecay * wakeLongDecay * saturate(mouseSpeed * 2.5);
 
         // 背後の渦流（接線方向）に沿った流送ベクトル
         float2 vortexTangent = float2(-rotP.y, rotP.x);
@@ -120,20 +120,20 @@ PixelShaderOutput main(VertexShaderOutput input) {
             vortexTangent /= rLen;
         }
 
-        // 航跡内での流体引きずり
-        float2 wakePull = (-moveDir * 0.35 + vortexTangent * 0.40 + sideDir * (normWakeSide * exp(-normWakeSide * normWakeSide) * 0.70)) * (wakePower * 0.14);
+        // 航跡内での流体引きずり（元の繊細な変位量に戻す）
+        float2 wakePull = (-moveDir * 0.25 + vortexTangent * 0.35 + sideDir * (normWakeSide * exp(-normWakeSide * normWakeSide) * 0.50)) * (wakePower * 0.045);
 
         dynamicDisplacement = (bowShockPush + wakePull) * localMask;
 
         // 中心に対するカーソルの回転角運動量（トルク）を背後の渦の位相（Swirl）に波及
         float crossTorque = (mouseRotP.x * mouseVel.y - mouseRotP.y * mouseVel.x);
-        swirlTorque = (bowShockPower * 0.6 + wakePower * 1.8) * crossTorque * 0.70 * localMask;
+        swirlTorque = (bowShockPower * 0.4 + wakePower * 1.2) * crossTorque * 0.45 * localMask;
     }
 
     // 重力レンズ変位と動的流体変位を合成適用
     float2 totalDisplacement = lensDisplacement + dynamicDisplacement;
     rotP -= totalDisplacement;
-    wakeDistort = length(totalDisplacement) * 22.0;
+    wakeDistort = length(totalDisplacement) * 18.0;
 
     // --- 3. 巨大な重力リング（Accretion Nebula Ring）と「中央の深淵（Void）」 ---
     float dist = length(float2(rotP.x, rotP.y * 1.25));
