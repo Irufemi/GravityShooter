@@ -9,10 +9,8 @@ on:
     branches:
       - master
       - IBS
-      - AL4
-      - CG
-      - GE
-      - WP0
+      - WP1
+      - SR1
 
 jobs:
   check-files:
