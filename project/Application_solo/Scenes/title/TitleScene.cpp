@@ -4,6 +4,7 @@
 #include "Framework/Scene/SceneSerializer.h"
 #include "Irufemi.h"
 
+#include "Renderer/Font/FontManager.h"
 #include "Platform/Input/InputManager.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Scenes/title/TitleMenuControllerComponent.h"
@@ -14,6 +15,15 @@ TitleScene::~TitleScene() {}
 // 初期化
 void TitleScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
+
+    // モーダル画面（HowToPlayScene, OptionsScene）で使用される全英数字・記号を先行ウォームアップ
+    // 画面遷移時のFreeType走査・GPUアップロードによるメインスレッド阻害（フレームヒッチ）を根絶
+    if (engine) {
+        if (auto fm = engine->GetFontManager()) {
+            fm->PrecacheText("toro_glitch",
+                             L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/-%:.,_ ()[]<>+!?");
+        }
+    }
 
     // JSONからのロードは SceneManager が自動で行うため、ここでは手動で呼ばない
 }

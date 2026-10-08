@@ -8,10 +8,21 @@
 /**
  * @class TitleMenuControllerComponent
  * @brief タイトル画面のメニュー選択・ゲームパッド/キーボード操作・モーダルを統括するコンポーネント
- * @details 十字キー/スティック/WASDによるフォーカス移動、スケールアップアニメーション、
- *          HOW TO PLAY モーダル、OPTIONS遷移、QUIT処理を管理します。
+ * @details State パターン（有限状態機械: FSM）に基づき、通常待機、モーダル決定演出、
+ *          出撃シーケンス、背面待機を完全に分離して管理します。
  */
 class TitleMenuControllerComponent : public Component {
+public: // 状態定義
+    /**
+     * @brief タイトルメニューの動作状態を表すステート列挙体
+     */
+    enum class MenuState {
+        Idle,         //!< 通常待機（ホバー・ナビゲーション入力受付中）
+        OpeningModal, //!< モーダル決定演出中（Click Punch押し込み＆跳ね返り、他ボタンフェード ➔ 完了でPushScene発火）
+        Suspended,    //!< モーダル表示中（メニュー非表示＆入力停止）
+        Launching,    //!< 出撃決定演出中（白光フラッシュ＆ディスミス拡散 ➔ InGame遷移）
+    };
+
 public: // メンバ関数(システム)
     TitleMenuControllerComponent() = default;
     ~TitleMenuControllerComponent() override = default;
@@ -40,6 +51,19 @@ public: // メンバ関数(システム)
     void OnRegisterProperties() override;
 
     /**
+     * @brief 現在のメニュー状態を取得する
+     */
+    MenuState GetState() const {
+        return state_;
+    }
+
+    /**
+     * @brief 状態を明示的に切り替える（ExitState ➔ EnterState を実行）
+     * @param[in] newState 遷移先の状態
+     */
+    void ChangeState(MenuState newState);
+
+    /**
      * @brief 現在選択中のメニューインデックスを取得する
      * @return 0: START, 1: HOW TO PLAY, 2: OPTIONS, 3: QUIT
      */
@@ -51,21 +75,25 @@ public: // メンバ関数(システム)
      * @brief HOW TO PLAY モーダルが開いているか
      */
     bool IsHowToPlayOpen() const {
-        return isHowToPlayOpen_;
+        return state_ == MenuState::Suspended && pendingModalSceneName_ == "HowToPlayScene";
     }
 
     /**
      * @brief 出撃演出中かどうか
      */
     bool IsLaunching() const {
-        return isLaunching_;
+        return state_ == MenuState::Launching;
     }
 
     /**
-     * @brief 出撃演出開始フラグを設定する
+     * @brief 出撃演出開始フラグを設定する（外部連携用）
      */
     void SetLaunching(bool launching) {
-        isLaunching_ = launching;
+        if (launching) {
+            ChangeState(MenuState::Launching);
+        } else if (state_ == MenuState::Launching) {
+            ChangeState(MenuState::Idle);
+        }
     }
 
     /**
@@ -82,7 +110,7 @@ public: // メンバ関数(システム)
      * @brief UIディゾルブ消滅中かどうか
      */
     bool IsDismissing() const {
-        return isDismissing_;
+        return state_ == MenuState::Launching;
     }
 
     /**
@@ -95,6 +123,12 @@ public: // メンバ関数(システム)
      * @brief 上位シーン（OptionsやHowToPlay）から復帰した際に、選択中ボタンへフォーカスと仮想カーソルを同期復帰する
      */
     void RestoreFocusOnResume();
+
+private: // 状態ライフサイクル（Stateパターン）
+    void EnterState(MenuState state);
+    void UpdateState(float deltaTime);
+    void ExitState(MenuState state);
+    void UpdateOpeningModalAnimation(float deltaTime);
 
 private: // 内部処理
     void HandleNavigationInput();
@@ -115,11 +149,14 @@ private: // 内部処理
      */
     bool IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const;
 
-private:                   // メンバ変数
-    int currentIndex_ = 0; //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
+private: // メンバ変数
+    MenuState state_ = MenuState::Idle; //!< 現在のメニュー状態
+    float stateTimer_ = 0.0f;           //!< 各ステート内経過タイマー
+    static constexpr float kModalAnimDuration_ = 0.22f; //!< モーダル決定演出所要時間 (Click In 0.055s + Click Pop 0.165s)
+    std::string pendingModalSceneName_; //!< 遷移待機中のモーダルシーン名
+
+    int currentIndex_ = 0;        //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
     int pressedButtonIndex_ = -1; //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
-    bool isHowToPlayOpen_ = false; //!< 操作説明モーダル表示フラグ
-    bool isLaunching_ = false;     //!< 出撃シーケンス実行中フラグ
 
     // 全画面インパクトフラッシュ用状態
     float flashTimer_ = 0.0f;
@@ -129,7 +166,6 @@ private:                   // メンバ変数
     float titleBreatheTimer_ = 0.0f;
 
     // UIディゾルブ消滅用状態
-    bool isDismissing_ = false;
     float dismissTimer_ = 0.0f;
     static constexpr float kDismissDuration_ = 0.30f;
     std::vector<Irufemi::Vector3> dismissStartPositions_;

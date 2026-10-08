@@ -45,11 +45,90 @@ void OptionsScene::Initialize(IrufemiEngine* engine) {
     lastHoveredTarget_ = nullptr;
     openCooldownTimer_ = 0.15f; // 前画面からのクリック残存をガード
     uiBound_ = false;
+    transitionState_ = TransitionState::Opening;
+    transitionTimer_ = 0.0f;
+    uiCached_ = false;
 }
 
 void OptionsScene::OnEnter() {
     BaseScene::OnEnter();
     openCooldownTimer_ = 0.15f;
+    transitionState_ = TransitionState::Opening;
+    transitionTimer_ = 0.0f;
+    uiCached_ = false;
+}
+
+void OptionsScene::CacheUIElements() {
+    cachedElements_.clear();
+    const auto& objs = GetGameObjects();
+    for (const auto& obj : objs) {
+        if (!obj || obj == virtualCursorObj_) {
+            continue;
+        }
+        auto transform = obj->GetComponent<TransformComponent>();
+        if (!transform) {
+            continue;
+        }
+
+        UIElementState state{};
+        state.obj = obj;
+        state.basePos = transform->GetPosition();
+        state.baseScale = transform->GetScale();
+        state.isBackdrop = (obj->GetName() == "OptionsUI_Root");
+
+        if (auto sprite = obj->GetComponent<SpriteRendererComponent>()) {
+            state.baseColor = sprite->GetColor();
+            state.isSprite = true;
+            cachedElements_.push_back(state);
+        } else if (auto text = obj->GetComponent<TextRendererComponent>()) {
+            state.baseColor = text->GetColor();
+            state.isSprite = false;
+            cachedElements_.push_back(state);
+        }
+    }
+    uiCached_ = true;
+}
+
+void OptionsScene::ApplyTransition(float progress) {
+    if (!uiCached_) {
+        CacheUIElements();
+    }
+
+    const Irufemi::Vector3 center{640.0f, 360.0f, 0.0f};
+
+    for (auto& elem : cachedElements_) {
+        if (!elem.obj) {
+            continue;
+        }
+        auto transform = elem.obj->GetComponent<TransformComponent>();
+        if (!transform) {
+            continue;
+        }
+
+        if (elem.isBackdrop) {
+            // 暗幕はアルファのみフェード
+            if (auto sprite = elem.obj->GetComponent<SpriteRendererComponent>()) {
+                sprite->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
+            }
+        } else {
+            // UIパネル群を中心からスケール補間＆アルファフェード (0.95 -> 1.0)
+            float scaleMul = std::lerp(0.95f, 1.0f, progress);
+            Irufemi::Vector3 offset = elem.basePos - center;
+            transform->SetPosition(center + offset * scaleMul);
+            transform->SetScale({elem.baseScale.x * scaleMul, elem.baseScale.y * scaleMul, elem.baseScale.z});
+
+            if (elem.isSprite) {
+                if (auto sprite = elem.obj->GetComponent<SpriteRendererComponent>()) {
+                    sprite->SetColor(
+                        {elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
+                }
+            } else {
+                if (auto text = elem.obj->GetComponent<TextRendererComponent>()) {
+                    text->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
+                }
+            }
+        }
+    }
 }
 
 void OptionsScene::Update() {
@@ -71,6 +150,43 @@ void OptionsScene::Update() {
     }
 
     float dt = engine->GetDeltaTime();
+
+    if (!uiCached_) {
+        CacheUIElements();
+        ApplyTransition(0.0f);
+    }
+
+    // --- オープニング演出 (Fade & Scale In) ---
+    if (transitionState_ == TransitionState::Opening) {
+        transitionTimer_ += dt;
+        float progress = std::clamp(transitionTimer_ / kOpenDuration_, 0.0f, 1.0f);
+        // EaseOutCubic
+        float ease = 1.0f - std::pow(1.0f - progress, 3.0f);
+        ApplyTransition(ease);
+
+        if (progress >= 1.0f) {
+            transitionState_ = TransitionState::Open;
+            ApplyTransition(1.0f);
+        }
+        return; // オープン途中は操作入力をガード
+    }
+
+    // --- クロージング演出 (Fade & Scale Out) ---
+    if (transitionState_ == TransitionState::Closing) {
+        transitionTimer_ += dt;
+        float progress = std::clamp(transitionTimer_ / kCloseDuration_, 0.0f, 1.0f);
+        // EaseInQuad
+        float ease = 1.0f - (progress * progress);
+        ApplyTransition(ease);
+
+        if (progress >= 1.0f) {
+            if (auto sm = engine->GetSceneManager()) {
+                sm->PopScene();
+            }
+        }
+        return;
+    }
+
     if (openCooldownTimer_ > 0.0f) {
         openCooldownTimer_ -= dt;
         return; // 開いた直後のクリック・ボタン入力残存による即時クローズをガード
@@ -81,9 +197,8 @@ void OptionsScene::Update() {
     // =========================================================================
     if (input->IsCancelPressed()) {
         UISound::PlayCancel();
-        if (auto sm = engine->GetSceneManager()) {
-            sm->PopScene();
-        }
+        transitionState_ = TransitionState::Closing;
+        transitionTimer_ = 0.0f;
         return;
     }
 
@@ -102,9 +217,8 @@ void OptionsScene::Update() {
 
     if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
         UISound::PlayDecide();
-        if (auto sm = engine->GetSceneManager()) {
-            sm->PopScene();
-        }
+        transitionState_ = TransitionState::Closing;
+        transitionTimer_ = 0.0f;
         return;
     }
 

@@ -1,6 +1,8 @@
 #pragma once
 #include "Framework/Scene/BaseScene.h"
 #include "Core/Math/Vector2.h"
+#include "Core/Math/Vector3.h"
+#include "Core/Math/Vector4.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -52,10 +54,35 @@ public:
     }
 
 private:
+    enum class TransitionState {
+        Opening,
+        Open,
+        Closing
+    };
+
+    struct UIElementState {
+        std::shared_ptr<GameObject> obj;
+        Irufemi::Vector3 basePos{};
+        Irufemi::Vector3 baseScale{};
+        Irufemi::Vector4 baseColor{};
+        bool isSprite = false;
+        bool isBackdrop = false;
+    };
+
+    void CacheUIElements();
+    void ApplyTransition(float progress);
+
     void BindUIComponents();
     void UpdateVirtualCursor(float deltaTime);
     void UpdateSliderDrag();
     void UpdateValueTexts();
+
+    TransitionState transitionState_ = TransitionState::Opening;
+    float transitionTimer_ = 0.0f;
+    static constexpr float kOpenDuration_ = 0.16f;
+    static constexpr float kCloseDuration_ = 0.12f;
+    bool uiCached_ = false;
+    std::vector<UIElementState> cachedElements_;
 
     // キャッシュしたUIコンポーネント参照
     SliderComponent* sliderBGM_ = nullptr;

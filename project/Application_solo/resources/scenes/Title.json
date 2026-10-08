@@ -771,58 +771,6 @@
       "instanceId": 2000000000000000007,
       "name": "BGMPlayer",
       "tag": "Untagged"
-    },
-    {
-      "components": [
-        {
-          "data": {
-            "inheritScale": true,
-            "position": [
-              640.0,
-              360.0,
-              0.0
-            ],
-            "rotation": [
-              0.0,
-              -0.0,
-              0.0
-            ],
-            "scale": [
-              1.0,
-              1.0,
-              1.0
-            ]
-          },
-          "type": "TransformComponent"
-        },
-        {
-          "data": {
-            "color": [
-              1.0,
-              1.0,
-              1.0,
-              0.0
-            ],
-            "currentTypeIndex": 0,
-            "isTopMost": true,
-            "pivot": [
-              0.5,
-              0.5
-            ],
-            "size": [
-              1280.0,
-              720.0
-            ],
-            "subdivision": 1,
-            "texturePath": "",
-            "thickness": 1.0
-          },
-          "type": "Primitive2DRendererComponent"
-        }
-      ],
-      "instanceId": 2000000000000000008,
-      "name": "ScreenFlash",
-      "tag": "Untagged"
     }
   ],
   "settings": {
