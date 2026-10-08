@@ -29,8 +29,6 @@ public:
      */
     virtual const char* GetName() const = 0;
 
-
-
     /**
      * @brief パネルが開いているか判定する
      * @return 開いている場合 true

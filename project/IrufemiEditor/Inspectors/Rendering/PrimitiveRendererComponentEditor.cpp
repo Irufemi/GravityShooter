@@ -132,14 +132,15 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                                                               comp->SetTopRadius(v);
                                                               comp->RebuildMesh();
                                                           }));
-                    ComponentUIHelpers::DrawPropertyResetButton("##TopRadiusReset", comp->GetTopRadius() != 1.0f, [&]() {
-                        float oldTop = comp->GetTopRadius();
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldTop, 1.0f,
-                                                            std::function<void(const float&)>([comp](const float& v) {
-                                                                comp->SetTopRadius(v);
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##TopRadiusReset", comp->GetTopRadius() != 1.0f, [&]() {
+                            float oldTop = comp->GetTopRadius();
+                            ComponentUIHelpers::PushInstantUndo(
+                                actionManager, oldTop, 1.0f, std::function<void(const float&)>([comp](const float& v) {
+                                    comp->SetTopRadius(v);
+                                    comp->RebuildMesh();
+                                }));
+                        });
                 }
 
                 ImGui::TableNextRow();
@@ -158,14 +159,15 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                                                               comp->SetBottomRadius(v);
                                                               comp->RebuildMesh();
                                                           }));
-                    ComponentUIHelpers::DrawPropertyResetButton("##BottomRadiusReset", comp->GetBottomRadius() != 1.0f, [&]() {
-                        float oldBot = comp->GetBottomRadius();
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldBot, 1.0f,
-                                                            std::function<void(const float&)>([comp](const float& v) {
-                                                                comp->SetBottomRadius(v);
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##BottomRadiusReset", comp->GetBottomRadius() != 1.0f, [&]() {
+                            float oldBot = comp->GetBottomRadius();
+                            ComponentUIHelpers::PushInstantUndo(
+                                actionManager, oldBot, 1.0f, std::function<void(const float&)>([comp](const float& v) {
+                                    comp->SetBottomRadius(v);
+                                    comp->RebuildMesh();
+                                }));
+                        });
                 }
 
                 ImGui::TableNextRow();
@@ -210,14 +212,15 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                                                               comp->SetSubdivisions(v);
                                                               comp->RebuildMesh();
                                                           }));
-                    ComponentUIHelpers::DrawPropertyResetButton("##SegmentsReset", comp->GetSubdivisions() != 16, [&]() {
-                        int oldSub = comp->GetSubdivisions();
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
-                                                            std::function<void(const int&)>([comp](const int& v) {
-                                                                comp->SetSubdivisions(v);
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##SegmentsReset", comp->GetSubdivisions() != 16, [&]() {
+                            int oldSub = comp->GetSubdivisions();
+                            ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
+                                                                std::function<void(const int&)>([comp](const int& v) {
+                                                                    comp->SetSubdivisions(v);
+                                                                    comp->RebuildMesh();
+                                                                }));
+                        });
                 }
 
                 {
@@ -331,14 +334,15 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                                                               comp->SetSubdivisions(v);
                                                               comp->RebuildMesh();
                                                           }));
-                    ComponentUIHelpers::DrawPropertyResetButton("##SegmentsReset", comp->GetSubdivisions() != 16, [&]() {
-                        int oldSub = comp->GetSubdivisions();
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
-                                                            std::function<void(const int&)>([comp](const int& v) {
-                                                                comp->SetSubdivisions(v);
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##SegmentsReset", comp->GetSubdivisions() != 16, [&]() {
+                            int oldSub = comp->GetSubdivisions();
+                            ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
+                                                                std::function<void(const int&)>([comp](const int& v) {
+                                                                    comp->SetSubdivisions(v);
+                                                                    comp->RebuildMesh();
+                                                                }));
+                        });
                 }
                 break;
             case Irufemi::PrimitiveType::Torus:
@@ -361,11 +365,11 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                     ComponentUIHelpers::DrawPropertyResetButton(
                         "##MajorRadiusReset", comp->GetTorusMajorRadius() != 1.0f, [&]() {
                             float oldR = comp->GetTorusMajorRadius();
-                            ComponentUIHelpers::PushInstantUndo(actionManager, oldR, 1.0f,
-                                                                std::function<void(const float&)>([comp](const float& v) {
-                                                                    comp->SetTorusMajorRadius(v);
-                                                                    comp->RebuildMesh();
-                                                                }));
+                            ComponentUIHelpers::PushInstantUndo(
+                                actionManager, oldR, 1.0f, std::function<void(const float&)>([comp](const float& v) {
+                                    comp->SetTorusMajorRadius(v);
+                                    comp->RebuildMesh();
+                                }));
                         });
                 }
 
@@ -388,11 +392,11 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                     ComponentUIHelpers::DrawPropertyResetButton(
                         "##MinorRadiusReset", comp->GetTorusMinorRadius() != 0.25f, [&]() {
                             float oldR = comp->GetTorusMinorRadius();
-                            ComponentUIHelpers::PushInstantUndo(actionManager, oldR, 0.25f,
-                                                                std::function<void(const float&)>([comp](const float& v) {
-                                                                    comp->SetTorusMinorRadius(v);
-                                                                    comp->RebuildMesh();
-                                                                }));
+                            ComponentUIHelpers::PushInstantUndo(
+                                actionManager, oldR, 0.25f, std::function<void(const float&)>([comp](const float& v) {
+                                    comp->SetTorusMinorRadius(v);
+                                    comp->RebuildMesh();
+                                }));
                         });
                 }
 
@@ -412,14 +416,15 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                                                               comp->SetTorusMajorSegments(v);
                                                               comp->RebuildMesh();
                                                           }));
-                    ComponentUIHelpers::DrawPropertyResetButton("##MajorSegReset", comp->GetTorusMajorSegments() != 32, [&]() {
-                        int oldS = comp->GetTorusMajorSegments();
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 32,
-                                                            std::function<void(const int&)>([comp](const int& v) {
-                                                                comp->SetTorusMajorSegments(v);
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##MajorSegReset", comp->GetTorusMajorSegments() != 32, [&]() {
+                            int oldS = comp->GetTorusMajorSegments();
+                            ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 32,
+                                                                std::function<void(const int&)>([comp](const int& v) {
+                                                                    comp->SetTorusMajorSegments(v);
+                                                                    comp->RebuildMesh();
+                                                                }));
+                        });
                 }
 
                 ImGui::TableNextRow();
@@ -438,14 +443,15 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                                                               comp->SetTorusMinorSegments(v);
                                                               comp->RebuildMesh();
                                                           }));
-                    ComponentUIHelpers::DrawPropertyResetButton("##MinorSegReset", comp->GetTorusMinorSegments() != 16, [&]() {
-                        int oldS = comp->GetTorusMinorSegments();
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 16,
-                                                            std::function<void(const int&)>([comp](const int& v) {
-                                                                comp->SetTorusMinorSegments(v);
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##MinorSegReset", comp->GetTorusMinorSegments() != 16, [&]() {
+                            int oldS = comp->GetTorusMinorSegments();
+                            ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 16,
+                                                                std::function<void(const int&)>([comp](const int& v) {
+                                                                    comp->SetTorusMinorSegments(v);
+                                                                    comp->RebuildMesh();
+                                                                }));
+                        });
                 }
                 break;
             }

@@ -151,8 +151,6 @@ public:
         return autoClearEveryFrame_;
     }
 
-
-
 private:
     std::unique_ptr<ModelBatch> batch_;   ///< 実際のバッチ描画を担うクラス
     std::string modelName_ = "plane.obj"; ///< 読み込むモデル名

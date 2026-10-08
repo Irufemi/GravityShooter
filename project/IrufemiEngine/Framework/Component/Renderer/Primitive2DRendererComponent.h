@@ -65,8 +65,6 @@ public:
         return primitive_.get();
     }
 
-
-
     // プロパティ操作
     /**
      * @brief 描画する2Dプリミティブの形状タイプ（Rect, Circle, Triangle, Line 等）を設定します

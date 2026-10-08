@@ -157,8 +157,6 @@ public:
         return modelName_;
     }
 
-
-
 private:
     std::unique_ptr<StaticModelObject> obj_; ///< 実際の描画を担う既存クラス
     std::string modelName_ = "";             ///< 読み込むモデル名

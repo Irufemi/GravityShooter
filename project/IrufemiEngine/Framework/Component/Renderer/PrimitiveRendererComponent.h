@@ -79,8 +79,6 @@ public:
      */
     bool Raycast(const Irufemi::Ray& ray, float& outDistance) const override;
 
-
-
     /**
      * @brief コンポーネントの識別名を取得します
      * @return クラス名文字列
