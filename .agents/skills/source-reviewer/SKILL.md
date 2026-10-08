@@ -16,7 +16,8 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 | 単元ID | テーマ | リファレンス資料 | 主要な診断項目 |
 | :--- | :--- | :--- | :--- |
 | **`01_01`** | **カプセル化 (Encapsulation)** | [01_01_encapsulation.md](references/01_01_encapsulation.md) | アンチパターン5選（public変数、非const参照Getter、friend乱用、DTO不要カプセル化、神クラス） |
-| *(今後)* | *(継承・多態性など)* | `references/01_02_xxx.md` | *(単元追加時に随時記載)* |
+| **`01_02`** | **State Pattern (状態遷移パターン)** | [01_02_state_pattern.md](references/01_02_state_pattern.md) | 先生・AI診断4大合格要件、switch-caseベタ書き脱却、ポリモーフィズム呼び出し |
+| *(今後)* | *(継承・多態性など)* | `references/01_xx_xxx.md` | *(単元追加時に随時記載)* |
 
 ---
 
