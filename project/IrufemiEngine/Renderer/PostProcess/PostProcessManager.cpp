@@ -726,4 +726,3 @@ void PostProcessManager::ResetCustomEffectSlots() {
         freeSlots_.push_back(static_cast<uint32_t>(i));
     }
 }
-

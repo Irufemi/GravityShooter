@@ -149,13 +149,14 @@ private: // 内部処理
      */
     bool IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const;
 
-private: // メンバ変数
+private:                                // メンバ変数
     MenuState state_ = MenuState::Idle; //!< 現在のメニュー状態
     float stateTimer_ = 0.0f;           //!< 各ステート内経過タイマー
-    static constexpr float kModalAnimDuration_ = 0.22f; //!< モーダル決定演出所要時間 (Click In 0.055s + Click Pop 0.165s)
+    static constexpr float kModalAnimDuration_ =
+        0.22f;                          //!< モーダル決定演出所要時間 (Click In 0.055s + Click Pop 0.165s)
     std::string pendingModalSceneName_; //!< 遷移待機中のモーダルシーン名
 
-    int currentIndex_ = 0;        //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
+    int currentIndex_ = 0; //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
     int pressedButtonIndex_ = -1; //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
 
     // 全画面インパクトフラッシュ用状態

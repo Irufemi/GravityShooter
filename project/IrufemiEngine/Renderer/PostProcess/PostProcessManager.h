@@ -623,7 +623,8 @@ public:
                                                      uint32_t maskTextureIndex = 0);
 
     /**
-     * @brief オブジェクト固有IDに紐づく永続スロット（1〜255）に個別エフェクトパラメータを登録・更新する (AAA Persistent Slot Allocation)
+     * @brief オブジェクト固有IDに紐づく永続スロット（1〜255）に個別エフェクトパラメータを登録・更新する (AAA Persistent
+     * Slot Allocation)
      * @param objectId オブジェクトの固有インスタンスID (GameObject::GetInstanceID() 等)
      * @param params 個別エフェクトのパラメータ
      * @return 永続インスタンスID (1〜255)

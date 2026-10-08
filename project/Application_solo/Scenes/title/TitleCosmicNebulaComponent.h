@@ -20,8 +20,7 @@ public: // 定数バッファ構造体 (HLSL: register b6 / RootSlot::Special)
         float swirlStrength = 0.65f;                        //!< 渦の回転強度
         float density = 1.0f;                               //!< 星雲濃度
         Irufemi::Vector4 centerUV{0.5f, 0.42f, 0.0f, 0.0f}; //!< 重力渦の中心UV (xy: 中心, zw: パララックスオフセット)
-        Irufemi::Vector4 mouseUV{0.5f, 0.5f, 0.0f,
-                                 0.0f}; //!< マウスカーソル (xy: 正規化UV, z: スピード/強度, w: 予備)
+        Irufemi::Vector4 mouseUV{0.5f, 0.5f, 0.0f, 0.0f}; //!< マウスカーソル (xy: 正規化UV, z: スピード/強度, w: 予備)
         Irufemi::Vector4 trailPoints[8]{}; //!< 過去の軌跡点 (xy: UV座標, z: 強度・減衰率 [0-1], w: 予備)
         float pad[20]{};                   //!< 256バイトアライメントパディング (208 - 128 = 80 bytes)
     };

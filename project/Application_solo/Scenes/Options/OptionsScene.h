@@ -54,11 +54,7 @@ public:
     }
 
 private:
-    enum class TransitionState {
-        Opening,
-        Open,
-        Closing
-    };
+    enum class TransitionState { Opening, Open, Closing };
 
     struct UIElementState {
         std::shared_ptr<GameObject> obj;

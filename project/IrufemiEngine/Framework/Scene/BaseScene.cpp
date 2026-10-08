@@ -386,7 +386,8 @@ void BaseScene::WarmUpRenderState() {
         engine_->GetCameraManager()->Update();
     }
 
-    // 6. 全GameObjectの描画前ステート同期（スキニングの初期ポーズ計算 & ComputeTask先行登録 & マスク描画パラメータ初期化）
+    // 6. 全GameObjectの描画前ステート同期（スキニングの初期ポーズ計算 & ComputeTask先行登録 &
+    // マスク描画パラメータ初期化）
     for (const auto& obj : gameObjects_) {
         if (obj && !obj->GetParent() && !obj->IsDestroyed()) {
             obj->SyncRenderState();

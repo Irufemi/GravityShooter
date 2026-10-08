@@ -61,11 +61,7 @@ public: // メンバ関数(システム)
     void OnEnter() override;
 
 private:
-    enum class TransitionState {
-        Opening,
-        Open,
-        Closing
-    };
+    enum class TransitionState { Opening, Open, Closing };
 
     struct UIElementState {
         std::shared_ptr<GameObject> obj;
@@ -87,4 +83,3 @@ private:
     bool uiCached_ = false;
     std::vector<UIElementState> cachedElements_;
 };
-

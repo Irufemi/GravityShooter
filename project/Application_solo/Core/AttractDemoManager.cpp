@@ -20,8 +20,7 @@ namespace {
 inline Irufemi::Vector2 EvaluateQuadraticBezier(const Irufemi::Vector2& p0, const Irufemi::Vector2& p1,
                                                 const Irufemi::Vector2& p2, float t) {
     float u = 1.0f - t;
-    return {u * u * p0.x + 2.0f * u * t * p1.x + t * t * p2.x,
-            u * u * p0.y + 2.0f * u * t * p1.y + t * t * p2.y};
+    return {u * u * p0.x + 2.0f * u * t * p1.x + t * t * p2.x, u * u * p0.y + 2.0f * u * t * p1.y + t * t * p2.y};
 }
 
 // 3次エルミート補間（SmoothStep）
@@ -283,7 +282,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                             menuCtrl->SetLaunching(true);
                         }
                         if (dirComp) {
-                            isDemoInGame_ = true; // InGame側での帰還を待機
+                            isDemoInGame_ = true;                // InGame側での帰還を待機
                             dirComp->SetNextSceneName("InGame"); // 本編 InGame シーンへ直接出撃！
                             dirComp->StartLaunchSequence();
                         }

@@ -264,8 +264,8 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
         // フォーカス移動の実行（キーボード / 十字キー）
         if (moveDelta != 0) {
             int oldIndex = currentIndex_;
-            currentIndex_ =
-                (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) % static_cast<int>(buttonNames_.size());
+            currentIndex_ = (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) %
+                            static_cast<int>(buttonNames_.size());
 
             if (oldIndex != currentIndex_) {
                 UISound::PlayCursor();
@@ -840,4 +840,3 @@ bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::
 
     return (std::abs(cursorPos.x - pos.x) <= halfW && std::abs(cursorPos.y - pos.y) <= halfH);
 }
-

@@ -80,24 +80,24 @@ private:
     IrufemiEngine* engine_ = nullptr;
 
     // --- 状態管理 ---
-    std::string previousScene_ = ""; ///< 前フレームのシーン名（遷移検知用）
-    bool isKioskLoopMode_ = false;  ///< F8による永久ループ展示フラグ
-    bool isDemoPlaying_ = false;    ///< Titleシーンでのデモタイムライン進行中フラグ
-    bool isDemoInGame_ = false;     ///< InGameシーンでの3.5秒帰還待ちフラグ
-    bool hasSubmitted_ = false;     ///< GAME STARTクリック決定済みフラグ
+    std::string previousScene_ = "";  ///< 前フレームのシーン名（遷移検知用）
+    bool isKioskLoopMode_ = false;    ///< F8による永久ループ展示フラグ
+    bool isDemoPlaying_ = false;      ///< Titleシーンでのデモタイムライン進行中フラグ
+    bool isDemoInGame_ = false;       ///< InGameシーンでの3.5秒帰還待ちフラグ
+    bool hasSubmitted_ = false;       ///< GAME STARTクリック決定済みフラグ
     bool hasTriggeredReturn_ = false; ///< InGameからTitleへの遷移開始フラグ
 
-    bool wasF8Down_ = false;          ///< 前フレームのF8キー押下状態（エッジ検知）
-    float f8CooldownTimer_ = 0.0f;    ///< 多重発火防止用クールダウンタイマー（秒）
+    bool wasF8Down_ = false;       ///< 前フレームのF8キー押下状態（エッジ検知）
+    float f8CooldownTimer_ = 0.0f; ///< 多重発火防止用クールダウンタイマー（秒）
     static constexpr float kF8CooldownDuration_ = 0.30f; ///< クールダウン時間（300ms）
 
-    float idleTimer_ = 0.0f;        ///< Titleでの無操作タイマー
-    float demoTimeline_ = 0.0f;     ///< Titleデモタイムライン（秒）
-    float inGameTimer_ = 0.0f;      ///< InGameデモタイマー（秒）
+    float idleTimer_ = 0.0f;    ///< Titleでの無操作タイマー
+    float demoTimeline_ = 0.0f; ///< Titleデモタイムライン（秒）
+    float inGameTimer_ = 0.0f;  ///< InGameデモタイマー（秒）
 
-    static constexpr float kIdleThreshold_ = 8.0f;     ///< 自動デモ開始までの無操作秒数
-    static constexpr float kInGameDuration_ = 5.50f;    ///< 本編デモ映像の表示秒数（じっくり魅せる5.5秒）
-    static constexpr uint8_t kToggleKey_ = VK_F8;      ///< キオスク固定展示トグルキー (F8)
+    static constexpr float kIdleThreshold_ = 8.0f; ///< 自動デモ開始までの無操作秒数
+    static constexpr float kInGameDuration_ = 5.50f; ///< 本編デモ映像の表示秒数（じっくり魅せる5.5秒）
+    static constexpr uint8_t kToggleKey_ = VK_F8; ///< キオスク固定展示トグルキー (F8)
 
     // タイムライン用ターゲット座標キャッシュ
     Irufemi::Vector2 posSweepStart_{640.0f, 650.0f};

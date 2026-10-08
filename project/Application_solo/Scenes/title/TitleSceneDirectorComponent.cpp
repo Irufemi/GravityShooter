@@ -600,7 +600,8 @@ void TitleSceneDirectorComponent::OnUpdateLaunchState(LaunchState state, float d
             if (freezeTimer_ < kDurationFreeze_) {
                 if (shipTransform) {
                     float jitter = std::sin(freezeTimer_ * 180.0f) * 0.008f;
-                    shipTransform->SetPosition({initialShipPos_.x + jitter, initialShipPos_.y, initialShipPos_.z - 0.45f});
+                    shipTransform->SetPosition(
+                        {initialShipPos_.x + jitter, initialShipPos_.y, initialShipPos_.z - 0.45f});
                     shipTransform->SetRotation({0.0f, 0.0f, jitter * 1.5f});
                 }
                 return; // フリーズ待機（前進加速・破砕展開を一時保留）
@@ -847,4 +848,3 @@ bool TitleSceneDirectorComponent::GetClosestFrontDebrisScreenPos(Irufemi::Vector
 void TitleSceneDirectorComponent::TriggerGravitationalShockwave(float power) {
     shockwaveIntensity_ = (std::max)(shockwaveIntensity_, power);
 }
-
