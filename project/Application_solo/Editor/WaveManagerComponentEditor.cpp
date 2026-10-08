@@ -21,8 +21,7 @@ void WaveManagerComponentEditor::Draw(Component* component, EditorActionManager*
             return;
         }
         actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::vector<WaveEventData>>>(
-            oldData, events,
-            [waveManager](const std::vector<WaveEventData>& val) { waveManager->SetAllEvents(val); }));
+            oldData, events, [waveManager](const std::vector<WaveEventData>& val) { waveManager->SetAllEvents(val); }));
     };
 
     auto handleItemUndo = [&]() {

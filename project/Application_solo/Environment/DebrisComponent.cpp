@@ -385,7 +385,7 @@ std::shared_ptr<Component> DebrisComponent::Clone() {
 }
 
 bool DebrisComponent::UpdatePullMovement(const Irufemi::Vector3& targetPos, float pullSpeed, float catchDistSq,
-                                        float deltaTime) {
+                                         float deltaTime) {
     auto transform = GetTransform();
     if (!transform) {
         return false;
@@ -410,8 +410,7 @@ void DebrisComponent::UpdatePlayerOrbit(const Irufemi::Vector3& targetPos, float
     }
 
     orbitAngle_ += orbitSpeed * deltaTime;
-    Irufemi::Vector3 offset = {std::cos(orbitAngle_) * orbitRadius_,
-                               std::sin(orbitAngle_ * 2.0f) * 0.5f + 1.0f,
+    Irufemi::Vector3 offset = {std::cos(orbitAngle_) * orbitRadius_, std::sin(orbitAngle_ * 2.0f) * 0.5f + 1.0f,
                                std::sin(orbitAngle_) * orbitRadius_};
 
     Irufemi::Vector3 pos = {targetPos.x + offset.x, targetPos.y + offset.y, targetPos.z + offset.z};
@@ -419,7 +418,7 @@ void DebrisComponent::UpdatePlayerOrbit(const Irufemi::Vector3& targetPos, float
 }
 
 void DebrisComponent::UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, float currentRadiusBase,
-                                           float shieldRotationSpeed, float deltaTime) {
+                                            float shieldRotationSpeed, float deltaTime) {
     auto transform = GetTransform();
     if (!transform) {
         return;
@@ -429,8 +428,8 @@ void DebrisComponent::UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, f
     bossOrbitAngleY_ += bossOrbitSpeedY_ * shieldRotationSpeed * deltaTime;
     bossOrbitAngleZ_ += bossOrbitSpeedZ_ * shieldRotationSpeed * deltaTime;
 
-    Irufemi::Matrix4x4 rotMatrix = Irufemi::Math::MakeRotateXYZMatrix(
-        Irufemi::Vector3{bossOrbitAngleX_, bossOrbitAngleY_, bossOrbitAngleZ_});
+    Irufemi::Matrix4x4 rotMatrix =
+        Irufemi::Math::MakeRotateXYZMatrix(Irufemi::Vector3{bossOrbitAngleX_, bossOrbitAngleY_, bossOrbitAngleZ_});
     float currentRadius = currentRadiusBase + bossOrbitRadiusOffset_;
     Irufemi::Vector3 baseOffset = {0, 0, currentRadius};
     Irufemi::Vector3 localPos = Irufemi::Math::TransformNormal(baseOffset, rotMatrix);
@@ -442,7 +441,7 @@ void DebrisComponent::UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, f
 }
 
 bool DebrisComponent::UpdateThrownMovement(float throwSpeed, float maxDistSq, float deltaTime,
-                                          Irufemi::Vector3& outPos) {
+                                           Irufemi::Vector3& outPos) {
     auto transform = GetTransform();
     if (!transform) {
         return false;
@@ -463,7 +462,7 @@ bool DebrisComponent::UpdateThrownMovement(float throwSpeed, float maxDistSq, fl
 }
 
 void DebrisComponent::SetBossOrbitParams(float angleX, float angleY, float angleZ, float speedX, float speedY,
-                                        float speedZ, float radiusOffset) {
+                                         float speedZ, float radiusOffset) {
     bossOrbitAngleX_ = angleX;
     bossOrbitAngleY_ = angleY;
     bossOrbitAngleZ_ = angleZ;
@@ -472,4 +471,3 @@ void DebrisComponent::SetBossOrbitParams(float angleX, float angleY, float angle
     bossOrbitSpeedZ_ = speedZ;
     bossOrbitRadiusOffset_ = radiusOffset;
 }
-

@@ -267,7 +267,6 @@ private:
     void SubmitFrameData();
 
 protected:
-
     // ── 入力ヘルパ ──
     // InputManager をラップした安全なヘルパー
     /**

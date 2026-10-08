@@ -220,7 +220,8 @@ public:
      * @param shieldRotationSpeed 回転速度倍率
      * @param deltaTime フレーム経過時間
      */
-    void UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, float currentRadiusBase, float shieldRotationSpeed, float deltaTime);
+    void UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, float currentRadiusBase, float shieldRotationSpeed,
+                               float deltaTime);
 
     /**
      * @brief 投擲移動を更新し、最大飛翔距離を超過したかを判定する
@@ -247,7 +248,8 @@ public:
     void SetThrowOrigin(const Irufemi::Vector3& origin) {
         throwOrigin_ = origin;
     }
-    void SetBossOrbitParams(float angleX, float angleY, float angleZ, float speedX, float speedY, float speedZ, float radiusOffset);
+    void SetBossOrbitParams(float angleX, float angleY, float angleZ, float speedX, float speedY, float speedZ,
+                            float radiusOffset);
 
 private:
     DebrisState state_ = DebrisState::Idle;

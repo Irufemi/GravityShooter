@@ -326,6 +326,7 @@ public:
         ClearRenderQueues();
         computeTasks_.clear();
     }
+
 public: // メンバ関数
     /** @name 初期化・終了処理 */
     ///@{

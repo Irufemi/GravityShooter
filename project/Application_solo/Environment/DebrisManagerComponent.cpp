@@ -637,7 +637,8 @@ void DebrisManagerComponent::UpdatePulledDebris(float deltaTime) {
 
         if (auto target = debris->GetTarget().lock()) {
             if (auto targetTransform = target->GetComponent<TransformComponent>()) {
-                if (debris->UpdatePullMovement(targetTransform->GetWorldPosition(), pullSpeed, catchDistSq, deltaTime)) {
+                if (debris->UpdatePullMovement(targetTransform->GetWorldPosition(), pullSpeed, catchDistSq,
+                                               deltaTime)) {
                     caughtDebris.push_back(debris);
                 }
             }
@@ -678,7 +679,8 @@ void DebrisManagerComponent::UpdateBossOrbitingDebris(float deltaTime) {
 
         if (auto target = debris->GetTarget().lock()) {
             if (auto targetTransform = target->GetComponent<TransformComponent>()) {
-                debris->UpdateBossShieldOrbit(targetTransform->GetWorldPosition(), currentRadiusBase, shieldRotationSpeed, deltaTime);
+                debris->UpdateBossShieldOrbit(targetTransform->GetWorldPosition(), currentRadiusBase,
+                                              shieldRotationSpeed, deltaTime);
             }
         }
     }
@@ -799,8 +801,8 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                 Irufemi::Vector4 aura =
                     (debris->GetState() == DebrisState::BossOrbiting) ? GetBossAuraColor() : GetPlayerAuraColor();
                 Irufemi::Vector4 rockColor = {1.5f, 1.2f, 1.0f, 1.0f};
-                p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f,
-                                rockColor.z + aura.z * 2.0f, 1.0f};
+                p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f, rockColor.z + aura.z * 2.0f,
+                                1.0f};
                 p.endColor = {0.2f, 0.2f, 0.2f, 1.0f};
                 p.dissolveEdgeColor = aura;
 

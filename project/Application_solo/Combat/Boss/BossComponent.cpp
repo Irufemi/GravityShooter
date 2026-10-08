@@ -243,8 +243,7 @@ void BossComponent::UpdateBeamAttack(float deltaTime) {
                 Irufemi::Vector3 startPos = Irufemi::Math::Transform(localMuzzle, myTrans->GetWorldMatrix());
 
                 Irufemi::Vector3 forward = -myTrans->GetWorldForward();
-                Irufemi::Vector3 targetPos =
-                    Irufemi::Math::Add(startPos, Irufemi::Math::Multiply(beamRange_, forward));
+                Irufemi::Vector3 targetPos = Irufemi::Math::Add(startPos, Irufemi::Math::Multiply(beamRange_, forward));
                 beamComponent_->Fire(startPos, targetPos);
             }
         }

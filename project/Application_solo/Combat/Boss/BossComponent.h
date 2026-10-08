@@ -155,7 +155,6 @@ public:
     void SpawnDebrisCluster(int count = 2, float radius = 4.0f);
 
 private:
-
     std::string statusDataPath_ = "resources/GameData/BossStatus.json";
     float maxHp_ = 1000.0f;
     float hp_ = 0.0f;
