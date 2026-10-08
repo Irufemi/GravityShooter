@@ -79,9 +79,7 @@ public:
      */
     bool Raycast(const Irufemi::Ray& ray, float& outDistance) const override;
 
-#ifdef EditorMode
-    friend class PrimitiveRendererComponentEditor;
-#endif
+
 
     /**
      * @brief コンポーネントの識別名を取得します
@@ -158,11 +156,83 @@ public:
      */
     void SetUseClampSampler(int32_t useClamp);
 
-private:
     /**
      * @brief 現在の形状設定・分割数パラメータに基づいて 3D メッシュを再生成します
      */
     void RebuildMesh();
+
+    Primitive3DObject* GetPrimitive() const {
+        return primitive_.get();
+    }
+    int GetCurrentTypeIndex() const {
+        return currentTypeIndex_;
+    }
+    float GetRadius() const {
+        return radius_;
+    }
+    void SetRadius(float radius) {
+        radius_ = radius;
+    }
+    int GetSubdivisions() const {
+        return subdivisions_;
+    }
+    void SetSubdivisions(int subdivisions) {
+        subdivisions_ = subdivisions;
+    }
+    float GetHeight() const {
+        return height_;
+    }
+    void SetHeight(float height) {
+        height_ = height;
+    }
+    float GetTopRadius() const {
+        return topRadius_;
+    }
+    void SetTopRadius(float topRadius) {
+        topRadius_ = topRadius;
+    }
+    float GetBottomRadius() const {
+        return bottomRadius_;
+    }
+    void SetBottomRadius(float bottomRadius) {
+        bottomRadius_ = bottomRadius;
+    }
+    bool HasTop() const {
+        return hasTop_;
+    }
+    void SetHasTop(bool hasTop) {
+        hasTop_ = hasTop;
+    }
+    bool HasBottom() const {
+        return hasBottom_;
+    }
+    void SetHasBottom(bool hasBottom) {
+        hasBottom_ = hasBottom;
+    }
+    float GetTorusMajorRadius() const {
+        return torusMajorRadius_;
+    }
+    void SetTorusMajorRadius(float r) {
+        torusMajorRadius_ = r;
+    }
+    float GetTorusMinorRadius() const {
+        return torusMinorRadius_;
+    }
+    void SetTorusMinorRadius(float r) {
+        torusMinorRadius_ = r;
+    }
+    int GetTorusMajorSegments() const {
+        return torusMajorSegments_;
+    }
+    void SetTorusMajorSegments(int s) {
+        torusMajorSegments_ = s;
+    }
+    int GetTorusMinorSegments() const {
+        return torusMinorSegments_;
+    }
+    void SetTorusMinorSegments(int s) {
+        torusMinorSegments_ = s;
+    }
 
 private:
     std::unique_ptr<Primitive3DObject> primitive_;

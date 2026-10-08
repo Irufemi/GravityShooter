@@ -137,7 +137,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         if (auto cm = engine->GetCollisionManager()) {
             if (auto otherCol = otherObj->GetComponent<ColliderComponent>()) {
                 uint32_t playerMask = cm->GetLayerMask("Player");
-                if ((otherCol->layer_ & playerMask) != 0) {
+                if ((otherCol->GetLayer() & playerMask) != 0) {
                     return;
                 }
             }
@@ -178,7 +178,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         // 衝突した場合は破砕エフェクトを再生し、プールへ返却（回収）する
         if (cm) {
             uint32_t envMask = cm->GetLayerMask("Environment");
-            if ((collider->layer_ & envMask) != 0) {
+            if ((collider->GetLayer() & envMask) != 0) {
                 if (!ConsumeHitAuthority()) {
                     return;
                 }
@@ -297,8 +297,8 @@ void DebrisComponent::ResetForPool() {
         auto* cm = GetEngine() ? GetEngine()->GetCollisionManager() : nullptr;
         if (cm) {
             uint32_t neutralLayer = cm->GetLayerMask("Debris_Neutral");
-            collider->layer_ = neutralLayer;
-            collider->mask_ = 0;
+            collider->SetLayer(neutralLayer);
+            collider->SetMask(0);
         }
     }
 }
@@ -332,24 +332,24 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
             case DebrisState::Idle:
             case DebrisState::Pulled:
                 // Safe state: Doesn't hit anyone
-                collider->layer_ = neutralLayer;
-                collider->mask_ = 0;
+                collider->SetLayer(neutralLayer);
+                collider->SetMask(0);
                 break;
             case DebrisState::Orbiting:
                 // 自機の周りを回転して敵弾を迎撃するシールドとして機能
-                collider->layer_ = playerLayer; // Debris_Player
-                collider->mask_ = maskEnemy;    // Enemy通常弾・敵本体と接触可能
+                collider->SetLayer(playerLayer); // Debris_Player
+                collider->SetMask(maskEnemy);    // Enemy通常弾・敵本体と接触可能
                 break;
             case DebrisState::Thrown:
                 // Thrown by player: Hits enemies, environment, and Boss's debris
-                collider->layer_ = playerLayer;
-                collider->mask_ = maskEnemy | maskEnvironment | enemyLayer;
+                collider->SetLayer(playerLayer);
+                collider->SetMask(maskEnemy | maskEnvironment | enemyLayer);
                 ResetHitAuthority(); // 投擲開始時に判定権限（Arming）を確実にリセット
                 break;
             case DebrisState::BossOrbiting:
                 // Used by Boss: Hits player and Player's thrown debris
-                collider->layer_ = enemyLayer;
-                collider->mask_ = maskPlayer | playerLayer;
+                collider->SetLayer(enemyLayer);
+                collider->SetMask(maskPlayer | playerLayer);
                 break;
             }
         }

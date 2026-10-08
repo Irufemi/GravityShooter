@@ -38,11 +38,20 @@ HANDLE DirectXCommon::GetFenceEvent() {
     return commandManager_->GetFenceEvent();
 }
 
-uint64_t& DirectXCommon::GetFenceValue() {
+uint64_t DirectXCommon::GetFenceValue() const {
     return commandManager_->GetFenceValue(frameIndex_);
 }
 uint64_t DirectXCommon::GetFenceValue(uint32_t index) const {
     return commandManager_->GetFenceValue(index);
+}
+void DirectXCommon::SetFenceValue(uint64_t value) {
+    commandManager_->SetFenceValue(frameIndex_, value);
+}
+void DirectXCommon::SetFenceValue(uint32_t index, uint64_t value) {
+    commandManager_->SetFenceValue(index, value);
+}
+void DirectXCommon::AdvanceFenceValue(uint64_t delta) {
+    commandManager_->AdvanceFenceValue(frameIndex_, delta);
 }
 uint64_t DirectXCommon::GetGlobalFenceValue() const {
     return commandManager_->GetGlobalFenceValue();
@@ -532,7 +541,7 @@ ID3D12Resource* DirectXCommon::GetSwapChainResources(UINT index) {
 UINT DirectXCommon::GetCurrentBackBufferIndex() const {
     return swapChainManager_->GetCurrentBackBufferIndex();
 }
-D3D12_RENDER_TARGET_VIEW_DESC& DirectXCommon::GetRtvDesc() {
+D3D12_RENDER_TARGET_VIEW_DESC DirectXCommon::GetRtvDesc() const {
     return swapChainManager_->GetRtvDesc();
 }
 bool DirectXCommon::IsTearingSupported() const {
@@ -541,13 +550,13 @@ bool DirectXCommon::IsTearingSupported() const {
 ID3D12DescriptorHeap* DirectXCommon::GetDsvDescriptorHeap() {
     return swapChainManager_->GetDSVDescriptorHeap();
 }
-D3D12_CPU_DESCRIPTOR_HANDLE& DirectXCommon::GetRtvHandles(UINT index) {
+D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::GetRtvHandles(UINT index) const {
     return swapChainManager_->GetRtvHandles(index);
 }
 ID3D12Resource* DirectXCommon::GetDepthStencilResource() const {
     return swapChainManager_->GetDepthStencilResource();
 }
-DXGI_SWAP_CHAIN_DESC1& DirectXCommon::GetSwapChainDesc() {
+DXGI_SWAP_CHAIN_DESC1 DirectXCommon::GetSwapChainDesc() const {
     return swapChainManager_->GetSwapChainDesc();
 }
 

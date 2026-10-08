@@ -64,9 +64,55 @@ public:
         return sprite_.get();
     }
 
-#ifdef EditorMode
-    friend class SpriteRendererComponentEditor;
-#endif
+    /**
+     * @brief 描画するテクスチャパスを取得します
+     * @return テクスチャパス文字列
+     */
+    const std::string& GetTexturePath() const {
+        return texturePath_;
+    }
+
+    /**
+     * @brief 最前面描画が有効かどうかを取得します
+     * @return 最前面描画が有効なら true
+     */
+    bool IsTopMost() const {
+        return isTopMost_;
+    }
+
+    /**
+     * @brief 最前面描画の有効/無効を設定します
+     * @param[in] isTopMost 最前面描画フラグ
+     */
+    void SetTopMost(bool isTopMost);
+
+    /**
+     * @brief 水平反転が有効かどうかを取得します
+     * @return 水平反転が有効なら true
+     */
+    bool IsFlipX() const {
+        return isFlipX_;
+    }
+
+    /**
+     * @brief 水平反転の有効/無効を設定します
+     * @param[in] isFlipX 水平反転フラグ
+     */
+    void SetFlipX(bool isFlipX);
+
+    /**
+     * @brief 垂直反転が有効かどうかを取得します
+     * @return 垂直反転が有効なら true
+     */
+    bool IsFlipY() const {
+        return isFlipY_;
+    }
+
+    /**
+     * @brief 垂直反転の有効/無効を設定します
+     * @param[in] isFlipY 垂直反転フラグ
+     */
+    void SetFlipY(bool isFlipY);
 
     /**
      * @brief 描画するテクスチャパスを設定します

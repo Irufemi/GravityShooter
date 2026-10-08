@@ -55,7 +55,5 @@ public:
     }
 
 private:
-    friend class GlobalPostProcessComponentEditor;
-
     std::vector<std::shared_ptr<IPostProcessSettings>> overrides_;
 };

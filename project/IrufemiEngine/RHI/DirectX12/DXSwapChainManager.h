@@ -137,21 +137,21 @@ public:
      * @brief RtvDesc を取得する。
      * @return 取得された RtvDesc
      */
-    D3D12_RENDER_TARGET_VIEW_DESC& GetRtvDesc() {
+    const D3D12_RENDER_TARGET_VIEW_DESC& GetRtvDesc() const {
         return rtvDesc_;
     }
     /**
      * @brief SwapChainDesc を取得する。
      * @return 取得された SwapChainDesc
      */
-    DXGI_SWAP_CHAIN_DESC1& GetSwapChainDesc() {
+    const DXGI_SWAP_CHAIN_DESC1& GetSwapChainDesc() const {
         return swapChainDesc_;
     }
     /**
      * @brief RtvHandles を取得する。
      * @return 取得された RtvHandles
      */
-    D3D12_CPU_DESCRIPTOR_HANDLE& GetRtvHandles(UINT index) {
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRtvHandles(UINT index) const {
         return rtvHandles_[index];
     }
 

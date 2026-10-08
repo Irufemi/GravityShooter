@@ -923,11 +923,11 @@ void ComponentUIHelpers::SwitchColliderType(GameObject* go, ColliderComponent* o
 
     // 1. 共通プロパティの抽出
     Irufemi::Vector3 localOffset = {0.0f, 0.0f, 0.0f};
-    bool isTrigger = oldComp->isTrigger_;
-    bool isStatic = oldComp->isStatic_;
-    uint32_t layer = oldComp->layer_;
-    uint32_t mask = oldComp->mask_;
-    Irufemi::Vector3 pushbackMask = oldComp->pushbackMask_;
+    bool isTrigger = oldComp->IsTrigger();
+    bool isStatic = oldComp->IsStatic();
+    uint32_t layer = oldComp->GetLayer();
+    uint32_t mask = oldComp->GetMask();
+    Irufemi::Vector3 pushbackMask = oldComp->GetPushbackMask();
 
     // 2. 寸法とオフセットの相互変換
     float convertedRadius = 1.0f;
@@ -973,11 +973,11 @@ void ComponentUIHelpers::SwitchColliderType(GameObject* go, ColliderComponent* o
         return;
     }
 
-    newComp->isTrigger_ = isTrigger;
-    newComp->isStatic_ = isStatic;
-    newComp->layer_ = layer;
-    newComp->mask_ = mask;
-    newComp->pushbackMask_ = pushbackMask;
+    newComp->SetTrigger(isTrigger);
+    newComp->SetStatic(isStatic);
+    newComp->SetLayer(layer);
+    newComp->SetMask(mask);
+    newComp->SetPushbackMask(pushbackMask);
 
     // 4. コンポーネントの置換（Undo/Redo 対応）
     auto oldShared = GetSharedComponent(go, oldComp);

@@ -527,7 +527,7 @@ void DrawManager::PostDraw() {
 
     // 1. フェンスをシグナル (通し番号をインクリメントして記録)
     uint64_t nextValue = dxCommon_->IncrementGlobalFence();
-    dxCommon_->GetFenceValue() = nextValue; // このスロットの完了番号として保存
+    dxCommon_->SetFenceValue(nextValue); // このスロットの完了番号として保存
     dxCommon_->GetCommandQueue()->Signal(dxCommon_->GetFence(), nextValue);
 
     // 2. 次のフレームへインデックスを進める

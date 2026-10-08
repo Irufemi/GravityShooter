@@ -85,17 +85,17 @@ void EnemyBulletManagerComponent::WarmupPool() {
         // コライダー設定
         auto collider = bullet->AddComponent<SphereColliderComponent>();
         collider->Initialize();
-        collider->isTrigger_ = true;
+        collider->SetTrigger(true);
         collider->SetLocalRadius(0.4f);
 
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
-                collider->layer_ = cm->GetLayerMask("Enemy");
+                collider->SetLayer(cm->GetLayerMask("Enemy"));
                 uint32_t maskPlayer = cm->GetLayerMask("Player");
                 uint32_t maskDebrisPlayer = cm->GetLayerMask("Debris_Player");
                 uint32_t maskEnvironment = cm->GetLayerMask("Environment");
                 // 自機シールドおよび建造物との衝突判定を有効化
-                collider->mask_ = maskPlayer | maskDebrisPlayer | maskEnvironment;
+                collider->SetMask(maskPlayer | maskDebrisPlayer | maskEnvironment);
             }
         }
 

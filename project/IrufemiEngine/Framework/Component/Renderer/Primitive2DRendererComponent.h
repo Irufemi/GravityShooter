@@ -65,9 +65,7 @@ public:
         return primitive_.get();
     }
 
-#ifdef EditorMode
-    friend class Primitive2DRendererComponentEditor;
-#endif
+
 
     // プロパティ操作
     /**

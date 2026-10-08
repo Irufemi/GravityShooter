@@ -102,6 +102,13 @@ public:
     ParticleField& GetFieldData() {
         return fieldData_;
     }
+    /**
+     * @brief フィールドデータへの参照を取得する（読み取り専用）
+     * @return 読み取り専用の ParticleField 構造体への参照
+     */
+    const ParticleField& GetFieldData() const {
+        return fieldData_;
+    }
 
 private:
     GPUParticleManager::FieldHandle fieldHandle_;

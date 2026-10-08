@@ -60,7 +60,6 @@ void BossBulletManagerComponent::Update() {
         return; // ポーズ中（TimeScale == 0）は弾幕更新を完全停止
     }
 
-    auto& virtualInstances = virtualManager_->GetDenseInstances();
     int activeCount = static_cast<int>(activeVirtualIds_.size());
     if (activeCount == 0) {
         return;
@@ -89,27 +88,25 @@ void BossBulletManagerComponent::Update() {
         auto& data = bulletDataList_[vid];
         data.lifeTimer -= dt;
 
-        int denseIndex = virtualManager_->GetSparseIndex(vid);
-        if (denseIndex >= 0) {
-            auto& vi = virtualInstances[denseIndex];
-
+        auto* vi = virtualManager_->GetInstance(vid);
+        if (vi) {
             if (data.lifeTimer <= 0.0f) {
-                playExplosion(vi.position);
+                playExplosion(vi->position);
                 ReleaseBullet(vid);
                 continue;
             }
 
-            vi.position += data.velocity * dt;
+            vi->position += data.velocity * dt;
             survivedBulletVids.push_back(vid);
 
             // クラスタAABBの拡張（hitRadius_分も含める）
-            clusterMin.x = (std::min)(clusterMin.x, vi.position.x - hitRadius_);
-            clusterMin.y = (std::min)(clusterMin.y, vi.position.y - hitRadius_);
-            clusterMin.z = (std::min)(clusterMin.z, vi.position.z - hitRadius_);
+            clusterMin.x = (std::min)(clusterMin.x, vi->position.x - hitRadius_);
+            clusterMin.y = (std::min)(clusterMin.y, vi->position.y - hitRadius_);
+            clusterMin.z = (std::min)(clusterMin.z, vi->position.z - hitRadius_);
 
-            clusterMax.x = (std::max)(clusterMax.x, vi.position.x + hitRadius_);
-            clusterMax.y = (std::max)(clusterMax.y, vi.position.y + hitRadius_);
-            clusterMax.z = (std::max)(clusterMax.z, vi.position.z + hitRadius_);
+            clusterMax.x = (std::max)(clusterMax.x, vi->position.x + hitRadius_);
+            clusterMax.y = (std::max)(clusterMax.y, vi->position.y + hitRadius_);
+            clusterMax.z = (std::max)(clusterMax.z, vi->position.z + hitRadius_);
         }
     }
 
@@ -154,7 +151,7 @@ void BossBulletManagerComponent::Update() {
             auto healthComp = obj->GetComponent<PlayerHealthComponent>();
             auto destructibleComp = obj->GetComponent<DestructibleEnvironmentComponent>();
             auto debrisComp = obj->GetComponent<DebrisComponent>();
-            bool isEnv = (cm && (col->layer_ & cm->GetLayerMask("Environment")) != 0);
+            bool isEnv = (cm && (col->GetLayer() & cm->GetLayerMask("Environment")) != 0);
 
             // 自機シールド（Orbiting）以外のガレキは判定除外
             if (debrisComp && debrisComp->GetState() != DebrisState::Orbiting) {
@@ -195,12 +192,11 @@ void BossBulletManagerComponent::Update() {
 
     // --- Phase 3: 弾 vs 事前フェッチされた被弾候補のバッチ判定 ---
     for (int vid : survivedBulletVids) {
-        int denseIndex = virtualManager_->GetSparseIndex(vid);
-        if (denseIndex < 0) {
+        auto* vi = virtualManager_->GetInstance(vid);
+        if (!vi) {
             continue;
         }
-        auto& vi = virtualInstances[denseIndex];
-        const auto& p = vi.position;
+        const auto& p = vi->position;
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
         if (cm && cm->GetIsDrawDebugLinePtr() && *cm->GetIsDrawDebugLinePtr()) {
@@ -256,7 +252,7 @@ void BossBulletManagerComponent::Update() {
         }
 
         if (isHit) {
-            playExplosion(vi.position);
+            playExplosion(vi->position);
             ReleaseBullet(vid);
         } else {
             activeVirtualIds_.push(vid); // 生存弾をキューに維持

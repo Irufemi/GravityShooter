@@ -71,7 +71,7 @@ void BossComponent::Initialize() {
             collider = gameObject_->AddComponent<SphereColliderComponent>().get();
         }
         if (collider) {
-            collider->isTrigger_ = true;
+            collider->SetTrigger(true);
         }
     }
 

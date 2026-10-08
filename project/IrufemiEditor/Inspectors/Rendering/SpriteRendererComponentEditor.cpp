@@ -41,7 +41,7 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
                 auto names = tm->GetTextureNamesForDebug();
                 int currentIndex = 0;
                 for (int i = 0; i < (int)names.size(); ++i) {
-                    if (names[i] == comp->texturePath_) {
+                    if (names[i] == comp->GetTexturePath()) {
                         currentIndex = i;
                         break;
                     }
@@ -52,7 +52,7 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
                     for (int i = 0; i < names.size(); ++i) {
                         bool isSelected = (currentIndex == i);
                         if (ImGui::Selectable(names[i].c_str(), isSelected)) {
-                            std::string oldTex = comp->texturePath_;
+                            std::string oldTex = comp->GetTexturePath();
                             std::string newTex = names[i];
                             ComponentUIHelpers::PushInstantUndo(
                                 actionManager, oldTex, newTex,
@@ -68,7 +68,7 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
                 ImGui::PopItemWidth();
             } else {
                 char buffer[256];
-                strncpy_s(buffer, sizeof(buffer), comp->texturePath_.c_str(), _TRUNCATE);
+                strncpy_s(buffer, sizeof(buffer), comp->GetTexturePath().c_str(), _TRUNCATE);
                 static std::string startTex;
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("TexturePath");
@@ -79,7 +79,7 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
                 }
                 ImGui::PopItemWidth();
                 if (ImGui::IsItemActivated()) {
-                    startTex = comp->texturePath_;
+                    startTex = comp->GetTexturePath();
                 }
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     std::string endTex = buffer;
@@ -105,7 +105,7 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
                         } else if (lowerPath.find("resources/") == 0) {
                             newTexName = newTexName.substr(10);
                         }
-                        std::string oldTex = comp->texturePath_;
+                        std::string oldTex = comp->GetTexturePath();
                         ComponentUIHelpers::PushInstantUndo(actionManager, oldTex, newTexName,
                                                             std::function<void(const std::string&)>(
                                                                 [comp](const std::string& v) { comp->SetTexture(v); }));
@@ -114,82 +114,64 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
                 ImGui::EndDragDropTarget();
             }
             ComponentUIHelpers::DrawPropertyResetButton(
-                "##TexReset", !comp->texturePath_.empty() && comp->texturePath_ != "whiteTexture.png", [&]() {
-                    std::string oldTex = comp->texturePath_;
+                "##TexReset", !comp->GetTexturePath().empty() && comp->GetTexturePath() != "whiteTexture.png", [&]() {
+                    std::string oldTex = comp->GetTexturePath();
                     ComponentUIHelpers::PushInstantUndo(
                         actionManager, oldTex, std::string("whiteTexture.png"),
                         std::function<void(const std::string&)>([comp](const std::string& v) { comp->SetTexture(v); }));
                 });
 
-            bool isTopMost = comp->isTopMost_;
+            bool isTopMost = comp->IsTopMost();
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("TopMost");
             ImGui::TableSetColumnIndex(1);
             if (ImGui::Checkbox("##TopMost", &isTopMost)) {
-                ComponentUIHelpers::PushInstantUndo(actionManager, comp->isTopMost_, isTopMost,
+                ComponentUIHelpers::PushInstantUndo(actionManager, comp->IsTopMost(), isTopMost,
                                                     std::function<void(const bool&)>([comp](const bool& v) {
-                                                        comp->isTopMost_ = v;
-                                                        if (comp->GetSprite()) {
-                                                            comp->GetSprite()->SetTopMost(v);
-                                                        }
+                                                        comp->SetTopMost(v);
                                                     }));
             }
             ComponentUIHelpers::DrawPropertyResetButton("##TopMostReset", isTopMost, [&]() {
-                bool oldTopMost = comp->isTopMost_;
+                bool oldTopMost = comp->IsTopMost();
                 ComponentUIHelpers::PushInstantUndo(actionManager, oldTopMost, false,
                                                     std::function<void(const bool&)>([comp](const bool& v) {
-                                                        comp->isTopMost_ = v;
-                                                        if (comp->GetSprite()) {
-                                                            comp->GetSprite()->SetTopMost(v);
-                                                        }
+                                                        comp->SetTopMost(v);
                                                     }));
             });
 
-            bool isFlipX = comp->isFlipX_;
+            bool isFlipX = comp->IsFlipX();
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("Flip X");
             ImGui::TableSetColumnIndex(1);
             if (ImGui::Checkbox("##Flip X", &isFlipX)) {
-                ComponentUIHelpers::PushInstantUndo(actionManager, comp->isFlipX_, isFlipX,
+                ComponentUIHelpers::PushInstantUndo(actionManager, comp->IsFlipX(), isFlipX,
                                                     std::function<void(const bool&)>([comp](const bool& v) {
-                                                        comp->isFlipX_ = v;
-                                                        if (comp->GetSprite()) {
-                                                            comp->GetSprite()->SetFlip(comp->isFlipX_, comp->isFlipY_);
-                                                        }
+                                                        comp->SetFlipX(v);
                                                     }));
             }
             ComponentUIHelpers::DrawPropertyResetButton("##FlipXReset", isFlipX, [&]() {
-                bool oldFlipX = comp->isFlipX_;
+                bool oldFlipX = comp->IsFlipX();
                 ComponentUIHelpers::PushInstantUndo(actionManager, oldFlipX, false,
                                                     std::function<void(const bool&)>([comp](const bool& v) {
-                                                        comp->isFlipX_ = v;
-                                                        if (comp->GetSprite()) {
-                                                            comp->GetSprite()->SetFlip(comp->isFlipX_, comp->isFlipY_);
-                                                        }
+                                                        comp->SetFlipX(v);
                                                     }));
             });
 
-            bool isFlipY = comp->isFlipY_;
+            bool isFlipY = comp->IsFlipY();
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("Flip Y");
             ImGui::TableSetColumnIndex(1);
             if (ImGui::Checkbox("##Flip Y", &isFlipY)) {
-                ComponentUIHelpers::PushInstantUndo(actionManager, comp->isFlipY_, isFlipY,
+                ComponentUIHelpers::PushInstantUndo(actionManager, comp->IsFlipY(), isFlipY,
                                                     std::function<void(const bool&)>([comp](const bool& v) {
-                                                        comp->isFlipY_ = v;
-                                                        if (comp->GetSprite()) {
-                                                            comp->GetSprite()->SetFlip(comp->isFlipX_, comp->isFlipY_);
-                                                        }
+                                                        comp->SetFlipY(v);
                                                     }));
             }
             ComponentUIHelpers::DrawPropertyResetButton("##FlipYReset", isFlipY, [&]() {
-                bool oldFlipY = comp->isFlipY_;
+                bool oldFlipY = comp->IsFlipY();
                 ComponentUIHelpers::PushInstantUndo(actionManager, oldFlipY, false,
                                                     std::function<void(const bool&)>([comp](const bool& v) {
-                                                        comp->isFlipY_ = v;
-                                                        if (comp->GetSprite()) {
-                                                            comp->GetSprite()->SetFlip(comp->isFlipX_, comp->isFlipY_);
-                                                        }
+                                                        comp->SetFlipY(v);
                                                     }));
             });
 
@@ -197,30 +179,23 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
             ComponentUIHelpers::DrawPropertyLabel("Anchor");
             ImGui::TableSetColumnIndex(1);
             ImGui::PushItemWidth(-1);
-            if (ImGui::SliderFloat2("##Anchor", &comp->anchor_.x, 0.0f, 1.0f)) {
-                if (comp->GetSprite()) {
-                    comp->GetSprite()->SetAnchor(comp->anchor_.x, comp->anchor_.y);
-                }
+            Irufemi::Vector2 anchor = comp->GetAnchor();
+            if (ImGui::SliderFloat2("##Anchor", &anchor.x, 0.0f, 1.0f)) {
+                comp->SetAnchor(anchor);
             }
             ImGui::PopItemWidth();
             ComponentUIHelpers::CheckUndoRedoDrag(
-                actionManager, &comp->anchor_,
+                actionManager, &anchor,
                 std::function<void(const Irufemi::Vector2&)>([comp](const Irufemi::Vector2& v) {
-                    comp->anchor_ = v;
-                    if (comp->GetSprite()) {
-                        comp->GetSprite()->SetAnchor(v.x, v.y);
-                    }
+                    comp->SetAnchor(v);
                 }));
             ComponentUIHelpers::DrawPropertyResetButton(
-                "##AnchorReset", comp->anchor_.x != 0.5f || comp->anchor_.y != 0.5f, [&]() {
-                    Irufemi::Vector2 oldA = comp->anchor_;
+                "##AnchorReset", comp->GetAnchor().x != 0.5f || comp->GetAnchor().y != 0.5f, [&]() {
+                    Irufemi::Vector2 oldA = comp->GetAnchor();
                     ComponentUIHelpers::PushInstantUndo(
                         actionManager, oldA, Irufemi::Vector2{0.5f, 0.5f},
                         std::function<void(const Irufemi::Vector2&)>([comp](const Irufemi::Vector2& v) {
-                            comp->anchor_ = v;
-                            if (comp->GetSprite()) {
-                                comp->GetSprite()->SetAnchor(v.x, v.y);
-                            }
+                            comp->SetAnchor(v);
                         }));
                 });
 
@@ -228,49 +203,44 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
             ComponentUIHelpers::DrawPropertyLabel("Base Size");
             ImGui::TableSetColumnIndex(1);
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat2("##Base Size", &comp->size_.x, 1.0f, 1.0f, 8192.0f);
+            Irufemi::Vector2 baseSize = comp->GetBaseSize();
+            if (ImGui::DragFloat2("##Base Size", &baseSize.x, 1.0f, 1.0f, 8192.0f)) {
+                comp->SetBaseSize(baseSize);
+            }
             ImGui::PopItemWidth();
             ComponentUIHelpers::CheckUndoRedoDrag(
-                actionManager, &comp->size_,
-                std::function<void(const Irufemi::Vector2&)>([comp](const Irufemi::Vector2& v) { comp->size_ = v; }));
+                actionManager, &baseSize,
+                std::function<void(const Irufemi::Vector2&)>([comp](const Irufemi::Vector2& v) { comp->SetBaseSize(v); }));
             ComponentUIHelpers::DrawPropertyResetButton(
-                "##BaseSizeReset", comp->size_.x != 100.0f || comp->size_.y != 100.0f, [&]() {
-                    Irufemi::Vector2 oldS = comp->size_;
+                "##BaseSizeReset", comp->GetBaseSize().x != 100.0f || comp->GetBaseSize().y != 100.0f, [&]() {
+                    Irufemi::Vector2 oldS = comp->GetBaseSize();
                     ComponentUIHelpers::PushInstantUndo(actionManager, oldS, Irufemi::Vector2{100, 100},
-                                                        std::function<void(const Irufemi::Vector2&)>(
-                                                            [comp](const Irufemi::Vector2& v) { comp->size_ = v; }));
+                                                        std::function<void(const Irufemi::Vector2&)>([comp](const Irufemi::Vector2& v) { comp->SetBaseSize(v); }));
                 });
 
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("Color");
             ImGui::TableSetColumnIndex(1);
             ImGui::PushItemWidth(-1);
-            if (ImGui::ColorEdit4("##Color", &comp->color_.x)) {
-                if (comp->GetSprite()) {
-                    comp->GetSprite()->SetColor(comp->color_);
-                }
+            Irufemi::Vector4 color = comp->GetColor();
+            if (ImGui::ColorEdit4("##Color", &color.x)) {
+                comp->SetColor(color);
             }
             ImGui::PopItemWidth();
             ComponentUIHelpers::CheckUndoRedoDrag(
-                actionManager, &comp->color_,
+                actionManager, &color,
                 std::function<void(const Irufemi::Vector4&)>([comp](const Irufemi::Vector4& v) {
-                    comp->color_ = v;
-                    if (comp->GetSprite()) {
-                        comp->GetSprite()->SetColor(v);
-                    }
+                    comp->SetColor(v);
                 }));
             ComponentUIHelpers::DrawPropertyResetButton(
                 "##ColorReset",
-                comp->color_.x != 1.0f || comp->color_.y != 1.0f || comp->color_.z != 1.0f || comp->color_.w != 1.0f,
+                comp->GetColor().x != 1.0f || comp->GetColor().y != 1.0f || comp->GetColor().z != 1.0f || comp->GetColor().w != 1.0f,
                 [&]() {
-                    Irufemi::Vector4 oldC = comp->color_;
+                    Irufemi::Vector4 oldC = comp->GetColor();
                     ComponentUIHelpers::PushInstantUndo(
                         actionManager, oldC, Irufemi::Vector4{1, 1, 1, 1},
                         std::function<void(const Irufemi::Vector4&)>([comp](const Irufemi::Vector4& v) {
-                            comp->color_ = v;
-                            if (comp->GetSprite()) {
-                                comp->GetSprite()->SetColor(v);
-                            }
+                            comp->SetColor(v);
                         }));
                 });
 

@@ -103,6 +103,13 @@ public:
     VoxelEmitter& GetEmitterParams() {
         return emitterParams_;
     }
+    /**
+     * @brief EmitterParams を取得する（読み取り専用）。
+     * @return 取得された EmitterParams
+     */
+    const VoxelEmitter& GetEmitterParams() const {
+        return emitterParams_;
+    }
 
     /**
      * @brief その場にパーティクルを放出します（実装保留・拡張用）

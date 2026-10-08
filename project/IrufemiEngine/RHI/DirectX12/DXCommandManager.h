@@ -64,10 +64,12 @@ public: // ゲッター・セッター
         return fenceEvent_;
     }
 
-    /** @brief 指定フレームのフェンス値への参照を取得する */
-    uint64_t& GetFenceValue(uint32_t frameIndex);
     /** @brief 指定フレームのフェンス値を取得する */
     uint64_t GetFenceValue(uint32_t frameIndex) const;
+    /** @brief 指定フレームのフェンス値を設定する */
+    void SetFenceValue(uint32_t frameIndex, uint64_t value);
+    /** @brief 指定フレームのフェンス値を加算する */
+    void AdvanceFenceValue(uint32_t frameIndex, uint64_t delta = 1);
 
     /** @brief 現在のグローバルフェンス値を取得する */
     uint64_t GetGlobalFenceValue() const {

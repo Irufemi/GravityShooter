@@ -115,7 +115,7 @@ void EnemyBulletComponent::OnCollisionEnter(GameObject* other) {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
                 uint32_t envMask = cm->GetLayerMask("Environment");
-                if ((collider->layer_ & envMask) != 0) {
+                if ((collider->GetLayer() & envMask) != 0) {
                     playBulletImpact();
                     Deactivate();
                     return;

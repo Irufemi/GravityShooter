@@ -157,9 +157,7 @@ public:
         return modelName_;
     }
 
-#ifdef EditorMode
-    friend class MeshRendererComponentEditor;
-#endif
+
 
 private:
     std::unique_ptr<StaticModelObject> obj_; ///< 実際の描画を担う既存クラス

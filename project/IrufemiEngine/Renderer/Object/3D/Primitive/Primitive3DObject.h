@@ -96,10 +96,24 @@ public:
         return mesh_;
     }
     /**
+     * @brief Mesh を取得する（読み取り専用）。
+     * @return 取得された Mesh
+     */
+    const MeshDesc& GetMesh() const {
+        return mesh_;
+    }
+    /**
      * @brief Material を取得する。
      * @return 取得された Material
      */
     MaterialDesc& GetMaterial() {
+        return material_;
+    }
+    /**
+     * @brief Material を取得する（読み取り専用）。
+     * @return 取得された Material
+     */
+    const MaterialDesc& GetMaterial() const {
         return material_;
     }
     /**

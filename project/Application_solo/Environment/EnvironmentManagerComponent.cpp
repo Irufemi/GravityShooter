@@ -129,7 +129,7 @@ void EnvironmentManagerComponent::Start() {
                     if (setting.prefabPath == info.prefabPath) {
                         obb->SetLocalSize(setting.collisionSize);
                         obb->SetLocalOffset(setting.collisionOffset);
-                        obb->pushbackMask_ = setting.pushbackMask;
+                        obb->SetPushbackMask(setting.pushbackMask);
                         break;
                     }
                 }
@@ -175,7 +175,7 @@ void EnvironmentManagerComponent::Update() {
                         if (setting.prefabPath == info.prefabPath) {
                             obb->SetLocalSize(setting.collisionSize);
                             obb->SetLocalOffset(setting.collisionOffset);
-                            obb->pushbackMask_ = setting.pushbackMask;
+                            obb->SetPushbackMask(setting.pushbackMask);
                             break;
                         }
                     }

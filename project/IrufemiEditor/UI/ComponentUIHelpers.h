@@ -173,22 +173,28 @@ public:
                 });
             }
 
-            bool isTrigger = comp->isTrigger_;
+            bool isTrigger = comp->IsTrigger();
             ImGui::TableNextRow();
             DrawPropertyLabel("Is Trigger");
             ImGui::TableSetColumnIndex(1);
             if (ImGui::Checkbox("##Is Trigger", &isTrigger)) {
-                PushInstantUndo(actionManager, comp->isTrigger_, isTrigger, &comp->isTrigger_);
+                PushInstantUndo(actionManager, comp->IsTrigger(), isTrigger,
+                                std::function<void(const bool&)>([comp](const bool& v) { comp->SetTrigger(v); }));
             }
             DrawPropertyResetButton("##TriggerReset", isTrigger, [&]() {
-                bool oldT = comp->isTrigger_;
-                PushInstantUndo(actionManager, oldT, false, &comp->isTrigger_);
+                bool oldT = comp->IsTrigger();
+                PushInstantUndo(actionManager, oldT, false,
+                                std::function<void(const bool&)>([comp](const bool& v) { comp->SetTrigger(v); }));
             });
 
             EndPropertyTable();
         }
 
-        DrawCollisionLayerGUI(comp, actionManager, comp->layer_, comp->mask_);
+        uint32_t layer = comp->GetLayer();
+        uint32_t mask = comp->GetMask();
+        DrawCollisionLayerGUI(comp, actionManager, layer, mask);
+        comp->SetLayer(layer);
+        comp->SetMask(mask);
     }
 
     static void DrawFallbackPropertiesGUI(Component* component, EditorActionManager* actionManager);

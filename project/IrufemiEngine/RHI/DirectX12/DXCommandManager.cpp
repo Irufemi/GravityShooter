@@ -118,13 +118,21 @@ ID3D12CommandAllocator* DXCommandManager::GetCommandAllocator(uint32_t frameInde
     return nullptr;
 }
 
-uint64_t& DXCommandManager::GetFenceValue(uint32_t frameIndex) {
-    return fenceValues_[frameIndex];
-}
-
 uint64_t DXCommandManager::GetFenceValue(uint32_t frameIndex) const {
     if (frameIndex < fenceValues_.size()) {
         return fenceValues_[frameIndex];
     }
     return 0;
+}
+
+void DXCommandManager::SetFenceValue(uint32_t frameIndex, uint64_t value) {
+    if (frameIndex < fenceValues_.size()) {
+        fenceValues_[frameIndex] = value;
+    }
+}
+
+void DXCommandManager::AdvanceFenceValue(uint32_t frameIndex, uint64_t delta) {
+    if (frameIndex < fenceValues_.size()) {
+        fenceValues_[frameIndex] += delta;
+    }
 }

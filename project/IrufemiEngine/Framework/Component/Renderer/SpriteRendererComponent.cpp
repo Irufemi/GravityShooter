@@ -84,6 +84,27 @@ void SpriteRendererComponent::SetAnchor(const Irufemi::Vector2& anchor) {
     }
 }
 
+void SpriteRendererComponent::SetTopMost(bool isTopMost) {
+    isTopMost_ = isTopMost;
+    if (sprite_) {
+        sprite_->SetTopMost(isTopMost_);
+    }
+}
+
+void SpriteRendererComponent::SetFlipX(bool isFlipX) {
+    isFlipX_ = isFlipX;
+    if (sprite_) {
+        sprite_->SetFlip(isFlipX_, isFlipY_);
+    }
+}
+
+void SpriteRendererComponent::SetFlipY(bool isFlipY) {
+    isFlipY_ = isFlipY;
+    if (sprite_) {
+        sprite_->SetFlip(isFlipX_, isFlipY_);
+    }
+}
+
 void SpriteRendererComponent::SetBaseSize(const Irufemi::Vector2& size) {
     size_ = size;
 }

@@ -135,16 +135,16 @@ void ScreenEffectComponent::UpdateRadialBlurParams(PostProcessManager* ppm, floa
 void ScreenEffectComponent::RestoreBaseParams(PostProcessManager* ppm) {
     switch (mode_) {
     case PostProcessMode::Glitch:
-        ppm->GetGlitchParams() = baseGlitchParams_;
+        ppm->SetGlitchParams(baseGlitchParams_);
         break;
     case PostProcessMode::Vignette:
-        ppm->GetVignetteParams() = baseVignetteParams_;
+        ppm->SetVignetteParams(baseVignetteParams_);
         break;
     case PostProcessMode::ChromaticAberration:
-        ppm->GetChromaticAberrationParams() = baseChromaticAberrationParams_;
+        ppm->SetChromaticAberrationParams(baseChromaticAberrationParams_);
         break;
     case PostProcessMode::RadialBlur:
-        ppm->GetRadialBlurParams() = baseRadialBlurParams_;
+        ppm->SetRadialBlurParams(baseRadialBlurParams_);
         break;
     default:
         break;

@@ -109,35 +109,132 @@ public:
      */
     virtual Irufemi::AABB GetBoundingBox() const = 0;
 
-    // --- コールバック機能 ---
-    /**
-     * @brief 他のコライダーと接触した瞬間に呼ばれるコールバック
-     */
-    std::function<void(ColliderComponent*)> onCollisionEnter_;
-
-    /**
-     * @brief 他のコライダーと接触し続けている間毎フレーム呼ばれるコールバック
-     */
-    std::function<void(ColliderComponent*)> onCollisionStay_;
-
-    /**
-     * @brief 他のコライダーと離れた瞬間に呼ばれるコールバック
-     */
-    std::function<void(ColliderComponent*)> onCollisionExit_;
-
     // --- レイヤー設定 ---
-    uint32_t layer_ = 1;         // 1 << 0 (Default)
-    uint32_t mask_ = 0xFFFFFFFF; // All
+    /**
+     * @brief 衝突判定レイヤーを取得する
+     */
+    uint32_t GetLayer() const {
+        return layer_;
+    }
+    /**
+     * @brief 衝突判定レイヤーを設定する
+     */
+    void SetLayer(uint32_t layer) {
+        layer_ = layer;
+    }
+
+    /**
+     * @brief 衝突判定マスクを取得する
+     */
+    uint32_t GetMask() const {
+        return mask_;
+    }
+    /**
+     * @brief 衝突判定マスクを設定する
+     */
+    void SetMask(uint32_t mask) {
+        mask_ = mask;
+    }
 
     // --- 物理設定 ---
-    bool isTrigger_ = false; ///< trueならすり抜ける(判定のみ), falseなら物理的に押し戻す
-    bool isStatic_ = false;  ///< trueなら物理的に押し戻されない（環境オブジェクトなど）
+    /**
+     * @brief トリガーモード（すり抜け判定のみ）かどうかを取得する
+     */
+    bool IsTrigger() const {
+        return isTrigger_;
+    }
+    /**
+     * @brief トリガーモードを設定する
+     */
+    void SetTrigger(bool isTrigger) {
+        isTrigger_ = isTrigger;
+    }
+
+    /**
+     * @brief 静的オブジェクト（押し戻されない）かどうかを取得する
+     */
+    bool IsStatic() const {
+        return isStatic_;
+    }
+    /**
+     * @brief 静的オブジェクトフラグを設定する
+     */
+    void SetStatic(bool isStatic) {
+        isStatic_ = isStatic;
+    }
 
     // --- 押し戻し軸の制限 ---
-    Irufemi::Vector3 pushbackMask_ = {1.0f, 1.0f, 1.0f}; ///< 1.0 なら押し戻し有効, 0.0 なら無効（Z軸スルーなど）
+    /**
+     * @brief 押し戻し軸マスクを取得する
+     */
+    const Irufemi::Vector3& GetPushbackMask() const {
+        return pushbackMask_;
+    }
+    /**
+     * @brief 押し戻し軸マスクを設定する
+     */
+    void SetPushbackMask(const Irufemi::Vector3& mask) {
+        pushbackMask_ = mask;
+    }
 
     // --- BVH (空間分割) 連携 ---
-    int32_t bvhNodeId_ = -1; //!< 自身が登録されている Irufemi::DynamicBVH 内のノードインデックス
+    /**
+     * @brief 登録されている BVH ノード ID を取得する
+     */
+    int32_t GetBvhNodeId() const {
+        return bvhNodeId_;
+    }
+    /**
+     * @brief BVH ノード ID を設定する
+     */
+    void SetBvhNodeId(int32_t nodeId) {
+        bvhNodeId_ = nodeId;
+    }
+
+    // --- コールバック設定 & 配信 ---
+    /**
+     * @brief 接触開始時のコールバックを設定する
+     */
+    void SetOnCollisionEnter(std::function<void(ColliderComponent*)> callback) {
+        onCollisionEnter_ = std::move(callback);
+    }
+    /**
+     * @brief 接触継続時のコールバックを設定する
+     */
+    void SetOnCollisionStay(std::function<void(ColliderComponent*)> callback) {
+        onCollisionStay_ = std::move(callback);
+    }
+    /**
+     * @brief 接触終了時のコールバックを設定する
+     */
+    void SetOnCollisionExit(std::function<void(ColliderComponent*)> callback) {
+        onCollisionExit_ = std::move(callback);
+    }
+
+    /**
+     * @brief 接触開始通知を発行する
+     */
+    void DispatchCollisionEnter(ColliderComponent* other) {
+        if (onCollisionEnter_) {
+            onCollisionEnter_(other);
+        }
+    }
+    /**
+     * @brief 接触継続通知を発行する
+     */
+    void DispatchCollisionStay(ColliderComponent* other) {
+        if (onCollisionStay_) {
+            onCollisionStay_(other);
+        }
+    }
+    /**
+     * @brief 接触終了通知を発行する
+     */
+    void DispatchCollisionExit(ColliderComponent* other) {
+        if (onCollisionExit_) {
+            onCollisionExit_(other);
+        }
+    }
 
     // --- デバッグ描画設定 ---
     /**
@@ -169,6 +266,25 @@ public:
     }
 
 protected:
+    // コールバック関数
+    std::function<void(ColliderComponent*)> onCollisionEnter_;
+    std::function<void(ColliderComponent*)> onCollisionStay_;
+    std::function<void(ColliderComponent*)> onCollisionExit_;
+
+    // レイヤー設定
+    uint32_t layer_ = 1;         // 1 << 0 (Default)
+    uint32_t mask_ = 0xFFFFFFFF; // All
+
+    // 物理設定
+    bool isTrigger_ = false; ///< trueならすり抜ける(判定のみ), falseなら物理的に押し戻す
+    bool isStatic_ = false;  ///< trueなら物理的に押し戻されない（環境オブジェクトなど）
+
+    // 押し戻し軸の制限
+    Irufemi::Vector3 pushbackMask_ = {1.0f, 1.0f, 1.0f}; ///< 1.0 なら押し戻し有効, 0.0 なら無効
+
+    // BVH (空間分割) 連携
+    int32_t bvhNodeId_ = -1; //!< 自身が登録されている Irufemi::DynamicBVH 内のノードインデックス
+
     DebugCategory debugCategory_ = DebugCategory::Collision; //!< デバッグ描画カテゴリ (デフォルト: Collision)
     std::optional<Irufemi::Vector4> debugCustomColor_ = std::nullopt; //!< デバッグ描画カスタムカラー
 };

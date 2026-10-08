@@ -2,12 +2,12 @@
 #include "Framework/Component/Component.h"
 #include "Core/Utility/ObjectPool.h"
 #include "Core/Math/Vector3.h"
-#include "Core/Math/Matrix4x4.h"
 #include <memory>
 #include <vector>
 #include <functional>
 #include <queue>
 #include <unordered_map>
+#include <utility>
 
 class GameObject;
 class ModelBatchRendererComponent;
@@ -17,12 +17,12 @@ class ModelBatchRendererComponent;
  * @brief 仮想オブジェクトのデータ
  */
 struct VirtualInstance {
-    int id;
+    int id = -1;
     Irufemi::Vector3 position = {0.0f, 0.0f, 0.0f};
     Irufemi::Vector3 rotation = {0.0f, 0.0f, 0.0f};
     Irufemi::Vector3 scale = {1.0f, 1.0f, 1.0f};
     bool isPromoted = false;
-    bool isDestroyed;
+    bool isDestroyed = false;
     ObjectPool<GameObject>::Handle promotedHandle;
 };
 
@@ -95,26 +95,66 @@ public:
     void Demote(int id);
 
     /**
-     * @brief データ配列（密配列・連続メモリ）を取得
+     * @brief データ配列（密配列・連続メモリ）を取得（読み取り専用）
      */
-    std::vector<VirtualInstance>& GetDenseInstances() {
+    const std::vector<VirtualInstance>& GetDenseInstances() const {
         return dense_;
     }
 
     /**
-     * @brief 仮想IDから密配列のインデックスを取得
+     * @brief 仮想IDからインスタンスを取得する（読み取り専用、存在しない場合はnullptr）
+     * @param[in] virtualId 仮想ID
+     * @return インスタンスポインタ
      */
-    int GetSparseIndex(int virtualId) const {
-        if (virtualId >= 0 && virtualId < sparse_.size()) {
-            return sparse_[virtualId];
+    const VirtualInstance* GetInstance(int virtualId) const {
+        int index = GetSparseIndex(virtualId);
+        if (index >= 0 && index < static_cast<int>(dense_.size())) {
+            return &dense_[index];
         }
-        return -1;
+        return nullptr;
+    }
+
+    /**
+     * @brief 仮想IDからインスタンスを取得する（存在しない場合はnullptr）
+     * @param[in] virtualId 仮想ID
+     * @return インスタンスポインタ
+     */
+    VirtualInstance* GetInstance(int virtualId) {
+        return const_cast<VirtualInstance*>(std::as_const(*this).GetInstance(virtualId));
     }
 
     /**
      * @brief プールから取得した実体（仮想インスタンスに紐付いていない場合など）を直接プールに返却する
      */
-    void ReleaseGameObject(std::shared_ptr<GameObject> obj);
+    void ReleaseGameObject(const std::shared_ptr<GameObject>& obj);
+
+    /**
+     * @brief 現在アクティブな自インスタンスの総数を取得する
+     */
+    int GetActiveInstanceCount() const {
+        return static_cast<int>(dense_.size());
+    }
+
+    /**
+     * @brief 仮想インスタンスの最大予約数を取得する
+     */
+    int GetMaxVirtualInstances() const {
+        return maxVirtualInstances_;
+    }
+
+    /**
+     * @brief 実体化用オブジェクトプールの最大サイズを取得する
+     */
+    int GetMaxPoolSize() const {
+        return maxPoolSize_;
+    }
+
+    /**
+     * @brief 描画用 ModelBatchRendererComponent を取得する
+     */
+    ModelBatchRendererComponent* GetBatchRenderer() const {
+        return batchRenderer_;
+    }
 
     /**
      * @brief 現在アクティブな全ての仮想インスタンスの総数を取得する
@@ -123,22 +163,31 @@ public:
 
 private:
     /**
-     * @brief コンポーネントの全インスタンスを保持する静的レジストリ
+     * @brief 仮想IDから密配列のインデックスを取得（内部ヘルパー）
      */
+    int GetSparseIndex(int virtualId) const {
+        if (virtualId >= 0 && virtualId < static_cast<int>(sparse_.size())) {
+            return sparse_[virtualId];
+        }
+        return -1;
+    }
+
+    /**
+     * @brief プール内のオブジェクトを安全に解放・破棄する
+     */
+    void CleanUpPool();
+
+    // --- 内部データ構造 ---
     static std::vector<VirtualEntityManagerComponent*> instances_;
     std::vector<VirtualInstance> dense_;
     std::vector<int> sparse_;
     std::queue<int> freeIds_;
     int activeInstanceCount_ = 0;
     int maxVirtualInstances_ = 0;
-    int nextId_ = 0; // Backup if freeIds is empty or we don't want strict pre-alloc
-
-    void CleanUpPool();
 
     std::unique_ptr<ObjectPool<GameObject>> pool_;
     int maxPoolSize_ = 0;
 
     ModelBatchRendererComponent* batchRenderer_ = nullptr;
-
     std::unordered_map<GameObject*, ObjectPool<GameObject>::Handle> activeHandles_;
 };

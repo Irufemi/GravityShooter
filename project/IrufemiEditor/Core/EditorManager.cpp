@@ -589,7 +589,10 @@ void EditorManager::OnDrawUI() {
 
         if (ImGui::BeginMenu("Window")) {
             for (auto& panel : panels_) {
-                ImGui::MenuItem(panel->GetName(), nullptr, &panel->GetIsOpen());
+                bool open = panel->IsOpen();
+                if (ImGui::MenuItem(panel->GetName(), nullptr, &open)) {
+                    panel->SetOpen(open);
+                }
             }
             ImGui::Separator();
             ImGui::MenuItem("Performance", nullptr, &showPerformancePanel);

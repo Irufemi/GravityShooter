@@ -44,27 +44,27 @@ void ModelBatchRendererComponentEditor::Draw(Component* component, EditorActionM
                 ModelManager* modelManager = engine->GetObjModelManager();
                 std::vector<std::string> availableModels = modelManager->GetAvailableModels();
 
-                if (std::find(availableModels.begin(), availableModels.end(), comp->modelName_) ==
+                if (std::find(availableModels.begin(), availableModels.end(), comp->GetModelName()) ==
                     availableModels.end()) {
-                    availableModels.push_back(comp->modelName_);
+                    availableModels.push_back(comp->GetModelName());
                 }
 
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
                 if (ImGui::Button("Refresh")) {
                     modelManager->RefreshAvailableModels();
                     availableModels = modelManager->GetAvailableModels();
-                    if (std::find(availableModels.begin(), availableModels.end(), comp->modelName_) ==
+                    if (std::find(availableModels.begin(), availableModels.end(), comp->GetModelName()) ==
                         availableModels.end()) {
-                        availableModels.push_back(comp->modelName_);
+                        availableModels.push_back(comp->GetModelName());
                     }
                 }
                 ImGui::SameLine();
                 ImGui::SetNextItemWidth(-1);
-                if (ImGui::BeginCombo("##ModelCombo", comp->modelName_.c_str())) {
+                if (ImGui::BeginCombo("##ModelCombo", comp->GetModelName().c_str())) {
                     for (const auto& key : availableModels) {
-                        bool isSelected = (comp->modelName_ == key);
+                        bool isSelected = (comp->GetModelName() == key);
                         if (ImGui::Selectable(key.c_str(), isSelected)) {
-                            std::string oldModel = comp->modelName_;
+                            std::string oldModel = comp->GetModelName();
                             std::string newModel = key;
                             ComponentUIHelpers::PushInstantUndo(
                                 actionManager, oldModel, newModel,
@@ -79,7 +79,7 @@ void ModelBatchRendererComponentEditor::Draw(Component* component, EditorActionM
                 }
                 ImGui::PopStyleVar();
             } else {
-                ImGui::Text("%s", comp->modelName_.c_str());
+                ImGui::Text("%s", comp->GetModelName().c_str());
             }
 
             if (ImGui::BeginDragDropTarget()) {
@@ -97,7 +97,7 @@ void ModelBatchRendererComponentEditor::Draw(Component* component, EditorActionM
                         if (lowerPath.find("resources/model/") == 0) {
                             newModelName = newModelName.substr(16);
                         }
-                        std::string oldModel = comp->modelName_;
+                        std::string oldModel = comp->GetModelName();
                         ComponentUIHelpers::PushInstantUndo(actionManager, oldModel, newModelName,
                                                             std::function<void(const std::string&)>(
                                                                 [comp](const std::string& v) { comp->LoadModel(v); }));
@@ -106,8 +106,8 @@ void ModelBatchRendererComponentEditor::Draw(Component* component, EditorActionM
                 ImGui::EndDragDropTarget();
             }
 
-            ComponentUIHelpers::DrawPropertyResetButton("##ModelReset", !comp->modelName_.empty(), [&]() {
-                std::string oldModel = comp->modelName_;
+            ComponentUIHelpers::DrawPropertyResetButton("##ModelReset", !comp->GetModelName().empty(), [&]() {
+                std::string oldModel = comp->GetModelName();
                 ComponentUIHelpers::PushInstantUndo(
                     actionManager, oldModel, std::string(""),
                     std::function<void(const std::string&)>([comp](const std::string& v) { comp->LoadModel(v); }));

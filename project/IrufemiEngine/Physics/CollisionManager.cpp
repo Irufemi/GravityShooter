@@ -57,7 +57,7 @@ void CollisionManager::UnregisterCollider(ColliderComponent* collider) {
     auto it = std::find_if(pendingRemoves_.begin(), pendingRemoves_.end(),
                            [collider](const PendingRemove& pr) { return pr.collider == collider; });
     if (it == pendingRemoves_.end()) {
-        pendingRemoves_.push_back({collider, collider->bvhNodeId_});
+        pendingRemoves_.push_back({collider, collider->GetBvhNodeId()});
     }
 }
 
@@ -92,8 +92,8 @@ void CollisionManager::FlushPendingCommands() {
                 ColliderComponent* other = (iter->first == collider) ? iter->second : iter->first;
                 // Note: collider might already be destroyed, so do not call collider->GetGameObject() or pass dead
                 // pointer
-                if (other && other->onCollisionExit_) {
-                    other->onCollisionExit_(nullptr);
+                if (other) {
+                    other->DispatchCollisionExit(nullptr);
                 }
                 if (other && other->GetGameObject()) {
                     other->GetGameObject()->SendCollisionExit(nullptr);
@@ -113,7 +113,7 @@ void CollisionManager::FlushPendingCommands() {
         auto it = std::find(colliders_.begin(), colliders_.end(), collider);
         if (it == colliders_.end()) {
             colliders_.push_back(collider);
-            collider->bvhNodeId_ = dynamicBVH_.Insert(collider, collider->GetBoundingBox());
+            collider->SetBvhNodeId(dynamicBVH_.Insert(collider, collider->GetBoundingBox()));
         }
     }
 }
@@ -180,12 +180,8 @@ void CollisionManager::DispatchCollisionEvents(ColliderComponent* colA, Collider
     }
 
     if (isNewHit) {
-        if (colA->onCollisionEnter_) {
-            colA->onCollisionEnter_(colB);
-        }
-        if (colB->onCollisionEnter_) {
-            colB->onCollisionEnter_(colA);
-        }
+        colA->DispatchCollisionEnter(colB);
+        colB->DispatchCollisionEnter(colA);
 
         auto goA = colA->GetGameObject();
         auto goB = colB->GetGameObject();
@@ -197,12 +193,8 @@ void CollisionManager::DispatchCollisionEvents(ColliderComponent* colA, Collider
             goB->SendCollisionEnter(goA);
         }
     } else {
-        if (colA->onCollisionStay_) {
-            colA->onCollisionStay_(colB);
-        }
-        if (colB->onCollisionStay_) {
-            colB->onCollisionStay_(colA);
-        }
+        colA->DispatchCollisionStay(colB);
+        colB->DispatchCollisionStay(colA);
 
         auto goA = colA->GetGameObject();
         auto goB = colB->GetGameObject();
@@ -218,7 +210,7 @@ void CollisionManager::DispatchCollisionEvents(ColliderComponent* colA, Collider
 
 void CollisionManager::ResolveKinematicCollision(ColliderComponent* colA, ColliderComponent* colB,
                                                  const Irufemi::Collision::CollisionResult& result) {
-    if (!colA || !colB || colA->isTrigger_ || colB->isTrigger_) {
+    if (!colA || !colB || colA->IsTrigger() || colB->IsTrigger()) {
         return;
     }
 
@@ -227,8 +219,8 @@ void CollisionManager::ResolveKinematicCollision(ColliderComponent* colA, Collid
     TransformComponent* transformB =
         colB->GetGameObject() ? colB->GetGameObject()->GetComponent<TransformComponent>() : nullptr;
 
-    bool canMoveA = transformA && !colA->isStatic_;
-    bool canMoveB = transformB && !colB->isStatic_;
+    bool canMoveA = transformA && !colA->IsStatic();
+    bool canMoveB = transformB && !colB->IsStatic();
 
     Irufemi::Vector3 pushA = {0.0f, 0.0f, 0.0f};
     Irufemi::Vector3 pushB = {0.0f, 0.0f, 0.0f};
@@ -244,11 +236,11 @@ void CollisionManager::ResolveKinematicCollision(ColliderComponent* colA, Collid
     }
 
     if (canMoveA) {
-        pushA = pushA * colA->pushbackMask_;
+        pushA = pushA * colA->GetPushbackMask();
         transformA->SetWorldPosition(Irufemi::Math::Add(transformA->GetWorldPosition(), pushA));
     }
     if (canMoveB) {
-        pushB = pushB * colB->pushbackMask_;
+        pushB = pushB * colB->GetPushbackMask();
         transformB->SetWorldPosition(Irufemi::Math::Add(transformB->GetWorldPosition(), pushB));
     }
 }
@@ -270,7 +262,7 @@ void CollisionManager::CheckAllCollisions() {
             if (!go || !go->GetIsActive()) {
                 continue;
             }
-            dynamicBVH_.Update(collider->bvhNodeId_, collider->GetBoundingBox());
+            dynamicBVH_.Update(collider->GetBvhNodeId(), collider->GetBoundingBox());
         }
     }
 
@@ -308,10 +300,10 @@ void CollisionManager::CheckAllCollisions() {
 
             // フィルタリング:
             // どちらかが Trigger の場合は、相手をマスクしている側がいれば検知可能とする
-            bool colAHitsB = (colA->mask_ & colB->layer_) != 0;
-            bool colBHitsA = (colB->mask_ & colA->layer_) != 0;
+            bool colAHitsB = (colA->GetMask() & colB->GetLayer()) != 0;
+            bool colBHitsA = (colB->GetMask() & colA->GetLayer()) != 0;
 
-            if (colA->isTrigger_ || colB->isTrigger_) {
+            if (colA->IsTrigger() || colB->IsTrigger()) {
                 if (!colAHitsB && !colBHitsA) {
                     continue;
                 }
@@ -322,7 +314,7 @@ void CollisionManager::CheckAllCollisions() {
             }
 
             // 静的オブジェクト同士の判定は不要（動かないため、計算負荷を削減）
-            if (colA->isStatic_ && colB->isStatic_) {
+            if (colA->IsStatic() && colB->IsStatic()) {
                 continue;
             }
 
@@ -353,11 +345,11 @@ void CollisionManager::CheckAllCollisions() {
             ColliderComponent* colA = pair.first;
             ColliderComponent* colB = pair.second;
 
-            if (colA && colA->onCollisionExit_) {
-                colA->onCollisionExit_(colB);
+            if (colA) {
+                colA->DispatchCollisionExit(colB);
             }
-            if (colB && colB->onCollisionExit_) {
-                colB->onCollisionExit_(colA);
+            if (colB) {
+                colB->DispatchCollisionExit(colA);
             }
 
             if (colA && colA->GetGameObject()) {
@@ -590,7 +582,7 @@ bool CollisionManager::Raycast(const Irufemi::Ray& ray, RaycastHit& hitInfo, flo
         }
 
         // 指定されたレイヤーマスクに合致するか判定
-        if ((collider->layer_ & layerMask) == 0) {
+        if ((collider->GetLayer() & layerMask) == 0) {
             continue;
         }
 

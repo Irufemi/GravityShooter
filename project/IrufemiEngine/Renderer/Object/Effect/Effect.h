@@ -153,6 +153,10 @@ public:
     AuraConfig& GetAuraConfig() {
         return auraConfig_;
     }
+    /** @brief オーラ設定を外部から取得するためのゲッター（読み取り専用） */
+    const AuraConfig& GetAuraConfig() const {
+        return auraConfig_;
+    }
 
     struct SwingConfig {
         Irufemi::PrimitiveType shape = Irufemi::PrimitiveType::Ring; //!< 使用するプリミティブ形状（デフォルト: Ring）

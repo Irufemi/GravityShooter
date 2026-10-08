@@ -38,7 +38,6 @@ public:
     void Draw() override;
 
 protected:
-    inline static PrimitiveManager* primitiveManager_ = nullptr;
     /**
      * @brief フラストゥムカリング用の外接球半径を取得する
      * @return 形状に応じた外接球半径
@@ -46,6 +45,8 @@ protected:
     float GetBoundingSphereRadius() const override;
 
 private:
+    inline static PrimitiveManager* primitiveManager_ = nullptr;
+
     /**
      * @brief 定数バッファ等のマテリアルリソースを確保・初期化する
      */

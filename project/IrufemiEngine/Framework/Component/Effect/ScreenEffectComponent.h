@@ -46,16 +46,43 @@ public:
         return duration_;
     }
 
+    void SetTargetGlitchParams(const PostProcessManager::GlitchParams& params) {
+        targetGlitchParams_ = params;
+    }
     PostProcessManager::GlitchParams& GetTargetGlitchParams() {
         return targetGlitchParams_;
+    }
+    const PostProcessManager::GlitchParams& GetTargetGlitchParams() const {
+        return targetGlitchParams_;
+    }
+
+    void SetTargetVignetteParams(const PostProcessManager::VignetteParams& params) {
+        targetVignetteParams_ = params;
     }
     PostProcessManager::VignetteParams& GetTargetVignetteParams() {
         return targetVignetteParams_;
     }
+    const PostProcessManager::VignetteParams& GetTargetVignetteParams() const {
+        return targetVignetteParams_;
+    }
+
+    void SetTargetChromaticAberrationParams(const PostProcessManager::ChromaticAberrationParams& params) {
+        targetChromaticAberrationParams_ = params;
+    }
     PostProcessManager::ChromaticAberrationParams& GetTargetChromaticAberrationParams() {
         return targetChromaticAberrationParams_;
     }
+    const PostProcessManager::ChromaticAberrationParams& GetTargetChromaticAberrationParams() const {
+        return targetChromaticAberrationParams_;
+    }
+
+    void SetTargetRadialBlurParams(const PostProcessManager::RadialBlurParams& params) {
+        targetRadialBlurParams_ = params;
+    }
     PostProcessManager::RadialBlurParams& GetTargetRadialBlurParams() {
+        return targetRadialBlurParams_;
+    }
+    const PostProcessManager::RadialBlurParams& GetTargetRadialBlurParams() const {
         return targetRadialBlurParams_;
     }
 

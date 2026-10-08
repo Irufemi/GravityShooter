@@ -4,8 +4,7 @@
 #include <nlohmann/json.hpp>
 #include "Renderer/PostProcess/PostProcessManager.h"
 
-class IPostProcessSettings {
-public:
+struct IPostProcessSettings {
     virtual ~IPostProcessSettings() = default;
 
     // エフェクトの識別子
@@ -30,8 +29,7 @@ public:
 // ---------------------------------------------------------
 // Bloom Settings
 // ---------------------------------------------------------
-class BloomSettings : public IPostProcessSettings {
-public:
+struct BloomSettings : public IPostProcessSettings {
     PostProcessMode GetMode() const override {
         return PostProcessMode::Bloom;
     }
@@ -52,8 +50,7 @@ public:
 // ---------------------------------------------------------
 // Color Grading Settings (ToneMapping + HSV)
 // ---------------------------------------------------------
-class ColorGradingSettings : public IPostProcessSettings {
-public:
+struct ColorGradingSettings : public IPostProcessSettings {
     // 代表して ToneMapping を Mode として返す（UI等の識別用）
     PostProcessMode GetMode() const override {
         return PostProcessMode::ToneMapping;
@@ -76,8 +73,7 @@ public:
 // ---------------------------------------------------------
 // Vignette Settings
 // ---------------------------------------------------------
-class VignetteSettings : public IPostProcessSettings {
-public:
+struct VignetteSettings : public IPostProcessSettings {
     PostProcessMode GetMode() const override {
         return PostProcessMode::Vignette;
     }
@@ -98,10 +94,9 @@ public:
 // Outline Settings
 // ---------------------------------------------------------
 /**
- * @brief アウトライン描画設定クラス
+ * @brief アウトライン描画設定構造体
  */
-class OutlineSettings : public IPostProcessSettings {
-public:
+struct OutlineSettings : public IPostProcessSettings {
     PostProcessMode GetMode() const override {
         return PostProcessMode::DepthBasedOutline;
     }

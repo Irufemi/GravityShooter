@@ -910,11 +910,32 @@ public:
 
     // 各エフェクトのパラメータ取得 (シーンからの演出用)
     /**
+     * @brief NoiseParams を設定する。
+     * @param[in] params 設定する NoiseParams
+     */
+    void SetNoiseParams(const NoiseParams& params) {
+        noiseParams_ = params;
+    }
+    /**
      * @brief NoiseParams を取得する。
      * @return 取得された NoiseParams
      */
     NoiseParams& GetNoiseParams() {
         return noiseParams_;
+    }
+    /**
+     * @brief NoiseParams を取得する（読み取り専用）。
+     * @return 取得された NoiseParams
+     */
+    const NoiseParams& GetNoiseParams() const {
+        return noiseParams_;
+    }
+    /**
+     * @brief VignetteParams を設定する。
+     * @param[in] params 設定する VignetteParams
+     */
+    void SetVignetteParams(const VignetteParams& params) {
+        vignetteParams_ = params;
     }
     /**
      * @brief VignetteParams を取得する。
@@ -924,11 +945,39 @@ public:
         return vignetteParams_;
     }
     /**
+     * @brief VignetteParams を取得する（読み取り専用）。
+     * @return 取得された VignetteParams
+     */
+    const VignetteParams& GetVignetteParams() const {
+        return vignetteParams_;
+    }
+    /**
+     * @brief SmoothingParams を設定する。
+     * @param[in] params 設定する SmoothingParams
+     */
+    void SetSmoothingParams(const SmoothingParams& params) {
+        smoothingParams_ = params;
+    }
+    /**
      * @brief SmoothingParams を取得する。
      * @return 取得された SmoothingParams
      */
     SmoothingParams& GetSmoothingParams() {
         return smoothingParams_;
+    }
+    /**
+     * @brief SmoothingParams を取得する（読み取り専用）。
+     * @return 取得された SmoothingParams
+     */
+    const SmoothingParams& GetSmoothingParams() const {
+        return smoothingParams_;
+    }
+    /**
+     * @brief GaussianParams を設定する。
+     * @param[in] params 設定する GaussianParams
+     */
+    void SetGaussianParams(const GaussianParams& params) {
+        gaussianParams_ = params;
     }
     /**
      * @brief GaussianParams を取得する。
@@ -938,11 +987,39 @@ public:
         return gaussianParams_;
     }
     /**
+     * @brief GaussianParams を取得する（読み取り専用）。
+     * @return 取得された GaussianParams
+     */
+    const GaussianParams& GetGaussianParams() const {
+        return gaussianParams_;
+    }
+    /**
+     * @brief RadialBlurParams を設定する。
+     * @param[in] params 設定する RadialBlurParams
+     */
+    void SetRadialBlurParams(const RadialBlurParams& params) {
+        radialBlurParams_ = params;
+    }
+    /**
      * @brief RadialBlurParams を取得する。
      * @return 取得された RadialBlurParams
      */
     RadialBlurParams& GetRadialBlurParams() {
         return radialBlurParams_;
+    }
+    /**
+     * @brief RadialBlurParams を取得する（読み取り専用）。
+     * @return 取得された RadialBlurParams
+     */
+    const RadialBlurParams& GetRadialBlurParams() const {
+        return radialBlurParams_;
+    }
+    /**
+     * @brief OutlineParams を設定する。
+     * @param[in] params 設定する OutlineParams
+     */
+    void SetOutlineParams(const OutlineParams& params) {
+        outlineParams_ = params;
     }
     /**
      * @brief OutlineParams を取得する。
@@ -952,11 +1029,39 @@ public:
         return outlineParams_;
     }
     /**
+     * @brief OutlineParams を取得する（読み取り専用）。
+     * @return 取得された OutlineParams
+     */
+    const OutlineParams& GetOutlineParams() const {
+        return outlineParams_;
+    }
+    /**
+     * @brief DissolveParams を設定する。
+     * @param[in] params 設定する DissolveParams
+     */
+    void SetDissolveParams(const DissolveParams& params) {
+        dissolveParams_ = params;
+    }
+    /**
      * @brief DissolveParams を取得する。
      * @return 取得された DissolveParams
      */
     DissolveParams& GetDissolveParams() {
         return dissolveParams_;
+    }
+    /**
+     * @brief DissolveParams を取得する（読み取り専用）。
+     * @return 取得された DissolveParams
+     */
+    const DissolveParams& GetDissolveParams() const {
+        return dissolveParams_;
+    }
+    /**
+     * @brief HSVParams を設定する。
+     * @param[in] params 設定する HSVParams
+     */
+    void SetHSVParams(const HSVParams& params) {
+        hsvParams_ = params;
     }
     /**
      * @brief HSVParams を取得する。
@@ -966,11 +1071,39 @@ public:
         return hsvParams_;
     }
     /**
+     * @brief HSVParams を取得する（読み取り専用）。
+     * @return 取得された HSVParams
+     */
+    const HSVParams& GetHSVParams() const {
+        return hsvParams_;
+    }
+    /**
+     * @brief ToneMappingParams を設定する。
+     * @param[in] params 設定する ToneMappingParams
+     */
+    void SetToneMappingParams(const ToneMappingParams& params) {
+        toneMappingParams_ = params;
+    }
+    /**
      * @brief ToneMappingParams を取得する。
      * @return 取得された ToneMappingParams
      */
     ToneMappingParams& GetToneMappingParams() {
         return toneMappingParams_;
+    }
+    /**
+     * @brief ToneMappingParams を取得する（読み取り専用）。
+     * @return 取得された ToneMappingParams
+     */
+    const ToneMappingParams& GetToneMappingParams() const {
+        return toneMappingParams_;
+    }
+    /**
+     * @brief FadeParams を設定する。
+     * @param[in] params 設定する FadeParams
+     */
+    void SetFadeParams(const FadeParams& params) {
+        fadeParams_ = params;
     }
     /**
      * @brief FadeParams を取得する。
@@ -980,11 +1113,39 @@ public:
         return fadeParams_;
     }
     /**
+     * @brief FadeParams を取得する（読み取り専用）。
+     * @return 取得された FadeParams
+     */
+    const FadeParams& GetFadeParams() const {
+        return fadeParams_;
+    }
+    /**
+     * @brief SlideParams を設定する。
+     * @param[in] params 設定する SlideParams
+     */
+    void SetSlideParams(const SlideParams& params) {
+        slideParams_ = params;
+    }
+    /**
      * @brief SlideParams を取得する。
      * @return 取得された SlideParams
      */
     SlideParams& GetSlideParams() {
         return slideParams_;
+    }
+    /**
+     * @brief SlideParams を取得する（読み取り専用）。
+     * @return 取得された SlideParams
+     */
+    const SlideParams& GetSlideParams() const {
+        return slideParams_;
+    }
+    /**
+     * @brief BloomParams を設定する。
+     * @param[in] params 設定する BloomParams
+     */
+    void SetBloomParams(const BloomParams& params) {
+        bloomParams_ = params;
     }
     /**
      * @brief BloomParams を取得する。
@@ -994,10 +1155,31 @@ public:
         return bloomParams_;
     }
     /**
+     * @brief BloomParams を取得する（読み取り専用）。
+     * @return 取得された BloomParams
+     */
+    const BloomParams& GetBloomParams() const {
+        return bloomParams_;
+    }
+    /**
+     * @brief GlitchParams を設定する。
+     * @param[in] params 設定する GlitchParams
+     */
+    void SetGlitchParams(const GlitchParams& params) {
+        glitchParams_ = params;
+    }
+    /**
      * @brief GlitchParams を取得する。
      * @return 取得された GlitchParams
      */
     GlitchParams& GetGlitchParams() {
+        return glitchParams_;
+    }
+    /**
+     * @brief GlitchParams を取得する（読み取り専用）。
+     * @return 取得された GlitchParams
+     */
+    const GlitchParams& GetGlitchParams() const {
         return glitchParams_;
     }
     /**
@@ -1050,10 +1232,24 @@ public:
         return kaleidoscopeParams_;
     }
     /**
+     * @brief ChromaticAberrationParams を設定する。
+     * @param[in] params 設定する ChromaticAberrationParams
+     */
+    void SetChromaticAberrationParams(const ChromaticAberrationParams& params) {
+        chromaticAberrationParams_ = params;
+    }
+    /**
      * @brief ChromaticAberrationParams を取得する。
      * @return 取得された ChromaticAberrationParams
      */
     ChromaticAberrationParams& GetChromaticAberrationParams() {
+        return chromaticAberrationParams_;
+    }
+    /**
+     * @brief ChromaticAberrationParams を取得する（読み取り専用）。
+     * @return 取得された ChromaticAberrationParams
+     */
+    const ChromaticAberrationParams& GetChromaticAberrationParams() const {
         return chromaticAberrationParams_;
     }
     /**

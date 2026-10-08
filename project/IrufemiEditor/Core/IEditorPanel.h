@@ -29,13 +29,7 @@ public:
      */
     virtual const char* GetName() const = 0;
 
-    /**
-     * @brief パネルの表示フラグへの参照を取得する（ImGui::MenuItem等のバインド用）
-     * @return 表示フラグへの参照
-     */
-    bool& GetIsOpen() {
-        return isOpen_;
-    }
+
 
     /**
      * @brief パネルが開いているか判定する

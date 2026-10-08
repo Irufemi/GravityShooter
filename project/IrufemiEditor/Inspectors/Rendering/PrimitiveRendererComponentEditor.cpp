@@ -36,7 +36,7 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
             const char* typeNames[] = {"Triangle", "Plane",  "Cube", "Cylinder", "Sphere",    "Tetra", "Circle",
                                        "Ring",     "Skybox", "Cone", "Torus",    "IcoSphere", "Grid"};
 
-            int typeIndex = comp->currentTypeIndex_;
+            int typeIndex = comp->GetCurrentTypeIndex();
             int oldTypeIndex = typeIndex;
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("Shape Type");
@@ -58,7 +58,7 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                                                     }));
             });
 
-            Irufemi::PrimitiveType type = static_cast<Irufemi::PrimitiveType>(comp->currentTypeIndex_);
+            Irufemi::PrimitiveType type = static_cast<Irufemi::PrimitiveType>(comp->GetCurrentTypeIndex());
             switch (type) {
             case Irufemi::PrimitiveType::Sphere:
             case Irufemi::PrimitiveType::IcoSphere:
@@ -67,152 +67,176 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                 ComponentUIHelpers::DrawPropertyLabel("Radius");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Radius", &comp->radius_, 0.1f, 0.1f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float radius = comp->GetRadius();
+                    if (ImGui::DragFloat("##Radius", &radius, 0.1f, 0.1f, 100.0f)) {
+                        comp->SetRadius(radius);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &radius,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetRadius(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##RadiusReset", comp->GetRadius() != 1.0f, [&]() {
+                        float oldRadius = comp->GetRadius();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldRadius, 1.0f,
+                                                            std::function<void(const float&)>([comp](const float& v) {
+                                                                comp->SetRadius(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->radius_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->radius_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##RadiusReset", comp->radius_ != 1.0f, [&]() {
-                    float oldRadius = comp->radius_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldRadius, 1.0f,
-                                                        std::function<void(const float&)>([comp](const float& v) {
-                                                            comp->radius_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Subdivisions");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::SliderInt("##Subdivisions", &comp->subdivisions_, 3, 64)) {
-                    comp->RebuildMesh();
+                {
+                    int subdivisions = comp->GetSubdivisions();
+                    if (ImGui::SliderInt("##Subdivisions", &subdivisions, 3, 64)) {
+                        comp->SetSubdivisions(subdivisions);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &subdivisions,
+                                                          std::function<void(const int&)>([comp](const int& v) {
+                                                              comp->SetSubdivisions(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##SubDivReset", comp->GetSubdivisions() != 16, [&]() {
+                        int oldSub = comp->GetSubdivisions();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
+                                                            std::function<void(const int&)>([comp](const int& v) {
+                                                                comp->SetSubdivisions(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->subdivisions_,
-                                                      std::function<void(const int&)>([comp](const int& v) {
-                                                          comp->subdivisions_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##SubDivReset", comp->subdivisions_ != 16, [&]() {
-                    int oldSub = comp->subdivisions_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
-                                                        std::function<void(const int&)>([comp](const int& v) {
-                                                            comp->subdivisions_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
                 break;
             case Irufemi::PrimitiveType::Cylinder:
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Top Radius");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Top Radius", &comp->topRadius_, 0.1f, 0.0f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float topRadius = comp->GetTopRadius();
+                    if (ImGui::DragFloat("##Top Radius", &topRadius, 0.1f, 0.0f, 100.0f)) {
+                        comp->SetTopRadius(topRadius);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &topRadius,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetTopRadius(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##TopRadiusReset", comp->GetTopRadius() != 1.0f, [&]() {
+                        float oldTop = comp->GetTopRadius();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldTop, 1.0f,
+                                                            std::function<void(const float&)>([comp](const float& v) {
+                                                                comp->SetTopRadius(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->topRadius_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->topRadius_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##TopRadiusReset", comp->topRadius_ != 1.0f, [&]() {
-                    float oldTop = comp->topRadius_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldTop, 1.0f,
-                                                        std::function<void(const float&)>([comp](const float& v) {
-                                                            comp->topRadius_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Bottom Radius");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Bottom Radius", &comp->bottomRadius_, 0.1f, 0.0f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float bottomRadius = comp->GetBottomRadius();
+                    if (ImGui::DragFloat("##Bottom Radius", &bottomRadius, 0.1f, 0.0f, 100.0f)) {
+                        comp->SetBottomRadius(bottomRadius);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &bottomRadius,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetBottomRadius(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##BottomRadiusReset", comp->GetBottomRadius() != 1.0f, [&]() {
+                        float oldBot = comp->GetBottomRadius();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldBot, 1.0f,
+                                                            std::function<void(const float&)>([comp](const float& v) {
+                                                                comp->SetBottomRadius(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->bottomRadius_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->bottomRadius_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##BottomRadiusReset", comp->bottomRadius_ != 1.0f, [&]() {
-                    float oldBot = comp->bottomRadius_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldBot, 1.0f,
-                                                        std::function<void(const float&)>([comp](const float& v) {
-                                                            comp->bottomRadius_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Height");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Height", &comp->height_, 0.1f, 0.1f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float height = comp->GetHeight();
+                    if (ImGui::DragFloat("##Height", &height, 0.1f, 0.1f, 100.0f)) {
+                        comp->SetHeight(height);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &height,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetHeight(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##HeightReset", comp->GetHeight() != 2.0f, [&]() {
+                        float oldH = comp->GetHeight();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldH, 2.0f,
+                                                            std::function<void(const float&)>([comp](const float& v) {
+                                                                comp->SetHeight(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->height_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->height_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##HeightReset", comp->height_ != 2.0f, [&]() {
-                    float oldH = comp->height_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldH, 2.0f,
-                                                        std::function<void(const float&)>([comp](const float& v) {
-                                                            comp->height_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Segments");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::SliderInt("##Segments", &comp->subdivisions_, 3, 64)) {
-                    comp->RebuildMesh();
+                {
+                    int subdivisions = comp->GetSubdivisions();
+                    if (ImGui::SliderInt("##Segments", &subdivisions, 3, 64)) {
+                        comp->SetSubdivisions(subdivisions);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &subdivisions,
+                                                          std::function<void(const int&)>([comp](const int& v) {
+                                                              comp->SetSubdivisions(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##SegmentsReset", comp->GetSubdivisions() != 16, [&]() {
+                        int oldSub = comp->GetSubdivisions();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
+                                                            std::function<void(const int&)>([comp](const int& v) {
+                                                                comp->SetSubdivisions(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->subdivisions_,
-                                                      std::function<void(const int&)>([comp](const int& v) {
-                                                          comp->subdivisions_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##SegmentsReset", comp->subdivisions_ != 16, [&]() {
-                    int oldSub = comp->subdivisions_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
-                                                        std::function<void(const int&)>([comp](const int& v) {
-                                                            comp->subdivisions_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 {
                     ImGui::TableNextRow();
                     ComponentUIHelpers::DrawPropertyLabel("Has Top");
                     ImGui::TableSetColumnIndex(1);
-                    bool hasTop = comp->hasTop_;
+                    bool hasTop = comp->HasTop();
                     if (ImGui::Checkbox("##Has Top", &hasTop)) {
-                        ComponentUIHelpers::PushInstantUndo(actionManager, comp->hasTop_, hasTop,
+                        ComponentUIHelpers::PushInstantUndo(actionManager, comp->HasTop(), hasTop,
                                                             std::function<void(const bool&)>([comp](const bool& v) {
-                                                                comp->hasTop_ = v;
+                                                                comp->SetHasTop(v);
                                                                 comp->RebuildMesh();
                                                             }));
                     }
-                    ComponentUIHelpers::DrawPropertyResetButton("##HasTopReset", !comp->hasTop_, [&]() {
-                        bool oldTop = comp->hasTop_;
+                    ComponentUIHelpers::DrawPropertyResetButton("##HasTopReset", !comp->HasTop(), [&]() {
+                        bool oldTop = comp->HasTop();
                         ComponentUIHelpers::PushInstantUndo(actionManager, oldTop, true,
                                                             std::function<void(const bool&)>([comp](const bool& v) {
-                                                                comp->hasTop_ = v;
+                                                                comp->SetHasTop(v);
                                                                 comp->RebuildMesh();
                                                             }));
                     });
@@ -220,19 +244,19 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                     ImGui::TableNextRow();
                     ComponentUIHelpers::DrawPropertyLabel("Has Bottom");
                     ImGui::TableSetColumnIndex(1);
-                    bool hasBottom = comp->hasBottom_;
+                    bool hasBottom = comp->HasBottom();
                     if (ImGui::Checkbox("##Has Bottom", &hasBottom)) {
-                        ComponentUIHelpers::PushInstantUndo(actionManager, comp->hasBottom_, hasBottom,
+                        ComponentUIHelpers::PushInstantUndo(actionManager, comp->HasBottom(), hasBottom,
                                                             std::function<void(const bool&)>([comp](const bool& v) {
-                                                                comp->hasBottom_ = v;
+                                                                comp->SetHasBottom(v);
                                                                 comp->RebuildMesh();
                                                             }));
                     }
-                    ComponentUIHelpers::DrawPropertyResetButton("##HasBottomReset", !comp->hasBottom_, [&]() {
-                        bool oldBot = comp->hasBottom_;
+                    ComponentUIHelpers::DrawPropertyResetButton("##HasBottomReset", !comp->HasBottom(), [&]() {
+                        bool oldBot = comp->HasBottom();
                         ComponentUIHelpers::PushInstantUndo(actionManager, oldBot, true,
                                                             std::function<void(const bool&)>([comp](const bool& v) {
-                                                                comp->hasBottom_ = v;
+                                                                comp->SetHasBottom(v);
                                                                 comp->RebuildMesh();
                                                             }));
                     });
@@ -243,158 +267,186 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
                 ComponentUIHelpers::DrawPropertyLabel("Radius");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Radius", &comp->radius_, 0.1f, 0.1f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float radius = comp->GetRadius();
+                    if (ImGui::DragFloat("##Radius", &radius, 0.1f, 0.1f, 100.0f)) {
+                        comp->SetRadius(radius);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &radius,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetRadius(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##RadiusReset", comp->GetRadius() != 1.0f, [&]() {
+                        float oldRadius = comp->GetRadius();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldRadius, 1.0f,
+                                                            std::function<void(const float&)>([comp](const float& v) {
+                                                                comp->SetRadius(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->radius_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->radius_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##RadiusReset", comp->radius_ != 1.0f, [&]() {
-                    float oldRadius = comp->radius_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldRadius, 1.0f,
-                                                        std::function<void(const float&)>([comp](const float& v) {
-                                                            comp->radius_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Height");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Height", &comp->height_, 0.1f, 0.1f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float height = comp->GetHeight();
+                    if (ImGui::DragFloat("##Height", &height, 0.1f, 0.1f, 100.0f)) {
+                        comp->SetHeight(height);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &height,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetHeight(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##HeightReset", comp->GetHeight() != 2.0f, [&]() {
+                        float oldH = comp->GetHeight();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldH, 2.0f,
+                                                            std::function<void(const float&)>([comp](const float& v) {
+                                                                comp->SetHeight(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->height_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->height_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##HeightReset", comp->height_ != 2.0f, [&]() {
-                    float oldH = comp->height_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldH, 2.0f,
-                                                        std::function<void(const float&)>([comp](const float& v) {
-                                                            comp->height_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Segments");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::SliderInt("##Segments", &comp->subdivisions_, 3, 64)) {
-                    comp->RebuildMesh();
+                {
+                    int subdivisions = comp->GetSubdivisions();
+                    if (ImGui::SliderInt("##Segments", &subdivisions, 3, 64)) {
+                        comp->SetSubdivisions(subdivisions);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &subdivisions,
+                                                          std::function<void(const int&)>([comp](const int& v) {
+                                                              comp->SetSubdivisions(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##SegmentsReset", comp->GetSubdivisions() != 16, [&]() {
+                        int oldSub = comp->GetSubdivisions();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
+                                                            std::function<void(const int&)>([comp](const int& v) {
+                                                                comp->SetSubdivisions(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->subdivisions_,
-                                                      std::function<void(const int&)>([comp](const int& v) {
-                                                          comp->subdivisions_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##SegmentsReset", comp->subdivisions_ != 16, [&]() {
-                    int oldSub = comp->subdivisions_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldSub, 16,
-                                                        std::function<void(const int&)>([comp](const int& v) {
-                                                            comp->subdivisions_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
                 break;
             case Irufemi::PrimitiveType::Torus:
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Major Radius");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Major Radius", &comp->torusMajorRadius_, 0.1f, 0.1f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float majorRadius = comp->GetTorusMajorRadius();
+                    if (ImGui::DragFloat("##Major Radius", &majorRadius, 0.1f, 0.1f, 100.0f)) {
+                        comp->SetTorusMajorRadius(majorRadius);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &majorRadius,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetTorusMajorRadius(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##MajorRadiusReset", comp->GetTorusMajorRadius() != 1.0f, [&]() {
+                            float oldR = comp->GetTorusMajorRadius();
+                            ComponentUIHelpers::PushInstantUndo(actionManager, oldR, 1.0f,
+                                                                std::function<void(const float&)>([comp](const float& v) {
+                                                                    comp->SetTorusMajorRadius(v);
+                                                                    comp->RebuildMesh();
+                                                                }));
+                        });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->torusMajorRadius_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->torusMajorRadius_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton(
-                    "##MajorRadiusReset", comp->torusMajorRadius_ != 1.0f, [&]() {
-                        float oldR = comp->torusMajorRadius_;
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldR, 1.0f,
-                                                            std::function<void(const float&)>([comp](const float& v) {
-                                                                comp->torusMajorRadius_ = v;
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Minor Radius");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::DragFloat("##Minor Radius", &comp->torusMinorRadius_, 0.05f, 0.01f, 100.0f)) {
-                    comp->RebuildMesh();
+                {
+                    float minorRadius = comp->GetTorusMinorRadius();
+                    if (ImGui::DragFloat("##Minor Radius", &minorRadius, 0.05f, 0.01f, 100.0f)) {
+                        comp->SetTorusMinorRadius(minorRadius);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &minorRadius,
+                                                          std::function<void(const float&)>([comp](const float& v) {
+                                                              comp->SetTorusMinorRadius(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton(
+                        "##MinorRadiusReset", comp->GetTorusMinorRadius() != 0.25f, [&]() {
+                            float oldR = comp->GetTorusMinorRadius();
+                            ComponentUIHelpers::PushInstantUndo(actionManager, oldR, 0.25f,
+                                                                std::function<void(const float&)>([comp](const float& v) {
+                                                                    comp->SetTorusMinorRadius(v);
+                                                                    comp->RebuildMesh();
+                                                                }));
+                        });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->torusMinorRadius_,
-                                                      std::function<void(const float&)>([comp](const float& v) {
-                                                          comp->torusMinorRadius_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton(
-                    "##MinorRadiusReset", comp->torusMinorRadius_ != 0.25f, [&]() {
-                        float oldR = comp->torusMinorRadius_;
-                        ComponentUIHelpers::PushInstantUndo(actionManager, oldR, 0.25f,
-                                                            std::function<void(const float&)>([comp](const float& v) {
-                                                                comp->torusMinorRadius_ = v;
-                                                                comp->RebuildMesh();
-                                                            }));
-                    });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Major Segments");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::SliderInt("##Major Segments", &comp->torusMajorSegments_, 3, 64)) {
-                    comp->RebuildMesh();
+                {
+                    int majorSegments = comp->GetTorusMajorSegments();
+                    if (ImGui::SliderInt("##Major Segments", &majorSegments, 3, 64)) {
+                        comp->SetTorusMajorSegments(majorSegments);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &majorSegments,
+                                                          std::function<void(const int&)>([comp](const int& v) {
+                                                              comp->SetTorusMajorSegments(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##MajorSegReset", comp->GetTorusMajorSegments() != 32, [&]() {
+                        int oldS = comp->GetTorusMajorSegments();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 32,
+                                                            std::function<void(const int&)>([comp](const int& v) {
+                                                                comp->SetTorusMajorSegments(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->torusMajorSegments_,
-                                                      std::function<void(const int&)>([comp](const int& v) {
-                                                          comp->torusMajorSegments_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##MajorSegReset", comp->torusMajorSegments_ != 32, [&]() {
-                    int oldS = comp->torusMajorSegments_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 32,
-                                                        std::function<void(const int&)>([comp](const int& v) {
-                                                            comp->torusMajorSegments_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
 
                 ImGui::TableNextRow();
                 ComponentUIHelpers::DrawPropertyLabel("Minor Segments");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::SliderInt("##Minor Segments", &comp->torusMinorSegments_, 3, 64)) {
-                    comp->RebuildMesh();
+                {
+                    int minorSegments = comp->GetTorusMinorSegments();
+                    if (ImGui::SliderInt("##Minor Segments", &minorSegments, 3, 64)) {
+                        comp->SetTorusMinorSegments(minorSegments);
+                        comp->RebuildMesh();
+                    }
+                    ImGui::PopItemWidth();
+                    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &minorSegments,
+                                                          std::function<void(const int&)>([comp](const int& v) {
+                                                              comp->SetTorusMinorSegments(v);
+                                                              comp->RebuildMesh();
+                                                          }));
+                    ComponentUIHelpers::DrawPropertyResetButton("##MinorSegReset", comp->GetTorusMinorSegments() != 16, [&]() {
+                        int oldS = comp->GetTorusMinorSegments();
+                        ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 16,
+                                                            std::function<void(const int&)>([comp](const int& v) {
+                                                                comp->SetTorusMinorSegments(v);
+                                                                comp->RebuildMesh();
+                                                            }));
+                    });
                 }
-                ImGui::PopItemWidth();
-                ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &comp->torusMinorSegments_,
-                                                      std::function<void(const int&)>([comp](const int& v) {
-                                                          comp->torusMinorSegments_ = v;
-                                                          comp->RebuildMesh();
-                                                      }));
-                ComponentUIHelpers::DrawPropertyResetButton("##MinorSegReset", comp->torusMinorSegments_ != 16, [&]() {
-                    int oldS = comp->torusMinorSegments_;
-                    ComponentUIHelpers::PushInstantUndo(actionManager, oldS, 16,
-                                                        std::function<void(const int&)>([comp](const int& v) {
-                                                            comp->torusMinorSegments_ = v;
-                                                            comp->RebuildMesh();
-                                                        }));
-                });
                 break;
             }
 
@@ -407,8 +459,8 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
             ImGui::TableSetColumnIndex(2);
             ImGui::Separator();
 
-            if (comp->primitive_) {
-                auto& mat = comp->primitive_->GetMaterial();
+            if (comp->GetPrimitive()) {
+                auto& mat = comp->GetPrimitive()->GetMaterial();
 
                 // Texture
                 ImGui::TableNextRow();

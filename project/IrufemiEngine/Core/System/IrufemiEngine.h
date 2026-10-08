@@ -260,14 +260,14 @@ public: // ゲッター
      * @brief SwapChainDesc を取得する。
      * @return 取得された SwapChainDesc
      */
-    DXGI_SWAP_CHAIN_DESC1& GetSwapChainDesc() {
+    DXGI_SWAP_CHAIN_DESC1 GetSwapChainDesc() const {
         return dxCommon_->GetSwapChainDesc();
     }
     /**
      * @brief RtvDesc を取得する。
      * @return 取得された RtvDesc
      */
-    D3D12_RENDER_TARGET_VIEW_DESC& GetRtvDesc() {
+    D3D12_RENDER_TARGET_VIEW_DESC GetRtvDesc() const {
         return dxCommon_->GetRtvDesc();
     }
     /**
@@ -337,15 +337,27 @@ public: // ゲッター
      * @brief RtvHandles を取得する。
      * @return 取得された RtvHandles
      */
-    D3D12_CPU_DESCRIPTOR_HANDLE& GetRtvHandles(UINT index) {
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRtvHandles(UINT index) const {
         return dxCommon_->GetRtvHandles(index);
     }
     /**
      * @brief FenceValue を取得する。
      * @return 取得された FenceValue
      */
-    uint64_t& GetFenceValue() {
+    uint64_t GetFenceValue() const {
         return dxCommon_->GetFenceValue();
+    }
+    /**
+     * @brief FenceValue を設定する。
+     */
+    void SetFenceValue(uint64_t value) {
+        dxCommon_->SetFenceValue(value);
+    }
+    /**
+     * @brief FenceValue を加算する。
+     */
+    void AdvanceFenceValue(uint64_t delta = 1) {
+        dxCommon_->AdvanceFenceValue(delta);
     }
     /**
      * @brief MainRenderTexture を取得する。
@@ -536,7 +548,7 @@ public: // ゲッター
 
     /** @name 画面情報の取得 */
     ///@{
-    int32_t& GetClientWidth() {
+    int32_t GetClientWidth() const {
         return dxCommon_->GetClientWidth();
     }
 
@@ -566,21 +578,21 @@ public: // ゲッター
      * @brief ClientHeight を取得する。
      * @return 取得された ClientHeight
      */
-    int32_t& GetClientHeight() {
+    int32_t GetClientHeight() const {
         return dxCommon_->GetClientHeight();
     }
     /**
      * @brief Viewport を取得する。
      * @return 取得された Viewport
      */
-    D3D12_VIEWPORT& GetViewport() {
+    const D3D12_VIEWPORT& GetViewport() const {
         return dxCommon_->GetViewport();
     }
     /**
      * @brief ScissorRect を取得する。
      * @return 取得された ScissorRect
      */
-    D3D12_RECT& GetScissorRect() {
+    const D3D12_RECT& GetScissorRect() const {
         return dxCommon_->GetScissorRect();
     }
     /**
@@ -754,7 +766,7 @@ public: // セッター
      * @brief AddFenceValue を実行する。
      */
     void AddFenceValue(uint32_t index) {
-        dxCommon_->GetFenceValue() += index;
+        dxCommon_->AdvanceFenceValue(index);
     }
 
     /**
@@ -836,11 +848,32 @@ public: // セッター
         postProcessManager_->SetMode(mode);
     }
     /**
+     * @brief VignetteParams を設定する。
+     * @param[in] params 設定する VignetteParams
+     */
+    void SetVignetteParams(const VignetteParams& params) {
+        postProcessManager_->SetVignetteParams(params);
+    }
+    /**
      * @brief VignetteParams を取得する。
      * @return 取得された VignetteParams
      */
     VignetteParams& GetVignetteParams() {
         return postProcessManager_->GetVignetteParams();
+    }
+    /**
+     * @brief VignetteParams を取得する（読み取り専用）。
+     * @return 取得された VignetteParams
+     */
+    const VignetteParams& GetVignetteParams() const {
+        return postProcessManager_->GetVignetteParams();
+    }
+    /**
+     * @brief OutlineParams を設定する。
+     * @param[in] params 設定する OutlineParams
+     */
+    void SetOutlineParams(const OutlineParams& params) {
+        postProcessManager_->SetOutlineParams(params);
     }
     /**
      * @brief OutlineParams を取得する。
@@ -850,11 +883,39 @@ public: // セッター
         return postProcessManager_->GetOutlineParams();
     }
     /**
+     * @brief OutlineParams を取得する（読み取り専用）。
+     * @return 取得された OutlineParams
+     */
+    const OutlineParams& GetOutlineParams() const {
+        return postProcessManager_->GetOutlineParams();
+    }
+    /**
+     * @brief DissolveParams を設定する。
+     * @param[in] params 設定する DissolveParams
+     */
+    void SetDissolveParams(const DissolveParams& params) {
+        postProcessManager_->SetDissolveParams(params);
+    }
+    /**
      * @brief DissolveParams を取得する。
      * @return 取得された DissolveParams
      */
     DissolveParams& GetDissolveParams() {
         return postProcessManager_->GetDissolveParams();
+    }
+    /**
+     * @brief DissolveParams を取得する（読み取り専用）。
+     * @return 取得された DissolveParams
+     */
+    const DissolveParams& GetDissolveParams() const {
+        return postProcessManager_->GetDissolveParams();
+    }
+    /**
+     * @brief SmoothingParams を設定する。
+     * @param[in] params 設定する SmoothingParams
+     */
+    void SetSmoothingParams(const SmoothingParams& params) {
+        postProcessManager_->SetSmoothingParams(params);
     }
     /**
      * @brief SmoothingParams を取得する。
@@ -864,11 +925,39 @@ public: // セッター
         return postProcessManager_->GetSmoothingParams();
     }
     /**
+     * @brief SmoothingParams を取得する（読み取り専用）。
+     * @return 取得された SmoothingParams
+     */
+    const SmoothingParams& GetSmoothingParams() const {
+        return postProcessManager_->GetSmoothingParams();
+    }
+    /**
+     * @brief GaussianParams を設定する。
+     * @param[in] params 設定する GaussianParams
+     */
+    void SetGaussianParams(const GaussianParams& params) {
+        postProcessManager_->SetGaussianParams(params);
+    }
+    /**
      * @brief GaussianParams を取得する。
      * @return 取得された GaussianParams
      */
     GaussianParams& GetGaussianParams() {
         return postProcessManager_->GetGaussianParams();
+    }
+    /**
+     * @brief GaussianParams を取得する（読み取り専用）。
+     * @return 取得された GaussianParams
+     */
+    const GaussianParams& GetGaussianParams() const {
+        return postProcessManager_->GetGaussianParams();
+    }
+    /**
+     * @brief RadialBlurParams を設定する。
+     * @param[in] params 設定する RadialBlurParams
+     */
+    void SetRadialBlurParams(const RadialBlurParams& params) {
+        postProcessManager_->SetRadialBlurParams(params);
     }
     /**
      * @brief RadialBlurParams を取得する。
@@ -878,10 +967,31 @@ public: // セッター
         return postProcessManager_->GetRadialBlurParams();
     }
     /**
+     * @brief RadialBlurParams を取得する（読み取り専用）。
+     * @return 取得された RadialBlurParams
+     */
+    const RadialBlurParams& GetRadialBlurParams() const {
+        return postProcessManager_->GetRadialBlurParams();
+    }
+    /**
+     * @brief NoiseParams を設定する。
+     * @param[in] params 設定する NoiseParams
+     */
+    void SetNoiseParams(const NoiseParams& params) {
+        postProcessManager_->SetNoiseParams(params);
+    }
+    /**
      * @brief NoiseParams を取得する。
      * @return 取得された NoiseParams
      */
     NoiseParams& GetNoiseParams() {
+        return postProcessManager_->GetNoiseParams();
+    }
+    /**
+     * @brief NoiseParams を取得する（読み取り専用）。
+     * @return 取得された NoiseParams
+     */
+    const NoiseParams& GetNoiseParams() const {
         return postProcessManager_->GetNoiseParams();
     }
 

@@ -103,12 +103,9 @@ int VirtualEntityManagerComponent::AddVirtualInstance(const Irufemi::Vector3& po
 }
 
 void VirtualEntityManagerComponent::RemoveVirtualInstance(int id) {
-    if (id < 0 || id >= maxVirtualInstances_) {
-        return;
-    }
-    int denseIndex = sparse_[id];
+    int denseIndex = GetSparseIndex(id);
     if (denseIndex == -1) {
-        return; // すでに存在しない
+        return; // 範囲外またはすでに存在しない
     }
 
     auto& vi = dense_[denseIndex];
@@ -142,11 +139,7 @@ std::shared_ptr<GameObject> VirtualEntityManagerComponent::Promote(int id) {
     if (!pool_) {
         return nullptr;
     }
-    if (id < 0 || id >= maxVirtualInstances_) {
-        return nullptr;
-    }
-
-    int denseIndex = sparse_[id];
+    int denseIndex = GetSparseIndex(id);
     if (denseIndex == -1) {
         return nullptr;
     }
@@ -180,11 +173,7 @@ void VirtualEntityManagerComponent::OnRegisterProperties() {
 }
 
 void VirtualEntityManagerComponent::Demote(int id) {
-    if (id < 0 || id >= maxVirtualInstances_) {
-        return;
-    }
-
-    int denseIndex = sparse_[id];
+    int denseIndex = GetSparseIndex(id);
     if (denseIndex == -1) {
         return;
     }
@@ -215,7 +204,7 @@ void VirtualEntityManagerComponent::Demote(int id) {
     }
 }
 
-void VirtualEntityManagerComponent::ReleaseGameObject(std::shared_ptr<GameObject> obj) {
+void VirtualEntityManagerComponent::ReleaseGameObject(const std::shared_ptr<GameObject>& obj) {
     if (obj) {
         obj->SetIsActive(false);
         if (pool_) {

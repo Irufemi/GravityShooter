@@ -249,7 +249,7 @@ public: // ゲッター
      * @brief RtvDesc を取得する。
      * @return 取得された RtvDesc
      */
-    D3D12_RENDER_TARGET_VIEW_DESC& GetRtvDesc();
+    D3D12_RENDER_TARGET_VIEW_DESC GetRtvDesc() const;
 
     /**
      * @brief Tearingサポートの有無を取得する。
@@ -270,12 +270,24 @@ public: // ゲッター
      * @brief FenceValue を取得する。
      * @return 取得された FenceValue
      */
-    uint64_t& GetFenceValue();
+    uint64_t GetFenceValue() const;
     /**
      * @brief FenceValue を取得する。
      * @return 取得された FenceValue
      */
     uint64_t GetFenceValue(uint32_t index) const;
+    /**
+     * @brief 現在フレームの FenceValue を設定する。
+     */
+    void SetFenceValue(uint64_t value);
+    /**
+     * @brief 指定フレームの FenceValue を設定する。
+     */
+    void SetFenceValue(uint32_t index, uint64_t value);
+    /**
+     * @brief 現在フレームの FenceValue を加算する。
+     */
+    void AdvanceFenceValue(uint64_t delta = 1);
     /**
      * @brief GlobalFenceValue を取得する。
      * @return 取得された GlobalFenceValue
@@ -320,7 +332,7 @@ public: // ゲッター
      * @brief RtvHandles を取得する。
      * @return 取得された RtvHandles
      */
-    D3D12_CPU_DESCRIPTOR_HANDLE& GetRtvHandles(UINT index);
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRtvHandles(UINT index) const;
     /**
      * @brief RTVCPUDescriptorHandle を取得する。
      * @return 取得された RTVCPUDescriptorHandle
@@ -364,47 +376,47 @@ public: // ゲッター
 
     /** @name ビューポート・矩形情報の取得 */
     ///@{
-    D3D12_VIEWPORT& GetViewport() {
+    const D3D12_VIEWPORT& GetViewport() const {
         return viewport_;
     }
     /**
      * @brief ScissorRect を取得する。
      * @return 取得された ScissorRect
      */
-    D3D12_RECT& GetScissorRect() {
+    const D3D12_RECT& GetScissorRect() const {
         return scissorRect_;
     }
     ///@}
 
     /** @name その他情報の取得 */
     ///@{
-    HWND GetHwnd() {
+    HWND GetHwnd() const {
         return hwnd_;
     }
     /**
      * @brief SwapChainDesc を取得する。
      * @return 取得された SwapChainDesc
      */
-    DXGI_SWAP_CHAIN_DESC1& GetSwapChainDesc();
+    DXGI_SWAP_CHAIN_DESC1 GetSwapChainDesc() const;
     /**
      * @brief RootSignature を取得する。
      * @return 取得された RootSignature
      */
-    ID3D12RootSignature* GetRootSignature() {
+    ID3D12RootSignature* GetRootSignature() const {
         return rootSignatureManager_->GetGraphicsRootSignature();
     }
     /**
      * @brief ClientWidth を取得する。
      * @return 取得された ClientWidth
      */
-    int32_t& GetClientWidth() {
+    int32_t GetClientWidth() const {
         return clientWidth_;
     }
     /**
      * @brief ClientHeight を取得する。
      * @return 取得された ClientHeight
      */
-    int32_t& GetClientHeight() {
+    int32_t GetClientHeight() const {
         return clientHeight_;
     }
     /**

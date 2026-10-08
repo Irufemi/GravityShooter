@@ -151,9 +151,7 @@ public:
         return autoClearEveryFrame_;
     }
 
-#ifdef EditorMode
-    friend class ModelBatchRendererComponentEditor;
-#endif
+
 
 private:
     std::unique_ptr<ModelBatch> batch_;   ///< 実際のバッチ描画を担うクラス

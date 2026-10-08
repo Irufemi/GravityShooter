@@ -93,7 +93,7 @@ void DebrisManagerComponent::Initialize() {
             obj->AddComponent<TargetableComponent>();
 
             auto collider = obj->AddComponent<SphereColliderComponent>();
-            collider->isTrigger_ = true;
+            collider->SetTrigger(true);
             collider->SetLocalRadius(colliderRadius_);
 
             // --- Aura (EnergyCore) ---
@@ -220,9 +220,8 @@ void DebrisManagerComponent::TrimExcessVirtualInstances(DebrisVariation& var) {
     while (var.activeIds.size() > static_cast<size_t>(var.maxVirtualCount)) {
         int oldestId = var.activeIds.front();
         var.activeIds.pop();
-        int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
-        if (sparseIdx >= 0 && sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
-            if (!var.virtualManager->GetDenseInstances()[sparseIdx].isPromoted) {
+        if (const auto* inst = var.virtualManager->GetInstance(oldestId)) {
+            if (!inst->isPromoted) {
                 var.virtualManager->RemoveVirtualInstance(oldestId);
             }
         }
@@ -347,17 +346,14 @@ void DebrisManagerComponent::Update() {
                         }
                         while (!var.activeIds.empty()) {
                             int oldestId = var.activeIds.front();
-                            int sparseIdx = var.virtualManager->GetSparseIndex(oldestId);
-                            if (sparseIdx >= 0 &&
-                                sparseIdx < static_cast<int>(var.virtualManager->GetDenseInstances().size())) {
-                                const auto& inst = var.virtualManager->GetDenseInstances()[sparseIdx];
+                            if (const auto* inst = var.virtualManager->GetInstance(oldestId)) {
                                 // 実体化（Promote中＝プレイヤー所持中やボスシールド）のガレキは空間キューからデタッチして実体を保護
-                                if (inst.isPromoted) {
+                                if (inst->isPromoted) {
                                     var.activeIds.pop();
                                     continue;
                                 }
 
-                                if (inst.position.z < playerPos.z - recycleBehindDistance_) {
+                                if (inst->position.z < playerPos.z - recycleBehindDistance_) {
                                     var.activeIds.pop();
                                     var.virtualManager->RemoveVirtualInstance(oldestId);
                                     continue;

@@ -76,8 +76,8 @@ void RailShooterEnemyComponent::Initialize() {
     if (auto collider = gameObject_->GetComponent<ColliderComponent>()) {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
-                collider->layer_ = cm->GetLayerMask("Enemy");
-                collider->mask_ = cm->GetLayerMask("Player") | cm->GetLayerMask("Debris_Player");
+                collider->SetLayer(cm->GetLayerMask("Enemy"));
+                collider->SetMask(cm->GetLayerMask("Player") | cm->GetLayerMask("Debris_Player"));
             }
         }
     }
