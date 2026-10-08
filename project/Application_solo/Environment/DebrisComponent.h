@@ -195,8 +195,61 @@ public:
      */
     float GetEnemyDamage() const;
 
+    /**
+     * @brief プレイヤーへの引き寄せ移動を更新する
+     * @param targetPos 目標位置
+     * @param pullSpeed 引き寄せ速度
+     * @param catchDistSq キャッチ判定の二乗距離
+     * @param deltaTime フレーム経過時間
+     * @return キャッチ完了（オービットへ遷移すべき）なら true
+     */
+    bool UpdatePullMovement(const Irufemi::Vector3& targetPos, float pullSpeed, float catchDistSq, float deltaTime);
+
+    /**
+     * @brief プレイヤー周辺での公転位置を更新する
+     * @param targetPos 公転中心位置
+     * @param orbitSpeed 公転角速度
+     * @param deltaTime フレーム経過時間
+     */
+    void UpdatePlayerOrbit(const Irufemi::Vector3& targetPos, float orbitSpeed, float deltaTime);
+
+    /**
+     * @brief ボス周辺でのシールド公転位置・姿勢を更新する
+     * @param targetPos 公転中心位置
+     * @param currentRadiusBase 基準公転半径
+     * @param shieldRotationSpeed 回転速度倍率
+     * @param deltaTime フレーム経過時間
+     */
+    void UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, float currentRadiusBase, float shieldRotationSpeed, float deltaTime);
+
+    /**
+     * @brief 投擲移動を更新し、最大飛翔距離を超過したかを判定する
+     * @param throwSpeed 投擲速度
+     * @param maxDistSq 最大飛翔距離の二乗
+     * @param deltaTime フレーム経過時間
+     * @param[out] outPos 更新後のワールド座標
+     * @return 最大飛翔距離を超過した（消滅すべき）なら true
+     */
+    bool UpdateThrownMovement(float throwSpeed, float maxDistSq, float deltaTime, Irufemi::Vector3& outPos);
+
+    const std::string& GetHitEffectKey() const {
+        return hitEffectKey_;
+    }
+    const std::string& GetExplosionModelPath() const {
+        return explosionModelPath_;
+    }
+    const Irufemi::Vector3& GetThrowOrigin() const {
+        return throwOrigin_;
+    }
+    const Irufemi::Vector3& GetThrowDirection() const {
+        return throwDirection_;
+    }
+    void SetThrowOrigin(const Irufemi::Vector3& origin) {
+        throwOrigin_ = origin;
+    }
+    void SetBossOrbitParams(float angleX, float angleY, float angleZ, float speedX, float speedY, float speedZ, float radiusOffset);
+
 private:
-    friend class DebrisManagerComponent;
     DebrisState state_ = DebrisState::Idle;
     bool hasConsumedHit_ = false; ///< ヒット判定の消費フラグ (多重ダメージ防止用)
 

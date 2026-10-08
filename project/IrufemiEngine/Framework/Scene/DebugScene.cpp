@@ -37,7 +37,7 @@ void DebugScene::Initialize(IrufemiEngine* engine) {
     areaLight->range = 10.0f;
     areaLight->size = {2.0f, 2.0f};
     areaLight->isActive = 1;
-    areaLights_.push_back(std::move(areaLight));
+    AddAreaLight(std::move(areaLight));
 
     isActiveObj_ = false;
     isActiveSprite_ = false;

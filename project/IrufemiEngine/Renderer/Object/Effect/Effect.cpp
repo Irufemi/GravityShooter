@@ -416,9 +416,9 @@ void Effect::SyncBeforeDraw() {
 void Effect::Draw() {
     if (type_ == EffectType::kImpact && impactRingObject_ && isActive_) {
         auto* engine = GPUParticleSystem::GetEngine();
-        Irufemi::BlendMode prevBlend = engine->currentBlend_;
-        PSOManager::DepthWrite prevDepth = engine->currentDepth_;
-        PSOManager::CullMode prevCull = engine->currentCull_;
+        Irufemi::BlendMode prevBlend = engine->GetBlend();
+        PSOManager::DepthWrite prevDepth = engine->GetDepthWrite();
+        PSOManager::CullMode prevCull = engine->GetCull();
 
         engine->SetBlend(blendMode_);
         engine->SetDepthWrite(depthWrite_);
@@ -434,9 +434,9 @@ void Effect::Draw() {
         auto* engine = GPUParticleSystem::GetEngine();
 
         // 現在のステートを退避
-        Irufemi::BlendMode prevBlend = engine->currentBlend_;
-        PSOManager::DepthWrite prevDepth = engine->currentDepth_;
-        PSOManager::CullMode prevCull = engine->currentCull_;
+        Irufemi::BlendMode prevBlend = engine->GetBlend();
+        PSOManager::DepthWrite prevDepth = engine->GetDepthWrite();
+        PSOManager::CullMode prevCull = engine->GetCull();
 
         // エフェクト用のステートを設定
         engine->SetBlend(blendMode_);
@@ -455,9 +455,9 @@ void Effect::Draw() {
         auto* engine = GPUParticleSystem::GetEngine();
 
         // 現在のステートを退避
-        Irufemi::BlendMode prevBlend = engine->currentBlend_;
-        PSOManager::DepthWrite prevDepth = engine->currentDepth_;
-        PSOManager::CullMode prevCull = engine->currentCull_;
+        Irufemi::BlendMode prevBlend = engine->GetBlend();
+        PSOManager::DepthWrite prevDepth = engine->GetDepthWrite();
+        PSOManager::CullMode prevCull = engine->GetCull();
 
         // エフェクト用のステートを設定
         engine->SetBlend(blendMode_);
@@ -501,9 +501,9 @@ void Effect::Draw() {
         auto* engine = GPUParticleSystem::GetEngine();
 
         // 現在のステートを退避
-        Irufemi::BlendMode prevBlend = engine->currentBlend_;
-        PSOManager::DepthWrite prevDepth = engine->currentDepth_;
-        PSOManager::CullMode prevCull = engine->currentCull_;
+        Irufemi::BlendMode prevBlend = engine->GetBlend();
+        PSOManager::DepthWrite prevDepth = engine->GetDepthWrite();
+        PSOManager::CullMode prevCull = engine->GetCull();
 
         // エフェクト用のステートを設定（加算、デプス書き込み無効、カリングなし）
         engine->SetBlend(Irufemi::BlendMode::kBlendModeAdd);

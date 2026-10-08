@@ -110,8 +110,6 @@ public:
     using Mode = PostProcessMode;
     using Layer = EffectLayer;
 
-    IrufemiEngine* engine_ = nullptr;
-
     static constexpr int32_t kMaxKawaseIterations = 8;            // 最大ダウンサンプル回数
     static constexpr uint32_t kMaxPostProcessBufferEntries = 256; ///< 動的定数バッファの最大リング要素数
 
@@ -1166,6 +1164,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> CreateBuffer(size_t size);
 
 private:
+    IrufemiEngine* engine_ = nullptr;
     DirectXCommon* dxCommon_ = nullptr;
     ID3D12Device* device_ = nullptr;
     ID3D12RootSignature* rootSig_ = nullptr;

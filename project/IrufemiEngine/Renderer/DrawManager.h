@@ -326,44 +326,6 @@ public:
         ClearRenderQueues();
         computeTasks_.clear();
     }
-
-    class IrufemiEngine* engine_ = nullptr;
-    DirectXCommon* dxCommon_ = nullptr;
-    ID3D12GraphicsCommandList* commandList_ = nullptr; // コマンドリストをキャッシュ
-
-    std::vector<IComputeTask*> computeTasks_;
-
-    // 各フレームごとの動的リソース
-    struct FrameResource {
-        Microsoft::WRL::ComPtr<ID3D12Resource> frameResource;
-        Microsoft::WRL::ComPtr<ID3D12Resource> pointLightResource;
-        Microsoft::WRL::ComPtr<ID3D12Resource> spotLightResource;
-        Microsoft::WRL::ComPtr<ID3D12Resource> areaLightResource;
-
-        PerFrameData* perFrameData = nullptr;
-        LightCommonData* lightCommonData = nullptr;
-        FogParams* fogParams = nullptr;
-
-        D3D12_GPU_DESCRIPTOR_HANDLE lightSrvHandle{};
-        uint32_t lightSrvBaseIndex = 0xFFFFFFFFu;
-
-        // カメラやライト共通情報を格納するデータ
-        struct FrameData {
-            D3D12_GPU_VIRTUAL_ADDRESS camera;
-            D3D12_GPU_VIRTUAL_ADDRESS lightCommon; // register b1
-            D3D12_GPU_VIRTUAL_ADDRESS fog;         // register b0 (FogPass)
-        } frameData{};
-    };
-    std::array<FrameResource, kMaxFramesInFlight> frameResources_;
-
-    D3D12_GPU_DESCRIPTOR_HANDLE environmentMapHandle_{}; // 環境マップ用SRVハンドル
-
-    // シャドウマップ・レンダーターゲット関連
-    std::array<std::unique_ptr<ShadowMap>, kMaxFramesInFlight> shadowMaps_;
-    bool isShadowPass_ = false;
-    class RenderTexture* currentRenderTexture_ = nullptr;
-    RenderTexture* currentRenderTexture2_ = nullptr;
-
 public: // メンバ関数
     /** @name 初期化・終了処理 */
     ///@{
@@ -858,6 +820,43 @@ public:
     ///@}
 
 private:
+    class IrufemiEngine* engine_ = nullptr;
+    DirectXCommon* dxCommon_ = nullptr;
+    ID3D12GraphicsCommandList* commandList_ = nullptr; // コマンドリストをキャッシュ
+
+    std::vector<IComputeTask*> computeTasks_;
+
+    // 各フレームごとの動的リソース
+    struct FrameResource {
+        Microsoft::WRL::ComPtr<ID3D12Resource> frameResource;
+        Microsoft::WRL::ComPtr<ID3D12Resource> pointLightResource;
+        Microsoft::WRL::ComPtr<ID3D12Resource> spotLightResource;
+        Microsoft::WRL::ComPtr<ID3D12Resource> areaLightResource;
+
+        PerFrameData* perFrameData = nullptr;
+        LightCommonData* lightCommonData = nullptr;
+        FogParams* fogParams = nullptr;
+
+        D3D12_GPU_DESCRIPTOR_HANDLE lightSrvHandle{};
+        uint32_t lightSrvBaseIndex = 0xFFFFFFFFu;
+
+        // カメラやライト共通情報を格納するデータ
+        struct FrameData {
+            D3D12_GPU_VIRTUAL_ADDRESS camera;
+            D3D12_GPU_VIRTUAL_ADDRESS lightCommon; // register b1
+            D3D12_GPU_VIRTUAL_ADDRESS fog;         // register b0 (FogPass)
+        } frameData{};
+    };
+    std::array<FrameResource, kMaxFramesInFlight> frameResources_;
+
+    D3D12_GPU_DESCRIPTOR_HANDLE environmentMapHandle_{}; // 環境マップ用SRVハンドル
+
+    // シャドウマップ・レンダーターゲット関連
+    std::array<std::unique_ptr<ShadowMap>, kMaxFramesInFlight> shadowMaps_;
+    bool isShadowPass_ = false;
+    class RenderTexture* currentRenderTexture_ = nullptr;
+    RenderTexture* currentRenderTexture2_ = nullptr;
+
     Microsoft::WRL::ComPtr<ID3D12CommandSignature> commandSignature_;
     bool vSyncEnabled_ = true;
 };

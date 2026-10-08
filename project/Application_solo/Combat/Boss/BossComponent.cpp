@@ -1,5 +1,7 @@
 #include "Combat/Boss/BossComponent.h"
 #include "Combat/Boss/BossStateIdle.h"
+#include "Combat/Boss/BossStateDestroyed.h"
+#include "Core/Math/MathFunction.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/TransformComponent.h"
@@ -222,5 +224,50 @@ void BossComponent::NotifyBossDied() {
 void BossComponent::NotifyDeathSequenceFinished() {
     if (onDeathSequenceFinished_) {
         onDeathSequenceFinished_();
+    }
+}
+
+void BossComponent::UpdateBeamAttack(float deltaTime) {
+    if (!beamComponent_ || !gameObject_) {
+        return;
+    }
+
+    if (!beamComponent_->IsActive()) {
+        beamTimer_ += deltaTime;
+        if (beamTimer_ >= beamInterval_) {
+            beamTimer_ = 0.0f;
+
+            if (auto myTrans = GetTransform()) {
+                // ボスの前面（プレイヤー側＝ローカル -Z方向）および口元（ローカルY）のオフセット
+                Irufemi::Vector3 localMuzzle = {0.0f, beamOffsetY_, -beamOffsetZ_};
+                Irufemi::Vector3 startPos = Irufemi::Math::Transform(localMuzzle, myTrans->GetWorldMatrix());
+
+                Irufemi::Vector3 forward = -myTrans->GetWorldForward();
+                Irufemi::Vector3 targetPos =
+                    Irufemi::Math::Add(startPos, Irufemi::Math::Multiply(beamRange_, forward));
+                beamComponent_->Fire(startPos, targetPos);
+            }
+        }
+    }
+}
+
+void BossComponent::ApplyCoreDamage(float damage) {
+    hp_ -= damage;
+
+    std::string dmgLog = "Boss took damage! HP: " + std::to_string(hp_) + "\n";
+    Log::OutPutLog(std::cout, dmgLog);
+
+    NotifyDamageTaken(damage);
+
+    if (hp_ <= 0.0f) {
+        hp_ = 0.0f;
+        ChangeState(std::make_unique<BossStateDestroyed>());
+    }
+}
+
+void BossComponent::SpawnDebrisCluster(int count, float radius) {
+    if (debrisManager_ && gameObject_) {
+        Irufemi::Vector3 bossPos = gameObject_->GetTransform()->GetWorldPosition();
+        debrisManager_->SpawnDebrisCluster(bossPos, count, radius);
     }
 }

@@ -69,10 +69,9 @@ void BossStateCoreExposed::Exit(BossComponent* boss) {
 }
 
 void BossStateCoreExposed::OnTakeDamage(BossComponent* boss, float damage) {
-    boss->hp_ -= damage;
-
-    std::string dmgLog = "Boss took damage! HP: " + std::to_string(boss->hp_) + "\n";
-    Log::OutPutLog(std::cout, dmgLog);
+    if (!boss) {
+        return;
+    }
 
     // コア被弾時の白熱ヒットフラッシュ演出 (Juice)
     if (auto coreMask = GetCoreEffectMask(boss)) {
@@ -82,17 +81,9 @@ void BossStateCoreExposed::OnTakeDamage(BossComponent* boss, float damage) {
         hitFlashTimer_ = 0.08f;
     }
 
-    // 被弾イベント通知（演出コンポーネントがカメラシェイク等を担当）
-    boss->NotifyDamageTaken(damage);
-
     // ボス装甲の被弾剥離（破片ドロップ連携）：弾丸ヒット時に破片を2個飛散させる
-    if (boss->debrisManager_ && boss->GetGameObject()) {
-        Irufemi::Vector3 bossPos = boss->GetGameObject()->GetTransform()->GetWorldPosition();
-        boss->debrisManager_->SpawnDebrisCluster(bossPos, 2, 4.0f);
-    }
+    boss->SpawnDebrisCluster(2, 4.0f);
 
-    if (boss->hp_ <= 0) {
-        boss->hp_ = 0;
-        boss->ChangeState(std::make_unique<BossStateDestroyed>());
-    }
+    // ダメージ適用（HP減算、ログ出力、通知、撃破ステート遷移を内部カプセル化）
+    boss->ApplyCoreDamage(damage);
 }

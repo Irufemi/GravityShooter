@@ -381,7 +381,95 @@ std::shared_ptr<Component> DebrisComponent::Clone() {
     clone->manager_ = this->manager_;
     clone->targetObject_ = this->targetObject_;
     clone->ownerObject_ = this->ownerObject_;
-    // No need to copy internal state variables like idleTimeY_, baseIdleY_ deeply, but doing default member copy is
-    // fine since it's a new instance.
     return clone;
 }
+
+bool DebrisComponent::UpdatePullMovement(const Irufemi::Vector3& targetPos, float pullSpeed, float catchDistSq,
+                                        float deltaTime) {
+    auto transform = GetTransform();
+    if (!transform) {
+        return false;
+    }
+
+    Irufemi::Vector3 pos = transform->GetWorldPosition();
+    float pullYOffset = GetPullYOffset();
+    Irufemi::Vector3 diff = {targetPos.x - pos.x, targetPos.y + pullYOffset - pos.y, targetPos.z - pos.z};
+    pos.x += diff.x * pullSpeed * deltaTime;
+    pos.y += diff.y * pullSpeed * deltaTime;
+    pos.z += diff.z * pullSpeed * deltaTime;
+    transform->SetWorldPosition(pos);
+
+    float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+    return distSq < catchDistSq;
+}
+
+void DebrisComponent::UpdatePlayerOrbit(const Irufemi::Vector3& targetPos, float orbitSpeed, float deltaTime) {
+    auto transform = GetTransform();
+    if (!transform) {
+        return;
+    }
+
+    orbitAngle_ += orbitSpeed * deltaTime;
+    Irufemi::Vector3 offset = {std::cos(orbitAngle_) * orbitRadius_,
+                               std::sin(orbitAngle_ * 2.0f) * 0.5f + 1.0f,
+                               std::sin(orbitAngle_) * orbitRadius_};
+
+    Irufemi::Vector3 pos = {targetPos.x + offset.x, targetPos.y + offset.y, targetPos.z + offset.z};
+    transform->SetWorldPosition(pos);
+}
+
+void DebrisComponent::UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, float currentRadiusBase,
+                                           float shieldRotationSpeed, float deltaTime) {
+    auto transform = GetTransform();
+    if (!transform) {
+        return;
+    }
+
+    bossOrbitAngleX_ += bossOrbitSpeedX_ * shieldRotationSpeed * deltaTime;
+    bossOrbitAngleY_ += bossOrbitSpeedY_ * shieldRotationSpeed * deltaTime;
+    bossOrbitAngleZ_ += bossOrbitSpeedZ_ * shieldRotationSpeed * deltaTime;
+
+    Irufemi::Matrix4x4 rotMatrix = Irufemi::Math::MakeRotateXYZMatrix(
+        Irufemi::Vector3{bossOrbitAngleX_, bossOrbitAngleY_, bossOrbitAngleZ_});
+    float currentRadius = currentRadiusBase + bossOrbitRadiusOffset_;
+    Irufemi::Vector3 baseOffset = {0, 0, currentRadius};
+    Irufemi::Vector3 localPos = Irufemi::Math::TransformNormal(baseOffset, rotMatrix);
+
+    Irufemi::Vector3 pos = {targetPos.x + localPos.x, targetPos.y + localPos.y, targetPos.z + localPos.z};
+    transform->SetWorldPosition(pos);
+
+    transform->SetRotation({bossOrbitAngleX_ * 2.0f, bossOrbitAngleY_ * 2.0f, bossOrbitAngleZ_ * 2.0f});
+}
+
+bool DebrisComponent::UpdateThrownMovement(float throwSpeed, float maxDistSq, float deltaTime,
+                                          Irufemi::Vector3& outPos) {
+    auto transform = GetTransform();
+    if (!transform) {
+        return false;
+    }
+
+    Irufemi::Vector3 pos = transform->GetWorldPosition();
+    pos.x += throwDirection_.x * throwSpeed * deltaTime;
+    pos.y += throwDirection_.y * throwSpeed * deltaTime;
+    pos.z += throwDirection_.z * throwSpeed * deltaTime;
+    transform->SetWorldPosition(pos);
+    outPos = pos;
+
+    float dx = pos.x - throwOrigin_.x;
+    float dy = pos.y - throwOrigin_.y;
+    float dz = pos.z - throwOrigin_.z;
+    float distSq = dx * dx + dy * dy + dz * dz;
+    return distSq > maxDistSq;
+}
+
+void DebrisComponent::SetBossOrbitParams(float angleX, float angleY, float angleZ, float speedX, float speedY,
+                                        float speedZ, float radiusOffset) {
+    bossOrbitAngleX_ = angleX;
+    bossOrbitAngleY_ = angleY;
+    bossOrbitAngleZ_ = angleZ;
+    bossOrbitSpeedX_ = speedX;
+    bossOrbitSpeedY_ = speedY;
+    bossOrbitSpeedZ_ = speedZ;
+    bossOrbitRadiusOffset_ = radiusOffset;
+}
+

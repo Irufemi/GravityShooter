@@ -127,11 +127,34 @@ public:
     std::shared_ptr<GameObject> GetBossContainer() const {
         return bossContainer_.lock();
     }
+    /**
+     * @brief ビーム攻撃のタイマーを進め、周期が来たらビームを発射する
+     * @param[in] deltaTime フレーム経過時間
+     */
+    void UpdateBeamAttack(float deltaTime);
+
+    /**
+     * @brief シールドがすべて破壊された状態かどうか
+     * @return シールドがゼロかつ初期化完了していれば true
+     */
+    bool IsShieldDepleted() const {
+        return isShieldsInitialized_ && initialShieldsSpawned_ > 0 && shields_.empty();
+    }
+
+    /**
+     * @brief ボスコアにダメージを適用する（HP減算と撃破遷移）
+     * @param[in] damage ダメージ量
+     */
+    void ApplyCoreDamage(float damage);
+
+    /**
+     * @brief ボス周辺にデブリクラスター（破片）をスポーンさせる
+     * @param[in] count 生成数
+     * @param[in] radius スポーン半径
+     */
+    void SpawnDebrisCluster(int count = 2, float radius = 4.0f);
 
 private:
-    friend class BossStateIdle;
-    friend class BossStateCoreExposed;
-    friend class BossStateDestroyed;
 
     std::string statusDataPath_ = "resources/GameData/BossStatus.json";
     float maxHp_ = 1000.0f;

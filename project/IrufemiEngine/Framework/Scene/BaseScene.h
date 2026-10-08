@@ -189,9 +189,57 @@ public:
      */
     virtual void Deserialize(const nlohmann::json& j) override;
 
+    /**
+     * @brief オブジェクトレジストリを取得する
+     */
+    SceneObjectRegistry* GetObjectRegistry() const {
+        return objectRegistry_.get();
+    }
+
+    /**
+     * @brief 平行光源を取得する
+     */
+    DirectionalLight* GetDirectionalLight() const;
+
+    /**
+     * @brief 平行光源を設定する
+     */
+    void SetDirectionalLight(std::unique_ptr<DirectionalLight> light);
+
+    /**
+     * @brief ポイントライトリストを取得する
+     */
+    const std::vector<std::unique_ptr<PointLight>>& GetPointLights() const;
+
+    /**
+     * @brief ポイントライトを追加する
+     */
+    void AddPointLight(std::unique_ptr<PointLight> light);
+
+    /**
+     * @brief スポットライトリストを取得する
+     */
+    const std::vector<std::unique_ptr<SpotLight>>& GetSpotLights() const;
+
+    /**
+     * @brief スポットライトを追加する
+     */
+    void AddSpotLight(std::unique_ptr<SpotLight> light);
+
+    /**
+     * @brief エリアライトリストを取得する
+     */
+    const std::vector<std::unique_ptr<AreaLight>>& GetAreaLights() const;
+
+    /**
+     * @brief エリアライトを追加する
+     */
+    void AddAreaLight(std::unique_ptr<AreaLight> light);
+
 protected:
     IrufemiEngine* engine_ = nullptr;
 
+private:
     // --- オブジェクト管理 ---
     std::recursive_mutex sceneMutex_;
     std::vector<std::shared_ptr<GameObject>> gameObjects_;
@@ -201,15 +249,6 @@ protected:
     // オブジェクトインデックス管理レジストリ
     std::unique_ptr<SceneObjectRegistry> objectRegistry_;
 
-public:
-    /**
-     * @brief オブジェクトレジストリを取得する
-     */
-    SceneObjectRegistry* GetObjectRegistry() const {
-        return objectRegistry_.get();
-    }
-
-protected:
     // デバッグ用カメラフラグ
     bool isDebugCameraMode_ = false;
     std::string previousActiveCameraName_ = "Main";
@@ -225,10 +264,9 @@ protected:
     std::vector<std::unique_ptr<AreaLight>> areaLights_;
 
     // --- フレームデータの自動送信 ---
-    /**
-     * @brief SubmitFrameData を実行する。
-     */
     void SubmitFrameData();
+
+protected:
 
     // ── 入力ヘルパ ──
     // InputManager をラップした安全なヘルパー

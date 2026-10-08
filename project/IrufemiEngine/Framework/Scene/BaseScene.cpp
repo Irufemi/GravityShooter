@@ -711,3 +711,41 @@ void BaseScene::Deserialize(const nlohmann::json& j) {
 void BaseScene::Finalize() {
     ClearGameObjects();
 }
+
+DirectionalLight* BaseScene::GetDirectionalLight() const {
+    return directionalLight_.get();
+}
+
+void BaseScene::SetDirectionalLight(std::unique_ptr<DirectionalLight> light) {
+    directionalLight_ = std::move(light);
+}
+
+const std::vector<std::unique_ptr<PointLight>>& BaseScene::GetPointLights() const {
+    return pointLights_;
+}
+
+void BaseScene::AddPointLight(std::unique_ptr<PointLight> light) {
+    if (light) {
+        pointLights_.push_back(std::move(light));
+    }
+}
+
+const std::vector<std::unique_ptr<SpotLight>>& BaseScene::GetSpotLights() const {
+    return spotLights_;
+}
+
+void BaseScene::AddSpotLight(std::unique_ptr<SpotLight> light) {
+    if (light) {
+        spotLights_.push_back(std::move(light));
+    }
+}
+
+const std::vector<std::unique_ptr<AreaLight>>& BaseScene::GetAreaLights() const {
+    return areaLights_;
+}
+
+void BaseScene::AddAreaLight(std::unique_ptr<AreaLight> light) {
+    if (light) {
+        areaLights_.push_back(std::move(light));
+    }
+}

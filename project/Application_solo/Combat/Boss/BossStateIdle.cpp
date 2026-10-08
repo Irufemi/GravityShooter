@@ -13,41 +13,22 @@ void BossStateIdle::Enter(BossComponent* boss) {
 }
 
 void BossStateIdle::Update(BossComponent* boss) {
-    if (!boss->gameObject_) {
+    if (!boss || !boss->GetGameObject()) {
         return;
     }
 
-    // --- ビーム攻撃のタイマー処理 ---
-    if (boss->beamComponent_) {
-        float deltaTime = 1.0f / 60.0f;
-        if (auto engine = boss->GetEngine()) {
-            float dt = engine->GetGameDeltaTime();
-            if (dt > 0.0f) {
-                deltaTime = dt;
-            }
-        }
-
-        if (!boss->beamComponent_->IsActive()) {
-            boss->beamTimer_ += deltaTime;
-            if (boss->beamTimer_ >= boss->beamInterval_) {
-                boss->beamTimer_ = 0.0f;
-
-                if (auto myTrans = boss->GetTransform()) {
-                    // ボスの前面（プレイヤー側＝ローカル -Z方向）および口元（ローカルY）のオフセット
-                    Irufemi::Vector3 localMuzzle = {0.0f, boss->beamOffsetY_, -boss->beamOffsetZ_};
-                    Irufemi::Vector3 startPos = Irufemi::Math::Transform(localMuzzle, myTrans->GetWorldMatrix());
-
-                    Irufemi::Vector3 forward = -myTrans->GetWorldForward();
-                    Irufemi::Vector3 targetPos =
-                        Irufemi::Math::Add(startPos, Irufemi::Math::Multiply(boss->beamRange_, forward));
-                    boss->beamComponent_->Fire(startPos, targetPos);
-                }
-            }
+    // --- ビーム攻撃の更新 ---
+    float deltaTime = 1.0f / 60.0f;
+    if (auto engine = boss->GetEngine()) {
+        float dt = engine->GetGameDeltaTime();
+        if (dt > 0.0f) {
+            deltaTime = dt;
         }
     }
+    boss->UpdateBeamAttack(deltaTime);
 
     // CoreExposed への遷移チェック
-    if (boss->isShieldsInitialized_ && boss->initialShieldsSpawned_ > 0 && boss->shields_.empty()) {
+    if (boss->IsShieldDepleted()) {
         boss->ChangeState(std::make_unique<BossStateCoreExposed>());
     }
 }

@@ -588,5 +588,7 @@ public:
 protected:
     GameObject* gameObject_ = nullptr;          ///< 親GameObjectへのポインタ
     std::vector<ComponentProperty> properties_; ///< 自動シリアライズ・UI化用のプロパティリスト
+
+private:
     bool isInitialized_ = false;                ///< 初期化済みフラグ
 };

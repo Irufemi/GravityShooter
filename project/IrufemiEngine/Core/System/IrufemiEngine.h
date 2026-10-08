@@ -757,6 +757,25 @@ public: // セッター
         dxCommon_->GetFenceValue() += index;
     }
 
+    /**
+     * @brief 現在の BlendMode を取得する。
+     */
+    Irufemi::BlendMode GetBlend() const {
+        return currentBlend_;
+    }
+    /**
+     * @brief 現在の DepthWrite を取得する。
+     */
+    PSOManager::DepthWrite GetDepthWrite() const {
+        return currentDepth_;
+    }
+    /**
+     * @brief 現在の CullMode を取得する。
+     */
+    PSOManager::CullMode GetCull() const {
+        return currentCull_;
+    }
+
     // セッター(引数なし描画のためのプリセット切替)
     /**
      * @brief Blend を設定する。
@@ -889,13 +908,11 @@ public: // セッター
      */
     void BindLightningParams(D3D12_GPU_VIRTUAL_ADDRESS address);
 
-public:
+private: // メンバ変数
     // 状態(現在のブレンドと深度書き込み)
     Irufemi::BlendMode currentBlend_ = Irufemi::BlendMode::kBlendModeNormal;
     PSOManager::DepthWrite currentDepth_ = PSOManager::DepthWrite::Enable;
     PSOManager::CullMode currentCull_ = PSOManager::CullMode::Back; //!< 現在のカリングモード（デフォルトは背面）
-
-private: // メンバ変数
     // --- Debug & Logging ---
     // ログ
     std::unique_ptr<Log> log_ = nullptr;

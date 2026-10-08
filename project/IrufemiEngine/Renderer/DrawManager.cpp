@@ -636,9 +636,9 @@ void DrawManager::SubmitSprite(const Object2DResource* resource) {
     }
     SpritePacket p{};
     p.resource = resource;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     GetLocalQueues().spriteQueue.push_back(p);
 }
 
@@ -648,9 +648,9 @@ void DrawManager::SubmitTopMostSprite(const Object2DResource* resource) {
     }
     SpritePacket p{};
     p.resource = resource;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     GetLocalQueues().topMostSpriteQueue.push_back(p);
 }
 
@@ -706,9 +706,9 @@ void DrawManager::SubmitText(const Object2DResource* resource) {
     }
     SpritePacket p{};
     p.resource = resource;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     GetLocalQueues().textQueue.push_back(p);
 }
 
@@ -718,9 +718,9 @@ void DrawManager::SubmitTopMostText(const Object2DResource* resource) {
     }
     SpritePacket p{};
     p.resource = resource;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     GetLocalQueues().topMostTextQueue.push_back(p);
 }
 
@@ -894,9 +894,9 @@ void DrawManager::SubmitLineInstanced(const LineResource* resource,
     p.resource = resource;
     p.instancingSrvHandleGPU = instancingSrvHandleGPU;
     p.instanceCount = instanceCount;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
     p.depthWrite = depthWrite;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     GetLocalQueues().lineQueue.push_back(p);
 }
 
@@ -923,9 +923,9 @@ void DrawManager::SubmitDebugPrimitive(const RenderPackets::DebugPrimitivePacket
         return;
     }
     RenderPackets::DebugPrimitivePacket p = packet;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     GetLocalQueues().debugPrimitiveQueue.push_back(p);
 }
 
@@ -1038,9 +1038,9 @@ void DrawManager::SubmitStandard3D(const Object3DResource* resource,
     Standard3DPacket p{};
     p.resource = resource;
     p.vertexBufferViewOverride = vertexBufferViewOverride;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     p.castShadows = castShadows;
     p.customPSO = resource->GetCustomPSO();
     p.customCBVAddress = resource->GetCustomCBVAddress();
@@ -1061,9 +1061,9 @@ void DrawManager::SubmitTransparent3D(const Object3DResource* resource,
     Standard3DPacket p{};
     p.resource = resource;
     p.vertexBufferViewOverride = vertexBufferViewOverride;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     p.customPSO = resource->GetCustomPSO();
     p.customCBVAddress = resource->GetCustomCBVAddress();
     p.vertexBufferResourceOverride = vertexBufferResourceOverride;
@@ -1093,9 +1093,9 @@ void DrawManager::SubmitUI3D(const Object3DResource* resource,
     Standard3DPacket p{};
     p.resource = resource;
     p.vertexBufferViewOverride = vertexBufferViewOverride;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     p.customPSO = resource->GetCustomPSO();
     p.customCBVAddress = resource->GetCustomCBVAddress();
     GetLocalQueues().ui3DQueue.push_back(p);
@@ -1111,9 +1111,9 @@ void DrawManager::SubmitOutlineMask(const Object3DResource* resource,
     p.resource = resource;
     p.vertexBufferViewOverride = vertexBufferViewOverride;
     p.vertexBufferResourceOverride = vertexBufferResourceOverride;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     p.customPSO = resource->GetCustomPSO();
     p.customCBVAddress = resource->GetCustomCBVAddress();
     GetLocalQueues().selectionMaskQueue.push_back(p);
@@ -1125,9 +1125,9 @@ void DrawManager::SubmitTextOutlineMask(const Object2DResource* resource) {
     }
     SpritePacket p{};
     p.resource = resource;
-    p.blendMode = dxCommon_->GetEngine()->currentBlend_;
-    p.depthWrite = dxCommon_->GetEngine()->currentDepth_;
-    p.cullMode = dxCommon_->GetEngine()->currentCull_;
+    p.blendMode = dxCommon_->GetEngine()->GetBlend();
+    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
+    p.cullMode = dxCommon_->GetEngine()->GetCull();
     p.customPSO = resource->GetCustomPSO();
     p.customCBVAddress = resource->GetCustomCBVAddress();
     GetLocalQueues().selectionMaskQueue2D.push_back(p);

@@ -54,12 +54,13 @@ public:
      */
     EnemySpawnerComponent* GetEnemySpawner() const;
 
-    std::vector<WaveEventData>& GetAllEventsMutable() {
-        return allEvents_;
+    void SetAllEvents(const std::vector<WaveEventData>& events) {
+        allEvents_ = events;
     }
     const std::vector<WaveEventData>& GetAllEvents() const {
         return allEvents_;
     }
+    void SortEventsByDistance();
     const std::string& GetLevelDataPath() const {
         return levelDataPath_;
     }

@@ -443,9 +443,9 @@ void GPUParticleSystem::Draw() {
     ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
 
     // 現在のステートを退避
-    Irufemi::BlendMode oldBlend = engine_->currentBlend_;
-    PSOManager::DepthWrite oldDepth = engine_->currentDepth_;
-    PSOManager::CullMode oldCull = engine_->currentCull_;
+    Irufemi::BlendMode oldBlend = engine_->GetBlend();
+    PSOManager::DepthWrite oldDepth = engine_->GetDepthWrite();
+    PSOManager::CullMode oldCull = engine_->GetCull();
 
     // パーティクル用のステートを設定
     engine_->SetBlend(selectedBlend_);

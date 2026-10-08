@@ -13,7 +13,7 @@ void WaveManagerComponentEditor::Draw(Component* component, EditorActionManager*
         return;
     }
 
-    auto& events = waveManager->GetAllEventsMutable();
+    auto events = waveManager->GetAllEvents();
 
     // --- Undo/Redo Setup ---
     auto pushUndo = [&](const std::vector<WaveEventData>& oldData) {
@@ -22,7 +22,7 @@ void WaveManagerComponentEditor::Draw(Component* component, EditorActionManager*
         }
         actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::vector<WaveEventData>>>(
             oldData, events,
-            [waveManager](const std::vector<WaveEventData>& val) { waveManager->GetAllEventsMutable() = val; }));
+            [waveManager](const std::vector<WaveEventData>& val) { waveManager->SetAllEvents(val); }));
     };
 
     auto handleItemUndo = [&]() {
@@ -348,5 +348,7 @@ void WaveManagerComponentEditor::Draw(Component* component, EditorActionManager*
         }
         handleItemUndo();
     }
+
+    waveManager->SetAllEvents(events);
 }
 #endif

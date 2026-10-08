@@ -350,7 +350,10 @@ void WaveManagerComponent::SaveLevelData(const std::string& filePath) {
     std::ofstream file(filePath);
     if (file.is_open()) {
         file << j.dump(4);
-    } else {
-        Log::OutPutLog(std::cout, "[WaveManager] Failed to save level data: " + filePath + "\n");
     }
+}
+
+void WaveManagerComponent::SortEventsByDistance() {
+    std::sort(allEvents_.begin(), allEvents_.end(),
+              [](const WaveEventData& a, const WaveEventData& b) { return a.triggerDistance < b.triggerDistance; });
 }
