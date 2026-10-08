@@ -1,4 +1,8 @@
 #include "Scenes/title/TitleMenuControllerComponent.h"
+#include "Scenes/title/State/TitleMenuStateIdle.h"
+#include "Scenes/title/State/TitleMenuStateOpeningModal.h"
+#include "Scenes/title/State/TitleMenuStateSuspended.h"
+#include "Scenes/title/State/TitleMenuStateLaunching.h"
 
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Scene/SceneManager.h"
@@ -27,7 +31,7 @@
 void TitleMenuControllerComponent::Initialize() {
     currentIndex_ = 0;
     pressedButtonIndex_ = -1;
-    state_ = MenuState::Idle;
+    ChangeState(std::make_unique<TitleMenuStateIdle>());
     stateTimer_ = 0.0f;
     pendingModalSceneName_.clear();
     dismissTimer_ = 0.0f;
@@ -72,104 +76,107 @@ void TitleMenuControllerComponent::Update() {
     // タイトルロゴの呼吸脈動・シアン発光パルス更新
     UpdateTitleTextVisual(deltaTime);
 
-    // ステートマシン更新
-    UpdateState(deltaTime);
+    // ステートマシン更新 (State Pattern: ポリモーフィズム呼び出し)
+    if (currentState_) {
+        currentState_->Update(this, deltaTime);
+    }
+}
+
+TitleMenuControllerComponent::MenuState TitleMenuControllerComponent::GetState() const {
+    if (currentState_) {
+        return currentState_->GetStateType();
+    }
+    return MenuState::Idle;
+}
+
+void TitleMenuControllerComponent::ChangeState(std::unique_ptr<ITitleMenuState> newState) {
+    if (currentState_) {
+        currentState_->Exit(this);
+    }
+    currentState_ = std::move(newState);
+    stateTimer_ = 0.0f;
+    if (currentState_) {
+        currentState_->Enter(this);
+    }
 }
 
 void TitleMenuControllerComponent::ChangeState(MenuState newState) {
-    if (state_ == newState) {
-        return;
-    }
-    ExitState(state_);
-    state_ = newState;
-    stateTimer_ = 0.0f;
-    EnterState(state_);
-}
-
-void TitleMenuControllerComponent::EnterState(MenuState state) {
-    switch (state) {
+    switch (newState) {
     case MenuState::Idle:
-        SetMenuVisible(true);
-        for (size_t i = 0; i < targetScales_.size(); ++i) {
-            targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
-        }
+        ChangeState(std::make_unique<TitleMenuStateIdle>());
         break;
-
     case MenuState::OpeningModal:
-        stateTimer_ = 0.0f;
-        UISound::PlayDecide();
+        ChangeState(std::make_unique<TitleMenuStateOpeningModal>());
         break;
-
     case MenuState::Suspended:
-        SetMenuVisible(false);
-        if (virtualCursorRenderer_) {
-            virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
-        }
+        ChangeState(std::make_unique<TitleMenuStateSuspended>());
         break;
-
     case MenuState::Launching:
-        TriggerScreenFlash();
-        StartDismissAnimation();
-        // TitleSceneDirectorComponent による出撃シーケンス発火
-        if (auto scene = GetScene()) {
-            if (auto menuMgr = scene->FindGameObject("MenuManager")) {
-                if (auto director = menuMgr->GetComponent<TitleSceneDirectorComponent>()) {
-                    director->StartLaunchSequence();
-                    break;
-                }
-            }
-        }
-        // フォールバック遷移
-        if (auto engine = GetEngine()) {
-            if (auto sm = engine->GetSceneManager()) {
-                sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.9f);
-            }
-        }
+        ChangeState(std::make_unique<TitleMenuStateLaunching>());
         break;
     }
 }
 
-void TitleMenuControllerComponent::ExitState(MenuState state) {
-    switch (state) {
-    case MenuState::OpeningModal:
-        // モーダル決定アニメーション（Click Punch + フェード）完全完了の瞬間に PushScene を発火！
-        if (auto engine = GetEngine()) {
-            if (auto sm = engine->GetSceneManager()) {
-                sm->PushScene(pendingModalSceneName_);
-            }
-        }
-        break;
-    default:
-        break;
+bool TitleMenuControllerComponent::IsHowToPlayOpen() const {
+    return GetState() == MenuState::Suspended && pendingModalSceneName_ == "HowToPlayScene";
+}
+
+bool TitleMenuControllerComponent::IsLaunching() const {
+    return GetState() == MenuState::Launching;
+}
+
+void TitleMenuControllerComponent::SetLaunching(bool launching) {
+    if (launching) {
+        ChangeState(MenuState::Launching);
+    } else if (GetState() == MenuState::Launching) {
+        ChangeState(MenuState::Idle);
     }
 }
 
-void TitleMenuControllerComponent::UpdateState(float deltaTime) {
-    switch (state_) {
-    case MenuState::Idle:
-        // スティッククールダウン減衰
-        if (stickCooldownTimer_ > 0.0f) {
-            stickCooldownTimer_ -= deltaTime;
+bool TitleMenuControllerComponent::IsDismissing() const {
+    return GetState() == MenuState::Launching;
+}
+
+void TitleMenuControllerComponent::ResetTargetScalesForCurrentIndex() {
+    SetMenuVisible(true);
+    for (size_t i = 0; i < targetScales_.size(); ++i) {
+        targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
+    }
+}
+
+void TitleMenuControllerComponent::UpdateStickCooldown(float dt) {
+    if (stickCooldownTimer_ > 0.0f) {
+        stickCooldownTimer_ -= dt;
+    }
+}
+
+void TitleMenuControllerComponent::PushPendingModalScene() {
+    if (auto engine = GetEngine()) {
+        if (auto sm = engine->GetSceneManager()) {
+            sm->PushScene(pendingModalSceneName_);
         }
-        // ナビゲーション入力処理
-        HandleNavigationInput();
-        // 決定入力処理
-        HandleSelectionInput();
-        // ボタンの視覚フィードバック（拡縮・発光アニメーション）
-        UpdateButtonVisuals(deltaTime);
-        break;
+    }
+}
 
-    case MenuState::OpeningModal:
-        UpdateOpeningModalAnimation(deltaTime);
-        break;
+void TitleMenuControllerComponent::HideVirtualCursor() {
+    if (virtualCursorRenderer_) {
+        virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+    }
+}
 
-    case MenuState::Suspended:
-        // 背面待機中は完全休眠（Update処理を行わない）
-        break;
-
-    case MenuState::Launching:
-        UpdateDismissAnimation(deltaTime);
-        break;
+void TitleMenuControllerComponent::TriggerLaunchSequence() {
+    if (auto scene = GetScene()) {
+        if (auto menuMgr = scene->FindGameObject("MenuManager")) {
+            if (auto director = menuMgr->GetComponent<TitleSceneDirectorComponent>()) {
+                director->StartLaunchSequence();
+                return;
+            }
+        }
+    }
+    if (auto engine = GetEngine()) {
+        if (auto sm = engine->GetSceneManager()) {
+            sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.9f);
+        }
     }
 }
 
@@ -664,7 +671,7 @@ void TitleMenuControllerComponent::UpdateScreenFlash(float deltaTime) {
 }
 
 void TitleMenuControllerComponent::UpdateTitleTextVisual(float deltaTime) {
-    if (state_ != MenuState::Idle) {
+    if (GetState() != MenuState::Idle) {
         return; // 出撃・演出・待機中はそちらのフェード制御に委ねる
     }
 
@@ -718,7 +725,7 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
     }
 
     // 通常待機(Idle)時以外はカーソルを隠す
-    if (state_ != MenuState::Idle) {
+    if (GetState() != MenuState::Idle) {
         if (virtualCursorRenderer_) {
             virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
         }

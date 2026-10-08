@@ -2,6 +2,7 @@
 
 #include "Framework/Component/Component.h"
 #include "Core/Math/Vector3.h"
+#include "Scenes/title/State/ITitleLaunchState.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -62,6 +63,14 @@ public:
         return nextSceneName_;
     }
 
+    // 出撃シーケンスのステージ分割定数（全体長: 約3.20秒）
+    static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
+    static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
+    static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速離脱・消滅
+    static constexpr float kDurationAfterglow_ = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
+    static constexpr float kDurationFreeze_ = 0.045f;   ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
+    static constexpr float kTotalLaunchDuration_ = 3.20f; ///< 全体演出長 (秒)
+
     /**
      * @enum LaunchState
      * @brief 出撃シーケンスの有限状態機械（FSM）
@@ -75,10 +84,27 @@ public:
     };
 
     /**
+     * @brief 出撃ステートを変更します（State パターン）
+     * @param[in] newState 新しいステートオブジェクト
+     */
+    void ChangeState(std::unique_ptr<class ITitleLaunchState> newState);
+
+    /**
+     * @brief 出撃ステートをタイプ指定で変更します（外部互換用 Factory）
+     * @param[in] newState 遷移先ステート
+     */
+    void ChangeState(LaunchState newState);
+
+    /**
      * @brief 現在の出撃ステートを取得する
      */
-    LaunchState GetLaunchState() const {
-        return launchState_;
+    LaunchState GetLaunchState() const;
+
+    /**
+     * @brief 現在の出撃ステートの経過時間を取得する
+     */
+    float GetLaunchStateTimer() const {
+        return stateTimer_;
     }
 
     /**
@@ -118,6 +144,33 @@ public:
      */
     void TriggerGravitationalShockwave(float power = 1.0f);
 
+    // --- State パターン内部アクセス用アクセサ ---
+    const Irufemi::Vector3& GetInitialShipPos() const { return initialShipPos_; }
+    const Irufemi::Vector3& GetInitialShipRot() const { return initialShipRot_; }
+    const Irufemi::Vector3& GetLaunchStartRot() const { return launchStartRot_; }
+    void SetLaunchStartRot(const Irufemi::Vector3& rot) { launchStartRot_ = rot; }
+    const Irufemi::Vector3& GetInitialCameraPos() const { return initialCameraPos_; }
+    float GetInitialCameraFov() const { return initialCameraFov_; }
+    const std::vector<Irufemi::Vector3>& GetInitialDebrisPositions() const { return initialDebrisPositions_; }
+    const std::vector<std::weak_ptr<GameObject>>& GetDebrisObjects() const { return debrisObjs_; }
+    std::weak_ptr<GameObject> GetShipObject() const { return shipObj_; }
+    std::weak_ptr<GameObject> GetCameraObject() const { return cameraObj_; }
+    std::weak_ptr<GameObject> GetThrusterObject() const { return thrusterObj_; }
+    void SetTargetThrusterScaleZ(float scale) { targetThrusterScaleZ_ = scale; }
+    float GetInitialBgmVolume() const { return initialBgmVolume_; }
+    void SetInitialBgmVolume(float volume) { initialBgmVolume_ = volume; }
+    bool IsMicroFreezing() const { return isMicroFreezing_; }
+    void SetMicroFreezing(bool freezing) { isMicroFreezing_ = freezing; }
+    float GetFreezeTimer() const { return freezeTimer_; }
+    void SetFreezeTimer(float timer) { freezeTimer_ = timer; }
+    void AddFreezeTimer(float dt) { freezeTimer_ += dt; }
+    bool HasTriggeredRelease() const { return hasTriggeredRelease_; }
+    void SetTriggeredRelease(bool triggered) { hasTriggeredRelease_ = triggered; }
+    void TriggerImpactRelease() { OnImpactRelease(); }
+    bool HasTriggeredSceneTransition() const { return hasTriggeredSceneTransition_; }
+    void SetTriggeredSceneTransition(bool triggered) { hasTriggeredSceneTransition_ = triggered; }
+    void TriggerSceneTransition(float fadeDuration = 0.6f);
+
 private:
     void CacheEntities();
     void UpdateIdling(float deltaTime);
@@ -134,11 +187,6 @@ private:
      * @brief ラジアルブラーの安全なクリーンアップ（ポストプロセススタックからの完全除去）
      */
     void CleanupRadialBlur();
-
-    // --- State パターン管理メソッド ---
-    void SetLaunchState(LaunchState newState);
-    void OnEnterLaunchState(LaunchState state);
-    void OnUpdateLaunchState(LaunchState state, float deltaTime);
 
     /**
      * @brief ガレキVoxel粉砕および複合粉塵パーティクルの発火処理
@@ -187,17 +235,9 @@ private: // メンバ変数
     float shockwaveIntensity_ = 0.0f; ///< 重力波衝撃波の現在強度（全ガレキ外周押し出し・減衰）
     float initialBgmVolume_ = 0.70f;  ///< BGM初期音量キャッシュ
 
-    // 出撃シーケンスのステージ分割定数（全体長: 約3.20秒）
-    static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
-    static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
-    static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速離脱・消滅
-    static constexpr float kDurationAfterglow_ = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
-    static constexpr float kDurationFreeze_ = 0.045f; ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
-    static constexpr float kTotalLaunchDuration_ =
-        kDurationCharge_ + kDurationAccelerate_ + kDurationBreak_ + kDurationAfterglow_;
-
-    // 出撃シーケンス用状態
-    LaunchState launchState_ = LaunchState::Idle;
+    // 出撃シーケンス用状態 (State パターン)
+    std::unique_ptr<class ITitleLaunchState> currentLaunchState_;
+    LaunchState currentLaunchStateType_ = LaunchState::Idle;
     float stateTimer_ = 0.0f;
     bool isLaunching_ = false;
     float launchTimer_ = 0.0f;

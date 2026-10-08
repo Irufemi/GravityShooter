@@ -2,6 +2,8 @@
 
 #include "Framework/Component/Component.h"
 #include "Core/Math/Vector2.h"
+#include "Scenes/title/State/ITitleMenuState.h"
+#include <memory>
 #include <vector>
 #include <string>
 
@@ -13,15 +15,7 @@
  */
 class TitleMenuControllerComponent : public Component {
 public: // 状態定義
-    /**
-     * @brief タイトルメニューの動作状態を表すステート列挙体
-     */
-    enum class MenuState {
-        Idle,         //!< 通常待機（ホバー・ナビゲーション入力受付中）
-        OpeningModal, //!< モーダル決定演出中（Click Punch押し込み＆跳ね返り、他ボタンフェード ➔ 完了でPushScene発火）
-        Suspended,    //!< モーダル表示中（メニュー非表示＆入力停止）
-        Launching,    //!< 出撃決定演出中（白光フラッシュ＆ディスミス拡散 ➔ InGame遷移）
-    };
+    using MenuState = TitleMenuStateType;
 
 public: // メンバ関数(システム)
     TitleMenuControllerComponent() = default;
@@ -53,12 +47,16 @@ public: // メンバ関数(システム)
     /**
      * @brief 現在のメニュー状態を取得する
      */
-    MenuState GetState() const {
-        return state_;
-    }
+    MenuState GetState() const;
 
     /**
-     * @brief 状態を明示的に切り替える（ExitState ➔ EnterState を実行）
+     * @brief 状態を明示的に切り替える（State Pattern）
+     * @param[in] newState 遷移先のステートインスタンス
+     */
+    void ChangeState(std::unique_ptr<ITitleMenuState> newState);
+
+    /**
+     * @brief 状態を明示的に切り替える（互換用オーバーロード）
      * @param[in] newState 遷移先の状態
      */
     void ChangeState(MenuState newState);
@@ -74,27 +72,17 @@ public: // メンバ関数(システム)
     /**
      * @brief HOW TO PLAY モーダルが開いているか
      */
-    bool IsHowToPlayOpen() const {
-        return state_ == MenuState::Suspended && pendingModalSceneName_ == "HowToPlayScene";
-    }
+    bool IsHowToPlayOpen() const;
 
     /**
      * @brief 出撃演出中かどうか
      */
-    bool IsLaunching() const {
-        return state_ == MenuState::Launching;
-    }
+    bool IsLaunching() const;
 
     /**
      * @brief 出撃演出開始フラグを設定する（外部連携用）
      */
-    void SetLaunching(bool launching) {
-        if (launching) {
-            ChangeState(MenuState::Launching);
-        } else if (state_ == MenuState::Launching) {
-            ChangeState(MenuState::Idle);
-        }
-    }
+    void SetLaunching(bool launching);
 
     /**
      * @brief GAME START 決定時のUI重力拡散・フェード消滅アニメーションを開始する
@@ -109,9 +97,7 @@ public: // メンバ関数(システム)
     /**
      * @brief UIディゾルブ消滅中かどうか
      */
-    bool IsDismissing() const {
-        return state_ == MenuState::Launching;
-    }
+    bool IsDismissing() const;
 
     /**
      * @brief メニューUI（タイトルロゴ・各ボタン）の一括表示/非表示を設定する
@@ -124,18 +110,21 @@ public: // メンバ関数(システム)
      */
     void RestoreFocusOnResume();
 
-private: // 状態ライフサイクル（Stateパターン）
-    void EnterState(MenuState state);
-    void UpdateState(float deltaTime);
-    void ExitState(MenuState state);
-    void UpdateOpeningModalAnimation(float deltaTime);
-
-private: // 内部処理
+    // --- State Pattern 用アクセサ・ヘルパー群 (カプセル化準拠) ---
+    void ResetTargetScalesForCurrentIndex();
+    void UpdateStickCooldown(float dt);
     void HandleNavigationInput();
     void HandleSelectionInput();
+    void UpdateButtonVisuals(float dt);
+    void ResetStateTimer() { stateTimer_ = 0.0f; }
+    void UpdateOpeningModalAnimation(float dt);
+    void PushPendingModalScene();
+    void HideVirtualCursor();
+    void TriggerLaunchSequence();
+    void UpdateDismissAnimation(float dt);
+
+private: // 内部処理
     void UpdateVirtualCursor(float deltaTime);
-    void UpdateButtonVisuals(float deltaTime);
-    void UpdateDismissAnimation(float deltaTime);
     void UpdateScreenFlash(float deltaTime);
     void UpdateTitleTextVisual(float deltaTime);
     void ExecuteSelection();
@@ -150,7 +139,7 @@ private: // 内部処理
     bool IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const;
 
 private:                                // メンバ変数
-    MenuState state_ = MenuState::Idle; //!< 現在のメニュー状態
+    std::unique_ptr<ITitleMenuState> currentState_ = nullptr; //!< 現在のメニュー状態（State Pattern）
     float stateTimer_ = 0.0f;           //!< 各ステート内経過タイマー
     static constexpr float kModalAnimDuration_ =
         0.22f;                          //!< モーダル決定演出所要時間 (Click In 0.055s + Click Pop 0.165s)

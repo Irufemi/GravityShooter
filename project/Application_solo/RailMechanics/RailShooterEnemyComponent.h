@@ -5,19 +5,9 @@
 #include "Renderer/Data/AOEParams.h"
 #include "RHI/DirectX12/ConstantBuffer.h"
 #include "Renderer/Object/3D/Primitive/Primitive3DObject.h"
+#include "RailMechanics/State/IRailShooterEnemyState.h"
 #include <functional>
 #include <memory>
-
-/**
- * @enum EnemyAIState
- * @brief 敵キャラクターのAI行動状態
- */
-enum class EnemyAIState {
-    Approach, //!< 前方定位置への進入
-    Combat,   //!< 自機と一定距離を保って滞空・射撃
-    Dive,     //!< 特攻急降下（DiveBomber専用: 自機へ向けて急加速突進）
-    Disengage //!< 制限時間終了によるすれ違い離脱
-};
 
 /**
  * @enum EnemyBehaviorType
@@ -207,7 +197,43 @@ public:
         return static_cast<EnemyBehaviorType>(behaviorType_);
     }
 
-private:
+    /**
+     * @brief AI行動ステートを変更する
+     * @param[in] newState 新しいステートインスタンス
+     */
+    void ChangeState(std::unique_ptr<IRailShooterEnemyState> newState);
+
+    /**
+     * @brief 現在のAIステートタイプを取得する
+     * @return 状態タイプ
+     */
+    EnemyAIState GetStateType() const;
+
+    // --- State Pattern 用アクセサ群 (カプセル化準拠) ---
+    float GetCurrentDistanceOffset() const { return currentDistanceOffset_; }
+    void SetCurrentDistanceOffset(float offset) { currentDistanceOffset_ = offset; }
+    float GetTargetDistance() const { return targetDistance_; }
+    float GetSpeed() const { return speed_; }
+    const Irufemi::Vector2& GetBaseFormationOffset() const { return baseFormationOffset_; }
+    const Irufemi::Vector2& GetCurrentLocalOffset() const { return currentLocalOffset_; }
+    void SetCurrentLocalOffset(const Irufemi::Vector2& offset) { currentLocalOffset_ = offset; }
+    float GetCombatDuration() const { return combatDuration_; }
+    float GetShootInterval() const { return shootInterval_; }
+    float GetShootTimer() const { return shootTimer_; }
+    void SetShootTimer(float timer) { shootTimer_ = timer; }
+    float GetSniperTelegraphDuration() const { return sniperTelegraphDuration_; }
+    float GetSniperLockLeadTime() const { return sniperLockLeadTime_; }
+    float GetBulletSpeed() const { return bulletSpeed_; }
+    bool IsAimLocked() const { return isAimLocked_; }
+    void SetAimLocked(bool locked) { isAimLocked_ = locked; }
+    const Irufemi::Vector3& GetLockedAimDir() const { return lockedAimDir_; }
+    void SetLockedAimDir(const Irufemi::Vector3& dir) { lockedAimDir_ = dir; }
+    const Irufemi::Vector3& GetLockedTargetPos() const { return lockedTargetPos_; }
+    void SetLockedTargetPos(const Irufemi::Vector3& pos) { lockedTargetPos_ = pos; }
+    float GetDiveRollAngle() const { return diveRollAngle_; }
+    void SetDiveRollAngle(float angle) { diveRollAngle_ = angle; }
+    const Irufemi::Vector3& GetPlayerVelocity() const { return playerVelocity_; }
+
     /**
      * @brief プレイヤー現在位置へ向けて通常射撃を行う
      * @param playerPos プレイヤー座標
@@ -263,13 +289,11 @@ private:
     AOEParams aoeParamsData_{};
 
     int behaviorType_ = 0; //!< 戦術行動タイプ (0: Standard, 1: DiveBomber, 2: PredictiveSniper)
-    EnemyAIState state_ = EnemyAIState::Approach; //!< 現在のAIステート
-    float stateTimer_ = 0.0f;                     //!< ステート内タイマー
+    std::unique_ptr<IRailShooterEnemyState> currentState_ = nullptr; //!< 現在のAIステート（State Pattern）
     float combatDuration_ = 7.5f;                 //!< 滞空交戦の制限時間（秒）
     float shootInterval_ = 1.8f;                  //!< 射撃インターバル（秒）
     float shootTimer_ = 0.6f;                     //!< 射撃タイマー
     float targetDistance_ = 65.0f;                //!< 自機前方との維持距離
-    float hoverTimer_ = 0.0f;                     //!< 浮遊サイン波タイマー
     int bodyDamage_ = 20;                         //!< 体当たり衝突ダメージ
     float bulletScale_ = 0.3f;                    //!< 敵弾のスケール・コライダー半径
     float bulletSpeed_ = 32.0f;                   //!< 敵弾の飛翔速度

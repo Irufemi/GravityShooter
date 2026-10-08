@@ -1,4 +1,5 @@
 #include "RailMechanics/RailShooterEnemyComponent.h"
+#include "RailMechanics/State/RailShooterEnemyStateApproach.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
@@ -48,10 +49,7 @@ void RailShooterEnemyComponent::Initialize() {
     }
     hp_ = 100;
     isActive_ = true;
-    state_ = EnemyAIState::Approach;
-    stateTimer_ = 0.0f;
-    shootTimer_ = 0.6f;
-    hoverTimer_ = 0.0f;
+    ChangeState(std::make_unique<RailShooterEnemyStateApproach>());
     diveRollAngle_ = 0.0f;
     hasLastPlayerPos_ = false;
     playerFollower_ = nullptr;
@@ -182,135 +180,8 @@ void RailShooterEnemyComponent::Update() {
 
     float playerDist = playerFollower_->GetCurrentDistance();
 
-    switch (state_) {
-    case EnemyAIState::Approach: {
-        // 初期距離オフセットから目標交戦距離 (targetDistance_) へスムーズにレール上を接近
-        float diffDist = targetDistance_ - currentDistanceOffset_;
-        if (std::abs(diffDist) > 0.5f) {
-            float moveDir = (diffDist > 0.0f) ? 1.0f : -1.0f;
-            currentDistanceOffset_ += moveDir * speed_ * 1.5f * dt;
-            if ((moveDir > 0.0f && currentDistanceOffset_ > targetDistance_) ||
-                (moveDir < 0.0f && currentDistanceOffset_ < targetDistance_)) {
-                currentDistanceOffset_ = targetDistance_;
-            }
-        } else {
-            currentDistanceOffset_ = targetDistance_;
-        }
-
-        currentLocalOffset_ = baseFormationOffset_;
-
-        stateTimer_ += dt;
-        if (std::abs(currentDistanceOffset_ - targetDistance_) < 2.0f || stateTimer_ >= 3.0f) {
-            if (behaviorType_ == static_cast<int>(EnemyBehaviorType::DiveBomber)) {
-                state_ = EnemyAIState::Dive;
-            } else {
-                state_ = EnemyAIState::Combat;
-            }
-            stateTimer_ = 0.0f;
-            shootTimer_ = (behaviorType_ == static_cast<int>(EnemyBehaviorType::PredictiveSniper))
-                              ? (std::max)(sniperTelegraphDuration_, 1.2f)
-                              : 0.6f; // 初弾タイマー
-        }
-        break;
-    }
-    case EnemyAIState::Combat: {
-        // 自機と等速で前方一定距離を完全維持
-        currentDistanceOffset_ = targetDistance_;
-
-        // レール局所断面での浮遊運動（サイン・コサイン波）
-        hoverTimer_ += dt;
-        currentLocalOffset_.x = baseFormationOffset_.x + std::sin(hoverTimer_ * 2.5f) * 4.0f;
-        currentLocalOffset_.y = baseFormationOffset_.y + std::cos(hoverTimer_ * 2.0f) * 2.5f;
-
-        // 射撃および予兆（Telegraphing）処理
-        shootTimer_ -= dt;
-
-        if (behaviorType_ == static_cast<int>(EnemyBehaviorType::PredictiveSniper)) {
-            // スナイパー：予兆期間中の射線更新およびロック判定
-            if (shootTimer_ <= sniperTelegraphDuration_ && shootTimer_ > 0.0f) {
-                if (shootTimer_ > sniperLockLeadTime_) {
-                    // [追従フェーズ] プレイヤーの未来位置をリアルタイム計算して射線を追従
-                    isAimLocked_ = false;
-                    Irufemi::Vector3 myPos = transform->GetWorldPosition();
-                    float dx = currentPlayerPos.x - myPos.x;
-                    float dy = currentPlayerPos.y - myPos.y;
-                    float dz = currentPlayerPos.z - myPos.z;
-                    float dist = std::sqrt(dx * dx + dy * dy + dz * dz);
-                    float travelTime = dist / (std::max)(bulletSpeed_, 1.0f);
-                    travelTime = std::clamp(travelTime, 0.0f, 1.2f); // 過剰な未来予測の暴走を防止
-
-                    lockedTargetPos_ = {currentPlayerPos.x + playerVelocity_.x * travelTime,
-                                        currentPlayerPos.y + playerVelocity_.y * travelTime,
-                                        currentPlayerPos.z + playerVelocity_.z * travelTime};
-
-                    Irufemi::Vector3 aimDiff = {lockedTargetPos_.x - myPos.x, lockedTargetPos_.y - myPos.y,
-                                                lockedTargetPos_.z - myPos.z};
-                    float aimLen = std::sqrt(aimDiff.x * aimDiff.x + aimDiff.y * aimDiff.y + aimDiff.z * aimDiff.z);
-                    if (aimLen > 0.0001f) {
-                        lockedAimDir_ = {aimDiff.x / aimLen, aimDiff.y / aimLen, aimDiff.z / aimLen};
-                    } else {
-                        lockedAimDir_ = {0.0f, 0.0f, -1.0f};
-                    }
-                } else {
-                    // [ロック固定フェーズ] 射線固定（追従停止。自機が動いても空間に射線が固定される）
-                    isAimLocked_ = true;
-                }
-            }
-
-            if (shootTimer_ <= 0.0f) {
-                // 固定された射線ベクトル（または未来予測）へ高威力の偏差弾を発射
-                ShootPredictiveAtPlayer(currentPlayerPos, playerVelocity_);
-                shootTimer_ = shootInterval_;
-                ResetTelegraph();
-            }
-        } else {
-            // 通常機：自機狙い射撃
-            if (shootTimer_ <= 0.0f) {
-                if (playerObj && playerObj->GetTransform()) {
-                    ShootAtPlayer(currentPlayerPos);
-                }
-                shootTimer_ = shootInterval_;
-            }
-        }
-
-        // 一定時間経過で離脱フェーズへ移行
-        stateTimer_ += dt;
-        if (stateTimer_ >= combatDuration_) {
-            state_ = EnemyAIState::Disengage;
-            stateTimer_ = 0.0f;
-        }
-        break;
-    }
-    case EnemyAIState::Dive: {
-        // 特攻機（DiveBomber）：自機前方から急加速して体当たり自爆コースへ突撃
-        currentDistanceOffset_ -= speed_ * 1.8f * dt;
-
-        // 突撃しながら自機の正面ラインへ向かって急激に収束
-        float tLerp = std::clamp(dt * 2.5f, 0.0f, 1.0f);
-        currentLocalOffset_.x = std::lerp(currentLocalOffset_.x, 0.0f, tLerp);
-        currentLocalOffset_.y = std::lerp(currentLocalOffset_.y, 0.0f, tLerp);
-
-        // 鋭いコルクスクリュー回転（ロール角加算）
-        diveRollAngle_ += dt * 14.0f;
-
-        // 自機後方に完全に抜けたら消滅
-        if (currentDistanceOffset_ < -30.0f) {
-            NotifyDespawn(DespawnReason::OutOfBounds);
-            return;
-        }
-        break;
-    }
-    case EnemyAIState::Disengage: {
-        // 相対同期を解除し、自機の脇をすり抜けて後方へ急加速
-        currentDistanceOffset_ -= speed_ * 2.5f * dt;
-
-        // 自機後方に完全に抜けたら消滅（画面外へ抜けるまで安全に生存）
-        if (currentDistanceOffset_ < -30.0f) {
-            NotifyDespawn(DespawnReason::OutOfBounds);
-            return;
-        }
-        break;
-    }
+    if (currentState_) {
+        currentState_->Update(this, dt);
     }
 
     // レールスプライン上の位置と局所直交基底（Frenet-Serret）を計算
@@ -350,7 +221,7 @@ void RailShooterEnemyComponent::Update() {
     Irufemi::Vector3 lookDir = {-tangent.x, -tangent.y, -tangent.z};
     float yaw = std::atan2(lookDir.x, lookDir.z);
     float pitch = std::asin(std::clamp(-lookDir.y, -1.0f, 1.0f));
-    float currentRoll = (state_ == EnemyAIState::Dive) ? diveRollAngle_ : 0.0f;
+    float currentRoll = (GetStateType() == EnemyAIState::Dive) ? diveRollAngle_ : 0.0f;
     transform->SetWorldRotation(Irufemi::Vector3{pitch, yaw, currentRoll});
 }
 
@@ -394,7 +265,7 @@ void RailShooterEnemyComponent::Draw() {
     if (behaviorType_ != static_cast<int>(EnemyBehaviorType::PredictiveSniper)) {
         return;
     }
-    if (!isActive_ || !IsAlive() || state_ != EnemyAIState::Combat) {
+    if (!isActive_ || !IsAlive() || GetStateType() != EnemyAIState::Combat) {
         return;
     }
     if (shootTimer_ > sniperTelegraphDuration_ || shootTimer_ <= 0.0f) {
@@ -604,3 +475,21 @@ void RailShooterEnemyComponent::NotifyDespawn(DespawnReason reason) {
         gameObject_->Destroy();
     }
 }
+
+void RailShooterEnemyComponent::ChangeState(std::unique_ptr<IRailShooterEnemyState> newState) {
+    if (currentState_) {
+        currentState_->Exit(this);
+    }
+    currentState_ = std::move(newState);
+    if (currentState_) {
+        currentState_->Enter(this);
+    }
+}
+
+EnemyAIState RailShooterEnemyComponent::GetStateType() const {
+    if (currentState_) {
+        return currentState_->GetStateType();
+    }
+    return EnemyAIState::Approach;
+}
+

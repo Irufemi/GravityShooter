@@ -28,6 +28,9 @@
     <Filter Include="RailMechanics">
       <UniqueIdentifier>{3eb36c12-5f0e-3982-1dc9-e4288e66a8e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RailMechanics\State">
+      <UniqueIdentifier>{3eb36c13-5f0e-3982-1dc9-e4288e66a8e8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Scenes">
       <UniqueIdentifier>{bb34f602-e45a-9fbc-b2cd-fee7a48673fc}</UniqueIdentifier>
     </Filter>
@@ -45,6 +48,9 @@
     </Filter>
     <Filter Include="Scenes\title">
       <UniqueIdentifier>{f64a4eda-87c3-415f-e7ee-463d72828382}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\title\State">
+      <UniqueIdentifier>{f64a4edb-87c3-415f-e7ee-463d72828383}</UniqueIdentifier>
     </Filter>
     <Filter Include="Scenes\HowToPlay">
       <UniqueIdentifier>{a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d}</UniqueIdentifier>
@@ -96,11 +102,35 @@
     <ClCompile Include="Scenes\title\TitleMenuControllerComponent.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleMenuStateIdle.cpp">
+      <Filter>Scenes\title\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleMenuStateOpeningModal.cpp">
+      <Filter>Scenes\title\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleMenuStateSuspended.cpp">
+      <Filter>Scenes\title\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleMenuStateLaunching.cpp">
+      <Filter>Scenes\title\State</Filter>
+    </ClCompile>
     <ClCompile Include="Scenes\title\TitleCosmicNebulaComponent.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
     <ClCompile Include="Scenes\title\TitleSceneDirectorComponent.cpp">
       <Filter>Scenes\title</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleLaunchStateCharge.cpp">
+      <Filter>Scenes\title\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleLaunchStateAccelerate.cpp">
+      <Filter>Scenes\title\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleLaunchStateBreak.cpp">
+      <Filter>Scenes\title\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\title\State\TitleLaunchStateAfterglow.cpp">
+      <Filter>Scenes\title\State</Filter>
     </ClCompile>
     <ClCompile Include="Scenes\HowToPlay\HowToPlayScene.cpp">
       <Filter>Scenes\HowToPlay</Filter>
@@ -137,6 +167,18 @@
     </ClCompile>
     <ClCompile Include="RailMechanics\RailShooterEnemyComponent.cpp">
       <Filter>RailMechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="RailMechanics\State\RailShooterEnemyStateApproach.cpp">
+      <Filter>RailMechanics\State</Filter>
+    </ClCompile>
+    <ClCompile Include="RailMechanics\State\RailShooterEnemyStateCombat.cpp">
+      <Filter>RailMechanics\State</Filter>
+    </ClCompile>
+    <ClCompile Include="RailMechanics\State\RailShooterEnemyStateDive.cpp">
+      <Filter>RailMechanics\State</Filter>
+    </ClCompile>
+    <ClCompile Include="RailMechanics\State\RailShooterEnemyStateDisengage.cpp">
+      <Filter>RailMechanics\State</Filter>
     </ClCompile>
     <ClCompile Include="Combat\Boss\BossComponent.cpp">
       <Filter>Combat\Boss</Filter>
@@ -267,11 +309,41 @@
     <ClInclude Include="Scenes\title\TitleMenuControllerComponent.h">
       <Filter>Scenes\title</Filter>
     </ClInclude>
+    <ClInclude Include="Scenes\title\State\ITitleMenuState.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleMenuStateIdle.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleMenuStateOpeningModal.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleMenuStateSuspended.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleMenuStateLaunching.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
     <ClInclude Include="Scenes\title\TitleCosmicNebulaComponent.h">
       <Filter>Scenes\title</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\title\TitleSceneDirectorComponent.h">
       <Filter>Scenes\title</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\ITitleLaunchState.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleLaunchStateCharge.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleLaunchStateAccelerate.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleLaunchStateBreak.h">
+      <Filter>Scenes\title\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\title\State\TitleLaunchStateAfterglow.h">
+      <Filter>Scenes\title\State</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\HowToPlay\HowToPlayScene.h">
       <Filter>Scenes\HowToPlay</Filter>
@@ -308,6 +380,21 @@
     </ClInclude>
     <ClInclude Include="RailMechanics\RailShooterEnemyComponent.h">
       <Filter>RailMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\State\IRailShooterEnemyState.h">
+      <Filter>RailMechanics\State</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\State\RailShooterEnemyStateApproach.h">
+      <Filter>RailMechanics\State</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\State\RailShooterEnemyStateCombat.h">
+      <Filter>RailMechanics\State</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\State\RailShooterEnemyStateDive.h">
+      <Filter>RailMechanics\State</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\State\RailShooterEnemyStateDisengage.h">
+      <Filter>RailMechanics\State</Filter>
     </ClInclude>
     <ClInclude Include="Combat\Boss\BossComponent.h">
       <Filter>Combat\Boss</Filter>
