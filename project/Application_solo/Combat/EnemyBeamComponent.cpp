@@ -443,15 +443,14 @@ void EnemyBeamComponent::Update() {
 
     stateTimer_ += deltaTime;
 
-    switch (state_) {
-    case State::CHARGING:
-        UpdateCharging(deltaTime);
-        break;
-    case State::FIRING:
-        UpdateFiring(deltaTime);
-        break;
-    default:
-        break;
+    using StateUpdateFunc = void (EnemyBeamComponent::*)(float);
+    static const std::unordered_map<State, StateUpdateFunc> kStateUpdateTable = {
+        { State::CHARGING, &EnemyBeamComponent::UpdateCharging },
+        { State::FIRING,   &EnemyBeamComponent::UpdateFiring },
+    };
+
+    if (auto it = kStateUpdateTable.find(state_); it != kStateUpdateTable.end()) {
+        (this->*(it->second))(deltaTime);
     }
 }
 
@@ -465,35 +464,43 @@ void EnemyBeamComponent::Draw() {
 
     uint32_t frameIndex = engine->GetDirectXCommon()->GetCurrentBackBufferIndex();
 
-    if (state_ == State::CHARGING) {
-        // AOE予兆円柱の描画
-        if (telegraphCylinder_) {
-            telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
-                                             PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
-            telegraphCylinder_->SetCustomCBVAddress(aoeParamsBuffer_.GetGPUVirtualAddress(frameIndex));
-            telegraphCylinder_->Draw();
-        }
+    using StateDrawFunc = void (*)(EnemyBeamComponent*, uint32_t);
+    static const std::unordered_map<State, StateDrawFunc> kStateDrawTable = {
+        { State::CHARGING, [](EnemyBeamComponent* self, uint32_t frameIdx) {
+            // AOE予兆円柱の描画
+            if (self->telegraphCylinder_) {
+                self->telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
+                                                       PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+                self->telegraphCylinder_->SetCustomCBVAddress(self->aoeParamsBuffer_.GetGPUVirtualAddress(frameIdx));
+                self->telegraphCylinder_->Draw();
+            }
 
-        // チャージ球の描画
-        if (chargeSphere_ && chargeSphere_->GetTransform().transform.scale.x > 0.0f) {
-            chargeSphere_->Draw();
-        }
-    } else if (state_ == State::FIRING) {
-        // 外側オーラ (LightningCrawl)
-        if (attackCylinderOuter_) {
-            attackCylinderOuter_->SetCustomPSO("LightningCrawl", Irufemi::BlendMode::kBlendModeAdd,
-                                               PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
-            attackCylinderOuter_->SetCustomCBVAddress(auraParamsBuffer_.GetGPUVirtualAddress(frameIndex));
-            attackCylinderOuter_->Draw();
-        }
+            // チャージ球の描画
+            if (self->chargeSphere_ && self->chargeSphere_->GetTransform().transform.scale.x > 0.0f) {
+                self->chargeSphere_->Draw();
+            }
+        }},
+        { State::FIRING, [](EnemyBeamComponent* self, uint32_t frameIdx) {
+            // 外側オーラ (LightningCrawl)
+            if (self->attackCylinderOuter_) {
+                self->attackCylinderOuter_->SetCustomPSO("LightningCrawl", Irufemi::BlendMode::kBlendModeAdd,
+                                                         PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+                self->attackCylinderOuter_->SetCustomCBVAddress(self->auraParamsBuffer_.GetGPUVirtualAddress(frameIdx));
+                self->attackCylinderOuter_->Draw();
+            }
 
-        // 内側コア (EnergyBeam)
-        if (attackCylinder_) {
-            attackCylinder_->SetCustomPSO("EnergyBeam", Irufemi::BlendMode::kBlendModeAdd,
-                                          PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
-            attackCylinder_->SetCustomCBVAddress(beamParamsBuffer_.GetGPUVirtualAddress(frameIndex));
-            attackCylinder_->Draw();
-        }
+            // 内側コア (EnergyBeam)
+            if (self->attackCylinder_) {
+                self->attackCylinder_->SetCustomPSO("EnergyBeam", Irufemi::BlendMode::kBlendModeAdd,
+                                                    PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+                self->attackCylinder_->SetCustomCBVAddress(self->beamParamsBuffer_.GetGPUVirtualAddress(frameIdx));
+                self->attackCylinder_->Draw();
+            }
+        }},
+    };
+
+    if (auto it = kStateDrawTable.find(state_); it != kStateDrawTable.end()) {
+        it->second(this, frameIndex);
     }
 }
 

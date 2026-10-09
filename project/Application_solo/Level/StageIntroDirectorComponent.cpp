@@ -102,85 +102,78 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
 }
 
 void StageIntroDirectorComponent::OnEnterIntroState(StageIntroState state) {
-    switch (state) {
-    case StageIntroState::WarpIn:
-        SetHUDActive(false);
-        SetShipThrusterActive(true);
-        SetShipThrusterScale(2.5f, true);
-        break;
-
-    case StageIntroState::Arrival: {
-        // 自機位置を定位置へ確実にスナップ
-        if (auto ship = shipObj_.lock()) {
-            if (auto transform = ship->GetTransform()) {
-                transform->SetPosition(initialShipLocalPos_);
+    using EnterAction = void (*)(StageIntroDirectorComponent*);
+    static const std::unordered_map<StageIntroState, EnterAction> kEnterHandlers = {
+        { StageIntroState::WarpIn, [](StageIntroDirectorComponent* self) {
+            self->SetHUDActive(false);
+            self->SetShipThrusterActive(true);
+            self->SetShipThrusterScale(2.5f, true);
+        }},
+        { StageIntroState::Arrival, [](StageIntroDirectorComponent* self) {
+            if (auto ship = self->shipObj_.lock()) {
+                if (auto transform = ship->GetTransform()) {
+                    transform->SetPosition(self->initialShipLocalPos_);
+                }
             }
-        }
-        SetShipThrusterActive(true);
-        break;
-    }
-
-    case StageIntroState::Active: {
-        // 通常戦闘モード突入: HUD点灯および操作権委譲
-        SetHUDActive(true);
-        SetShipThrusterActive(true);
-        SetShipThrusterScale(0.8f, false); // 通常巡航アイドリングへ移行
-        if (auto ship = shipObj_.lock()) {
-            if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
-                playerComp->SetInputEnabled(true);
+            self->SetShipThrusterActive(true);
+        }},
+        { StageIntroState::Active, [](StageIntroDirectorComponent* self) {
+            self->SetHUDActive(true);
+            self->SetShipThrusterActive(true);
+            self->SetShipThrusterScale(0.8f, false);
+            if (auto ship = self->shipObj_.lock()) {
+                if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
+                    playerComp->SetInputEnabled(true);
+                }
             }
-        }
-        // 【A案適用】メニュー選択音(UISound::PlayCursor)を撤去
-        // 【B案向けフック】将来のFCS起動演出（専用SE・スプリング展開）用スタブを呼び出し
-        TriggerFCSBootupSequence();
-        break;
-    }
+            self->TriggerFCSBootupSequence();
+        }},
+    };
+
+    if (auto it = kEnterHandlers.find(state); it != kEnterHandlers.end()) {
+        it->second(this);
     }
 }
 
-void StageIntroDirectorComponent::OnUpdateIntroState(StageIntroState state, float /*deltaTime*/) {
-    switch (state) {
-    case StageIntroState::WarpIn: {
-        float duration = warpInDuration_ > 0.0f ? warpInDuration_ : 1.0f;
-        float progress = std::clamp(stateTimer_ / duration, 0.0f, 1.0f);
+void StageIntroDirectorComponent::OnUpdateIntroState(StageIntroState state, float deltaTime) {
+    using UpdateAction = void (*)(StageIntroDirectorComponent*, float);
+    static const std::unordered_map<StageIntroState, UpdateAction> kUpdateHandlers = {
+        { StageIntroState::WarpIn, [](StageIntroDirectorComponent* self, float /*dt*/) {
+            float duration = self->warpInDuration_ > 0.0f ? self->warpInDuration_ : 1.0f;
+            float progress = std::clamp(self->stateTimer_ / duration, 0.0f, 1.0f);
+            float t = 1.0f - std::pow(1.0f - progress, 3.0f);
 
-        // Cubic Ease-Out による急激な飛来と滑らかな急減速
-        float t = 1.0f - std::pow(1.0f - progress, 3.0f);
-
-        if (auto ship = shipObj_.lock()) {
-            if (auto transform = ship->GetTransform()) {
-                Irufemi::Vector3 curPos = initialShipLocalPos_;
-                curPos.z = initialShipLocalPos_.z + startOffsetZ_ * (1.0f - t);
-                transform->SetPosition(curPos);
+            if (auto ship = self->shipObj_.lock()) {
+                if (auto transform = ship->GetTransform()) {
+                    Irufemi::Vector3 curPos = self->initialShipLocalPos_;
+                    curPos.z = self->initialShipLocalPos_.z + self->startOffsetZ_ * (1.0f - t);
+                    transform->SetPosition(curPos);
+                }
             }
-        }
 
-        if (progress >= 1.0f) {
-            SetIntroState(StageIntroState::Arrival);
-        }
-        break;
-    }
+            if (progress >= 1.0f) {
+                self->SetIntroState(StageIntroState::Arrival);
+            }
+        }},
+        { StageIntroState::Arrival, [](StageIntroDirectorComponent* self, float /*dt*/) {
+            float duration = self->arrivalDuration_ > 0.0f ? self->arrivalDuration_ : 0.5f;
+            float progress = std::clamp(self->stateTimer_ / duration, 0.0f, 1.0f);
 
-    case StageIntroState::Arrival: {
-        float duration = arrivalDuration_ > 0.0f ? arrivalDuration_ : 0.5f;
-        float progress = std::clamp(stateTimer_ / duration, 0.0f, 1.0f);
+            float thrusterScale = std::lerp(2.5f, 0.8f, progress);
+            self->SetShipThrusterScale(thrusterScale, true);
+            self->ApplyArrivalInertia(progress);
 
-        // 到着・急制動に伴い、ブースト炎(2.5f)から通常巡航サイズ(0.8f)へスムーズに収縮
-        float thrusterScale = std::lerp(2.5f, 0.8f, progress);
-        SetShipThrusterScale(thrusterScale, true);
+            if (progress >= 1.0f) {
+                self->SetIntroState(StageIntroState::Active);
+            }
+        }},
+        { StageIntroState::Active, [](StageIntroDirectorComponent* /*self*/, float /*dt*/) {
+            // 通常戦闘時は更新処理なし
+        }},
+    };
 
-        // 【B案向けフック】急制動に伴う整流バネ挙動（ノーズダイブ・慣性減衰）
-        ApplyArrivalInertia(progress);
-
-        // 到着後のわずかな余韻（整流）フェーズ
-        if (progress >= 1.0f) {
-            SetIntroState(StageIntroState::Active);
-        }
-        break;
-    }
-
-    case StageIntroState::Active:
-        break;
+    if (auto it = kUpdateHandlers.find(state); it != kUpdateHandlers.end()) {
+        it->second(this, deltaTime);
     }
 }
 

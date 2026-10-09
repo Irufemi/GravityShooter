@@ -7,6 +7,7 @@
 #include "Framework/Component/UI/ButtonComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Framework/Scene/SceneTransition.h"
+#include <array>
 
 void SceneTransitionButtonComponent::OnRegisterProperties() {
     RegisterProperty("Load Scene Name", &onClickLoadScene_);
@@ -74,20 +75,15 @@ void SceneTransitionButtonComponent::Update() {
             isTransitionPending_ = false;
 
             if (!onClickLoadScene_.empty()) {
+                constexpr std::array<SceneTransition::Type, 4> kTransitionTypes = {
+                    SceneTransition::Type::Fade,
+                    SceneTransition::Type::Dissolve,
+                    SceneTransition::Type::Slide,
+                    SceneTransition::Type::RadialBlur
+                };
                 SceneTransition::Type type = SceneTransition::Type::Fade;
-                switch (transitionType_) {
-                case 0:
-                    type = SceneTransition::Type::Fade;
-                    break;
-                case 1:
-                    type = SceneTransition::Type::Dissolve;
-                    break;
-                case 2:
-                    type = SceneTransition::Type::Slide;
-                    break;
-                case 3:
-                    type = SceneTransition::Type::RadialBlur;
-                    break;
+                if (transitionType_ >= 0 && static_cast<size_t>(transitionType_) < kTransitionTypes.size()) {
+                    type = kTransitionTypes[static_cast<size_t>(transitionType_)];
                 }
                 engine->GetSceneManager()->LoadScene(onClickLoadScene_, type, transitionDuration_);
             }
