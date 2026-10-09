@@ -11,6 +11,7 @@ class BaseResource : public MultiBufferSyncState {
 public:
     BaseResource() = default;
     explicit BaseResource(DirectXCommon* dxCommon) : dxCommon_(dxCommon) {}
+    virtual ~BaseResource() = default;
 
     /**
      * @brief 個別インスタンス用の DirectXCommon を設定する

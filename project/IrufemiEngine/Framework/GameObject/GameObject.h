@@ -30,7 +30,7 @@ class GameObject : public std::enable_shared_from_this<GameObject> {
 public:
     GameObject();
     GameObject(const std::string& name);
-    ~GameObject();
+    virtual ~GameObject();
 
     /**
      * @brief 現在のライフサイクル状態を取得する
