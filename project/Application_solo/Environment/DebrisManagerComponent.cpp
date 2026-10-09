@@ -642,6 +642,11 @@ void DebrisManagerComponent::UpdatePulledDebris(float deltaTime) {
     }
 
     for (auto* debris : caughtDebris) {
+        if (auto target = debris->GetTarget().lock()) {
+            if (auto targetTransform = target->GetComponent<TransformComponent>()) {
+                debris->InitializeOrbitTransition(targetTransform);
+            }
+        }
         debris->SetState(DebrisState::Orbiting);
     }
 }
@@ -657,7 +662,7 @@ void DebrisManagerComponent::UpdateOrbitingDebris(float deltaTime) {
 
         if (auto target = debris->GetTarget().lock()) {
             if (auto targetTransform = target->GetComponent<TransformComponent>()) {
-                debris->UpdatePlayerOrbit(targetTransform->GetWorldPosition(), orbitSpeed, deltaTime);
+                debris->UpdatePlayerOrbit(targetTransform, orbitSpeed, deltaTime);
             }
         }
     }

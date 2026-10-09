@@ -128,6 +128,7 @@ public:
     void SetOrbitParams(float angle, float radius) {
         orbitAngle_ = angle;
         orbitRadius_ = radius;
+        currentOrbitRadius_ = radius;
     }
 
     /**
@@ -206,12 +207,18 @@ public:
     bool UpdatePullMovement(const Irufemi::Vector3& targetPos, float pullSpeed, float catchDistSq, float deltaTime);
 
     /**
-     * @brief プレイヤー周辺での公転位置を更新する
-     * @param targetPos 公転中心位置
+     * @brief プレイヤー周辺での公転位置・姿勢を自機の姿勢（Right/Up/Forward）に合わせて更新する
+     * @param targetTransform 自機のTransformコンポーネント（位置・向き）
      * @param orbitSpeed 公転角速度
      * @param deltaTime フレーム経過時間
      */
-    void UpdatePlayerOrbit(const Irufemi::Vector3& targetPos, float orbitSpeed, float deltaTime);
+    void UpdatePlayerOrbit(const TransformComponent* targetTransform, float orbitSpeed, float deltaTime);
+
+    /**
+     * @brief 引き寄せ完了時に自機の現在相対位置から初期公転角度と半径を滑らかに接続する（ワープ防止）
+     * @param targetTransform 自機のTransformコンポーネント
+     */
+    void InitializeOrbitTransition(const TransformComponent* targetTransform);
 
     /**
      * @brief ボス周辺でのシールド公転位置・姿勢を更新する
@@ -278,6 +285,7 @@ private:
 
     // Orbit Radiusは動的に設定されるためローカルに保持
     float orbitRadius_ = 2.0f;
+    float currentOrbitRadius_ = 2.0f; ///< 遷移スムージング用の現在公転半径 (ワープ防止)
 
     // 内部状態
     float baseIdleY_ = 0.0f;

@@ -287,6 +287,7 @@ void DebrisComponent::ResetForPool() {
     targetObject_.reset();
     ownerObject_.reset();
     orbitAngle_ = 0.0f;
+    currentOrbitRadius_ = orbitRadius_;
     throwDirection_ = {0.0f, 0.0f, 0.0f};
     throwOrigin_ = {0.0f, 0.0f, 0.0f};
 
@@ -403,18 +404,75 @@ bool DebrisComponent::UpdatePullMovement(const Irufemi::Vector3& targetPos, floa
     return distSq < catchDistSq;
 }
 
-void DebrisComponent::UpdatePlayerOrbit(const Irufemi::Vector3& targetPos, float orbitSpeed, float deltaTime) {
+void DebrisComponent::InitializeOrbitTransition(const TransformComponent* targetTransform) {
     auto transform = GetTransform();
-    if (!transform) {
+    if (!transform || !targetTransform) {
         return;
     }
 
-    orbitAngle_ += orbitSpeed * deltaTime;
-    Irufemi::Vector3 offset = {std::cos(orbitAngle_) * orbitRadius_, std::sin(orbitAngle_ * 2.0f) * 0.5f + 1.0f,
-                               std::sin(orbitAngle_) * orbitRadius_};
+    // 自機の進行方向から水平な前進・右ベクトルを構築（機体のロール・ピッチ傾きによる振れを遮断）
+    Irufemi::Vector3 rawFwd = targetTransform->GetWorldForward();
+    Irufemi::Vector3 forward = {rawFwd.x, 0.0f, rawFwd.z};
+    float len = std::sqrt(forward.x * forward.x + forward.z * forward.z);
+    forward = (len > 0.001f) ? Irufemi::Vector3{forward.x / len, 0.0f, forward.z / len}
+                             : Irufemi::Vector3{0.0f, 0.0f, 1.0f};
+    Irufemi::Vector3 right = {forward.z, 0.0f, -forward.x}; // 水平右ベクトル
 
-    Irufemi::Vector3 pos = {targetPos.x + offset.x, targetPos.y + offset.y, targetPos.z + offset.z};
+    // 自機から現在ガレキ位置への差分ベクトル
+    Irufemi::Vector3 diff = transform->GetWorldPosition() - targetTransform->GetWorldPosition();
+
+    float localX = Irufemi::Math::Dot(diff, right);
+    float localZ = Irufemi::Math::Dot(diff, forward);
+
+    // 自機の現在向きに対するローカル位相（角度）を逆算して設定（瞬間的な角度飛び・テレポートを根絶）
+    if (std::abs(localX) > 0.001f || std::abs(localZ) > 0.001f) {
+        orbitAngle_ = std::atan2(localZ, localX);
+        float currentDist = std::sqrt(localX * localX + localZ * localZ);
+        currentOrbitRadius_ = (std::max)(currentDist, 0.5f);
+    } else {
+        currentOrbitRadius_ = orbitRadius_;
+    }
+}
+
+void DebrisComponent::UpdatePlayerOrbit(const TransformComponent* targetTransform, float orbitSpeed, float deltaTime) {
+    auto transform = GetTransform();
+    if (!transform || !targetTransform) {
+        return;
+    }
+
+    // 1. 公転角度の更新
+    orbitAngle_ += orbitSpeed * deltaTime;
+
+    // 2. 指数平滑化 (Exponential Smoothing) によるフレームレート非依存の滑らかな半径遷移（ワープ防止）
+    float blendFactor = 1.0f - std::exp(-8.0f * deltaTime);
+    currentOrbitRadius_ = std::lerp(currentOrbitRadius_, orbitRadius_, blendFactor);
+
+    // 3. 水平安定化空間での軌道オフセット計算 (XZ平面円運動 + Y軸微小リサージュ波)
+    Irufemi::Vector3 localOffset = {
+        std::cos(orbitAngle_) * currentOrbitRadius_,
+        std::sin(orbitAngle_ * 2.0f) * 0.5f + 1.0f,
+        std::sin(orbitAngle_) * currentOrbitRadius_
+    };
+
+    // 4. 機体のロール・ピッチ（バンキング傾き）による振れを遮断し、水平面（Up = {0, 1, 0}）を安定キープ
+    Irufemi::Vector3 rawFwd = targetTransform->GetWorldForward();
+    Irufemi::Vector3 forward = {rawFwd.x, 0.0f, rawFwd.z};
+    float len = std::sqrt(forward.x * forward.x + forward.z * forward.z);
+    forward = (len > 0.001f) ? Irufemi::Vector3{forward.x / len, 0.0f, forward.z / len}
+                             : Irufemi::Vector3{0.0f, 0.0f, 1.0f};
+    Irufemi::Vector3 right = {forward.z, 0.0f, -forward.x};
+    Irufemi::Vector3 up = {0.0f, 1.0f, 0.0f};
+
+    Irufemi::Vector3 worldOffset = right * localOffset.x + up * localOffset.y + forward * localOffset.z;
+
+    Irufemi::Vector3 pos = targetTransform->GetWorldPosition() + worldOffset;
     transform->SetWorldPosition(pos);
+
+    // 5. 自転（Tumbling）回転の付与：公転に合わせてガレキ本体もタンブリング回転
+    Irufemi::Vector3 currentRot = transform->GetRotation();
+    currentRot.x += orbitSpeed * 1.5f * deltaTime;
+    currentRot.y += orbitSpeed * 2.0f * deltaTime;
+    transform->SetRotation(currentRot);
 }
 
 void DebrisComponent::UpdateBossShieldOrbit(const Irufemi::Vector3& targetPos, float currentRadiusBase,
