@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
+#include <functional>
 
 class SliderComponent;
 class ButtonComponent;
@@ -65,6 +67,33 @@ private:
         bool isBackdrop = false;
     };
 
+    // 動的に取得されるUIレイアウト情報（Transform等から自動抽出）
+    struct UIRect {
+        float x = 0.0f;
+        float y = 0.0f;
+        float halfW = 0.0f;
+        float halfH = 0.0f;
+        bool Contains(float px, float py) const {
+            return std::abs(px - x) <= halfW && std::abs(py - y) <= halfH;
+        }
+    };
+
+    /**
+     * @struct SliderBinding
+     * @brief スライダーUI要素と設定項目（CVar）をデータ駆動でバインドする定義
+     */
+    struct SliderBinding {
+        const char* objectName;
+        const char* textName;
+        SliderComponent*& sliderRef;
+        TextRendererComponent*& textRef;
+        UIRect& rectRef;
+        std::function<float()> initialValueGetter;
+        std::function<void(float, InputManager*)> applyValue;
+    };
+
+    std::vector<SliderBinding> GetSliderBindings();
+
     void CacheUIElements();
     void ApplyTransition(float progress);
 
@@ -109,16 +138,6 @@ private:
     // UIの初期化が完了したか
     bool uiBound_ = false;
 
-    // 動的に取得されるUIレイアウト情報（Transform等から自動抽出）
-    struct UIRect {
-        float x = 0.0f;
-        float y = 0.0f;
-        float halfW = 0.0f;
-        float halfH = 0.0f;
-        bool Contains(float px, float py) const {
-            return std::abs(px - x) <= halfW && std::abs(py - y) <= halfH;
-        }
-    };
     UIRect rectButtonClose_{640.0f, 530.0f, 130.0f, 30.0f};
     UIRect rectSliderBGM_{640.0f, 210.0f, 210.0f, 35.0f};
     UIRect rectSliderSE_{640.0f, 320.0f, 210.0f, 35.0f};

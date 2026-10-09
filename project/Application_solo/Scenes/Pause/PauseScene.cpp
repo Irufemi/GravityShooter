@@ -143,15 +143,50 @@ void PauseScene::CreateUIElements() {
     }
     titleObj_->Initialize();
 
-    // 3. メニュー項目リスト
-    const std::vector<std::pair<std::wstring, MenuItem>> items = {{L"RESUME", MenuItem::Resume},
-                                                                  {L"RETRY", MenuItem::Retry},
-                                                                  {L"OPTIONS", MenuItem::Options},
-                                                                  {L"TITLE", MenuItem::Title},
-                                                                  {L"QUIT", MenuItem::Quit}};
+    // 3. メニュー項目リスト（データドリブン設計: 表示テキスト・種別・実行アクションを一元定義）
+    struct MenuEntry {
+        std::wstring text;
+        MenuItem type;
+        std::function<void()> action;
+    };
+
+    const std::vector<MenuEntry> entries = {
+        {L"RESUME", MenuItem::Resume,
+         [this]() {
+             UISound::PlayCancel();
+             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                 sm->PopScene();
+             }
+         }},
+        {L"RETRY", MenuItem::Retry,
+         [this]() {
+             UISound::PlayDecide();
+             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                 sm->LoadScene("InGame", SceneTransition::Type::Fade, 0.5f);
+             }
+         }},
+        {L"OPTIONS", MenuItem::Options,
+         [this]() {
+             UISound::PlayDecide();
+             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                 sm->PushScene("OptionsScene");
+             }
+         }},
+        {L"TITLE", MenuItem::Title,
+         [this]() {
+             UISound::PlayDecide();
+             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                 sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.6f);
+             }
+         }},
+        {L"QUIT", MenuItem::Quit,
+         []() {
+             UISound::PlayDecide();
+             PostQuitMessage(0);
+         }}};
 
     menuItems_.clear();
-    for (size_t i = 0; i < items.size(); ++i) {
+    for (size_t i = 0; i < entries.size(); ++i) {
         float y = kMenuStartY + static_cast<float>(i) * kMenuItemSpacing;
 
         auto itemObj = std::make_shared<GameObject>("Pause_Item_" + std::to_string(i));
@@ -163,7 +198,7 @@ void PauseScene::CreateUIElements() {
         auto textComp = itemObj->AddComponent<TextRendererComponent>();
         if (textComp) {
             textComp->SetFontId("toro_glitch");
-            textComp->SetText(items[i].first);
+            textComp->SetText(entries[i].text);
             textComp->SetBaseScale(34.0f);
             textComp->SetAlignment(TextAlignment::Center);
             textComp->SetColor(kColorUnselected);
@@ -172,13 +207,14 @@ void PauseScene::CreateUIElements() {
         itemObj->Initialize();
 
         ItemData data;
-        data.text = items[i].first;
-        data.itemType = items[i].second;
+        data.text = entries[i].text;
+        data.itemType = entries[i].type;
+        data.action = entries[i].action;
         data.yPos = y;
         data.gameObject = itemObj;
         data.textComp = textComp.get();
         data.currentScale = 1.0f;
-        menuItems_.push_back(data);
+        menuItems_.push_back(std::move(data));
     }
 
     selectedIndex_ = 0;
@@ -293,7 +329,7 @@ void PauseScene::UpdateInput(float deltaTime) {
 
     if (isDecide) {
         if (selectedIndex_ >= 0 && selectedIndex_ < static_cast<int>(menuItems_.size())) {
-            ExecuteAction(menuItems_[selectedIndex_].itemType);
+            ExecuteAction(selectedIndex_);
         }
     }
 }
@@ -315,47 +351,22 @@ void PauseScene::UpdateSelectionVisuals(float deltaTime) {
     }
 }
 
+void PauseScene::ExecuteAction(int index) {
+    if (index >= 0 && index < static_cast<int>(menuItems_.size())) {
+        if (menuItems_[index].action) {
+            menuItems_[index].action();
+        }
+    }
+}
+
 void PauseScene::ExecuteAction(MenuItem item) {
-    if (!engine_) {
-        return;
-    }
-
-    auto sm = engine_->GetSceneManager();
-    if (!sm) {
-        return;
-    }
-
-    switch (item) {
-    case MenuItem::Resume:
-        UISound::PlayCancel();
-        sm->PopScene();
-        break;
-
-    case MenuItem::Retry:
-        UISound::PlayDecide();
-        // 現在のインゲームシーンをリロード（スタックを破棄して再スタート）
-        sm->LoadScene("InGame", SceneTransition::Type::Fade, 0.5f);
-        break;
-
-    case MenuItem::Options:
-        UISound::PlayDecide();
-        // ポーズ画面の上にOptionsSceneを重ねる
-        sm->PushScene("OptionsScene");
-        break;
-
-    case MenuItem::Title:
-        UISound::PlayDecide();
-        // タイトル画面へ遷移
-        sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.6f);
-        break;
-
-    case MenuItem::Quit:
-        UISound::PlayDecide();
-        PostQuitMessage(0);
-        break;
-
-    default:
-        break;
+    for (const auto& menuItem : menuItems_) {
+        if (menuItem.itemType == item) {
+            if (menuItem.action) {
+                menuItem.action();
+            }
+            break;
+        }
     }
 }
 

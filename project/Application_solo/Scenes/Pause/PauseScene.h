@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
 
 class TextRendererComponent;
 class SpriteRendererComponent;
@@ -54,6 +55,7 @@ private:
     void UpdateInput(float deltaTime);
     void UpdateSelectionVisuals(float deltaTime);
     void ExecuteAction(MenuItem item);
+    void ExecuteAction(int index);
     void SetUIVisible(bool visible);
 
     /**
@@ -74,6 +76,7 @@ private:
         std::shared_ptr<GameObject> gameObject;
         TextRendererComponent* textComp = nullptr;
         float currentScale = 1.0f;
+        std::function<void()> action;
     };
 
     std::vector<ItemData> menuItems_;

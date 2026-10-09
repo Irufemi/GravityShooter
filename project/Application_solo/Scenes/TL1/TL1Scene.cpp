@@ -22,6 +22,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
+#include <unordered_map>
 
 #ifdef USE_IMGUI
 
@@ -334,33 +335,27 @@ void TL1Scene::DrawStandaloneDebugWindows() {
 
         if (magicBrushClient_) {
             ImGui::Separator();
+            struct StateDisplayInfo {
+                ImVec4 color;
+                const char* text;
+            };
+            static const std::unordered_map<MagicBrushClient::State, StateDisplayInfo> kStateDisplayTable = {
+                {MagicBrushClient::State::Idle,                 {ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Status: Idle"}},
+                {MagicBrushClient::State::Generating,           {ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Status: Generating initial HLSL..."}},
+                {MagicBrushClient::State::Compiling,            {ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Status: Compiling..."}},
+                {MagicBrushClient::State::Fixing,               {ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Status: Fixing Compile Errors..."}},
+                {MagicBrushClient::State::WaitingForScreenshot, {ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "Status: Waiting for screenshot..."}},
+                {MagicBrushClient::State::VisualEvaluating,     {ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Status: Visual Evaluating & Fixing..."}},
+                {MagicBrushClient::State::Success,              {ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Status: Success!"}},
+                {MagicBrushClient::State::Error,                {ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Status: Error"}},
+            };
+
             auto state = magicBrushClient_->GetState();
-            switch (state) {
-            case MagicBrushClient::State::Idle:
-                ImGui::Text("Status: Idle");
-                break;
-            case MagicBrushClient::State::Generating:
-                ImGui::TextColored(ImVec4(1, 1, 0, 1), "Status: Generating initial HLSL...");
-                break;
-            case MagicBrushClient::State::Compiling:
-                ImGui::TextColored(ImVec4(1, 1, 0, 1), "Status: Compiling...");
-                break;
-            case MagicBrushClient::State::Fixing:
-                ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "Status: Fixing Compile Errors...");
-                break;
-            case MagicBrushClient::State::WaitingForScreenshot:
-                ImGui::TextColored(ImVec4(0.5f, 0.5f, 1, 1), "Status: Waiting for screenshot...");
-                break;
-            case MagicBrushClient::State::VisualEvaluating:
-                ImGui::TextColored(ImVec4(0, 1, 1, 1), "Status: Visual Evaluating & Fixing...");
-                break;
-            case MagicBrushClient::State::Success:
-                ImGui::TextColored(ImVec4(0, 1, 0, 1), "Status: Success!");
-                break;
-            case MagicBrushClient::State::Error:
-                ImGui::TextColored(ImVec4(1, 0, 0, 1), "Status: Error");
+            if (auto it = kStateDisplayTable.find(state); it != kStateDisplayTable.end()) {
+                ImGui::TextColored(it->second.color, "%s", it->second.text);
+            }
+            if (state == MagicBrushClient::State::Error) {
                 ImGui::TextWrapped("%s", magicBrushClient_->GetErrorMessage().c_str());
-                break;
             }
 
             ImGui::Separator();

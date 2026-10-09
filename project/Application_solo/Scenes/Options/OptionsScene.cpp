@@ -19,12 +19,46 @@
 #include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
+#include <functional>
 
 namespace {
 // 感度マッピング定数（250.0f 〜 1250.0f、基準 650.0f = 0.4x）
 constexpr float kMinCursorSpeed = 250.0f;
 constexpr float kMaxCursorSpeed = 1250.0f;
 } // namespace
+
+std::vector<OptionsScene::SliderBinding> OptionsScene::GetSliderBindings() {
+    return {
+        {"Slider_BGM", "ValueText_BGM", sliderBGM_, valueTextBGM_, rectSliderBGM_,
+         []() { return Irufemi::CVarSystem::GetFloat("a.BGMVolume"); },
+         [](float val, InputManager*) {
+             Irufemi::CVarSystem::SetFloat("a.BGMVolume", val);
+             Irufemi::CVarSystem::SetFloat("a.MasterVolume", val);
+         }},
+        {"Slider_SE", "ValueText_SE", sliderSE_, valueTextSE_, rectSliderSE_,
+         []() { return Irufemi::CVarSystem::GetFloat("a.SEVolume"); },
+         [](float val, InputManager*) {
+             Irufemi::CVarSystem::SetFloat("a.SEVolume", val);
+         }},
+        {"Slider_Sensitivity", "ValueText_Sensitivity", sliderSensitivity_, valueTextSensitivity_,
+         rectSliderSensitivity_,
+         []() {
+             float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
+             if (speed <= 0.0f) {
+                 speed = 650.0f;
+             }
+             return std::clamp((speed - kMinCursorSpeed) / (kMaxCursorSpeed - kMinCursorSpeed), 0.0f, 1.0f);
+         },
+         [](float val, InputManager* input) {
+             float newSpeed = kMinCursorSpeed + val * (kMaxCursorSpeed - kMinCursorSpeed);
+             Irufemi::CVarSystem::SetFloat("i.CursorSpeed", newSpeed);
+             if (input) {
+                 input->SetVirtualCursorBaseSpeed(newSpeed);
+             }
+         }}};
+}
+
+
 
 void OptionsScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
@@ -242,55 +276,23 @@ void OptionsScene::BindUIComponents() {
         return;
     }
 
-    // BGM スライダー
-    if (auto obj = FindGameObject("Slider_BGM")) {
-        sliderBGM_ = obj->GetComponent<SliderComponent>();
-        if (auto t = obj->GetTransform()) {
-            rectSliderBGM_.x = t->GetPosition().x;
-            rectSliderBGM_.y = t->GetPosition().y;
-            if (t->GetScale().x > 1.0f) {
-                rectSliderBGM_.halfW = t->GetScale().x * 0.5f;
+    // スライダー群のバインド（データ駆動テーブルループ）
+    for (auto& binding : GetSliderBindings()) {
+        if (auto obj = FindGameObject(binding.objectName)) {
+            binding.sliderRef = obj->GetComponent<SliderComponent>();
+            if (auto t = obj->GetTransform()) {
+                binding.rectRef.x = t->GetPosition().x;
+                binding.rectRef.y = t->GetPosition().y;
+                if (t->GetScale().x > 1.0f) {
+                    binding.rectRef.halfW = t->GetScale().x * 0.5f;
+                }
+            }
+            if (binding.sliderRef) {
+                binding.sliderRef->SetValue(binding.initialValueGetter());
             }
         }
-        if (sliderBGM_) {
-            float bgmVol = Irufemi::CVarSystem::GetFloat("a.BGMVolume");
-            sliderBGM_->SetValue(bgmVol);
-        }
-    }
-
-    // SE スライダー
-    if (auto obj = FindGameObject("Slider_SE")) {
-        sliderSE_ = obj->GetComponent<SliderComponent>();
-        if (auto t = obj->GetTransform()) {
-            rectSliderSE_.x = t->GetPosition().x;
-            rectSliderSE_.y = t->GetPosition().y;
-            if (t->GetScale().x > 1.0f) {
-                rectSliderSE_.halfW = t->GetScale().x * 0.5f;
-            }
-        }
-        if (sliderSE_) {
-            float seVol = Irufemi::CVarSystem::GetFloat("a.SEVolume");
-            sliderSE_->SetValue(seVol);
-        }
-    }
-
-    // SENSITIVITY スライダー
-    if (auto obj = FindGameObject("Slider_Sensitivity")) {
-        sliderSensitivity_ = obj->GetComponent<SliderComponent>();
-        if (auto t = obj->GetTransform()) {
-            rectSliderSensitivity_.x = t->GetPosition().x;
-            rectSliderSensitivity_.y = t->GetPosition().y;
-            if (t->GetScale().x > 1.0f) {
-                rectSliderSensitivity_.halfW = t->GetScale().x * 0.5f;
-            }
-        }
-        if (sliderSensitivity_) {
-            float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
-            if (speed <= 0.0f) {
-                speed = 650.0f;
-            }
-            float val = std::clamp((speed - kMinCursorSpeed) / (kMaxCursorSpeed - kMinCursorSpeed), 0.0f, 1.0f);
-            sliderSensitivity_->SetValue(val);
+        if (auto textObj = FindGameObject(binding.textName)) {
+            binding.textRef = textObj->GetComponent<TextRendererComponent>();
         }
     }
 
@@ -304,17 +306,6 @@ void OptionsScene::BindUIComponents() {
                 rectButtonClose_.halfW = t->GetScale().x * 0.5f;
             }
         }
-    }
-
-    // 数値テキスト表示
-    if (auto obj = FindGameObject("ValueText_BGM")) {
-        valueTextBGM_ = obj->GetComponent<TextRendererComponent>();
-    }
-    if (auto obj = FindGameObject("ValueText_SE")) {
-        valueTextSE_ = obj->GetComponent<TextRendererComponent>();
-    }
-    if (auto obj = FindGameObject("ValueText_Sensitivity")) {
-        valueTextSensitivity_ = obj->GetComponent<TextRendererComponent>();
     }
 
     // 仮想カーソルオブジェクト
@@ -346,20 +337,16 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
 
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
-    // 1. ホバー判定
+    // 1. ホバー判定（データ駆動判定）
     void* currentHovered = nullptr;
+    for (const auto& binding : GetSliderBindings()) {
+        if (binding.sliderRef && binding.rectRef.Contains(cursorPos.x, cursorPos.y)) {
+            currentHovered = binding.sliderRef;
+            break;
+        }
+    }
     bool isOverClose = rectButtonClose_.Contains(cursorPos.x, cursorPos.y);
-    bool isOverBgm = rectSliderBGM_.Contains(cursorPos.x, cursorPos.y);
-    bool isOverSe = rectSliderSE_.Contains(cursorPos.x, cursorPos.y);
-    bool isOverSens = rectSliderSensitivity_.Contains(cursorPos.x, cursorPos.y);
-
-    if (isOverBgm) {
-        currentHovered = sliderBGM_;
-    } else if (isOverSe) {
-        currentHovered = sliderSE_;
-    } else if (isOverSens) {
-        currentHovered = sliderSensitivity_;
-    } else if (isOverClose) {
+    if (!currentHovered && isOverClose) {
         currentHovered = buttonClose_;
     }
 
@@ -422,9 +409,7 @@ void OptionsScene::UpdateSliderDrag() {
     float dt = engine->GetDeltaTime();
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
-    bool isOverBgm = rectSliderBGM_.Contains(cursorPos.x, cursorPos.y);
-    bool isOverSe = rectSliderSE_.Contains(cursorPos.x, cursorPos.y);
-    bool isOverSens = rectSliderSensitivity_.Contains(cursorPos.x, cursorPos.y);
+    auto bindings = GetSliderBindings();
 
     // =========================================================================
     // A. 十字キー左右による微調整 (カーソル通過時の誤動作を防ぐためスティック増減は撤廃)
@@ -437,24 +422,14 @@ void OptionsScene::UpdateSliderDrag() {
     }
 
     if (directAdjust != 0.0f) {
-        if (isOverBgm && sliderBGM_) {
-            float val = std::clamp(sliderBGM_->GetValue() + directAdjust, 0.0f, 1.0f);
-            sliderBGM_->SetValue(val);
-            Irufemi::CVarSystem::SetFloat("a.BGMVolume", val);
-            Irufemi::CVarSystem::SetFloat("a.MasterVolume", val);
-            UpdateValueTexts();
-        } else if (isOverSe && sliderSE_) {
-            float val = std::clamp(sliderSE_->GetValue() + directAdjust, 0.0f, 1.0f);
-            sliderSE_->SetValue(val);
-            Irufemi::CVarSystem::SetFloat("a.SEVolume", val);
-            UpdateValueTexts();
-        } else if (isOverSens && sliderSensitivity_) {
-            float val = std::clamp(sliderSensitivity_->GetValue() + directAdjust, 0.0f, 1.0f);
-            sliderSensitivity_->SetValue(val);
-            float newSpeed = kMinCursorSpeed + val * (kMaxCursorSpeed - kMinCursorSpeed);
-            Irufemi::CVarSystem::SetFloat("i.CursorSpeed", newSpeed);
-            input->SetVirtualCursorBaseSpeed(newSpeed);
-            UpdateValueTexts();
+        for (const auto& binding : bindings) {
+            if (binding.sliderRef && binding.rectRef.Contains(cursorPos.x, cursorPos.y)) {
+                float val = std::clamp(binding.sliderRef->GetValue() + directAdjust, 0.0f, 1.0f);
+                binding.sliderRef->SetValue(val);
+                binding.applyValue(val, input);
+                UpdateValueTexts();
+                break;
+            }
         }
     }
 
@@ -465,48 +440,28 @@ void OptionsScene::UpdateSliderDrag() {
     bool isActionReleased = input->IsCursorActionReleased();
 
     if (isActionDown && !isDraggingSlider_) {
-        if (isOverBgm && sliderBGM_) {
-            isDraggingSlider_ = true;
-            draggingSlider_ = sliderBGM_;
-        } else if (isOverSe && sliderSE_) {
-            isDraggingSlider_ = true;
-            draggingSlider_ = sliderSE_;
-        } else if (isOverSens && sliderSensitivity_) {
-            isDraggingSlider_ = true;
-            draggingSlider_ = sliderSensitivity_;
+        for (const auto& binding : bindings) {
+            if (binding.sliderRef && binding.rectRef.Contains(cursorPos.x, cursorPos.y)) {
+                isDraggingSlider_ = true;
+                draggingSlider_ = binding.sliderRef;
+                break;
+            }
         }
     }
 
-    // ドラッグ中処理
+    // ドラッグ中処理（データ駆動による座標計算・値適用）
     if (isActionDown && isDraggingSlider_ && draggingSlider_) {
-        float left = rectSliderBGM_.x - rectSliderBGM_.halfW;
-        float width = rectSliderBGM_.halfW * 2.0f;
-        if (draggingSlider_ == sliderBGM_) {
-            left = rectSliderBGM_.x - rectSliderBGM_.halfW;
-            width = rectSliderBGM_.halfW * 2.0f;
-        } else if (draggingSlider_ == sliderSE_) {
-            left = rectSliderSE_.x - rectSliderSE_.halfW;
-            width = rectSliderSE_.halfW * 2.0f;
-        } else if (draggingSlider_ == sliderSensitivity_) {
-            left = rectSliderSensitivity_.x - rectSliderSensitivity_.halfW;
-            width = rectSliderSensitivity_.halfW * 2.0f;
+        for (const auto& binding : bindings) {
+            if (binding.sliderRef == draggingSlider_) {
+                float left = binding.rectRef.x - binding.rectRef.halfW;
+                float width = binding.rectRef.halfW * 2.0f;
+                float newValue = std::clamp((cursorPos.x - left) / width, 0.0f, 1.0f);
+                draggingSlider_->SetValue(newValue);
+                binding.applyValue(newValue, input);
+                UpdateValueTexts();
+                break;
+            }
         }
-
-        float newValue = (cursorPos.x - left) / width;
-        newValue = std::clamp(newValue, 0.0f, 1.0f);
-        draggingSlider_->SetValue(newValue);
-
-        if (draggingSlider_ == sliderBGM_) {
-            Irufemi::CVarSystem::SetFloat("a.BGMVolume", newValue);
-            Irufemi::CVarSystem::SetFloat("a.MasterVolume", newValue);
-        } else if (draggingSlider_ == sliderSE_) {
-            Irufemi::CVarSystem::SetFloat("a.SEVolume", newValue);
-        } else if (draggingSlider_ == sliderSensitivity_) {
-            float newSpeed = kMinCursorSpeed + newValue * (kMaxCursorSpeed - kMinCursorSpeed);
-            Irufemi::CVarSystem::SetFloat("i.CursorSpeed", newSpeed);
-            input->SetVirtualCursorBaseSpeed(newSpeed);
-        }
-        UpdateValueTexts();
     }
 
     // ドラッグ終了
@@ -520,18 +475,10 @@ void OptionsScene::UpdateSliderDrag() {
 }
 
 void OptionsScene::UpdateValueTexts() {
-    if (valueTextBGM_ && sliderBGM_) {
-        int percent = static_cast<int>(std::round(sliderBGM_->GetValue() * 100.0f));
-        valueTextBGM_->SetText(std::to_wstring(percent) + L"%");
-    }
-
-    if (valueTextSE_ && sliderSE_) {
-        int percent = static_cast<int>(std::round(sliderSE_->GetValue() * 100.0f));
-        valueTextSE_->SetText(std::to_wstring(percent) + L"%");
-    }
-
-    if (valueTextSensitivity_ && sliderSensitivity_) {
-        int percent = static_cast<int>(std::round(sliderSensitivity_->GetValue() * 100.0f));
-        valueTextSensitivity_->SetText(std::to_wstring(percent) + L"%");
+    for (const auto& binding : GetSliderBindings()) {
+        if (binding.textRef && binding.sliderRef) {
+            int percent = static_cast<int>(std::round(binding.sliderRef->GetValue() * 100.0f));
+            binding.textRef->SetText(std::to_wstring(percent) + L"%");
+        }
     }
 }

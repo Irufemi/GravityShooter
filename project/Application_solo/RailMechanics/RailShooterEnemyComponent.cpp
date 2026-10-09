@@ -24,6 +24,7 @@
 #include "RHI/DirectX12/DirectXCommon.h"
 #include <cmath>
 #include <algorithm>
+#include <unordered_map>
 
 RailShooterEnemyComponent::RailShooterEnemyComponent() = default;
 RailShooterEnemyComponent::~RailShooterEnemyComponent() = default;
@@ -502,19 +503,23 @@ EnemyAIState RailShooterEnemyComponent::GetStateType() const {
 
 void RailShooterEnemyComponent::SetBehaviorType(EnemyBehaviorType type) {
     behaviorType_ = static_cast<int>(type);
-    switch (type) {
-    case EnemyBehaviorType::StandardGunner:
+
+    using StrategyFactory = std::unique_ptr<IEnemyAttackStrategy> (*)();
+    static const std::unordered_map<EnemyBehaviorType, StrategyFactory> kStrategyFactories = {
+        {EnemyBehaviorType::StandardGunner,
+         []() -> std::unique_ptr<IEnemyAttackStrategy> { return std::make_unique<EnemyAttackStrategyNormal>(); }},
+        {EnemyBehaviorType::PredictiveSniper,
+         []() -> std::unique_ptr<IEnemyAttackStrategy> {
+             return std::make_unique<EnemyAttackStrategyPredictiveSniper>();
+         }},
+        {EnemyBehaviorType::DiveBomber,
+         []() -> std::unique_ptr<IEnemyAttackStrategy> { return std::make_unique<EnemyAttackStrategyDiveBomb>(); }},
+    };
+
+    if (auto it = kStrategyFactories.find(type); it != kStrategyFactories.end()) {
+        SetAttackStrategy(it->second());
+    } else {
         SetAttackStrategy(std::make_unique<EnemyAttackStrategyNormal>());
-        break;
-    case EnemyBehaviorType::PredictiveSniper:
-        SetAttackStrategy(std::make_unique<EnemyAttackStrategyPredictiveSniper>());
-        break;
-    case EnemyBehaviorType::DiveBomber:
-        SetAttackStrategy(std::make_unique<EnemyAttackStrategyDiveBomb>());
-        break;
-    default:
-        SetAttackStrategy(std::make_unique<EnemyAttackStrategyNormal>());
-        break;
     }
 }
 

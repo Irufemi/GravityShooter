@@ -30,44 +30,36 @@ enum class GameAxis : uint32_t {
     Count
 };
 
+#include <array>
+
 /**
- * @brief GameAction enum を JSON 定義文字列へ変換する
+ * @brief GameAction enum を JSON 定義文字列へ変換する（Branchless コンパイル時データテーブル）
  */
-inline const char* GameActionToString(GameAction action) {
-    switch (action) {
-    case GameAction::Pull:
-        return "Pull";
-    case GameAction::Fire:
-        return "Fire";
-    case GameAction::LockOn:
-        return "LockOn";
-    case GameAction::ClearLock:
-        return "ClearLock";
-    case GameAction::Pause:
-        return "Pause";
-    case GameAction::ToggleFullscreen:
-        return "ToggleFullscreen";
-    case GameAction::UI_Submit:
-        return "UI_Submit";
-    case GameAction::UI_Cancel:
-        return "UI_Cancel";
-    default:
-        return "Unknown";
-    }
+inline constexpr const char* GameActionToString(GameAction action) noexcept {
+    constexpr std::array<const char*, static_cast<size_t>(GameAction::Count)> kActionNames = {
+        "Pull",             // Pull
+        "Fire",             // Fire
+        "LockOn",           // LockOn
+        "ClearLock",        // ClearLock
+        "Pause",            // Pause
+        "ToggleFullscreen", // ToggleFullscreen
+        "UI_Submit",        // UI_Submit
+        "UI_Cancel"         // UI_Cancel
+    };
+    const auto idx = static_cast<size_t>(action);
+    return idx < kActionNames.size() ? kActionNames[idx] : "Unknown";
 }
 
 /**
- * @brief GameAxis enum を JSON 定義文字列へ変換する
+ * @brief GameAxis enum を JSON 定義文字列へ変換する（Branchless コンパイル時データテーブル）
  */
-inline const char* GameAxisToString(GameAxis axis) {
-    switch (axis) {
-    case GameAxis::MoveX:
-        return "MoveX";
-    case GameAxis::MoveY:
-        return "MoveY";
-    default:
-        return "Unknown";
-    }
+inline constexpr const char* GameAxisToString(GameAxis axis) noexcept {
+    constexpr std::array<const char*, static_cast<size_t>(GameAxis::Count)> kAxisNames = {
+        "MoveX", // MoveX
+        "MoveY"  // MoveY
+    };
+    const auto idx = static_cast<size_t>(axis);
+    return idx < kAxisNames.size() ? kAxisNames[idx] : "Unknown";
 }
 
 /**
