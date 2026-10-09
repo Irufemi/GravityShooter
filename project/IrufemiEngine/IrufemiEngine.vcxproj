@@ -311,6 +311,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Framework\Component\Effect\ParticleEmitterComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\VoxelParticleComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\ScreenEffectComponent.cpp" />
+    <ClCompile Include="Framework\Component\Effect\ScreenEffectDrivers.cpp" />
     <ClCompile Include="Framework\Component\Effect\GlobalPostProcessComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\FogComponent.cpp" />
     <ClCompile Include="Framework\Component\Effect\PostProcessSettings.cpp" />
@@ -335,6 +336,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Framework\Prefab\PrefabManager.cpp" />
     <ClCompile Include="Framework\Prefab\PrefabUtility.cpp" />
     <ClCompile Include="Framework\Scene\SceneTransition.cpp" />
+    <ClCompile Include="Framework\Scene\SceneTransitionDrivers.cpp" />
     <ClCompile Include="Framework\UI\UIAnimator.cpp" />
     <ClCompile Include="Framework\UI\UISelectionGroup.cpp" />
     <ClCompile Include="Renderer\Object\2D\Primitive\Primitive2DObject.cpp" />
@@ -514,6 +516,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Prefab\PrefabManager.h" />
     <ClInclude Include="Framework\Prefab\PrefabUtility.h" />
     <ClInclude Include="Framework\Scene\SceneTransition.h" />
+    <ClInclude Include="Framework\Scene\SceneTransitionDrivers.h" />
     <ClInclude Include="Framework\UI\UIAnimator.h" />
     <ClInclude Include="Framework\UI\UISelectionGroup.h" />
     <ClInclude Include="Framework\Component\Audio\AudioSourceComponent.h" />
@@ -540,6 +543,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Component\Renderer\TextRendererComponent.h" />
     <ClInclude Include="Framework\Component\Effect\VoxelParticleComponent.h" />
     <ClInclude Include="Framework\Component\Effect\ScreenEffectComponent.h" />
+    <ClInclude Include="Framework\Component\Effect\ScreenEffectDrivers.h" />
     <ClInclude Include="Framework\Component\Effect\GlobalPostProcessComponent.h" />
     <ClInclude Include="Framework\Component\Effect\FogComponent.h" />
     <ClInclude Include="Framework\Component\Effect\PostProcessSettings.h" />

@@ -549,6 +549,9 @@
     <ClCompile Include="Framework\Component\Effect\ScreenEffectComponent.cpp">
       <Filter>Framework\Component\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\Component\Effect\ScreenEffectDrivers.cpp">
+      <Filter>Framework\Component\Effect</Filter>
+    </ClCompile>
     <ClCompile Include="Framework\Component\Effect\GlobalPostProcessComponent.cpp">
       <Filter>Framework\Component\Effect</Filter>
     </ClCompile>
@@ -619,6 +622,9 @@
       <Filter>Framework\Prefab</Filter>
     </ClCompile>
     <ClCompile Include="Framework\Scene\SceneTransition.cpp">
+      <Filter>Framework\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Scene\SceneTransitionDrivers.cpp">
       <Filter>Framework\Scene</Filter>
     </ClCompile>
     <ClCompile Include="Framework\UI\UIAnimator.cpp">
@@ -1157,6 +1163,9 @@
     <ClInclude Include="Framework\Scene\SceneTransition.h">
       <Filter>Framework\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\Scene\SceneTransitionDrivers.h">
+      <Filter>Framework\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="Framework\UI\UIAnimator.h">
       <Filter>Framework\UI</Filter>
     </ClInclude>
@@ -1233,6 +1242,9 @@
       <Filter>Framework\Component\Effect</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Component\Effect\ScreenEffectComponent.h">
+      <Filter>Framework\Component\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Component\Effect\ScreenEffectDrivers.h">
       <Filter>Framework\Component\Effect</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Component\Effect\GlobalPostProcessComponent.h">

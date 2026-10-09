@@ -1,12 +1,15 @@
 #pragma once
 #include "Framework/Component/Component.h"
+#include "Framework/Component/Effect/ScreenEffectDrivers.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include <string>
+#include <memory>
 #include <nlohmann/json.hpp>
 
 /**
  * @class ScreenEffectComponent
  * @brief 画面全体への一時的なポストエフェクト演出（Vignette, Glitch等）を管理・ブレンドするコンポーネント
+ * @details 内部処理は IScreenEffectDriver へ委譲され、完全なデータ駆動・Strategy パターンで動作します。
  */
 class ScreenEffectComponent : public Component {
 public:
@@ -32,9 +35,7 @@ public:
     /// @brief 演出を開始する（Weight を 1.0 にし、時間経過で減衰させる）
     void Play();
 
-    void SetMode(PostProcessMode mode) {
-        mode_ = mode;
-    }
+    void SetMode(PostProcessMode mode);
     PostProcessMode GetMode() const {
         return mode_;
     }
@@ -46,44 +47,25 @@ public:
         return duration_;
     }
 
-    void SetTargetGlitchParams(const PostProcessManager::GlitchParams& params) {
-        targetGlitchParams_ = params;
-    }
-    PostProcessManager::GlitchParams& GetTargetGlitchParams() {
-        return targetGlitchParams_;
-    }
-    const PostProcessManager::GlitchParams& GetTargetGlitchParams() const {
-        return targetGlitchParams_;
-    }
+    // --- 既存 API 互換レイヤー (Driver 委譲) ---
+    void SetTargetGlitchParams(const PostProcessManager::GlitchParams& params);
+    PostProcessManager::GlitchParams& GetTargetGlitchParams();
+    const PostProcessManager::GlitchParams& GetTargetGlitchParams() const;
 
-    void SetTargetVignetteParams(const PostProcessManager::VignetteParams& params) {
-        targetVignetteParams_ = params;
-    }
-    PostProcessManager::VignetteParams& GetTargetVignetteParams() {
-        return targetVignetteParams_;
-    }
-    const PostProcessManager::VignetteParams& GetTargetVignetteParams() const {
-        return targetVignetteParams_;
-    }
+    void SetTargetVignetteParams(const PostProcessManager::VignetteParams& params);
+    PostProcessManager::VignetteParams& GetTargetVignetteParams();
+    const PostProcessManager::VignetteParams& GetTargetVignetteParams() const;
 
-    void SetTargetChromaticAberrationParams(const PostProcessManager::ChromaticAberrationParams& params) {
-        targetChromaticAberrationParams_ = params;
-    }
-    PostProcessManager::ChromaticAberrationParams& GetTargetChromaticAberrationParams() {
-        return targetChromaticAberrationParams_;
-    }
-    const PostProcessManager::ChromaticAberrationParams& GetTargetChromaticAberrationParams() const {
-        return targetChromaticAberrationParams_;
-    }
+    void SetTargetChromaticAberrationParams(const PostProcessManager::ChromaticAberrationParams& params);
+    PostProcessManager::ChromaticAberrationParams& GetTargetChromaticAberrationParams();
+    const PostProcessManager::ChromaticAberrationParams& GetTargetChromaticAberrationParams() const;
 
-    void SetTargetRadialBlurParams(const PostProcessManager::RadialBlurParams& params) {
-        targetRadialBlurParams_ = params;
-    }
-    PostProcessManager::RadialBlurParams& GetTargetRadialBlurParams() {
-        return targetRadialBlurParams_;
-    }
-    const PostProcessManager::RadialBlurParams& GetTargetRadialBlurParams() const {
-        return targetRadialBlurParams_;
+    void SetTargetRadialBlurParams(const PostProcessManager::RadialBlurParams& params);
+    PostProcessManager::RadialBlurParams& GetTargetRadialBlurParams();
+    const PostProcessManager::RadialBlurParams& GetTargetRadialBlurParams() const;
+
+    IScreenEffectDriver* GetDriver() const {
+        return driver_.get();
     }
 
 private:
@@ -93,26 +75,8 @@ private:
     bool isPlaying_ = false;
     bool wasModeActiveBeforePlay_ = false;
 
-    // 目標となるパラメータ群
-    PostProcessManager::GlitchParams targetGlitchParams_;
-    PostProcessManager::VignetteParams targetVignetteParams_;
-    PostProcessManager::ChromaticAberrationParams targetChromaticAberrationParams_;
-    PostProcessManager::RadialBlurParams targetRadialBlurParams_;
+    // 戦略ドライバ（エフェクト固有のパラメータ・補間計算・シリアライズをカプセル化）
+    std::unique_ptr<IScreenEffectDriver> driver_;
 
-    // ベース（元の状態）のキャッシュ
-    PostProcessManager::GlitchParams baseGlitchParams_;
-    PostProcessManager::VignetteParams baseVignetteParams_;
-    PostProcessManager::ChromaticAberrationParams baseChromaticAberrationParams_;
-    PostProcessManager::RadialBlurParams baseRadialBlurParams_;
-    bool isBaseCached_ = false;
-
-    /// @brief エフェクトのパラメータ補間を適用する
-    void ApplyEffectParams(PostProcessManager* ppm, float t);
-    void UpdateGlitchParams(PostProcessManager* ppm, float t);
-    void UpdateVignetteParams(PostProcessManager* ppm, float t);
-    void UpdateChromaticAberrationParams(PostProcessManager* ppm, float t);
-    void UpdateRadialBlurParams(PostProcessManager* ppm, float t);
-
-    /// @brief エフェクト終了時にベースパラメータへ復元する
-    void RestoreBaseParams(PostProcessManager* ppm);
+    void EnsureDriver();
 };

@@ -1,5 +1,28 @@
 #include "Framework/Scene/SceneTransition.h"
+#include "Framework/Scene/SceneTransitionDrivers.h"
 #include <algorithm>
+#include <unordered_map>
+#include <functional>
+
+namespace {
+std::unique_ptr<ITransitionDriver> CreateDriver(SceneTransition::Type type) {
+    static const std::unordered_map<SceneTransition::Type, std::function<std::unique_ptr<ITransitionDriver>()>> kFactory = {
+        { SceneTransition::Type::Fade,            []() { return std::make_unique<FadeTransitionDriver>(); } },
+        { SceneTransition::Type::Dissolve,        []() { return std::make_unique<DissolveTransitionDriver>(); } },
+        { SceneTransition::Type::Slide,           []() { return std::make_unique<SlideTransitionDriver>(); } },
+        { SceneTransition::Type::RadialBlur,      []() { return std::make_unique<RadialBlurTransitionDriver>(false); } },
+        { SceneTransition::Type::RadialBlurWhite, []() { return std::make_unique<RadialBlurTransitionDriver>(true); } },
+    };
+    auto it = kFactory.find(type);
+    if (it != kFactory.end()) {
+        return it->second();
+    }
+    return std::make_unique<FadeTransitionDriver>();
+}
+}
+
+SceneTransition::SceneTransition() = default;
+SceneTransition::~SceneTransition() = default;
 
 void SceneTransition::Initialize(PostProcessManager* ppManager) {
     ppManager_ = ppManager;
@@ -26,36 +49,9 @@ void SceneTransition::Start(Type type, float duration, bool isOut, EaseType ease
     // 基本は黒フェードにリセットしておく（白フェード等で上書きされた色が残るのを防ぐため）
     ppManager_->GetFadeParams().color = {0.0f, 0.0f, 0.0f, 1.0f};
 
-    switch (currentType_) {
-    case Type::Fade:
-        ppManager_->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PostUI);
-        activeTransitionModes_.push_back(PostProcessMode::Fade);
-        break;
-    case Type::Dissolve:
-        ppManager_->AddActiveMode(PostProcessMode::Dissolve, PostProcessManager::Layer::PostUI);
-        activeTransitionModes_.push_back(PostProcessMode::Dissolve);
-        ppManager_->GetDissolveParams().edgeColor = {1.0f, 0.4f, 0.3f, 1.0f}; // 炎のようなオレンジ色
-        break;
-    case Type::Slide:
-        ppManager_->AddActiveMode(PostProcessMode::Slide, PostProcessManager::Layer::PostUI);
-        activeTransitionModes_.push_back(PostProcessMode::Slide);
-        break;
-    case Type::RadialBlur:
-        // 放射状ブラーとフェードを併用
-        ppManager_->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PostUI);
-        ppManager_->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PostUI);
-        activeTransitionModes_.push_back(PostProcessMode::RadialBlur);
-        activeTransitionModes_.push_back(PostProcessMode::Fade);
-        ppManager_->GetFadeParams().color = {0.0f, 0.0f, 0.0f, 1.0f}; // 黒
-        break;
-    case Type::RadialBlurWhite:
-        // 放射状ブラーとフェード(白)を併用
-        ppManager_->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PostUI);
-        ppManager_->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PostUI);
-        activeTransitionModes_.push_back(PostProcessMode::RadialBlur);
-        activeTransitionModes_.push_back(PostProcessMode::Fade);
-        ppManager_->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f}; // 白
-        break;
+    driver_ = CreateDriver(currentType_);
+    if (driver_) {
+        driver_->OnStart(ppManager_, activeTransitionModes_);
     }
 }
 
@@ -99,23 +95,9 @@ void SceneTransition::Update(float deltaTime) {
     // 実際にエフェクトに適用する係数
     float factor = isOut_ ? easedProgress : (1.0f - easedProgress);
 
-    // 各モードのパラメータに反映
-    switch (currentType_) {
-    case Type::Fade:
-        ppManager_->GetFadeParams().intensity = factor;
-        break;
-    case Type::Dissolve:
-        // 1.1 まで動かすことでノイズを確実に消し去る
-        ppManager_->GetDissolveParams().threshold = factor * 1.1f;
-        break;
-    case Type::Slide:
-        // 1.05 まで動かすことで境界のボケ(edgeWidth=0.02)を画面外へ完全に追いやる
-        ppManager_->GetSlideParams().threshold = factor * 1.05f;
-        break;
-    case Type::RadialBlur:
-    case Type::RadialBlurWhite:
-        ppManager_->GetRadialBlurParams().blurWidth = factor * 0.05f;
-        ppManager_->GetFadeParams().intensity = factor;
-        break;
+    // 各モードのパラメータ更新をDriverへ委譲
+    if (driver_) {
+        driver_->OnUpdate(ppManager_, factor);
     }
 }
+

@@ -24,6 +24,9 @@ public:
         RadialBlurWhite, ///< 【放射状ブラー(白)】ボケながら真っ白にホワイトアウトしていく演出。
     };
 
+    SceneTransition();
+    ~SceneTransition();
+
     /**
      * @brief 初期化
      * @param ppManager ポストプロセス管理者
@@ -89,6 +92,7 @@ private:
 
     Type currentType_ = Type::Fade;
     EaseType easeType_ = EaseType::Linear; // イージングタイプを保持
+    std::unique_ptr<class ITransitionDriver> driver_;
     float timer_ = 0.0f;
     float duration_ = 1.0f;
     bool isOut_ = true;
