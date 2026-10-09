@@ -18,6 +18,7 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 | **`01_01`** | **カプセル化 (Encapsulation)** | [01_01_encapsulation.md](references/01_01_encapsulation.md) | アンチパターン5選（public変数、非const参照Getter、friend乱用、DTO不要カプセル化、神クラス） |
 | **`01_02`** | **ポリモーフィズム (Polymorphism)** | [01_02_polymorphism.md](references/01_02_polymorphism.md) | 4大成立要件（virtual関数、override、基底ポインタ呼出、virtualデストラクタ）、is-a関係遵守、無理な基底拡張禁止 |
 | **`01_03`** | **State Pattern (状態遷移パターン)** | [01_03_state_pattern.md](references/01_03_state_pattern.md) | 先生・AI診断4大合格要件、switch-caseベタ書き脱却、ポリモーフィズム呼び出し |
+| **`01_04`** | **デザインパターン (Design Patterns)** | [01_04_design_patterns.md](references/01_04_design_patterns.md) | State/Singleton以外の各種パターン活用（Object Pool, Dirty Flag, Observer, Command, Factory等） |
 
 ---
 
