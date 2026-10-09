@@ -276,6 +276,9 @@
     <ClCompile Include="Combat\EnemyBeamComponent.cpp">
       <Filter>Combat</Filter>
     </ClCompile>
+    <ClCompile Include="Combat\EnemyBeamStates.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
     <ClCompile Include="Player\PlayerTargetingComponent.cpp">
       <Filter>Player</Filter>
     </ClCompile>
@@ -514,6 +517,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="Combat\EnemyBeamComponent.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="Combat\EnemyBeamStates.h">
       <Filter>Combat</Filter>
     </ClInclude>
     <ClInclude Include="Player\PlayerTargetingComponent.h">

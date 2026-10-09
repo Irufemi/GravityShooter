@@ -73,6 +73,82 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
     return true;
 }
 
+void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
+    introState_ = newState;
+    stateTimer_ = 0.0f;
+
+    struct PhaseConfig {
+        float StageIntroDirectorComponent::* durationMember;
+        float initialThrusterScale;
+        float targetThrusterScale;
+        bool isPositionInterpolated;
+        bool isSnapPositionOnEnter;
+        bool isHudActive;
+        bool isInputEnabled;
+        void (*onEnterHook)(StageIntroDirectorComponent*);
+        void (*onUpdateHook)(StageIntroDirectorComponent*, float progress);
+    };
+
+    static const std::unordered_map<StageIntroState, PhaseConfig> kPhaseConfigs = {
+        { StageIntroState::WarpIn, {
+            &StageIntroDirectorComponent::warpInDuration_,
+            2.5f, 2.5f,
+            true,  false,
+            false, false,
+            nullptr,
+            nullptr
+        }},
+        { StageIntroState::Arrival, {
+            &StageIntroDirectorComponent::arrivalDuration_,
+            2.5f, 0.8f,
+            false, true,
+            false, false,
+            nullptr,
+            [](StageIntroDirectorComponent* self, float progress) {
+                self->ApplyArrivalInertia(progress);
+            }
+        }},
+        { StageIntroState::Active, {
+            nullptr,
+            0.8f, 0.8f,
+            false, false,
+            true,  true,
+            [](StageIntroDirectorComponent* self) {
+                self->TriggerFCSBootupSequence();
+            },
+            nullptr
+        }},
+    };
+
+    auto it = kPhaseConfigs.find(introState_);
+    if (it == kPhaseConfigs.end()) {
+        return;
+    }
+    const auto& config = it->second;
+
+    SetHUDActive(config.isHudActive);
+    SetShipThrusterActive(true);
+    SetShipThrusterScale(config.initialThrusterScale, true);
+
+    if (config.isSnapPositionOnEnter) {
+        if (auto ship = shipObj_.lock()) {
+            if (auto transform = ship->GetTransform()) {
+                transform->SetPosition(initialShipLocalPos_);
+            }
+        }
+    }
+
+    if (auto ship = shipObj_.lock()) {
+        if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
+            playerComp->SetInputEnabled(config.isInputEnabled);
+        }
+    }
+
+    if (config.onEnterHook) {
+        config.onEnterHook(this);
+    }
+}
+
 void StageIntroDirectorComponent::Update() {
     // 演出完了済みの場合は処理をスキップ
     if (introState_ == StageIntroState::Active) {
@@ -92,88 +168,92 @@ void StageIntroDirectorComponent::Update() {
     }
 
     stateTimer_ += deltaTime;
-    OnUpdateIntroState(introState_, deltaTime);
-}
 
-void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
-    introState_ = newState;
-    stateTimer_ = 0.0f;
-    OnEnterIntroState(newState);
-}
+    struct PhaseConfig {
+        float StageIntroDirectorComponent::* durationMember;
+        float initialThrusterScale;
+        float targetThrusterScale;
+        bool isPositionInterpolated;
+        bool isSnapPositionOnEnter;
+        bool isHudActive;
+        bool isInputEnabled;
+        void (*onEnterHook)(StageIntroDirectorComponent*);
+        void (*onUpdateHook)(StageIntroDirectorComponent*, float progress);
+    };
 
-void StageIntroDirectorComponent::OnEnterIntroState(StageIntroState state) {
-    using EnterAction = void (*)(StageIntroDirectorComponent*);
-    static const std::unordered_map<StageIntroState, EnterAction> kEnterHandlers = {
-        { StageIntroState::WarpIn, [](StageIntroDirectorComponent* self) {
-            self->SetHUDActive(false);
-            self->SetShipThrusterActive(true);
-            self->SetShipThrusterScale(2.5f, true);
+    static const std::unordered_map<StageIntroState, PhaseConfig> kPhaseConfigs = {
+        { StageIntroState::WarpIn, {
+            &StageIntroDirectorComponent::warpInDuration_,
+            2.5f, 2.5f,
+            true,  false,
+            false, false,
+            nullptr,
+            nullptr
         }},
-        { StageIntroState::Arrival, [](StageIntroDirectorComponent* self) {
-            if (auto ship = self->shipObj_.lock()) {
-                if (auto transform = ship->GetTransform()) {
-                    transform->SetPosition(self->initialShipLocalPos_);
-                }
+        { StageIntroState::Arrival, {
+            &StageIntroDirectorComponent::arrivalDuration_,
+            2.5f, 0.8f,
+            false, true,
+            false, false,
+            nullptr,
+            [](StageIntroDirectorComponent* self, float progress) {
+                self->ApplyArrivalInertia(progress);
             }
-            self->SetShipThrusterActive(true);
         }},
-        { StageIntroState::Active, [](StageIntroDirectorComponent* self) {
-            self->SetHUDActive(true);
-            self->SetShipThrusterActive(true);
-            self->SetShipThrusterScale(0.8f, false);
-            if (auto ship = self->shipObj_.lock()) {
-                if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
-                    playerComp->SetInputEnabled(true);
-                }
-            }
-            self->TriggerFCSBootupSequence();
+        { StageIntroState::Active, {
+            nullptr,
+            0.8f, 0.8f,
+            false, false,
+            true,  true,
+            [](StageIntroDirectorComponent* self) {
+                self->TriggerFCSBootupSequence();
+            },
+            nullptr
         }},
     };
 
-    if (auto it = kEnterHandlers.find(state); it != kEnterHandlers.end()) {
-        it->second(this);
+    auto it = kPhaseConfigs.find(introState_);
+    if (it == kPhaseConfigs.end()) {
+        return;
     }
-}
+    const auto& config = it->second;
 
-void StageIntroDirectorComponent::OnUpdateIntroState(StageIntroState state, float deltaTime) {
-    using UpdateAction = void (*)(StageIntroDirectorComponent*, float);
-    static const std::unordered_map<StageIntroState, UpdateAction> kUpdateHandlers = {
-        { StageIntroState::WarpIn, [](StageIntroDirectorComponent* self, float /*dt*/) {
-            float duration = self->warpInDuration_ > 0.0f ? self->warpInDuration_ : 1.0f;
-            float progress = std::clamp(self->stateTimer_ / duration, 0.0f, 1.0f);
-            float t = 1.0f - std::pow(1.0f - progress, 3.0f);
+    // 所要時間はインスペクタープロパティから動的に取得（コード内ハードコードを完全排除）
+    float duration = 1.0f;
+    if (config.durationMember) {
+        duration = (std::max)(0.001f, this->*(config.durationMember));
+    }
 
-            if (auto ship = self->shipObj_.lock()) {
-                if (auto transform = ship->GetTransform()) {
-                    Irufemi::Vector3 curPos = self->initialShipLocalPos_;
-                    curPos.z = self->initialShipLocalPos_.z + self->startOffsetZ_ * (1.0f - t);
-                    transform->SetPosition(curPos);
-                }
+    float progress = std::clamp(stateTimer_ / duration, 0.0f, 1.0f);
+
+    // スラスター炎の補間
+    float thrusterScale = std::lerp(config.initialThrusterScale, config.targetThrusterScale, progress);
+    SetShipThrusterScale(thrusterScale, true);
+
+    // 位置補間（WarpInフェーズの3次急減速）
+    if (config.isPositionInterpolated) {
+        float t = 1.0f - std::pow(1.0f - progress, 3.0f);
+        if (auto ship = shipObj_.lock()) {
+            if (auto transform = ship->GetTransform()) {
+                Irufemi::Vector3 curPos = initialShipLocalPos_;
+                curPos.z = initialShipLocalPos_.z + startOffsetZ_ * (1.0f - t);
+                transform->SetPosition(curPos);
             }
+        }
+    }
 
-            if (progress >= 1.0f) {
-                self->SetIntroState(StageIntroState::Arrival);
-            }
-        }},
-        { StageIntroState::Arrival, [](StageIntroDirectorComponent* self, float /*dt*/) {
-            float duration = self->arrivalDuration_ > 0.0f ? self->arrivalDuration_ : 0.5f;
-            float progress = std::clamp(self->stateTimer_ / duration, 0.0f, 1.0f);
+    // 固有演出フック
+    if (config.onUpdateHook) {
+        config.onUpdateHook(this, progress);
+    }
 
-            float thrusterScale = std::lerp(2.5f, 0.8f, progress);
-            self->SetShipThrusterScale(thrusterScale, true);
-            self->ApplyArrivalInertia(progress);
-
-            if (progress >= 1.0f) {
-                self->SetIntroState(StageIntroState::Active);
-            }
-        }},
-        { StageIntroState::Active, [](StageIntroDirectorComponent* /*self*/, float /*dt*/) {
-            // 通常戦闘時は更新処理なし
-        }},
-    };
-
-    if (auto it = kUpdateHandlers.find(state); it != kUpdateHandlers.end()) {
-        it->second(this, deltaTime);
+    // 次のフェーズへ自動遷移
+    if (progress >= 1.0f) {
+        if (introState_ == StageIntroState::WarpIn) {
+            SetIntroState(StageIntroState::Arrival);
+        } else if (introState_ == StageIntroState::Arrival) {
+            SetIntroState(StageIntroState::Active);
+        }
     }
 }
 

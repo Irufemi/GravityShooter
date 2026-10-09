@@ -13,8 +13,6 @@
 #include "Renderer/Camera/CameraManager.h"
 #include <cmath>
 #include <algorithm>
-#include <Windows.h>
-#include <string>
 
 #undef min
 #undef max
@@ -22,27 +20,27 @@
 EnemyBeamComponent::~EnemyBeamComponent() = default;
 
 void EnemyBeamComponent::OnRegisterProperties() {
-    RegisterProperty("Beam Length", &beamLength_);
-    RegisterProperty("Beam Max Radius", &beamMaxRadius_);
-    RegisterProperty("Charge Duration", &chargeDuration_);
-    RegisterProperty("Fire Duration", &fireDuration_);
+    RegisterProperty("Beam Length", &config_.beamLength);
+    RegisterProperty("Beam Max Radius", &config_.beamMaxRadius);
+    RegisterProperty("Charge Duration", &config_.chargeDuration);
+    RegisterProperty("Fire Duration", &config_.fireDuration);
 
-    RegisterProperty("Lock Lead Time", &lockLeadTime_);
-    RegisterProperty("Beam Damage", &beamDamage_);
-    RegisterProperty("Hit Check Margin", &hitCheckRadiusMargin_);
-    RegisterProperty("Telegraph Color", &telegraphColor_);
+    RegisterProperty("Lock Lead Time", &config_.lockLeadTime);
+    RegisterProperty("Beam Damage", &config_.beamDamage);
+    RegisterProperty("Hit Check Margin", &config_.hitCheckRadiusMargin);
+    RegisterProperty("Telegraph Color", &config_.telegraphColor);
 
-    RegisterProperty("Charge Sphere Color", &chargeColor_);
-    RegisterProperty("Beam Color", &beamColor_);
-    RegisterProperty("Beam Core Color", &beamCoreColor_);
-    RegisterProperty("Beam Intensity", &beamIntensity_);
-    RegisterProperty("Beam Core Intensity", &beamCoreIntensity_);
-    RegisterProperty("Beam Speed", &beamSpeed_);
+    RegisterProperty("Charge Sphere Color", &config_.chargeColor);
+    RegisterProperty("Beam Color", &config_.beamColor);
+    RegisterProperty("Beam Core Color", &config_.beamCoreColor);
+    RegisterProperty("Beam Intensity", &config_.beamIntensity);
+    RegisterProperty("Beam Core Intensity", &config_.beamCoreIntensity);
+    RegisterProperty("Beam Speed", &config_.beamSpeed);
 
-    RegisterProperty("Aura Color", &auraColor_);
-    RegisterProperty("Aura Core Color", &auraCoreColor_);
-    RegisterProperty("Aura Intensity", &auraIntensity_);
-    RegisterProperty("Aura Speed", &auraSpeed_);
+    RegisterProperty("Aura Color", &config_.auraColor);
+    RegisterProperty("Aura Core Color", &config_.auraCoreColor);
+    RegisterProperty("Aura Intensity", &config_.auraIntensity);
+    RegisterProperty("Aura Speed", &config_.auraSpeed);
 }
 
 void EnemyBeamComponent::Initialize() {
@@ -54,7 +52,7 @@ void EnemyBeamComponent::Initialize() {
     // --- チャージ球の初期化 ---
     chargeSphere_ = std::make_unique<Primitive3DObject>();
     chargeSphere_->Initialize(Irufemi::PrimitiveType::Sphere);
-    chargeSphere_->SetColor(chargeColor_);
+    chargeSphere_->SetColor(config_.chargeColor);
     chargeSphere_->SetCullingEnabled(false);
     chargeSphere_->SetCustomPSO("EnergyCore", Irufemi::BlendMode::kBlendModePremultiplied,
                                 PSOManager::DepthWrite::Disable, PSOManager::CullMode::Back);
@@ -63,7 +61,7 @@ void EnemyBeamComponent::Initialize() {
     // --- AOE予兆危険円柱の初期化 ---
     telegraphCylinder_ = std::make_unique<Primitive3DObject>();
     telegraphCylinder_->Initialize(Irufemi::PrimitiveType::Cylinder);
-    telegraphCylinder_->SetColor(telegraphColor_);
+    telegraphCylinder_->SetColor(config_.telegraphColor);
     telegraphCylinder_->SetCastShadows(false);
     telegraphCylinder_->SetCullingEnabled(false);
     telegraphCylinder_->SetIsTransparent(true);
@@ -86,66 +84,54 @@ void EnemyBeamComponent::Initialize() {
     // --- シェーダーパラメータ定数バッファの初期化 ---
     auto dxCommon = engine->GetDirectXCommon();
     if (dxCommon) {
-        // AOEパラメータ用定数バッファ
         aoeParamsBuffer_.Initialize(dxCommon);
         aoeParamsData_ = AOEParams();
         aoeParamsData_.shapeType = 2; // Cylinder用
         aoeParamsData_.warningRatio = 0.0f;
         aoeParamsBuffer_.UpdateAll(aoeParamsData_);
 
-        // 内側（極太レーザーコア）用パラメータ
         beamParamsBuffer_.Initialize(dxCommon);
         beamParamsData_ = LightningParams();
-        beamParamsData_.color = {0.8f, 0.0f, 1.0f, 1.0f};     // ネオンパープルオーラ
-        beamParamsData_.coreColor = {0.0f, 1.0f, 1.0f, 1.0f}; // 高エネルギーのシアンコア
-        beamParamsData_.intensity = 6.0f;
-        beamParamsData_.noiseThreshold = 0.35f;
-        beamParamsData_.coreIntensity = 40.0f;
-        beamParamsData_.coreThreshold = 0.85f;
-        beamParamsData_.coreScale = 2.5f;
-        beamParamsData_.speed = 3.0f;
-        beamParamsData_.noiseScale = 1.2f;
-        beamParamsData_.spinSpeed = 4.0f;
-        beamParamsData_.twistScale = 4.0f;
+        beamParamsData_.color = config_.beamColor;
+        beamParamsData_.coreColor = config_.beamCoreColor;
+        beamParamsData_.intensity = config_.beamIntensity;
+        beamParamsData_.coreIntensity = config_.beamCoreIntensity;
+        beamParamsData_.speed = config_.beamSpeed;
         beamParamsBuffer_.UpdateAll(beamParamsData_);
 
-        // 外側（バチバチ電撃・オーラ）用パラメータ
         auraParamsBuffer_.Initialize(dxCommon);
         auraParamsData_ = LightningParams();
-        auraParamsData_.color = {0.1f, 0.0f, 0.2f, 1.0f};     // ダークパープル/黒っぽいオーラ
-        auraParamsData_.coreColor = {0.8f, 0.0f, 1.0f, 1.0f}; // コアはネオンパープル
-        auraParamsData_.intensity = 12.0f;
-        auraParamsData_.noiseThreshold = 0.4f;
-        auraParamsData_.coreIntensity = 20.0f;
-        auraParamsData_.coreThreshold = 0.55f;
-        auraParamsData_.coreScale = 2.5f;
-        auraParamsData_.speed = 0.8f;
-        auraParamsData_.noiseScale = 1.0f;
-        auraParamsData_.spinSpeed = 8.0f;
-        auraParamsData_.twistScale = 6.0f;
+        auraParamsData_.color = config_.auraColor;
+        auraParamsData_.coreColor = config_.auraCoreColor;
+        auraParamsData_.intensity = config_.auraIntensity;
+        auraParamsData_.speed = config_.auraSpeed;
         auraParamsBuffer_.UpdateAll(auraParamsData_);
     }
-
-    state_ = State::IDLE;
-    isAimLocked_ = false;
 }
 
 void EnemyBeamComponent::EnsureResources() {
-    if (!chargeSphere_ || !attackCylinder_ || !attackCylinderOuter_ || !telegraphCylinder_) {
+    if (!chargeSphere_) {
         Initialize();
+    }
+}
+
+void EnemyBeamComponent::ChangeState(std::unique_ptr<IBeamState> newState) {
+    if (currentState_) {
+        currentState_->OnExit(*this);
+    }
+    currentState_ = std::move(newState);
+    if (currentState_) {
+        currentState_->OnEnter(*this);
     }
 }
 
 void EnemyBeamComponent::Fire(const Irufemi::Vector3& startPos, const Irufemi::Vector3& targetPos) {
     EnsureResources();
 
-    state_ = State::CHARGING;
-    stateTimer_ = 0.0f;
     startPos_ = startPos;
-    isAimLocked_ = false;
     hasHitCurrentBeam_ = false;
 
-    // ボス本体に対する発射口のローカルオフセットを計算・保持（移動中の前進に追従させるため）
+    // ボスのワールド行列の逆行列を掛けて、ローカル発射口オフセットを逆算・キャッシュ
     if (gameObject_ && gameObject_->GetTransform()) {
         Irufemi::Matrix4x4 invWorld = Irufemi::Math::Inverse(gameObject_->GetTransform()->GetWorldMatrix());
         muzzleLocalOffset_ = Irufemi::Math::Transform(startPos, invWorld);
@@ -161,6 +147,9 @@ void EnemyBeamComponent::Fire(const Irufemi::Vector3& startPos, const Irufemi::V
     } else {
         direction_ = {0.0f, 0.0f, 1.0f};
     }
+
+    // チャージステートへ遷移
+    ChangeState(std::make_unique<BeamChargingState>());
 }
 
 Irufemi::Vector3 EnemyBeamComponent::GetCurrentMuzzlePosition() const {
@@ -207,8 +196,8 @@ void EnemyBeamComponent::CheckBeamCollision() {
 
     Irufemi::Vector3 playerPos = playerTransform->GetWorldPosition();
     Irufemi::Vector3 a = startPos_;
-    Irufemi::Vector3 ab = direction_ * beamLength_;
-    float abLenSq = beamLength_ * beamLength_;
+    Irufemi::Vector3 ab = direction_ * config_.beamLength;
+    float abLenSq = config_.beamLength * config_.beamLength;
     if (abLenSq <= 1e-4f) {
         return;
     }
@@ -221,11 +210,10 @@ void EnemyBeamComponent::CheckBeamCollision() {
 
     Irufemi::Vector3 diff = playerPos - closest;
     float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
-    float hitRadius = beamMaxRadius_ + hitCheckRadiusMargin_;
+    float hitRadius = config_.beamMaxRadius + config_.hitCheckRadiusMargin;
 
     if (distSq <= hitRadius * hitRadius) {
-        // 障害物による射線遮蔽（Line-of-Sight）チェック:
-        // 発射口から自機までの間に環境物（Environment）の壁や柱があればビームが遮断される
+        // 障害物による射線遮蔽（Line-of-Sight）チェック
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
                 uint32_t envMask = cm->GetLayerMask("Environment");
@@ -236,17 +224,16 @@ void EnemyBeamComponent::CheckBeamCollision() {
                 if (distToPlayer > 0.001f) {
                     RaycastHit hitInfo;
                     if (cm->Raycast(ray, hitInfo, distToPlayer, envMask, gameObject_)) {
-                        // 壁に遮られているためダメージ適用をスキップ
-                        return;
+                        return; // 遮蔽
                     }
                 }
             }
         }
 
         hasHitCurrentBeam_ = true;
-        health->TakeDamage(beamDamage_);
+        health->TakeDamage(config_.beamDamage);
 
-        // 特大カメラシェイクを発火（キャッシュを利用してミューテックス競合を回避）
+        // 特大カメラシェイクを発火
         auto cam = mainCameraObj_.lock();
         if (!cam && gameObject_ && gameObject_->GetScene()) {
             cam = gameObject_->GetScene()->FindGameObject("MainCamera");
@@ -262,19 +249,19 @@ void EnemyBeamComponent::CheckBeamCollision() {
 
 void EnemyBeamComponent::UpdateParameters() {
     if (chargeSphere_) {
-        chargeSphere_->SetColor(chargeColor_);
+        chargeSphere_->SetColor(config_.chargeColor);
     }
 
-    beamParamsData_.color = beamColor_;
-    beamParamsData_.coreColor = beamCoreColor_;
-    beamParamsData_.intensity = beamIntensity_;
-    beamParamsData_.coreIntensity = beamCoreIntensity_;
-    beamParamsData_.speed = beamSpeed_;
+    beamParamsData_.color = config_.beamColor;
+    beamParamsData_.coreColor = config_.beamCoreColor;
+    beamParamsData_.intensity = config_.beamIntensity;
+    beamParamsData_.coreIntensity = config_.beamCoreIntensity;
+    beamParamsData_.speed = config_.beamSpeed;
 
-    auraParamsData_.color = auraColor_;
-    auraParamsData_.coreColor = auraCoreColor_;
-    auraParamsData_.intensity = auraIntensity_;
-    auraParamsData_.speed = auraSpeed_;
+    auraParamsData_.color = config_.auraColor;
+    auraParamsData_.coreColor = config_.auraCoreColor;
+    auraParamsData_.intensity = config_.auraIntensity;
+    auraParamsData_.speed = config_.auraSpeed;
 
     auto engine = GetEngine();
     if (engine && engine->GetDirectXCommon()) {
@@ -284,152 +271,8 @@ void EnemyBeamComponent::UpdateParameters() {
     }
 }
 
-void EnemyBeamComponent::UpdateCharging(float deltaTime) {
-    auto engine = GetEngine();
-
-    // ボスの前進・旋回に合わせて発射口ワールド座標をリアルタイム同期
-    startPos_ = GetCurrentMuzzlePosition();
-
-    // --- 溜め動作のアニメーション ---
-    float t = std::min(stateTimer_ / chargeDuration_, 1.0f);
-
-    // 射線追従とロック判定
-    float timeLeft = chargeDuration_ - stateTimer_;
-    auto player = GetPlayerObject();
-    if (player && player->GetComponent<TransformComponent>()) {
-        if (timeLeft > lockLeadTime_) {
-            // 発射前（追尾フェーズ）: 自機座標を滑らかに追尾
-            isAimLocked_ = false;
-            Irufemi::Vector3 playerPos = player->GetComponent<TransformComponent>()->GetWorldPosition();
-            Irufemi::Vector3 diff = playerPos - startPos_;
-            if (diff.x * diff.x + diff.y * diff.y + diff.z * diff.z > 1e-4f) {
-                direction_ = Irufemi::Math::Normalize(diff);
-            }
-        } else {
-            // 発射直前（射線ロックフェーズ）: 追尾停止、射線を空間に固定
-            isAimLocked_ = true;
-        }
-    }
-
-    // AOE パラメータの更新 (warningRatio)
-    aoeParamsData_.shapeType = 2; // Cylinder
-    aoeParamsData_.warningRatio = t;
-    if (engine && engine->GetDirectXCommon()) {
-        uint32_t frameIndex = engine->GetDirectXCommon()->GetCurrentBackBufferIndex();
-        aoeParamsBuffer_.Update(aoeParamsData_, frameIndex);
-    }
-
-    // 予兆シリンダーの姿勢・サイズ更新
-    if (telegraphCylinder_) {
-        float currentLength = beamLength_;
-        Irufemi::Matrix4x4 rotMat = Irufemi::Math::DirectionToDirection({0.0f, 1.0f, 0.0f}, direction_);
-        Irufemi::Vector3 rotate = Irufemi::Math::ExtractEulerFromMatrix(rotMat);
-        Irufemi::Vector3 center = startPos_ + direction_ * (currentLength * 0.5f);
-
-        telegraphCylinder_->SetPosition(center);
-        telegraphCylinder_->SetRotate(rotate);
-        telegraphCylinder_->SetScale({beamMaxRadius_, currentLength, beamMaxRadius_});
-
-        // ロック中は激しく明滅させて危険度を最大化
-        if (isAimLocked_) {
-            float pulse = std::sin(stateTimer_ * 40.0f);
-            Irufemi::Vector4 c =
-                (pulse > 0.0f) ? Irufemi::Vector4{1.0f, 0.2f, 0.2f, 0.9f} : Irufemi::Vector4{1.0f, 1.0f, 1.0f, 0.95f};
-            telegraphCylinder_->SetColor(c);
-        } else {
-            telegraphCylinder_->SetColor(telegraphColor_);
-        }
-        telegraphCylinder_->Update();
-    }
-
-    // イーズイン (急激に収縮してエネルギーが凝縮される表現) + 明滅
-    float easeT = t * t * t;
-    float baseScale = std::lerp(0.1f, 4.0f, easeT);
-    float pulse = 1.0f + 0.3f * std::sin(t * 50.0f);
-    float currentScale = baseScale * pulse;
-
-    if (chargeSphere_) {
-        Irufemi::Transform tForm;
-        tForm.scale = {currentScale, currentScale, currentScale};
-
-        Irufemi::Vector3 cameraPos = startPos_;
-        if (engine && engine->GetCameraManager() && engine->GetCameraManager()->GetActiveCamera()) {
-            cameraPos = engine->GetCameraManager()->GetActiveCamera()->GetTranslate();
-        }
-
-        Irufemi::Vector3 toCamera = cameraPos - startPos_;
-        float distSq = toCamera.x * toCamera.x + toCamera.y * toCamera.y + toCamera.z * toCamera.z;
-        if (distSq > 1e-4f) {
-            Irufemi::Vector3 toCameraDir = Irufemi::Math::Normalize(toCamera);
-            tForm.translate = startPos_ + toCameraDir * (currentScale * 0.5f);
-            toCamera = cameraPos - tForm.translate;
-            float distXZ = std::sqrt(toCamera.x * toCamera.x + toCamera.z * toCamera.z);
-            tForm.rotate.y = std::atan2(-toCamera.x, -toCamera.z);
-            tForm.rotate.x = std::atan2(toCamera.y, distXZ);
-            tForm.rotate.z = 0.0f;
-        } else {
-            tForm.translate = startPos_;
-            tForm.rotate = {0.0f, 0.0f, 0.0f};
-        }
-
-        chargeSphere_->GetTransform().transform = tForm;
-        chargeSphere_->GetTransform().isDirty = true;
-        chargeSphere_->Update();
-    }
-
-    // 溜め完了で発射ステートへ
-    if (stateTimer_ >= chargeDuration_) {
-        state_ = State::FIRING;
-        stateTimer_ = 0.0f;
-
-        if (chargeSphere_) {
-            chargeSphere_->GetTransform().transform.scale = {0.0f, 0.0f, 0.0f};
-            chargeSphere_->GetTransform().isDirty = true;
-            chargeSphere_->Update();
-        }
-    }
-}
-
-void EnemyBeamComponent::UpdateFiring(float deltaTime) {
-    // ボスの前進・旋回に合わせて発射口ワールド座標をリアルタイム同期
-    startPos_ = GetCurrentMuzzlePosition();
-
-    // --- ビーム発射動作のアニメーション ---
-    float t = std::min(stateTimer_ / fireDuration_, 1.0f);
-
-    float easeThickness = 1.0f - (t * t * t);
-    float currentThickness = beamMaxRadius_ * easeThickness;
-    float currentLength = beamLength_;
-
-    Irufemi::Matrix4x4 rotMat = Irufemi::Math::DirectionToDirection({0.0f, 1.0f, 0.0f}, direction_);
-    Irufemi::Vector3 rotate = Irufemi::Math::ExtractEulerFromMatrix(rotMat);
-    Irufemi::Vector3 center = startPos_ + direction_ * (currentLength * 0.5f);
-
-    if (attackCylinder_) {
-        attackCylinder_->SetPosition(center);
-        attackCylinder_->SetRotate(rotate);
-        attackCylinder_->SetScale({currentThickness * 0.5f, currentLength, currentThickness * 0.5f});
-        attackCylinder_->Update();
-    }
-
-    if (attackCylinderOuter_) {
-        attackCylinderOuter_->SetPosition(center);
-        attackCylinderOuter_->SetRotate(rotate);
-        attackCylinderOuter_->SetScale({currentThickness, currentLength, currentThickness});
-        attackCylinderOuter_->Update();
-    }
-
-    // 自機への当たり判定とダメージ処理
-    CheckBeamCollision();
-
-    // 終了判定
-    if (stateTimer_ >= fireDuration_) {
-        state_ = State::IDLE;
-    }
-}
-
 void EnemyBeamComponent::Update() {
-    if (state_ == State::IDLE) {
+    if (!currentState_) {
         return;
     }
 
@@ -441,20 +284,14 @@ void EnemyBeamComponent::Update() {
         deltaTime = 1.0f / 60.0f;
     }
 
-    stateTimer_ += deltaTime;
-
-    using StateUpdateFunc = void (EnemyBeamComponent::*)(float);
-    static const std::unordered_map<State, StateUpdateFunc> kStateUpdateTable = {
-        { State::CHARGING, &EnemyBeamComponent::UpdateCharging },
-        { State::FIRING,   &EnemyBeamComponent::UpdateFiring },
-    };
-
-    if (auto it = kStateUpdateTable.find(state_); it != kStateUpdateTable.end()) {
-        (this->*(it->second))(deltaTime);
-    }
+    currentState_->OnUpdate(*this, deltaTime);
 }
 
 void EnemyBeamComponent::Draw() {
+    if (!currentState_) {
+        return;
+    }
+
     EnsureResources();
 
     auto engine = GetEngine();
@@ -463,67 +300,12 @@ void EnemyBeamComponent::Draw() {
     }
 
     uint32_t frameIndex = engine->GetDirectXCommon()->GetCurrentBackBufferIndex();
-
-    using StateDrawFunc = void (*)(EnemyBeamComponent*, uint32_t);
-    static const std::unordered_map<State, StateDrawFunc> kStateDrawTable = {
-        { State::CHARGING, [](EnemyBeamComponent* self, uint32_t frameIdx) {
-            // AOE予兆円柱の描画
-            if (self->telegraphCylinder_) {
-                self->telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
-                                                       PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
-                self->telegraphCylinder_->SetCustomCBVAddress(self->aoeParamsBuffer_.GetGPUVirtualAddress(frameIdx));
-                self->telegraphCylinder_->Draw();
-            }
-
-            // チャージ球の描画
-            if (self->chargeSphere_ && self->chargeSphere_->GetTransform().transform.scale.x > 0.0f) {
-                self->chargeSphere_->Draw();
-            }
-        }},
-        { State::FIRING, [](EnemyBeamComponent* self, uint32_t frameIdx) {
-            // 外側オーラ (LightningCrawl)
-            if (self->attackCylinderOuter_) {
-                self->attackCylinderOuter_->SetCustomPSO("LightningCrawl", Irufemi::BlendMode::kBlendModeAdd,
-                                                         PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
-                self->attackCylinderOuter_->SetCustomCBVAddress(self->auraParamsBuffer_.GetGPUVirtualAddress(frameIdx));
-                self->attackCylinderOuter_->Draw();
-            }
-
-            // 内側コア (EnergyBeam)
-            if (self->attackCylinder_) {
-                self->attackCylinder_->SetCustomPSO("EnergyBeam", Irufemi::BlendMode::kBlendModeAdd,
-                                                    PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
-                self->attackCylinder_->SetCustomCBVAddress(self->beamParamsBuffer_.GetGPUVirtualAddress(frameIdx));
-                self->attackCylinder_->Draw();
-            }
-        }},
-    };
-
-    if (auto it = kStateDrawTable.find(state_); it != kStateDrawTable.end()) {
-        it->second(this, frameIndex);
-    }
+    currentState_->OnDraw(*this, frameIndex);
 }
 
 std::shared_ptr<Component> EnemyBeamComponent::Clone() {
     auto clone = std::make_shared<EnemyBeamComponent>();
     clone->CopyPropertiesFrom(this);
-    clone->beamLength_ = this->beamLength_;
-    clone->beamMaxRadius_ = this->beamMaxRadius_;
-    clone->chargeDuration_ = this->chargeDuration_;
-    clone->fireDuration_ = this->fireDuration_;
-    clone->lockLeadTime_ = this->lockLeadTime_;
-    clone->beamDamage_ = this->beamDamage_;
-    clone->hitCheckRadiusMargin_ = this->hitCheckRadiusMargin_;
-    clone->telegraphColor_ = this->telegraphColor_;
-    clone->chargeColor_ = this->chargeColor_;
-    clone->beamColor_ = this->beamColor_;
-    clone->beamCoreColor_ = this->beamCoreColor_;
-    clone->beamIntensity_ = this->beamIntensity_;
-    clone->beamCoreIntensity_ = this->beamCoreIntensity_;
-    clone->beamSpeed_ = this->beamSpeed_;
-    clone->auraColor_ = this->auraColor_;
-    clone->auraCoreColor_ = this->auraCoreColor_;
-    clone->auraIntensity_ = this->auraIntensity_;
-    clone->auraSpeed_ = this->auraSpeed_;
+    clone->config_ = this->config_;
     return clone;
 }

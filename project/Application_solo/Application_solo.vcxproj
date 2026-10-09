@@ -301,6 +301,7 @@ exit 0</Command>
     <ClCompile Include="Core\SceneTransitionButtonComponent.cpp" />
     <ClCompile Include="Effects\EffectManagerComponent.cpp" />
     <ClCompile Include="Combat\EnemyBeamComponent.cpp" />
+    <ClCompile Include="Combat\EnemyBeamStates.cpp" />
     <ClCompile Include="UI\ReticleUIComponent.cpp" />
     <ClCompile Include="UI\LockonMarkerUIComponent.cpp" />
     <ClCompile Include="Player\PlayerTargetingComponent.cpp" />
@@ -388,6 +389,7 @@ exit 0</Command>
     <ClInclude Include="Core\SceneTransitionButtonComponent.h" />
     <ClInclude Include="Effects\EffectManagerComponent.h" />
     <ClInclude Include="Combat\EnemyBeamComponent.h" />
+    <ClInclude Include="Combat\EnemyBeamStates.h" />
     <ClInclude Include="UI\ReticleUIComponent.h" />
     <ClInclude Include="UI\LockonMarkerUIComponent.h" />
     <ClInclude Include="Player\PlayerTargetingComponent.h" />

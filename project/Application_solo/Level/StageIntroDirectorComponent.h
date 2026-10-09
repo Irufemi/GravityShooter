@@ -58,8 +58,6 @@ private:
     void SetShipThrusterActive(bool active);
     void SetShipThrusterScale(float targetScaleZ, bool snap = false);
     void SetIntroState(StageIntroState newState);
-    void OnEnterIntroState(StageIntroState state);
-    void OnUpdateIntroState(StageIntroState state, float deltaTime);
 
     // 将来の演出拡張用フック（B案: 整流バウンス & FCSブートアップ）
     void ApplyArrivalInertia(float progress);
