@@ -1,4 +1,5 @@
 #include "UI/ComponentUIHelpers.h"
+#include "UI/PropertyDrawer.h"
 
 #ifdef EditorMode
 #include "Core/System/IrufemiEngine.h"
@@ -21,7 +22,9 @@
 #include <filesystem>
 #include <unordered_map>
 
-std::shared_ptr<Component> ComponentUIHelpers::GetSharedComponent(GameObject* go, Component* comp) {
+namespace Irufemi::Editor::UI {
+
+std::shared_ptr<Component> GetSharedComponent(GameObject* go, Component* comp) {
     if (!go || !comp) {
         return nullptr;
     }
@@ -33,8 +36,8 @@ std::shared_ptr<Component> ComponentUIHelpers::GetSharedComponent(GameObject* go
     return nullptr;
 }
 
-void ComponentUIHelpers::DrawCollisionLayerGUI(Component* comp, EditorActionManager* actionManager, uint32_t& layer,
-                                               uint32_t& mask) {
+void DrawCollisionLayerGUI(Component* comp, EditorActionManager* actionManager, uint32_t& layer,
+                           uint32_t& mask) {
     auto* go = comp->GetGameObject();
     auto* scene = go ? go->GetScene() : nullptr;
     auto* cm = scene ? scene->GetEngine()->GetCollisionManager() : nullptr;
@@ -177,7 +180,7 @@ void ComponentUIHelpers::DrawCollisionLayerGUI(Component* comp, EditorActionMana
     }
 }
 
-void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorActionManager* actionManager) {
+void DrawFallbackPropertiesGUI(Component* component, EditorActionManager* actionManager) {
     const auto& props = component->GetProperties();
     if (props.empty()) {
         return;
@@ -461,387 +464,10 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
                     ImGui::PushItemWidth(-1);
                     std::string hiddenName = "##" + prop.name;
 
-                    switch (prop.type) {
-                    case ComponentPropertyType::Float: {
-                        float* ptr = static_cast<float*>(prop.GetRawData());
-                        if (prop.minVal != prop.maxVal) {
-                            if (ImGui::SliderFloat(hiddenName.c_str(), ptr, prop.minVal, prop.maxVal)) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        } else {
-                            if (ImGui::DragFloat(hiddenName.c_str(), ptr, 0.1f)) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        }
-                        CheckUndoRedoDrag(actionManager, ptr, prop.onChanged);
-                        break;
-                    }
-                    case ComponentPropertyType::Enum: {
-                        int* ptr = static_cast<int*>(prop.GetRawData());
-                        if (!prop.enumNames.empty()) {
-                            std::vector<const char*> cStrs;
-                            for (const auto& s : prop.enumNames) {
-                                cStrs.push_back(s.c_str());
-                            }
-                            int oldVal = *ptr;
-                            if (ImGui::Combo(hiddenName.c_str(), ptr, cStrs.data(), static_cast<int>(cStrs.size()))) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                                PushInstantUndo(actionManager, oldVal, *ptr, ptr, prop.onChanged);
-                            }
-                        }
-                        break;
-                    }
-                    case ComponentPropertyType::Int: {
-                        int* ptr = static_cast<int*>(prop.GetRawData());
-                        if (prop.minVal != prop.maxVal) {
-                            if (ImGui::SliderInt(hiddenName.c_str(), ptr, static_cast<int>(prop.minVal),
-                                                 static_cast<int>(prop.maxVal))) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        } else {
-                            if (ImGui::DragInt(hiddenName.c_str(), ptr, 1)) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        }
-                        CheckUndoRedoDrag(actionManager, ptr, prop.onChanged);
-                        break;
-                    }
-                    case ComponentPropertyType::Bool: {
-                        bool* ptr = static_cast<bool*>(prop.GetRawData());
-                        bool oldVal = *ptr;
-                        if (ImGui::Checkbox(hiddenName.c_str(), ptr)) {
-                            if (prop.onChanged) {
-                                prop.onChanged();
-                            }
-                            PushInstantUndo(actionManager, oldVal, *ptr, ptr, prop.onChanged);
-                        }
-                        break;
-                    }
-                    case ComponentPropertyType::Float2: {
-                        Irufemi::Vector2* ptr = reinterpret_cast<Irufemi::Vector2*>(prop.GetRawData());
-                        if (ImGui::DragFloat2(hiddenName.c_str(), &ptr->x, 0.1f)) {
-                            if (prop.onChanged) {
-                                prop.onChanged();
-                            }
-                        }
-                        CheckUndoRedoDrag(actionManager, ptr, prop.onChanged);
-                        break;
-                    }
-                    case ComponentPropertyType::Float3: {
-                        Irufemi::Vector3* ptr = reinterpret_cast<Irufemi::Vector3*>(prop.GetRawData());
-                        if (prop.name.find("Color") != std::string::npos ||
-                            prop.name.find("color") != std::string::npos) {
-                            if (ImGui::ColorEdit3(hiddenName.c_str(), &ptr->x)) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        } else {
-                            if (ImGui::DragFloat3(hiddenName.c_str(), &ptr->x, 0.1f)) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        }
-                        CheckUndoRedoDrag(actionManager, ptr, prop.onChanged);
-                        break;
-                    }
-                    case ComponentPropertyType::Float4: {
-                        Irufemi::Vector4* ptr = reinterpret_cast<Irufemi::Vector4*>(prop.GetRawData());
-                        if (prop.name.find("Color") != std::string::npos ||
-                            prop.name.find("color") != std::string::npos) {
-                            if (ImGui::ColorEdit4(hiddenName.c_str(), &ptr->x)) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        } else {
-                            if (ImGui::DragFloat4(hiddenName.c_str(), &ptr->x, 0.1f)) {
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                        }
-                        CheckUndoRedoDrag(actionManager, ptr, prop.onChanged);
-                        break;
-                    }
-                    case ComponentPropertyType::String: {
-                        auto* str = static_cast<std::string*>(prop.GetRawData());
-                        std::string lowerName = prop.name;
-                        std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
-
-                        bool isModel = (lowerName.find("model") != std::string::npos ||
-                                        lowerName.find("mesh") != std::string::npos);
-                        bool isTexture = (lowerName.find("texture") != std::string::npos ||
-                                          lowerName.find("image") != std::string::npos);
-                        bool isAnimation = (lowerName.find("animation") != std::string::npos ||
-                                            lowerName.find("anim") != std::string::npos);
-                        bool isPrefabProp = (lowerName.find("prefab") != std::string::npos);
-
-                        std::vector<std::string> comboItems;
-                        IrufemiEngine* engine = nullptr;
-                        if (component->GetGameObject() && component->GetGameObject()->GetScene()) {
-                            engine = component->GetGameObject()->GetScene()->GetEngine();
-                        }
-
-                        if (engine && isModel && engine->GetObjModelManager()) {
-                            auto* mgr = engine->GetObjModelManager();
-#ifndef NDEBUG
-                            mgr->RefreshAvailableModels();
-#endif
-                            comboItems = mgr->GetAvailableModels();
-                        } else if (engine && isTexture && engine->GetTextureManager()) {
-                            comboItems = engine->GetTextureManager()->GetTextureNamesForDebug();
-                        } else if (engine && isAnimation && engine->GetAnimationManager()) {
-                            auto* mgr = engine->GetAnimationManager();
-#ifndef NDEBUG
-                            mgr->RefreshAvailableAnimations();
-#endif
-                            comboItems = mgr->GetAvailableAnimations();
-                        }
-
-                        if (!comboItems.empty()) {
-                            if (ImGui::BeginCombo(hiddenName.c_str(), str->c_str())) {
-                                for (const auto& item : comboItems) {
-                                    bool isSelected = (*str == item);
-                                    if (ImGui::Selectable(item.c_str(), isSelected)) {
-                                        std::string oldVal = *str;
-                                        *str = item;
-                                        auto cb = prop.onChanged;
-                                        if (cb) {
-                                            cb();
-                                        }
-                                        actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::string>>(
-                                            oldVal, *str, [str, cb](const std::string& v) {
-                                                *str = v;
-                                                if (cb) {
-                                                    cb();
-                                                }
-                                            }));
-                                    }
-                                    if (isSelected) {
-                                        ImGui::SetItemDefaultFocus();
-                                    }
-                                }
-                                ImGui::EndCombo();
-                            }
-                        } else if (isPrefabProp) {
-                            // プレハブディレクトリを走査して一覧取得（2秒間キャッシュ）
-                            static std::vector<std::string> cachedPrefabs;
-                            static float lastCacheTime = -10.0f;
-                            float curTime = static_cast<float>(ImGui::GetTime());
-                            if (curTime - lastCacheTime > 2.0f || cachedPrefabs.empty()) {
-                                cachedPrefabs.clear();
-                                std::string prefabDir = FileSystem::GetResourcePath("prefabs");
-                                if (!std::filesystem::exists(prefabDir)) {
-                                    prefabDir = "resources/prefabs";
-                                }
-                                if (std::filesystem::exists(prefabDir)) {
-                                    for (const auto& entry : std::filesystem::recursive_directory_iterator(prefabDir)) {
-                                        if (entry.is_regular_file()) {
-                                            auto ext = entry.path().extension().string();
-                                            if (ext == ".json" || ext == ".prefab") {
-                                                cachedPrefabs.push_back("resources/prefabs/" +
-                                                                        entry.path().filename().generic_string());
-                                            }
-                                        }
-                                    }
-                                }
-                                std::sort(cachedPrefabs.begin(), cachedPrefabs.end());
-                                lastCacheTime = curTime;
-                            }
-
-                            ImGui::SetNextItemWidth((std::max)(50.0f, ImGui::GetContentRegionAvail().x - 70.0f));
-
-                            // 型安全メタデータフィルタリング（Unityの[RequireComponent] / UE5のAllowedClassesに相当）
-                            static std::unordered_map<std::string, std::vector<std::string>> prefabComponentCache;
-                            auto PrefabHasComponent = [](const std::string& path,
-                                                         const std::string& requiredComp) -> bool {
-                                if (requiredComp.empty()) {
-                                    return true;
-                                }
-                                auto it = prefabComponentCache.find(path);
-                                if (it == prefabComponentCache.end()) {
-                                    std::vector<std::string> compNames;
-                                    nlohmann::json j;
-                                    if (Irufemi::JsonUtility::LoadFromFile(path, j)) {
-                                        if (j.contains("components") && j["components"].is_array()) {
-                                            for (const auto& compObj : j["components"]) {
-                                                if (compObj.contains("type") && compObj["type"].is_string()) {
-                                                    compNames.push_back(compObj["type"].get<std::string>());
-                                                }
-                                            }
-                                        }
-                                    }
-                                    it = prefabComponentCache.emplace(path, std::move(compNames)).first;
-                                }
-                                return std::find(it->second.begin(), it->second.end(), requiredComp) !=
-                                       it->second.end();
-                            };
-
-                            std::vector<std::string> displayPrefabs;
-                            for (const auto& p : cachedPrefabs) {
-                                if (PrefabHasComponent(p, prop.prefabFilterComponent)) {
-                                    displayPrefabs.push_back(p);
-                                }
-                            }
-
-                            if (ImGui::BeginCombo(hiddenName.c_str(), str->c_str())) {
-                                for (const auto& item : displayPrefabs) {
-                                    bool isSelected = (*str == item);
-                                    if (ImGui::Selectable(item.c_str(), isSelected)) {
-                                        std::string oldVal = *str;
-                                        *str = item;
-                                        auto cb = prop.onChanged;
-                                        if (cb) {
-                                            cb();
-                                        }
-                                        actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::string>>(
-                                            oldVal, *str, [str, cb](const std::string& v) {
-                                                *str = v;
-                                                if (cb) {
-                                                    cb();
-                                                }
-                                            }));
-                                    }
-                                    if (isSelected) {
-                                        ImGui::SetItemDefaultFocus();
-                                    }
-                                }
-                                ImGui::EndCombo();
-                            }
-
-                            if (!str->empty()) {
-                                ImGui::SameLine();
-                                if (ImGui::Button((std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(),
-                                                  ImVec2(65.0f, 0))) {
-                                    if (auto em = EditorManager::GetInstance()) {
-                                        em->EnterPrefabMode(*str);
-                                    }
-                                }
-                                if (ImGui::IsItemHovered()) {
-                                    ImGui::SetTooltip("Open in Prefab Edit Mode");
-                                }
-                            }
-                        } else {
-                            char buffer[256];
-                            strncpy_s(buffer, sizeof(buffer), str->c_str(), _TRUNCATE);
-
-                            static std::string startStr;
-                            if (ImGui::InputText(hiddenName.c_str(), buffer, sizeof(buffer))) {
-                                *str = buffer;
-                                if (prop.onChanged) {
-                                    prop.onChanged();
-                                }
-                            }
-                            if (ImGui::IsItemActivated()) {
-                                startStr = *str;
-                            }
-                            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                                std::string endStr = *str;
-                                auto cb = prop.onChanged;
-                                actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::string>>(
-                                    startStr, endStr, [str, cb](const std::string& v) {
-                                        *str = v;
-                                        if (cb) {
-                                            cb();
-                                        }
-                                    }));
-                            }
-                        }
-
-                        if (ImGui::BeginDragDropTarget()) {
-                            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                                const char* path = (const char*)payload->Data;
-                                std::string droppedPathStr = path;
-                                std::replace(droppedPathStr.begin(), droppedPathStr.end(), '\\', '/');
-
-                                std::string lowerPath = droppedPathStr;
-                                std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(), ::tolower);
-
-                                size_t resPos = lowerPath.find("resources/");
-                                if (resPos != std::string::npos) {
-                                    droppedPathStr = droppedPathStr.substr(resPos);
-                                }
-
-                                std::string oldVal = *str;
-                                *str = droppedPathStr;
-                                actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<std::string>>(
-                                    oldVal, droppedPathStr, [str](const std::string& v) { *str = v; }));
-                            }
-                            ImGui::EndDragDropTarget();
-                        }
-                        break;
-                    }
-                    case ComponentPropertyType::GameObjectRef: {
-                        uint64_t* ptr = static_cast<uint64_t*>(prop.GetRawData());
-                        std::vector<std::shared_ptr<GameObject>> allObjs;
-                        if (component->GetGameObject() && component->GetGameObject()->GetScene()) {
-                            auto rootObjs = component->GetGameObject()->GetScene()->GetGameObjects();
-                            std::function<void(const std::vector<std::shared_ptr<GameObject>>&)> addObjs =
-                                [&](const std::vector<std::shared_ptr<GameObject>>& objs) {
-                                    for (const auto& o : objs) {
-                                        if (o && !o->IsDestroyed()) {
-                                            allObjs.push_back(o);
-                                            addObjs(o->GetChildren());
-                                        }
-                                    }
-                                };
-                            addObjs(rootObjs);
-                        }
-
-                        std::string currentName = "None";
-                        if (*ptr != 0 && component->GetGameObject() && component->GetGameObject()->GetScene()) {
-                            auto currentObj = component->GetGameObject()->GetScene()->FindGameObjectByID(*ptr);
-                            if (currentObj) {
-                                currentName = currentObj->GetName();
-                            }
-                        }
-
-                        if (ImGui::BeginCombo(hiddenName.c_str(), currentName.c_str())) {
-                            if (ImGui::Selectable("None", *ptr == 0)) {
-                                uint64_t oldVal = *ptr;
-                                *ptr = 0;
-                                actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<uint64_t>>(
-                                    oldVal, 0, [ptr](const uint64_t& v) { *ptr = v; }));
-                            }
-                            for (const auto& obj : allObjs) {
-                                if (!obj || obj->IsDestroyed()) {
-                                    continue;
-                                }
-                                bool isSelected = (*ptr == obj->GetInstanceID());
-                                std::string displayName = obj->GetName();
-                                if (displayName.empty()) {
-                                    displayName = "Unnamed Object";
-                                }
-
-                                if (ImGui::Selectable(displayName.c_str(), isSelected)) {
-                                    uint64_t oldVal = *ptr;
-                                    uint64_t newVal = obj->GetInstanceID();
-                                    *ptr = newVal;
-                                    actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<uint64_t>>(
-                                        oldVal, newVal, [ptr](const uint64_t& v) { *ptr = v; }));
-                                }
-                                if (isSelected) {
-                                    ImGui::SetItemDefaultFocus();
-                                }
-                            }
-                            ImGui::EndCombo();
-                        }
-                        break;
-                    }
-                    default:
-                        break;
+                    if (auto* drawer = PropertyDrawerRegistry::GetInstance().GetDrawer(prop.type)) {
+                        drawer->Draw(hiddenName, prop, component, actionManager);
+                    } else {
+                        ImGui::TextDisabled("Unsupported Property Type");
                     }
                     ImGui::PopItemWidth();
 
@@ -874,7 +500,7 @@ void ComponentUIHelpers::DrawFallbackPropertiesGUI(Component* component, EditorA
     }
     ImGui::PopID();
 }
-bool ComponentUIHelpers::BeginPropertyTable(const char* tableId) {
+bool BeginPropertyTable(const char* tableId) {
     ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV;
     if (ImGui::BeginTable(tableId, 3, flags)) {
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 0.4f);
@@ -885,11 +511,11 @@ bool ComponentUIHelpers::BeginPropertyTable(const char* tableId) {
     return false;
 }
 
-void ComponentUIHelpers::EndPropertyTable() {
+void EndPropertyTable() {
     ImGui::EndTable();
 }
 
-void ComponentUIHelpers::DrawPropertyLabel(const char* label, const char* tooltip) {
+void DrawPropertyLabel(const char* label, const char* tooltip) {
     ImGui::TableSetColumnIndex(0);
     ImGui::AlignTextToFramePadding();
     ImGui::Text("%s", label);
@@ -898,7 +524,7 @@ void ComponentUIHelpers::DrawPropertyLabel(const char* label, const char* toolti
     }
 }
 
-void ComponentUIHelpers::DrawPropertyResetButton(const char* id, bool isModified, std::function<void()> resetAction) {
+void DrawPropertyResetButton(const char* id, bool isModified, std::function<void()> resetAction) {
     ImGui::TableSetColumnIndex(2);
     if (isModified) {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
@@ -914,9 +540,9 @@ void ComponentUIHelpers::DrawPropertyResetButton(const char* id, bool isModified
     }
 }
 
-void ComponentUIHelpers::SwitchColliderType(GameObject* go, ColliderComponent* oldComp,
-                                            ColliderComponent::ColliderType newType,
-                                            EditorActionManager* actionManager) {
+void SwitchColliderType(GameObject* go, ColliderComponent* oldComp,
+                        ColliderComponent::ColliderType newType,
+                        EditorActionManager* actionManager) {
     if (!go || !oldComp) {
         return;
     }
@@ -992,4 +618,6 @@ void ComponentUIHelpers::SwitchColliderType(GameObject* go, ColliderComponent* o
         }
     }
 }
+
+} // namespace Irufemi::Editor::UI
 #endif // EditorMode

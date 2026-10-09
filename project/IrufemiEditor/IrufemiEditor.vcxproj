@@ -209,6 +209,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Panels\EngineSettingsPanel.cpp" />
 
     <ClCompile Include="UI\ComponentUIHelpers.cpp" />
+    <ClCompile Include="UI\PropertyDrawer.cpp" />
     <ClCompile Include="Inspectors\Rendering\SkinnedMeshRendererComponentEditor.cpp" />
     <ClCompile Include="Inspectors\Transform\TransformComponentEditor.cpp" />
     <ClCompile Include="Inspectors\Rendering\MeshRendererComponentEditor.cpp" />
@@ -243,6 +244,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Panels\EngineSettingsPanel.h" />
 
     <ClInclude Include="UI\ComponentUIHelpers.h" />
+    <ClInclude Include="UI\PropertyDrawer.h" />
     <ClInclude Include="Inspectors\Rendering\SkinnedMeshRendererComponentEditor.h" />
     <ClInclude Include="Inspectors\Transform\TransformComponentEditor.h" />
     <ClInclude Include="Inspectors\Rendering\MeshRendererComponentEditor.h" />
