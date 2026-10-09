@@ -19,6 +19,8 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 | **`01_02`** | **ポリモーフィズム (Polymorphism)** | [01_02_polymorphism.md](references/01_02_polymorphism.md) | 4大成立要件（virtual関数、override、基底ポインタ呼出、virtualデストラクタ）、is-a関係遵守、無理な基底拡張禁止 |
 | **`01_03`** | **State Pattern (状態遷移パターン)** | [01_03_state_pattern.md](references/01_03_state_pattern.md) | 先生・AI診断4大合格要件、switch-caseベタ書き脱却、ポリモーフィズム呼び出し |
 | **`01_04`** | **デザインパターン (Design Patterns)** | [01_04_design_patterns.md](references/01_04_design_patterns.md) | State/Singleton以外の各種パターン活用（Object Pool, Dirty Flag, Observer, Command, Factory等） |
+| **`02_01`** | **データドリブン (Data-driven)** | [02_01_data_driven.md](references/02_01_data_driven.md) | 余分なif-else/switch排除、構造体・データテーブル化、共通初期化・処理の関数化 |
+
 
 ---
 
@@ -42,9 +44,19 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 - `references/` 配下の該当単元ドキュメントを読み込み、採点基準・アンチパターンを把握する。
 
 ### Step 2: 作業場の自動スキャン実行
-- スキル同梱スクリプトを実行して作業場全体を高速走査する：
+- 単元に応じたスキル同梱スクリプトを実行して作業場全体を高速走査する：
   ```powershell
+  # 01_01 カプセル化診断
   py -3 .agents\skills\source-reviewer\scripts\scan_encapsulation.py
+
+  # 01_02 ポリモーフィズム診断
+  py -3 .agents\skills\source-reviewer\scripts\scan_polymorphism.py
+
+  # 01_03 State Pattern 診断
+  py -3 .agents\skills\source-reviewer\scripts\scan_state_pattern.py
+
+  # 02_01 データドリブン (Data-driven) 診断
+  py -3 .agents\skills\source-reviewer\scripts\scan_data_driven.py
   ```
 - スキャン結果に加え、直近の Git 変更差分（`git status -s`, `git diff`）も精査し、直近作業でアンチパターンが混入していないかを確認する。
 
