@@ -459,22 +459,17 @@ void TitleSceneDirectorComponent::ChangeState(std::unique_ptr<ITitleLaunchState>
 }
 
 void TitleSceneDirectorComponent::ChangeState(LaunchState newState) {
-    switch (newState) {
-    case LaunchState::Idle:
-        ChangeState(nullptr);
-        break;
-    case LaunchState::Charge:
-        ChangeState(std::make_unique<TitleLaunchStateCharge>());
-        break;
-    case LaunchState::Accelerate:
-        ChangeState(std::make_unique<TitleLaunchStateAccelerate>());
-        break;
-    case LaunchState::Break:
-        ChangeState(std::make_unique<TitleLaunchStateBreak>());
-        break;
-    case LaunchState::Afterglow:
-        ChangeState(std::make_unique<TitleLaunchStateAfterglow>());
-        break;
+    using LaunchStateFactory = std::unique_ptr<ITitleLaunchState>(*)();
+    static const std::unordered_map<LaunchState, LaunchStateFactory> kLaunchStateFactories = {
+        { LaunchState::Idle,       []() -> std::unique_ptr<ITitleLaunchState> { return nullptr; } },
+        { LaunchState::Charge,     []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateCharge>(); } },
+        { LaunchState::Accelerate, []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateAccelerate>(); } },
+        { LaunchState::Break,      []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateBreak>(); } },
+        { LaunchState::Afterglow,  []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateAfterglow>(); } },
+    };
+
+    if (auto it = kLaunchStateFactories.find(newState); it != kLaunchStateFactories.end()) {
+        ChangeState(it->second());
     }
 }
 

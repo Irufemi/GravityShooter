@@ -277,34 +277,25 @@ bool StringToInputBinding(const std::string& name, InputId& outId, InputModifier
 }
 
 const char* InputIdToString(InputId id) {
-    switch (id) {
-    case InputId::Keyboard_Space:
-        return "Key_Space";
-    case InputId::Keyboard_Enter:
-        return "Key_Enter";
-    case InputId::Keyboard_Escape:
-        return "Key_Escape";
-    case InputId::Mouse_Left:
-        return "Mouse_Left";
-    case InputId::Mouse_Right:
-        return "Mouse_Right";
-    case InputId::GamePad_A:
-        return "Pad_A";
-    case InputId::GamePad_B:
-        return "Pad_B";
-    case InputId::GamePad_X:
-        return "Pad_X";
-    case InputId::GamePad_Y:
-        return "Pad_Y";
-    case InputId::GamePad_Start:
-        return "Pad_Start";
-    case InputId::GamePad_LeftTrigger:
-        return "Pad_LT";
-    case InputId::GamePad_RightTrigger:
-        return "Pad_RT";
-    default:
-        return "Unknown";
+    static const std::unordered_map<InputId, const char*> kInputIdNames = {
+        { InputId::Keyboard_Space,       "Key_Space" },
+        { InputId::Keyboard_Enter,       "Key_Enter" },
+        { InputId::Keyboard_Escape,      "Key_Escape" },
+        { InputId::Mouse_Left,           "Mouse_Left" },
+        { InputId::Mouse_Right,          "Mouse_Right" },
+        { InputId::GamePad_A,            "Pad_A" },
+        { InputId::GamePad_B,            "Pad_B" },
+        { InputId::GamePad_X,            "Pad_X" },
+        { InputId::GamePad_Y,            "Pad_Y" },
+        { InputId::GamePad_Start,        "Pad_Start" },
+        { InputId::GamePad_LeftTrigger,  "Pad_LT" },
+        { InputId::GamePad_RightTrigger, "Pad_RT" },
+    };
+
+    if (auto it = kInputIdNames.find(id); it != kInputIdNames.end()) {
+        return it->second;
     }
+    return "Unknown";
 }
 
 bool InputManager::LoadBindingsFromJson(const std::string& filepath) {

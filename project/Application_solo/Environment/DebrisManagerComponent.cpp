@@ -574,48 +574,31 @@ void DebrisManagerComponent::MarkForDestroy(int virtualId, int variationIndex) {
     pendingDestroys_.push_back({virtualId, variationIndex});
 }
 
+std::vector<DebrisComponent*>* DebrisManagerComponent::GetDebrisList(DebrisState state) {
+    using DebrisListMemberPtr = std::vector<DebrisComponent*> DebrisManagerComponent::*;
+    static const std::unordered_map<DebrisState, DebrisListMemberPtr> kStateListMap = {
+        { DebrisState::Idle,         &DebrisManagerComponent::activeIdleDebris_ },
+        { DebrisState::Pulled,       &DebrisManagerComponent::pulledDebris_ },
+        { DebrisState::Orbiting,     &DebrisManagerComponent::orbitingDebris_ },
+        { DebrisState::BossOrbiting, &DebrisManagerComponent::bossOrbitingDebris_ },
+        { DebrisState::Thrown,       &DebrisManagerComponent::thrownDebris_ },
+    };
+
+    if (auto it = kStateListMap.find(state); it != kStateListMap.end()) {
+        return &(this->*(it->second));
+    }
+    return nullptr;
+}
+
 void DebrisManagerComponent::RegisterDebris(DebrisComponent* debris, DebrisState state) {
-    switch (state) {
-    case DebrisState::Idle:
-        activeIdleDebris_.push_back(debris);
-        break;
-    case DebrisState::Pulled:
-        pulledDebris_.push_back(debris);
-        break;
-    case DebrisState::Orbiting:
-        orbitingDebris_.push_back(debris);
-        break;
-    case DebrisState::BossOrbiting:
-        bossOrbitingDebris_.push_back(debris);
-        break;
-    case DebrisState::Thrown:
-        thrownDebris_.push_back(debris);
-        break;
-    default:
-        break;
+    if (auto* list = GetDebrisList(state)) {
+        list->push_back(debris);
     }
 }
 
 void DebrisManagerComponent::UnregisterDebris(DebrisComponent* debris, DebrisState state) {
-    auto remove_func = [debris](std::vector<DebrisComponent*>& vec) { Irufemi::Container::EraseSwap(vec, debris); };
-    switch (state) {
-    case DebrisState::Idle:
-        remove_func(activeIdleDebris_);
-        break;
-    case DebrisState::Pulled:
-        remove_func(pulledDebris_);
-        break;
-    case DebrisState::Orbiting:
-        remove_func(orbitingDebris_);
-        break;
-    case DebrisState::BossOrbiting:
-        remove_func(bossOrbitingDebris_);
-        break;
-    case DebrisState::Thrown:
-        remove_func(thrownDebris_);
-        break;
-    default:
-        break;
+    if (auto* list = GetDebrisList(state)) {
+        Irufemi::Container::EraseSwap(*list, debris);
     }
 }
 

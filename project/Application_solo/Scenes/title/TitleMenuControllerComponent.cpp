@@ -101,19 +101,16 @@ void TitleMenuControllerComponent::ChangeState(std::unique_ptr<ITitleMenuState> 
 }
 
 void TitleMenuControllerComponent::ChangeState(MenuState newState) {
-    switch (newState) {
-    case MenuState::Idle:
-        ChangeState(std::make_unique<TitleMenuStateIdle>());
-        break;
-    case MenuState::OpeningModal:
-        ChangeState(std::make_unique<TitleMenuStateOpeningModal>());
-        break;
-    case MenuState::Suspended:
-        ChangeState(std::make_unique<TitleMenuStateSuspended>());
-        break;
-    case MenuState::Launching:
-        ChangeState(std::make_unique<TitleMenuStateLaunching>());
-        break;
+    using StateFactory = std::unique_ptr<ITitleMenuState>(*)();
+    static const std::unordered_map<MenuState, StateFactory> kStateFactories = {
+        { MenuState::Idle,         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateIdle>(); } },
+        { MenuState::OpeningModal, []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateOpeningModal>(); } },
+        { MenuState::Suspended,    []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateSuspended>(); } },
+        { MenuState::Launching,    []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateLaunching>(); } },
+    };
+
+    if (auto it = kStateFactories.find(newState); it != kStateFactories.end()) {
+        ChangeState(it->second());
     }
 }
 
@@ -370,35 +367,33 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
 }
 
 void TitleMenuControllerComponent::ExecuteSelection() {
-    switch (currentIndex_) {
-    case 0: // GAME START
-        ChangeState(MenuState::Launching);
-        break;
-
-    case 1: // HOW TO PLAY
-        pendingModalSceneName_ = "HowToPlayScene";
-        ChangeState(MenuState::OpeningModal);
-        break;
-
-    case 2: // OPTIONS
-        pendingModalSceneName_ = "OptionsScene";
-        ChangeState(MenuState::OpeningModal);
-        break;
-
-    case 3: // QUIT
-    {
-        UISound::PlayDecide();
+    using MenuAction = void (*)(TitleMenuControllerComponent*);
+    static const std::array<MenuAction, 4> kMenuActions = {
+        [](TitleMenuControllerComponent* self) {
+            self->ChangeState(MenuState::Launching);
+        },
+        [](TitleMenuControllerComponent* self) {
+            self->pendingModalSceneName_ = "HowToPlayScene";
+            self->ChangeState(MenuState::OpeningModal);
+        },
+        [](TitleMenuControllerComponent* self) {
+            self->pendingModalSceneName_ = "OptionsScene";
+            self->ChangeState(MenuState::OpeningModal);
+        },
+        [](TitleMenuControllerComponent* self) {
+            UISound::PlayDecide();
 #ifdef EditorMode
-        if (auto editor = EditorManager::GetInstance()) {
-            editor->RequestExitPlayMode();
-            break;
-        }
+            if (auto editor = EditorManager::GetInstance()) {
+                editor->RequestExitPlayMode();
+                return;
+            }
 #endif
-        PostQuitMessage(0);
-        break;
-    }
-    default:
-        break;
+            PostQuitMessage(0);
+        }
+    };
+
+    if (currentIndex_ >= 0 && static_cast<size_t>(currentIndex_) < kMenuActions.size()) {
+        kMenuActions[static_cast<size_t>(currentIndex_)](this);
     }
 }
 

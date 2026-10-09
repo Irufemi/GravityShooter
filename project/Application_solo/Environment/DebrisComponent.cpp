@@ -159,16 +159,14 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         if (!ConsumeHitAuthority()) {
             return;
         }
-        float damage = GetEnemyDamage();
-        switch (damageable->GetDamageableType()) {
-        case DamageableType::Boss:
-            damage = GetBossDamage();
-            break;
-        case DamageableType::Environment:
-            damage = 1.0f;
-            break;
-        default:
-            break;
+        using DamageGetter = float (DebrisComponent::*)() const;
+        static const std::unordered_map<DamageableType, DamageGetter> kDamageGetters = {
+            { DamageableType::Boss,  &DebrisComponent::GetBossDamage },
+            { DamageableType::Enemy, &DebrisComponent::GetEnemyDamage },
+        };
+        float damage = 1.0f;
+        if (auto it = kDamageGetters.find(damageable->GetDamageableType()); it != kDamageGetters.end()) {
+            damage = (this->*(it->second))();
         }
         damageable->TakeDamage(damage);
         hit = true;
@@ -247,25 +245,27 @@ void DebrisComponent::UpdateAuraVisuals() {
 
     for (auto& child : gameObject_->GetChildren()) {
         if (child && child->GetName() == "DebrisAura") {
+            struct AuraProperty {
+                bool isActive;
+                Irufemi::Vector4 (DebrisComponent::*colorGetter)() const;
+            };
+            static const std::unordered_map<DebrisState, AuraProperty> kAuraProperties = {
+                { DebrisState::Pulled,       { true,  &DebrisComponent::GetPlayerAuraColor } },
+                { DebrisState::Orbiting,     { true,  &DebrisComponent::GetPlayerAuraColor } },
+                { DebrisState::Thrown,       { true,  &DebrisComponent::GetPlayerAuraColor } },
+                { DebrisState::BossOrbiting, { true,  &DebrisComponent::GetBossAuraColor } },
+                { DebrisState::Idle,         { false, nullptr } },
+            };
+
             bool isActive = false;
             Irufemi::Vector4 auraColor =
                 manager_ ? manager_->GetIdleAuraColor() : Irufemi::Vector4{0.6f, 0.2f, 1.0f, 0.4f};
 
-            switch (state_) {
-            case DebrisState::Pulled:
-            case DebrisState::Orbiting:
-            case DebrisState::Thrown:
-                isActive = true;
-                auraColor = GetPlayerAuraColor();
-                break;
-            case DebrisState::BossOrbiting:
-                isActive = true;
-                auraColor = GetBossAuraColor();
-                break;
-            case DebrisState::Idle:
-            default:
-                isActive = false;
-                break;
+            if (auto it = kAuraProperties.find(state_); it != kAuraProperties.end()) {
+                isActive = it->second.isActive;
+                if (it->second.colorGetter) {
+                    auraColor = (this->*(it->second.colorGetter))();
+                }
             }
 
             child->SetIsActive(isActive);
@@ -329,29 +329,26 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
             uint32_t maskPlayer = cm->GetLayerMask("Player");
             uint32_t maskEnvironment = cm->GetLayerMask("Environment");
 
-            switch (state_) {
-            case DebrisState::Idle:
-            case DebrisState::Pulled:
-                // Safe state: Doesn't hit anyone
-                collider->SetLayer(neutralLayer);
-                collider->SetMask(0);
-                break;
-            case DebrisState::Orbiting:
-                // 自機の周りを回転して敵弾を迎撃するシールドとして機能
-                collider->SetLayer(playerLayer); // Debris_Player
-                collider->SetMask(maskEnemy);    // Enemy通常弾・敵本体と接触可能
-                break;
-            case DebrisState::Thrown:
-                // Thrown by player: Hits enemies, environment, and Boss's debris
-                collider->SetLayer(playerLayer);
-                collider->SetMask(maskEnemy | maskEnvironment | enemyLayer);
-                ResetHitAuthority(); // 投擲開始時に判定権限（Arming）を確実にリセット
-                break;
-            case DebrisState::BossOrbiting:
-                // Used by Boss: Hits player and Player's thrown debris
-                collider->SetLayer(enemyLayer);
-                collider->SetMask(maskPlayer | playerLayer);
-                break;
+            struct StateCollisionConfig {
+                uint32_t layer;
+                uint32_t mask;
+                bool resetAuthority;
+            };
+
+            const std::unordered_map<DebrisState, StateCollisionConfig> kStateConfigs = {
+                { DebrisState::Idle,         { neutralLayer, 0, false } },
+                { DebrisState::Pulled,       { neutralLayer, 0, false } },
+                { DebrisState::Orbiting,     { playerLayer,  maskEnemy, false } },
+                { DebrisState::Thrown,       { playerLayer,  maskEnemy | maskEnvironment | enemyLayer, true } },
+                { DebrisState::BossOrbiting, { enemyLayer,   maskPlayer | playerLayer, false } },
+            };
+
+            if (auto it = kStateConfigs.find(state_); it != kStateConfigs.end()) {
+                collider->SetLayer(it->second.layer);
+                collider->SetMask(it->second.mask);
+                if (it->second.resetAuthority) {
+                    ResetHitAuthority(); // 投擲開始時に判定権限（Arming）を確実にリセット
+                }
             }
         }
     }
