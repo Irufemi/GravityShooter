@@ -113,10 +113,14 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
     }
 
     // 3. 現在のシーンに応じた個別処理
-    if (currentScene == "Title") {
-        UpdateTitleScene(deltaTime);
-    } else if (currentScene == "InGame") {
-        UpdateInGameScene(deltaTime);
+    using SceneUpdateHandler = void (AttractDemoManager::*)(float);
+    static const std::unordered_map<std::string, SceneUpdateHandler> kSceneUpdateHandlers = {
+        { "Title",  &AttractDemoManager::UpdateTitleScene },
+        { "InGame", &AttractDemoManager::UpdateInGameScene },
+    };
+
+    if (auto it = kSceneUpdateHandlers.find(currentScene); it != kSceneUpdateHandlers.end()) {
+        (this->*(it->second))(deltaTime);
     } else {
         // その他のシーン（OptionsやHowToPlay等）では無操作タイマーをリセット
         idleTimer_ = 0.0f;

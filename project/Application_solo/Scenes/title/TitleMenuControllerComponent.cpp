@@ -826,15 +826,15 @@ bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::
 
     // 2. フォールバック（文字サイズ未計算またはスプライトのみの場合）
     // ボタンの文字長に応じた基準半幅 × 現在のスケール
+    constexpr std::array<float, 4> kBaseHalfWidths = {
+        120.0f, // 0: START
+        210.0f, // 1: HOW TO PLAY
+        160.0f, // 2: OPTIONS
+        100.0f  // 3: QUIT
+    };
     float baseHalfW = 160.0f;
-    if (index == 0) {
-        baseHalfW = 120.0f; // START
-    } else if (index == 1) {
-        baseHalfW = 210.0f; // HOW TO PLAY
-    } else if (index == 2) {
-        baseHalfW = 160.0f; // OPTIONS
-    } else if (index == 3) {
-        baseHalfW = 100.0f; // QUIT
+    if (index >= 0 && static_cast<size_t>(index) < kBaseHalfWidths.size()) {
+        baseHalfW = kBaseHalfWidths[static_cast<size_t>(index)];
     }
 
     float halfW = baseHalfW * scale.x;

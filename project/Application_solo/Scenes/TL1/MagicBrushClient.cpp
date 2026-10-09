@@ -8,6 +8,8 @@
 #include <Windows.h>
 #include <chrono>
 #include <iomanip>
+#include <array>
+#include <string_view>
 
 MagicBrushClient::MagicBrushClient() : state_(State::Idle) {}
 
@@ -211,24 +213,28 @@ bool MagicBrushClient::IsServerRunning() const {
     return false;
 }
 
+namespace {
+constexpr auto CreateEscapeTable() {
+    std::array<std::string_view, 256> table{};
+    table['"']  = "\\\"";
+    table['\\'] = "\\\\";
+    table['\b'] = "\\b";
+    table['\f'] = "\\f";
+    table['\n'] = "\\n";
+    table['\r'] = "\\r";
+    table['\t'] = "\\t";
+    return table;
+}
+constexpr auto kJsonEscapeTable = CreateEscapeTable();
+} // namespace
+
 std::string MagicBrushClient::EscapeJSON(const std::string& input) {
     std::string out;
     out.reserve(input.size());
     for (char c : input) {
-        if (c == '"') {
-            out += "\\\"";
-        } else if (c == '\\') {
-            out += "\\\\";
-        } else if (c == '\b') {
-            out += "\\b";
-        } else if (c == '\f') {
-            out += "\\f";
-        } else if (c == '\n') {
-            out += "\\n";
-        } else if (c == '\r') {
-            out += "\\r";
-        } else if (c == '\t') {
-            out += "\\t";
+        auto escaped = kJsonEscapeTable[static_cast<uint8_t>(c)];
+        if (!escaped.empty()) {
+            out.append(escaped.data(), escaped.size());
         } else {
             out += c;
         }
