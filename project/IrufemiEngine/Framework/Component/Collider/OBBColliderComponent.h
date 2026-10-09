@@ -73,6 +73,16 @@ public:
      */
     Irufemi::AABB GetBoundingBox() const override;
 
+    // --- Double Dispatch Pattern ---
+    bool TestCollision(const ColliderComponent* other,
+                       Irufemi::Collision::CollisionResult& outResult) const override;
+    bool TestCollisionWithAABB(const AABBColliderComponent* aabb,
+                               Irufemi::Collision::CollisionResult& outResult) const override;
+    bool TestCollisionWithSphere(const SphereColliderComponent* sphere,
+                                 Irufemi::Collision::CollisionResult& outResult) const override;
+    bool TestCollisionWithOBB(const OBBColliderComponent* obb,
+                              Irufemi::Collision::CollisionResult& outResult) const override;
+
     /**
      * @brief ワールド空間でのOBB情報を取得する
      * @return 計算済みのワールドOBB

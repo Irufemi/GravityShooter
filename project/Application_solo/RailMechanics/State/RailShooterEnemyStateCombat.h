@@ -20,6 +20,5 @@ public:
 
 private:
     float stateTimer_ = 0.0f; //!< 交戦滞空タイマー
-    float shootTimer_ = 0.6f; //!< 射撃タイマー
     float hoverTimer_ = 0.0f; //!< 浮遊サイン波タイマー
 };

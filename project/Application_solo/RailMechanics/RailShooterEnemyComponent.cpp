@@ -1,5 +1,8 @@
 #include "RailMechanics/RailShooterEnemyComponent.h"
 #include "RailMechanics/State/RailShooterEnemyStateApproach.h"
+#include "RailMechanics/Strategy/EnemyAttackStrategyNormal.h"
+#include "RailMechanics/Strategy/EnemyAttackStrategyPredictiveSniper.h"
+#include "RailMechanics/Strategy/EnemyAttackStrategyDiveBomb.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
@@ -21,6 +24,9 @@
 #include "RHI/DirectX12/DirectXCommon.h"
 #include <cmath>
 #include <algorithm>
+
+RailShooterEnemyComponent::RailShooterEnemyComponent() = default;
+RailShooterEnemyComponent::~RailShooterEnemyComponent() = default;
 
 void RailShooterEnemyComponent::OnRegisterProperties() {
     RegisterProperty("BehaviorType", &behaviorType_);
@@ -49,6 +55,7 @@ void RailShooterEnemyComponent::Initialize() {
     }
     hp_ = 100;
     isActive_ = true;
+    SetBehaviorType(static_cast<EnemyBehaviorType>(behaviorType_));
     ChangeState(std::make_unique<RailShooterEnemyStateApproach>());
     diveRollAngle_ = 0.0f;
     hasLastPlayerPos_ = false;
@@ -492,3 +499,26 @@ EnemyAIState RailShooterEnemyComponent::GetStateType() const {
     }
     return EnemyAIState::Approach;
 }
+
+void RailShooterEnemyComponent::SetBehaviorType(EnemyBehaviorType type) {
+    behaviorType_ = static_cast<int>(type);
+    switch (type) {
+    case EnemyBehaviorType::StandardGunner:
+        SetAttackStrategy(std::make_unique<EnemyAttackStrategyNormal>());
+        break;
+    case EnemyBehaviorType::PredictiveSniper:
+        SetAttackStrategy(std::make_unique<EnemyAttackStrategyPredictiveSniper>());
+        break;
+    case EnemyBehaviorType::DiveBomber:
+        SetAttackStrategy(std::make_unique<EnemyAttackStrategyDiveBomb>());
+        break;
+    default:
+        SetAttackStrategy(std::make_unique<EnemyAttackStrategyNormal>());
+        break;
+    }
+}
+
+void RailShooterEnemyComponent::SetAttackStrategy(std::unique_ptr<IEnemyAttackStrategy> strategy) {
+    attackStrategy_ = std::move(strategy);
+}
+

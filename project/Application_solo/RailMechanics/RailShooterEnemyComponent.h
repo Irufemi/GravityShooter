@@ -34,6 +34,7 @@ class GameObject;
 class EnemyBulletManagerComponent;
 class SplineComponent;
 class SplineFollowerComponent;
+class IEnemyAttackStrategy;
 
 /// @brief 敵退場通知リスナー（オブジェクト、退場理由）
 using EnemyDespawnListener = std::function<void(GameObject*, DespawnReason)>;
@@ -44,8 +45,8 @@ using EnemyDespawnListener = std::function<void(GameObject*, DespawnReason)>;
  */
 class RailShooterEnemyComponent : public Component, public IDamageable {
 public:
-    RailShooterEnemyComponent() = default;
-    ~RailShooterEnemyComponent() override = default;
+    RailShooterEnemyComponent();
+    ~RailShooterEnemyComponent() override;
 
     void Initialize() override;
     void Start() override;
@@ -182,12 +183,10 @@ public:
     }
 
     /**
-     * @brief 戦術行動タイプを設定する
+     * @brief 戦術行動タイプを設定する（Strategy Pattern による攻撃戦略の動的差し替え）
      * @param type 行動タイプ（通常/急降下/スナイパー）
      */
-    void SetBehaviorType(EnemyBehaviorType type) {
-        behaviorType_ = static_cast<int>(type);
-    }
+    void SetBehaviorType(EnemyBehaviorType type);
 
     /**
      * @brief 戦術行動タイプを取得する
@@ -195,6 +194,20 @@ public:
      */
     EnemyBehaviorType GetBehaviorType() const {
         return static_cast<EnemyBehaviorType>(behaviorType_);
+    }
+
+    /**
+     * @brief 攻撃戦略（Strategy Pattern）を設定する
+     * @param strategy 適用する攻撃戦略インスタンス
+     */
+    void SetAttackStrategy(std::unique_ptr<IEnemyAttackStrategy> strategy);
+
+    /**
+     * @brief 現在の攻撃戦略（Strategy Pattern）を取得する
+     * @return 攻撃戦略インタフェース
+     */
+    IEnemyAttackStrategy* GetAttackStrategy() const {
+        return attackStrategy_.get();
     }
 
     /**
@@ -335,6 +348,7 @@ private:
     AOEParams aoeParamsData_{};
 
     int behaviorType_ = 0; //!< 戦術行動タイプ (0: Standard, 1: DiveBomber, 2: PredictiveSniper)
+    std::unique_ptr<IEnemyAttackStrategy> attackStrategy_ = nullptr; //!< 攻撃戦略（Strategy Pattern）
     std::unique_ptr<IRailShooterEnemyState> currentState_ = nullptr; //!< 現在のAIステート（State Pattern）
     float combatDuration_ = 7.5f;                                    //!< 滞空交戦の制限時間（秒）
     float shootInterval_ = 1.8f;                                     //!< 射撃インターバル（秒）

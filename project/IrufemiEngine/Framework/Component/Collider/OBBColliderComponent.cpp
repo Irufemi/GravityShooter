@@ -1,4 +1,6 @@
 #include "Framework/Component/Collider/OBBColliderComponent.h"
+#include "Framework/Component/Collider/AABBColliderComponent.h"
+#include "Framework/Component/Collider/SphereColliderComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Physics/CollisionManager.h"
@@ -94,3 +96,45 @@ std::shared_ptr<Component> OBBColliderComponent::Clone() {
     clone->localSize_ = this->localSize_;
     return clone;
 }
+
+bool OBBColliderComponent::TestCollision(const ColliderComponent* other,
+                                         Irufemi::Collision::CollisionResult& outResult) const {
+    if (!other) {
+        outResult.isHit = false;
+        return false;
+    }
+    return other->TestCollisionWithOBB(this, outResult);
+}
+
+bool OBBColliderComponent::TestCollisionWithAABB(const AABBColliderComponent* aabb,
+                                                 Irufemi::Collision::CollisionResult& outResult) const {
+    if (!aabb) {
+        outResult.isHit = false;
+        return false;
+    }
+    outResult = Irufemi::Collision::GetCollisionResult(GetWorldOBB(), aabb->GetWorldAABB());
+    outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
+    return outResult.isHit;
+}
+
+bool OBBColliderComponent::TestCollisionWithSphere(const SphereColliderComponent* sphere,
+                                                   Irufemi::Collision::CollisionResult& outResult) const {
+    if (!sphere) {
+        outResult.isHit = false;
+        return false;
+    }
+    outResult = Irufemi::Collision::GetCollisionResult(GetWorldOBB(), sphere->GetWorldSphere());
+    outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
+    return outResult.isHit;
+}
+
+bool OBBColliderComponent::TestCollisionWithOBB(const OBBColliderComponent* obb,
+                                                Irufemi::Collision::CollisionResult& outResult) const {
+    if (!obb) {
+        outResult.isHit = false;
+        return false;
+    }
+    outResult = Irufemi::Collision::GetCollisionResult(obb->GetWorldOBB(), GetWorldOBB());
+    return outResult.isHit;
+}
+

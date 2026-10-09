@@ -272,6 +272,9 @@ exit 0</Command>
     <ClCompile Include="RailMechanics\State\RailShooterEnemyStateCombat.cpp" />
     <ClCompile Include="RailMechanics\State\RailShooterEnemyStateDive.cpp" />
     <ClCompile Include="RailMechanics\State\RailShooterEnemyStateDisengage.cpp" />
+    <ClCompile Include="RailMechanics\Strategy\EnemyAttackStrategyNormal.cpp" />
+    <ClCompile Include="RailMechanics\Strategy\EnemyAttackStrategyPredictiveSniper.cpp" />
+    <ClCompile Include="RailMechanics\Strategy\EnemyAttackStrategyDiveBomb.cpp" />
     <ClCompile Include="Environment\DebrisComponent.cpp" />
     <ClCompile Include="Player\TargetableComponent.cpp" />
     <ClCompile Include="Combat\Boss\BossComponent.cpp" />
@@ -288,6 +291,7 @@ exit 0</Command>
     <ClCompile Include="Environment\EnvironmentManagerComponent.cpp" />
     <ClCompile Include="Environment\DestructibleEnvironmentComponent.cpp" />
     <ClCompile Include="Player\GravityPlayerComponent.cpp" />
+    <ClCompile Include="Input\PlayerCommands.cpp" />
     <ClCompile Include="Player\PlayerHealthComponent.cpp" />
     <ClCompile Include="Player\PlayerDamageVisualizerComponent.cpp" />
     <ClCompile Include="Player\PlayerThrusterVisualizerComponent.cpp" />
@@ -300,6 +304,7 @@ exit 0</Command>
     <ClCompile Include="UI\ReticleUIComponent.cpp" />
     <ClCompile Include="UI\LockonMarkerUIComponent.cpp" />
     <ClCompile Include="Player\PlayerTargetingComponent.cpp" />
+    <ClCompile Include="Level\EnemyBuilder.cpp" />
     <ClCompile Include="Level\WaveEventHandlers.cpp" />
     <ClCompile Include="Level\WaveManagerComponent.cpp" />
     <ClCompile Include="Level\StageIntroDirectorComponent.cpp" />
@@ -350,6 +355,10 @@ exit 0</Command>
     <ClInclude Include="RailMechanics\State\RailShooterEnemyStateCombat.h" />
     <ClInclude Include="RailMechanics\State\RailShooterEnemyStateDive.h" />
     <ClInclude Include="RailMechanics\State\RailShooterEnemyStateDisengage.h" />
+    <ClInclude Include="RailMechanics\Strategy\IEnemyAttackStrategy.h" />
+    <ClInclude Include="RailMechanics\Strategy\EnemyAttackStrategyNormal.h" />
+    <ClInclude Include="RailMechanics\Strategy\EnemyAttackStrategyPredictiveSniper.h" />
+    <ClInclude Include="RailMechanics\Strategy\EnemyAttackStrategyDiveBomb.h" />
     <ClInclude Include="Environment\DebrisComponent.h" />
     <ClInclude Include="Player\TargetableComponent.h" />
     <ClInclude Include="Combat\Boss\BossComponent.h" />
@@ -368,6 +377,8 @@ exit 0</Command>
     <ClInclude Include="Environment\DestructibleEnvironmentComponent.h" />
     <ClInclude Include="Player\GravityPlayerComponent.h" />
     <ClInclude Include="Input\GameAction.h" />
+    <ClInclude Include="Input\IPlayerCommand.h" />
+    <ClInclude Include="Input\PlayerCommands.h" />
     <ClInclude Include="Player\PlayerHealthComponent.h" />
     <ClInclude Include="Player\PlayerDamageVisualizerComponent.h" />
     <ClInclude Include="Player\PlayerThrusterVisualizerComponent.h" />
@@ -381,6 +392,7 @@ exit 0</Command>
     <ClInclude Include="UI\LockonMarkerUIComponent.h" />
     <ClInclude Include="Player\PlayerTargetingComponent.h" />
     <ClInclude Include="Level\WaveEvent.h" />
+    <ClInclude Include="Level\EnemyBuilder.h" />
     <ClInclude Include="Level\WaveEventHandlers.h" />
     <ClInclude Include="Level\WaveManagerComponent.h" />
     <ClInclude Include="Level\StageIntroDirectorComponent.h" />

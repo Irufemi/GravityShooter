@@ -1,4 +1,5 @@
 #include "Level/WaveEventHandlers.h"
+#include "Level/EnemyBuilder.h"
 #include "Combat/EnemySpawnerComponent.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/GameObject/GameObject.h"
@@ -168,28 +169,24 @@ void SpawnEnemyHandler::Execute(WaveManagerComponent* manager, const WaveEventDa
             Irufemi::Vector2 formationOffset = {ox + distanceSide, oy};
 
             std::string prefabPath = data.parameters.value("Prefab", "");
-            GameObject* enemyObj = nullptr;
-            if (!prefabPath.empty()) {
-                enemyObj = spawner->SpawnEnemyByPrefab(prefabPath, pos, spawnRot, scaleMultiplier);
-            } else {
-                enemyObj = spawner->SpawnEnemy(pos, spawnRot, scaleMultiplier);
+
+            // Builder Pattern による安全で柔軟な敵パラメータ構築
+            EnemyBuilder builder(spawner);
+            builder.WithPrefab(prefabPath)
+                .WithCombatDuration(combatDuration)
+                .WithTargetDistance(targetDistance)
+                .WithShootInterval(shootInterval)
+                .WithBulletSpeed(bulletSpeed)
+                .WithSpeed(speed)
+                .WithRailTrackingParams(spline, playerFollower, initialDistOffset, targetDistance, formationOffset);
+
+            if (data.parameters.contains("BehaviorType")) {
+                int bt = data.parameters["BehaviorType"].get<int>();
+                builder.WithBehaviorType(static_cast<EnemyBehaviorType>(bt));
             }
 
-            if (enemyObj) {
-                if (auto enemyComp = enemyObj->GetComponent<RailShooterEnemyComponent>()) {
-                    enemyComp->SetCombatDuration(combatDuration);
-                    enemyComp->SetTargetDistance(targetDistance);
-                    enemyComp->SetShootInterval(shootInterval);
-                    enemyComp->SetBulletSpeed(bulletSpeed);
-                    enemyComp->SetSpeed(speed);
-                    if (data.parameters.contains("BehaviorType")) {
-                        int bt = data.parameters["BehaviorType"].get<int>();
-                        enemyComp->SetBehaviorType(static_cast<EnemyBehaviorType>(bt));
-                    }
-                    enemyComp->SetRailTrackingParams(spline, playerFollower, initialDistOffset, targetDistance,
-                                                     formationOffset);
-                }
-            }
+            GameObject* enemyObj = builder.Build(pos, spawnRot, scaleMultiplier);
+            (void)enemyObj;
         }
         Log::OutPutLog(std::cout, "[WaveManager] Spawned " + std::to_string(positions.size()) +
                                       " enemies at distance: " + std::to_string(data.triggerDistance) + "\n");

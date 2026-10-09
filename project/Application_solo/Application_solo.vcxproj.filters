@@ -22,6 +22,9 @@
     <Filter Include="Level">
       <UniqueIdentifier>{a0db49ba-470c-1c9a-e212-8c3470339153}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{636da1d4-5e80-5b00-eae0-fcd8333f9235}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Player">
       <UniqueIdentifier>{636da1d3-5e80-5b00-eae0-fcd8333f9234}</UniqueIdentifier>
     </Filter>
@@ -30,6 +33,9 @@
     </Filter>
     <Filter Include="RailMechanics\State">
       <UniqueIdentifier>{3eb36c13-5f0e-3982-1dc9-e4288e66a8e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RailMechanics\Strategy">
+      <UniqueIdentifier>{3eb36c14-5f0e-3982-1dc9-e4288e66a8e9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Scenes">
       <UniqueIdentifier>{bb34f602-e45a-9fbc-b2cd-fee7a48673fc}</UniqueIdentifier>
@@ -180,6 +186,15 @@
     <ClCompile Include="RailMechanics\State\RailShooterEnemyStateDisengage.cpp">
       <Filter>RailMechanics\State</Filter>
     </ClCompile>
+    <ClCompile Include="RailMechanics\Strategy\EnemyAttackStrategyNormal.cpp">
+      <Filter>RailMechanics\Strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="RailMechanics\Strategy\EnemyAttackStrategyPredictiveSniper.cpp">
+      <Filter>RailMechanics\Strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="RailMechanics\Strategy\EnemyAttackStrategyDiveBomb.cpp">
+      <Filter>RailMechanics\Strategy</Filter>
+    </ClCompile>
     <ClCompile Include="Combat\Boss\BossComponent.cpp">
       <Filter>Combat\Boss</Filter>
     </ClCompile>
@@ -234,6 +249,9 @@
     <ClCompile Include="Player\GravityPlayerComponent.cpp">
       <Filter>Player</Filter>
     </ClCompile>
+    <ClCompile Include="Input\PlayerCommands.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
     <ClCompile Include="Player\PlayerHealthComponent.cpp">
       <Filter>Player</Filter>
     </ClCompile>
@@ -260,6 +278,9 @@
     </ClCompile>
     <ClCompile Include="Player\PlayerTargetingComponent.cpp">
       <Filter>Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Level\EnemyBuilder.cpp">
+      <Filter>Level</Filter>
     </ClCompile>
     <ClCompile Include="Level\WaveEventHandlers.cpp">
       <Filter>Level</Filter>
@@ -396,6 +417,18 @@
     <ClInclude Include="RailMechanics\State\RailShooterEnemyStateDisengage.h">
       <Filter>RailMechanics\State</Filter>
     </ClInclude>
+    <ClInclude Include="RailMechanics\Strategy\IEnemyAttackStrategy.h">
+      <Filter>RailMechanics\Strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\Strategy\EnemyAttackStrategyNormal.h">
+      <Filter>RailMechanics\Strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\Strategy\EnemyAttackStrategyPredictiveSniper.h">
+      <Filter>RailMechanics\Strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="RailMechanics\Strategy\EnemyAttackStrategyDiveBomb.h">
+      <Filter>RailMechanics\Strategy</Filter>
+    </ClInclude>
     <ClInclude Include="Combat\Boss\BossComponent.h">
       <Filter>Combat\Boss</Filter>
     </ClInclude>
@@ -450,7 +483,15 @@
     <ClInclude Include="Player\GravityPlayerComponent.h">
       <Filter>Player</Filter>
     </ClInclude>
-    <ClInclude Include="Input\GameAction.h" />
+    <ClInclude Include="Input\GameAction.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\IPlayerCommand.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\PlayerCommands.h">
+      <Filter>Input</Filter>
+    </ClInclude>
     <ClInclude Include="Player\PlayerHealthComponent.h">
       <Filter>Player</Filter>
     </ClInclude>
@@ -479,6 +520,9 @@
       <Filter>Player</Filter>
     </ClInclude>
     <ClInclude Include="Level\WaveEvent.h">
+      <Filter>Level</Filter>
+    </ClInclude>
+    <ClInclude Include="Level\EnemyBuilder.h">
       <Filter>Level</Filter>
     </ClInclude>
     <ClInclude Include="Level\WaveEventHandlers.h">

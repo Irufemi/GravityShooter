@@ -9,7 +9,14 @@ class CollisionManager;
 
 namespace Irufemi {
 struct AABB;
+namespace Collision {
+struct CollisionResult;
 }
+}
+
+class AABBColliderComponent;
+class SphereColliderComponent;
+class OBBColliderComponent;
 
 /**
  * @class ColliderComponent
@@ -108,6 +115,37 @@ public:
      * @return ワールド空間のバウンディングボックス AABB
      */
     virtual Irufemi::AABB GetBoundingBox() const = 0;
+
+    // =========================================================================
+    // Double Dispatch Pattern (二重ディスパッチによる多態的当たり判定)
+    // =========================================================================
+
+    /**
+     * @brief 第1ディスパッチ：相手のコライダーに対して自身の具象型を通知する
+     * @param[in] other 判定対象のコライダー
+     * @param[out] outResult 衝突結果
+     * @return 衝突の有無
+     */
+    virtual bool TestCollision(const ColliderComponent* other,
+                               Irufemi::Collision::CollisionResult& outResult) const = 0;
+
+    /**
+     * @brief 第2ディスパッチ：AABBとの衝突判定
+     */
+    virtual bool TestCollisionWithAABB(const AABBColliderComponent* aabb,
+                                       Irufemi::Collision::CollisionResult& outResult) const = 0;
+
+    /**
+     * @brief 第2ディスパッチ：Sphereとの衝突判定
+     */
+    virtual bool TestCollisionWithSphere(const SphereColliderComponent* sphere,
+                                         Irufemi::Collision::CollisionResult& outResult) const = 0;
+
+    /**
+     * @brief 第2ディスパッチ：OBBとの衝突判定
+     */
+    virtual bool TestCollisionWithOBB(const OBBColliderComponent* obb,
+                                      Irufemi::Collision::CollisionResult& outResult) const = 0;
 
     // --- レイヤー設定 ---
     /**

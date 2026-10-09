@@ -7,6 +7,7 @@
 class GameObject;
 class PlayerTargetingComponent;
 class PlayerHealthComponent;
+class IPlayerCommand;
 
 /**
  * @class GravityPlayerComponent
@@ -65,6 +66,27 @@ public:
     void SetStatusDataPath(const std::string& path) {
         statusDataPath_ = path;
     }
+
+    /**
+     * @brief プレイヤーコマンドを実行する（Command Pattern）
+     * @param[in] command 実行するコマンドオブジェクト
+     */
+    void ExecuteCommand(IPlayerCommand& command);
+
+    /**
+     * @brief ガレキ引き寄せアクションを実行する
+     */
+    void ExecutePullAction();
+
+    /**
+     * @brief ガレキ投擲アクションを実行する
+     */
+    void ExecuteThrowAction();
+
+    /**
+     * @brief ターゲットマーキングアクションを実行する
+     */
+    void ExecuteMarkAction();
 
 private:
     /**

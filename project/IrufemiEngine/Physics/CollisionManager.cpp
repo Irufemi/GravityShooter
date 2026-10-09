@@ -125,52 +125,11 @@ void CollisionManager::CheckNarrowPhase(ColliderComponent* colA, ColliderCompone
         return;
     }
 
-    auto typeA = colA->GetColliderType();
-    auto typeB = colB->GetColliderType();
-
-    if (typeA == ColliderComponent::ColliderType::AABB) {
-        Irufemi::AABB boxA = static_cast<AABBColliderComponent*>(colA)->GetWorldAABB();
-
-        if (typeB == ColliderComponent::ColliderType::AABB) {
-            Irufemi::AABB boxB = static_cast<AABBColliderComponent*>(colB)->GetWorldAABB();
-            outResult = Irufemi::Collision::GetCollisionResult(boxA, boxB);
-        } else if (typeB == ColliderComponent::ColliderType::Sphere) {
-            Irufemi::Sphere sphereB = static_cast<SphereColliderComponent*>(colB)->GetWorldSphere();
-            outResult = Irufemi::Collision::GetCollisionResult(boxA, sphereB);
-        } else if (typeB == ColliderComponent::ColliderType::OBB) {
-            Irufemi::OBB obbB = static_cast<OBBColliderComponent*>(colB)->GetWorldOBB();
-            outResult = Irufemi::Collision::GetCollisionResult(obbB, boxA);      // OBB vs AABB
-            outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal); // OBBを押し出す方向の逆にする
-        }
-    } else if (typeA == ColliderComponent::ColliderType::Sphere) {
-        Irufemi::Sphere sphereA = static_cast<SphereColliderComponent*>(colA)->GetWorldSphere();
-
-        if (typeB == ColliderComponent::ColliderType::AABB) {
-            Irufemi::AABB boxB = static_cast<AABBColliderComponent*>(colB)->GetWorldAABB();
-            outResult = Irufemi::Collision::GetCollisionResult(boxB, sphereA);
-            outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
-        } else if (typeB == ColliderComponent::ColliderType::Sphere) {
-            Irufemi::Sphere sphereB = static_cast<SphereColliderComponent*>(colB)->GetWorldSphere();
-            outResult = Irufemi::Collision::GetCollisionResult(sphereA, sphereB);
-        } else if (typeB == ColliderComponent::ColliderType::OBB) {
-            Irufemi::OBB obbB = static_cast<OBBColliderComponent*>(colB)->GetWorldOBB();
-            outResult = Irufemi::Collision::GetCollisionResult(obbB, sphereA);
-            outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
-        }
-    } else if (typeA == ColliderComponent::ColliderType::OBB) {
-        Irufemi::OBB obbA = static_cast<OBBColliderComponent*>(colA)->GetWorldOBB();
-
-        if (typeB == ColliderComponent::ColliderType::AABB) {
-            Irufemi::AABB boxB = static_cast<AABBColliderComponent*>(colB)->GetWorldAABB();
-            outResult = Irufemi::Collision::GetCollisionResult(obbA, boxB);
-        } else if (typeB == ColliderComponent::ColliderType::Sphere) {
-            Irufemi::Sphere sphereB = static_cast<SphereColliderComponent*>(colB)->GetWorldSphere();
-            outResult = Irufemi::Collision::GetCollisionResult(obbA, sphereB);
-        } else if (typeB == ColliderComponent::ColliderType::OBB) {
-            Irufemi::OBB obbB = static_cast<OBBColliderComponent*>(colB)->GetWorldOBB();
-            outResult = Irufemi::Collision::GetCollisionResult(obbA, obbB);
-        }
-    }
+    // Double Dispatch Pattern (二重ディスパッチによる多態的当たり判定)
+    // 第1ディスパッチ: colA の動的型を確定
+    // 第2ディスパッチ: colB の動的型を確定
+    // これにより 3x3 の if-else 型チェック分岐マトリクスを完全排除し、OCP（開放閉鎖原則）を遵守
+    colA->TestCollision(colB, outResult);
 }
 
 void CollisionManager::DispatchCollisionEvents(ColliderComponent* colA, ColliderComponent* colB,

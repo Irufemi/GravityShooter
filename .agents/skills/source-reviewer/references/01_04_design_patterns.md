@@ -36,11 +36,12 @@
 | **Dirty Flag** | 最適化 | Transform行列更新、空間分割、バッファ同期 | `MultiBufferSyncState` (GPUバッファ同期), `Camera` (ViewProjectionキャッシュ `isDirty_`), `Transform` |
 | **Observer** | 振る舞い | 衝突応答、イベント通知、デリゲート | `CollisionListener` (接触通知), `EnemyDespawnListener`, `BossComponent` (HP・形態変化通知) |
 | **Factory Method** | 生成 | キャラクター生成、アイテム生成 | `EnemySpawnerComponent` (敵ウェーブ生成), 各コンポーネントの `ChangeState(enum)` 生成Factory |
-| **Command** | 振る舞い | 開発ツールの操作、アンドゥ／リドゥ | `IrufemiEditor` 内 `EditorActionManager` (Undo/Redo コマンドスタック) |
+| **Command** | 振る舞い | プレイヤー入力操作、エディタのUndo/Redo | `IPlayerCommand` / `PlayerCommands` (引力引き寄せ・投擲・ロックオン), `EditorActionManager` |
 | **Composite** | 構造 | シーングラフ、階層構造 | `GameObject` / `TransformComponent` (親子関係 `SetParent`, `GetChildren`, 階層トランスフォーム) |
 | **Template Method** | 振る舞い | 共通処理のフレームワーク化 | `Component` 基底 (`Initialize`, `Update`, `Draw`, `OnDestroy` ライフサイクル骨格), `IEngineExtension` |
-| **Strategy** | 振る舞い | 敵AIの行動切り替え、攻撃・移動方式 | *(候補: 敵の射撃・照準追従アルゴリズムの動的差し替え)* |
-| **Double Dispatch** | 振る舞い | 複数形状の汎用当たり判定、Visitor走査 | エディタインスペクター走査、描画レンダーパスディスパッチ |
+| **Strategy** | 振る舞い | 敵AIの行動切り替え、攻撃・照準方式 | `IEnemyAttackStrategy` (`Normal`, `PredictiveSniper`, `DiveBomb`) による射撃・照準の動的差し替え |
+| **Double Dispatch** | 振る舞い | 複数形状の汎用当たり判定、多態的ディスパッチ | `ColliderComponent::TestCollision` ➔ `TestCollisionWithXXX` (AABB / Sphere / OBB の 3×3 多態判定) |
+| **Builder** | 生成 | 複雑なオブジェクト生成・パラメータ設定 | `EnemyBuilder` (敵ウェーブスポーン時の Fluent API メソッドチェーン構築) |
 
 ---
 
@@ -48,9 +49,17 @@
 
 就活のポートフォリオや技術面接で語るべき「なぜこのパターンを採用したのか」の模範回答：
 
-1. **Object Pool を採用した理由**:
+1. **Strategy Pattern を採用した理由**:
+   - State Pattern は「進入・交戦・離脱」という全体フェーズのライフサイクルを制御する一方、交戦フェーズ中の具体的な射撃・照準アルゴリズム（直撃弾、偏差予測＋予兆線ロックオン、特攻）を Strategy として直交分離した。これにより、敵の種類が増えても既存のステートマシンに一切変更を加えずに新たな攻撃パターンを拡張できる（開放閉鎖原則 OCP の遵守）。
+2. **Double Dispatch を採用した理由**:
+   - AABB、Sphere、OBB という 3 種類のコライダー間の衝突判定において、従来発生しがちだった 3×3 の `if-else` 型チェック分岐マトリクスを完全排除した。第1ディスパッチで自身の型を確定し、第2ディスパッチで相手の型を確定する二重仮想関数呼び出しにより、型安全かつコンパイラ最適化の効くクリーンな物理エンジンアーキテクチャを実現した。
+3. **Builder Pattern を採用した理由**:
+   - 敵のウェーブスポーン時に、交戦時間・維持距離・射撃間隔・弾速・移動速度・行動タイプ・スプライン追従オフセットなど多数のパラメータを個別の setter で設定すると設定漏れや順序依存バグの原因になる。`EnemyBuilder` による Fluent API（メソッドチェーン）を導入し、デフォルト値の保証とパラメータ構築の可読性・安全性を確立した。
+4. **Command Pattern を採用した理由**:
+   - ガレキ引き寄せ（`Pull`）や投擲（`Fire`）などのプレイヤー入力を `IPlayerCommand` オブジェクトとしてカプセル化した。入力デバイス（キーボード/ゲームパッド）の判定ロジックと実行ロジックを疎結合に保つことで、キーコンフィグの変更やリプレイ再生・アトラクトデモとの統合を容易にした。
+5. **Object Pool を採用した理由**:
    - 3Dレールシューターでは毎秒数百発の敵弾・自機弾が高速に生成・破棄される。ヒープ確保（`new`/`delete`）を繰り返すとメモリの断片化（フラグメンテーション）とGC/ヒープロックによるフレーム落ち（スタッター）が発生するため、事前確保配列をインデックス循環再利用することで $O(1)$ の生成・回収と完全な 60fps 固定を実現した。
-2. **Dirty Flag を採用した理由**:
+6. **Dirty Flag を採用した理由**:
    - 行列計算（`Matrix4x4` の乗算）や DirectX12 の定数バッファマップ更新は高コストであるため、座標やパラメータが変化したフレームのみフラグを立てて再計算し、静止時やパラメータ不変時の描画負荷を最小化した。
-3. **Observer を採用した理由**:
+7. **Observer を採用した理由**:
    - 敵の撃破やボスの形態移行時、スコア加算・UI更新・音響再生・カメラシェイクなどを敵クラス内にベタ書きするとスパゲッティコードになるため、イベント購読（リスナー通知）にすることで各演出コンポーネントを疎結合に保った。

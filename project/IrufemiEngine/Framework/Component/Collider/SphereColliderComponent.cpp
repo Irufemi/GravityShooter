@@ -1,7 +1,10 @@
 #include "Framework/Component/Collider/SphereColliderComponent.h"
+#include "Framework/Component/Collider/AABBColliderComponent.h"
+#include "Framework/Component/Collider/OBBColliderComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Physics/CollisionManager.h"
+#include "Core/Math/MathFunction.h"
 
 #include <algorithm>
 #include <cmath>
@@ -85,3 +88,46 @@ std::shared_ptr<Component> SphereColliderComponent::Clone() {
     clone->localRadius_ = this->localRadius_;
     return clone;
 }
+
+bool SphereColliderComponent::TestCollision(const ColliderComponent* other,
+                                            Irufemi::Collision::CollisionResult& outResult) const {
+    if (!other) {
+        outResult.isHit = false;
+        return false;
+    }
+    return other->TestCollisionWithSphere(this, outResult);
+}
+
+bool SphereColliderComponent::TestCollisionWithAABB(const AABBColliderComponent* aabb,
+                                                    Irufemi::Collision::CollisionResult& outResult) const {
+    if (!aabb) {
+        outResult.isHit = false;
+        return false;
+    }
+    // aabb vs Sphere (outResult normal は Sphere を押し出す方向)
+    outResult = Irufemi::Collision::GetCollisionResult(aabb->GetWorldAABB(), GetWorldSphere());
+    return outResult.isHit;
+}
+
+bool SphereColliderComponent::TestCollisionWithSphere(const SphereColliderComponent* sphere,
+                                                      Irufemi::Collision::CollisionResult& outResult) const {
+    if (!sphere) {
+        outResult.isHit = false;
+        return false;
+    }
+    outResult = Irufemi::Collision::GetCollisionResult(sphere->GetWorldSphere(), GetWorldSphere());
+    return outResult.isHit;
+}
+
+bool SphereColliderComponent::TestCollisionWithOBB(const OBBColliderComponent* obb,
+                                                   Irufemi::Collision::CollisionResult& outResult) const {
+    if (!obb) {
+        outResult.isHit = false;
+        return false;
+    }
+    // obb vs Sphere (outResult normal は Sphere を押し出す方向)
+    outResult = Irufemi::Collision::GetCollisionResult(obb->GetWorldOBB(), GetWorldSphere());
+    outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
+    return outResult.isHit;
+}
+

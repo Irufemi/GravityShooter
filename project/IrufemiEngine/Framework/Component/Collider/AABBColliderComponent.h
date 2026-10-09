@@ -60,6 +60,16 @@ public:
         return GetWorldAABB();
     }
 
+    // --- Double Dispatch Pattern ---
+    bool TestCollision(const ColliderComponent* other,
+                       Irufemi::Collision::CollisionResult& outResult) const override;
+    bool TestCollisionWithAABB(const AABBColliderComponent* aabb,
+                               Irufemi::Collision::CollisionResult& outResult) const override;
+    bool TestCollisionWithSphere(const SphereColliderComponent* sphere,
+                                 Irufemi::Collision::CollisionResult& outResult) const override;
+    bool TestCollisionWithOBB(const OBBColliderComponent* obb,
+                              Irufemi::Collision::CollisionResult& outResult) const override;
+
     /// @brief ワールド空間上での現在のAABBを取得
     Irufemi::AABB GetWorldAABB() const;
 

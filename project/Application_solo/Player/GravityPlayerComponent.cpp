@@ -1,6 +1,7 @@
 #include "Player/GravityPlayerComponent.h"
 #include "Player/PlayerHealthComponent.h"
 #include "Input/GameAction.h"
+#include "Input/PlayerCommands.h"
 #include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Framework/Component/Effect/VoxelParticleComponent.h"
 #include "Player/PlayerTargetingComponent.h"
@@ -127,6 +128,10 @@ void GravityPlayerComponent::Update() {
     }
 }
 
+void GravityPlayerComponent::ExecuteCommand(IPlayerCommand& command) {
+    command.Execute(this);
+}
+
 void GravityPlayerComponent::HandlePullInput() {
     auto engine = GetEngine();
     auto input = engine ? engine->GetInputManager() : nullptr;
@@ -134,12 +139,17 @@ void GravityPlayerComponent::HandlePullInput() {
         return;
     }
 
-    // ガレキ引き寄せアクション
-    bool isPullPressed = InputHelper::IsActionPressed(input, GameAction::Pull);
-    if (isPullPressed) {
-        if (static_cast<int>(orbitingDebris_.size()) >= maxOrbitCount_) {
-            return;
-        }
+    // ガレキ引き寄せ入力検知 ➔ Command オブジェクトをディスパッチ
+    if (InputHelper::IsActionPressed(input, GameAction::Pull)) {
+        PullDebrisCommand command;
+        ExecuteCommand(command);
+    }
+}
+
+void GravityPlayerComponent::ExecutePullAction() {
+    if (static_cast<int>(orbitingDebris_.size()) >= maxOrbitCount_) {
+        return;
+    }
 
         auto scene = gameObject_->GetScene();
         if (!scene) {
@@ -231,7 +241,6 @@ void GravityPlayerComponent::HandlePullInput() {
                 }
             }
         }
-    }
 }
 
 void GravityPlayerComponent::HandleMarkInput() {
@@ -249,15 +258,22 @@ void GravityPlayerComponent::HandleMarkInput() {
         targetingComp_->ClearTargets();
     }
 
-    // ロックオンマーキングアクション
-    bool isMarkPressed = InputHelper::IsActionPressed(input, GameAction::LockOn);
-    if (isMarkPressed) {
-        size_t maxLockOn = orbitingDebris_.size();
-        if (maxLockOn == 0) {
-            maxLockOn = 1; // シールド奪取用に最低1つはロック許可
-        }
-        targetingComp_->MarkTarget(maxLockOn);
+    // ロックオンマーキング入力検知 ➔ Command オブジェクトをディスパッチ
+    if (InputHelper::IsActionPressed(input, GameAction::LockOn)) {
+        MarkTargetCommand command;
+        ExecuteCommand(command);
     }
+}
+
+void GravityPlayerComponent::ExecuteMarkAction() {
+    if (!targetingComp_) {
+        return;
+    }
+    size_t maxLockOn = orbitingDebris_.size();
+    if (maxLockOn == 0) {
+        maxLockOn = 1; // シールド奪取用に最低1つはロック許可
+    }
+    targetingComp_->MarkTarget(maxLockOn);
 }
 
 void GravityPlayerComponent::HandleThrowInput() {
@@ -267,26 +283,30 @@ void GravityPlayerComponent::HandleThrowInput() {
         return;
     }
 
-    // ガレキ射出アクション
-    bool isThrowPressed = InputHelper::IsActionPressed(input, GameAction::Fire);
-    if (isThrowPressed) {
-        if (orbitingDebris_.empty()) {
-            return;
-        }
-
-        size_t lockonCount = targetingComp_ ? targetingComp_->GetQueuedTargets().size() : 0;
-
-        if (lockonCount > 0) {
-            // ロックオンしている場合は、ターゲットの数だけ発射する
-            throwRemainingCount_ = static_cast<int>((std::min)(orbitingDebris_.size(), lockonCount));
-        } else {
-            // ノーロック時は1発だけ撃つ
-            throwRemainingCount_ = 1;
-        }
-
-        isThrowing_ = true;
-        throwTimer_ = throwInterval_; // 即座に1発目を撃つため
+    // ガレキ射出入力検知 ➔ Command オブジェクトをディスパッチ
+    if (InputHelper::IsActionPressed(input, GameAction::Fire)) {
+        ThrowDebrisCommand command;
+        ExecuteCommand(command);
     }
+}
+
+void GravityPlayerComponent::ExecuteThrowAction() {
+    if (orbitingDebris_.empty()) {
+        return;
+    }
+
+    size_t lockonCount = targetingComp_ ? targetingComp_->GetQueuedTargets().size() : 0;
+
+    if (lockonCount > 0) {
+        // ロックオンしている場合は、ターゲットの数だけ発射する
+        throwRemainingCount_ = static_cast<int>((std::min)(orbitingDebris_.size(), lockonCount));
+    } else {
+        // ノーロック時は1発だけ撃つ
+        throwRemainingCount_ = 1;
+    }
+
+    isThrowing_ = true;
+    throwTimer_ = throwInterval_; // 即座に1発目を撃つため
 }
 
 void GravityPlayerComponent::UpdateThrowing() {
