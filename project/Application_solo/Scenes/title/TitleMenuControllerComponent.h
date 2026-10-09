@@ -116,7 +116,9 @@ public: // メンバ関数(システム)
     void HandleNavigationInput();
     void HandleSelectionInput();
     void UpdateButtonVisuals(float dt);
-    void ResetStateTimer() { stateTimer_ = 0.0f; }
+    void ResetStateTimer() {
+        stateTimer_ = 0.0f;
+    }
     void UpdateOpeningModalAnimation(float dt);
     void PushPendingModalScene();
     void HideVirtualCursor();
@@ -138,9 +140,9 @@ private: // 内部処理
      */
     bool IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const;
 
-private:                                // メンバ変数
+private:                                                      // メンバ変数
     std::unique_ptr<ITitleMenuState> currentState_ = nullptr; //!< 現在のメニュー状態（State Pattern）
-    float stateTimer_ = 0.0f;           //!< 各ステート内経過タイマー
+    float stateTimer_ = 0.0f;                                 //!< 各ステート内経過タイマー
     static constexpr float kModalAnimDuration_ =
         0.22f;                          //!< モーダル決定演出所要時間 (Click In 0.055s + Click Pop 0.165s)
     std::string pendingModalSceneName_; //!< 遷移待機中のモーダルシーン名

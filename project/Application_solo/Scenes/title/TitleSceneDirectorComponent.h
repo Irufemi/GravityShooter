@@ -68,7 +68,7 @@ public:
     static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
     static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速離脱・消滅
     static constexpr float kDurationAfterglow_ = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
-    static constexpr float kDurationFreeze_ = 0.045f;   ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
+    static constexpr float kDurationFreeze_ = 0.045f; ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
     static constexpr float kTotalLaunchDuration_ = 3.20f; ///< 全体演出長 (秒)
 
     /**
@@ -145,30 +145,78 @@ public:
     void TriggerGravitationalShockwave(float power = 1.0f);
 
     // --- State パターン内部アクセス用アクセサ ---
-    const Irufemi::Vector3& GetInitialShipPos() const { return initialShipPos_; }
-    const Irufemi::Vector3& GetInitialShipRot() const { return initialShipRot_; }
-    const Irufemi::Vector3& GetLaunchStartRot() const { return launchStartRot_; }
-    void SetLaunchStartRot(const Irufemi::Vector3& rot) { launchStartRot_ = rot; }
-    const Irufemi::Vector3& GetInitialCameraPos() const { return initialCameraPos_; }
-    float GetInitialCameraFov() const { return initialCameraFov_; }
-    const std::vector<Irufemi::Vector3>& GetInitialDebrisPositions() const { return initialDebrisPositions_; }
-    const std::vector<std::weak_ptr<GameObject>>& GetDebrisObjects() const { return debrisObjs_; }
-    std::weak_ptr<GameObject> GetShipObject() const { return shipObj_; }
-    std::weak_ptr<GameObject> GetCameraObject() const { return cameraObj_; }
-    std::weak_ptr<GameObject> GetThrusterObject() const { return thrusterObj_; }
-    void SetTargetThrusterScaleZ(float scale) { targetThrusterScaleZ_ = scale; }
-    float GetInitialBgmVolume() const { return initialBgmVolume_; }
-    void SetInitialBgmVolume(float volume) { initialBgmVolume_ = volume; }
-    bool IsMicroFreezing() const { return isMicroFreezing_; }
-    void SetMicroFreezing(bool freezing) { isMicroFreezing_ = freezing; }
-    float GetFreezeTimer() const { return freezeTimer_; }
-    void SetFreezeTimer(float timer) { freezeTimer_ = timer; }
-    void AddFreezeTimer(float dt) { freezeTimer_ += dt; }
-    bool HasTriggeredRelease() const { return hasTriggeredRelease_; }
-    void SetTriggeredRelease(bool triggered) { hasTriggeredRelease_ = triggered; }
-    void TriggerImpactRelease() { OnImpactRelease(); }
-    bool HasTriggeredSceneTransition() const { return hasTriggeredSceneTransition_; }
-    void SetTriggeredSceneTransition(bool triggered) { hasTriggeredSceneTransition_ = triggered; }
+    const Irufemi::Vector3& GetInitialShipPos() const {
+        return initialShipPos_;
+    }
+    const Irufemi::Vector3& GetInitialShipRot() const {
+        return initialShipRot_;
+    }
+    const Irufemi::Vector3& GetLaunchStartRot() const {
+        return launchStartRot_;
+    }
+    void SetLaunchStartRot(const Irufemi::Vector3& rot) {
+        launchStartRot_ = rot;
+    }
+    const Irufemi::Vector3& GetInitialCameraPos() const {
+        return initialCameraPos_;
+    }
+    float GetInitialCameraFov() const {
+        return initialCameraFov_;
+    }
+    const std::vector<Irufemi::Vector3>& GetInitialDebrisPositions() const {
+        return initialDebrisPositions_;
+    }
+    const std::vector<std::weak_ptr<GameObject>>& GetDebrisObjects() const {
+        return debrisObjs_;
+    }
+    std::weak_ptr<GameObject> GetShipObject() const {
+        return shipObj_;
+    }
+    std::weak_ptr<GameObject> GetCameraObject() const {
+        return cameraObj_;
+    }
+    std::weak_ptr<GameObject> GetThrusterObject() const {
+        return thrusterObj_;
+    }
+    void SetTargetThrusterScaleZ(float scale) {
+        targetThrusterScaleZ_ = scale;
+    }
+    float GetInitialBgmVolume() const {
+        return initialBgmVolume_;
+    }
+    void SetInitialBgmVolume(float volume) {
+        initialBgmVolume_ = volume;
+    }
+    bool IsMicroFreezing() const {
+        return isMicroFreezing_;
+    }
+    void SetMicroFreezing(bool freezing) {
+        isMicroFreezing_ = freezing;
+    }
+    float GetFreezeTimer() const {
+        return freezeTimer_;
+    }
+    void SetFreezeTimer(float timer) {
+        freezeTimer_ = timer;
+    }
+    void AddFreezeTimer(float dt) {
+        freezeTimer_ += dt;
+    }
+    bool HasTriggeredRelease() const {
+        return hasTriggeredRelease_;
+    }
+    void SetTriggeredRelease(bool triggered) {
+        hasTriggeredRelease_ = triggered;
+    }
+    void TriggerImpactRelease() {
+        OnImpactRelease();
+    }
+    bool HasTriggeredSceneTransition() const {
+        return hasTriggeredSceneTransition_;
+    }
+    void SetTriggeredSceneTransition(bool triggered) {
+        hasTriggeredSceneTransition_ = triggered;
+    }
     void TriggerSceneTransition(float fadeDuration = 0.6f);
 
 private:

@@ -17,5 +17,4 @@ void TitleMenuStateLaunching::Update(TitleMenuControllerComponent* menu, float d
     menu->UpdateDismissAnimation(dt);
 }
 
-void TitleMenuStateLaunching::Exit(TitleMenuControllerComponent* /*menu*/) {
-}
+void TitleMenuStateLaunching::Exit(TitleMenuControllerComponent* /*menu*/) {}

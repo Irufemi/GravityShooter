@@ -72,9 +72,9 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
 
     // フリーズ解除後の実効加速時間
     float effectiveTimer = stateTimer - TitleSceneDirectorComponent::kDurationFreeze_;
-    float p2 = std::clamp(
-        effectiveTimer / (TitleSceneDirectorComponent::kDurationAccelerate_ - TitleSceneDirectorComponent::kDurationFreeze_),
-        0.0f, 1.0f);
+    float p2 = std::clamp(effectiveTimer / (TitleSceneDirectorComponent::kDurationAccelerate_ -
+                                            TitleSceneDirectorComponent::kDurationFreeze_),
+                          0.0f, 1.0f);
     float accelCurve = p2 * p2 * p2 * p2; // 4次急加速曲線（初速ゼロから猛烈な爆発的射出）
 
     // 自機の超推力突進

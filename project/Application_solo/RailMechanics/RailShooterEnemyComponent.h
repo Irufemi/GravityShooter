@@ -210,29 +210,75 @@ public:
     EnemyAIState GetStateType() const;
 
     // --- State Pattern 用アクセサ群 (カプセル化準拠) ---
-    float GetCurrentDistanceOffset() const { return currentDistanceOffset_; }
-    void SetCurrentDistanceOffset(float offset) { currentDistanceOffset_ = offset; }
-    float GetTargetDistance() const { return targetDistance_; }
-    float GetSpeed() const { return speed_; }
-    const Irufemi::Vector2& GetBaseFormationOffset() const { return baseFormationOffset_; }
-    const Irufemi::Vector2& GetCurrentLocalOffset() const { return currentLocalOffset_; }
-    void SetCurrentLocalOffset(const Irufemi::Vector2& offset) { currentLocalOffset_ = offset; }
-    float GetCombatDuration() const { return combatDuration_; }
-    float GetShootInterval() const { return shootInterval_; }
-    float GetShootTimer() const { return shootTimer_; }
-    void SetShootTimer(float timer) { shootTimer_ = timer; }
-    float GetSniperTelegraphDuration() const { return sniperTelegraphDuration_; }
-    float GetSniperLockLeadTime() const { return sniperLockLeadTime_; }
-    float GetBulletSpeed() const { return bulletSpeed_; }
-    bool IsAimLocked() const { return isAimLocked_; }
-    void SetAimLocked(bool locked) { isAimLocked_ = locked; }
-    const Irufemi::Vector3& GetLockedAimDir() const { return lockedAimDir_; }
-    void SetLockedAimDir(const Irufemi::Vector3& dir) { lockedAimDir_ = dir; }
-    const Irufemi::Vector3& GetLockedTargetPos() const { return lockedTargetPos_; }
-    void SetLockedTargetPos(const Irufemi::Vector3& pos) { lockedTargetPos_ = pos; }
-    float GetDiveRollAngle() const { return diveRollAngle_; }
-    void SetDiveRollAngle(float angle) { diveRollAngle_ = angle; }
-    const Irufemi::Vector3& GetPlayerVelocity() const { return playerVelocity_; }
+    float GetCurrentDistanceOffset() const {
+        return currentDistanceOffset_;
+    }
+    void SetCurrentDistanceOffset(float offset) {
+        currentDistanceOffset_ = offset;
+    }
+    float GetTargetDistance() const {
+        return targetDistance_;
+    }
+    float GetSpeed() const {
+        return speed_;
+    }
+    const Irufemi::Vector2& GetBaseFormationOffset() const {
+        return baseFormationOffset_;
+    }
+    const Irufemi::Vector2& GetCurrentLocalOffset() const {
+        return currentLocalOffset_;
+    }
+    void SetCurrentLocalOffset(const Irufemi::Vector2& offset) {
+        currentLocalOffset_ = offset;
+    }
+    float GetCombatDuration() const {
+        return combatDuration_;
+    }
+    float GetShootInterval() const {
+        return shootInterval_;
+    }
+    float GetShootTimer() const {
+        return shootTimer_;
+    }
+    void SetShootTimer(float timer) {
+        shootTimer_ = timer;
+    }
+    float GetSniperTelegraphDuration() const {
+        return sniperTelegraphDuration_;
+    }
+    float GetSniperLockLeadTime() const {
+        return sniperLockLeadTime_;
+    }
+    float GetBulletSpeed() const {
+        return bulletSpeed_;
+    }
+    bool IsAimLocked() const {
+        return isAimLocked_;
+    }
+    void SetAimLocked(bool locked) {
+        isAimLocked_ = locked;
+    }
+    const Irufemi::Vector3& GetLockedAimDir() const {
+        return lockedAimDir_;
+    }
+    void SetLockedAimDir(const Irufemi::Vector3& dir) {
+        lockedAimDir_ = dir;
+    }
+    const Irufemi::Vector3& GetLockedTargetPos() const {
+        return lockedTargetPos_;
+    }
+    void SetLockedTargetPos(const Irufemi::Vector3& pos) {
+        lockedTargetPos_ = pos;
+    }
+    float GetDiveRollAngle() const {
+        return diveRollAngle_;
+    }
+    void SetDiveRollAngle(float angle) {
+        diveRollAngle_ = angle;
+    }
+    const Irufemi::Vector3& GetPlayerVelocity() const {
+        return playerVelocity_;
+    }
 
     /**
      * @brief プレイヤー現在位置へ向けて通常射撃を行う
@@ -290,13 +336,13 @@ private:
 
     int behaviorType_ = 0; //!< 戦術行動タイプ (0: Standard, 1: DiveBomber, 2: PredictiveSniper)
     std::unique_ptr<IRailShooterEnemyState> currentState_ = nullptr; //!< 現在のAIステート（State Pattern）
-    float combatDuration_ = 7.5f;                 //!< 滞空交戦の制限時間（秒）
-    float shootInterval_ = 1.8f;                  //!< 射撃インターバル（秒）
-    float shootTimer_ = 0.6f;                     //!< 射撃タイマー
-    float targetDistance_ = 65.0f;                //!< 自機前方との維持距離
-    int bodyDamage_ = 20;                         //!< 体当たり衝突ダメージ
-    float bulletScale_ = 0.3f;                    //!< 敵弾のスケール・コライダー半径
-    float bulletSpeed_ = 32.0f;                   //!< 敵弾の飛翔速度
+    float combatDuration_ = 7.5f;                                    //!< 滞空交戦の制限時間（秒）
+    float shootInterval_ = 1.8f;                                     //!< 射撃インターバル（秒）
+    float shootTimer_ = 0.6f;                                        //!< 射撃タイマー
+    float targetDistance_ = 65.0f;                                   //!< 自機前方との維持距離
+    int bodyDamage_ = 20;                                            //!< 体当たり衝突ダメージ
+    float bulletScale_ = 0.3f;                                       //!< 敵弾のスケール・コライダー半径
+    float bulletSpeed_ = 32.0f;                                      //!< 敵弾の飛翔速度
 
     Irufemi::Vector3 lastPlayerPos_ = {0.0f, 0.0f, 0.0f};  //!< 前フレームのプレイヤー座標
     Irufemi::Vector3 playerVelocity_ = {0.0f, 0.0f, 0.0f}; //!< プレイヤーの推定実効移動速度

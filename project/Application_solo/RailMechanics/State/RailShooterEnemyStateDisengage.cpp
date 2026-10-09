@@ -21,5 +21,4 @@ void RailShooterEnemyStateDisengage::Update(RailShooterEnemyComponent* enemy, fl
     }
 }
 
-void RailShooterEnemyStateDisengage::Exit(RailShooterEnemyComponent* /*enemy*/) {
-}
+void RailShooterEnemyStateDisengage::Exit(RailShooterEnemyComponent* /*enemy*/) {}

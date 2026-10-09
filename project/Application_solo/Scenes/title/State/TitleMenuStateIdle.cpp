@@ -23,5 +23,4 @@ void TitleMenuStateIdle::Update(TitleMenuControllerComponent* menu, float dt) {
     menu->UpdateButtonVisuals(dt);
 }
 
-void TitleMenuStateIdle::Exit(TitleMenuControllerComponent* /*menu*/) {
-}
+void TitleMenuStateIdle::Exit(TitleMenuControllerComponent* /*menu*/) {}

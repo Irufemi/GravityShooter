@@ -35,5 +35,4 @@ void RailShooterEnemyStateDive::Update(RailShooterEnemyComponent* enemy, float d
     }
 }
 
-void RailShooterEnemyStateDive::Exit(RailShooterEnemyComponent* /*enemy*/) {
-}
+void RailShooterEnemyStateDive::Exit(RailShooterEnemyComponent* /*enemy*/) {}

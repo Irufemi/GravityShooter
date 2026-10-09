@@ -492,4 +492,3 @@ EnemyAIState RailShooterEnemyComponent::GetStateType() const {
     }
     return EnemyAIState::Approach;
 }
-

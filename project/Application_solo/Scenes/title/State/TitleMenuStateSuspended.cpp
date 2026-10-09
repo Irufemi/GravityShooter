@@ -13,5 +13,4 @@ void TitleMenuStateSuspended::Update(TitleMenuControllerComponent* /*menu*/, flo
     // 背面待機中は完全休眠（Update処理を行わない）
 }
 
-void TitleMenuStateSuspended::Exit(TitleMenuControllerComponent* /*menu*/) {
-}
+void TitleMenuStateSuspended::Exit(TitleMenuControllerComponent* /*menu*/) {}

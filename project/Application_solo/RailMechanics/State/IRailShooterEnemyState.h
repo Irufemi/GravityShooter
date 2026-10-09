@@ -7,10 +7,10 @@ class RailShooterEnemyComponent;
  * @brief 敵キャラクターのAI行動状態タイプ
  */
 enum class EnemyAIState {
-    Approach,  //!< 前方定位置への進入
-    Combat,    //!< 自機と一定距離を保って滞空・射撃
-    Dive,      //!< 特攻急降下（DiveBomber専用: 自機へ向けて急加速突進）
-    Disengage  //!< 制限時間終了によるすれ違い離脱
+    Approach, //!< 前方定位置への進入
+    Combat,   //!< 自機と一定距離を保って滞空・射撃
+    Dive,     //!< 特攻急降下（DiveBomber専用: 自機へ向けて急加速突進）
+    Disengage //!< 制限時間終了によるすれ違い離脱
 };
 
 /**
