@@ -12,6 +12,7 @@
 #include "Renderer/Font/FontManager.h"
 #include "Framework/Utility/CVar.h"
 #include "UI/UISound.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include <algorithm>
 #include <cmath>
 
@@ -30,6 +31,9 @@ const Irufemi::Vector4 kColorDarkMask = {0.02f, 0.03f, 0.05f, 0.75f}; // 半透�
 PauseScene::PauseScene() = default;
 
 PauseScene::~PauseScene() {
+    // ポストプロセスの確実な解除 (RAII保護)
+    RemovePausePostProcess();
+
     // 確実に元のBGM音量を復元
     Irufemi::CVarSystem::SetFloat("a.BGMVolume", originalBGMVolume_);
 }
@@ -55,14 +59,14 @@ void PauseScene::Initialize(IrufemiEngine* engine) {
 
     CreateUIElements();
 
-    // 突入時SE
-    UISound::PlayDecide(0.8f);
     openCooldownTimer_ = 0.2f;
 }
 
 void PauseScene::OnEnter() {
     BaseScene::OnEnter();
     openCooldownTimer_ = 0.2f;
+
+    ApplyPausePostProcess();
 
     if (engine_) {
         engine_->SetCursorLocked(false);
@@ -71,6 +75,9 @@ void PauseScene::OnEnter() {
 
 void PauseScene::OnExit() {
     BaseScene::OnExit();
+
+    RemovePausePostProcess();
+
     // BGM音量を復元
     Irufemi::CVarSystem::SetFloat("a.BGMVolume", originalBGMVolume_);
 }
@@ -78,6 +85,7 @@ void PauseScene::OnExit() {
 void PauseScene::OnSuspend() {
     BaseScene::OnSuspend();
     isSuspended_ = true;
+    RemovePausePostProcess(); // Options画面とのポストプロセス競合防止
     SetUIVisible(false); // ポーズUIを非表示にしてOptionsSceneとの文字被りを完全防止
 }
 
@@ -86,6 +94,8 @@ void PauseScene::OnResume() {
     isSuspended_ = false;
     SetUIVisible(true);
     openCooldownTimer_ = 0.2f; // OptionsSceneを閉じた直後の誤入力防止
+
+    ApplyPausePostProcess(); // ポーズ画面復帰時にPreUIブラーを再適用
 
     // オプション画面で変更された可能性のある最新のBGM音量を取得し、ダッキングを再適用
     originalBGMVolume_ = Irufemi::CVarSystem::GetFloat("a.BGMVolume");
@@ -406,3 +416,46 @@ bool PauseScene::IsCursorOverItem(int index, const Irufemi::Vector2& cursorPos) 
     float halfH = 26.0f * scale.y;
     return (std::abs(cursorPos.x - pos.x) <= halfW && std::abs(cursorPos.y - pos.y) <= halfH);
 }
+
+void PauseScene::ApplyPausePostProcess() {
+    if (isPostProcessActive_) {
+        return;
+    }
+    if (!engine_) {
+        return;
+    }
+    auto ppm = engine_->GetPostProcessManager();
+    if (!ppm) {
+        return;
+    }
+
+    // 1. カワセブラー (PreUIレイヤー: UIの背後の3Dワールドのみを美しくボカす)
+    ppm->AddActiveMode(PostProcessMode::DualKawaseBlur, PostProcessManager::Layer::PreUI);
+    auto& kawase = ppm->GetDualKawaseBlurParams();
+    kawase.blurRadius = 1.35f;
+    kawase.intensity = 1.0f;
+    kawase.iterationCount = 3;
+
+    // 2. ビネット (PreUIレイヤー: 画面端をほのかに引き締める)
+    ppm->AddActiveMode(PostProcessMode::Vignette, PostProcessManager::Layer::PreUI);
+    auto& vig = ppm->GetVignetteParams();
+    vig.radius = 0.85f;
+    vig.softness = 0.45f;
+    vig.color = {0.0f, 0.0f, 0.0f, 0.65f};
+
+    isPostProcessActive_ = true;
+}
+
+void PauseScene::RemovePausePostProcess() {
+    if (!isPostProcessActive_) {
+        return;
+    }
+    if (engine_) {
+        if (auto ppm = engine_->GetPostProcessManager()) {
+            ppm->RemoveActiveMode(PostProcessMode::DualKawaseBlur);
+            ppm->RemoveActiveMode(PostProcessMode::Vignette);
+        }
+    }
+    isPostProcessActive_ = false;
+}
+

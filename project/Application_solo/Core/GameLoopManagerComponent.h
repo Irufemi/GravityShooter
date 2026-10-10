@@ -74,7 +74,7 @@ private:
     void OnDeathSequenceFinished();
 
     State state_ = State::Playing;
-    float timeScaleAtResult_ = 0.1f;
+    float timeScaleAtResult_ = 0.05f; ///< 撃破・決着瞬間の超スローモーション (0.05倍速)
     bool isClear_ = false;
 
     std::string targetPlayerName_ = "Player";

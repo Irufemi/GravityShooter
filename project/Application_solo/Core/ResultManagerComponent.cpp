@@ -8,8 +8,17 @@
 #include "Engine/Irufemi.h"
 #include "Audio/AudioManager.h"
 #include "UI/UISound.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include <algorithm>
 #include <cmath>
+
+ResultManagerComponent::~ResultManagerComponent() {
+    RemoveEntryPostProcess(); // ポストプロセスの確実な解除
+
+    if (auto engine = GetEngine()) {
+        engine->SetTimeScale(1.0f); // シーン破棄時に確実にタイムスケールを等倍に戻す
+    }
+}
 
 void ResultManagerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
@@ -23,11 +32,13 @@ void ResultManagerComponent::OnRegisterProperties() {
 void ResultManagerComponent::Initialize() {
     timer_ = 0.0f;
     canReturnToTitle_ = false;
+    isExiting_ = false;
     hasResetTimeScale_ = false;
     hasPlayedSnapSE_ = false;
     isRecoveringTimeScale_ = false;
     timeScaleRecoveryTimer_ = 0.0f;
     startTimeScale_ = 0.0f;
+    isPostProcessActive_ = false;
 
     // 1. 退廃世界の空気感を引き締めるダーク暗幕オーバーレイの配置
     if (gameObject_ && gameObject_->GetScene()) {
@@ -83,6 +94,9 @@ void ResultManagerComponent::Initialize() {
         uiObj->SetActive(false); // 初期状態は非表示
         pressSpaceObj_ = uiObj;
     }
+
+    // 4. リザルト突入時の演出ポストプロセス（勝利の光芒 or 敗北の重力歪曲）を発火
+    ApplyEntryPostProcess();
 }
 
 void ResultManagerComponent::Update() {
@@ -96,22 +110,24 @@ void ResultManagerComponent::Update() {
     timer_ += dt;
 
     // 暗幕のフェードイン (0.0 -> 0.78 / EaseInQuad でグッと暗く沈み込ませる)
+    float enterProgress = std::clamp(timer_ / 0.50f, 0.0f, 1.0f);
+    UpdateEntryPostProcess(enterProgress);
+
     if (auto bgObj = darkBackdropObj_.lock()) {
         if (auto sprite = bgObj->GetComponent<SpriteRendererComponent>()) {
-            float enterT = std::clamp(timer_ / 0.50f, 0.0f, 1.0f);
-            float bgAlpha = 0.78f * (enterT * enterT);
+            float bgAlpha = 0.78f * (enterProgress * enterProgress);
             sprite->SetColor({0.02f, 0.03f, 0.05f, bgAlpha});
         }
     }
 
     // タイトル文字のスケールスナップ演出 (1.35 -> 1.0)
     if (auto text = gameObject_->GetComponent<TextRendererComponent>()) {
-        float enterProgress = std::clamp(timer_ / 0.40f, 0.0f, 1.0f);
-        float scaleOffset = 0.35f * std::pow(1.0f - enterProgress, 3.0f);
+        float scaleProgress = std::clamp(timer_ / 0.40f, 0.0f, 1.0f);
+        float scaleOffset = 0.35f * std::pow(1.0f - scaleProgress, 3.0f);
         text->SetBaseScale(baseTitleScale_ * (1.0f + scaleOffset));
 
         // スナップ完了の瞬間 (0.40秒) に se_hud_snap.mp3 (メカニカルラッチ音) を発火！
-        if (!hasPlayedSnapSE_ && enterProgress >= 0.98f) {
+        if (!hasPlayedSnapSE_ && scaleProgress >= 0.98f) {
             hasPlayedSnapSE_ = true;
             if (auto am = engine->GetAudioManager()) {
                 am->PlayByFile("resources/audio/SE/se_hud_snap.mp3", 0.90f, 1.0f, AudioCategory::SE);
@@ -154,8 +170,8 @@ void ResultManagerComponent::Update() {
         }
     }
 
-    // ガイドテキストの呼吸点滅 (Pulse)
-    if (canReturnToTitle_) {
+    // ガイドテキストの呼吸点滅 (Pulse) & タイトル帰還
+    if (canReturnToTitle_ && !isExiting_) {
         if (auto uiObj = pressSpaceObj_.lock()) {
             if (auto returnText = uiObj->GetComponent<TextRendererComponent>()) {
                 float pulse = 0.5f + 0.5f * std::sin((timer_ - resultDelayTime_) * 4.5f);
@@ -167,6 +183,7 @@ void ResultManagerComponent::Update() {
         if (input && (input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A) ||
                       input->IsButtonPressed(XINPUT_GAMEPAD_START))) {
 
+            isExiting_ = true;
             UISound::PlayDecide(1.0f);
             engine->SetTimeScale(1.0f);
             // 重力歪曲（RadialBlur）でタイトルへ帰還 (世界観に合致した重力シアンブラック指定)
@@ -176,3 +193,75 @@ void ResultManagerComponent::Update() {
         }
     }
 }
+
+void ResultManagerComponent::ApplyEntryPostProcess() {
+    if (isPostProcessActive_) {
+        return;
+    }
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+    auto ppm = engine->GetPostProcessManager();
+    if (!ppm) {
+        return;
+    }
+
+    if (ResultScene::IsClear()) {
+        // ステージクリア: 勝利の超光速ブレイク・放射ブラー (PreUIレイヤー)
+        ppm->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
+        auto& rb = ppm->GetRadialBlurParams();
+        rb.center = {0.5f, 0.5f};
+        rb.blurWidth = 0.040f;
+        rb.numSamples = 16;
+    } else {
+        // ゲームオーバー: 重力異常グリッチ・色収差 (PreUIレイヤー)
+        ppm->AddActiveMode(PostProcessMode::ChromaticAberration, PostProcessManager::Layer::PreUI);
+        auto& ca = ppm->GetChromaticAberrationParams();
+        ca.intensity = 0.035f;
+    }
+
+    isPostProcessActive_ = true;
+}
+
+void ResultManagerComponent::UpdateEntryPostProcess(float progress) {
+    if (!isPostProcessActive_) {
+        return;
+    }
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+    auto ppm = engine->GetPostProcessManager();
+    if (!ppm) {
+        return;
+    }
+
+    float factor = (1.0f - progress) * (1.0f - progress); // 2次減衰
+
+    if (ResultScene::IsClear()) {
+        auto& rb = ppm->GetRadialBlurParams();
+        rb.blurWidth = 0.040f * factor;
+    } else {
+        auto& ca = ppm->GetChromaticAberrationParams();
+        ca.intensity = 0.035f * factor;
+    }
+
+    if (progress >= 1.0f) {
+        RemoveEntryPostProcess();
+    }
+}
+
+void ResultManagerComponent::RemoveEntryPostProcess() {
+    if (!isPostProcessActive_) {
+        return;
+    }
+    if (auto engine = GetEngine()) {
+        if (auto ppm = engine->GetPostProcessManager()) {
+            ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
+            ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration);
+        }
+    }
+    isPostProcessActive_ = false;
+}
+

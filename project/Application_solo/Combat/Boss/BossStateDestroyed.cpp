@@ -47,20 +47,11 @@ public:
 
     void Update(BossComponent* boss, BossDamageVisualizerComponent* visualizer, float dt) override {
         (void)boss;
+        (void)visualizer;
         elapsedTime_ += dt;
 
-        bool isShakePlaying = visualizer ? visualizer->IsDeathShakePlaying() : false;
-        if (isShakePlaying) {
-            shakeHasStarted_ = true;
-        }
-
-        // シェイクが再生開始された後はシェイク終了で完了、
-        // もしカメラが存在しない環境でも最低限の演出時間（minFallbackDuration_）を待って完了
-        if (shakeHasStarted_) {
-            if (!isShakePlaying) {
-                isCompleted_ = true;
-            }
-        } else if (elapsedTime_ >= minFallbackDuration_) {
+        // スローモーションに影響されない実時間（1.20秒）で爆発余韻を待って完了
+        if (elapsedTime_ >= targetDuration_) {
             isCompleted_ = true;
         }
     }
@@ -71,8 +62,7 @@ public:
 
 private:
     float elapsedTime_ = 0.0f;
-    float minFallbackDuration_ = 2.0f; ///< カメラが無い場合の演出フォールバック保証時間
-    bool shakeHasStarted_ = false;
+    float targetDuration_ = 1.20f; ///< 撃破爆発の余韻実時間（秒）
     bool isCompleted_ = false;
 };
 
@@ -133,7 +123,7 @@ void BossStateDestroyed::Update(BossComponent* boss) {
         return;
     }
 
-    float dt = (boss && boss->GetEngine()) ? boss->GetEngine()->GetGameDeltaTime() : (1.0f / 60.0f);
+    float dt = (boss && boss->GetEngine()) ? boss->GetEngine()->GetRealDeltaTime() : (1.0f / 60.0f);
     auto& currentStep = steps_[currentStepIndex_];
     currentStep->Update(boss, visualizer_, dt);
 

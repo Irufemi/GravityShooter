@@ -6,7 +6,7 @@
 class ResultManagerComponent : public Component {
 public:
     ResultManagerComponent() = default;
-    ~ResultManagerComponent() override = default;
+    ~ResultManagerComponent() override;
 
     void Initialize() override;
     void Update() override;
@@ -21,6 +21,7 @@ private:
     float timeScaleResetDelayTime_ = 1.5f; // スローモーションを解除するまでの時間
     float timeScaleRecoveryDuration_ = 0.5f; // スローモーションから等倍速に戻るまでの時間(イージング時間)
     bool canReturnToTitle_ = false;
+    bool isExiting_ = false;               // 多重入力・多重遷移ガード
     bool hasResetTimeScale_ = false;
     bool hasPlayedSnapSE_ = false;
 
@@ -32,6 +33,12 @@ private:
     // プロパティ化してエディタで設定可能にする
     std::string nextSceneName_ = "Title";
     float baseTitleScale_ = 64.0f;
+
+    void ApplyEntryPostProcess();
+    void UpdateEntryPostProcess(float progress);
+    void RemoveEntryPostProcess();
+
+    bool isPostProcessActive_ = false;
 
     std::weak_ptr<GameObject> darkBackdropObj_;
     std::weak_ptr<GameObject> pressSpaceObj_;

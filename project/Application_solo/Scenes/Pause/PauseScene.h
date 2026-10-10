@@ -87,6 +87,10 @@ private:
     float openCooldownTimer_ = 0.2f;
     float originalBGMVolume_ = 1.0f;
 
+    void ApplyPausePostProcess();
+    void RemovePausePostProcess();
+
+    bool isPostProcessActive_ = false;
     std::shared_ptr<GameObject> darkOverlayObj_;
     std::shared_ptr<GameObject> titleObj_;
 };
