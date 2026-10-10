@@ -268,7 +268,7 @@ void PlayBGMHandler::Execute(WaveManagerComponent* manager, const WaveEventData&
             // トラック名（例："Stage1_Theme"）からサウンドデータを取得してループ再生
             auto soundData = audioManager->GetOrLoadSoundByFile("resources/audio/" + track + ".wav", track);
             if (soundData) {
-                audioManager->Play(soundData, true, 1.0f);
+                audioManager->Play(soundData, true, 1.0f, AudioCategory::BGM);
             } else {
                 Log::OutPutLog(std::cout, "[WaveManager] BGM file not found: resources/audio/" + track + ".wav\n");
             }

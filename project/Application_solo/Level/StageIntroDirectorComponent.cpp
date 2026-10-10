@@ -217,18 +217,31 @@ void StageIntroDirectorComponent::Update() {
     }
 }
 
-void StageIntroDirectorComponent::ApplyArrivalInertia(float /*progress*/) {
-    // 【将来拡張用フック: B案】
-    // 急制動時のノーズダイブ（ピッチ傾斜）と整流バネ挙動（Damped Oscillation）
-    // 計算式: pitchOffset = maxPitch * exp(-decay * progress) * sin(omega * progress)
-    // 専用パラメータやアニメーション調整の準備完了時に実装を解禁
+void StageIntroDirectorComponent::ApplyArrivalInertia(float progress) {
+    if (auto ship = shipObj_.lock()) {
+        if (auto transform = ship->GetTransform()) {
+            // 重力エネルギー体の整流挙動: 急制動に伴うノーズダイブとお辞儀（Damped Oscillation）
+            // progress: 0.0 -> 1.0 (arrivalDuration_ 0.50秒間)
+            float decay = std::exp(-5.0f * progress);
+            float oscillation = std::sin(progress * 3.14159265f * 2.5f);
+            float pitchOffset = -0.15f * decay * oscillation; // 約-8度から滑らかに0へ収束
+
+            auto rot = transform->GetRotation();
+            rot.x = pitchOffset;
+            transform->SetRotation(rot);
+        }
+    }
 }
 
 void StageIntroDirectorComponent::TriggerFCSBootupSequence() {
-    // 【将来拡張用フック: B案】
-    // FCS（火器管制システム）起動演出
-    // 1. 専用FCSオンラインSEの再生（高周波サイバネティックチャイム）
-    // 2. ReticleUIComponentに対するスプリング展開アニメーション（拡大->定位置収縮）トリガー
+    // 自機のピッチ角を完全な水平ホバリング姿勢へ安定化
+    if (auto ship = shipObj_.lock()) {
+        if (auto transform = ship->GetTransform()) {
+            auto rot = transform->GetRotation();
+            rot.x = 0.0f;
+            transform->SetRotation(rot);
+        }
+    }
 }
 
 void StageIntroDirectorComponent::SetHUDActive(bool active) {

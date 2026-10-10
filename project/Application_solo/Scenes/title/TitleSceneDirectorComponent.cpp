@@ -439,7 +439,7 @@ void TitleSceneDirectorComponent::SkipLaunchSequence() {
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, 0.35f);
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.35f, EaseType::EaseInQuad);
         }
     }
 }
@@ -491,7 +491,7 @@ void TitleSceneDirectorComponent::TriggerSceneTransition(float fadeDuration) {
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, fadeDuration);
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, fadeDuration, EaseType::EaseInCubic);
         }
     }
 }

@@ -30,6 +30,8 @@ private:
 
     // プロパティ化してエディタで設定可能にする
     std::string nextSceneName_ = "Title";
+    float baseTitleScale_ = 64.0f;
 
+    std::weak_ptr<GameObject> darkBackdropObj_;
     std::weak_ptr<GameObject> pressSpaceObj_;
 };
