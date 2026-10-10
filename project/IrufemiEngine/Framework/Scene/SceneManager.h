@@ -7,6 +7,8 @@
 #include <future>
 #include <mutex>
 #include <atomic>
+#include <optional>
+#include "Core/Math/Vector4.h"
 #include "Framework/Scene/SceneTransition.h"
 
 class IrufemiEngine;
@@ -72,14 +74,16 @@ public:
      * @param[in] easeType 演出のイージングタイプ（デフォルトは線形）
      */
     void TransitionTo(const Key& next, SceneTransition::Type type, float duration,
-                      EaseType easeType = EaseType::Linear);
+                      EaseType easeType = EaseType::Linear,
+                      const std::optional<Irufemi::Vector4>& customColor = std::nullopt);
 
     /**
      * @brief データ駆動シーン(JSON)への遷移を開始する
      * @param[in] sceneJsonName 読み込むJSON名 (拡張子なし)
      */
     void LoadScene(const std::string& sceneJsonName, SceneTransition::Type type = SceneTransition::Type::Fade,
-                   float duration = 1.0f, EaseType easeType = EaseType::Linear);
+                   float duration = 1.0f, EaseType easeType = EaseType::Linear,
+                   const std::optional<Irufemi::Vector4>& customColor = std::nullopt);
 
     /**
      * @brief 現在のシーンの上に新しいシーンを重ねる（同期）
@@ -177,6 +181,7 @@ private:
     SceneTransition::Type pendingType_ = SceneTransition::Type::Fade;
     float pendingDuration_ = 1.0f;
     EaseType pendingEaseType_ = EaseType::Linear;
+    std::optional<Irufemi::Vector4> pendingColor_;
 
     bool wasLoading_ = false;   ///< 前フレームがロード中だったか
     float loadingTimer_ = 0.0f; ///< ロード状態の継続時間を計測するタイマー

@@ -13,9 +13,7 @@ public:
     TitleLaunchStateBreak() = default;
     ~TitleLaunchStateBreak() override = default;
 
-    void Enter(TitleSceneDirectorComponent* director) override {
-        (void)director;
-    }
+    void Enter(TitleSceneDirectorComponent* director) override;
     void Update(TitleSceneDirectorComponent* director, float dt) override;
     TitleLaunchStateType GetStateType() const override {
         return TitleLaunchStateType::Break;

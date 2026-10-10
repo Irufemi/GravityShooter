@@ -7,7 +7,7 @@
 
 #include "Fullscreen.hlsli"
 #include "PerFrame.hlsli"
-#include "Noise.hlsli"
+#include "GravityWarp.hlsli"
 
 ConstantBuffer<PerFrameData> gPerFrame : register(b2);
 
@@ -159,22 +159,10 @@ PixelShaderOutput main(VertexShaderOutput input) {
     // 事象の地平面（Event Horizon）近傍の微細な境界リング光
     float innerEdge = exp(-pow(dist - 0.28, 2.0) * 55.0) * 0.35;
 
-    // --- 4. 2D回転行列による連続渦巻き ---
-    // ★ 【重要】回転する前の画面座標（rotP）に変位を適用！
-    // 自転している swirlP に画面ベクトルを足すと直線上でくるくる回転してしまうため、
-    // 変位をかけた画面座標 displacedP を回転行列に通すことで、直線上での自転巻き込みを完全防止
+    // --- 4. 共通ライブラリ GravityWarp.hlsli による連続重力渦巻き ---
+    // 変位をかけた画面座標 displacedP を回転行列に通すことで、直線上での自転巻き込みを防止
     float2 displacedP = rotP - gasFluidWisp;
-    float displacedDist = length(float2(displacedP.x, displacedP.y * 1.25));
-
-    // 内周ほど吸い込まれ、全体として心地よい流動感をもたらす回転速度
-    float swirlSpeed = 0.38 + 0.18 / (displacedDist + 0.20);
-    float swirlAmount = 3.6 * log(displacedDist + 0.15) - time * swirlSpeed;
-    float s = sin(swirlAmount);
-    float c = cos(swirlAmount);
-    float2 swirlP = float2(
-        displacedP.x * c - displacedP.y * s,
-        displacedP.x * s + displacedP.y * c
-    );
+    float2 swirlP = CalculateGravitySwirlCoords(displacedP, 1.0f, time, 1.25f);
 
     // ★ 星雲の美しい渦巻きフィラメント
     float f1 = ridgedNoise(swirlP * 2.6 + float2(time * 0.12, 0.0));

@@ -2736,10 +2736,11 @@
         },
         {
           "data": {
-            "Arrival Duration": 0.5,
+            "Arrival Duration": 0.30000001192092896,
+            "Bootup Duration": 0.75,
             "Start Offset Z": -25.0,
             "Target Ship Name": "Player",
-            "WarpIn Duration": 1.0
+            "WarpIn Duration": 0.6000000238418579
           },
           "type": "StageIntroDirectorComponent"
         }

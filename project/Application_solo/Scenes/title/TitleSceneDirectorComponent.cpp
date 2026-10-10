@@ -439,7 +439,9 @@ void TitleSceneDirectorComponent::SkipLaunchSequence() {
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.35f, EaseType::EaseInQuad);
+            // 世界観に合致した重力シアンブラックで空間を吸い込み暗転
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.35f, EaseType::EaseInQuad,
+                             Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
 }
@@ -491,7 +493,9 @@ void TitleSceneDirectorComponent::TriggerSceneTransition(float fadeDuration) {
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, fadeDuration, EaseType::EaseInCubic);
+            // 世界観に合致した重力シアンブラックで空間を吸い込み暗転
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, fadeDuration, EaseType::EaseInCubic,
+                             Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
 }

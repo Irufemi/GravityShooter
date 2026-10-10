@@ -831,7 +831,7 @@ void IrufemiEngine::Execute() {
 #endif // USE_IMGUI
 
         // 更新
-        audioManager_->Update();
+        audioManager_->Update(deltaTime_);
         postProcessManager_->ClearCustomEffectParams();
         sceneManager_->Update();
         // ローディング画面のアニメーション進行（Update相当）は描画時にまとめて行います

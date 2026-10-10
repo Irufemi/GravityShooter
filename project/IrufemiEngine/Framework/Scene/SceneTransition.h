@@ -1,9 +1,11 @@
 #pragma once
 #include "Renderer/PostProcess/PostProcessManager.h"
+#include "Core/Math/Vector4.h"
 #include <memory>
 #include <string>
 #include <vector>
 #include <functional>
+#include <optional>
 #include "Core/Utility/Ease.h"
 
 /**
@@ -40,7 +42,8 @@ public:
      * @param isOut true:画面を隠す（フェードアウト）, false:画面を表示する（フェードイン）
      * @param easeType 演出のイージングタイプ（デフォルトは線形）
      */
-    void Start(Type type, float duration, bool isOut, EaseType easeType = EaseType::Linear);
+    void Start(Type type, float duration, bool isOut, EaseType easeType = EaseType::Linear,
+               const std::optional<Irufemi::Vector4>& customColor = std::nullopt);
 
     /**
      * @brief 毎フレームの更新処理
@@ -92,6 +95,7 @@ private:
 
     Type currentType_ = Type::Fade;
     EaseType easeType_ = EaseType::Linear; // イージングタイプを保持
+    std::optional<Irufemi::Vector4> customColor_;
     std::unique_ptr<class ITransitionDriver> driver_;
     float timer_ = 0.0f;
     float duration_ = 1.0f;

@@ -5,21 +5,22 @@
 #include <functional>
 
 namespace {
-std::unique_ptr<ITransitionDriver> CreateDriver(SceneTransition::Type type) {
-    static const std::unordered_map<SceneTransition::Type, std::function<std::unique_ptr<ITransitionDriver>()>>
-        kFactory = {
-            {SceneTransition::Type::Fade, []() { return std::make_unique<FadeTransitionDriver>(); }},
-            {SceneTransition::Type::Dissolve, []() { return std::make_unique<DissolveTransitionDriver>(); }},
-            {SceneTransition::Type::Slide, []() { return std::make_unique<SlideTransitionDriver>(); }},
-            {SceneTransition::Type::RadialBlur, []() { return std::make_unique<RadialBlurTransitionDriver>(false); }},
-            {SceneTransition::Type::RadialBlurWhite,
-             []() { return std::make_unique<RadialBlurTransitionDriver>(true); }},
-        };
-    auto it = kFactory.find(type);
-    if (it != kFactory.end()) {
-        return it->second();
+std::unique_ptr<ITransitionDriver> CreateDriver(SceneTransition::Type type,
+                                               const std::optional<Irufemi::Vector4>& customColor) {
+    switch (type) {
+    case SceneTransition::Type::Fade:
+        return std::make_unique<FadeTransitionDriver>();
+    case SceneTransition::Type::Dissolve:
+        return std::make_unique<DissolveTransitionDriver>();
+    case SceneTransition::Type::Slide:
+        return std::make_unique<SlideTransitionDriver>();
+    case SceneTransition::Type::RadialBlur:
+        return std::make_unique<RadialBlurTransitionDriver>(false, customColor);
+    case SceneTransition::Type::RadialBlurWhite:
+        return std::make_unique<RadialBlurTransitionDriver>(true, customColor);
+    default:
+        return std::make_unique<FadeTransitionDriver>();
     }
-    return std::make_unique<FadeTransitionDriver>();
 }
 } // namespace
 
@@ -30,7 +31,8 @@ void SceneTransition::Initialize(PostProcessManager* ppManager) {
     ppManager_ = ppManager;
 }
 
-void SceneTransition::Start(Type type, float duration, bool isOut, EaseType easeType) {
+void SceneTransition::Start(Type type, float duration, bool isOut, EaseType easeType,
+                           const std::optional<Irufemi::Vector4>& customColor) {
     if (!ppManager_) {
         return;
     }
@@ -42,6 +44,12 @@ void SceneTransition::Start(Type type, float duration, bool isOut, EaseType ease
     timer_ = 0.0f;
     isActive_ = true;
 
+    if (customColor.has_value()) {
+        customColor_ = customColor;
+    } else if (isOut) {
+        customColor_ = std::nullopt; // フェードアウト開始時に新規指定が無ければリセット
+    }
+
     // 前回のトランジション演出で使ったエフェクトだけを確実に取り除く
     for (auto mode : activeTransitionModes_) {
         ppManager_->RemoveActiveMode(mode);
@@ -51,7 +59,7 @@ void SceneTransition::Start(Type type, float duration, bool isOut, EaseType ease
     // 基本は黒フェードにリセットしておく（白フェード等で上書きされた色が残るのを防ぐため）
     ppManager_->GetFadeParams().color = {0.0f, 0.0f, 0.0f, 1.0f};
 
-    driver_ = CreateDriver(currentType_);
+    driver_ = CreateDriver(currentType_, customColor_);
     if (driver_) {
         driver_->OnStart(ppManager_, activeTransitionModes_);
     }

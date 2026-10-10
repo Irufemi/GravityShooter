@@ -5,6 +5,9 @@
 #include "Core/System/IrufemiEngine.h"
 #include "RailMechanics/RailShooterPlayerComponent.h"
 #include "Player/PlayerThrusterVisualizerComponent.h"
+#include "Audio/AudioManager.h"
+#include "Input/GameAction.h"
+#include "Platform/Input/InputManager.h"
 #include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
@@ -28,6 +31,7 @@ void StageIntroDirectorComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     RegisterProperty("WarpIn Duration", &warpInDuration_);
     RegisterProperty("Arrival Duration", &arrivalDuration_);
+    RegisterProperty("Bootup Duration", &bootupDuration_);
     RegisterProperty("Start Offset Z", &startOffsetZ_);
     RegisterProperty("Target Ship Name", &targetShipName_);
 }
@@ -95,9 +99,11 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
         {StageIntroState::Arrival,
          {&StageIntroDirectorComponent::arrivalDuration_, 2.5f, 0.8f, false, true, false, false, nullptr,
           [](StageIntroDirectorComponent* self, float progress) { self->ApplyArrivalInertia(progress); }}},
-        {StageIntroState::Active,
-         {nullptr, 0.8f, 0.8f, false, false, true, true,
+        {StageIntroState::Bootup,
+         {&StageIntroDirectorComponent::bootupDuration_, 0.8f, 0.8f, false, true, true, false,
           [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
+        {StageIntroState::Active,
+         {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
     };
 
     auto it = kPhaseConfigs.find(introState_);
@@ -147,6 +153,16 @@ void StageIntroDirectorComponent::Update() {
         deltaTime = 1.0f / 60.0f;
     }
 
+    // プレイヤーによるクイックスキップ判定 (決定キー / SPACE / クリックで即Activeへスナップ)
+    if (engine) {
+        if (auto input = engine->GetInputManager()) {
+            if (InputHelper::IsActionPressed(input, GameAction::UI_Submit) || input->IsCursorActionPressed()) {
+                SkipIntroSequence();
+                return;
+            }
+        }
+    }
+
     stateTimer_ += deltaTime;
 
     struct PhaseConfig {
@@ -167,9 +183,11 @@ void StageIntroDirectorComponent::Update() {
         {StageIntroState::Arrival,
          {&StageIntroDirectorComponent::arrivalDuration_, 2.5f, 0.8f, false, true, false, false, nullptr,
           [](StageIntroDirectorComponent* self, float progress) { self->ApplyArrivalInertia(progress); }}},
-        {StageIntroState::Active,
-         {nullptr, 0.8f, 0.8f, false, false, true, true,
+        {StageIntroState::Bootup,
+         {&StageIntroDirectorComponent::bootupDuration_, 0.8f, 0.8f, false, true, true, false,
           [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
+        {StageIntroState::Active,
+         {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
     };
 
     auto it = kPhaseConfigs.find(introState_);
@@ -212,6 +230,8 @@ void StageIntroDirectorComponent::Update() {
         if (introState_ == StageIntroState::WarpIn) {
             SetIntroState(StageIntroState::Arrival);
         } else if (introState_ == StageIntroState::Arrival) {
+            SetIntroState(StageIntroState::Bootup);
+        } else if (introState_ == StageIntroState::Bootup) {
             SetIntroState(StageIntroState::Active);
         }
     }
@@ -234,7 +254,14 @@ void StageIntroDirectorComponent::ApplyArrivalInertia(float progress) {
 }
 
 void StageIntroDirectorComponent::TriggerFCSBootupSequence() {
-    // 自機のピッチ角を完全な水平ホバリング姿勢へ安定化
+    // 1. 重力FCSオンライン起動チャイム再生 (澄んだ高周波サイバネ展開音)
+    if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            am->PlayByFile("resources/audio/SE/se_fcs_online.mp3", 0.85f, 1.0f, AudioCategory::SE);
+        }
+    }
+
+    // 2. 自機のピッチ角を完全な水平ホバリング姿勢へ安定化
     if (auto ship = shipObj_.lock()) {
         if (auto transform = ship->GetTransform()) {
             auto rot = transform->GetRotation();
@@ -242,6 +269,28 @@ void StageIntroDirectorComponent::TriggerFCSBootupSequence() {
             transform->SetRotation(rot);
         }
     }
+}
+
+void StageIntroDirectorComponent::SkipIntroSequence() {
+    if (introState_ == StageIntroState::Active) {
+        return;
+    }
+
+    // 自機座標と回転を定位置・水平ホバリングへ即座にスナップ
+    if (auto ship = shipObj_.lock()) {
+        if (auto transform = ship->GetTransform()) {
+            transform->SetPosition(initialShipLocalPos_);
+            auto rot = transform->GetRotation();
+            rot.x = 0.0f;
+            transform->SetRotation(rot);
+        }
+    }
+
+    // スラスター炎を通常戦闘スケールへスナップ
+    SetShipThrusterScale(0.8f, true);
+
+    // 通常戦闘ステートへ即時移行 (HUD点灯・操作権委譲)
+    SetIntroState(StageIntroState::Active);
 }
 
 void StageIntroDirectorComponent::SetHUDActive(bool active) {

@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <chrono>
 #include <wrl/client.h> // ComPtr用
 
 // IXAudio2SourceVoice構造体およびIXAudio2SubmixVoiceを前方宣言
@@ -53,6 +54,22 @@ private:
     float cachedMasterVolume_{-1.0f};
     float cachedBgmVolume_{-1.0f};
     float cachedSeVolume_{-1.0f};
+
+    /**
+     * @struct FadeTask
+     * @brief 再生中ボイスの音量補間・自動停止タスク
+     */
+    struct FadeTask {
+        std::weak_ptr<VoiceInstance> voice;
+        float startVolume{1.0f};
+        float targetVolume{0.0f};
+        float sustainDuration{0.0f}; ///< フェード開始までの待機秒数
+        float fadeDuration{0.0f};    ///< フェードにかける秒数
+        float elapsedTime{0.0f};     ///< 経過時間 (秒)
+        bool stopOnComplete{true};   ///< 完了時にボイスを停止・破棄するか
+    };
+    std::vector<FadeTask> fadeTasks_;
+    std::chrono::steady_clock::time_point lastUpdateTime_{std::chrono::steady_clock::now()};
 
     /**
      * @brief 指定カテゴリに対応するサブミックスボイスを取得する
@@ -142,9 +159,47 @@ public:
 
     /**
      * @brief 毎フレームの更新処理
-     * @details 再生が終了したボイスのクリーンアップなどを行います。
+     * @details 再生が終了したボイスのクリーンアップおよびフェードオートメーションを行います。
+     * @param[in] deltaTime フレーム経過秒数（0.0f以下の場合は内部クロックから自動算出）
      */
-    void Update();
+    void Update(float deltaTime = 0.0f);
+
+    /**
+     * @brief 指定した持続時間の経過後にフェードアウトして自動停止するサウンド再生
+     * @param[in] soundData ロード済みのサウンドデータ
+     * @param[in] sustainDuration 等倍音量で再生し続ける秒数 (例: 0.7秒)
+     * @param[in] fadeOutDuration フェードアウトにかける秒数 (例: 0.5秒)
+     * @param[in] volume 最大音量
+     * @param[in] category オーディオカテゴリ
+     * @return 再生中インスタンスへの弱参照
+     */
+    std::weak_ptr<VoiceInstance> PlayWithFade(std::shared_ptr<Sound> soundData, float sustainDuration,
+                                              float fadeOutDuration, float volume = 1.0f,
+                                              AudioCategory category = AudioCategory::SE);
+
+    /**
+     * @brief ファイルパスから直接フェードアウト付きでサウンドを再生する
+     * @param[in] filePath サウンドファイルのパス
+     * @param[in] sustainDuration 等倍音量で再生し続ける秒数
+     * @param[in] fadeOutDuration フェードアウトにかける秒数
+     * @param[in] volume 最大音量
+     * @param[in] category オーディオカテゴリ
+     * @return 再生中インスタンスへの弱参照
+     */
+    std::weak_ptr<VoiceInstance> PlayByFileWithFade(const std::string& filePath, float sustainDuration,
+                                                    float fadeOutDuration, float volume = 1.0f,
+                                                    AudioCategory category = AudioCategory::SE);
+
+    /**
+     * @brief 再生中のボイスに対してフェードタスクを登録する
+     * @param[in] voice 対象ボイス
+     * @param[in] targetVolume 目標音量
+     * @param[in] duration フェードにかける秒数
+     * @param[in] delay フェード開始までの待機秒数（デフォルト0.0f）
+     * @param[in] stopOnComplete フェード完了時にボイスを停止・破棄するか
+     */
+    void FadeVoice(std::weak_ptr<VoiceInstance> voice, float targetVolume, float duration, float delay = 0.0f,
+                   bool stopOnComplete = false);
 
     /**
      * @brief サウンドを再生する

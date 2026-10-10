@@ -12,6 +12,7 @@
 #include "Combat/Boss/BossComponent.h"
 #include "Platform/Input/InputManager.h"
 #include "Input/GameAction.h"
+#include "Audio/AudioManager.h"
 #include "Core/AttractDemoManager.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
@@ -122,6 +123,9 @@ void GameLoopManagerComponent::OnBossDied() {
         }
     }
     if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            am->PlayByFile("resources/audio/SE/se_result_impact.mp3", 0.95f, 1.0f, AudioCategory::SE);
+        }
         engine->SetTimeScale(timeScaleAtResult_);
     }
 }
@@ -133,6 +137,9 @@ void GameLoopManagerComponent::OnPlayerDied() {
     state_ = State::Finished;
     isClear_ = false;
     if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            am->PlayByFile("resources/audio/SE/se_result_impact.mp3", 0.95f, 1.0f, AudioCategory::SE);
+        }
         engine->SetTimeScale(timeScaleAtResult_);
     }
 }

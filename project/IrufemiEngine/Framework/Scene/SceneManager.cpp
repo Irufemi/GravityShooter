@@ -208,7 +208,8 @@ void SceneManager::PopScene() {
     }
 }
 
-void SceneManager::TransitionTo(const Key& next, SceneTransition::Type type, float duration, EaseType easeType) {
+void SceneManager::TransitionTo(const Key& next, SceneTransition::Type type, float duration, EaseType easeType,
+                                 const std::optional<Irufemi::Vector4>& customColor) {
     if (transitionPhase_ != TransitionPhase::None) {
         return; // 二重遷移防止
     }
@@ -217,20 +218,21 @@ void SceneManager::TransitionTo(const Key& next, SceneTransition::Type type, flo
     pendingType_ = type;
     pendingDuration_ = duration;
     pendingEaseType_ = easeType;
+    pendingColor_ = customColor;
     transitionPhase_ = TransitionPhase::Closing;
 
-    engine_->GetSceneTransition()->Start(type, duration, true, easeType);
+    engine_->GetSceneTransition()->Start(type, duration, true, easeType, customColor);
 }
 
 void SceneManager::LoadScene(const std::string& sceneJsonName, SceneTransition::Type type, float duration,
-                             EaseType easeType) {
+                             EaseType easeType, const std::optional<Irufemi::Vector4>& customColor) {
     // 未登録の場合、DataDrivenScene を生成するファクトリを自動登録
     if (factories_.find(sceneJsonName) == factories_.end()) {
         Register(sceneJsonName, [sceneJsonName]() { return std::make_unique<DataDrivenScene>(sceneJsonName); });
     }
 
     // 通常の遷移処理に回す
-    TransitionTo(sceneJsonName, type, duration, easeType);
+    TransitionTo(sceneJsonName, type, duration, easeType, customColor);
 }
 
 bool SceneManager::UpdateLoadStatus() {
@@ -327,7 +329,7 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             }
 
             // ロードが完了した瞬間に、フェードインを開始する
-            engine_->GetSceneTransition()->Start(pendingType_, pendingDuration_, false, pendingEaseType_);
+            engine_->GetSceneTransition()->Start(pendingType_, pendingDuration_, false, pendingEaseType_, pendingColor_);
         }
     } else if (transitionPhase_ == TransitionPhase::Opening) {
         // フェードイン完了待ち

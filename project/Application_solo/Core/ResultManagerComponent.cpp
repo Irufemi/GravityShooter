@@ -6,6 +6,7 @@
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
 #include "Scenes/Result/ResultScene.h"
 #include "Engine/Irufemi.h"
+#include "Audio/AudioManager.h"
 #include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
@@ -23,6 +24,7 @@ void ResultManagerComponent::Initialize() {
     timer_ = 0.0f;
     canReturnToTitle_ = false;
     hasResetTimeScale_ = false;
+    hasPlayedSnapSE_ = false;
     isRecoveringTimeScale_ = false;
     timeScaleRecoveryTimer_ = 0.0f;
     startTimeScale_ = 0.0f;
@@ -93,10 +95,11 @@ void ResultManagerComponent::Update() {
     float dt = engine->GetRealDeltaTime();
     timer_ += dt;
 
-    // 暗幕のフェードイン (0.0 -> 0.78)
+    // 暗幕のフェードイン (0.0 -> 0.78 / EaseInQuad でグッと暗く沈み込ませる)
     if (auto bgObj = darkBackdropObj_.lock()) {
         if (auto sprite = bgObj->GetComponent<SpriteRendererComponent>()) {
-            float bgAlpha = std::clamp(timer_ / 0.50f, 0.0f, 0.78f);
+            float enterT = std::clamp(timer_ / 0.50f, 0.0f, 1.0f);
+            float bgAlpha = 0.78f * (enterT * enterT);
             sprite->SetColor({0.02f, 0.03f, 0.05f, bgAlpha});
         }
     }
@@ -106,6 +109,14 @@ void ResultManagerComponent::Update() {
         float enterProgress = std::clamp(timer_ / 0.40f, 0.0f, 1.0f);
         float scaleOffset = 0.35f * std::pow(1.0f - enterProgress, 3.0f);
         text->SetBaseScale(baseTitleScale_ * (1.0f + scaleOffset));
+
+        // スナップ完了の瞬間 (0.40秒) に se_hud_snap.mp3 (メカニカルラッチ音) を発火！
+        if (!hasPlayedSnapSE_ && enterProgress >= 0.98f) {
+            hasPlayedSnapSE_ = true;
+            if (auto am = engine->GetAudioManager()) {
+                am->PlayByFile("resources/audio/SE/se_hud_snap.mp3", 0.90f, 1.0f, AudioCategory::SE);
+            }
+        }
     }
 
     // 一定時間経過後、スローモーションを解除して等倍速に戻す（イージング開始）
@@ -158,9 +169,10 @@ void ResultManagerComponent::Update() {
 
             UISound::PlayDecide(1.0f);
             engine->SetTimeScale(1.0f);
-            // 重力歪曲（RadialBlur）でタイトルへ帰還
+            // 重力歪曲（RadialBlur）でタイトルへ帰還 (世界観に合致した重力シアンブラック指定)
             engine->GetSceneManager()->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.8f,
-                                                    EaseType::EaseInCubic);
+                                                    EaseType::EaseInCubic,
+                                                    Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
 }

@@ -4,6 +4,8 @@
  */
 
 #pragma once
+#ifndef NOISE_HLSLI
+#define NOISE_HLSLI
 
 static const float TAU = 6.28318530718;
 
@@ -167,3 +169,5 @@ float sFBm(float2 p) {
     }
     return f;
 }
+
+#endif // NOISE_HLSLI

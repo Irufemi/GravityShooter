@@ -148,6 +148,7 @@ void AudioManager::Finalize() {
             }
         }
         activeVoices_.clear();
+        fadeTasks_.clear();
     }
 
     // 【一線級エンジン規約 Step 3: Branches】サブミックスボイスの破棄（MasteringVoiceより先に破棄）
@@ -181,10 +182,67 @@ bool AudioManager::IsManagedVoice(std::shared_ptr<VoiceInstance> instance) const
     return std::find(activeVoices_.begin(), activeVoices_.end(), instance) != activeVoices_.end();
 }
 
-void AudioManager::Update() {
-    // 終了したボイスをリストから削除
-    // 削除されると shared_ptr の参照が外れ、VoiceInstance のデストラクタで DestroyVoice される
+void AudioManager::Update(float deltaTime) {
     std::lock_guard<std::mutex> lock(voiceMutex_);
+
+    // デルタタイム算出（未指定または0以下の場合は高精度クロックから自己補正）
+    float dt = deltaTime;
+    auto now = std::chrono::steady_clock::now();
+    if (dt <= 0.0f) {
+        dt = std::chrono::duration<float>(now - lastUpdateTime_).count();
+    }
+    lastUpdateTime_ = now;
+    // 極端なスパイク（一時停止復帰時など）をガード
+    dt = std::clamp(dt, 0.0f, 0.2f);
+
+    // 1. フェードタスク（音量補間・オートメーション）の更新
+    for (auto& task : fadeTasks_) {
+        auto voice = task.voice.lock();
+        if (!voice) {
+            continue;
+        }
+
+        task.elapsedTime += dt;
+        if (task.elapsedTime < task.sustainDuration) {
+            // 持続（Sustain）区間: 初期音量を維持
+            voice->SetVolume(task.startVolume);
+        } else {
+            // フェード（Fade）区間: 人間の聴覚特性に合わせた滑らかな減衰カーブ
+            float fadeElapsed = task.elapsedTime - task.sustainDuration;
+            float progress = task.fadeDuration > 0.0f ? std::clamp(fadeElapsed / task.fadeDuration, 0.0f, 1.0f) : 1.0f;
+
+            if (task.targetVolume < task.startVolume) {
+                // 音量減衰: 対数的・二乗的カーブで消え際を滑らかに収束
+                float factor = std::pow(1.0f - progress, 1.5f);
+                float curVol = task.targetVolume + (task.startVolume - task.targetVolume) * factor;
+                voice->SetVolume(curVol);
+            } else {
+                // 音量上昇
+                float factor = 1.0f - std::pow(1.0f - progress, 2.0f);
+                float curVol = task.startVolume + (task.targetVolume - task.startVolume) * factor;
+                voice->SetVolume(curVol);
+            }
+
+            if (progress >= 1.0f) {
+                voice->SetVolume(task.targetVolume);
+                if (task.stopOnComplete) {
+                    voice->Stop();
+                }
+            }
+        }
+    }
+
+    // 完了したフェードタスクのクリーンアップ
+    std::erase_if(fadeTasks_, [](const FadeTask& task) {
+        auto v = task.voice.lock();
+        if (!v) {
+            return true;
+        }
+        return (task.elapsedTime >= (task.sustainDuration + task.fadeDuration));
+    });
+
+    // 2. 終了したボイスをリストから削除
+    // 削除されると shared_ptr の参照が外れ、VoiceInstance のデストラクタで DestroyVoice される
     std::erase_if(activeVoices_,
                   [](const std::shared_ptr<VoiceInstance>& instance) { return instance->GetCallback()->IsFinished(); });
 }
@@ -546,3 +604,47 @@ std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& fil
     soundRegistry_.emplace(useKey, sound);
     return sound;
 }
+
+std::weak_ptr<VoiceInstance> AudioManager::PlayWithFade(std::shared_ptr<Sound> soundData, float sustainDuration,
+                                                          float fadeOutDuration, float volume,
+                                                          AudioCategory category) {
+    auto weakVoice = Play(soundData, false, volume, category);
+    FadeVoice(weakVoice, 0.0f, fadeOutDuration, sustainDuration, true);
+    return weakVoice;
+}
+
+std::weak_ptr<VoiceInstance> AudioManager::PlayByFileWithFade(const std::string& filePath, float sustainDuration,
+                                                              float fadeOutDuration, float volume,
+                                                              AudioCategory category) {
+    auto sound = GetOrLoadSoundByFile(filePath);
+    if (!sound) {
+        return {};
+    }
+    return PlayWithFade(sound, sustainDuration, fadeOutDuration, volume, category);
+}
+
+void AudioManager::FadeVoice(std::weak_ptr<VoiceInstance> voice, float targetVolume, float duration, float delay,
+                             bool stopOnComplete) {
+    auto strongVoice = voice.lock();
+    if (!strongVoice) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(voiceMutex_);
+    // 同一ボイスに対する既存のフェードタスクがあれば上書き
+    std::erase_if(fadeTasks_, [&](const FadeTask& task) {
+        auto v = task.voice.lock();
+        return v && v == strongVoice;
+    });
+
+    FadeTask task;
+    task.voice = voice;
+    task.startVolume = strongVoice->GetVolume();
+    task.targetVolume = targetVolume;
+    task.sustainDuration = std::max(0.0f, delay);
+    task.fadeDuration = std::max(0.001f, duration);
+    task.elapsedTime = 0.0f;
+    task.stopOnComplete = stopOnComplete;
+
+    fadeTasks_.push_back(task);
+}

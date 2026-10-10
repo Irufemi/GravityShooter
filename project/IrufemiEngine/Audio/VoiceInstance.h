@@ -44,6 +44,18 @@ public:
     }
 
     /**
+     * @brief 現在の Volume を取得する。
+     * @return ボイスの Volume 値
+     */
+    float GetVolume() const {
+        float volume = 1.0f;
+        if (voice_) {
+            voice_->GetVolume(&volume);
+        }
+        return volume;
+    }
+
+    /**
      * @brief Stop を実行する。
      */
     void Stop() {

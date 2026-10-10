@@ -22,6 +22,7 @@ private:
     float timeScaleRecoveryDuration_ = 0.5f; // スローモーションから等倍速に戻るまでの時間(イージング時間)
     bool canReturnToTitle_ = false;
     bool hasResetTimeScale_ = false;
+    bool hasPlayedSnapSE_ = false;
 
     // イージング用状態変数
     bool isRecoveringTimeScale_ = false;

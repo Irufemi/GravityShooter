@@ -23,7 +23,8 @@ public:
     enum class StageIntroState {
         WarpIn,  ///< [Phase 1: 飛来急減速] 自機がカメラ後方から飛来・3次急減速
         Arrival, ///< [Phase 2: 到着整流] 定位置到着スナップ・スラスター炎収縮
-        Active   ///< [Phase 3: 通常戦闘] HUD点灯・プレイヤー操作権委譲
+        Bootup,  ///< [Phase 3: システムブート] FCS起動チャイム再生・HUD展開・操作待機
+        Active   ///< [Phase 4: 通常戦闘] 起動完了・プレイヤー操作権委譲
     };
 
     StageIntroDirectorComponent() = default;
@@ -52,6 +53,11 @@ public:
         return introState_ == StageIntroState::Active;
     }
 
+    /**
+     * @brief イントロ演出を即座にスキップして通常戦闘へ移行する (Bail-out)
+     */
+    void SkipIntroSequence();
+
 private:
     bool EnsureShipInitialized();
     void SetHUDActive(bool active);
@@ -64,8 +70,9 @@ private:
     void TriggerFCSBootupSequence();
 
     // インスペクター調整可能プロパティ
-    float warpInDuration_ = 1.00f;          ///< 飛来急減速にかける時間（秒）
-    float arrivalDuration_ = 0.50f;         ///< 到着整流にかける時間（秒）
+    float warpInDuration_ = 0.60f;          ///< 飛来急減速にかける時間（秒）
+    float arrivalDuration_ = 0.30f;         ///< 到着整流にかける時間（秒）
+    float bootupDuration_ = 0.75f;          ///< FCSシステムブートにかける時間（秒）
     float startOffsetZ_ = -25.00f;          ///< 飛来開始時の初期後方オフセット（メートル）
     std::string targetShipName_ = "Player"; ///< 演出対象の自機オブジェクト名
 
