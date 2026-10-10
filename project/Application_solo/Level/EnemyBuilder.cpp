@@ -3,8 +3,7 @@
 #include "RailMechanics/RailShooterEnemyComponent.h"
 #include "Framework/GameObject/GameObject.h"
 
-EnemyBuilder::EnemyBuilder(EnemySpawnerComponent* spawner)
-    : spawner_(spawner) {}
+EnemyBuilder::EnemyBuilder(EnemySpawnerComponent* spawner) : spawner_(spawner) {}
 
 EnemyBuilder& EnemyBuilder::WithPrefab(const std::string& prefabPath) {
     prefabPath_ = prefabPath;
@@ -41,10 +40,8 @@ EnemyBuilder& EnemyBuilder::WithBehaviorType(EnemyBehaviorType type) {
     return *this;
 }
 
-EnemyBuilder& EnemyBuilder::WithRailTrackingParams(SplineComponent* spline,
-                                                   SplineFollowerComponent* playerFollower,
-                                                   float initialDistOffset,
-                                                   float targetDistance,
+EnemyBuilder& EnemyBuilder::WithRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* playerFollower,
+                                                   float initialDistOffset, float targetDistance,
                                                    const Irufemi::Vector2& formationOffset) {
     spline_ = spline;
     playerFollower_ = playerFollower;
@@ -55,8 +52,7 @@ EnemyBuilder& EnemyBuilder::WithRailTrackingParams(SplineComponent* spline,
     return *this;
 }
 
-GameObject* EnemyBuilder::Build(const Irufemi::Vector3& position,
-                                const Irufemi::Vector3& rotation,
+GameObject* EnemyBuilder::Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
                                 float scaleMultiplier) {
     if (!spawner_) {
         return nullptr;
@@ -85,8 +81,8 @@ GameObject* EnemyBuilder::Build(const Irufemi::Vector3& position,
         }
 
         if (hasTrackingParams_) {
-            enemyComp->SetRailTrackingParams(spline_, playerFollower_, initialDistOffset_,
-                                             trackingTargetDistance_, formationOffset_);
+            enemyComp->SetRailTrackingParams(spline_, playerFollower_, initialDistOffset_, trackingTargetDistance_,
+                                             formationOffset_);
         }
     }
 

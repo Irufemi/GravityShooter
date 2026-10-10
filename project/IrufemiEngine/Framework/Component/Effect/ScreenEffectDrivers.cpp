@@ -48,25 +48,47 @@ nlohmann::json GlitchEffectDriver::Serialize() const {
     j["targetGlitchParams"]["rgbShiftMax"] = targetParams_.rgbShiftMax;
     j["targetGlitchParams"]["scanlineFreq"] = targetParams_.scanlineFreq;
     j["targetGlitchParams"]["scanlineIntensity"] = targetParams_.scanlineIntensity;
-    j["targetGlitchParams"]["glitchColor"] = {targetParams_.color.x, targetParams_.color.y,
-                                              targetParams_.color.z, targetParams_.color.w};
+    j["targetGlitchParams"]["glitchColor"] = {targetParams_.color.x, targetParams_.color.y, targetParams_.color.z,
+                                              targetParams_.color.w};
     return j;
 }
 
 void GlitchEffectDriver::Deserialize(const nlohmann::json& j) {
     if (j.contains("targetGlitchParams")) {
         const auto& gj = j["targetGlitchParams"];
-        if (gj.contains("intensity")) targetParams_.intensity = gj["intensity"];
-        if (gj.contains("edgeMaskStrength")) targetParams_.edgeMaskStrength = gj["edgeMaskStrength"];
-        if (gj.contains("probability")) targetParams_.probability = gj["probability"];
-        if (gj.contains("blockSizeX")) targetParams_.blockSizeX = gj["blockSizeX"];
-        if (gj.contains("blockSizeY")) targetParams_.blockSizeY = gj["blockSizeY"];
-        if (gj.contains("offsetBase")) targetParams_.offsetBase = gj["offsetBase"];
-        if (gj.contains("offsetMax")) targetParams_.offsetMax = gj["offsetMax"];
-        if (gj.contains("rgbShiftBase")) targetParams_.rgbShiftBase = gj["rgbShiftBase"];
-        if (gj.contains("rgbShiftMax")) targetParams_.rgbShiftMax = gj["rgbShiftMax"];
-        if (gj.contains("scanlineFreq")) targetParams_.scanlineFreq = gj["scanlineFreq"];
-        if (gj.contains("scanlineIntensity")) targetParams_.scanlineIntensity = gj["scanlineIntensity"];
+        if (gj.contains("intensity")) {
+            targetParams_.intensity = gj["intensity"];
+        }
+        if (gj.contains("edgeMaskStrength")) {
+            targetParams_.edgeMaskStrength = gj["edgeMaskStrength"];
+        }
+        if (gj.contains("probability")) {
+            targetParams_.probability = gj["probability"];
+        }
+        if (gj.contains("blockSizeX")) {
+            targetParams_.blockSizeX = gj["blockSizeX"];
+        }
+        if (gj.contains("blockSizeY")) {
+            targetParams_.blockSizeY = gj["blockSizeY"];
+        }
+        if (gj.contains("offsetBase")) {
+            targetParams_.offsetBase = gj["offsetBase"];
+        }
+        if (gj.contains("offsetMax")) {
+            targetParams_.offsetMax = gj["offsetMax"];
+        }
+        if (gj.contains("rgbShiftBase")) {
+            targetParams_.rgbShiftBase = gj["rgbShiftBase"];
+        }
+        if (gj.contains("rgbShiftMax")) {
+            targetParams_.rgbShiftMax = gj["rgbShiftMax"];
+        }
+        if (gj.contains("scanlineFreq")) {
+            targetParams_.scanlineFreq = gj["scanlineFreq"];
+        }
+        if (gj.contains("scanlineIntensity")) {
+            targetParams_.scanlineIntensity = gj["scanlineIntensity"];
+        }
         if (gj.contains("glitchColor")) {
             const auto& c = gj["glitchColor"];
             targetParams_.color = {c[0], c[1], c[2], c[3]};
@@ -108,8 +130,8 @@ void VignetteEffectDriver::RestoreBaseParams(PostProcessManager* ppm) {
 
 nlohmann::json VignetteEffectDriver::Serialize() const {
     nlohmann::json j;
-    j["targetVignetteParams"]["color"] = {targetParams_.color.x, targetParams_.color.y,
-                                          targetParams_.color.z, targetParams_.color.w};
+    j["targetVignetteParams"]["color"] = {targetParams_.color.x, targetParams_.color.y, targetParams_.color.z,
+                                          targetParams_.color.w};
     j["targetVignetteParams"]["radius"] = targetParams_.radius;
     j["targetVignetteParams"]["softness"] = targetParams_.softness;
     return j;
@@ -124,8 +146,12 @@ void VignetteEffectDriver::Deserialize(const nlohmann::json& j) {
             targetParams_.color.z = vj["color"][2];
             targetParams_.color.w = vj["color"][3];
         }
-        if (vj.contains("radius")) targetParams_.radius = vj["radius"];
-        if (vj.contains("softness")) targetParams_.softness = vj["softness"];
+        if (vj.contains("radius")) {
+            targetParams_.radius = vj["radius"];
+        }
+        if (vj.contains("softness")) {
+            targetParams_.softness = vj["softness"];
+        }
     }
 }
 
@@ -168,7 +194,9 @@ nlohmann::json ChromaticAberrationEffectDriver::Serialize() const {
 void ChromaticAberrationEffectDriver::Deserialize(const nlohmann::json& j) {
     if (j.contains("targetChromaticAberrationParams")) {
         const auto& cj = j["targetChromaticAberrationParams"];
-        if (cj.contains("intensity")) targetParams_.intensity = cj["intensity"];
+        if (cj.contains("intensity")) {
+            targetParams_.intensity = cj["intensity"];
+        }
     }
 }
 
@@ -215,12 +243,16 @@ nlohmann::json RadialBlurEffectDriver::Serialize() const {
 void RadialBlurEffectDriver::Deserialize(const nlohmann::json& j) {
     if (j.contains("targetRadialBlurParams")) {
         const auto& rj = j["targetRadialBlurParams"];
-        if (rj.contains("blurWidth")) targetParams_.blurWidth = rj["blurWidth"];
+        if (rj.contains("blurWidth")) {
+            targetParams_.blurWidth = rj["blurWidth"];
+        }
         if (rj.contains("center") && rj["center"].is_array() && rj["center"].size() == 2) {
             targetParams_.center.x = rj["center"][0];
             targetParams_.center.y = rj["center"][1];
         }
-        if (rj.contains("numSamples")) targetParams_.numSamples = rj["numSamples"];
+        if (rj.contains("numSamples")) {
+            targetParams_.numSamples = rj["numSamples"];
+        }
     }
 }
 
@@ -235,12 +267,16 @@ std::unique_ptr<IScreenEffectDriver> RadialBlurEffectDriver::Clone() const {
 // ScreenEffectDriverFactory (Registration-based Factory)
 // ============================================================================
 std::unique_ptr<IScreenEffectDriver> ScreenEffectDriverFactory::CreateDriver(PostProcessMode mode) {
-    using DriverCreator = std::unique_ptr<IScreenEffectDriver>(*)();
+    using DriverCreator = std::unique_ptr<IScreenEffectDriver> (*)();
     static const std::unordered_map<PostProcessMode, DriverCreator> kFactoryRegistry = {
-        { PostProcessMode::Glitch,              []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<GlitchEffectDriver>(); } },
-        { PostProcessMode::Vignette,            []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<VignetteEffectDriver>(); } },
-        { PostProcessMode::ChromaticAberration, []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<ChromaticAberrationEffectDriver>(); } },
-        { PostProcessMode::RadialBlur,          []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<RadialBlurEffectDriver>(); } },
+        {PostProcessMode::Glitch,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<GlitchEffectDriver>(); }},
+        {PostProcessMode::Vignette,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<VignetteEffectDriver>(); }},
+        {PostProcessMode::ChromaticAberration,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<ChromaticAberrationEffectDriver>(); }},
+        {PostProcessMode::RadialBlur,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<RadialBlurEffectDriver>(); }},
     };
 
     if (auto it = kFactoryRegistry.find(mode); it != kFactoryRegistry.end()) {

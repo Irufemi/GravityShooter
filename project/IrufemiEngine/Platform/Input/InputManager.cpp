@@ -278,18 +278,18 @@ bool StringToInputBinding(const std::string& name, InputId& outId, InputModifier
 
 const char* InputIdToString(InputId id) {
     static const std::unordered_map<InputId, const char*> kInputIdNames = {
-        { InputId::Keyboard_Space,       "Key_Space" },
-        { InputId::Keyboard_Enter,       "Key_Enter" },
-        { InputId::Keyboard_Escape,      "Key_Escape" },
-        { InputId::Mouse_Left,           "Mouse_Left" },
-        { InputId::Mouse_Right,          "Mouse_Right" },
-        { InputId::GamePad_A,            "Pad_A" },
-        { InputId::GamePad_B,            "Pad_B" },
-        { InputId::GamePad_X,            "Pad_X" },
-        { InputId::GamePad_Y,            "Pad_Y" },
-        { InputId::GamePad_Start,        "Pad_Start" },
-        { InputId::GamePad_LeftTrigger,  "Pad_LT" },
-        { InputId::GamePad_RightTrigger, "Pad_RT" },
+        {InputId::Keyboard_Space, "Key_Space"},
+        {InputId::Keyboard_Enter, "Key_Enter"},
+        {InputId::Keyboard_Escape, "Key_Escape"},
+        {InputId::Mouse_Left, "Mouse_Left"},
+        {InputId::Mouse_Right, "Mouse_Right"},
+        {InputId::GamePad_A, "Pad_A"},
+        {InputId::GamePad_B, "Pad_B"},
+        {InputId::GamePad_X, "Pad_X"},
+        {InputId::GamePad_Y, "Pad_Y"},
+        {InputId::GamePad_Start, "Pad_Start"},
+        {InputId::GamePad_LeftTrigger, "Pad_LT"},
+        {InputId::GamePad_RightTrigger, "Pad_RT"},
     };
 
     if (auto it = kInputIdNames.find(id); it != kInputIdNames.end()) {

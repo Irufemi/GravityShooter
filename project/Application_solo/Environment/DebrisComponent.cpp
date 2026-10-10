@@ -161,8 +161,8 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         }
         using DamageGetter = float (DebrisComponent::*)() const;
         static const std::unordered_map<DamageableType, DamageGetter> kDamageGetters = {
-            { DamageableType::Boss,  &DebrisComponent::GetBossDamage },
-            { DamageableType::Enemy, &DebrisComponent::GetEnemyDamage },
+            {DamageableType::Boss, &DebrisComponent::GetBossDamage},
+            {DamageableType::Enemy, &DebrisComponent::GetEnemyDamage},
         };
         float damage = 1.0f;
         if (auto it = kDamageGetters.find(damageable->GetDamageableType()); it != kDamageGetters.end()) {
@@ -250,11 +250,11 @@ void DebrisComponent::UpdateAuraVisuals() {
                 Irufemi::Vector4 (DebrisComponent::*colorGetter)() const;
             };
             static const std::unordered_map<DebrisState, AuraProperty> kAuraProperties = {
-                { DebrisState::Pulled,       { true,  &DebrisComponent::GetPlayerAuraColor } },
-                { DebrisState::Orbiting,     { true,  &DebrisComponent::GetPlayerAuraColor } },
-                { DebrisState::Thrown,       { true,  &DebrisComponent::GetPlayerAuraColor } },
-                { DebrisState::BossOrbiting, { true,  &DebrisComponent::GetBossAuraColor } },
-                { DebrisState::Idle,         { false, nullptr } },
+                {DebrisState::Pulled, {true, &DebrisComponent::GetPlayerAuraColor}},
+                {DebrisState::Orbiting, {true, &DebrisComponent::GetPlayerAuraColor}},
+                {DebrisState::Thrown, {true, &DebrisComponent::GetPlayerAuraColor}},
+                {DebrisState::BossOrbiting, {true, &DebrisComponent::GetBossAuraColor}},
+                {DebrisState::Idle, {false, nullptr}},
             };
 
             bool isActive = false;
@@ -336,11 +336,11 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
             };
 
             const std::unordered_map<DebrisState, StateCollisionConfig> kStateConfigs = {
-                { DebrisState::Idle,         { neutralLayer, 0, false } },
-                { DebrisState::Pulled,       { neutralLayer, 0, false } },
-                { DebrisState::Orbiting,     { playerLayer,  maskEnemy, false } },
-                { DebrisState::Thrown,       { playerLayer,  maskEnemy | maskEnvironment | enemyLayer, true } },
-                { DebrisState::BossOrbiting, { enemyLayer,   maskPlayer | playerLayer, false } },
+                {DebrisState::Idle, {neutralLayer, 0, false}},
+                {DebrisState::Pulled, {neutralLayer, 0, false}},
+                {DebrisState::Orbiting, {playerLayer, maskEnemy, false}},
+                {DebrisState::Thrown, {playerLayer, maskEnemy | maskEnvironment | enemyLayer, true}},
+                {DebrisState::BossOrbiting, {enemyLayer, maskPlayer | playerLayer, false}},
             };
 
             if (auto it = kStateConfigs.find(state_); it != kStateConfigs.end()) {
@@ -411,8 +411,8 @@ void DebrisComponent::InitializeOrbitTransition(const TransformComponent* target
     Irufemi::Vector3 rawFwd = targetTransform->GetWorldForward();
     Irufemi::Vector3 forward = {rawFwd.x, 0.0f, rawFwd.z};
     float len = std::sqrt(forward.x * forward.x + forward.z * forward.z);
-    forward = (len > 0.001f) ? Irufemi::Vector3{forward.x / len, 0.0f, forward.z / len}
-                             : Irufemi::Vector3{0.0f, 0.0f, 1.0f};
+    forward =
+        (len > 0.001f) ? Irufemi::Vector3{forward.x / len, 0.0f, forward.z / len} : Irufemi::Vector3{0.0f, 0.0f, 1.0f};
     Irufemi::Vector3 right = {forward.z, 0.0f, -forward.x}; // 水平右ベクトル
 
     // 自機から現在ガレキ位置への差分ベクトル
@@ -445,18 +445,16 @@ void DebrisComponent::UpdatePlayerOrbit(const TransformComponent* targetTransfor
     currentOrbitRadius_ = std::lerp(currentOrbitRadius_, orbitRadius_, blendFactor);
 
     // 3. 水平安定化空間での軌道オフセット計算 (XZ平面円運動 + Y軸微小リサージュ波)
-    Irufemi::Vector3 localOffset = {
-        std::cos(orbitAngle_) * currentOrbitRadius_,
-        std::sin(orbitAngle_ * 2.0f) * 0.5f + 1.0f,
-        std::sin(orbitAngle_) * currentOrbitRadius_
-    };
+    Irufemi::Vector3 localOffset = {std::cos(orbitAngle_) * currentOrbitRadius_,
+                                    std::sin(orbitAngle_ * 2.0f) * 0.5f + 1.0f,
+                                    std::sin(orbitAngle_) * currentOrbitRadius_};
 
     // 4. 機体のロール・ピッチ（バンキング傾き）による振れを遮断し、水平面（Up = {0, 1, 0}）を安定キープ
     Irufemi::Vector3 rawFwd = targetTransform->GetWorldForward();
     Irufemi::Vector3 forward = {rawFwd.x, 0.0f, rawFwd.z};
     float len = std::sqrt(forward.x * forward.x + forward.z * forward.z);
-    forward = (len > 0.001f) ? Irufemi::Vector3{forward.x / len, 0.0f, forward.z / len}
-                             : Irufemi::Vector3{0.0f, 0.0f, 1.0f};
+    forward =
+        (len > 0.001f) ? Irufemi::Vector3{forward.x / len, 0.0f, forward.z / len} : Irufemi::Vector3{0.0f, 0.0f, 1.0f};
     Irufemi::Vector3 right = {forward.z, 0.0f, -forward.x};
     Irufemi::Vector3 up = {0.0f, 1.0f, 0.0f};
 

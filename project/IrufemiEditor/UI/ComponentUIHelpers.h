@@ -120,8 +120,7 @@ void DrawPropertyLabel(const char* label, const char* tooltip = nullptr);
  */
 void DrawPropertyResetButton(const char* id, bool isModified, std::function<void()> resetAction);
 
-void DrawCollisionLayerGUI(Component* comp, EditorActionManager* actionManager, uint32_t& layer,
-                           uint32_t& mask);
+void DrawCollisionLayerGUI(Component* comp, EditorActionManager* actionManager, uint32_t& layer, uint32_t& mask);
 
 template <typename T> void DrawColliderCommonProperties(T* comp, EditorActionManager* actionManager) {
     if (BeginPropertyTable("ColliderProperties")) {
@@ -189,14 +188,12 @@ template <typename T> void DrawColliderCommonProperties(T* comp, EditorActionMan
                 comp->SetLocalRadius(radius);
             }
             ImGui::PopItemWidth();
-            CheckUndoRedoDrag(actionManager, &radius, std::function<void(const float&)>([comp](const float& v) {
-                                  comp->SetLocalRadius(v);
-                              }));
+            CheckUndoRedoDrag(actionManager, &radius,
+                              std::function<void(const float&)>([comp](const float& v) { comp->SetLocalRadius(v); }));
             DrawPropertyResetButton("##RadiusReset", radius != 1.0f, [&]() {
                 float oldR = comp->GetLocalRadius();
-                PushInstantUndo(
-                    actionManager, oldR, 1.0f,
-                    std::function<void(const float&)>([comp](const float& v) { comp->SetLocalRadius(v); }));
+                PushInstantUndo(actionManager, oldR, 1.0f,
+                                std::function<void(const float&)>([comp](const float& v) { comp->SetLocalRadius(v); }));
             });
         } else {
             Irufemi::Vector3 size = comp->GetLocalSize();

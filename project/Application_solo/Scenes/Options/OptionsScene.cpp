@@ -28,37 +28,32 @@ constexpr float kMaxCursorSpeed = 1250.0f;
 } // namespace
 
 std::vector<OptionsScene::SliderBinding> OptionsScene::GetSliderBindings() {
-    return {
-        {"Slider_BGM", "ValueText_BGM", sliderBGM_, valueTextBGM_, rectSliderBGM_,
-         []() { return Irufemi::CVarSystem::GetFloat("a.BGMVolume"); },
-         [](float val, InputManager*) {
-             Irufemi::CVarSystem::SetFloat("a.BGMVolume", val);
-             Irufemi::CVarSystem::SetFloat("a.MasterVolume", val);
-         }},
-        {"Slider_SE", "ValueText_SE", sliderSE_, valueTextSE_, rectSliderSE_,
-         []() { return Irufemi::CVarSystem::GetFloat("a.SEVolume"); },
-         [](float val, InputManager*) {
-             Irufemi::CVarSystem::SetFloat("a.SEVolume", val);
-         }},
-        {"Slider_Sensitivity", "ValueText_Sensitivity", sliderSensitivity_, valueTextSensitivity_,
-         rectSliderSensitivity_,
-         []() {
-             float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
-             if (speed <= 0.0f) {
-                 speed = 650.0f;
-             }
-             return std::clamp((speed - kMinCursorSpeed) / (kMaxCursorSpeed - kMinCursorSpeed), 0.0f, 1.0f);
-         },
-         [](float val, InputManager* input) {
-             float newSpeed = kMinCursorSpeed + val * (kMaxCursorSpeed - kMinCursorSpeed);
-             Irufemi::CVarSystem::SetFloat("i.CursorSpeed", newSpeed);
-             if (input) {
-                 input->SetVirtualCursorBaseSpeed(newSpeed);
-             }
-         }}};
+    return {{"Slider_BGM", "ValueText_BGM", sliderBGM_, valueTextBGM_, rectSliderBGM_,
+             []() { return Irufemi::CVarSystem::GetFloat("a.BGMVolume"); },
+             [](float val, InputManager*) {
+                 Irufemi::CVarSystem::SetFloat("a.BGMVolume", val);
+                 Irufemi::CVarSystem::SetFloat("a.MasterVolume", val);
+             }},
+            {"Slider_SE", "ValueText_SE", sliderSE_, valueTextSE_, rectSliderSE_,
+             []() { return Irufemi::CVarSystem::GetFloat("a.SEVolume"); },
+             [](float val, InputManager*) { Irufemi::CVarSystem::SetFloat("a.SEVolume", val); }},
+            {"Slider_Sensitivity", "ValueText_Sensitivity", sliderSensitivity_, valueTextSensitivity_,
+             rectSliderSensitivity_,
+             []() {
+                 float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
+                 if (speed <= 0.0f) {
+                     speed = 650.0f;
+                 }
+                 return std::clamp((speed - kMinCursorSpeed) / (kMaxCursorSpeed - kMinCursorSpeed), 0.0f, 1.0f);
+             },
+             [](float val, InputManager* input) {
+                 float newSpeed = kMinCursorSpeed + val * (kMaxCursorSpeed - kMinCursorSpeed);
+                 Irufemi::CVarSystem::SetFloat("i.CursorSpeed", newSpeed);
+                 if (input) {
+                     input->SetVirtualCursorBaseSpeed(newSpeed);
+                 }
+             }}};
 }
-
-
 
 void OptionsScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);

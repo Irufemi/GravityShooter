@@ -526,4 +526,3 @@ void RailShooterEnemyComponent::SetBehaviorType(EnemyBehaviorType type) {
 void RailShooterEnemyComponent::SetAttackStrategy(std::unique_ptr<IEnemyAttackStrategy> strategy) {
     attackStrategy_ = std::move(strategy);
 }
-

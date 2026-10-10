@@ -340,14 +340,17 @@ void TL1Scene::DrawStandaloneDebugWindows() {
                 const char* text;
             };
             static const std::unordered_map<MagicBrushClient::State, StateDisplayInfo> kStateDisplayTable = {
-                {MagicBrushClient::State::Idle,                 {ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Status: Idle"}},
-                {MagicBrushClient::State::Generating,           {ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Status: Generating initial HLSL..."}},
-                {MagicBrushClient::State::Compiling,            {ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Status: Compiling..."}},
-                {MagicBrushClient::State::Fixing,               {ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Status: Fixing Compile Errors..."}},
-                {MagicBrushClient::State::WaitingForScreenshot, {ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "Status: Waiting for screenshot..."}},
-                {MagicBrushClient::State::VisualEvaluating,     {ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Status: Visual Evaluating & Fixing..."}},
-                {MagicBrushClient::State::Success,              {ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Status: Success!"}},
-                {MagicBrushClient::State::Error,                {ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Status: Error"}},
+                {MagicBrushClient::State::Idle, {ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Status: Idle"}},
+                {MagicBrushClient::State::Generating,
+                 {ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Status: Generating initial HLSL..."}},
+                {MagicBrushClient::State::Compiling, {ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Status: Compiling..."}},
+                {MagicBrushClient::State::Fixing, {ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Status: Fixing Compile Errors..."}},
+                {MagicBrushClient::State::WaitingForScreenshot,
+                 {ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "Status: Waiting for screenshot..."}},
+                {MagicBrushClient::State::VisualEvaluating,
+                 {ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Status: Visual Evaluating & Fixing..."}},
+                {MagicBrushClient::State::Success, {ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Status: Success!"}},
+                {MagicBrushClient::State::Error, {ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Status: Error"}},
             };
 
             auto state = magicBrushClient_->GetState();

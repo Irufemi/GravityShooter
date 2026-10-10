@@ -6,20 +6,22 @@
 
 namespace {
 std::unique_ptr<ITransitionDriver> CreateDriver(SceneTransition::Type type) {
-    static const std::unordered_map<SceneTransition::Type, std::function<std::unique_ptr<ITransitionDriver>()>> kFactory = {
-        { SceneTransition::Type::Fade,            []() { return std::make_unique<FadeTransitionDriver>(); } },
-        { SceneTransition::Type::Dissolve,        []() { return std::make_unique<DissolveTransitionDriver>(); } },
-        { SceneTransition::Type::Slide,           []() { return std::make_unique<SlideTransitionDriver>(); } },
-        { SceneTransition::Type::RadialBlur,      []() { return std::make_unique<RadialBlurTransitionDriver>(false); } },
-        { SceneTransition::Type::RadialBlurWhite, []() { return std::make_unique<RadialBlurTransitionDriver>(true); } },
-    };
+    static const std::unordered_map<SceneTransition::Type, std::function<std::unique_ptr<ITransitionDriver>()>>
+        kFactory = {
+            {SceneTransition::Type::Fade, []() { return std::make_unique<FadeTransitionDriver>(); }},
+            {SceneTransition::Type::Dissolve, []() { return std::make_unique<DissolveTransitionDriver>(); }},
+            {SceneTransition::Type::Slide, []() { return std::make_unique<SlideTransitionDriver>(); }},
+            {SceneTransition::Type::RadialBlur, []() { return std::make_unique<RadialBlurTransitionDriver>(false); }},
+            {SceneTransition::Type::RadialBlurWhite,
+             []() { return std::make_unique<RadialBlurTransitionDriver>(true); }},
+        };
     auto it = kFactory.find(type);
     if (it != kFactory.end()) {
         return it->second();
     }
     return std::make_unique<FadeTransitionDriver>();
 }
-}
+} // namespace
 
 SceneTransition::SceneTransition() = default;
 SceneTransition::~SceneTransition() = default;
@@ -100,4 +102,3 @@ void SceneTransition::Update(float deltaTime) {
         driver_->OnUpdate(ppManager_, factor);
     }
 }
-

@@ -55,31 +55,67 @@ public:
     void ChangeState(std::unique_ptr<IBeamState> newState);
 
     // --- 各種データ・オブジェクトアクセサ (State側から利用) ---
-    BeamConfig& GetConfig() { return config_; }
-    const BeamConfig& GetConfig() const { return config_; }
+    BeamConfig& GetConfig() {
+        return config_;
+    }
+    const BeamConfig& GetConfig() const {
+        return config_;
+    }
 
-    const Irufemi::Vector3& GetStartPos() const { return startPos_; }
-    void SetStartPos(const Irufemi::Vector3& pos) { startPos_ = pos; }
+    const Irufemi::Vector3& GetStartPos() const {
+        return startPos_;
+    }
+    void SetStartPos(const Irufemi::Vector3& pos) {
+        startPos_ = pos;
+    }
 
-    const Irufemi::Vector3& GetDirection() const { return direction_; }
-    void SetDirection(const Irufemi::Vector3& dir) { direction_ = dir; }
+    const Irufemi::Vector3& GetDirection() const {
+        return direction_;
+    }
+    void SetDirection(const Irufemi::Vector3& dir) {
+        direction_ = dir;
+    }
 
-    Primitive3DObject* GetChargeSphere() { return chargeSphere_.get(); }
-    Primitive3DObject* GetTelegraphCylinder() { return telegraphCylinder_.get(); }
-    Primitive3DObject* GetAttackCylinder() { return attackCylinder_.get(); }
-    Primitive3DObject* GetAttackCylinderOuter() { return attackCylinderOuter_.get(); }
+    Primitive3DObject* GetChargeSphere() {
+        return chargeSphere_.get();
+    }
+    Primitive3DObject* GetTelegraphCylinder() {
+        return telegraphCylinder_.get();
+    }
+    Primitive3DObject* GetAttackCylinder() {
+        return attackCylinder_.get();
+    }
+    Primitive3DObject* GetAttackCylinderOuter() {
+        return attackCylinderOuter_.get();
+    }
 
-    ConstantBuffer<AOEParams>& GetAOEParamsBuffer() { return aoeParamsBuffer_; }
-    AOEParams& GetAOEParamsData() { return aoeParamsData_; }
+    ConstantBuffer<AOEParams>& GetAOEParamsBuffer() {
+        return aoeParamsBuffer_;
+    }
+    AOEParams& GetAOEParamsData() {
+        return aoeParamsData_;
+    }
 
-    ConstantBuffer<LightningParams>& GetBeamParamsBuffer() { return beamParamsBuffer_; }
-    LightningParams& GetBeamParamsData() { return beamParamsData_; }
+    ConstantBuffer<LightningParams>& GetBeamParamsBuffer() {
+        return beamParamsBuffer_;
+    }
+    LightningParams& GetBeamParamsData() {
+        return beamParamsData_;
+    }
 
-    ConstantBuffer<LightningParams>& GetAuraParamsBuffer() { return auraParamsBuffer_; }
-    LightningParams& GetAuraParamsData() { return auraParamsData_; }
+    ConstantBuffer<LightningParams>& GetAuraParamsBuffer() {
+        return auraParamsBuffer_;
+    }
+    LightningParams& GetAuraParamsData() {
+        return auraParamsData_;
+    }
 
-    void SetHasHitCurrentBeam(bool hit) { hasHitCurrentBeam_ = hit; }
-    bool HasHitCurrentBeam() const { return hasHitCurrentBeam_; }
+    void SetHasHitCurrentBeam(bool hit) {
+        hasHitCurrentBeam_ = hit;
+    }
+    bool HasHitCurrentBeam() const {
+        return hasHitCurrentBeam_;
+    }
 
     GameObject* GetPlayerObject();
     Irufemi::Vector3 GetCurrentMuzzlePosition() const;

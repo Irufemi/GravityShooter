@@ -577,11 +577,11 @@ void DebrisManagerComponent::MarkForDestroy(int virtualId, int variationIndex) {
 std::vector<DebrisComponent*>* DebrisManagerComponent::GetDebrisList(DebrisState state) {
     using DebrisListMemberPtr = std::vector<DebrisComponent*> DebrisManagerComponent::*;
     static const std::unordered_map<DebrisState, DebrisListMemberPtr> kStateListMap = {
-        { DebrisState::Idle,         &DebrisManagerComponent::activeIdleDebris_ },
-        { DebrisState::Pulled,       &DebrisManagerComponent::pulledDebris_ },
-        { DebrisState::Orbiting,     &DebrisManagerComponent::orbitingDebris_ },
-        { DebrisState::BossOrbiting, &DebrisManagerComponent::bossOrbitingDebris_ },
-        { DebrisState::Thrown,       &DebrisManagerComponent::thrownDebris_ },
+        {DebrisState::Idle, &DebrisManagerComponent::activeIdleDebris_},
+        {DebrisState::Pulled, &DebrisManagerComponent::pulledDebris_},
+        {DebrisState::Orbiting, &DebrisManagerComponent::orbitingDebris_},
+        {DebrisState::BossOrbiting, &DebrisManagerComponent::bossOrbitingDebris_},
+        {DebrisState::Thrown, &DebrisManagerComponent::thrownDebris_},
     };
 
     if (auto it = kStateListMap.find(state); it != kStateListMap.end()) {

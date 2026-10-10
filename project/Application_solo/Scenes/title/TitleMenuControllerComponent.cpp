@@ -101,12 +101,15 @@ void TitleMenuControllerComponent::ChangeState(std::unique_ptr<ITitleMenuState> 
 }
 
 void TitleMenuControllerComponent::ChangeState(MenuState newState) {
-    using StateFactory = std::unique_ptr<ITitleMenuState>(*)();
+    using StateFactory = std::unique_ptr<ITitleMenuState> (*)();
     static const std::unordered_map<MenuState, StateFactory> kStateFactories = {
-        { MenuState::Idle,         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateIdle>(); } },
-        { MenuState::OpeningModal, []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateOpeningModal>(); } },
-        { MenuState::Suspended,    []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateSuspended>(); } },
-        { MenuState::Launching,    []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateLaunching>(); } },
+        {MenuState::Idle, []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateIdle>(); }},
+        {MenuState::OpeningModal,
+         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateOpeningModal>(); }},
+        {MenuState::Suspended,
+         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateSuspended>(); }},
+        {MenuState::Launching,
+         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateLaunching>(); }},
     };
 
     if (auto it = kStateFactories.find(newState); it != kStateFactories.end()) {
@@ -369,9 +372,7 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
 void TitleMenuControllerComponent::ExecuteSelection() {
     using MenuAction = void (*)(TitleMenuControllerComponent*);
     static const std::array<MenuAction, 4> kMenuActions = {
-        [](TitleMenuControllerComponent* self) {
-            self->ChangeState(MenuState::Launching);
-        },
+        [](TitleMenuControllerComponent* self) { self->ChangeState(MenuState::Launching); },
         [](TitleMenuControllerComponent* self) {
             self->pendingModalSceneName_ = "HowToPlayScene";
             self->ChangeState(MenuState::OpeningModal);
@@ -389,8 +390,7 @@ void TitleMenuControllerComponent::ExecuteSelection() {
             }
 #endif
             PostQuitMessage(0);
-        }
-    };
+        }};
 
     if (currentIndex_ >= 0 && static_cast<size_t>(currentIndex_) < kMenuActions.size()) {
         kMenuActions[static_cast<size_t>(currentIndex_)](this);

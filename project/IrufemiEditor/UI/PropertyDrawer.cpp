@@ -26,8 +26,8 @@ namespace {
 // ============================================================================
 class FloatPropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* /*component*/, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* /*component*/,
+              EditorActionManager* actionManager) override {
         float* ptr = prop.GetData<float>();
         if (!ptr) {
             ptr = static_cast<float*>(prop.GetRawData());
@@ -62,8 +62,8 @@ public:
 // ============================================================================
 class IntPropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* /*component*/, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* /*component*/,
+              EditorActionManager* actionManager) override {
         int* ptr = prop.GetData<int>();
         if (!ptr) {
             ptr = static_cast<int*>(prop.GetRawData());
@@ -99,8 +99,8 @@ public:
 // ============================================================================
 class BoolPropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* /*component*/, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* /*component*/,
+              EditorActionManager* actionManager) override {
         bool* ptr = prop.GetData<bool>();
         if (!ptr) {
             ptr = static_cast<bool*>(prop.GetRawData());
@@ -126,8 +126,8 @@ public:
 // ============================================================================
 class Float2PropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* /*component*/, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* /*component*/,
+              EditorActionManager* actionManager) override {
         auto* ptr = prop.GetData<Irufemi::Vector2>();
         if (!ptr) {
             ptr = reinterpret_cast<Irufemi::Vector2*>(prop.GetRawData());
@@ -153,8 +153,8 @@ public:
 // ============================================================================
 class Float3PropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* /*component*/, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* /*component*/,
+              EditorActionManager* actionManager) override {
         auto* ptr = prop.GetData<Irufemi::Vector3>();
         if (!ptr) {
             ptr = reinterpret_cast<Irufemi::Vector3*>(prop.GetRawData());
@@ -189,8 +189,8 @@ public:
 // ============================================================================
 class Float4PropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* /*component*/, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* /*component*/,
+              EditorActionManager* actionManager) override {
         auto* ptr = prop.GetData<Irufemi::Vector4>();
         if (!ptr) {
             ptr = reinterpret_cast<Irufemi::Vector4*>(prop.GetRawData());
@@ -225,8 +225,8 @@ public:
 // ============================================================================
 class EnumPropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* /*component*/, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* /*component*/,
+              EditorActionManager* actionManager) override {
         int* ptr = prop.GetData<int>();
         if (!ptr) {
             ptr = static_cast<int*>(prop.GetRawData());
@@ -256,8 +256,8 @@ public:
 // ============================================================================
 class StringPropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* component, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* component,
+              EditorActionManager* actionManager) override {
         auto* str = prop.GetData<std::string>();
         if (!str) {
             str = static_cast<std::string*>(prop.GetRawData());
@@ -270,8 +270,10 @@ public:
         std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
 
         bool isModel = (lowerName.find("model") != std::string::npos || lowerName.find("mesh") != std::string::npos);
-        bool isTexture = (lowerName.find("texture") != std::string::npos || lowerName.find("image") != std::string::npos);
-        bool isAnimation = (lowerName.find("animation") != std::string::npos || lowerName.find("anim") != std::string::npos);
+        bool isTexture =
+            (lowerName.find("texture") != std::string::npos || lowerName.find("image") != std::string::npos);
+        bool isAnimation =
+            (lowerName.find("animation") != std::string::npos || lowerName.find("anim") != std::string::npos);
         bool isPrefabProp = (lowerName.find("prefab") != std::string::npos);
 
         std::vector<std::string> comboItems;
@@ -336,7 +338,8 @@ public:
                         if (entry.is_regular_file()) {
                             auto ext = entry.path().extension().string();
                             if (ext == ".json" || ext == ".prefab") {
-                                cachedPrefabs.push_back("resources/prefabs/" + entry.path().filename().generic_string());
+                                cachedPrefabs.push_back("resources/prefabs/" +
+                                                        entry.path().filename().generic_string());
                             }
                         }
                     }
@@ -476,8 +479,8 @@ public:
 // ============================================================================
 class GameObjectRefPropertyDrawer : public IPropertyDrawer {
 public:
-    bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-              Component* component, EditorActionManager* actionManager) override {
+    bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* component,
+              EditorActionManager* actionManager) override {
         uint64_t* ptr = prop.GetData<uint64_t>();
         if (!ptr) {
             ptr = static_cast<uint64_t*>(prop.GetRawData());
@@ -513,8 +516,8 @@ public:
             if (ImGui::Selectable("None", *ptr == 0)) {
                 uint64_t oldVal = *ptr;
                 *ptr = 0;
-                actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<uint64_t>>(
-                    oldVal, 0, [ptr](const uint64_t& v) { *ptr = v; }));
+                actionManager->PushAndExecute(
+                    std::make_unique<ChangeValueCommand<uint64_t>>(oldVal, 0, [ptr](const uint64_t& v) { *ptr = v; }));
             }
             for (const auto& obj : allObjs) {
                 if (!obj || obj->IsDestroyed()) {
@@ -571,14 +574,14 @@ IPropertyDrawer* PropertyDrawerRegistry::GetDrawer(ComponentPropertyType type) c
 }
 
 void PropertyDrawerRegistry::RegisterDefaultDrawers() {
-    RegisterDrawer(ComponentPropertyType::Float,         std::make_unique<FloatPropertyDrawer>());
-    RegisterDrawer(ComponentPropertyType::Int,           std::make_unique<IntPropertyDrawer>());
-    RegisterDrawer(ComponentPropertyType::Bool,          std::make_unique<BoolPropertyDrawer>());
-    RegisterDrawer(ComponentPropertyType::Float2,        std::make_unique<Float2PropertyDrawer>());
-    RegisterDrawer(ComponentPropertyType::Float3,        std::make_unique<Float3PropertyDrawer>());
-    RegisterDrawer(ComponentPropertyType::Float4,        std::make_unique<Float4PropertyDrawer>());
-    RegisterDrawer(ComponentPropertyType::Enum,          std::make_unique<EnumPropertyDrawer>());
-    RegisterDrawer(ComponentPropertyType::String,        std::make_unique<StringPropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::Float, std::make_unique<FloatPropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::Int, std::make_unique<IntPropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::Bool, std::make_unique<BoolPropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::Float2, std::make_unique<Float2PropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::Float3, std::make_unique<Float3PropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::Float4, std::make_unique<Float4PropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::Enum, std::make_unique<EnumPropertyDrawer>());
+    RegisterDrawer(ComponentPropertyType::String, std::make_unique<StringPropertyDrawer>());
     RegisterDrawer(ComponentPropertyType::GameObjectRef, std::make_unique<GameObjectRefPropertyDrawer>());
 }
 

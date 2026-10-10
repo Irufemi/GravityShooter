@@ -36,8 +36,7 @@ std::shared_ptr<Component> GetSharedComponent(GameObject* go, Component* comp) {
     return nullptr;
 }
 
-void DrawCollisionLayerGUI(Component* comp, EditorActionManager* actionManager, uint32_t& layer,
-                           uint32_t& mask) {
+void DrawCollisionLayerGUI(Component* comp, EditorActionManager* actionManager, uint32_t& layer, uint32_t& mask) {
     auto* go = comp->GetGameObject();
     auto* scene = go ? go->GetScene() : nullptr;
     auto* cm = scene ? scene->GetEngine()->GetCollisionManager() : nullptr;
@@ -540,8 +539,7 @@ void DrawPropertyResetButton(const char* id, bool isModified, std::function<void
     }
 }
 
-void SwitchColliderType(GameObject* go, ColliderComponent* oldComp,
-                        ColliderComponent::ColliderType newType,
+void SwitchColliderType(GameObject* go, ColliderComponent* oldComp, ColliderComponent::ColliderType newType,
                         EditorActionManager* actionManager) {
     if (!go || !oldComp) {
         return;

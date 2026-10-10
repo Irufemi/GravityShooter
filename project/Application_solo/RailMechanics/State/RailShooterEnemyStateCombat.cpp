@@ -45,4 +45,3 @@ void RailShooterEnemyStateCombat::Exit(RailShooterEnemyComponent* enemy) {
         enemy->GetAttackStrategy()->OnExitCombat(enemy);
     }
 }
-

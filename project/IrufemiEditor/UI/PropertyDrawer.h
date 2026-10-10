@@ -24,8 +24,8 @@ public:
      * @param actionManager エディタ操作（Undo/Redo）マネージャ
      * @return 値が変更されたかどうか
      */
-    virtual bool Draw(const std::string& hiddenName, const ComponentProperty& prop,
-                      Component* component, EditorActionManager* actionManager) = 0;
+    virtual bool Draw(const std::string& hiddenName, const ComponentProperty& prop, Component* component,
+                      EditorActionManager* actionManager) = 0;
 };
 
 /**

@@ -60,10 +60,8 @@ public:
     /**
      * @brief レール追従パラメータを一括設定
      */
-    EnemyBuilder& WithRailTrackingParams(SplineComponent* spline,
-                                         SplineFollowerComponent* playerFollower,
-                                         float initialDistOffset,
-                                         float targetDistance,
+    EnemyBuilder& WithRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* playerFollower,
+                                         float initialDistOffset, float targetDistance,
                                          const Irufemi::Vector2& formationOffset);
 
     /**
@@ -73,9 +71,7 @@ public:
      * @param[in] scaleMultiplier スケール倍率
      * @return 構築された敵の GameObject ポインタ
      */
-    GameObject* Build(const Irufemi::Vector3& position,
-                      const Irufemi::Vector3& rotation,
-                      float scaleMultiplier = 1.0f);
+    GameObject* Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
 
 private:
     EnemySpawnerComponent* spawner_ = nullptr;

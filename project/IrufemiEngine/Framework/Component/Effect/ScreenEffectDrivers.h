@@ -27,7 +27,9 @@ public:
  */
 class GlitchEffectDriver : public IScreenEffectDriver {
 public:
-    PostProcessMode GetMode() const override { return PostProcessMode::Glitch; }
+    PostProcessMode GetMode() const override {
+        return PostProcessMode::Glitch;
+    }
     void CacheBaseParams(PostProcessManager* ppm) override;
     void ApplyInterpolation(PostProcessManager* ppm, float t) override;
     void RestoreBaseParams(PostProcessManager* ppm) override;
@@ -35,9 +37,15 @@ public:
     void Deserialize(const nlohmann::json& j) override;
     std::unique_ptr<IScreenEffectDriver> Clone() const override;
 
-    PostProcessManager::GlitchParams& GetTargetParams() { return targetParams_; }
-    const PostProcessManager::GlitchParams& GetTargetParams() const { return targetParams_; }
-    void SetTargetParams(const PostProcessManager::GlitchParams& p) { targetParams_ = p; }
+    PostProcessManager::GlitchParams& GetTargetParams() {
+        return targetParams_;
+    }
+    const PostProcessManager::GlitchParams& GetTargetParams() const {
+        return targetParams_;
+    }
+    void SetTargetParams(const PostProcessManager::GlitchParams& p) {
+        targetParams_ = p;
+    }
 
 private:
     PostProcessManager::GlitchParams baseParams_{};
@@ -50,7 +58,9 @@ private:
  */
 class VignetteEffectDriver : public IScreenEffectDriver {
 public:
-    PostProcessMode GetMode() const override { return PostProcessMode::Vignette; }
+    PostProcessMode GetMode() const override {
+        return PostProcessMode::Vignette;
+    }
     void CacheBaseParams(PostProcessManager* ppm) override;
     void ApplyInterpolation(PostProcessManager* ppm, float t) override;
     void RestoreBaseParams(PostProcessManager* ppm) override;
@@ -58,9 +68,15 @@ public:
     void Deserialize(const nlohmann::json& j) override;
     std::unique_ptr<IScreenEffectDriver> Clone() const override;
 
-    PostProcessManager::VignetteParams& GetTargetParams() { return targetParams_; }
-    const PostProcessManager::VignetteParams& GetTargetParams() const { return targetParams_; }
-    void SetTargetParams(const PostProcessManager::VignetteParams& p) { targetParams_ = p; }
+    PostProcessManager::VignetteParams& GetTargetParams() {
+        return targetParams_;
+    }
+    const PostProcessManager::VignetteParams& GetTargetParams() const {
+        return targetParams_;
+    }
+    void SetTargetParams(const PostProcessManager::VignetteParams& p) {
+        targetParams_ = p;
+    }
 
 private:
     PostProcessManager::VignetteParams baseParams_{};
@@ -73,7 +89,9 @@ private:
  */
 class ChromaticAberrationEffectDriver : public IScreenEffectDriver {
 public:
-    PostProcessMode GetMode() const override { return PostProcessMode::ChromaticAberration; }
+    PostProcessMode GetMode() const override {
+        return PostProcessMode::ChromaticAberration;
+    }
     void CacheBaseParams(PostProcessManager* ppm) override;
     void ApplyInterpolation(PostProcessManager* ppm, float t) override;
     void RestoreBaseParams(PostProcessManager* ppm) override;
@@ -81,9 +99,15 @@ public:
     void Deserialize(const nlohmann::json& j) override;
     std::unique_ptr<IScreenEffectDriver> Clone() const override;
 
-    PostProcessManager::ChromaticAberrationParams& GetTargetParams() { return targetParams_; }
-    const PostProcessManager::ChromaticAberrationParams& GetTargetParams() const { return targetParams_; }
-    void SetTargetParams(const PostProcessManager::ChromaticAberrationParams& p) { targetParams_ = p; }
+    PostProcessManager::ChromaticAberrationParams& GetTargetParams() {
+        return targetParams_;
+    }
+    const PostProcessManager::ChromaticAberrationParams& GetTargetParams() const {
+        return targetParams_;
+    }
+    void SetTargetParams(const PostProcessManager::ChromaticAberrationParams& p) {
+        targetParams_ = p;
+    }
 
 private:
     PostProcessManager::ChromaticAberrationParams baseParams_{};
@@ -96,7 +120,9 @@ private:
  */
 class RadialBlurEffectDriver : public IScreenEffectDriver {
 public:
-    PostProcessMode GetMode() const override { return PostProcessMode::RadialBlur; }
+    PostProcessMode GetMode() const override {
+        return PostProcessMode::RadialBlur;
+    }
     void CacheBaseParams(PostProcessManager* ppm) override;
     void ApplyInterpolation(PostProcessManager* ppm, float t) override;
     void RestoreBaseParams(PostProcessManager* ppm) override;
@@ -104,9 +130,15 @@ public:
     void Deserialize(const nlohmann::json& j) override;
     std::unique_ptr<IScreenEffectDriver> Clone() const override;
 
-    PostProcessManager::RadialBlurParams& GetTargetParams() { return targetParams_; }
-    const PostProcessManager::RadialBlurParams& GetTargetParams() const { return targetParams_; }
-    void SetTargetParams(const PostProcessManager::RadialBlurParams& p) { targetParams_ = p; }
+    PostProcessManager::RadialBlurParams& GetTargetParams() {
+        return targetParams_;
+    }
+    const PostProcessManager::RadialBlurParams& GetTargetParams() const {
+        return targetParams_;
+    }
+    void SetTargetParams(const PostProcessManager::RadialBlurParams& p) {
+        targetParams_ = p;
+    }
 
 private:
     PostProcessManager::RadialBlurParams baseParams_{};

@@ -61,8 +61,7 @@ public:
     }
 
     // --- Double Dispatch Pattern ---
-    bool TestCollision(const ColliderComponent* other,
-                       Irufemi::Collision::CollisionResult& outResult) const override;
+    bool TestCollision(const ColliderComponent* other, Irufemi::Collision::CollisionResult& outResult) const override;
     bool TestCollisionWithAABB(const AABBColliderComponent* aabb,
                                Irufemi::Collision::CollisionResult& outResult) const override;
     bool TestCollisionWithSphere(const SphereColliderComponent* sphere,

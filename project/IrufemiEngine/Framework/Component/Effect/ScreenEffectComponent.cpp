@@ -198,7 +198,8 @@ const PostProcessManager::VignetteParams& ScreenEffectComponent::GetTargetVignet
     return sDummyVignette;
 }
 
-void ScreenEffectComponent::SetTargetChromaticAberrationParams(const PostProcessManager::ChromaticAberrationParams& params) {
+void ScreenEffectComponent::SetTargetChromaticAberrationParams(
+    const PostProcessManager::ChromaticAberrationParams& params) {
     if (!driver_ || mode_ != PostProcessMode::ChromaticAberration) {
         SetMode(PostProcessMode::ChromaticAberration);
     }

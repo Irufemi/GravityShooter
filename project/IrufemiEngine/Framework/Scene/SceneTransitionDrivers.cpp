@@ -58,7 +58,8 @@ void RadialBlurTransitionDriver::OnStart(PostProcessManager* ppm, std::vector<Po
         ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PostUI);
         activeModes.push_back(PostProcessMode::RadialBlur);
         activeModes.push_back(PostProcessMode::Fade);
-        ppm->GetFadeParams().color = isWhite_ ? Irufemi::Vector4{1.0f, 1.0f, 1.0f, 1.0f} : Irufemi::Vector4{0.0f, 0.0f, 0.0f, 1.0f};
+        ppm->GetFadeParams().color =
+            isWhite_ ? Irufemi::Vector4{1.0f, 1.0f, 1.0f, 1.0f} : Irufemi::Vector4{0.0f, 0.0f, 0.0f, 1.0f};
     }
 }
 

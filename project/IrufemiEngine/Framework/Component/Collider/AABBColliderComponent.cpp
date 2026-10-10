@@ -133,4 +133,3 @@ bool AABBColliderComponent::TestCollisionWithOBB(const OBBColliderComponent* obb
     outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
     return outResult.isHit;
 }
-

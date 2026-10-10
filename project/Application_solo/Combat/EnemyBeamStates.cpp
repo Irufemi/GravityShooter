@@ -129,8 +129,8 @@ void BeamChargingState::OnUpdate(EnemyBeamComponent& owner, float deltaTime) {
 void BeamChargingState::OnDraw(EnemyBeamComponent& owner, uint32_t frameIndex) {
     // AOE予兆円柱の描画
     if (auto telegraph = owner.GetTelegraphCylinder()) {
-        telegraph->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
-                                PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+        telegraph->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd, PSOManager::DepthWrite::Disable,
+                                PSOManager::CullMode::None);
         telegraph->SetCustomCBVAddress(owner.GetAOEParamsBuffer().GetGPUVirtualAddress(frameIndex));
         telegraph->Draw();
     }
@@ -207,20 +207,19 @@ void BeamFiringState::OnUpdate(EnemyBeamComponent& owner, float deltaTime) {
 void BeamFiringState::OnDraw(EnemyBeamComponent& owner, uint32_t frameIndex) {
     // 外側オーラ (LightningCrawl)
     if (auto attackOuter = owner.GetAttackCylinderOuter()) {
-        attackOuter->SetCustomPSO("LightningCrawl", Irufemi::BlendMode::kBlendModeAdd,
-                                  PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+        attackOuter->SetCustomPSO("LightningCrawl", Irufemi::BlendMode::kBlendModeAdd, PSOManager::DepthWrite::Disable,
+                                  PSOManager::CullMode::None);
         attackOuter->SetCustomCBVAddress(owner.GetAuraParamsBuffer().GetGPUVirtualAddress(frameIndex));
         attackOuter->Draw();
     }
 
     // 内側コア (EnergyBeam)
     if (auto attackCore = owner.GetAttackCylinder()) {
-        attackCore->SetCustomPSO("EnergyBeam", Irufemi::BlendMode::kBlendModeAdd,
-                                 PSOManager::DepthWrite::Disable, PSOManager::CullMode::None);
+        attackCore->SetCustomPSO("EnergyBeam", Irufemi::BlendMode::kBlendModeAdd, PSOManager::DepthWrite::Disable,
+                                 PSOManager::CullMode::None);
         attackCore->SetCustomCBVAddress(owner.GetBeamParamsBuffer().GetGPUVirtualAddress(frameIndex));
         attackCore->Draw();
     }
 }
 
-void BeamFiringState::OnExit(EnemyBeamComponent& /*owner*/) {
-}
+void BeamFiringState::OnExit(EnemyBeamComponent& /*owner*/) {}

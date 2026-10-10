@@ -151,96 +151,95 @@ void GravityPlayerComponent::ExecutePullAction() {
         return;
     }
 
-        auto scene = gameObject_->GetScene();
-        if (!scene) {
-            return;
-        }
+    auto scene = gameObject_->GetScene();
+    if (!scene) {
+        return;
+    }
 
-        auto transform = GetTransform();
-        if (!transform) {
-            return;
-        }
+    auto transform = GetTransform();
+    if (!transform) {
+        return;
+    }
 
-        // 1. ロックオン済み、またはホバー中のターゲットを取得
-        std::shared_ptr<GameObject> targetToSteal = nullptr;
-        bool isQueuedTarget = false;
+    // 1. ロックオン済み、またはホバー中のターゲットを取得
+    std::shared_ptr<GameObject> targetToSteal = nullptr;
+    bool isQueuedTarget = false;
 
-        if (targetingComp_) {
-            // A. まずは手動ロックオン済みのキューをチェック
-            auto& targets = targetingComp_->GetQueuedTargets();
-            for (auto& t : targets) {
-                if (!t) {
-                    continue;
+    if (targetingComp_) {
+        // A. まずは手動ロックオン済みのキューをチェック
+        auto& targets = targetingComp_->GetQueuedTargets();
+        for (auto& t : targets) {
+            if (!t) {
+                continue;
+            }
+            if (auto debrisComp = t->GetComponent<DebrisComponent>()) {
+                if (debrisComp->GetState() == DebrisState::BossOrbiting) {
+                    targetToSteal = t;
+                    isQueuedTarget = true;
+                    break; // 1つだけ奪う
                 }
-                if (auto debrisComp = t->GetComponent<DebrisComponent>()) {
+            }
+        }
+
+        // B. 手動ロックが無い場合、現在ホバー中のシールドをチェック
+        if (!targetToSteal) {
+            auto hover = targetingComp_->GetHoverTarget();
+            if (hover) {
+                if (auto debrisComp = hover->GetComponent<DebrisComponent>()) {
                     if (debrisComp->GetState() == DebrisState::BossOrbiting) {
-                        targetToSteal = t;
-                        isQueuedTarget = true;
-                        break; // 1つだけ奪う
-                    }
-                }
-            }
-
-            // B. 手動ロックが無い場合、現在ホバー中のシールドをチェック
-            if (!targetToSteal) {
-                auto hover = targetingComp_->GetHoverTarget();
-                if (hover) {
-                    if (auto debrisComp = hover->GetComponent<DebrisComponent>()) {
-                        if (debrisComp->GetState() == DebrisState::BossOrbiting) {
-                            targetToSteal = hover;
-                        }
+                        targetToSteal = hover;
                     }
                 }
             }
         }
+    }
 
-        // 2. ターゲットが見つかった場合、ボスのシールドを奪う実行処理
-        if (targetToSteal) {
-            auto debrisComp = targetToSteal->GetComponent<DebrisComponent>();
-            if (auto bossTarget = debrisComp->GetTarget().lock()) {
-                if (auto bossComp = bossTarget->GetComponent<BossComponent>()) {
-                    bossComp->RemoveShield(targetToSteal);
-                }
-            }
-
-            debrisComp->SetState(DebrisState::Pulled);
-            debrisComp->SetTarget(gameObject_->shared_from_this());
-            debrisComp->SetOrbitParams(Irufemi::Random::GeneratorFloat(0.0f, orbitAngleRandomMax_),
-                                       Irufemi::Random::GeneratorFloat(orbitRadiusMin_, orbitRadiusMax_));
-            orbitingDebris_.push_back(targetToSteal);
-
-            // キューにあったものを奪った場合は、手動ロックを解除する
-            if (isQueuedTarget) {
-                targetingComp_->ClearTargets();
-            }
-            return; // ボスから奪った場合はフリーガレキは吸わない
-        }
-
-        if (auto debrisManagerObj = debrisManagerObj_.lock()) {
-            if (auto debrisManager = debrisManagerObj->GetComponent<DebrisManagerComponent>()) {
-                auto debrisObj = debrisManager->ExtractNearestIdleDebris(transform->GetWorldPosition(), pullRadius_);
-
-                // 【ゼロ弾薬フェイルセーフ (Failsafe Fallback)】
-                // 周囲に浮遊ガレキが無く、自機の所持弾数もゼロの場合、自機前方に緊急ガレキを生成して即座に引き寄せる
-                if (!debrisObj && orbitingDebris_.empty()) {
-                    Irufemi::Vector3 forward = transform->GetWorldForward();
-                    Irufemi::Vector3 emergencyPos = transform->GetWorldPosition() + forward * 15.0f;
-                    debrisManager->SpawnDebrisCluster(emergencyPos, 1, 1.5f);
-                    debrisObj =
-                        debrisManager->ExtractNearestIdleDebris(transform->GetWorldPosition(), pullRadius_ + 20.0f);
-                }
-
-                if (debrisObj) {
-                    if (auto debrisComp = debrisObj->GetComponent<DebrisComponent>()) {
-                        debrisComp->SetState(DebrisState::Pulled);
-                        debrisComp->SetTarget(gameObject_->shared_from_this());
-                        debrisComp->SetOrbitParams(Irufemi::Random::GeneratorFloat(0.0f, orbitAngleRandomMax_),
-                                                   Irufemi::Random::GeneratorFloat(orbitRadiusMin_, orbitRadiusMax_));
-                        orbitingDebris_.push_back(debrisObj);
-                    }
-                }
+    // 2. ターゲットが見つかった場合、ボスのシールドを奪う実行処理
+    if (targetToSteal) {
+        auto debrisComp = targetToSteal->GetComponent<DebrisComponent>();
+        if (auto bossTarget = debrisComp->GetTarget().lock()) {
+            if (auto bossComp = bossTarget->GetComponent<BossComponent>()) {
+                bossComp->RemoveShield(targetToSteal);
             }
         }
+
+        debrisComp->SetState(DebrisState::Pulled);
+        debrisComp->SetTarget(gameObject_->shared_from_this());
+        debrisComp->SetOrbitParams(Irufemi::Random::GeneratorFloat(0.0f, orbitAngleRandomMax_),
+                                   Irufemi::Random::GeneratorFloat(orbitRadiusMin_, orbitRadiusMax_));
+        orbitingDebris_.push_back(targetToSteal);
+
+        // キューにあったものを奪った場合は、手動ロックを解除する
+        if (isQueuedTarget) {
+            targetingComp_->ClearTargets();
+        }
+        return; // ボスから奪った場合はフリーガレキは吸わない
+    }
+
+    if (auto debrisManagerObj = debrisManagerObj_.lock()) {
+        if (auto debrisManager = debrisManagerObj->GetComponent<DebrisManagerComponent>()) {
+            auto debrisObj = debrisManager->ExtractNearestIdleDebris(transform->GetWorldPosition(), pullRadius_);
+
+            // 【ゼロ弾薬フェイルセーフ (Failsafe Fallback)】
+            // 周囲に浮遊ガレキが無く、自機の所持弾数もゼロの場合、自機前方に緊急ガレキを生成して即座に引き寄せる
+            if (!debrisObj && orbitingDebris_.empty()) {
+                Irufemi::Vector3 forward = transform->GetWorldForward();
+                Irufemi::Vector3 emergencyPos = transform->GetWorldPosition() + forward * 15.0f;
+                debrisManager->SpawnDebrisCluster(emergencyPos, 1, 1.5f);
+                debrisObj = debrisManager->ExtractNearestIdleDebris(transform->GetWorldPosition(), pullRadius_ + 20.0f);
+            }
+
+            if (debrisObj) {
+                if (auto debrisComp = debrisObj->GetComponent<DebrisComponent>()) {
+                    debrisComp->SetState(DebrisState::Pulled);
+                    debrisComp->SetTarget(gameObject_->shared_from_this());
+                    debrisComp->SetOrbitParams(Irufemi::Random::GeneratorFloat(0.0f, orbitAngleRandomMax_),
+                                               Irufemi::Random::GeneratorFloat(orbitRadiusMin_, orbitRadiusMax_));
+                    orbitingDebris_.push_back(debrisObj);
+                }
+            }
+        }
+    }
 }
 
 void GravityPlayerComponent::HandleMarkInput() {

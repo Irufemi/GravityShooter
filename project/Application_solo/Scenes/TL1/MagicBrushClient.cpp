@@ -216,7 +216,7 @@ bool MagicBrushClient::IsServerRunning() const {
 namespace {
 constexpr auto CreateEscapeTable() {
     std::array<std::string_view, 256> table{};
-    table['"']  = "\\\"";
+    table['"'] = "\\\"";
     table['\\'] = "\\\\";
     table['\b'] = "\\b";
     table['\f'] = "\\f";

@@ -150,40 +150,38 @@ void PauseScene::CreateUIElements() {
         std::function<void()> action;
     };
 
-    const std::vector<MenuEntry> entries = {
-        {L"RESUME", MenuItem::Resume,
-         [this]() {
-             UISound::PlayCancel();
-             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->PopScene();
-             }
-         }},
-        {L"RETRY", MenuItem::Retry,
-         [this]() {
-             UISound::PlayDecide();
-             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->LoadScene("InGame", SceneTransition::Type::Fade, 0.5f);
-             }
-         }},
-        {L"OPTIONS", MenuItem::Options,
-         [this]() {
-             UISound::PlayDecide();
-             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->PushScene("OptionsScene");
-             }
-         }},
-        {L"TITLE", MenuItem::Title,
-         [this]() {
-             UISound::PlayDecide();
-             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.6f);
-             }
-         }},
-        {L"QUIT", MenuItem::Quit,
-         []() {
-             UISound::PlayDecide();
-             PostQuitMessage(0);
-         }}};
+    const std::vector<MenuEntry> entries = {{L"RESUME", MenuItem::Resume,
+                                             [this]() {
+                                                 UISound::PlayCancel();
+                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                                                     sm->PopScene();
+                                                 }
+                                             }},
+                                            {L"RETRY", MenuItem::Retry,
+                                             [this]() {
+                                                 UISound::PlayDecide();
+                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                                                     sm->LoadScene("InGame", SceneTransition::Type::Fade, 0.5f);
+                                                 }
+                                             }},
+                                            {L"OPTIONS", MenuItem::Options,
+                                             [this]() {
+                                                 UISound::PlayDecide();
+                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                                                     sm->PushScene("OptionsScene");
+                                                 }
+                                             }},
+                                            {L"TITLE", MenuItem::Title,
+                                             [this]() {
+                                                 UISound::PlayDecide();
+                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                                                     sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.6f);
+                                                 }
+                                             }},
+                                            {L"QUIT", MenuItem::Quit, []() {
+                                                 UISound::PlayDecide();
+                                                 PostQuitMessage(0);
+                                             }}};
 
     menuItems_.clear();
     for (size_t i = 0; i < entries.size(); ++i) {

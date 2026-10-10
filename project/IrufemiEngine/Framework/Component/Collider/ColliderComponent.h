@@ -12,7 +12,7 @@ struct AABB;
 namespace Collision {
 struct CollisionResult;
 }
-}
+} // namespace Irufemi
 
 class AABBColliderComponent;
 class SphereColliderComponent;

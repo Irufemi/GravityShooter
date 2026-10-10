@@ -12,25 +12,25 @@ class EnemyBeamComponent;
  * @brief ビーム諸元および演出パラメータを集約するデータ構造体
  */
 struct BeamConfig {
-    float beamLength = 200.0f;          //!< ビームの最大長
-    float beamMaxRadius = 1.0f;         //!< ビームの最大半径
-    float chargeDuration = 1.5f;        //!< 溜め時間（秒）
-    float fireDuration = 0.8f;          //!< 発射時間（秒）
-    float lockLeadTime = 0.4f;          //!< 発射前何秒で射線を固定するか
-    int beamDamage = 30;                //!< 直撃ダメージ
-    float hitCheckRadiusMargin = 0.5f;  //!< 当たり判定マージン
+    float beamLength = 200.0f;         //!< ビームの最大長
+    float beamMaxRadius = 1.0f;        //!< ビームの最大半径
+    float chargeDuration = 1.5f;       //!< 溜め時間（秒）
+    float fireDuration = 0.8f;         //!< 発射時間（秒）
+    float lockLeadTime = 0.4f;         //!< 発射前何秒で射線を固定するか
+    int beamDamage = 30;               //!< 直撃ダメージ
+    float hitCheckRadiusMargin = 0.5f; //!< 当たり判定マージン
 
     Irufemi::Vector4 telegraphColor = {1.0f, 0.1f, 0.1f, 0.7f}; //!< 予兆円柱の基本色
     Irufemi::Vector4 chargeColor = {0.7f, 0.0f, 0.9f, 1.0f};    //!< チャージ球の色
 
-    Irufemi::Vector4 beamColor = {0.8f, 0.0f, 1.0f, 1.0f};        //!< ビーム主色
-    Irufemi::Vector4 beamCoreColor = {0.0f, 1.0f, 1.0f, 1.0f};    //!< ビームコア色
+    Irufemi::Vector4 beamColor = {0.8f, 0.0f, 1.0f, 1.0f};     //!< ビーム主色
+    Irufemi::Vector4 beamCoreColor = {0.0f, 1.0f, 1.0f, 1.0f}; //!< ビームコア色
     float beamIntensity = 6.0f;
     float beamCoreIntensity = 40.0f;
     float beamSpeed = 3.0f;
 
-    Irufemi::Vector4 auraColor = {0.1f, 0.0f, 0.2f, 1.0f};        //!< 外側オーラ色
-    Irufemi::Vector4 auraCoreColor = {0.8f, 0.0f, 1.0f, 1.0f};    //!< オーラコア色
+    Irufemi::Vector4 auraColor = {0.1f, 0.0f, 0.2f, 1.0f};     //!< 外側オーラ色
+    Irufemi::Vector4 auraCoreColor = {0.8f, 0.0f, 1.0f, 1.0f}; //!< オーラコア色
     float auraIntensity = 12.0f;
     float auraSpeed = 0.8f;
 };

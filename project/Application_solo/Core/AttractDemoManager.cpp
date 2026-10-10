@@ -115,8 +115,8 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
     // 3. 現在のシーンに応じた個別処理
     using SceneUpdateHandler = void (AttractDemoManager::*)(float);
     static const std::unordered_map<std::string, SceneUpdateHandler> kSceneUpdateHandlers = {
-        { "Title",  &AttractDemoManager::UpdateTitleScene },
-        { "InGame", &AttractDemoManager::UpdateInGameScene },
+        {"Title", &AttractDemoManager::UpdateTitleScene},
+        {"InGame", &AttractDemoManager::UpdateInGameScene},
     };
 
     if (auto it = kSceneUpdateHandlers.find(currentScene); it != kSceneUpdateHandlers.end()) {

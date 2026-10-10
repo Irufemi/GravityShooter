@@ -78,7 +78,7 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
     stateTimer_ = 0.0f;
 
     struct PhaseConfig {
-        float StageIntroDirectorComponent::* durationMember;
+        float StageIntroDirectorComponent::*durationMember;
         float initialThrusterScale;
         float targetThrusterScale;
         bool isPositionInterpolated;
@@ -90,34 +90,14 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
     };
 
     static const std::unordered_map<StageIntroState, PhaseConfig> kPhaseConfigs = {
-        { StageIntroState::WarpIn, {
-            &StageIntroDirectorComponent::warpInDuration_,
-            2.5f, 2.5f,
-            true,  false,
-            false, false,
-            nullptr,
-            nullptr
-        }},
-        { StageIntroState::Arrival, {
-            &StageIntroDirectorComponent::arrivalDuration_,
-            2.5f, 0.8f,
-            false, true,
-            false, false,
-            nullptr,
-            [](StageIntroDirectorComponent* self, float progress) {
-                self->ApplyArrivalInertia(progress);
-            }
-        }},
-        { StageIntroState::Active, {
-            nullptr,
-            0.8f, 0.8f,
-            false, false,
-            true,  true,
-            [](StageIntroDirectorComponent* self) {
-                self->TriggerFCSBootupSequence();
-            },
-            nullptr
-        }},
+        {StageIntroState::WarpIn,
+         {&StageIntroDirectorComponent::warpInDuration_, 2.5f, 2.5f, true, false, false, false, nullptr, nullptr}},
+        {StageIntroState::Arrival,
+         {&StageIntroDirectorComponent::arrivalDuration_, 2.5f, 0.8f, false, true, false, false, nullptr,
+          [](StageIntroDirectorComponent* self, float progress) { self->ApplyArrivalInertia(progress); }}},
+        {StageIntroState::Active,
+         {nullptr, 0.8f, 0.8f, false, false, true, true,
+          [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
     };
 
     auto it = kPhaseConfigs.find(introState_);
@@ -170,7 +150,7 @@ void StageIntroDirectorComponent::Update() {
     stateTimer_ += deltaTime;
 
     struct PhaseConfig {
-        float StageIntroDirectorComponent::* durationMember;
+        float StageIntroDirectorComponent::*durationMember;
         float initialThrusterScale;
         float targetThrusterScale;
         bool isPositionInterpolated;
@@ -182,34 +162,14 @@ void StageIntroDirectorComponent::Update() {
     };
 
     static const std::unordered_map<StageIntroState, PhaseConfig> kPhaseConfigs = {
-        { StageIntroState::WarpIn, {
-            &StageIntroDirectorComponent::warpInDuration_,
-            2.5f, 2.5f,
-            true,  false,
-            false, false,
-            nullptr,
-            nullptr
-        }},
-        { StageIntroState::Arrival, {
-            &StageIntroDirectorComponent::arrivalDuration_,
-            2.5f, 0.8f,
-            false, true,
-            false, false,
-            nullptr,
-            [](StageIntroDirectorComponent* self, float progress) {
-                self->ApplyArrivalInertia(progress);
-            }
-        }},
-        { StageIntroState::Active, {
-            nullptr,
-            0.8f, 0.8f,
-            false, false,
-            true,  true,
-            [](StageIntroDirectorComponent* self) {
-                self->TriggerFCSBootupSequence();
-            },
-            nullptr
-        }},
+        {StageIntroState::WarpIn,
+         {&StageIntroDirectorComponent::warpInDuration_, 2.5f, 2.5f, true, false, false, false, nullptr, nullptr}},
+        {StageIntroState::Arrival,
+         {&StageIntroDirectorComponent::arrivalDuration_, 2.5f, 0.8f, false, true, false, false, nullptr,
+          [](StageIntroDirectorComponent* self, float progress) { self->ApplyArrivalInertia(progress); }}},
+        {StageIntroState::Active,
+         {nullptr, 0.8f, 0.8f, false, false, true, true,
+          [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
     };
 
     auto it = kPhaseConfigs.find(introState_);
