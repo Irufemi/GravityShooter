@@ -149,6 +149,7 @@ void AudioManager::Finalize() {
         }
         activeVoices_.clear();
         fadeTasks_.clear();
+        categoryFadeTasks_.clear();
     }
 
     // 【一線級エンジン規約 Step 3: Branches】サブミックスボイスの破棄（MasteringVoiceより先に破棄）
@@ -241,7 +242,38 @@ void AudioManager::Update(float deltaTime) {
         return (task.elapsedTime >= (task.sustainDuration + task.fadeDuration));
     });
 
-    // 2. 終了したボイスをリストから削除
+    // 2. カテゴリフェードタスク（バス全体の音量オートメーション）の更新
+    for (auto& task : categoryFadeTasks_) {
+        task.elapsedTime += dt;
+        if (task.elapsedTime < task.delayDuration) {
+            continue; // 遅延待機中
+        }
+        float fadeElapsed = task.elapsedTime - task.delayDuration;
+        float progress = task.fadeDuration > 0.0f ? std::clamp(fadeElapsed / task.fadeDuration, 0.0f, 1.0f) : 1.0f;
+
+        if (task.targetVolume < task.startVolume) {
+            // 音量減衰: 人間の聴覚特性に合わせた 1.5 乗の滑らかな減衰
+            float factor = std::pow(1.0f - progress, 1.5f);
+            float curVol = task.targetVolume + (task.startVolume - task.targetVolume) * factor;
+            SetCategoryVolume(task.category, curVol);
+        } else {
+            // 音量上昇: 2次加速で自然に持ち上げ
+            float factor = 1.0f - std::pow(1.0f - progress, 2.0f);
+            float curVol = task.startVolume + (task.targetVolume - task.startVolume) * factor;
+            SetCategoryVolume(task.category, curVol);
+        }
+
+        if (progress >= 1.0f) {
+            SetCategoryVolume(task.category, task.targetVolume);
+        }
+    }
+
+    // 完了したカテゴリフェードタスクのクリーンアップ
+    std::erase_if(categoryFadeTasks_, [](const CategoryFadeTask& task) {
+        return (task.elapsedTime >= (task.delayDuration + task.fadeDuration));
+    });
+
+    // 3. 終了したボイスをリストから削除
     // 削除されると shared_ptr の参照が外れ、VoiceInstance のデストラクタで DestroyVoice される
     std::erase_if(activeVoices_,
                   [](const std::shared_ptr<VoiceInstance>& instance) { return instance->GetCallback()->IsFinished(); });
@@ -417,6 +449,23 @@ void AudioManager::SetCategoryVolume(AudioCategory category, float volume) {
             pSubmixUi_->SetVolume(clampedVol);
         }
     }
+}
+
+void AudioManager::FadeCategoryVolume(AudioCategory category, float targetVolume, float duration, float delay) {
+    std::lock_guard<std::mutex> lock(voiceMutex_);
+
+    // 既存の同一カテゴリのフェードタスクがあれば除去
+    std::erase_if(categoryFadeTasks_, [category](const CategoryFadeTask& t) { return t.category == category; });
+
+    CategoryFadeTask task;
+    task.category = category;
+    task.startVolume = GetCategoryVolume(category);
+    task.targetVolume = std::clamp(targetVolume, 0.0f, 1.0f);
+    task.delayDuration = (std::max)(0.0f, delay);
+    task.fadeDuration = (std::max)(0.001f, duration);
+    task.elapsedTime = 0.0f;
+
+    categoryFadeTasks_.push_back(task);
 }
 
 float AudioManager::GetCategoryVolume(AudioCategory category) const {

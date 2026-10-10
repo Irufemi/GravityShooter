@@ -2,6 +2,8 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/TransformComponent.h"
+#include "Framework/Component/Camera/CameraComponent.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "RailMechanics/RailShooterPlayerComponent.h"
 #include "Player/PlayerThrusterVisualizerComponent.h"
@@ -11,6 +13,14 @@
 #include "UI/UISound.h"
 #include <algorithm>
 #include <cmath>
+
+StageIntroDirectorComponent::~StageIntroDirectorComponent() {
+    CleanupWarpVisuals();
+}
+
+void StageIntroDirectorComponent::OnDestroy() {
+    CleanupWarpVisuals();
+}
 
 void StageIntroDirectorComponent::Initialize() {
     introState_ = StageIntroState::WarpIn;
@@ -33,6 +43,8 @@ void StageIntroDirectorComponent::OnRegisterProperties() {
     RegisterProperty("Arrival Duration", &arrivalDuration_);
     RegisterProperty("Bootup Duration", &bootupDuration_);
     RegisterProperty("Start Offset Z", &startOffsetZ_);
+    RegisterProperty("WarpIn FOV Boost", &warpInFovBoostDeg_);
+    RegisterProperty("WarpIn Blur Width", &maxWarpBlurWidth_);
     RegisterProperty("Target Ship Name", &targetShipName_);
 }
 
@@ -59,6 +71,16 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
 
     initialShipLocalPos_ = transform->GetPosition();
 
+    // カメラの取得とベースFOVのキャッシュ
+    if (cameraObj_.expired()) {
+        if (auto camObj = scene->FindGameObject("MainCamera")) {
+            cameraObj_ = camObj;
+            if (auto cam = camObj->GetComponent<CameraComponent>()) {
+                baseCameraFov_ = cam->GetFovAngleY();
+            }
+        }
+    }
+
     // 自機を入力無効化し、初期位置（カメラ後方）へオフセット
     if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
         playerComp->SetInputEnabled(false);
@@ -72,6 +94,9 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
     SetHUDActive(false);
     SetShipThrusterScale(2.5f, true); // 高速突入用の超高出力ブースト炎（2.5倍）を展開
     SetShipThrusterActive(true);      // 突入開始位置（後方）でスラスター点火
+
+    // シーン突入開始の瞬間（フェードイン中・第1フレーム）から最大広角とラジアルブラーを先行点火！
+    UpdateWarpVisuals(0.0f);
 
     hasInitializedShip_ = true;
     return true;
@@ -208,7 +233,7 @@ void StageIntroDirectorComponent::Update() {
     float thrusterScale = std::lerp(config.initialThrusterScale, config.targetThrusterScale, progress);
     SetShipThrusterScale(thrusterScale, true);
 
-    // 位置補間（WarpInフェーズの3次急減速）
+    // 位置補間（WarpInフェーズの3次急減速）および視覚ワーピング連動
     if (config.isPositionInterpolated) {
         float t = 1.0f - std::pow(1.0f - progress, 3.0f);
         if (auto ship = shipObj_.lock()) {
@@ -218,6 +243,9 @@ void StageIntroDirectorComponent::Update() {
                 transform->SetPosition(curPos);
             }
         }
+
+        // カメラFOVワーピングとPreUIラジアルブラーの動的駆動
+        UpdateWarpVisuals(progress);
     }
 
     // 固有演出フック
@@ -228,6 +256,7 @@ void StageIntroDirectorComponent::Update() {
     // 次のフェーズへ自動遷移
     if (progress >= 1.0f) {
         if (introState_ == StageIntroState::WarpIn) {
+            CleanupWarpVisuals(); // 到着時に確実に等倍復帰
             SetIntroState(StageIntroState::Arrival);
         } else if (introState_ == StageIntroState::Arrival) {
             SetIntroState(StageIntroState::Bootup);
@@ -275,6 +304,9 @@ void StageIntroDirectorComponent::SkipIntroSequence() {
     if (introState_ == StageIntroState::Active) {
         return;
     }
+
+    // 視覚ワーピング（FOV/ラジアルブラー）を確実に基準状態へリセット
+    CleanupWarpVisuals();
 
     // 自機座標と回転を定位置・水平ホバリングへ即座にスナップ
     if (auto ship = shipObj_.lock()) {
@@ -326,3 +358,64 @@ void StageIntroDirectorComponent::SetShipThrusterScale(float targetScaleZ, bool 
         }
     }
 }
+
+CameraComponent* StageIntroDirectorComponent::GetCameraComponent() const {
+    if (auto cam = cameraObj_.lock()) {
+        return cam->GetComponent<CameraComponent>();
+    }
+    return nullptr;
+}
+
+void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
+    // 突入初動(0.0〜0.25)は最大広角・ブラーを維持し、自機のブレーキ(0.25〜1.0)に合わせて滑らかに収束
+    float curve = 1.0f;
+    if (progress >= 0.25f) {
+        float t = (progress - 0.25f) / 0.75f;
+        curve = 0.5f * (1.0f + std::cos(t * 3.14159265f)); // 1.0 -> 0.0 (Smoothstep)
+    }
+
+    // 1. カメラFOV動的ブレンド (最大広角から等倍へ急制動収束)
+    if (auto cam = GetCameraComponent()) {
+        float fovBoostRad = curve * (warpInFovBoostDeg_ * 3.14159265f / 180.0f);
+        cam->SetFovAngleY(baseCameraFov_ + fovBoostRad);
+    }
+
+    // 2. PreUI ラジアルブラー動的強度制御
+    if (auto engine = GetEngine()) {
+        if (auto ppm = engine->GetPostProcessManager()) {
+            float blurWidth = maxWarpBlurWidth_ * curve;
+            if (blurWidth > 0.001f) {
+                if (!isRadialBlurActive_) {
+                    ppm->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
+                    isRadialBlurActive_ = true;
+                }
+                auto& rb = ppm->GetRadialBlurParams();
+                rb.center = {0.5f, 0.5f};
+                rb.blurWidth = blurWidth;
+                rb.numSamples = 16;
+            } else {
+                CleanupWarpVisuals();
+            }
+        }
+    }
+}
+
+void StageIntroDirectorComponent::CleanupWarpVisuals() {
+    // カメラFOVを等倍に安全復帰
+    if (auto cam = GetCameraComponent()) {
+        cam->SetFovAngleY(baseCameraFov_);
+    }
+
+    // ラジアルブラーの確実な解除
+    if (isRadialBlurActive_) {
+        if (auto engine = GetEngine()) {
+            if (auto ppm = engine->GetPostProcessManager()) {
+                ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
+                auto& rb = ppm->GetRadialBlurParams();
+                rb.blurWidth = 0.0f;
+            }
+        }
+        isRadialBlurActive_ = false;
+    }
+}
+

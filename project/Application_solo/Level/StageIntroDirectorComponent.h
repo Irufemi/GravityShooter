@@ -7,6 +7,7 @@
 
 class TransformComponent;
 class RailShooterPlayerComponent;
+class CameraComponent;
 
 /**
  * @class StageIntroDirectorComponent
@@ -28,11 +29,12 @@ public:
     };
 
     StageIntroDirectorComponent() = default;
-    ~StageIntroDirectorComponent() override = default;
+    ~StageIntroDirectorComponent() override;
 
     void Initialize() override;
     void Start() override;
     void Update() override;
+    void OnDestroy() override;
     void OnRegisterProperties() override;
 
     std::string GetComponentName() const override {
@@ -65,15 +67,19 @@ private:
     void SetShipThrusterScale(float targetScaleZ, bool snap = false);
     void SetIntroState(StageIntroState newState);
 
-    // 将来の演出拡張用フック（B案: 整流バウンス & FCSブートアップ）
     void ApplyArrivalInertia(float progress);
     void TriggerFCSBootupSequence();
+
+    void UpdateWarpVisuals(float progress);
+    void CleanupWarpVisuals();
 
     // インスペクター調整可能プロパティ
     float warpInDuration_ = 0.60f;          ///< 飛来急減速にかける時間（秒）
     float arrivalDuration_ = 0.30f;         ///< 到着整流にかける時間（秒）
     float bootupDuration_ = 0.75f;          ///< FCSシステムブートにかける時間（秒）
     float startOffsetZ_ = -25.00f;          ///< 飛来開始時の初期後方オフセット（メートル）
+    float warpInFovBoostDeg_ = 10.0f;       ///< 突入時の最大FOV拡張ブースト量（度）
+    float maxWarpBlurWidth_ = 0.035f;       ///< 突入時の最大ラジアルブラー強度
     std::string targetShipName_ = "Player"; ///< 演出対象の自機オブジェクト名
 
     // 内部状態管理
@@ -83,4 +89,10 @@ private:
 
     std::weak_ptr<GameObject> shipObj_;
     Irufemi::Vector3 initialShipLocalPos_{0.0f, 0.0f, 0.0f};
+
+    // カメラFOV & ポストプロセス管理
+    CameraComponent* GetCameraComponent() const;
+    std::weak_ptr<GameObject> cameraObj_;
+    float baseCameraFov_ = 0.785398f;
+    bool isRadialBlurActive_ = false;
 };

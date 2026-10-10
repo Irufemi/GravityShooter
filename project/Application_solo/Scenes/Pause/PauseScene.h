@@ -89,8 +89,17 @@ private:
 
     void ApplyPausePostProcess();
     void RemovePausePostProcess();
+    void ApplyTransition(float progress);
+
+    enum class TransitionState { Opening, Open, Closing };
+    TransitionState transitionState_ = TransitionState::Opening;
+    float transitionTimer_ = 0.0f;
+    static constexpr float kOpenDuration_ = 0.14f;
+    static constexpr float kCloseDuration_ = 0.09f;
 
     bool isPostProcessActive_ = false;
     std::shared_ptr<GameObject> darkOverlayObj_;
     std::shared_ptr<GameObject> titleObj_;
+    SpriteRendererComponent* darkOverlaySprite_ = nullptr;
+    TextRendererComponent* titleTextComp_ = nullptr;
 };

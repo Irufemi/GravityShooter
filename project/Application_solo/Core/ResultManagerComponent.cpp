@@ -186,6 +186,12 @@ void ResultManagerComponent::Update() {
             isExiting_ = true;
             UISound::PlayDecide(1.0f);
             engine->SetTimeScale(1.0f);
+
+            // BGMの滑らかなフェードアウト (0.75秒で対数減衰し、Titleへ静かに遷移)
+            if (auto am = engine->GetAudioManager()) {
+                am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.75f);
+            }
+
             // 重力歪曲（RadialBlur）でタイトルへ帰還 (世界観に合致した重力シアンブラック指定)
             engine->GetSceneManager()->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.8f,
                                                     EaseType::EaseInCubic,

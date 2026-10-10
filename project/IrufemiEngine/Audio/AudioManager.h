@@ -69,6 +69,21 @@ private:
         bool stopOnComplete{true};   ///< 完了時にボイスを停止・破棄するか
     };
     std::vector<FadeTask> fadeTasks_;
+
+    /**
+     * @struct CategoryFadeTask
+     * @brief カテゴリバス全体の音量補間・オートメーションタスク
+     */
+    struct CategoryFadeTask {
+        AudioCategory category;
+        float startVolume{1.0f};
+        float targetVolume{0.0f};
+        float delayDuration{0.0f}; ///< フェード開始までの待機秒数
+        float fadeDuration{0.0f};  ///< フェードにかける秒数
+        float elapsedTime{0.0f};   ///< 経過時間 (秒)
+    };
+    std::vector<CategoryFadeTask> categoryFadeTasks_;
+
     std::chrono::steady_clock::time_point lastUpdateTime_{std::chrono::steady_clock::now()};
 
     /**
@@ -92,6 +107,15 @@ public:
      * @param[in] volume 音量 (0.0f ～ 1.0f)
      */
     void SetCategoryVolume(AudioCategory category, float volume);
+
+    /**
+     * @brief 指定したオーディオカテゴリのバス音量を滑らかに補間フェードする
+     * @param[in] category 対象カテゴリ (Master, BGM, SE, UI)
+     * @param[in] targetVolume 目標音量 (0.0f ～ 1.0f)
+     * @param[in] duration フェードにかける秒数
+     * @param[in] delay フェード開始までの待機秒数（デフォルト0.0f）
+     */
+    void FadeCategoryVolume(AudioCategory category, float targetVolume, float duration, float delay = 0.0f);
 
     /**
      * @brief 指定したオーディオカテゴリのバス音量を取得する

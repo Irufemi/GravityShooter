@@ -65,8 +65,11 @@ void PauseScene::Initialize(IrufemiEngine* engine) {
 void PauseScene::OnEnter() {
     BaseScene::OnEnter();
     openCooldownTimer_ = 0.2f;
+    transitionState_ = TransitionState::Opening;
+    transitionTimer_ = 0.0f;
 
     ApplyPausePostProcess();
+    ApplyTransition(0.0f); // 初回フレームは非表示・スケール収束から開始
 
     if (engine_) {
         engine_->SetCursorLocked(false);
@@ -95,7 +98,9 @@ void PauseScene::OnResume() {
     SetUIVisible(true);
     openCooldownTimer_ = 0.2f; // OptionsSceneを閉じた直後の誤入力防止
 
+    transitionState_ = TransitionState::Open;
     ApplyPausePostProcess(); // ポーズ画面復帰時にPreUIブラーを再適用
+    ApplyTransition(1.0f);
 
     // オプション画面で変更された可能性のある最新のBGM音量を取得し、ダッキングを再適用
     originalBGMVolume_ = Irufemi::CVarSystem::GetFloat("a.BGMVolume");
@@ -133,6 +138,7 @@ void PauseScene::CreateUIElements() {
         sprite->SetBaseSize({1280.0f, 720.0f});
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor(kColorDarkMask);
+        darkOverlaySprite_ = sprite.get();
     }
     darkOverlayObj_->Initialize();
 
@@ -150,6 +156,7 @@ void PauseScene::CreateUIElements() {
         titleText->SetAlignment(TextAlignment::Center);
         titleText->SetColor(kColorTitle);
         titleText->SetTopMost(true);
+        titleTextComp_ = titleText.get();
     }
     titleObj_->Initialize();
 
@@ -163,9 +170,8 @@ void PauseScene::CreateUIElements() {
     const std::vector<MenuEntry> entries = {{L"RESUME", MenuItem::Resume,
                                              [this]() {
                                                  UISound::PlayCancel();
-                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                                                     sm->PopScene();
-                                                 }
+                                                 transitionState_ = TransitionState::Closing;
+                                                 transitionTimer_ = 0.0f;
                                              }},
                                             {L"RETRY", MenuItem::Retry,
                                              [this]() {
@@ -241,6 +247,38 @@ void PauseScene::Update() {
     }
 
     float dt = engine_->GetDeltaTime();
+
+    // --- オープニング演出 (Fade & Scale In) ---
+    if (transitionState_ == TransitionState::Opening) {
+        transitionTimer_ += dt;
+        float progress = std::clamp(transitionTimer_ / kOpenDuration_, 0.0f, 1.0f);
+        // EaseOutCubic
+        float ease = 1.0f - std::pow(1.0f - progress, 3.0f);
+        ApplyTransition(ease);
+
+        if (progress >= 1.0f) {
+            transitionState_ = TransitionState::Open;
+            ApplyTransition(1.0f);
+        }
+        return; // オープン途中は操作入力をガード
+    }
+
+    // --- クロージング演出 (Fade & Scale Out) ---
+    if (transitionState_ == TransitionState::Closing) {
+        transitionTimer_ += dt;
+        float progress = std::clamp(transitionTimer_ / kCloseDuration_, 0.0f, 1.0f);
+        // EaseInQuad
+        float ease = 1.0f - (progress * progress);
+        ApplyTransition(ease);
+
+        if (progress >= 1.0f) {
+            if (auto sm = engine_->GetSceneManager()) {
+                sm->PopScene();
+            }
+        }
+        return; // クローズ途中は操作入力をガード
+    }
+
     if (openCooldownTimer_ > 0.0f) {
         openCooldownTimer_ -= dt;
         return; // 開いた直後のボタン入力残存ガード
@@ -266,7 +304,9 @@ void PauseScene::UpdateInput(float deltaTime) {
 
     // 1. 即時ポーズ解除判定（ESCキー / Bボタン / STARTボタン）
     if (input->IsCancelPressed() || input->StartPressed()) {
-        ExecuteAction(MenuItem::Resume);
+        UISound::PlayCancel();
+        transitionState_ = TransitionState::Closing;
+        transitionTimer_ = 0.0f;
         return;
     }
 
@@ -458,4 +498,57 @@ void PauseScene::RemovePausePostProcess() {
     }
     isPostProcessActive_ = false;
 }
+
+void PauseScene::ApplyTransition(float progress) {
+    // 1. 暗幕オーバーレイのアルファ補間
+    if (darkOverlaySprite_) {
+        darkOverlaySprite_->SetColor({kColorDarkMask.x, kColorDarkMask.y, kColorDarkMask.z, kColorDarkMask.w * progress});
+    }
+
+    // 2. カワセブラー & ビネットの動的強度補間 (PreUIレイヤー)
+    if (engine_) {
+        if (auto ppm = engine_->GetPostProcessManager()) {
+            if (isPostProcessActive_) {
+                auto& kawase = ppm->GetDualKawaseBlurParams();
+                kawase.intensity = progress;
+                kawase.blurRadius = 1.35f * progress;
+
+                auto& vig = ppm->GetVignetteParams();
+                vig.color = {0.0f, 0.0f, 0.0f, 0.65f * progress};
+            }
+        }
+    }
+
+    // 3. UIテキスト群を中心(640, 360)から弾性スケールイン/アウト (0.92 -> 1.0)
+    const Irufemi::Vector3 center{640.0f, 360.0f, 0.0f};
+    float scaleMul = std::lerp(0.92f, 1.0f, progress);
+
+    if (titleObj_ && titleTextComp_) {
+        if (auto t = titleObj_->GetTransform()) {
+            Irufemi::Vector3 basePos{640.0f, 150.0f, 0.0f};
+            Irufemi::Vector3 offset = basePos - center;
+            t->SetPosition(center + offset * scaleMul);
+        }
+        titleTextComp_->SetColor({kColorTitle.x, kColorTitle.y, kColorTitle.z, kColorTitle.w * progress});
+        titleTextComp_->SetBaseScale(56.0f * scaleMul);
+    }
+
+    for (size_t i = 0; i < menuItems_.size(); ++i) {
+        auto& item = menuItems_[i];
+        if (!item.gameObject || !item.textComp) {
+            continue;
+        }
+        if (auto t = item.gameObject->GetTransform()) {
+            Irufemi::Vector3 basePos{640.0f, item.yPos, 0.0f};
+            Irufemi::Vector3 offset = basePos - center;
+            t->SetPosition(center + offset * scaleMul);
+        }
+
+        bool isSelected = (static_cast<int>(i) == selectedIndex_);
+        const auto& baseColor = isSelected ? kColorSelected : kColorUnselected;
+        item.textComp->SetColor({baseColor.x, baseColor.y, baseColor.z, baseColor.w * progress});
+        item.textComp->SetBaseScale(34.0f * item.currentScale * scaleMul);
+    }
+}
+
 
