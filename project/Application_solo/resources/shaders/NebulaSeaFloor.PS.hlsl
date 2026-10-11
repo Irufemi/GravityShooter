@@ -53,99 +53,103 @@ float ridgedNoise(float2 p) {
     return f;
 }
 
-// 雲海のボリューム密度をワールドXZ座標とサンプリング高度から計算
-float EvaluateNebulaDensity(float2 xz, float sampleY, float time) {
-    // レイヤー1: レール進行方向（奥から手前へ高速フロー）
-    float2 flow1 = xz * 0.0035 + float2(0.0, -time * gNebulaSea.railSpeed * 0.015);
-    // レイヤー2: 局所的な緩やかな乱流・うねり
-    float2 flow2 = xz * 0.0080 + float2(time * 0.035, time * 0.020);
+// ふんわりとした雲塊のボリューム（Billowy Cumulus）
+float billowNoise(float2 p) {
+    float f = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++) {
+        float n = noise(p);
+        float b = 1.0 - abs(n * 2.0 - 1.0);
+        f += a * b;
+        p *= 2.05;
+        a *= 0.5;
+    }
+    return f;
+}
 
-    float n1 = fBm(flow1);
-    float n2 = ridgedNoise(flow2);
+// ふんわりとした雲塊の高度場（Height Field / Billowy Cumulus）
+float EvaluateCloudHeight(float2 p) {
+    float b1 = billowNoise(p * 1.5);
+    float b2 = billowNoise(p * 3.5);
+    float f1 = ridgedNoise(p * 2.2);
 
-    float combinedNoise = n1 * 0.55 + n2 * 0.45;
-
-    // Y=0.0f を上面とし、下層（volumeDepth）に向かって密度を変化させるプロファイル
-    float depthT = saturate((gNebulaSea.surfaceY - sampleY) / max(gNebulaSea.volumeDepth, 1.0));
-    float heightFade = smoothstep(0.0, 0.25, depthT) * (1.0 - smoothstep(0.85, 1.0, depthT));
-
-    return saturate(combinedNoise * heightFade * gNebulaSea.densityScale);
+    float h = b1 * 0.55 + b2 * 0.25 + f1 * 0.20;
+    return smoothstep(0.15, 0.85, h);
 }
 
 float4 main(VertexOutput input) : SV_Target {
     float3 surfacePos = input.worldPosition;
     float3 cameraPos = gPerFrame.cameraWorldPosition;
-    float3 rayDir = normalize(surfacePos - cameraPos);
-    float distToSurface = length(surfacePos - cameraPos);
+    float3 toCam = cameraPos - surfacePos;
+    float distToSurface = length(toCam);
+    float3 viewDir = normalize(toCam); // サーフェスからカメラへの視線ベクトル
+    float3 rayDir = normalize(surfacePos - cameraPos); // カメラからサーフェスへの入射視線
 
     // タイトル (CosmicNebula.PS.hlsl) のカラーパレットを完全継承
-    float3 colDeepSpace = gNebulaSea.colDeepSpace.rgb;  // 深宇宙の漆黒
-    float3 colTeal      = gNebulaSea.colTeal.rgb;       // エメラルド・ティール
-    float3 colCyan      = gNebulaSea.colCyan.rgb;       // エレクトリックシアン
-    float3 colWhite     = gNebulaSea.colWhite.rgb;      // 純白ハイライト光
-    float3 colAmethyst  = gNebulaSea.colAmethyst.rgb;   // アメジストパープル
-    float3 colDeepAbyss = colDeepSpace * 0.65;          // 最深部の静寂インディゴ
+    float3 colDeepSpace = gNebulaSea.colDeepSpace.rgb;  // 深宇宙の漆黒（深淵）
+    float3 colTeal      = gNebulaSea.colTeal.rgb;       // 澄んだディープティール
+    float3 colCyan      = gNebulaSea.colCyan.rgb;       // 鮮烈なエレクトリックシアン
+    float3 colWhite     = gNebulaSea.colWhite.rgb;      // 純白ハイライト光条
+    float3 colAmethyst  = gNebulaSea.colAmethyst.rgb;   // 幻想的なアメジストパープル
+    float3 horizonSky   = gNebulaSea.colHorizonSky.rgb;  // 地平線スカイドーム色
 
-    float time = gNebulaSea.time * 0.35;
+    // --- 1. 視差遮蔽マッピング（POM / Parallax Occlusion Mapping） ---
+    // メッシュ上面は Y=0.0f（環境物の足元）に厳格固定したまま、
+    // 視線が雲の内部へ潜り込む「深さの視差」を計算し、手前のコブが奥の谷を遮蔽する立体感を生む
+    float2 baseUV = surfacePos.xz * 0.0045; // 視界に無数の雲塊が広がるスケール
+    float2 viewParallaxDir = rayDir.xz / max(-rayDir.y, 0.18);
 
-    // --- 3D ワールド空間 ボリュメトリック光吸収・散乱積分 (Beer-Lambert Model) ---
-    float3 accumulatedColor = float3(0.0, 0.0, 0.0);
-    float transmittance = 1.0;
+    // 視差サンプリング（上面の高度を基準に谷間を奥へずらす）
+    float h0 = EvaluateCloudHeight(baseUV);
+    float2 parallaxUV = baseUV - viewParallaxDir * ((1.0 - h0) * 0.012);
+    float cloudHeight = EvaluateCloudHeight(parallaxUV);
 
-    // 視線が上面(Y=0)から内部へ潜り込む厚み（ステップサンプリング）
-    const int kStepCount = 8;
-    float maxMarchDepth = min(gNebulaSea.volumeDepth, 35.0);
-    float stepDepth = maxMarchDepth / (float)kStepCount;
+    // --- 2. 雲塊の立体ライティング（陰影コントラスト） ---
+    // 雲のコブの頭頂部（上面Y=0近傍）と谷間（Y < 0の深淵）
+    float cloudPeak = pow(cloudHeight, 2.2);
 
-    // 視線レイが下向きに進む場合の垂直ステップ
-    float rayDownRatio = max(-rayDir.y, 0.15); // 水平に近いグレージング角でも破綻しないようガード
-    float sampleDistStep = stepDepth / rayDownRatio;
+    // 局所勾配による微小ハイライト
+    float eps = 0.005;
+    float hR = EvaluateCloudHeight(parallaxUV + float2(eps, 0.0));
+    float hU = EvaluateCloudHeight(parallaxUV + float2(0.0, eps));
+    float3 cloudNormal = normalize(float3((cloudHeight - hR) * 4.0, 1.0, (cloudHeight - hU) * 4.0));
+    float NdotL = saturate(dot(cloudNormal, normalize(float3(0.0, 0.65, 0.76))));
 
-    for (int i = 0; i < kStepCount; ++i) {
-        float currentDist = (float)i * sampleDistStep;
-        float3 samplePos = surfacePos + rayDir * currentDist;
+    // --- 3. 4本目準拠の最高純度色彩（アメジスト × ティール × 漆黒 × シアン） ---
+    // 有機的に交錯するパープル＆ティールマーブル
+    float purpleBias = saturate(sin(surfacePos.x * 0.0020 + surfacePos.z * 0.0010) * 0.5 + 0.5);
+    float3 baseGasColor = lerp(colTeal, colAmethyst, purpleBias * 0.65);
 
-        if (samplePos.y > gNebulaSea.surfaceY) {
-            continue;
-        }
+    // 谷底は深宇宙の漆黒（深淵）へしっかり沈み、雲の盛り上がりに向かって主ガスが鮮やかに発光
+    float3 finalColor = lerp(colDeepSpace, baseGasColor, cloudHeight);
 
-        float density = EvaluateNebulaDensity(samplePos.xz, samplePos.y, time);
+    // 雲の頭頂部・波頭でのエレクトリックシアン ＆ 純白ハイライト光条（Bloomの過剰飽和・白飛びを完全防止）
+    float peakGlow = pow(cloudPeak, 2.2);
+    float edgeHighlight = pow(cloudPeak, 5.0) * pow(NdotL, 2.5);
+    finalColor += colCyan * (peakGlow * 0.65);
+    finalColor += colWhite * (edgeHighlight * 0.70);
 
-        if (density > 0.01) {
-            // 有機的なエメラルド〜パープル・シアンのグラデーション
-            float purpleBias = saturate(sin(samplePos.x * 0.005 + time * 0.2) * 0.5 + 0.5);
-            float3 baseGasColor = lerp(colTeal, colAmethyst, purpleBias * 0.45);
-
-            // リッジピークでのシアン・白熱発光
-            float3 litColor = baseGasColor;
-            litColor += colCyan * (pow(density, 2.0) * 1.50);
-            litColor += colWhite * (pow(density, 4.0) * 2.20);
-            litColor += colCyan * (saturate(density - 0.40) * 0.12);
-
-            // Beer-Lambert 則による吸収・散乱
-            float stepAbsorb = exp(-density * 0.40 * stepDepth);
-            float stepTrans = (1.0 - stepAbsorb);
-
-            // 蓄積
-            accumulatedColor += litColor * density * stepTrans * transmittance * 1.40;
-            transmittance *= stepAbsorb;
-
-            if (transmittance < 0.02) {
-                break; // 遮蔽完了
-            }
-        }
+    // --- 4. コズミックダスト（星屑・星間チリ）の微細な瞬き ---
+    float2 dustUV = surfacePos.xz * 0.20;
+    float2 dustCell = floor(dustUV);
+    float dustRnd = rand(dustCell);
+    if (dustRnd > 0.965) {
+        float2 dustFrac = frac(dustUV) - 0.5;
+        float dustGlow = exp(-length(dustFrac) * 18.0) * (dustRnd - 0.965) * 38.0;
+        float twinkle = sin(gNebulaSea.time * 2.5 + dustRnd * 80.0) * 0.35 + 0.65;
+        finalColor += float3(0.85, 0.95, 1.0) * (dustGlow * twinkle * saturate(cloudHeight + 0.2));
     }
 
-    // 雲の最深部（深みのある落ち着いたブルーグレーインディゴ）
-    accumulatedColor += colDeepAbyss * transmittance;
+    // --- 5. 3D空間フレネル大気散乱 ＆ 遠方大気フォグ同調 ---
+    float NdotV = saturate(dot(float3(0, 1, 0), viewDir));
+    float fresnel = pow(1.0 - NdotV, 4.0);
+    finalColor += lerp(colTeal, colAmethyst, purpleBias) * (fresnel * 0.28);
 
-    // --- 遠方大気フォグ同調（Atmospheric Fog Blending） ---
-    // 地平線奥はスカイドームのラベンダー色の空へふんわりと霞んで溶け込ませる
+    // 地平線奥のスカイドームへふんわり溶け込ませる
     float fogT = saturate((distToSurface - gNebulaSea.fadeStartDistance) /
                           max(gNebulaSea.fadeEndDistance - gNebulaSea.fadeStartDistance, 1.0));
-    float3 horizonSkyColor = gNebulaSea.colHorizonSky.rgb;
-    accumulatedColor = lerp(accumulatedColor, horizonSkyColor, smoothstep(0.0, 1.0, fogT));
+    finalColor = lerp(finalColor, horizonSky, smoothstep(0.0, 1.0, fogT));
 
     // 完全不透明（1.0f）で出力
-    return float4(accumulatedColor, 1.0f);
+    return float4(finalColor, 1.0f);
 }

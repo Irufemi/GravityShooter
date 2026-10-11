@@ -5,6 +5,7 @@
  */
 
 #include "PerFrame.hlsli"
+#include "Noise.hlsli"
 
 ConstantBuffer<PerFrameData> gPerFrame : register(b2);
 
@@ -48,7 +49,7 @@ VertexOutput main(VertexInput input) {
     float3 worldPos = input.position;
     worldPos.x += gNebulaSea.cameraSnapXZ.x;
     worldPos.z += gNebulaSea.cameraSnapXZ.y;
-    worldPos.y = gNebulaSea.surfaceY; // Y=0.0f (接地基準面)
+    worldPos.y = gNebulaSea.surfaceY; // Y=0.0f (環境物接地基準面を厳格固定)
 
     output.worldPosition = worldPos;
     output.normal = float3(0.0f, 1.0f, 0.0f);
