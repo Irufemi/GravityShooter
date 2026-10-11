@@ -123,6 +123,9 @@
     <ClCompile Include="Scenes\title\TitleCosmicNebulaComponent.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
+    <ClCompile Include="Environment\NebulaSeaFloorComponent.cpp">
+      <Filter>Environment</Filter>
+    </ClCompile>
     <ClCompile Include="Scenes\title\TitleSceneDirectorComponent.cpp">
       <Filter>Scenes\title</Filter>
     </ClCompile>
@@ -350,6 +353,9 @@
     </ClInclude>
     <ClInclude Include="Scenes\title\TitleCosmicNebulaComponent.h">
       <Filter>Scenes\title</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment\NebulaSeaFloorComponent.h">
+      <Filter>Environment</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\title\TitleSceneDirectorComponent.h">
       <Filter>Scenes\title</Filter>

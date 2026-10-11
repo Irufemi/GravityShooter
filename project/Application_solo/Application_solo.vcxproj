@@ -255,6 +255,7 @@ exit 0</Command>
     <ClCompile Include="Scenes\title\State\TitleMenuStateSuspended.cpp" />
     <ClCompile Include="Scenes\title\State\TitleMenuStateLaunching.cpp" />
     <ClCompile Include="Scenes\title\TitleCosmicNebulaComponent.cpp" />
+    <ClCompile Include="Environment\NebulaSeaFloorComponent.cpp" />
     <ClCompile Include="Scenes\title\TitleSceneDirectorComponent.cpp" />
     <ClCompile Include="Scenes\title\State\TitleLaunchStateCharge.cpp" />
     <ClCompile Include="Scenes\title\State\TitleLaunchStateAccelerate.cpp" />
@@ -336,6 +337,7 @@ exit 0</Command>
     <ClInclude Include="Scenes\title\State\TitleMenuStateSuspended.h" />
     <ClInclude Include="Scenes\title\State\TitleMenuStateLaunching.h" />
     <ClInclude Include="Scenes\title\TitleCosmicNebulaComponent.h" />
+    <ClInclude Include="Environment\NebulaSeaFloorComponent.h" />
     <ClInclude Include="Scenes\title\TitleSceneDirectorComponent.h" />
     <ClInclude Include="Scenes\title\State\ITitleLaunchState.h" />
     <ClInclude Include="Scenes\title\State\TitleLaunchStateCharge.h" />

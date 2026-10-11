@@ -431,16 +431,16 @@
             "position": [
               0.0,
               0.0,
-              1000.0
+              0.0
             ],
             "rotation": [
-              1.5707963705062866,
+              0.0,
               -0.0,
               0.0
             ],
             "scale": [
-              400.0,
-              2500.0,
+              1.0,
+              1.0,
               1.0
             ]
           },
@@ -448,16 +448,19 @@
         },
         {
           "data": {
-            "currentTypeIndex": 1,
-            "material": {
-              "texturePath": "resources/realistic_wasteland_ground.png"
-            }
+            "Density Scale": 1.0,
+            "Fade End Dist": 2200.0,
+            "Fade Start Dist": 400.0,
+            "Rail Speed": 35.0,
+            "Soft Range": 4.0,
+            "Surface Y": 0.0,
+            "Volume Depth": 35.0
           },
-          "type": "PrimitiveRendererComponent"
+          "type": "NebulaSeaFloorComponent"
         }
       ],
       "instanceId": 1479653983827768141,
-      "name": "Ground Plane",
+      "name": "NebulaSeaFloor",
       "tag": "Untagged"
     },
     {

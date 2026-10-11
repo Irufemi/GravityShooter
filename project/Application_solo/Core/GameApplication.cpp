@@ -49,6 +49,7 @@
 #include "Scenes/title/TitleMenuControllerComponent.h"
 #include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
+#include "Environment/NebulaSeaFloorComponent.h"
 #include "Scenes/stageSelect/SelectScene.h"
 #include "Scenes/inGame/GameScene.h"
 #include "Scenes/Pause/PauseScene.h"
@@ -128,6 +129,11 @@ void RegisterShaders(IrufemiEngine& engine) {
     auto vsCosmicNebula = shaderManager->GetOrCompile(L"CosmicNebula.VS.hlsl", options);
     auto psCosmicNebula = shaderManager->GetOrCompile(L"CosmicNebula.PS.hlsl", options);
     psoManager->RegisterShader("CosmicNebula", {{vsCosmicNebula, psCosmicNebula}});
+
+    // NebulaSeaFloor シェーダー (ゲームシーン用 3D星雲ガス海)
+    auto vsNebulaSea = shaderManager->GetOrCompile(L"NebulaSeaFloor.VS.hlsl", options);
+    auto psNebulaSea = shaderManager->GetOrCompile(L"NebulaSeaFloor.PS.hlsl", options);
+    psoManager->RegisterShader("NebulaSeaFloor", {{vsNebulaSea, psNebulaSea}});
 }
 
 // --- コンポーネント登録処理 ---
@@ -192,6 +198,8 @@ void RegisterComponents() {
                                []() { return std::make_shared<TitleCosmicNebulaComponent>(); });
     ComponentFactory::Register("TitleSceneDirectorComponent", "Game",
                                []() { return std::make_shared<TitleSceneDirectorComponent>(); });
+    ComponentFactory::Register("NebulaSeaFloorComponent", "Environment",
+                               []() { return std::make_shared<NebulaSeaFloorComponent>(); });
 }
 } // namespace
 
