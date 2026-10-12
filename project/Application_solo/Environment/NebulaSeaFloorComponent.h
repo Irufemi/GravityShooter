@@ -32,7 +32,7 @@ public: // 定数バッファ構造体 (HLSL: register b6 / RootSlot::Special)
         Irufemi::Vector4 colCyan{0.12f, 0.78f, 0.88f, 1.0f};          //!< 鮮烈なエレクトリックシアン
         Irufemi::Vector4 colWhite{0.85f, 0.96f, 1.00f, 1.0f};         //!< 純白ハイライト光条
         Irufemi::Vector4 colAmethyst{0.24f, 0.08f, 0.35f, 1.0f};      //!< 幻想的なアメジストパープル
-        Irufemi::Vector4 colHorizonSky{0.55f, 0.52f, 0.72f, 1.0f};    //!< 地平線スカイドーム色
+        Irufemi::Vector4 colHorizonSky{0.005f, 0.010f, 0.025f, 1.0f};  //!< 地平線スカイドーム色（特異点深宇宙の漆黒へ同調）
         Irufemi::Vector4 cameraSnapXZ{0.0f, 0.0f, 0.0f, 0.0f};        //!< カメラXZ追従スナップ座標 (xy: XZ位置, zw: 予備)
     };
 
