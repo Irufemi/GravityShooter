@@ -655,8 +655,7 @@ std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& fil
 }
 
 std::weak_ptr<VoiceInstance> AudioManager::PlayWithFade(std::shared_ptr<Sound> soundData, float sustainDuration,
-                                                          float fadeOutDuration, float volume,
-                                                          AudioCategory category) {
+                                                        float fadeOutDuration, float volume, AudioCategory category) {
     auto weakVoice = Play(soundData, false, volume, category);
     FadeVoice(weakVoice, 0.0f, fadeOutDuration, sustainDuration, true);
     return weakVoice;
@@ -696,4 +695,4 @@ void AudioManager::FadeVoice(std::weak_ptr<VoiceInstance> voice, float targetVol
     task.stopOnComplete = stopOnComplete;
 
     fadeTasks_.push_back(task);
-}
+}

@@ -6,7 +6,7 @@
 
 namespace {
 std::unique_ptr<ITransitionDriver> CreateDriver(SceneTransition::Type type,
-                                               const std::optional<Irufemi::Vector4>& customColor) {
+                                                const std::optional<Irufemi::Vector4>& customColor) {
     switch (type) {
     case SceneTransition::Type::Fade:
         return std::make_unique<FadeTransitionDriver>();
@@ -32,7 +32,7 @@ void SceneTransition::Initialize(PostProcessManager* ppManager) {
 }
 
 void SceneTransition::Start(Type type, float duration, bool isOut, EaseType easeType,
-                           const std::optional<Irufemi::Vector4>& customColor) {
+                            const std::optional<Irufemi::Vector4>& customColor) {
     if (!ppManager_) {
         return;
     }

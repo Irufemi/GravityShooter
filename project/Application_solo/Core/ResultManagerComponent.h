@@ -21,7 +21,7 @@ private:
     float timeScaleResetDelayTime_ = 1.5f; // スローモーションを解除するまでの時間
     float timeScaleRecoveryDuration_ = 0.5f; // スローモーションから等倍速に戻るまでの時間(イージング時間)
     bool canReturnToTitle_ = false;
-    bool isExiting_ = false;               // 多重入力・多重遷移ガード
+    bool isExiting_ = false; // 多重入力・多重遷移ガード
     bool hasResetTimeScale_ = false;
     bool hasPlayedSnapSE_ = false;
 

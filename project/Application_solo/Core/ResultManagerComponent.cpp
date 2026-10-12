@@ -194,8 +194,7 @@ void ResultManagerComponent::Update() {
 
             // 重力歪曲（RadialBlur）でタイトルへ帰還 (世界観に合致した重力シアンブラック指定)
             engine->GetSceneManager()->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.8f,
-                                                    EaseType::EaseInCubic,
-                                                    Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+                                                    EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
 }
@@ -270,4 +269,3 @@ void ResultManagerComponent::RemoveEntryPostProcess() {
     }
     isPostProcessActive_ = false;
 }
-

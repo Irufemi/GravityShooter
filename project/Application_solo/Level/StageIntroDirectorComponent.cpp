@@ -127,8 +127,7 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
         {StageIntroState::Bootup,
          {&StageIntroDirectorComponent::bootupDuration_, 0.8f, 0.8f, false, true, true, false,
           [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
-        {StageIntroState::Active,
-         {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
+        {StageIntroState::Active, {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
     };
 
     auto it = kPhaseConfigs.find(introState_);
@@ -211,8 +210,7 @@ void StageIntroDirectorComponent::Update() {
         {StageIntroState::Bootup,
          {&StageIntroDirectorComponent::bootupDuration_, 0.8f, 0.8f, false, true, true, false,
           [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
-        {StageIntroState::Active,
-         {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
+        {StageIntroState::Active, {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
     };
 
     auto it = kPhaseConfigs.find(introState_);
@@ -418,4 +416,3 @@ void StageIntroDirectorComponent::CleanupWarpVisuals() {
         isRadialBlurActive_ = false;
     }
 }
-
