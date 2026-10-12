@@ -55,7 +55,7 @@ public:
 class RadialBlurTransitionDriver : public ITransitionDriver {
 public:
     explicit RadialBlurTransitionDriver(bool isWhite = false,
-                                       const std::optional<Irufemi::Vector4>& customColor = std::nullopt)
+                                        const std::optional<Irufemi::Vector4>& customColor = std::nullopt)
         : isWhite_(isWhite), customColor_(customColor) {}
 
     void SetCustomColor(const std::optional<Irufemi::Vector4>& color) {

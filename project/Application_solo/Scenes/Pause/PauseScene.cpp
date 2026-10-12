@@ -89,7 +89,7 @@ void PauseScene::OnSuspend() {
     BaseScene::OnSuspend();
     isSuspended_ = true;
     RemovePausePostProcess(); // Options画面とのポストプロセス競合防止
-    SetUIVisible(false); // ポーズUIを非表示にしてOptionsSceneとの文字被りを完全防止
+    SetUIVisible(false);      // ポーズUIを非表示にしてOptionsSceneとの文字被りを完全防止
 }
 
 void PauseScene::OnResume() {
@@ -502,7 +502,8 @@ void PauseScene::RemovePausePostProcess() {
 void PauseScene::ApplyTransition(float progress) {
     // 1. 暗幕オーバーレイのアルファ補間
     if (darkOverlaySprite_) {
-        darkOverlaySprite_->SetColor({kColorDarkMask.x, kColorDarkMask.y, kColorDarkMask.z, kColorDarkMask.w * progress});
+        darkOverlaySprite_->SetColor(
+            {kColorDarkMask.x, kColorDarkMask.y, kColorDarkMask.z, kColorDarkMask.w * progress});
     }
 
     // 2. カワセブラー & ビネットの動的強度補間 (PreUIレイヤー)
@@ -550,5 +551,3 @@ void PauseScene::ApplyTransition(float progress) {
         item.textComp->SetBaseScale(34.0f * item.currentScale * scaleMul);
     }
 }
-
-

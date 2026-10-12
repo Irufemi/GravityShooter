@@ -73,8 +73,7 @@ public:
      * @param[in] duration 演出時間（秒）
      * @param[in] easeType 演出のイージングタイプ（デフォルトは線形）
      */
-    void TransitionTo(const Key& next, SceneTransition::Type type, float duration,
-                      EaseType easeType = EaseType::Linear,
+    void TransitionTo(const Key& next, SceneTransition::Type type, float duration, EaseType easeType = EaseType::Linear,
                       const std::optional<Irufemi::Vector4>& customColor = std::nullopt);
 
     /**

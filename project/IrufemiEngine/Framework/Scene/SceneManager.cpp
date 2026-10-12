@@ -209,7 +209,7 @@ void SceneManager::PopScene() {
 }
 
 void SceneManager::TransitionTo(const Key& next, SceneTransition::Type type, float duration, EaseType easeType,
-                                 const std::optional<Irufemi::Vector4>& customColor) {
+                                const std::optional<Irufemi::Vector4>& customColor) {
     if (transitionPhase_ != TransitionPhase::None) {
         return; // 二重遷移防止
     }
@@ -329,7 +329,8 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             }
 
             // ロードが完了した瞬間に、フェードインを開始する
-            engine_->GetSceneTransition()->Start(pendingType_, pendingDuration_, false, pendingEaseType_, pendingColor_);
+            engine_->GetSceneTransition()->Start(pendingType_, pendingDuration_, false, pendingEaseType_,
+                                                 pendingColor_);
         }
     } else if (transitionPhase_ == TransitionPhase::Opening) {
         // フェードイン完了待ち

@@ -17,8 +17,8 @@
 
 namespace {
 // グリッドメッシュ生成用定数
-constexpr int kGridResolution = 64;           //!< グリッド分割数 (64 x 64)
-constexpr float kGridHalfExtent = 1800.0f;     //!< 半径 1800m (全幅 3600m)
+constexpr int kGridResolution = 64;        //!< グリッド分割数 (64 x 64)
+constexpr float kGridHalfExtent = 1800.0f; //!< 半径 1800m (全幅 3600m)
 constexpr float kCellSize = (kGridHalfExtent * 2.0f) / static_cast<float>(kGridResolution); //!< 1セルの幅 (約56.25m)
 } // namespace
 

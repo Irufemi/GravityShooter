@@ -17,8 +17,7 @@ void TitleLaunchStateBreak::Enter(TitleSceneDirectorComponent* director) {
     // 遷移時間（約1.2秒）に合わせて0.7秒持続 + 0.5秒フェードアウトで自動停止（長尺音の背景残留を完全防止）
     if (auto engine = director->GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            am->PlayByFileWithFade("resources/audio/SE/se_gravity_warp.mp3", 0.7f, 0.5f, 0.90f,
-                                   AudioCategory::SE);
+            am->PlayByFileWithFade("resources/audio/SE/se_gravity_warp.mp3", 0.7f, 0.5f, 0.90f, AudioCategory::SE);
         }
     }
 }
