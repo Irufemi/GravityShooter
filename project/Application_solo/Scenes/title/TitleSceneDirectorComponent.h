@@ -63,13 +63,13 @@ public:
         return nextSceneName_;
     }
 
-    // 出撃シーケンスのステージ分割定数（全体長: 約3.20秒）
-    static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
-    static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
-    static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速離脱・消滅
-    static constexpr float kDurationAfterglow_ = 1.00f; ///< [Phase 4: 余韻] 自機消失後の静寂・残光・風の抜け
+    // 出撃シーケンスのステージ分割定数（重力特異点への空間吸い込みドラマを確立）
+    static constexpr float kDurationCharge_ = 0.45f;     ///< [Phase 1: 蓄勢] タメ・重力収束
+    static constexpr float kDurationAccelerate_ = 0.55f; ///< [Phase 2: 咆哮] アフターバーナー急加速
+    static constexpr float kDurationBreak_ = 0.45f;      ///< [Phase 3: 突破] 超光速特異点ダイブ (0.30s ➔ 0.45s)
+    static constexpr float kDurationAfterglow_ = 0.30f;  ///< [Phase 4: 余韻] 事象の地平線突破
     static constexpr float kDurationFreeze_ = 0.045f; ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
-    static constexpr float kTotalLaunchDuration_ = 3.20f; ///< 全体演出長 (秒)
+    static constexpr float kTotalLaunchDuration_ = 1.45f; ///< 全体演出長 (秒)
 
     /**
      * @enum LaunchState

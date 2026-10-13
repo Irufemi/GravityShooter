@@ -582,6 +582,13 @@ public:
     void Initialize(IrufemiEngine* engine, DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat);
 
     /**
+     * @brief エンジンへの参照を取得
+     */
+    IrufemiEngine* GetEngine() const {
+        return engine_;
+    }
+
+    /**
      * @brief 更新処理
      * @param totalTime 累計時間（ノイズ等のアニメーションに使用）
      */

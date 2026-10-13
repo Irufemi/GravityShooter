@@ -18,6 +18,8 @@ std::unique_ptr<ITransitionDriver> CreateDriver(SceneTransition::Type type,
         return std::make_unique<RadialBlurTransitionDriver>(false, customColor);
     case SceneTransition::Type::RadialBlurWhite:
         return std::make_unique<RadialBlurTransitionDriver>(true, customColor);
+    case SceneTransition::Type::GravitySingularity:
+        return std::make_unique<GravitySingularityTransitionDriver>(customColor);
     default:
         return std::make_unique<FadeTransitionDriver>();
     }

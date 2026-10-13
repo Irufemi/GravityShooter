@@ -9,11 +9,12 @@
  * @brief 自機の飛行・機動ステート（一線級シューターのStateパターン）
  */
 enum class PlayerFlightState {
-    Idle,   ///< 静止ホバリング中（微小呼吸振動）
-    Cruise, ///< 通常移動中（標準バンク・ピッチ）
-    Boost,  ///< 急加速中（前傾姿勢、アフターバーナー点火）
-    Brake,  ///< 急制動中（ノーズアップ、減速）
-    Dying   ///< 撃破・制御不能
+    WarpEntry, ///< 【ワープ突入射出】特異点から戦場へ超光速で滑り込んでくる進入状態
+    Idle,      ///< 静止ホバリング中（微小呼吸振動）
+    Cruise,    ///< 通常移動中（標準バンク・ピッチ）
+    Boost,     ///< 急加速中（前傾姿勢、アフターバーナー点火）
+    Brake,     ///< 急制動中（ノーズアップ、減速）
+    Dying      ///< 撃破・制御不能
 };
 
 /**
@@ -80,7 +81,9 @@ private:
     void UpdateStateTransitions(float inputLen, float currentSpeed);
 
     bool inputEnabled_ = true; ///< プレイヤー操作入力の受付可否（ステージ開始演出時はfalse）
-    PlayerFlightState currentState_ = PlayerFlightState::Idle;
+    PlayerFlightState currentState_ = PlayerFlightState::WarpEntry; ///< 初期状態はワープ進入
+    float entryTimer_ = 0.0f;                                       ///< ワープ進入演出タイマー
+    static constexpr float kWarpEntryDuration_ = 0.75f;             ///< ワープ突入滑り込み時間 (秒)
     std::vector<StateChangeCallback> stateChangeListeners_;
     std::vector<ThrottleChangeCallback> throttleChangeListeners_;
 

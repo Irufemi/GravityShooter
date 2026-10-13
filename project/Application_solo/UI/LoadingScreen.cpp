@@ -16,6 +16,7 @@ void LoadingScreen::Finalize() {
     nowLoadingText_.reset();
     bgSprite_.reset();
     demoText_.reset();
+    warpStatusText_.reset();
     camera_.reset();
 }
 
@@ -38,6 +39,17 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     demoText_->SetBaseScale(22.0f);
     demoText_->SetTopMost(true);
 
+    // 重力ワープトンネルHUD用テキスト初期化
+    warpStatusText_ = std::make_unique<Text>();
+    warpStatusText_->SetFontManagerInstance(engine->GetFontManager());
+    warpStatusText_->SetDrawManagerInstance(engine->GetDrawManager());
+    warpStatusText_->SetCameraManagerInstance(engine->GetCameraManager());
+    warpStatusText_->Initialize("toro_glitch");
+    warpStatusText_->SetAlignment(TextAlignment::Center);
+    warpStatusText_->SetBaseScale(20.0f);
+    warpStatusText_->SetTopMost(true);
+    warpStatusText_->SetText(L"GRAVITY SINGULARITY TRANSIT");
+
     nowLoadingText_ = std::make_unique<Sprite>();
     // 生成した「Now Loading」画像をセット
     nowLoadingText_->Initialize("resources/texture/load/now_loading.png");
@@ -49,10 +61,10 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     float screenW = static_cast<float>(engine->GetGameResolutionWidth());
     float screenH = static_cast<float>(engine->GetGameResolutionHeight());
 
-    // 背景を真っ黒に塗りつぶすスプライト
+    // 背景を深遠な重力シアンブラックで満たすスプライト
     bgSprite_ = std::make_unique<Sprite>();
     bgSprite_->Initialize("resources/whiteTexture.png");
-    bgSprite_->SetColor({0.0f, 0.0f, 0.0f, 1.0f});
+    bgSprite_->SetColor({0.005f, 0.015f, 0.035f, 1.0f}); // 重力シアンブラック
     bgSprite_->SetSize(screenW, screenH);
     bgSprite_->SetAnchor(0.0f, 0.0f); // 左上
     bgSprite_->SetPosition(0.0f, 0.0f);
@@ -107,6 +119,15 @@ void LoadingScreen::Update(float deltaTime) {
         dot->Update();
     }
 
+    // 重力ワープHUDアニメーション更新
+    warpPulseTimer_ += deltaTime * 3.2f;
+    if (warpStatusText_) {
+        float pulse = std::sin(warpPulseTimer_) * 0.5f + 0.5f;
+        float blinkAlpha = 0.40f + pulse * 0.50f;
+        warpStatusText_->SetColor({0.20f, 0.85f, 1.0f, blinkAlpha}); // 重力ネオンシアン
+        warpStatusText_->Update();
+    }
+
     // デモHUDアニメーション更新
     if (AttractDemoManager::IsAttractModeActive() && demoText_) {
         demoBlinkTimer_ += deltaTime * 2.8f;
@@ -139,10 +160,17 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
     float uiScale = screenH / 720.0f;
 
     if (bgSprite_) {
-        // 背景は必ず加算ではなく通常のブレンド（不透明）で上書き描画する
+        // 背景は重力シアンブラックで空間を覆う
         engine->SetBlend(Irufemi::BlendMode::kBlendModeNormal);
+        bgSprite_->SetColor({0.005f, 0.015f, 0.035f, 1.0f});
         bgSprite_->SetSize(screenW, screenH);
         bgSprite_->Draw();
+    }
+
+    // 重力ワープトンネルHUDの描画（画面中央）
+    if (warpStatusText_) {
+        warpStatusText_->SetPosition(screenW * 0.5f, screenH * 0.5f);
+        warpStatusText_->Draw();
     }
 
     // 文字とドットは加算合成（黒背景を透過）

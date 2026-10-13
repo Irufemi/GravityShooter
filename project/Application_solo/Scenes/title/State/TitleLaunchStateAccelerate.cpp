@@ -77,23 +77,23 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
                           0.0f, 1.0f);
     float accelCurve = p2 * p2 * p2 * p2; // 4次急加速曲線（初速ゼロから猛烈な爆発的射出）
 
-    // 自機の超推力突進
+    // 自機の超推力突進（画面中央の特異点へ向けて自然にスロープ上昇しながら前進）
     if (shipTransform) {
-        float boostZ = initialShipPos.z - 0.45f + accelCurve * 65.0f;
-        shipTransform->SetPosition({initialShipPos.x, initialShipPos.y, boostZ});
+        float boostZ = initialShipPos.z - 0.45f + accelCurve * 50.0f;
+        float targetY = std::lerp(initialShipPos.y, 0.52f, accelCurve);
+        shipTransform->SetPosition({initialShipPos.x, targetY, boostZ});
         shipTransform->SetRotation({0.0f, 0.0f, 0.0f});
     }
 
-    // カメラ追従ドリーイン
+    // カメラ滑らかドリーイン（自機を見送りつつ衝撃波に乗って前進）
     if (cameraTransform) {
-        float camDollyZ = initialCameraPos.z + accelCurve * 52.0f;
+        float camDollyZ = initialCameraPos.z + accelCurve * 22.0f;
         cameraTransform->SetPosition({initialCameraPos.x, initialCameraPos.y, camDollyZ});
     }
 
-    // 動的FOV（ワープスピード効果）: 加速中盤で画面周辺がワイドに歪む
+    // 動的FOV（ワープスピード効果）: 加速に合わせて自然にワイドに広がる
     if (camComp) {
-        float fovSin = std::sin(p2 * 3.14159265f); // 0 -> 1 -> 0
-        float extraFov = (16.0f * 3.14159265f / 180.0f) * fovSin;
+        float extraFov = (18.0f * 3.14159265f / 180.0f) * (p2 * p2);
         camComp->SetFovAngleY(director->GetInitialCameraFov() + extraFov);
     }
 

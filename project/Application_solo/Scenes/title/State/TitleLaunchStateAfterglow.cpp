@@ -33,8 +33,8 @@ void TitleLaunchStateAfterglow::Update(TitleSceneDirectorComponent* director, fl
         }
     }
 
-    // 余韻開始から 0.50秒（全体約2.70秒地点）で 指定シーンへの優雅なフェードアウト（0.6秒）を発火
-    if (stateTimer >= 0.50f && !director->HasTriggeredSceneTransition()) {
-        director->TriggerSceneTransition(0.6f);
+    // 自機消失の直後（0.05秒）で即座に重力特異点跳躍を発火し、間延びを完全排除
+    if (stateTimer >= 0.05f && !director->HasTriggeredSceneTransition()) {
+        director->TriggerSceneTransition(0.45f);
     }
 }

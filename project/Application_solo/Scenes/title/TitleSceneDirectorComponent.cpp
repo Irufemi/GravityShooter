@@ -493,9 +493,9 @@ void TitleSceneDirectorComponent::TriggerSceneTransition(float fadeDuration) {
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            // 世界観に合致した重力シアンブラックで空間を吸い込み暗転
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, fadeDuration, EaseType::EaseInCubic,
-                             Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+            // 重力特異点跳躍（事象の地平線への空間吸い込み・重力色収差・流体渦巻き連動）
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::GravitySingularity, fadeDuration, EaseType::EaseInCubic,
+                             Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
         }
     }
 }
@@ -537,50 +537,10 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
 
 void TitleSceneDirectorComponent::UpdateRadialBlur(float deltaTime) {
     (void)deltaTime;
-    auto engine = GetEngine();
-    if (!engine) {
-        return;
-    }
-    auto ppm = engine->GetPostProcessManager();
-    if (!ppm) {
-        return;
-    }
-
-    bool shouldBlur = false;
-    float blurProgress = 0.0f;
-
-    // 1. Accelerate終盤（残り0.35秒）から急峻に立ち上げ
-    if (GetLaunchState() == LaunchState::Accelerate) {
-        float triggerStartTime = kDurationAccelerate_ - 0.35f;
-        if (stateTimer_ >= triggerStartTime) {
-            shouldBlur = true;
-            float t = std::clamp((stateTimer_ - triggerStartTime) / 0.35f, 0.0f, 1.0f);
-            blurProgress = t * t; // 2次曲線で鋭い加速感
-        }
-    }
-    // 2. Breakフェーズ（超光速離脱・消滅）：高強度を維持し、終盤で急減衰
-    else if (GetLaunchState() == LaunchState::Break) {
-        shouldBlur = true;
-        float t = std::clamp(stateTimer_ / kDurationBreak_, 0.0f, 1.0f);
-        if (t < 0.60f) {
-            blurProgress = 1.0f;
-        } else {
-            blurProgress = 1.0f - ((t - 0.60f) / 0.40f);
-        }
-    }
-
-    if (shouldBlur && blurProgress > 0.001f) {
-        if (!isRadialBlurActive_) {
-            ppm->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
-            isRadialBlurActive_ = true;
-        }
-        auto& rb = ppm->GetRadialBlurParams();
-        rb.center = {0.5f, 0.42f}; // 自機の加速消失中心
-        rb.blurWidth = 0.038f * blurProgress;
-        rb.numSamples = 16;
-    } else {
-        CleanupRadialBlur();
-    }
+    // 第1段階の画面全体ブラーを撤廃：
+    // 自機モデルの超加速・スラスター噴射ディテールを鮮明に見せ、
+    // 自機離脱後の「重力特異点跳躍（Gravity Singularity）」へ演出を集中させるためクリーンアップを維持
+    CleanupRadialBlur();
 }
 
 void TitleSceneDirectorComponent::CleanupRadialBlur() {

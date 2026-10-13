@@ -40,6 +40,10 @@ private:
     std::unique_ptr<Text> demoText_;
     float demoBlinkTimer_ = 0.0f;
 
+    // 重力ワープ空間HUD
+    std::unique_ptr<Text> warpStatusText_;
+    float warpPulseTimer_ = 0.0f;
+
     float animationTimer_ = 0.0f;
     int dotCount_ = 0;
 };

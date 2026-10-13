@@ -24,6 +24,7 @@ public:
         Slide, ///< 【スライド】画面の端からワイプ（拭き取り）のように色がスライドしてくる演出。
         RadialBlur, ///< 【放射状ブラー】中心に向かって画面が引き込まれるようなボケを伴いながら遷移する演出。
         RadialBlurWhite, ///< 【放射状ブラー(白)】ボケながら真っ白にホワイトアウトしていく演出。
+        GravitySingularity, ///< 【重力特異点跳躍】空間歪み・重力色収差・流体渦巻きが連動するワープ遷移演出。
     };
 
     SceneTransition();
@@ -87,8 +88,8 @@ public:
         onOutFinishedCallback_ = std::move(callback);
     }
 
-    /** @brief 画面が完全に隠れた後の静止時間（秒） */
-    static constexpr float kDwellTime = 0.15f;
+    /** @brief 画面が完全に隠れた後の静止時間（秒）- ロード完了後の待機間延びを防ぐため極小化 */
+    static constexpr float kDwellTime = 0.04f;
 
 private:
     PostProcessManager* ppManager_ = nullptr;
