@@ -71,6 +71,7 @@
 #include "Renderer/System/ParticleGPU/GPUParticleSystem.h"
 #include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
 #include "Renderer/System/VoxelParticle/VoxelParticleSystem.h"
+#include "Renderer/Fluid/FluidSimulation2D.h"
 
 // フレームワーク & シーン
 #include "Framework/UI/DebugUI.h"
@@ -411,6 +412,10 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
     sceneTransition_ = std::make_unique<SceneTransition>();
     sceneTransition_->Initialize(postProcessManager_.get());
 
+    // --- FluidSimulation2D の初期化 ---
+    fluidSimulation_ = std::make_unique<FluidSimulation2D>();
+    fluidSimulation_->Initialize(dxCommon_.get(), 256, 256);
+
     // WinAppに自身(Engine)のポインタを設定
     winApp_->SetEngine(this);
 
@@ -579,6 +584,9 @@ void IrufemiEngine::Finalize() {
     }
     if (velocityTexture_) {
         velocityTexture_.reset();
+    }
+    if (fluidSimulation_) {
+        fluidSimulation_.reset();
     }
 
     // 3. アニメーション・モデル・テクスチャ (リソースの実体を保持)
@@ -842,6 +850,14 @@ void IrufemiEngine::Execute() {
         // 4) ParticleのUpdate (GPU)
         if (gpuParticleManager_) {
             gpuParticleManager_->Update();
+        }
+
+        // 5) 2D GPU流体シミュレーションの更新 & コンピュートタスク登録
+        if (fluidSimulation_) {
+            fluidSimulation_->Update(deltaTime_);
+            if (drawManager_) {
+                drawManager_->RegisterComputeTask(fluidSimulation_.get());
+            }
         }
 
         for (auto& ext : extensions_) {

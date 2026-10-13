@@ -133,6 +133,9 @@
     <Filter Include="Renderer\Compute">
       <UniqueIdentifier>{7761dc4a-5158-7bd9-6387-2c827799d071}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\Fluid">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-1234-56789abcdef0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Renderer\Data">
       <UniqueIdentifier>{1667b761-8220-1aa8-43ee-89edb712b996}</UniqueIdentifier>
     </Filter>
@@ -767,6 +770,9 @@
     </ClCompile>
     <ClCompile Include="Framework\Component\VirtualEntity\VirtualEntityManagerComponent.cpp">
       <Filter>Framework\Component\VirtualEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Fluid\FluidSimulation2D.cpp">
+      <Filter>Renderer\Fluid</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1591,6 +1597,9 @@
     </ClInclude>
     <ClInclude Include="Framework\Component\VirtualEntity\VirtualEntityManagerComponent.h">
       <Filter>Framework\Component\VirtualEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Fluid\FluidSimulation2D.h">
+      <Filter>Renderer\Fluid</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

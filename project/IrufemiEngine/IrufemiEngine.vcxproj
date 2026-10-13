@@ -384,6 +384,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Resource\Texture\TextureManager.cpp" />
     <ClCompile Include="Resource\Texture\TextureUtility.cpp" />
     <ClCompile Include="Framework\Component\VirtualEntity\VirtualEntityManagerComponent.cpp" />
+    <ClCompile Include="Renderer\Fluid\FluidSimulation2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framework\Utility\CVar.h" />
@@ -659,5 +660,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="..\externals\msdfgen\ext\resolve-shape-geometry.h" />
     <ClInclude Include="..\externals\msdfgen\ext\save-png.h" />
     <ClInclude Include="Framework\Component\VirtualEntity\VirtualEntityManagerComponent.h" />
+    <ClInclude Include="Renderer\Fluid\FluidSimulation2D.h" />
   </ItemGroup>
 </Project>

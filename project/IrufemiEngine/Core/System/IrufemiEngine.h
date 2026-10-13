@@ -58,6 +58,7 @@ class GPUParticleManager;
 class PrimitiveManager;
 class TelemetrySender;
 class PrefabManager;
+class FluidSimulation2D;
 
 /**
  * @class IrufemiEngine
@@ -538,6 +539,14 @@ public: // ゲッター
     /** @brief 画面遷移管理者を取得 */
     SceneTransition* GetSceneTransition() {
         return sceneTransition_.get();
+    }
+
+    /**
+     * @brief 2D GPGPU 流体シミュレーターを取得
+     * @return 取得された FluidSimulation2D ポインタ
+     */
+    FluidSimulation2D* GetFluidSimulation() const {
+        return fluidSimulation_.get();
     }
 
     /** @brief WinApp を取得 */
@@ -1128,6 +1137,7 @@ private: // メンバ変数
     std::unique_ptr<RenderTexture> velocityTexture_ = nullptr;   ///< MRT対応: モーションベクトル用
     std::unique_ptr<PostProcessManager> postProcessManager_ = nullptr;
     std::unique_ptr<SceneTransition> sceneTransition_ = nullptr;
+    std::unique_ptr<FluidSimulation2D> fluidSimulation_ = nullptr;
 
     // Telemetry
     std::unique_ptr<TelemetrySender> telemetrySender_ = nullptr;

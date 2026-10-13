@@ -821,14 +821,14 @@ void DrawManager::DispatchGPUCulling(const RenderPackets::ModelBatchPacket& pack
         return;
     }
 
+    commandList_->SetComputeRootSignature(dxCommon_->GetComputeRootSignature());
     commandList_->SetPipelineState(pso);
 
-    // Compute Shader の RootSignature とパラメータバインド
-    // (現在は ComputeRootSignature が全体で1つという前提)
-    commandList_->SetComputeRootConstantBufferView(4, packet.cullingDataAddress); // b0 (Slot 4)
-    commandList_->SetComputeRootDescriptorTable(0, packet.inputInstancesSrv);     // t0 (Slot 0)
-    commandList_->SetComputeRootDescriptorTable(3, packet.outputInstancesUav);    // u0 (Slot 3)
-    commandList_->SetComputeRootDescriptorTable(6, packet.indirectCommandUav);    // u1 (Slot 6)
+    // Compute Shader のパラメータバインド (ComputeRootSlot使用)
+    commandList_->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b0, packet.cullingDataAddress); // b0
+    commandList_->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, packet.inputInstancesSrv);     // t0
+    commandList_->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, packet.outputInstancesUav);    // u0
+    commandList_->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1, packet.indirectCommandUav);    // u1
 
     // スレッドグループ数を計算 (スレッド数は1グループあたり64に固定)
     UINT dispatchX = (packet.maxInstanceCount + 63) / 64;

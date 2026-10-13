@@ -340,10 +340,22 @@ void DXRootSignatureManager::Initialize(ID3D12Device* device) {
         computeRootParameters[10].Descriptor.ShaderRegister = 3; // t3
         computeRootParameters[10].Descriptor.RegisterSpace = 0;
 
+        D3D12_STATIC_SAMPLER_DESC computeSampler{};
+        computeSampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        computeSampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        computeSampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        computeSampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        computeSampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+        computeSampler.MaxLOD = D3D12_FLOAT32_MAX;
+        computeSampler.ShaderRegister = 0; // s0
+        computeSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
         D3D12_ROOT_SIGNATURE_DESC computeRSDesc{};
         computeRSDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
         computeRSDesc.pParameters = computeRootParameters;
         computeRSDesc.NumParameters = _countof(computeRootParameters);
+        computeRSDesc.pStaticSamplers = &computeSampler;
+        computeRSDesc.NumStaticSamplers = 1;
 
         Microsoft::WRL::ComPtr<ID3DBlob> computeSignatureBlob = nullptr;
         Microsoft::WRL::ComPtr<ID3DBlob> computeErrorBlob = nullptr;
