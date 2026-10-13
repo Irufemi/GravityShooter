@@ -5,6 +5,7 @@
 #include "RHI/DirectX12/RootSignatureConfig.h"
 #include "Renderer/Pipeline/PSOManager.h"
 #include "Renderer/DrawManager.h"
+#include "Renderer/Fluid/FluidSimulation2D.h"
 #include "Platform/Input/InputManager.h"
 #include <algorithm>
 #include <cassert>
@@ -18,6 +19,14 @@ TitleCosmicNebulaComponent::~TitleCosmicNebulaComponent() {
 
 void TitleCosmicNebulaComponent::Initialize() {
     CreateConstantBuffer();
+
+    // タイトル星雲用に流体減衰率を最適化（約0.5秒でスッと自然に消える減衰速度）
+    if (auto engine = GetEngine()) {
+        if (auto fluid = engine->GetFluidSimulation()) {
+            fluid->SetDensityDissipation(0.92f);   // 濃度減衰率
+            fluid->SetVelocityDissipation(0.985f); // 速度減衰率
+        }
+    }
 }
 
 void TitleCosmicNebulaComponent::OnRegisterProperties() {
@@ -103,15 +112,27 @@ void TitleCosmicNebulaComponent::Update() {
                                  (smoothedMouseUV_.y - prevRawMouseUV_.y) / safeDeltaTime};
     prevRawMouseUV_ = smoothedMouseUV_;
 
-    // クリック時は出撃パルス（重力波インパルス）を発火
-    if (isLeftClicked) {
-        TriggerPulse(1.0f);
-    }
-
     // 速度ベクトルの平滑化追従（過度な急激変化を緩和し、滑らかな流体の引き波を実現）
     float velLerp = std::clamp(deltaTime * 10.0f, 0.0f, 1.0f);
     smoothedVelocity_.x += (rawVelocity.x - smoothedVelocity_.x) * velLerp;
     smoothedVelocity_.y += (rawVelocity.y - smoothedVelocity_.y) * velLerp;
+
+    // --- GPGPU 流体シミュレーションへの物理注入 ---
+    if (auto fluid = engine->GetFluidSimulation()) {
+        // 水面的な弾性復元（手で切った乱れが約0.4〜0.5秒でスッと元に戻る減衰率）
+        fluid->SetVelocityDissipation(0.925f);
+
+        float speed = std::hypot(smoothedVelocity_.x, smoothedVelocity_.y);
+        if (speed > 0.010f) {
+            // 指先・手先サイズに絞った外力ベクトル（速度場）の注入
+            fluid->AddForce(smoothedMouseUV_, smoothedVelocity_ * 6.0f, 0.028f);
+        }
+
+        // 出撃シーケンス突入時の重力特異点渦の注入（※通常クリックでは発火しない）
+        if (isPulseActive_) {
+            fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 35.0f * pulseTimer_, 45.0f * pulseTimer_, 0.45f);
+        }
+    }
 
     // 背景全体は中央にドシッと固定
     float vortexCenterX = 0.5f;
@@ -203,6 +224,16 @@ void TitleCosmicNebulaComponent::Draw() {
             // register(b6) / RootSlot::Special に定数バッファをバインド
             cmdList->SetGraphicsRootConstantBufferView(static_cast<UINT>(RootSlot::Special),
                                                        constantBuffer_->GetGPUVirtualAddress());
+
+            // GPGPU 流体シミュレーションテクスチャをバインド
+            // register(t5) / RootSlot::ShadowMap: 流速場 (Velocity: RG16F)
+            // register(t6) / RootSlot::DepthMap: 濃度場 (Density: RGBA16F)
+            if (auto fluid = engine->GetFluidSimulation()) {
+                cmdList->SetGraphicsRootDescriptorTable(static_cast<UINT>(RootSlot::ShadowMap),
+                                                        fluid->GetVelocitySRV());
+                cmdList->SetGraphicsRootDescriptorTable(static_cast<UINT>(RootSlot::DepthMap),
+                                                        fluid->GetDensitySRV());
+            }
 
             // SV_VertexID による全画面最奥三角形描画 (3頂点)
             cmdList->DrawInstanced(3, 1, 0, 0);

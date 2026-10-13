@@ -30,8 +30,7 @@
     "UI_Submit": [
       "Pad_A",
       "Key_Space",
-      "Key_Enter",
-      "Mouse_Left"
+      "Key_Enter"
     ],
     "UI_Cancel": [
       "Pad_B",

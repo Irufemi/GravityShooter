@@ -17,7 +17,7 @@ void main(uint3 id : SV_DispatchThreadID) {
     float2 uv = (float2(coord) + 0.5) * gInvResolution;
 
     float2 vel = gInVelocity[coord];
-    float2 backUV = uv - vel * gDeltaTime * gInvResolution;
+    float2 backUV = uv - vel * gDeltaTime;
 
     gOutVelocity[coord] = gInVelocity.SampleLevel(gSamplerLinear, backUV, 0) * gDissipationVel;
     gOutDensity[coord]  = gInDensity.SampleLevel(gSamplerLinear, backUV, 0)  * gDissipationDen;

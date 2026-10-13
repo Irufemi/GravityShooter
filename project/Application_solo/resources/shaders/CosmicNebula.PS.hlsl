@@ -22,6 +22,11 @@ struct CosmicNebulaParams {
 };
 ConstantBuffer<CosmicNebulaParams> gNebula : register(b6);
 
+// GPGPU 流体シミュレーション場 (Jos Stam's Stable Fluids)
+Texture2D<float2> gFluidVelocity : register(t5);
+Texture2D<float4> gFluidDensity  : register(t6);
+SamplerState gSampler            : register(s0);
+
 // 絹のような光の筋（フィラメント・波頭）を生成する Ridged Multifractal ノイズ
 float ridgedNoise(float2 p) {
     float f = 0.0;
@@ -54,6 +59,19 @@ PixelShaderOutput main(VertexShaderOutput input) {
         p.x * 0.96 - p.y * 0.26,
         p.x * 0.26 + p.y * 0.96
     );
+
+    // --- GPGPU 流体シミュレーション場 (Velocity) サンプリング ---
+    float2 fluidVel = gFluidVelocity.Sample(gSampler, uv);
+    float fluidSpeed = length(fluidVel);
+
+    // カーソル直近の速度コアのみを抽出（広範囲への伝播を完全にカットして指先サイズに局所化）
+    float speedMask = smoothstep(0.06, 0.28, fluidSpeed);
+
+    // カーソルの通り道だけがサッと乱れる上品な水面変位
+    float2 waterRippleOffset = float2(
+        (fluidVel.x * aspect) * 0.96 - fluidVel.y * 0.26,
+        (fluidVel.x * aspect) * 0.26 + fluidVel.y * 0.96
+    ) * (speedMask * 0.20);
 
     // --- 2. 曲線トレイル流体場（Curved Trail Wake & Dispersion Field） ---
     // 手で水面を切ったように、マウスが通った実際の曲線の軌跡に沿って星雲ガスが左右に割れ、尾を引く
@@ -161,7 +179,8 @@ PixelShaderOutput main(VertexShaderOutput input) {
 
     // --- 4. 共通ライブラリ GravityWarp.hlsli による連続重力渦巻き ---
     // 変位をかけた画面座標 displacedP を回転行列に通すことで、直線上での自転巻き込みを防止
-    float2 displacedP = rotP - gasFluidWisp;
+    // GPGPU 流体波紋 (waterRippleOffset) により、手で水面を切った瞬間にプルンと波立ち、スッと戻る
+    float2 displacedP = rotP - gasFluidWisp + waterRippleOffset;
     float2 swirlP = CalculateGravitySwirlCoords(displacedP, 1.0f, time, 1.25f);
 
     // ★ 星雲の美しい渦巻きフィラメント
@@ -209,6 +228,9 @@ PixelShaderOutput main(VertexShaderOutput input) {
     finalColor += colCyan * (pow(filament * ringMask, 2.2) * 1.65);
     finalColor += colWhite * (pow(filament * ringMask, 4.2) * 2.80);
     finalColor += colCyan * innerEdge;
+    // 水面を切った瞬間の微細なきらめき（カーソル直近のみ、波が収まると完全に消灯・消散）
+    float crestHighlight = speedMask * 0.18;
+    finalColor += colCyan * crestHighlight;
 
     // --- 7. 星屑・コズミックダスト（深宇宙全体に充満する多重浮遊粉塵・星間チリ） ---
     // A. 最奥の静止星空（深宇宙の基準面・立体感の奥行き対比用）
