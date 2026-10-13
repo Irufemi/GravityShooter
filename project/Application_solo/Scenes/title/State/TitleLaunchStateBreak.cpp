@@ -42,7 +42,11 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
     float boostZ = startShipZ + p3 * 75.0f;
     if (shipTransform) {
         shipTransform->SetPosition({initialShipPos.x, 0.52f, boostZ});
-        shipTransform->SetScale({1.0f, 1.0f, 1.0f});
+
+        // 特異点の事象の地平線への吸い込み消滅：奥へ進むほど光の点へ極小収縮 (1.0 -> 0.0)
+        float shrinkT = std::clamp((p3 - 0.35f) / 0.65f, 0.0f, 1.0f);
+        float shipScale = std::lerp(1.0f, 0.0f, shrinkT * shrinkT);
+        shipTransform->SetScale({shipScale, shipScale, shipScale});
     }
 
     // 2. カメラは前進の勢いをそのまま維持（急接近の不連続性を完全排除）
@@ -60,6 +64,13 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
     }
 
     director->SetTargetThrusterScaleZ(2.8f);
+
+    // 4. 重力特異点跳躍（暗転）の先行シームレス発火！
+    // 自機が特異点中心へ突入する最高潮の瞬間（p3 >= 0.35）から間髪入れずに空間暗転を開始し、
+    // 自機が吸い込まれて消える瞬間と同時に画面全体が事象の地平線の暗黒に包まれる（途切れ・虚無時間の完全排除）
+    if (p3 >= 0.35f && !director->HasTriggeredSceneTransition()) {
+        director->TriggerSceneTransition(0.55f);
+    }
 
     // 状態遷移判定
     if (stateTimer >= TitleSceneDirectorComponent::kDurationBreak_) {

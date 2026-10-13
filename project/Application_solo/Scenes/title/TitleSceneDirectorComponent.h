@@ -63,13 +63,13 @@ public:
         return nextSceneName_;
     }
 
-    // 出撃シーケンスのステージ分割定数（ジェット音 3.55秒の波形に完全同期）
+    // 出撃シーケンスのステージ分割定数（特異点ダイブと暗転が完全シームレスに直結）
     static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
     static constexpr float kDurationAccelerate_ = 1.10f; ///< [Phase 2: 咆哮] アフターバーナー急加速
-    static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速特異点ダイブ
-    static constexpr float kDurationAfterglow_ = 1.90f;  ///< [Phase 4: 余韻] 事象の地平線突破・残光
+    static constexpr float kDurationBreak_ = 0.60f;      ///< [Phase 3: 突破] 超光速特異点ダイブ（後半で暗転先行発火）
+    static constexpr float kDurationAfterglow_ = 0.35f;  ///< [Phase 4: 余韻] 事象の地平線突破・暗転完了
     static constexpr float kDurationFreeze_ = 0.045f;    ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
-    static constexpr float kTotalLaunchDuration_ = 4.10f; ///< 全体演出長 (秒: Charge 0.5s + 点火後 3.6s)
+    static constexpr float kTotalLaunchDuration_ = 2.55f; ///< 全体演出長 (秒: 勢いを殺さずインゲームへ直結)
 
     /**
      * @enum LaunchState
@@ -226,15 +226,15 @@ private:
     void SetupThrusterEffect();
 
     /**
-     * @brief 出撃加速・離脱時のラジアルブラー動的ポストプロセス制御
+     * @brief 出撃加速・突破時の動的シネマティック・ポストプロセス制御（トンネル視野狭窄・特異点ラジアルブラー・動的色収差）
      * @param[in] deltaTime 経過時間
      */
-    void UpdateRadialBlur(float deltaTime);
+    void UpdateLaunchPostProcess(float deltaTime);
 
     /**
-     * @brief ラジアルブラーの安全なクリーンアップ（ポストプロセススタックからの完全除去）
+     * @brief 出撃時ポストプロセスの安全なクリーンアップ（スタックからの完全除去・パラメータ初期化）
      */
-    void CleanupRadialBlur();
+    void CleanupLaunchPostProcess();
 
     /**
      * @brief ガレキVoxel粉砕および複合粉塵パーティクルの発火処理
@@ -294,6 +294,6 @@ private: // メンバ変数
     bool isMicroFreezing_ = false;         ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
     float freezeTimer_ = 0.0f;             ///< マイクロフリーズ経過タイマー
     bool hasTriggeredRelease_ = false;     ///< 臨界解放マイルストーン発火済みフラグ
-    bool isRadialBlurActive_ = false;      ///< ラジアルブラーポストプロセス稼働中フラグ
-    std::string nextSceneName_ = "InGame"; ///< 出撃完了時の遷移先シーン名
+    bool isLaunchPostProcessActive_ = false; ///< 出撃ポストプロセス（多層エフェクト）稼働中フラグ
+    std::string nextSceneName_ = "InGame";  ///< 出撃完了時の遷移先シーン名
 };

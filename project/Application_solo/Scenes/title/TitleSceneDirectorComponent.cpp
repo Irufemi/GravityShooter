@@ -28,11 +28,11 @@
 #include <algorithm>
 
 TitleSceneDirectorComponent::~TitleSceneDirectorComponent() {
-    CleanupRadialBlur();
+    CleanupLaunchPostProcess();
 }
 
 void TitleSceneDirectorComponent::OnDestroy() {
-    CleanupRadialBlur();
+    CleanupLaunchPostProcess();
 }
 
 void TitleSceneDirectorComponent::Initialize() {
@@ -43,7 +43,7 @@ void TitleSceneDirectorComponent::Initialize() {
     isMicroFreezing_ = false;
     freezeTimer_ = 0.0f;
     hasTriggeredRelease_ = false;
-    isRadialBlurActive_ = false;
+    isLaunchPostProcessActive_ = false;
     currentLaunchState_ = nullptr;
     currentLaunchStateType_ = LaunchState::Idle;
     stateTimer_ = 0.0f;
@@ -435,7 +435,7 @@ void TitleSceneDirectorComponent::SkipLaunchSequence() {
         return;
     }
 
-    CleanupRadialBlur();
+    CleanupLaunchPostProcess();
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
@@ -524,8 +524,8 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
         currentLaunchState_->Update(this, deltaTime);
     }
 
-    // 出撃加速・離脱時の動的ラジアルブラー更新
-    UpdateRadialBlur(deltaTime);
+    // 出撃加速・離脱時の動的シネマティック・ポストプロセス更新
+    UpdateLaunchPostProcess(deltaTime);
 
     // スラスターのスケールを急峻に追従
     float lerpFactor = 1.0f - std::exp(-18.0f * deltaTime);
@@ -538,24 +538,121 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
     }
 }
 
-void TitleSceneDirectorComponent::UpdateRadialBlur(float deltaTime) {
+void TitleSceneDirectorComponent::UpdateLaunchPostProcess(float deltaTime) {
     (void)deltaTime;
-    // 第1段階の画面全体ブラーを撤廃：
-    // 自機モデルの超加速・スラスター噴射ディテールを鮮明に見せ、
-    // 自機離脱後の「重力特異点跳躍（Gravity Singularity）」へ演出を集中させるためクリーンアップを維持
-    CleanupRadialBlur();
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+    auto ppm = engine->GetPostProcessManager();
+    if (!ppm) {
+        return;
+    }
+
+    // Phase 1 (Charge) または Idle 中、出撃未開始時は適用しない
+    if (!isLaunching_ || currentLaunchStateType_ == LaunchState::Idle ||
+        currentLaunchStateType_ == LaunchState::Charge) {
+        CleanupLaunchPostProcess();
+        return;
+    }
+
+    // 大手ゲームエンジンのプラクティス：2DメニューUI（フェード消滅中）を汚染せず、3D空間と星雲にのみ適用
+    // Layer::PreUI でエフェクトスタックに安全に登録（初回フレームでのみ登録）
+    if (!isLaunchPostProcessActive_) {
+        ppm->AddActiveMode(PostProcessMode::Vignette, PostProcessManager::Layer::PreUI);
+        ppm->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
+        ppm->AddActiveMode(PostProcessMode::ChromaticAberration, PostProcessManager::Layer::PreUI);
+        isLaunchPostProcessActive_ = true;
+    }
+
+    // タイムライン連動アニメーションの目標値
+    float targetBlurWidth = 0.0f;
+    float targetVignetteRadius = 1.0f;
+    float targetChroma = 0.0f;
+
+    // 星雲シェーダー（CosmicNebula.PS.hlsl）および重力特異点跳躍（GravitySingularity）と完全合致した焦点
+    const Irufemi::Vector2 kSingularityCenter{0.50f, 0.42f};
+
+    if (currentLaunchStateType_ == LaunchState::Accelerate) {
+        // [Phase 2: 咆哮・点火急加速]
+        // 臨界蓄圧（マイクロフリーズ 0.045s）中は身震いのみとし、光学的歪みは保留
+        float effectiveTimer = (std::max)(0.0f, stateTimer_ - kDurationFreeze_);
+        float duration = (std::max)(0.001f, kDurationAccelerate_ - kDurationFreeze_);
+        float p = std::clamp(effectiveTimer / duration, 0.0f, 1.0f);
+
+        // 自機の超推力急加速曲線（4次急加速）に自然に呼応する3次イーズイン
+        float curve = p * p * p;
+
+        // トンネル視野狭窄: 外周から徐々に重力シアンブラックの暗がりが絞り込まれる (1.00 -> 0.70)
+        targetVignetteRadius = std::lerp(1.00f, 0.70f, curve);
+
+        // 特異点ラジアルブラー: 自機の推進力に合わせて外周の星雲がじわじわと流れる (0.00 -> 0.016)
+        targetBlurWidth = std::lerp(0.0f, 0.016f, curve);
+
+        // 速度ドップラー色収差: わずかなレンズ周辺赤方偏移 (0.00 -> 0.006)
+        targetChroma = std::lerp(0.0f, 0.006f, curve);
+
+    } else if (currentLaunchStateType_ == LaunchState::Break) {
+        // [Phase 3: 突破・超光速ダイブ]
+        float p = std::clamp(stateTimer_ / (std::max)(0.001f, kDurationBreak_), 0.0f, 1.0f);
+
+        // 超光速の極点へ向けてサインカーブで滑らかに飽和
+        float curve = std::sin(p * 1.5707963f);
+
+        // トンネル最深部: 事象の地平線トンネルに飛び込む (0.70 -> 0.52)
+        targetVignetteRadius = std::lerp(0.70f, 0.52f, curve);
+
+        // ラジアルブラー最大ピーク (0.016 -> 0.032)
+        targetBlurWidth = std::lerp(0.016f, 0.032f, curve);
+
+        // レンズ色収差ピーク (0.006 -> 0.014)
+        targetChroma = std::lerp(0.006f, 0.014f, curve);
+
+    } else if (currentLaunchStateType_ == LaunchState::Afterglow) {
+        // [Phase 4: 余韻・自機消失後]
+        // 自機が特異点へ消滅した直後、ピークのワープ歪みを維持し、
+        // 1.25秒後に発火する GravitySingularity シーン遷移（暗転）へシームレスにバトンタッチ
+        targetVignetteRadius = 0.52f;
+        targetBlurWidth = 0.032f;
+        targetChroma = 0.014f;
+    }
+
+    // --- 各ポストプロセスパラメータの安全な適用 ---
+    // 1. トンネル視野狭窄 (Vignette): 深遠な重力シアンブラックで外周を包み込み、中央の特異点へ視線を誘導
+    auto& vig = ppm->GetVignetteParams();
+    vig.color = Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f}; // 世界観に合致した重力シアンブラック
+    vig.radius = targetVignetteRadius;
+    vig.softness = 0.45f;
+
+    // 2. 特異点ラジアルブラー (RadialBlur): 中心(0.50, 0.42)の特異点に向けて周辺星雲を吸い込み歪曲
+    auto& rb = ppm->GetRadialBlurParams();
+    rb.center = kSingularityCenter;
+    rb.blurWidth = targetBlurWidth;
+    rb.numSamples = 12;
+
+    // 3. 光学的赤方偏移 (ChromaticAberration): 超光速突破に伴う繊細な波長ズレ
+    auto& ca = ppm->GetChromaticAberrationParams();
+    ca.intensity = targetChroma;
 }
 
-void TitleSceneDirectorComponent::CleanupRadialBlur() {
-    if (isRadialBlurActive_) {
+void TitleSceneDirectorComponent::CleanupLaunchPostProcess() {
+    if (isLaunchPostProcessActive_) {
         if (auto engine = GetEngine()) {
             if (auto ppm = engine->GetPostProcessManager()) {
+                ppm->RemoveActiveMode(PostProcessMode::Vignette);
                 ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
+                ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration);
+
+                // パラメータを安全にデフォルト初期化
                 auto& rb = ppm->GetRadialBlurParams();
                 rb.blurWidth = 0.0f;
+                auto& vig = ppm->GetVignetteParams();
+                vig.radius = 1.0f;
+                auto& ca = ppm->GetChromaticAberrationParams();
+                ca.intensity = 0.0f;
             }
         }
-        isRadialBlurActive_ = false;
+        isLaunchPostProcessActive_ = false;
     }
 }
 
