@@ -219,6 +219,12 @@ void ResultManagerComponent::ApplyEntryPostProcess() {
         rb.center = {0.5f, 0.5f};
         rb.blurWidth = 0.040f;
         rb.numSamples = 16;
+
+        // KOインパクト・ホワイトフラッシュ（PreUIレイヤーで背景を眩く包む）
+        ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
+        ppm->GetFadeParams().color = Irufemi::Vector4{1.0f, 1.0f, 1.0f, 1.0f};
+        ppm->GetFadeParams().intensity = 1.0f;
+        hasWhiteFlash_ = true;
     } else {
         // ゲームオーバー: 重力異常グリッチ・色収差 (PreUIレイヤー)
         ppm->AddActiveMode(PostProcessMode::ChromaticAberration, PostProcessManager::Layer::PreUI);
@@ -247,6 +253,11 @@ void ResultManagerComponent::UpdateEntryPostProcess(float progress) {
     if (ResultScene::IsClear()) {
         auto& rb = ppm->GetRadialBlurParams();
         rb.blurWidth = 0.040f * factor;
+
+        if (hasWhiteFlash_) {
+            // 最初の0.2秒程度で急激に閃光が収束する3次減衰カーブ
+            ppm->GetFadeParams().intensity = std::pow(1.0f - progress, 3.0f);
+        }
     } else {
         auto& ca = ppm->GetChromaticAberrationParams();
         ca.intensity = 0.035f * factor;
@@ -264,6 +275,10 @@ void ResultManagerComponent::RemoveEntryPostProcess() {
     if (auto engine = GetEngine()) {
         if (auto ppm = engine->GetPostProcessManager()) {
             ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
+            if (hasWhiteFlash_) {
+                ppm->RemoveActiveMode(PostProcessMode::Fade);
+                hasWhiteFlash_ = false;
+            }
             ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration);
         }
     }

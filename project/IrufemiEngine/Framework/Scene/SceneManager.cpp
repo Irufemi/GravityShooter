@@ -505,6 +505,11 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     // シーン切り替え時にプレハブキャッシュをクリア（古いシーンのプレハブ残留によるメモリリーク防止）
     SceneSerializer::ClearCache();
 
+    // シーン切り替え時に前シーン・遷移演出の残留SEを確実に停止・破棄（新シーンへの音漏れを根絶）
+    if (engine_->GetAudioManager()) {
+        engine_->GetAudioManager()->StopCategory(AudioCategory::SE);
+    }
+
     initFuture_ = std::async(std::launch::async, [this, factory, next]() {
         // 新しいシーンを生成
         auto newScene = factory();

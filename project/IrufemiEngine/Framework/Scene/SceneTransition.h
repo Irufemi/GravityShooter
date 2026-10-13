@@ -73,6 +73,15 @@ public:
     }
 
     /**
+     * @brief 演出開始時（イン/アウト開始問わず）のコールバックを設定
+     * @param callback 呼び出される関数（引数: 演出タイプ, isOutフラグ）
+     */
+    using TransitionStartCallback = std::function<void(Type type, bool isOut)>;
+    void SetOnStartCallback(TransitionStartCallback callback) {
+        onStartCallback_ = std::move(callback);
+    }
+
+    /**
      * @brief 演出完了時（イン/アウト完了問わず）のコールバックを設定
      * @param callback 呼び出される関数
      */
@@ -105,6 +114,7 @@ private:
 
     std::function<void()> onFinishedCallback_;
     std::function<void()> onOutFinishedCallback_;
+    TransitionStartCallback onStartCallback_;
 
     // トランジションが現在適用しているポストプロセスモードの追跡用
     std::vector<PostProcessMode> activeTransitionModes_;

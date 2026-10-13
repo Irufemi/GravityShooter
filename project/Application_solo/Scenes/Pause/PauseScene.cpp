@@ -177,7 +177,9 @@ void PauseScene::CreateUIElements() {
                                              [this]() {
                                                  UISound::PlayDecide();
                                                  if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                                                     sm->LoadScene("InGame", SceneTransition::Type::Fade, 0.5f);
+                                                     sm->LoadScene("InGame", SceneTransition::Type::RadialBlur, 0.45f,
+                                                                   EaseType::EaseInOutQuad,
+                                                                   Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
                                                  }
                                              }},
                                             {L"OPTIONS", MenuItem::Options,
@@ -191,7 +193,9 @@ void PauseScene::CreateUIElements() {
                                              [this]() {
                                                  UISound::PlayDecide();
                                                  if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                                                     sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.6f);
+                                                     sm->TransitionTo("Title", SceneTransition::Type::RadialBlur, 0.6f,
+                                                                      EaseType::EaseInCubic,
+                                                                      Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
                                                  }
                                              }},
                                             {L"QUIT", MenuItem::Quit, []() {

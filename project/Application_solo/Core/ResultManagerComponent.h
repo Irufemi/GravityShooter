@@ -39,6 +39,7 @@ private:
     void RemoveEntryPostProcess();
 
     bool isPostProcessActive_ = false;
+    bool hasWhiteFlash_ = false;
 
     std::weak_ptr<GameObject> darkBackdropObj_;
     std::weak_ptr<GameObject> pressSpaceObj_;

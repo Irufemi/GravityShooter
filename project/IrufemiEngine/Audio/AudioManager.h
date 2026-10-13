@@ -273,6 +273,13 @@ public:
     void StopAll();
 
     /**
+     * @brief 特定のカテゴリの再生中サウンドを一括停止する
+     * @param[in] category 対象カテゴリ
+     * @param[in] fadeOutDuration フェードアウトにかける秒数（0.0f以下の場合は即時強制停止）
+     */
+    void StopCategory(AudioCategory category, float fadeOutDuration = 0.0f);
+
+    /**
      * @brief すべての再生中サウンドを一時停止する
      */
     void PauseAll();

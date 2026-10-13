@@ -65,6 +65,10 @@ void SceneTransition::Start(Type type, float duration, bool isOut, EaseType ease
     if (driver_) {
         driver_->OnStart(ppManager_, activeTransitionModes_);
     }
+
+    if (onStartCallback_) {
+        onStartCallback_(currentType_, isOut_);
+    }
 }
 
 void SceneTransition::Update(float deltaTime) {

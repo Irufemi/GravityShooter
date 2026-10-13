@@ -595,6 +595,41 @@ void AudioManager::StopAll() {
     activeVoices_.clear();
 }
 
+void AudioManager::StopCategory(AudioCategory category, float fadeOutDuration) {
+    std::lock_guard<std::mutex> lock(voiceMutex_);
+    if (fadeOutDuration <= 0.0f) {
+        // 即時停止・破棄
+        for (auto it = activeVoices_.begin(); it != activeVoices_.end();) {
+            if (*it && (*it)->GetCategory() == category) {
+                (*it)->Destroy();
+                it = activeVoices_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    } else {
+        // フェードアウトタスクを登録して滑らかに減衰停止
+        for (auto& voice : activeVoices_) {
+            if (voice && voice->GetCategory() == category) {
+                std::erase_if(fadeTasks_, [&](const FadeTask& task) {
+                    auto v = task.voice.lock();
+                    return v && v == voice;
+                });
+
+                FadeTask task;
+                task.voice = voice;
+                task.startVolume = voice->GetVolume();
+                task.targetVolume = 0.0f;
+                task.sustainDuration = 0.0f;
+                task.fadeDuration = (std::max)(0.001f, fadeOutDuration);
+                task.elapsedTime = 0.0f;
+                task.stopOnComplete = true;
+                fadeTasks_.push_back(task);
+            }
+        }
+    }
+}
+
 void AudioManager::PauseAll() {
     std::lock_guard<std::mutex> lock(voiceMutex_);
     for (auto& voice : activeVoices_) {
