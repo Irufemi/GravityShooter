@@ -12,6 +12,7 @@
 #include "Renderer/System/ParticleGPU/GPUParticleManager.h"
 #include "Physics/CollisionManager.h"
 #include "Renderer/Camera/CameraManager.h"
+#include "Renderer/Fluid/FluidSimulation2D.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
 
@@ -460,6 +461,7 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     }
 
     Factory factory = it->second;
+    Key previousScene = GetCurrent();
     isAsyncInitializing_.store(true);
     isInitializing_ = true;
     wasLoading_ = false;
@@ -506,8 +508,17 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     SceneSerializer::ClearCache();
 
     // シーン切り替え時に前シーン・遷移演出の残留SEを確実に停止・破棄（新シーンへの音漏れを根絶）
+    // ※ただし、Titleからの出撃（Title ➔ InGame）の際は、シームレスな出撃ジェット音（3.55秒）の突入同期を保護・維持する
     if (engine_->GetAudioManager()) {
-        engine_->GetAudioManager()->StopCategory(AudioCategory::SE);
+        bool isTitleLaunchToInGame = (previousScene == "Title" && next == "InGame");
+        if (!isTitleLaunchToInGame) {
+            engine_->GetAudioManager()->StopCategory(AudioCategory::SE);
+        }
+    }
+
+    // シーン切り替え時に流体シミュレーションの残存運動量・渦を完全にゼロクリア（シーン間での速度累積バグを根絶）
+    if (auto fluid = engine_->GetFluidSimulation()) {
+        fluid->Reset();
     }
 
     initFuture_ = std::async(std::launch::async, [this, factory, next]() {

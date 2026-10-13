@@ -112,6 +112,11 @@ public: // メンバ関数
     void AddGravityVortex(const Irufemi::Vector2& uv, float pullStrength, float swirlStrength, float radius);
 
     /**
+     * @brief 流体場（速度・濃度・未処理外力）を完全にゼロリセットする
+     */
+    void Reset();
+
+    /**
      * @brief 描画シェーダー用 濃度テクスチャ SRV を取得
      */
     D3D12_GPU_DESCRIPTOR_HANDLE GetDensitySRV() const;
@@ -202,4 +207,5 @@ private: // メンバ変数
 
     // フレームごとの外力注入キュー
     std::vector<InjectionRequest> injectionQueue_;
+    bool needsReset_ = false;
 };

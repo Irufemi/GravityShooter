@@ -223,6 +223,11 @@ void FluidSimulation2D::AddGravityVortex(const Irufemi::Vector2& uv, float pullS
     injectionQueue_.push_back(req);
 }
 
+void FluidSimulation2D::Reset() {
+    injectionQueue_.clear();
+    needsReset_ = true;
+}
+
 D3D12_GPU_DESCRIPTOR_HANDLE FluidSimulation2D::GetDensitySRV() const {
     if (dxCommon_) {
         if (auto* pool = dxCommon_->GetSrvPool()) {
@@ -261,6 +266,29 @@ void FluidSimulation2D::DispatchCompute() {
 
     // エンジン統一の ComputeRootSignature を設定 (SetDescriptorHeapsの切り替えは一切不要)
     commandList->SetComputeRootSignature(dxCommon_->GetComputeRootSignature());
+
+    // ゼロクリア（Reset）リクエスト処理: GPU上で両面（Ping-Pong）の速度・濃度を完全にゼロ化
+    if (needsReset_) {
+        needsReset_ = false;
+        injectionQueue_.clear();
+        if (psoInject_ && mappedInjectParams_) {
+            commandList->SetPipelineState(psoInject_.Get());
+            mappedInjectParams_->injectType = 3.0f; // Clear mode
+            commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1, injectParamsCB_->GetGPUVirtualAddress());
+
+            for (int i = 0; i < 2; ++i) {
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(velocitySrvIndices_[i]));
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1, pool->GetGPUHandle(densitySrvIndices_[i]));
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(velocityUavIndices_[i]));
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1, pool->GetGPUHandle(densityUavIndices_[i]));
+                commandList->Dispatch(dispatchX, dispatchY, 1);
+                DirectXUtils::UAVBarrier(commandList, velocityTex_[i].Get());
+                DirectXUtils::UAVBarrier(commandList, densityTex_[i].Get());
+            }
+        }
+        return; // リセットフレームは移流・解法処理をスキップして即座に静寂状態を確立
+    }
+
     commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b0, globalParamsCB_->GetGPUVirtualAddress());
 
     // ------------------------------------------------------------------------

@@ -101,32 +101,22 @@ void GravitySingularityTransitionDriver::OnStart(PostProcessManager* ppm, std::v
 }
 
 void GravitySingularityTransitionDriver::OnUpdate(PostProcessManager* ppm, float factor) {
+    // 星雲の重力特異点中心 (0.50f, 0.42f) と完全に合致させ、遷移時の中心ズレ・二重渦干渉を排除
+    const Irufemi::Vector2 singularityCenter{0.50f, 0.42f};
+
     if (ppm) {
-        // 1. 空間の歪みと加速（RadialBlur: 指数関数的にブースト）
-        float blurProgress = std::pow(factor, 2.2f);
-        ppm->GetRadialBlurParams().blurWidth = blurProgress * 0.12f;
-        ppm->GetRadialBlurParams().center = {0.5f, 0.5f};
+        // 1. 空間の歪みと加速（RadialBlur: 上品で深遠な求心的ワープ吸い込み）
+        float blurProgress = std::pow(factor, 2.0f);
+        ppm->GetRadialBlurParams().blurWidth = blurProgress * 0.045f;
+        ppm->GetRadialBlurParams().center = singularityCenter;
         ppm->GetRadialBlurParams().numSamples = 16;
 
-        // 2. 重力色収差（ChromaticAberration: 臨界点でピークに達する赤方偏移）
-        float chromaProgress = std::pow(factor, 1.5f);
-        ppm->GetChromaticAberrationParams().intensity = chromaProgress * 0.06f;
+        // 2. 重力色収差（ChromaticAberration: 派手な虹色ノイズを排し、繊細な重力プリズム光へ）
+        float chromaProgress = std::pow(factor, 1.6f);
+        ppm->GetChromaticAberrationParams().intensity = chromaProgress * 0.015f;
 
-        // 3. 事象の地平線ブラックアウト（Fade: 終盤で一気に吸い込まれ暗転）
-        ppm->GetFadeParams().intensity = std::pow(factor, 2.5f);
-    }
-
-    // 4. 流体星雲シミュレーションとの物理連動（画面中心へ強力な重力特異点を注入）
-    if (ppm) {
-        if (auto engine = ppm->GetEngine()) {
-            if (auto fluid = engine->GetFluidSimulation()) {
-                // factorの上昇に合わせて吸引力と回転渦を指数関数的にブースト
-                float pullStrength = factor * 45.0f;
-                float swirlStrength = factor * 60.0f;
-                float radius = 0.5f + factor * 0.3f;
-                fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.5f}, pullStrength, swirlStrength, radius);
-            }
-        }
+        // 3. 事象の地平線ブラックアウト（Fade: 滑らかに深遠な暗黒へ落ちていく）
+        ppm->GetFadeParams().intensity = std::pow(factor, 2.0f);
     }
 }
 

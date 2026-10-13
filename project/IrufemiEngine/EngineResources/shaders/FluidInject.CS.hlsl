@@ -21,6 +21,13 @@ void main(uint3 id : SV_DispatchThreadID) {
     float safeRadius = max(0.001, gInjectRadius);
     float factor = exp(-pow(dist / safeRadius, 2.0)); // ガウス分布減衰
 
+    if (gInjectType > 2.5) {
+        // 全面ゼロリセット (Clear / Reset)
+        gOutVelocity[coord] = float2(0.0, 0.0);
+        gOutDensity[coord]  = float4(0.0, 0.0, 0.0, 0.0);
+        return;
+    }
+
     if (gInjectType < 0.5) {
         // 通常の外力注入 (速度ベクトル)
         gOutVelocity[coord] = gInVelocity[coord] + gInjectVelocity * factor * gDeltaTime * 60.0;
@@ -34,8 +41,13 @@ void main(uint3 id : SV_DispatchThreadID) {
         float2 dirToCenter = (dist > 0.0001) ? normalize(delta) : float2(0, 0);
         float2 tangentDir = float2(-dirToCenter.y, dirToCenter.x);
 
-        float2 pullForce = -dirToCenter * gPullStrength * factor;
-        float2 swirlForce = tangentDir * gVortexStrength * factor;
+        // 特異点中心核（台風の目）での速度激突・格子ノイズを防ぐため、
+        // 中心極近傍（dist < 0.045）を滑らかにゼロへ減衰（ランキン渦モデル）
+        float coreDamp = smoothstep(0.005, 0.045, dist);
+        float singularityFactor = factor * coreDamp;
+
+        float2 pullForce = -dirToCenter * gPullStrength * factor; // 引力は中心へ素直に吸い込む
+        float2 swirlForce = tangentDir * gVortexStrength * singularityFactor; // 回転は中心核でゼロに収束
         float2 totalForce = (pullForce + swirlForce) * gDeltaTime * 60.0;
 
         gOutVelocity[coord] = gInVelocity[coord] + totalForce;

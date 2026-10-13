@@ -438,6 +438,9 @@ void TitleSceneDirectorComponent::SkipLaunchSequence() {
     CleanupRadialBlur();
     hasTriggeredSceneTransition_ = true;
     if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            am->StopCategory(AudioCategory::SE);
+        }
         if (auto sm = engine->GetSceneManager()) {
             // 世界観に合致した重力シアンブラックで空間を吸い込み暗転
             sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.35f, EaseType::EaseInQuad,

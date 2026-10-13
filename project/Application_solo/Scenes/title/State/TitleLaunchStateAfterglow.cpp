@@ -33,8 +33,10 @@ void TitleLaunchStateAfterglow::Update(TitleSceneDirectorComponent* director, fl
         }
     }
 
-    // 自機消失の直後（0.05秒）で即座に重力特異点跳躍を発火し、間延びを完全排除
-    if (stateTimer >= 0.05f && !director->HasTriggeredSceneTransition()) {
-        director->TriggerSceneTransition(0.45f);
+    // ジェット音（se_player_boost.mp3: 実測3.55秒）の遠ざかり残響・ドップラー消音と完全同期
+    // 点火からの経過時間: Accelerate(1.10s) + Break(0.60s) + Afterglow待機(1.25s) = 2.95s
+    // ここで 0.60秒の重力特異点跳躍（暗転）を発火することで、2.95s + 0.60s = 3.55秒の消音完了瞬間にジャスト暗転完了
+    if (stateTimer >= 1.25f && !director->HasTriggeredSceneTransition()) {
+        director->TriggerSceneTransition(0.60f);
     }
 }

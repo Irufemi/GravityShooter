@@ -5,7 +5,8 @@ void TitleMenuStateLaunching::Enter(TitleMenuControllerComponent* menu) {
     if (!menu) {
         return;
     }
-    menu->TriggerScreenFlash();
+    // 白飛びフラッシュを停止し、暗黒宇宙とスラスター噴流・流体のコントラストを死守
+    // menu->TriggerScreenFlash();
     menu->StartDismissAnimation();
     menu->TriggerLaunchSequence();
 }

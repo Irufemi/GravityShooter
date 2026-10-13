@@ -20,11 +20,12 @@ TitleCosmicNebulaComponent::~TitleCosmicNebulaComponent() {
 void TitleCosmicNebulaComponent::Initialize() {
     CreateConstantBuffer();
 
-    // タイトル星雲用に流体減衰率を最適化（約0.5秒でスッと自然に消える減衰速度）
+    // タイトル星雲用に流体減衰率を最適化＆前シーンの残存運動量を完全ゼロリセット
     if (auto engine = GetEngine()) {
         if (auto fluid = engine->GetFluidSimulation()) {
+            fluid->Reset();
             fluid->SetDensityDissipation(0.92f);   // 濃度減衰率
-            fluid->SetVelocityDissipation(0.985f); // 速度減衰率
+            fluid->SetVelocityDissipation(0.925f); // 速度減衰率（約0.5秒でスッと自然に消える減衰）
         }
     }
 }
@@ -67,9 +68,9 @@ void TitleCosmicNebulaComponent::Update() {
 
     totalTime_ += deltaTime;
 
-    // 出撃パルスタイマー進行
+    // 出撃パルスタイマー進行（約1.1秒間持続し、自機加速と同期して美しく広がる）
     if (isPulseActive_) {
-        pulseTimer_ += deltaTime * 1.5f;
+        pulseTimer_ += deltaTime * 0.9f;
         if (pulseTimer_ >= 1.0f) {
             pulseTimer_ = 0.0f;
             isPulseActive_ = false;
@@ -129,8 +130,10 @@ void TitleCosmicNebulaComponent::Update() {
         }
 
         // 出撃シーケンス突入時の重力特異点渦の注入（※通常クリックでは発火しない）
+        // ベルカーブ (sin) で滑らかに立ち上がり、パルス終了時に自然にゼロへ収束
         if (isPulseActive_) {
-            fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 35.0f * pulseTimer_, 45.0f * pulseTimer_, 0.45f);
+            float pulseWave = std::sin(std::clamp(pulseTimer_, 0.0f, 1.0f) * 3.14159265f);
+            fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 22.0f * pulseWave, 26.0f * pulseWave, 0.42f);
         }
     }
 

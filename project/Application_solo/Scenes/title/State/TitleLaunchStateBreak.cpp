@@ -61,12 +61,6 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
 
     director->SetTargetThrusterScaleZ(2.8f);
 
-    // 4. 自機が特異点へ激突・事象の地平線へ突入した瞬間に重力特異点跳躍を発火！
-    // 0.48秒の時間を確保し、空間がねじ曲がり深淵へ引きずり込まれる映像美をしっかり演出
-    if (p3 >= 0.10f && !director->HasTriggeredSceneTransition()) {
-        director->TriggerSceneTransition(0.48f);
-    }
-
     // 状態遷移判定
     if (stateTimer >= TitleSceneDirectorComponent::kDurationBreak_) {
         director->ChangeState(std::make_unique<TitleLaunchStateAfterglow>());
