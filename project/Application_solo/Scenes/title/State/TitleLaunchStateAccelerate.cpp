@@ -1,6 +1,7 @@
 #include "TitleLaunchStateAccelerate.h"
 #include "TitleLaunchStateBreak.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
+#include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Framework/Component/Camera/CameraComponent.h"
 #include "Framework/Component/Camera/CameraShakeComponent.h"
 #include "Framework/Component/Effect/ParticleEmitterComponent.h"
@@ -99,6 +100,11 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
 
     // スラスター急伸長
     director->SetTargetThrusterScaleZ(std::lerp(1.2f, 2.4f, p2));
+
+    // 星雲渦の連動加速（自機の加速に伴い、角運動量注入で渦の回転が立ち上がる）
+    if (auto nebulaComp = director->GetNebulaComponent()) {
+        nebulaComp->SetSwirlMultiplier(std::lerp(1.0f, 2.2f, accelCurve));
+    }
 
     // 状態遷移判定
     if (stateTimer >= TitleSceneDirectorComponent::kDurationAccelerate_) {

@@ -45,6 +45,22 @@ public: // メンバ関数
      */
     void TriggerPulse(float power = 1.0f);
 
+    /**
+     * @brief 自機突入・特異点インプロージョン（事象の地平線膨張・求心吸引）の進行度を設定する
+     * @param[in] progress 進行度 [0.0 - 1.0]
+     */
+    void SetCollapseProgress(float progress) {
+        collapseProgress_ = progress;
+    }
+
+    /**
+     * @brief 渦の回転強度倍率を設定する
+     * @param[in] multiplier 回転倍率
+     */
+    void SetSwirlMultiplier(float multiplier) {
+        swirlMultiplier_ = multiplier;
+    }
+
 private:
     void CreateConstantBuffer();
 
@@ -56,6 +72,10 @@ private: // メンバ変数
     float totalTime_ = 0.0f;
     float pulseTimer_ = 0.0f;
     bool isPulseActive_ = false;
+
+    // 自機突入時の特異点インプロージョン制御
+    float collapseProgress_ = 0.0f;
+    float swirlMultiplier_ = 1.0f;
 
     // マウスカーソル追従・曲線トレイル流体場用
     struct TrailNode {

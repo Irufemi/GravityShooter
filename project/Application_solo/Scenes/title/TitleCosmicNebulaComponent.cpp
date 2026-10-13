@@ -175,9 +175,10 @@ void TitleCosmicNebulaComponent::Update() {
     // パラメータ更新
     params_.pulseIntensity = isPulseActive_ ? pulseTimer_ : 0.0f;
     params_.time = totalTime_;
-    params_.swirlStrength = 0.65f;
+    params_.swirlStrength = 0.65f * swirlMultiplier_;
     params_.density = 1.0f;
-    params_.centerUV = {vortexCenterX, vortexCenterY, 0.0f, 0.0f};
+    // centerUV: xy = 特異点中心, z = インプロージョン崩壊進行度 [0.0 - 1.0], w = 予備
+    params_.centerUV = {vortexCenterX, vortexCenterY, collapseProgress_, 0.0f};
     // mouseUV: xy = カーソル正規化UV, zw = 平滑化移動速度ベクトル (Velocity)
     params_.mouseUV = {smoothedMouseUV_.x, smoothedMouseUV_.y, smoothedVelocity_.x, smoothedVelocity_.y};
 

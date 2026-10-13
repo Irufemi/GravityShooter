@@ -1,6 +1,7 @@
 #include "TitleLaunchStateBreak.h"
 #include "TitleLaunchStateAfterglow.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
+#include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Framework/Component/Camera/CameraComponent.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Core/System/IrufemiEngine.h"
@@ -70,6 +71,12 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
     // 自機が吸い込まれて消える瞬間と同時に画面全体が事象の地平線の暗黒に包まれる（途切れ・虚無時間の完全排除）
     if (p3 >= 0.35f && !director->HasTriggeredSceneTransition()) {
         director->TriggerSceneTransition(0.55f);
+    }
+
+    // 5. 自機突入に呼応する星雲特異点のインプロージョン（事象の地平線爆発的拡大＆渦超加速）
+    if (auto nebulaComp = director->GetNebulaComponent()) {
+        nebulaComp->SetCollapseProgress(p3);
+        nebulaComp->SetSwirlMultiplier(std::lerp(2.2f, 4.5f, p3));
     }
 
     // 状態遷移判定

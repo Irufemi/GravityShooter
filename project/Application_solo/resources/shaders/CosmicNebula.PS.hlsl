@@ -132,6 +132,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
     wakeDistort = length(totalDisplacement) * 22.0;
 
     // --- 3. 巨大な重力リング（Accretion Nebula Ring）と「中央の深淵（Void）」 ---
+    // 平常時（待機画面）は元々の美しい星雲を100%そのまま維持（一切の穴あけ・マスクをしない）
     float dist = length(float2(rotP.x, rotP.y * 1.25));
 
     // 参考画像準拠: 中央（dist < 0.28）は漆黒の深淵、半径0.48付近に光の環が展開
@@ -145,7 +146,8 @@ PixelShaderOutput main(VertexShaderOutput input) {
     // --- 4. 2D回転行列による連続渦巻き（背後の渦への波及・トルク適用） ---
     // atan2の角度不連続(±π)を一切使わず、連続な cos/sin 回転行列で空間をねじる
     // 内周ほど吸い込まれ、全体として心地よい流動感をもたらす回転速度
-    float swirlSpeed = 0.38 + 0.18 / (dist + 0.20);
+    // 自機突入時（swirlStrength）のみ渦の回転が加速
+    float swirlSpeed = (0.38 + 0.18 / (dist + 0.20)) * (gNebula.swirlStrength / 0.65);
     float swirlAmount = 3.6 * log(dist + 0.15) - time * swirlSpeed + swirlTorque;
     float s = sin(swirlAmount);
     float c = cos(swirlAmount);
@@ -197,6 +199,18 @@ PixelShaderOutput main(VertexShaderOutput input) {
     finalColor += colCyan * (pow(filament * ringMask, 2.2) * 1.65);
     finalColor += colWhite * (pow(filament * ringMask, 4.2) * 2.80);
     finalColor += colCyan * innerEdge;
+
+    // ★ 自機突入インプロージョン（自機が飛び込んだ時のみ、中心0.0から穴が生まれ外側へ広がる）
+    float collapse = saturate(gNebula.centerUV.z);
+    if (collapse > 0.001) {
+        float voidRadius = collapse * 1.65;
+        float holeMask = smoothstep(voidRadius - 0.06, voidRadius + 0.06, dist);
+        finalColor *= holeMask;
+
+        // 拡大する穴のエッジ光（光子球の励起）
+        float holeEdge = exp(-pow(dist - voidRadius, 2.0) * 45.0) * collapse * 1.5;
+        finalColor += colCyan * holeEdge + colWhite * (pow(holeEdge, 2.5) * 2.0);
+    }
 
     // --- 7. 星屑の瞬き（深宇宙の静止した星空） ---
     float2 starUV1 = uv * 360.0;

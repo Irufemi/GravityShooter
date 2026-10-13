@@ -1,5 +1,6 @@
 #include "TitleLaunchStateAfterglow.h"
 #include "Scenes/title/TitleSceneDirectorComponent.h"
+#include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
 
@@ -11,6 +12,12 @@ void TitleLaunchStateAfterglow::Enter(TitleSceneDirectorComponent* director) {
     // 自機を画面外へ退避（Breakの極小収縮を経て完全消失）
     if (auto ship = director->GetShipObject().lock()) {
         ship->SetActive(false);
+    }
+
+    // 星雲特異点のインプロージョン最大崩壊状態を維持（暗転完了へシームレスに合流）
+    if (auto nebulaComp = director->GetNebulaComponent()) {
+        nebulaComp->SetCollapseProgress(1.0f);
+        nebulaComp->SetSwirlMultiplier(4.5f);
     }
 
     // 安全弁: Break側で未発火だった場合は即座に重力特異点跳躍（暗転）を発火

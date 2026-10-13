@@ -636,6 +636,11 @@ void TitleSceneDirectorComponent::UpdateLaunchPostProcess(float deltaTime) {
 }
 
 void TitleSceneDirectorComponent::CleanupLaunchPostProcess() {
+    if (auto nebulaComp = GetNebulaComponent()) {
+        nebulaComp->SetCollapseProgress(0.0f);
+        nebulaComp->SetSwirlMultiplier(1.0f);
+    }
+
     if (isLaunchPostProcessActive_) {
         if (auto engine = GetEngine()) {
             if (auto ppm = engine->GetPostProcessManager()) {
