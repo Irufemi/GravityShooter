@@ -106,6 +106,17 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
         nebulaComp->SetSwirlMultiplier(std::lerp(1.0f, 2.2f, accelCurve));
     }
 
+    // 遠景・中景小惑星群のスラスター衝撃波散開（Blast Wave）更新
+    for (auto& ast : director->GetAsteroidInstances()) {
+        if (ast.blastVelocity.x != 0.0f || ast.blastVelocity.y != 0.0f || ast.blastVelocity.z != 0.0f) {
+            ast.currentPos.x += ast.blastVelocity.x * dt * p2 * 1.8f;
+            ast.currentPos.y += ast.blastVelocity.y * dt * p2 * 1.8f;
+            ast.currentPos.z += ast.blastVelocity.z * dt * p2 * 1.8f;
+            ast.rotation.x += dt * 3.5f;
+            ast.rotation.y += dt * 5.0f;
+        }
+    }
+
     // 状態遷移判定
     if (stateTimer >= TitleSceneDirectorComponent::kDurationAccelerate_) {
         director->ChangeState(std::make_unique<TitleLaunchStateBreak>());

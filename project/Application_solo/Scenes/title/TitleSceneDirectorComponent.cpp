@@ -21,18 +21,22 @@
 #include "Core/Math/MathFunction.h"
 #include "Framework/Component/Effect/VoxelParticleComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
+#include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Input/GameAction.h"
 #include "Platform/Input/InputManager.h"
 #include <cmath>
 #include <algorithm>
+#include <random>
 
 TitleSceneDirectorComponent::~TitleSceneDirectorComponent() {
     CleanupLaunchPostProcess();
+    CleanupAsteroidBelt();
 }
 
 void TitleSceneDirectorComponent::OnDestroy() {
     CleanupLaunchPostProcess();
+    CleanupAsteroidBelt();
 }
 
 void TitleSceneDirectorComponent::Initialize() {
@@ -49,11 +53,12 @@ void TitleSceneDirectorComponent::Initialize() {
     stateTimer_ = 0.0f;
     idleTimer_ = 0.0f;
     debrisRepelOffsets_.clear();
+    debrisBlastVelocities_.clear();
+    debrisDrifts_.clear();
+    initialDebrisPositions_.clear();
+    asteroidInstances_.clear();
+    asteroidBatchRenderer_ = nullptr;
     initialBgmVolume_ = 0.70f;
-
-    // ガレキの公転パラメータ初期化 (半径X, 半径Z, 速度, 初期位相, 高さオフセット)
-    debrisOrbits_ = {
-        {1.8f, 1.4f, 0.45f, 0.0f, 0.35f}, {2.1f, 1.7f, -0.35f, 2.1f, -0.25f}, {1.5f, 1.9f, 0.55f, 4.3f, 0.10f}};
 }
 
 void TitleSceneDirectorComponent::OnRegisterProperties() {
@@ -118,17 +123,9 @@ void TitleSceneDirectorComponent::CacheEntities() {
         }
     }
 
-    // ガレキの取得
-    if (debrisObjs_.empty()) {
-        const std::string debrisNames[] = {"OrbitDebris_1", "OrbitDebris_2", "OrbitDebris_3"};
-        for (const auto& name : debrisNames) {
-            if (auto debrisObj = scene->FindGameObject(name)) {
-                debrisObjs_.push_back(debrisObj);
-                if (auto t = debrisObj->GetTransform()) {
-                    initialDebrisPositions_.push_back(t->GetPosition());
-                }
-            }
-        }
+    // 遠景アステロイドベルト（スペースデブリ群）のGPUインスタンシング初期化
+    if (asteroidInstances_.empty()) {
+        SpawnAsteroidBelt();
     }
 
     // 神秘的な星雲コンポーネントの取得
@@ -150,6 +147,123 @@ void TitleSceneDirectorComponent::CacheEntities() {
 
     // 自機スラスターエフェクトのセットアップ（GameScene完全同期）
     SetupThrusterEffect();
+}
+
+void TitleSceneDirectorComponent::SpawnAsteroidBelt() {
+    if (!asteroidInstances_.empty()) {
+        return;
+    }
+
+    // GPUインスタンシング用 ModelBatchRendererComponent を取得またはアタッチ
+    if (auto myObj = GetGameObject()) {
+        asteroidBatchRenderer_ = myObj->GetComponent<ModelBatchRendererComponent>();
+        if (!asteroidBatchRenderer_) {
+            auto comp = myObj->AddComponent<ModelBatchRendererComponent>();
+            asteroidBatchRenderer_ = comp.get();
+        }
+    }
+    if (asteroidBatchRenderer_) {
+        // モデルを 1 回だけ安全にロード
+        asteroidBatchRenderer_->LoadModel("resources/model/Debris/Generic/Debris_Generic.obj");
+    }
+
+    // シード固定の疑似乱数生成器（毎回の起動で映画的配置を確定的に再現）
+    std::mt19937 rng(1337);
+    std::uniform_real_distribution<float> distZ(28.0f, 215.0f);
+    std::uniform_real_distribution<float> distAngle(0.0f, 6.2831853f);
+    std::uniform_real_distribution<float> distScale(0.85f, 4.2f);
+    std::uniform_real_distribution<float> distRot(0.0f, 6.2831853f);
+    std::uniform_real_distribution<float> distTumble(-0.16f, 0.16f);
+    std::uniform_real_distribution<float> distAmp(0.04f, 0.12f);
+    std::uniform_real_distribution<float> distFreq(0.18f, 0.40f);
+
+    const int kAsteroidCount = 42;
+    asteroidInstances_.reserve(kAsteroidCount);
+
+    for (int i = 0; i < kAsteroidCount; ++i) {
+        // Z座標を奥へ均等かつ自然に分散（Z=12m〜210m）
+        float progress = static_cast<float>(i) / static_cast<float>(kAsteroidCount);
+        float z = std::lerp(12.0f, 210.0f, progress) + (distZ(rng) - 120.0f) * 0.08f;
+
+        // 奥行き z に応じて視野が広がる（円錐・扇状の広がり）
+        float depthFactor = std::sqrt(z / 12.0f);
+        float minRadius = 3.0f + depthFactor * 0.7f; // 自機周辺（中央トンネル）は必ずクリアに保つ
+        float maxRadius = 5.0f + depthFactor * 5.5f;
+
+        std::uniform_real_distribution<float> distR(minRadius, maxRadius);
+        float r = distR(rng);
+        float angle = distAngle(rng);
+
+        // 楕円状の広がり（左右に広く、上下はやや引き締めてシネマティックスコープ比に合致）
+        float x = std::cos(angle) * r * 1.55f;
+        float y = 0.52f + std::sin(angle) * r * 0.75f;
+
+        Irufemi::Vector3 pos{x, y, z};
+
+        // スケール決定（手前はシャープな岩塊、奥の巨石は雄大に巨大化）
+        float baseScale = distScale(rng);
+        if (z < 35.0f) {
+            baseScale = std::clamp(baseScale, 1.2f, 2.5f);
+        } else if (z > 90.0f) {
+            baseScale *= 1.5f; // 遥か遠景の小惑星は雄大に巨大化
+        }
+        // 各軸にわずかな非対称性を持たせてゴツゴツ感を強調
+        Irufemi::Vector3 scale{
+            baseScale * (1.0f + (distTumble(rng) * 1.5f)),
+            baseScale * (1.0f + (distTumble(rng) * 1.5f)),
+            baseScale * (1.0f + (distTumble(rng) * 1.5f))
+        };
+
+        // 星雲の流動速度に完全同期した角速度（1周 約20〜45秒、角速度 0.14〜0.28 rad/s）
+        // 星雲の渦潮（Cosmic Nebula Swirl）に乗ってグングン流れるダイナミックなペース
+        float orbitSpeed = 0.26f * std::sqrt(5.5f / (r + 1.8f));
+
+        AsteroidInstanceData ast;
+        ast.basePos = pos;
+        ast.currentPos = pos;
+        ast.rotation = {distRot(rng), distRot(rng), distRot(rng)};
+        ast.initialScale = scale;
+        ast.currentScale = scale;
+        ast.tumbleSpeed = {distTumble(rng), distTumble(rng), distTumble(rng)};
+        ast.driftAmp = {distAmp(rng), distAmp(rng), distAmp(rng) * 0.5f};
+        ast.driftFreq = {distFreq(rng), distFreq(rng), distFreq(rng)};
+        ast.blastVelocity = {0.0f, 0.0f, 0.0f};
+        ast.phase = distRot(rng);
+        ast.orbitRadius = r;
+        ast.orbitAngle = angle;
+        ast.orbitSpeed = orbitSpeed;
+
+        asteroidInstances_.push_back(ast);
+    }
+}
+
+void TitleSceneDirectorComponent::CleanupAsteroidBelt() {
+    if (asteroidBatchRenderer_) {
+        asteroidBatchRenderer_->ClearInstances();
+    }
+    asteroidInstances_.clear();
+    debrisObjs_.clear();
+    debrisDrifts_.clear();
+    debrisRepelOffsets_.clear();
+    debrisBlastVelocities_.clear();
+    initialDebrisPositions_.clear();
+}
+
+void TitleSceneDirectorComponent::RenderAsteroidBelt() {
+    if (!asteroidBatchRenderer_) {
+        if (auto myObj = GetGameObject()) {
+            asteroidBatchRenderer_ = myObj->GetComponent<ModelBatchRendererComponent>();
+        }
+    }
+    if (!asteroidBatchRenderer_) {
+        return;
+    }
+
+    asteroidBatchRenderer_->ClearInstances();
+    for (const auto& ast : asteroidInstances_) {
+        Irufemi::Transform t{ast.currentScale, ast.rotation, ast.currentPos};
+        asteroidBatchRenderer_->AddInstance(t);
+    }
 }
 
 void TitleSceneDirectorComponent::SetupThrusterEffect() {
@@ -192,39 +306,17 @@ void TitleSceneDirectorComponent::TriggerDebrisExplosion() {
     }
     hasExplodedDebris_ = true;
 
-    auto scene = GetScene();
-    for (size_t i = 0; i < debrisObjs_.size(); ++i) {
-        if (auto debris = debrisObjs_[i].lock()) {
-            Irufemi::Vector3 debrisPos{0.0f, 0.0f, 0.0f};
-            if (auto dt = debris->GetTransform()) {
-                debrisPos = dt->GetWorldPosition();
-            }
-
-            // A. Voxel破砕の発火（放射スピン＋超推力吹き飛ばし）
-            if (auto voxelComp = debris->GetComponent<VoxelParticleComponent>()) {
-                float angle = static_cast<float>(i) * 2.094395f; // 120度刻み
-                Irufemi::Vector3 blowVelocity{
-                    std::cos(angle) * 11.0f, std::sin(angle) * 6.5f + 2.0f,
-                    -18.0f // スラスター後流へ強烈に吹き飛ばす
-                };
-                voxelComp->Explode(blowVelocity, {8.0f, 14.0f, 6.0f}, {1.0f, 1.0f, 1.0f});
-            }
-
-            // B. 複合レイヤー：破砕位置に粉塵・衝撃パーティクルを展開
-            if (scene) {
-                auto dust = scene->InstantiatePrefab("resources/prefabs/debris_dust_effect.json", debrisPos);
-                if (dust) {
-                    dust->SetIsSerializable(false);
-                    dust->SetHideInHierarchy(true);
-                    auto emitters = dust->GetComponentsInChildren<ParticleEmitterComponent>();
-                    for (auto pe : emitters) {
-                        pe->Restart(false);
-                    }
-                }
-            }
-
-            // 元のガレキオブジェクトを非アクティブ化してVoxel破砕粒子＆粉塵煙のみを描画
-            debris->SetActive(false);
+    // 手前の小惑星（Z < 45m）にスラスター点火の衝撃波による外向き速度を付与
+    for (size_t i = 0; i < asteroidInstances_.size(); ++i) {
+        auto& ast = asteroidInstances_[i];
+        if (ast.currentPos.z < 45.0f) {
+            float angle = static_cast<float>(i) * 0.785398f;
+            float outwardSpeed = 3.5f + static_cast<float>(i % 3) * 1.5f;
+            ast.blastVelocity = Irufemi::Vector3{
+                std::cos(angle) * outwardSpeed,
+                std::sin(angle) * outwardSpeed * 0.6f,
+                -2.0f
+            };
         }
     }
 }
@@ -283,6 +375,9 @@ void TitleSceneDirectorComponent::Update() {
     } else {
         UpdateLaunchSequence(deltaTime);
     }
+
+    // 毎フレーム GPU インスタンシングで 42基の小惑星を一括描画
+    RenderAsteroidBelt();
 }
 
 void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
@@ -308,97 +403,32 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         cameraTransform->SetPosition({swayX, swayY, initialCameraPos_.z});
     }
 
-    // 3. ガレキの公転運動と自転（＋マウスカーソルによる有機的重力反発）
-    if (debrisRepelOffsets_.size() != debrisObjs_.size()) {
-        debrisRepelOffsets_.assign(debrisObjs_.size(), {0.0f, 0.0f, 0.0f});
-    }
-
-    // 仮想カーソル座標およびカメラのビュー射影変換情報を取得
-    auto engine = GetEngine();
-    Irufemi::Vector2 cursorPos{640.0f, 360.0f};
-    if (engine && engine->GetInputManager()) {
-        cursorPos = engine->GetInputManager()->GetVirtualCursorPosition();
-    }
-    auto cameraComp = GetCameraComponent();
-    std::shared_ptr<Camera> camera = cameraComp ? cameraComp->GetCamera() : nullptr;
-
-    // 衝撃波の減衰更新
-    shockwaveIntensity_ = (std::max)(0.0f, shockwaveIntensity_ - deltaTime * 1.6f);
-
-    for (size_t i = 0; i < debrisObjs_.size(); ++i) {
-        auto debris = debrisObjs_[i].lock();
-        if (!debris || i >= debrisOrbits_.size()) {
-            continue;
-        }
-        auto t = debris->GetTransform();
-        if (!t) {
-            continue;
+    // 3. アステロイドベルト（スペースデブリ群）の星雲同期スワール公転 ＆ 3軸自転
+    for (auto& ast : asteroidInstances_) {
+        // 差動公転角の更新（星雲の反時計回り渦流に同期して緩やかに公転）
+        ast.orbitAngle += ast.orbitSpeed * deltaTime;
+        if (ast.orbitAngle > 6.2831853f * 100.0f) {
+            ast.orbitAngle -= 6.2831853f * 100.0f;
         }
 
-        const auto& orbit = debrisOrbits_[i];
-        float angle = orbit.phase + idleTimer_ * orbit.speed;
+        // 楕円軌道（シネマティックスコープ比: X=1.55, Y=0.75, 星雲重力特異点中心 Y=0.52m）
+        float orbitX = std::cos(ast.orbitAngle) * ast.orbitRadius * 1.55f;
+        float orbitY = 0.52f + std::sin(ast.orbitAngle) * ast.orbitRadius * 0.75f;
 
-        float x = std::cos(angle) * orbit.radiusX;
-        float z = std::sin(angle) * orbit.radiusZ;
-        float y = orbit.heightOffset + std::sin(angle * 1.5f) * 0.15f;
-        Irufemi::Vector3 basePos{x, y, z};
+        // 微小な宇宙波打ち（深宇宙の揺らぎ）
+        float timeVal = idleTimer_ + ast.phase;
+        float driftX = std::sin(timeVal * ast.driftFreq.x) * ast.driftAmp.x +
+                       std::cos(timeVal * ast.driftFreq.x * 0.45f) * (ast.driftAmp.x * 0.35f);
+        float driftY = std::cos(timeVal * ast.driftFreq.y) * ast.driftAmp.y +
+                       std::sin(timeVal * ast.driftFreq.y * 0.55f) * (ast.driftAmp.y * 0.30f);
+        float driftZ = std::sin(timeVal * ast.driftFreq.z) * ast.driftAmp.z;
 
-        // --- マウス・カーソル接近による重力反発（2Dスクリーン投影判定） ---
-        Irufemi::Vector3 targetRepelOffset{0.0f, 0.0f, 0.0f};
-        if (camera) {
-            Irufemi::Matrix4x4 viewProj = camera->GetViewProjectionMatrix3D();
-            Irufemi::Vector3 clipPos = Irufemi::Math::Transform(basePos, viewProj);
+        ast.currentPos = Irufemi::Vector3{orbitX + driftX, orbitY + driftY, ast.basePos.z + driftZ};
 
-            // 画面手前にある場合のみ投影判定
-            if (clipPos.z > 0.0f && clipPos.z < 1.0f) {
-                float screenX = (clipPos.x + 1.0f) * 0.5f * camera->GetViewportWidth();
-                float screenY = (1.0f - clipPos.y) * 0.5f * camera->GetViewportHeight();
-                Irufemi::Vector2 uiPos = camera->ScreenToUIPosition({screenX, screenY});
-
-                float diffX = uiPos.x - cursorPos.x;
-                float diffY = uiPos.y - cursorPos.y;
-                float distSq = diffX * diffX + diffY * diffY;
-                const float kRepelRadius = 150.0f; // 反発影響半径 (px)
-
-                if (distSq < kRepelRadius * kRepelRadius && distSq > 1.0f) {
-                    float dist = std::sqrt(distSq);
-                    float factor = 1.0f - (dist / kRepelRadius);
-                    float force = factor * factor * 0.55f; // 最大55cm押し出し
-
-                    // カーソルから外側へ逃げるベクトル
-                    targetRepelOffset.x = (diffX / dist) * force;
-                    targetRepelOffset.y = -(diffY / dist) * force;
-                    targetRepelOffset.z = 0.0f;
-                }
-            }
-        }
-
-        // --- 重力波衝撃波（全ガレキ一斉共鳴・外周放射押し出し）の重畳 ---
-        if (shockwaveIntensity_ > 0.001f) {
-            float radialLen = std::hypot(basePos.x, basePos.y);
-            if (radialLen > 0.05f) {
-                float normX = basePos.x / radialLen;
-                float normY = basePos.y / radialLen;
-                float shockForce = shockwaveIntensity_ * 1.30f;
-                targetRepelOffset.x += normX * shockForce;
-                targetRepelOffset.y += normY * shockForce;
-            }
-        }
-
-        // バネ・減衰追従（滑らかに目標オフセットへ移行し、離れたら公転軌道へ復帰）
-        float repelLerp = 1.0f - std::exp(-8.0f * deltaTime);
-        debrisRepelOffsets_[i].x = std::lerp(debrisRepelOffsets_[i].x, targetRepelOffset.x, repelLerp);
-        debrisRepelOffsets_[i].y = std::lerp(debrisRepelOffsets_[i].y, targetRepelOffset.y, repelLerp);
-        debrisRepelOffsets_[i].z = std::lerp(debrisRepelOffsets_[i].z, targetRepelOffset.z, repelLerp);
-
-        // 最終トランスフォーム適用
-        t->SetPosition(basePos + debrisRepelOffsets_[i]);
-
-        // 自転
-        auto currentRot = t->GetRotation();
-        currentRot.x += deltaTime * 0.4f * (i + 1);
-        currentRot.y += deltaTime * 0.6f;
-        t->SetRotation(currentRot);
+        // 斜め3軸の重厚な自転（タンブリング）
+        ast.rotation.x += deltaTime * ast.tumbleSpeed.x;
+        ast.rotation.y += deltaTime * ast.tumbleSpeed.y;
+        ast.rotation.z += deltaTime * ast.tumbleSpeed.z;
     }
 
     // 4. 自機スラスターの呼吸脈動（GameSceneアイドル時と完全準拠）
@@ -672,18 +702,8 @@ bool TitleSceneDirectorComponent::GetClosestFrontDebrisScreenPos(Irufemi::Vector
     float bestZ = 9999.0f;
     bool found = false;
 
-    for (size_t i = 0; i < debrisObjs_.size(); ++i) {
-        auto debris = debrisObjs_[i].lock();
-        if (!debris || i >= debrisOrbits_.size()) {
-            continue;
-        }
-        auto t = debris->GetTransform();
-        if (!t) {
-            continue;
-        }
-
-        Irufemi::Vector3 worldPos = t->GetWorldPosition();
-        Irufemi::Vector3 clipPos = Irufemi::Math::Transform(worldPos, viewProj);
+    for (const auto& ast : asteroidInstances_) {
+        Irufemi::Vector3 clipPos = Irufemi::Math::Transform(ast.currentPos, viewProj);
 
         // 画面手前にあり、カメラ視野内
         if (clipPos.z > 0.05f && clipPos.z < 1.0f) {

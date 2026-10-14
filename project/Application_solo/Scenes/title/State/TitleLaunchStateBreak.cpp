@@ -91,6 +91,31 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
         nebulaComp->SetSwirlMultiplier(std::lerp(2.2f, 5.0f, p3));
     }
 
+    // 6. アステロイドベルト・フライスルー連動（自機超高速通過・通過後スラスター巻き込み・終盤特異点インプロージョン）
+    for (auto& ast : director->GetAsteroidInstances()) {
+        // 自機が小惑星を通過した（または追い抜き至近の）場合
+        float distToShipZ = ast.currentPos.z - boostZ;
+        if (distToShipZ < 10.0f) {
+            // 自機後流のスラスター衝撃波で外側へ激しく弾かれる
+            float radialLen = std::hypot(ast.currentPos.x, ast.currentPos.y - 0.52f);
+            if (radialLen > 0.1f) {
+                float pushOut = (10.0f - distToShipZ) * 0.08f;
+                ast.currentPos.x += (ast.currentPos.x / radialLen) * pushOut;
+                ast.currentPos.y += ((ast.currentPos.y - 0.52f) / radialLen) * pushOut;
+            }
+        }
+
+        // 終盤（p3 >= 0.85: 特異点到達時）にのみ事象の地平線への求心収束と消失を適用
+        if (p3 >= 0.85f) {
+            float finalP = (p3 - 0.85f) / 0.15f;
+            ast.currentPos.x = std::lerp(ast.currentPos.x, 0.0f, finalP * 0.25f);
+            ast.currentPos.y = std::lerp(ast.currentPos.y, 0.52f, finalP * 0.25f);
+
+            float shrink = (std::max)(0.001f, 1.0f - finalP * 0.85f);
+            ast.currentScale = ast.initialScale * shrink;
+        }
+    }
+
     // 状態遷移判定
     if (stateTimer >= TitleSceneDirectorComponent::kDurationBreak_) {
         director->ChangeState(std::make_unique<TitleLaunchStateAfterglow>());

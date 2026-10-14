@@ -66,16 +66,24 @@ void TitleLaunchStateCharge::Update(TitleSceneDirectorComponent* director, float
                                     std::lerp(launchStartRot.z, 0.0f, alignT)});
     }
 
-    // ガレキが自機中心へキュッと収束
+    // ガレキが自機中心へ螺旋状に吸い寄せられる（重力降着円盤・Accretion Disk）
     const auto& debrisObjs = director->GetDebrisObjects();
     const auto& initialDebrisPositions = director->GetInitialDebrisPositions();
+    float swirlAngle = p1 * p1 * 1.8f; // 加速度的な渦巻き回転
+    float cosS = std::cos(swirlAngle);
+    float sinS = std::sin(swirlAngle);
+
     for (size_t i = 0; i < debrisObjs.size(); ++i) {
         if (auto debris = debrisObjs[i].lock()) {
             if (auto dtComp = debris->GetTransform()) {
                 if (i < initialDebrisPositions.size()) {
                     const auto& origPos = initialDebrisPositions[i];
-                    dtComp->SetPosition({origPos.x * (1.0f - p1 * 0.50f), origPos.y * (1.0f - p1 * 0.50f),
-                                         origPos.z * (1.0f - p1 * 0.50f)});
+                    // 螺旋回転
+                    float rotX = origPos.x * cosS - origPos.z * sinS;
+                    float rotZ = origPos.x * sinS + origPos.z * cosS;
+                    // 半径収束（至近ほど強く自機重力コアへ吸引）
+                    float pull = 1.0f - p1 * 0.58f;
+                    dtComp->SetPosition({rotX * pull, origPos.y * pull, rotZ * pull - p1 * 0.20f});
                 }
             }
         }

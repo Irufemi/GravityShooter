@@ -169,6 +169,34 @@ public:
     const std::vector<std::weak_ptr<GameObject>>& GetDebrisObjects() const {
         return debrisObjs_;
     }
+    std::vector<Irufemi::Vector3>& GetDebrisBlastVelocities() {
+        return debrisBlastVelocities_;
+    }
+
+    // アステロイドベルト（GPUインスタンシング）データ構造体
+    struct AsteroidInstanceData {
+        Irufemi::Vector3 basePos;
+        Irufemi::Vector3 currentPos;
+        Irufemi::Vector3 rotation;
+        Irufemi::Vector3 initialScale;
+        Irufemi::Vector3 currentScale;
+        Irufemi::Vector3 tumbleSpeed;
+        Irufemi::Vector3 driftAmp;
+        Irufemi::Vector3 driftFreq;
+        Irufemi::Vector3 blastVelocity;
+        float phase = 0.0f;
+        float orbitRadius = 0.0f;  //!< 銀河公転半径 (m)
+        float orbitAngle = 0.0f;   //!< 現在の公転角度 (rad)
+        float orbitSpeed = 0.0f;   //!< 差動公転角速度 (rad/s)
+    };
+
+    std::vector<AsteroidInstanceData>& GetAsteroidInstances() {
+        return asteroidInstances_;
+    }
+    const std::vector<AsteroidInstanceData>& GetAsteroidInstances() const {
+        return asteroidInstances_;
+    }
+
     std::weak_ptr<GameObject> GetShipObject() const {
         return shipObj_;
     }
@@ -224,6 +252,9 @@ private:
     void UpdateIdling(float deltaTime);
     void UpdateLaunchSequence(float deltaTime);
     void SetupThrusterEffect();
+    void SpawnAsteroidBelt();
+    void CleanupAsteroidBelt();
+    void RenderAsteroidBelt();
 
     /**
      * @brief 出撃加速・突破時の動的シネマティック・ポストプロセス制御（トンネル視野狭窄・特異点ラジアルブラー・動的色収差）
@@ -251,6 +282,8 @@ private: // メンバ変数
     std::weak_ptr<GameObject> shipObj_;
     std::weak_ptr<GameObject> cameraObj_;
     std::vector<std::weak_ptr<GameObject>> debrisObjs_;
+    class ModelBatchRendererComponent* asteroidBatchRenderer_ = nullptr; ///< 42基の小惑星を一括描画するGPUインスタンシングレンダラー
+    std::vector<AsteroidInstanceData> asteroidInstances_;                ///< プロシージャル生成した42基のアステロイド群
     std::weak_ptr<GameObject> nebulaObj_;
 
     // 自機スラスター演出（GameScene完全準拠のTransform Scale制御）
@@ -270,16 +303,17 @@ private: // メンバ変数
     // アイドリング用タイマー
     float idleTimer_ = 0.0f;
 
-    // ガレキ公転設定 (半径, 角速度, 軌道傾斜角)
-    struct OrbitConfig {
-        float radiusX;
-        float radiusZ;
-        float speed;
+    // ガレキ深宇宙浮遊・タンブリング設定 (基準位置, 浮遊振幅, 浮遊周波数, 自転角速度, 初期位相)
+    struct DebrisDriftConfig {
+        Irufemi::Vector3 basePos;
+        Irufemi::Vector3 driftAmp;
+        Irufemi::Vector3 driftFreq;
+        Irufemi::Vector3 tumbleSpeed;
         float phase;
-        float heightOffset;
     };
-    std::vector<OrbitConfig> debrisOrbits_;
+    std::vector<DebrisDriftConfig> debrisDrifts_;
     std::vector<Irufemi::Vector3> debrisRepelOffsets_; ///< マウス・カーソルによるガレキ反発変位オフセット
+    std::vector<Irufemi::Vector3> debrisBlastVelocities_; ///< スラスター噴射によるガレキ吹き飛び速度
     float shockwaveIntensity_ = 0.0f; ///< 重力波衝撃波の現在強度（全ガレキ外周押し出し・減衰）
     float initialBgmVolume_ = 0.70f;  ///< BGM初期音量キャッシュ
 
