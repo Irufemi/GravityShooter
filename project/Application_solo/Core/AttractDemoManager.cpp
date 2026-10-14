@@ -245,10 +245,10 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
         // === 【モード分岐 1】画面遷移ショーケースデモ（TransitionShowcase） ===
         if (demoMode_ == DemoMode::TransitionShowcase) {
-            // ガレキ巡回やメニューホバーをスキップし、0.30秒で即座にGAME STARTを自動決定！
+            // タイトル画面と星雲の美しさをゆったり3.0秒鑑賞してからGAME STARTを自動決定
             targetCursorPos = posStart_;
 
-            if (demoTimeline_ >= 0.30f) {
+            if (demoTimeline_ >= 3.00f) {
                 if (!hasSubmitted_) {
                     hasSubmitted_ = true;
                     UISound::PlayDecide();
