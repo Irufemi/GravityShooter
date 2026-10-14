@@ -12,6 +12,7 @@
 #include "Scenes/title/TitleCosmicNebulaComponent.h"
 #include "Framework/Component/Renderer/TextRendererComponent.h"
 #include "UI/UISound.h"
+#include "Audio/AudioManager.h"
 #include <algorithm>
 #include <cmath>
 
@@ -412,11 +413,19 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         return;
     }
 
-    // タイムアウト判定（画面が明るくなってから 3.5秒実機映像を魅せて自動フェード帰還）
+    // タイムアウト判定（画面が明るくなってから実機映像を魅せて自動フェード帰還）
     if (inGameTimer_ >= kInGameDuration_) {
         hasTriggeredReturn_ = true;
         isDemoInGame_ = false;
-        sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.8f);
+
+        // 空間歪曲・重力跳躍音を発声
+        if (auto am = engine_->GetAudioManager()) {
+            am->PlayByFile("resources/audio/SE/se_gravity_warp.mp3", 0.85f, 1.05f, AudioCategory::SE);
+        }
+
+        // 単なる黒フェードから、事象の地平線への空間吸い込み・重力色収差遷移へ昇華
+        sm->TransitionTo("Title", SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,
+                         Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     }
 }
 
@@ -521,7 +530,9 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     const std::string& currentScene = sm->GetCurrent();
     if (currentScene != "Title") {
         hasTriggeredReturn_ = true;
-        sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.4f);
+        // 即時スキップ時も空間収束でテンポよく（0.35秒）Titleへ帰還
+        sm->TransitionTo("Title", SceneTransition::Type::GravitySingularity, 0.35f, EaseType::EaseInQuad,
+                         Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     } else {
         // タイトル画面で出撃中にデモ停止された場合、タイトルを再初期化して通常待機に戻す
         auto currentScenePtr = dynamic_cast<BaseScene*>(sm->GetCurrentScene());
