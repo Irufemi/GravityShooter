@@ -33,18 +33,20 @@ inline float SmoothStep(float t) {
 void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
-    isKioskLoopMode_ = false;
+    isKioskLoopMode_ = true; // 常時ループ展示モードをデフォルト有効化！
+    demoMode_ = DemoMode::TransitionShowcase; // 画面遷移ショーケースデモをデフォルトに設定
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
     hasSubmitted_ = false;
     hasTriggeredReturn_ = false;
     wasF8Down_ = false;
+    wasF7Down_ = false;
     f8CooldownTimer_ = 0.0f;
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
-    s_isKioskModeActive_ = false;
-    s_isAttractModeActive_ = false;
+    s_isKioskModeActive_ = true;
+    s_isAttractModeActive_ = true;
 }
 
 void AttractDemoManager::OnFinalize() {
@@ -147,6 +149,25 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
         isF8Down = true;
     }
 
+    // F7キーでデモモード（TransitionShowcase ⇄ StandardAttract）を瞬時トグル
+    SHORT asyncStateF7 = GetAsyncKeyState(VK_F7);
+    bool isF7Down = (asyncStateF7 & 0x8000) != 0;
+    if (inputManager->IsKeyPressed(VK_F7) || inputManager->IsKeyDown(VK_F7)) {
+        isF7Down = true;
+    }
+    bool f7Triggered = isF7Down && !wasF7Down_;
+    wasF7Down_ = isF7Down;
+
+    if (f7Triggered) {
+        demoMode_ = (demoMode_ == DemoMode::TransitionShowcase) ? DemoMode::StandardAttract
+                                                               : DemoMode::TransitionShowcase;
+        auto sm = engine_->GetSceneManager();
+        if (isKioskLoopMode_ && sm && sm->GetCurrent() == "Title") {
+            // モード切り替え時にデモタイムラインを即座に再起動
+            StartTitleDemo();
+        }
+    }
+
     // 物理的なキー押下エッジ判定（前フレームOFF → 今フレームON）
     bool f8Triggered = isF8Down && !wasF8Down_;
     wasF8Down_ = isF8Down;
@@ -222,13 +243,42 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
         Irufemi::Vector2 targetCursorPos = posSweepStart_;
 
-        // 【Phase 1】 0.00s 〜 4.20s : S字重力スラローム＆星雲歪み・パルス実演
-        if (demoTimeline_ < 1.40f) {
-            // 区間1 (0.00s〜1.40s): 画面下部から右ガレキ密集エリアへ鋭く加速侵入（星雲引き波が大きく伸びる）
-            float t = SmoothStep(demoTimeline_ / 1.40f);
-            targetCursorPos.x = std::lerp(posSweepStart_.x, posSweepRight_.x, t);
-            targetCursorPos.y = std::lerp(posSweepStart_.y, posSweepRight_.y, t);
-        } else if (demoTimeline_ < 2.80f) {
+        // === 【モード分岐 1】画面遷移ショーケースデモ（TransitionShowcase） ===
+        if (demoMode_ == DemoMode::TransitionShowcase) {
+            // ガレキ巡回やメニューホバーをスキップし、0.30秒で即座にGAME STARTを自動決定！
+            targetCursorPos = posStart_;
+
+            if (demoTimeline_ >= 0.30f) {
+                if (!hasSubmitted_) {
+                    hasSubmitted_ = true;
+                    UISound::PlayDecide();
+
+                    if (currentScenePtr) {
+                        if (auto menuMgr = currentScenePtr->FindGameObject("MenuManager")) {
+                            if (auto menuCtrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
+                                menuCtrl->TriggerScreenFlash();
+                                menuCtrl->StartDismissAnimation();
+                                menuCtrl->SetLaunching(true);
+                            }
+                            if (dirComp) {
+                                isDemoInGame_ = true;
+                                dirComp->SetNextSceneName("InGame");
+                                dirComp->StartLaunchSequence();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // === 【モード分岐 2】通常アトラクトデモ（StandardAttract） ===
+        else {
+            // 【Phase 1】 0.00s 〜 4.20s : S字重力スラローム＆星雲歪み・パルス実演
+            if (demoTimeline_ < 1.40f) {
+                // 区間1 (0.00s〜1.40s): 画面下部から右ガレキ密集エリアへ鋭く加速侵入（星雲引き波が大きく伸びる）
+                float t = SmoothStep(demoTimeline_ / 1.40f);
+                targetCursorPos.x = std::lerp(posSweepStart_.x, posSweepRight_.x, t);
+                targetCursorPos.y = std::lerp(posSweepStart_.y, posSweepRight_.y, t);
+            } else if (demoTimeline_ < 2.80f) {
             // 区間2 (1.40s〜2.80s): 右ガレキから自機頭上を経由し、左ガレキへS字クロス通過
             float t = (demoTimeline_ - 1.40f) / 1.40f;
             targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
@@ -294,6 +344,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                 }
             }
         }
+    }
 
         // 仮想カーソル座標を反映（出撃決定後は上書きを終了してサニタイズ）
         if (!hasSubmitted_) {
@@ -571,8 +622,11 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
 
     // F8ループ展示中なら誰でも直感的にわかる専用文言（黄金色）に切り替え
     if (isKioskLoopMode_) {
-        if (demoHudText_->GetText() != L"DEMO LOOP   |   PRESS F8 TO EXIT") {
-            demoHudText_->SetText(L"DEMO LOOP   |   PRESS F8 TO EXIT");
+        std::wstring targetText = (demoMode_ == DemoMode::TransitionShowcase)
+                                      ? L"DEMO: TRANSITION SHOWCASE   |   F7: MODE   |   F8: EXIT"
+                                      : L"DEMO: STANDARD ATTRACT   |   F7: MODE   |   F8: EXIT";
+        if (demoHudText_->GetText() != targetText) {
+            demoHudText_->SetText(targetText);
         }
         demoHudText_->SetColor({1.0f, 0.85f, 0.25f, blinkAlpha}); // 黄金色
     } else {

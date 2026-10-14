@@ -262,10 +262,7 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
         }
     }
 
-    // 4. 星雲の衝撃パルス第2波（最大爆発波紋）
-    if (auto nebulaComp = GetNebulaComponent()) {
-        nebulaComp->TriggerPulse(1.5f);
-    }
+
 }
 
 void TitleSceneDirectorComponent::Update() {

@@ -24,10 +24,6 @@ void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
         director->SetLaunchStartRot(director->GetInitialShipRot());
     }
 
-    // 神秘的な星雲の重力パルス第1波（中心収束・発光）
-    if (auto nebulaComp = director->GetNebulaComponent()) {
-        nebulaComp->TriggerPulse(1.2f);
-    }
 
     // 出撃SE再生（Springin' Sound Stock 製「気を溜める1」によるエネルギー充填・タメ）
     if (auto engine = director->GetEngine()) {

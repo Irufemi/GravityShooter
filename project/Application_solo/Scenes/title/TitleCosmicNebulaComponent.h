@@ -54,6 +54,13 @@ public: // メンバ関数
     }
 
     /**
+     * @brief 自機が正面の重力の壁に突入・激突した際の超巨大重力波・流体大波紋を発火する
+     * @param[in] centerUV 激突中心UV
+     * @param[in] power 衝撃波強度
+     */
+    void TriggerWallImpactShockwave(const Irufemi::Vector2& centerUV = {0.5f, 0.42f}, float power = 1.0f);
+
+    /**
      * @brief 渦の回転強度倍率を設定する
      * @param[in] multiplier 回転倍率
      */

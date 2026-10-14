@@ -3,6 +3,8 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Camera/CameraComponent.h"
+#include "Framework/Component/Camera/CameraShakeComponent.h"
+#include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "RailMechanics/RailShooterPlayerComponent.h"
@@ -26,6 +28,7 @@ void StageIntroDirectorComponent::Initialize() {
     introState_ = StageIntroState::WarpIn;
     stateTimer_ = 0.0f;
     hasInitializedShip_ = false;
+    hasTriggeredBreach_ = false;
 
     // 初期化時点でHUDを即座に非表示化
     SetHUDActive(false);
@@ -244,6 +247,11 @@ void StageIntroDirectorComponent::Update() {
 
         // カメラFOVワーピングとPreUIラジアルブラーの動的駆動
         UpdateWarpVisuals(progress);
+
+        // 重力の壁の膜を突き破った瞬間（progress >= 0.20）に突破インパルスを発火！
+        if (progress >= 0.20f && !hasTriggeredBreach_) {
+            TriggerBreachImpulse();
+        }
     }
 
     // 固有演出フック
@@ -276,6 +284,32 @@ void StageIntroDirectorComponent::ApplyArrivalInertia(float progress) {
             auto rot = transform->GetRotation();
             rot.x = pitchOffset;
             transform->SetRotation(rot);
+        }
+    }
+}
+
+void StageIntroDirectorComponent::TriggerBreachImpulse() {
+    if (hasTriggeredBreach_) {
+        return;
+    }
+    hasTriggeredBreach_ = true;
+
+    // 1. 重力の壁を突き破る空間インパルス（振幅 0.040m, 0.45s, 22Hz の正面激震）
+    if (auto camObj = cameraObj_.lock()) {
+        auto shake = camObj->GetComponent<CameraShakeComponent>();
+        if (!shake) {
+            auto newShake = camObj->AddComponent<CameraShakeComponent>();
+            shake = newShake.get();
+        }
+        if (shake) {
+            shake->PlayShakeSeconds(0.040f, 0.45f, 22.0f);
+        }
+    }
+
+    // 2. 空間突破・重力膜通過音 (se_gravity_warp)
+    if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            am->PlayByFile("resources/audio/SE/se_gravity_warp.mp3", 0.80f, 1.15f, AudioCategory::SE);
         }
     }
 }
@@ -365,11 +399,13 @@ CameraComponent* StageIntroDirectorComponent::GetCameraComponent() const {
 }
 
 void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
-    // 突入初動(0.0〜0.25)は最大広角・ブラーを維持し、自機のブレーキ(0.25〜1.0)に合わせて滑らかに収束
+    // 突入初動(0.0〜0.20)は重力膜の最大歪み（ブラー＆色収差）を維持し、
+    // 自機が膜を突き破った瞬間(0.20)から急激に晴れ渡る（パァンと通常空間へ抜ける演出）
     float curve = 1.0f;
-    if (progress >= 0.25f) {
-        float t = (progress - 0.25f) / 0.75f;
-        curve = 0.5f * (1.0f + std::cos(t * 3.14159265f)); // 1.0 -> 0.0 (Smoothstep)
+    if (progress >= 0.20f) {
+        float t = (progress - 0.20f) / 0.80f;
+        // 指数関数的な急減衰（突き破った瞬間に一気に視界がクリアになる）
+        curve = std::exp(-t * 5.0f);
     }
 
     // 1. カメラFOV動的ブレンド (最大広角から等倍へ急制動収束)
@@ -378,11 +414,12 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
         cam->SetFovAngleY(baseCameraFov_ + fovBoostRad);
     }
 
-    // 2. PreUI ラジアルブラー動的強度制御
+    // 2. PreUI ラジアルブラー ＆ 色収差の連動駆動
     if (auto engine = GetEngine()) {
         if (auto ppm = engine->GetPostProcessManager()) {
             float blurWidth = maxWarpBlurWidth_ * curve;
-            if (blurWidth > 0.001f) {
+            if (blurWidth > 0.002f) {
+                // ラジアルブラー
                 if (!isRadialBlurActive_) {
                     ppm->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
                     isRadialBlurActive_ = true;
@@ -391,6 +428,14 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
                 rb.center = {0.5f, 0.5f};
                 rb.blurWidth = blurWidth;
                 rb.numSamples = 16;
+
+                // 色収差（重力膜による光のプリズム分散・空間の乱れ）
+                if (!isChromaticActive_) {
+                    ppm->AddActiveMode(PostProcessMode::ChromaticAberration, PostProcessManager::Layer::PreUI);
+                    isChromaticActive_ = true;
+                }
+                auto& ca = ppm->GetChromaticAberrationParams();
+                ca.intensity = 0.045f * curve;
             } else {
                 CleanupWarpVisuals();
             }
@@ -404,15 +449,21 @@ void StageIntroDirectorComponent::CleanupWarpVisuals() {
         cam->SetFovAngleY(baseCameraFov_);
     }
 
-    // ラジアルブラーの確実な解除
-    if (isRadialBlurActive_) {
-        if (auto engine = GetEngine()) {
-            if (auto ppm = engine->GetPostProcessManager()) {
+    // ポストプロセスの確実な解除
+    if (auto engine = GetEngine()) {
+        if (auto ppm = engine->GetPostProcessManager()) {
+            if (isRadialBlurActive_) {
                 ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
                 auto& rb = ppm->GetRadialBlurParams();
                 rb.blurWidth = 0.0f;
+                isRadialBlurActive_ = false;
+            }
+            if (isChromaticActive_) {
+                ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration);
+                auto& ca = ppm->GetChromaticAberrationParams();
+                ca.intensity = 0.0f;
+                isChromaticActive_ = false;
             }
         }
-        isRadialBlurActive_ = false;
     }
 }

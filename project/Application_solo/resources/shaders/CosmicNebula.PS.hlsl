@@ -126,7 +126,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
         swirlTorque = (bowShockPower * 0.6 + wakePower * 1.8) * crossTorque * 0.70 * localMask;
     }
 
-    // 重力レンズ変位と動的流体変位を合成適用
+    // 重力レンズ変位と動的流体変位を合成適用（星雲全体の配置・深宇宙の漆黒を100%保護）
     float2 totalDisplacement = lensDisplacement + dynamicDisplacement;
     rotP -= totalDisplacement;
     wakeDistort = length(totalDisplacement) * 22.0;
@@ -143,18 +143,39 @@ PixelShaderOutput main(VertexShaderOutput input) {
     // 事象の地平面（Event Horizon）近傍の微細な境界リング光
     float innerEdge = exp(-pow(dist - 0.28, 2.0) * 55.0) * 0.35;
 
-    // --- 4. 2D回転行列による連続渦巻き（背後の渦への波及・トルク適用） ---
-    // atan2の角度不連続(±π)を一切使わず、連続な cos/sin 回転行列で空間をねじる
-    // 内周ほど吸い込まれ、全体として心地よい流動感をもたらす回転速度
-    // 自機突入時（swirlStrength）のみ渦の回転が加速
+    // --- 4. 2D回転行列による連続渦巻き（流体制御と突入乱流の注入） ---
+    // GPGPU流体速度場 (fluidVel) および突入時のカールノイズ乱流を取得
+    float2 fluidVel = gFluidVelocity.Sample(gSampler, uv).xy;
+    float fluidSpeed = length(fluidVel);
+
+    float impactSwirl = 0.0;
+    float2 impactCurl = float2(0.0, 0.0);
+    if (gNebula.pulseIntensity > 0.001) {
+        float pulse = gNebula.pulseIntensity;
+        float turbRadius = pulse * 1.5;
+        float turbMask = exp(-pow(max(0.0, dist - turbRadius) / 0.45, 2.0)) * (1.0 - pulse * 0.5);
+
+        // 突入特異点から生じる猛烈な渦流トルク
+        impactSwirl = turbMask * 4.5;
+
+        // カールノイズ（非発散・渦性の乱流ベクトル）によるフィラメントの激しい引き裂き
+        float n1 = noise(rotP * 4.5 + float2(time * 0.8, -time * 0.5));
+        float n2 = noise(rotP * 4.5 + float2(-time * 0.6, time * 0.7) + 17.3);
+        impactCurl = float2(n2 - 0.5, -(n1 - 0.5)) * (turbMask * 0.18);
+    }
+
     float swirlSpeed = (0.38 + 0.18 / (dist + 0.20)) * (gNebula.swirlStrength / 0.65);
-    float swirlAmount = 3.6 * log(dist + 0.15) - time * swirlSpeed + swirlTorque;
+    float swirlAmount = 3.6 * log(dist + 0.15) - time * swirlSpeed + swirlTorque + impactSwirl;
     float s = sin(swirlAmount);
     float c = cos(swirlAmount);
     float2 swirlP = float2(
         rotP.x * c - rotP.y * s,
         rotP.x * s + rotP.y * c
     );
+
+    // ★ 流体速度場と突入乱流によって、星雲のフィラメントが激流のように乱れて渦巻く！
+    swirlP += fluidVel * 0.25 + impactCurl;
+    wakeDistort += fluidSpeed * 12.0 + length(impactCurl) * 45.0;
 
     // 連続なベクトル空間 swirlP から幾重にも重なるシルクの光条（フィラメント）を生成
     float f1 = ridgedNoise(swirlP * 2.6 + float2(time * 0.12, 0.0));
@@ -200,6 +221,8 @@ PixelShaderOutput main(VertexShaderOutput input) {
     finalColor += colWhite * (pow(filament * ringMask, 4.2) * 2.80);
     finalColor += colCyan * innerEdge;
 
+
+
     // ★ 自機突入インプロージョン（自機が飛び込んだ時のみ、中心0.0から穴が生まれ外側へ広がる）
     float collapse = saturate(gNebula.centerUV.z);
     if (collapse > 0.001) {
@@ -236,16 +259,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
         finalColor += (float3(0.90, 0.96, 1.0) * starGlow + colCyan * spike * 0.35) * twinkle;
     }
 
-    // --- 8. 出撃決定・特異点活性化の微細な重力波（漆黒の深淵は完全に保持・白飛び防止） ---
-    if (gNebula.pulseIntensity > 0.001) {
-        float pulse = gNebula.pulseIntensity;
-        // 外周へ抜ける微細な重力波彩（中央のVoidは完全除外して漆黒の深淵を死守）
-        float pulseRingRadius = pulse * 1.5;
-        float ringDist = abs(dist - pulseRingRadius);
-        float pulseGlow = exp(-ringDist * ringDist * 36.0) * (1.0 - pulse * 0.5) * 0.6;
-        float voidProtection = smoothstep(0.28, 0.45, dist);
-        finalColor += colCyan * (pulseGlow * voidProtection);
-    }
+
 
     // 周辺減光（Vignette）
     float vignette = 1.0 - smoothstep(0.60, 1.65, length(p));

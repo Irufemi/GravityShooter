@@ -193,6 +193,35 @@ void TitleCosmicNebulaComponent::TriggerPulse(float power) {
     pulseTimer_ = 0.001f;
 }
 
+void TitleCosmicNebulaComponent::TriggerWallImpactShockwave(const Irufemi::Vector2& centerUV, float power) {
+    TriggerPulse(power * 1.5f);
+
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+
+    if (auto fluid = engine->GetFluidSimulation()) {
+        // 1. 超強度重力渦巻き ＆ 吸引力（中心特異点への急激なスワール運動量注入）
+        fluid->AddGravityVortex(centerUV, 55.0f * power, 75.0f * power, 0.55f);
+
+        // 2. 円周8方向への放射状外力インパルス（星雲全体を揺るがす同心円の大波紋・津波の励起）
+        constexpr int kNumRadialDirections = 8;
+        const float kRadialForceMagnitude = 18.0f * power;
+        const float kRadialRadius = 0.16f;
+
+        for (int i = 0; i < kNumRadialDirections; ++i) {
+            float angle = static_cast<float>(i) * (6.2831853f / static_cast<float>(kNumRadialDirections));
+            Irufemi::Vector2 dir{std::cos(angle), std::sin(angle)};
+            Irufemi::Vector2 injectPos = centerUV + dir * 0.045f;
+            fluid->AddForce(injectPos, dir * kRadialForceMagnitude, kRadialRadius);
+        }
+
+        // 3. 高輝度エレクトリックシアン染料の瞬間注入（激突点から広がる眩い重力光彩）
+        fluid->AddDensity(centerUV, Irufemi::Vector4{0.20f, 0.95f, 1.0f, 1.0f} * (std::min)(power, 1.8f), 0.28f);
+    }
+}
+
 void TitleCosmicNebulaComponent::Draw() {
     auto engine = GetEngine();
     if (!engine) {

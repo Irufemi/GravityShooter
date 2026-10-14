@@ -18,12 +18,35 @@ class IrufemiEngine;
  */
 class AttractDemoManager : public IEngineExtension {
 public:
+    /**
+     * @enum DemoMode
+     * @brief 実演するデモの種類
+     */
+    enum class DemoMode {
+        TransitionShowcase, ///< 【画面遷移ショーケース】起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ
+        StandardAttract     ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
+    };
+
     AttractDemoManager() = default;
     ~AttractDemoManager() override = default;
 
     void OnInitialize(IrufemiEngine* engine) override;
     void OnUpdate(float deltaTime) override;
     void OnFinalize() override;
+
+    /**
+     * @brief 現在のデモモードを取得する
+     */
+    DemoMode GetDemoMode() const {
+        return demoMode_;
+    }
+
+    /**
+     * @brief デモモードを設定する
+     */
+    void SetDemoMode(DemoMode mode) {
+        demoMode_ = mode;
+    }
 
     /**
      * @brief キオスク固定展示ループモード中かどうか
@@ -81,13 +104,15 @@ private:
 
     // --- 状態管理 ---
     std::string previousScene_ = "";  ///< 前フレームのシーン名（遷移検知用）
-    bool isKioskLoopMode_ = false;    ///< F8による永久ループ展示フラグ
+    bool isKioskLoopMode_ = true;     ///< 常時ループ展示フラグ（デフォルトON）
+    DemoMode demoMode_ = DemoMode::TransitionShowcase; ///< 現在のデモモード（画面遷移ショーケースがデフォルト）
     bool isDemoPlaying_ = false;      ///< Titleシーンでのデモタイムライン進行中フラグ
     bool isDemoInGame_ = false;       ///< InGameシーンでの3.5秒帰還待ちフラグ
     bool hasSubmitted_ = false;       ///< GAME STARTクリック決定済みフラグ
     bool hasTriggeredReturn_ = false; ///< InGameからTitleへの遷移開始フラグ
 
     bool wasF8Down_ = false;       ///< 前フレームのF8キー押下状態（エッジ検知）
+    bool wasF7Down_ = false;       ///< 前フレームのF7キー押下状態（エッジ検知）
     float f8CooldownTimer_ = 0.0f; ///< 多重発火防止用クールダウンタイマー（秒）
     static constexpr float kF8CooldownDuration_ = 0.30f; ///< クールダウン時間（300ms）
 
