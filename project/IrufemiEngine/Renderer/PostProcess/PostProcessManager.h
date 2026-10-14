@@ -562,7 +562,7 @@ public:
         uint32_t alignPadding[36];
     };
 
-    struct BindlessParams {
+    struct alignas(256) BindlessParams {
         uint32_t mainTextureIndex;
         uint32_t extraTextureIndex;
         uint32_t maskTextureIndex;
@@ -571,6 +571,7 @@ public:
         uint32_t velocityTextureIndex;
         uint32_t padding[58]; // 256バイトアライメント (64 * 4 = 256)
     };
+    static_assert(sizeof(BindlessParams) % 256 == 0, "BindlessParams must be 256-byte aligned for D3D12 CBV.");
 
 public:
     /**
