@@ -2,6 +2,7 @@
 
 #ifdef EditorMode
 #include "Core/IEditorPanel.h"
+#include <string>
 
 /**
  * @class InspectorPanel
@@ -17,6 +18,7 @@ public:
 
 private:
     EditorManager* editorManager_ = nullptr;
+    std::string editingStartName_; ///< 名前変更Undo用キャッシュ
 };
 
 #endif // EditorMode

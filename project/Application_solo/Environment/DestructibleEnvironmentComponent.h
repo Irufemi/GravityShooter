@@ -41,7 +41,10 @@ public:
 
     // ダメージ処理
     void TakeDamage(float damage) override {
-        TakeDamage(static_cast<int>(damage));
+        int intDamage = CalculateIntegerDamage(damage);
+        if (intDamage > 0) {
+            TakeDamage(intDamage);
+        }
     }
     void TakeDamage(int damage);
 

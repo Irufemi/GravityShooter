@@ -432,14 +432,10 @@ void RailShooterEnemyComponent::OnCollisionEnter(GameObject* other) {
 }
 
 void RailShooterEnemyComponent::TakeDamage(float damage) {
-    if (damage <= 0.0f) {
-        return;
+    int intDamage = CalculateIntegerDamage(damage);
+    if (intDamage > 0) {
+        TakeDamage(intDamage);
     }
-    int intDamage = static_cast<int>(std::round(damage));
-    if (intDamage < 1) {
-        intDamage = 1;
-    }
-    TakeDamage(intDamage);
 }
 
 void RailShooterEnemyComponent::TakeDamage(int damage) {
