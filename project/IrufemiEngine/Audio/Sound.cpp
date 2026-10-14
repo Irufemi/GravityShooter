@@ -43,16 +43,6 @@ bool Sound::Load(const std::wstring& filePath) {
         return false;
     }
 
-    hr = pMFMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
-    if (FAILED(hr)) {
-        return false;
-    }
-
-    hr = pMFMediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
-    if (FAILED(hr)) {
-        return false;
-    }
-
     WAVEFORMATEX* rawWaveFormat = nullptr;
     hr = MFCreateWaveFormatExFromMFMediaType(pMFMediaType.Get(), &rawWaveFormat, nullptr);
     if (FAILED(hr)) {
