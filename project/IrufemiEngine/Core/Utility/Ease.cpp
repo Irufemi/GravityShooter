@@ -112,7 +112,11 @@ float EaseOutQuad(float num) {
 }
 
 float EaseInOutQuad(float num) {
-    return num < 0.5f ? 2.0f * num * num : 1.0f - std::powf(-2.0f * num + 2.0f, 2.0f) / 2.0f;
+    if (num < 0.5f) {
+        return 2.0f * num * num;
+    }
+    float p = -2.0f * num + 2.0f;
+    return 1.0f - (p * p) * 0.5f;
 }
 
 float EaseInCubic(float num) {
@@ -120,35 +124,58 @@ float EaseInCubic(float num) {
 }
 
 float EaseOutCubic(float num) {
-    return 1.0f - std::powf(1.0f - num, 3.0f);
+    float inv = 1.0f - num;
+    return 1.0f - inv * inv * inv;
 }
 
 float EaseInOutCubic(float num) {
-    return num < 0.5f ? 4.0f * num * num * num : 1.0f - std::powf(-2.0f * num + 2.0f, 3.0f) / 2.0f;
+    if (num < 0.5f) {
+        return 4.0f * num * num * num;
+    }
+    float p = -2.0f * num + 2.0f;
+    return 1.0f - (p * p * p) * 0.5f;
 }
 
 float EaseInQuart(float num) {
-    return num * num * num * num;
+    float num2 = num * num;
+    return num2 * num2;
 }
 
 float EaseOutQuart(float num) {
-    return 1.0f - std::powf(1.0f - num, 4.0f);
+    float inv = 1.0f - num;
+    float inv2 = inv * inv;
+    return 1.0f - inv2 * inv2;
 }
 
 float EaseInOutQuart(float num) {
-    return num < 0.5f ? 8.0f * num * num * num * num : 1.0f - std::powf(-2.0f * num + 2.0f, 4.0f) / 2.0f;
+    if (num < 0.5f) {
+        float num2 = num * num;
+        return 8.0f * num2 * num2;
+    }
+    float p = -2.0f * num + 2.0f;
+    float p2 = p * p;
+    return 1.0f - (p2 * p2) * 0.5f;
 }
 
 float EaseInQuint(float num) {
-    return num * num * num * num * num;
+    float num2 = num * num;
+    return num2 * num2 * num;
 }
 
 float EaseOutQuint(float num) {
-    return 1.0f - std::powf(1.0f - num, 5.0f);
+    float inv = 1.0f - num;
+    float inv2 = inv * inv;
+    return 1.0f - inv2 * inv2 * inv;
 }
 
 float EaseInOutQuint(float num) {
-    return num < 0.5f ? 16.0f * num * num * num * num * num : 1.0f - std::powf(-2.0f * num + 2.0f, 5.0f) / 2;
+    if (num < 0.5f) {
+        float num2 = num * num;
+        return 16.0f * num2 * num2 * num;
+    }
+    float p = -2.0f * num + 2.0f;
+    float p2 = p * p;
+    return 1.0f - (p2 * p2 * p) * 0.5f;
 }
 
 float EvaluateEase(EaseType type, float t) {

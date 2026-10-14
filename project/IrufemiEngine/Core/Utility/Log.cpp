@@ -47,15 +47,18 @@ void Log::Initialize() {
 
 // 出力ウィンドウに文字を出す
 void Log::OutPutLog(std::ostream& os, const std::string& message) {
-    os << message << std::endl;
+    os << message << "\n";
     // UTF-8文字列を安全にワイド文字列(UTF-16)へ変換して出力(文字化け防止)
     OutputDebugStringW(ConvertString(message).c_str());
 
     bool isError = (&os == &std::cerr);
 
     std::lock_guard<std::mutex> lock(logMutex_);
+    if (logStream_.is_open()) {
+        logStream_ << message << "\n";
+    }
     logHistory_.push_back({message, isError});
-    if (logHistory_.size() > MAX_LOG_LINES) {
+    if (logHistory_.size() > kMaxLogLines) {
         logHistory_.pop_front(); // std::deque による O(1) 先頭削除
     }
 }

@@ -57,7 +57,6 @@ public:
 private:
     void ThreadLoop();
 
-private:
     std::thread workerThread_;
     std::mutex dataMutex_;
     std::condition_variable cv_;

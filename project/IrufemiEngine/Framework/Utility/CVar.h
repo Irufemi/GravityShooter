@@ -6,6 +6,8 @@
 #include <memory>
 #include <type_traits>
 
+#include "Core/Utility/Synchronized.h"
+
 namespace Irufemi {
 
 // ---------------------------------------------------------
@@ -32,6 +34,8 @@ struct CVar {
 // ---------------------------------------------------------
 class CVarSystem {
 public:
+    using RegistryType = std::unordered_map<std::string, std::unique_ptr<CVar>>;
+
     // マクロから自動登録される関数
     static void RegisterInt(const std::string& name, int defaultValue, const std::string& description);
     static void RegisterFloat(const std::string& name, float defaultValue, const std::string& description);
@@ -58,8 +62,27 @@ public:
     static void Load(const std::string& filepath);
     static void Save(const std::string& filepath);
 
-    // 内部辞書の取得 (DebugUI用など)
-    static std::unordered_map<std::string, std::unique_ptr<CVar>>& GetRegistry();
+    // スレッドセーフな内部辞書の取得
+    static Synchronized<RegistryType>& GetSynchronizedRegistry();
+
+    // 内部辞書の取得 (後方互換用)
+    static RegistryType& GetRegistry();
+
+    /**
+     * @brief 登録されている全CVarを排他ロック下で安全に走査します（DebugUI用など）
+     * @tparam Func 呼び出し可能オブジェクト型 (void(const std::string&, const CVar&))
+     * @param func 各CVarを受け取る関数またはラムダ式
+     */
+    template <typename Func>
+    static void ForEachCVar(Func&& func) {
+        GetSynchronizedRegistry().WithRead([&](const RegistryType& reg) {
+            for (const auto& [name, cvar] : reg) {
+                if (cvar) {
+                    func(name, *cvar);
+                }
+            }
+        });
+    }
 
     // CVarポインタの直接取得 (nullptr if not found)
     static CVar* GetCVar(const std::string& name);
