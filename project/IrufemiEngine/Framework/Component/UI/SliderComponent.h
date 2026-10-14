@@ -22,6 +22,7 @@ public:
     void OnAwake() override;
     void Start() override;
     void Update() override;
+    void OnDisable() override;
 
     std::string GetComponentName() const override {
         return "SliderComponent";

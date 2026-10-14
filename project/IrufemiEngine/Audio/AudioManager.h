@@ -265,7 +265,7 @@ public:
      * @brief 再生中のサウンドを停止する
      * @param[in] instance 停止させたいインスタンスの弱参照
      */
-    void Stop(std::weak_ptr<VoiceInstance>& instance);
+    void Stop(const std::weak_ptr<VoiceInstance>& instance);
 
     /**
      * @brief すべての再生中サウンドを強制停止する

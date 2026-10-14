@@ -567,7 +567,7 @@ std::weak_ptr<VoiceInstance> AudioManager::PlayByFile(const std::string& filePat
     return Play(sound, false, volume, pitch, category);
 }
 
-void AudioManager::Stop(std::weak_ptr<VoiceInstance>& instance) {
+void AudioManager::Stop(const std::weak_ptr<VoiceInstance>& instance) {
     auto locked = instance.lock();
     if (!locked) {
         return;
@@ -579,10 +579,7 @@ void AudioManager::Stop(std::weak_ptr<VoiceInstance>& instance) {
 
     // 管理リストから除去 (shared_ptr が外れて VoiceInstance のデストラクタで破棄される)
     std::lock_guard<std::mutex> lock(voiceMutex_);
-    auto it = std::remove(activeVoices_.begin(), activeVoices_.end(), locked);
-    if (it != activeVoices_.end()) {
-        activeVoices_.erase(it, activeVoices_.end());
-    }
+    std::erase(activeVoices_, locked);
 }
 
 void AudioManager::StopAll() {

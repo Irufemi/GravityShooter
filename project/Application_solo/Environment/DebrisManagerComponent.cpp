@@ -381,6 +381,7 @@ void DebrisManagerComponent::Update() {
         }
     }
 
+#if defined(_DEBUG)
     if (input) {
         if (input->IsKeyPressed('1') || input->IsKeyPressedDIK(0x02)) {
             SpawnDebrisInFrontOfPlayer(10);
@@ -389,6 +390,7 @@ void DebrisManagerComponent::Update() {
             SpawnDebrisInFrontOfPlayer(10000);
         }
     }
+#endif
 
     if (deltaTime > 0.0f) {
         UpdatePulledDebris(deltaTime);

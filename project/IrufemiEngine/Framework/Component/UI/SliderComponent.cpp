@@ -184,3 +184,7 @@ void SliderComponent::UpdateHandlePosition() {
     localPos.x = targetLocalX;
     handleTransform->SetPosition(localPos);
 }
+
+void SliderComponent::OnDisable() {
+    isDragging_ = false;
+}

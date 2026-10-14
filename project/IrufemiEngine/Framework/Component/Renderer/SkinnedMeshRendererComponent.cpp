@@ -5,6 +5,7 @@
 #include "Core/Math/MathFunction.h"
 #include "Physics/Collision/Collision.h"
 #include "Core/Math/Geometry/OBB.h"
+#include "Core/Utility/JsonUtility.h"
 #include <cmath>
 
 SkinnedMeshRendererComponent::SkinnedMeshRendererComponent() {
@@ -68,7 +69,10 @@ void SkinnedMeshRendererComponent::Draw() {
     if (!isVisible_ || !gameObject_ || !gameObject_->GetIsActive()) {
         return;
     }
-    animatedMesh_->Draw();
+    if (animatedMesh_) {
+        animatedMesh_->SetMaterialOverrides(materialOverrides_.empty() ? nullptr : &materialOverrides_);
+        animatedMesh_->Draw();
+    }
 }
 
 bool SkinnedMeshRendererComponent::Raycast(const Irufemi::Ray& ray, float& outDistance) const {
@@ -139,6 +143,32 @@ bool SkinnedMeshRendererComponent::Raycast(const Irufemi::Ray& ray, float& outDi
 nlohmann::json SkinnedMeshRendererComponent::Serialize() {
     nlohmann::json j = nlohmann::json::object();
     j["Model File"] = modelFilename_;
+    j["isVisible"] = isVisible_;
+
+    if (!materialOverrides_.empty()) {
+        nlohmann::json matOverridesJson = nlohmann::json::object();
+        for (const auto& [meshIdx, mat] : materialOverrides_) {
+            nlohmann::json m = nlohmann::json::object();
+            m["color"] = Irufemi::JsonUtility::ToJson(mat.color);
+            m["ambient"] = Irufemi::JsonUtility::ToJson(mat.ambient);
+            m["specular"] = Irufemi::JsonUtility::ToJson(mat.specular);
+            m["roughness"] = mat.roughness;
+            m["metallic"] = mat.metallic;
+            m["alpha"] = mat.alpha;
+            m["enableLighting"] = mat.enableLighting;
+            m["lightingMode"] = mat.lightingMode;
+            m["useClampSampler"] = mat.useClampSampler;
+            m["environmentCoefficient"] = mat.environmentCoefficient;
+            m["alphaReference"] = mat.alphaReference;
+            m["textureFilePath"] = mat.textureFilePath;
+            m["normalMapFilePath"] = mat.normalMapFilePath;
+            m["enableEffectMask"] = mat.enableEffectMask;
+            m["customEffectType"] = mat.customEffectType;
+            m["customEffectParam"] = mat.customEffectParam;
+            matOverridesJson[std::to_string(meshIdx)] = m;
+        }
+        j["materialOverrides"] = matOverridesJson;
+    }
     return j;
 }
 
@@ -155,7 +185,83 @@ void SkinnedMeshRendererComponent::OnRegisterProperties() {
 void SkinnedMeshRendererComponent::Deserialize(const nlohmann::json& j) {
     if (j.contains("Model File")) {
         modelFilename_ = j["Model File"].get<std::string>();
+        if (!modelFilename_.empty() && modelFilename_ != currentLoadedFilename_) {
+            LoadModel(modelFilename_);
+        }
     }
+    if (j.contains("isVisible")) {
+        isVisible_ = j["isVisible"].get<bool>();
+    }
+
+    if (j.contains("materialOverrides") && j["materialOverrides"].is_object()) {
+        materialOverrides_.clear();
+        for (auto it = j["materialOverrides"].begin(); it != j["materialOverrides"].end(); ++it) {
+            size_t meshIdx = std::stoull(it.key());
+            const auto& m = it.value();
+            ObjMaterial mat;
+            if (m.contains("color")) {
+                mat.color = Irufemi::JsonUtility::ToVector4(m["color"]);
+            }
+            if (m.contains("ambient")) {
+                mat.ambient = Irufemi::JsonUtility::ToVector3(m["ambient"]);
+            }
+            if (m.contains("specular")) {
+                mat.specular = Irufemi::JsonUtility::ToVector3(m["specular"]);
+            }
+            if (m.contains("roughness")) {
+                mat.roughness = m["roughness"].get<float>();
+            }
+            if (m.contains("metallic")) {
+                mat.metallic = m["metallic"].get<float>();
+            }
+            if (m.contains("alpha")) {
+                mat.alpha = m["alpha"].get<float>();
+            }
+            if (m.contains("enableLighting")) {
+                mat.enableLighting = m["enableLighting"].get<bool>();
+            }
+            if (m.contains("lightingMode")) {
+                mat.lightingMode = m["lightingMode"].get<int32_t>();
+            }
+            if (m.contains("useClampSampler")) {
+                mat.useClampSampler = m["useClampSampler"].get<int32_t>();
+            }
+            if (m.contains("environmentCoefficient")) {
+                mat.environmentCoefficient = m["environmentCoefficient"].get<float>();
+            }
+            if (m.contains("alphaReference")) {
+                mat.alphaReference = m["alphaReference"].get<float>();
+            }
+            if (m.contains("textureFilePath")) {
+                mat.textureFilePath = m["textureFilePath"].get<std::string>();
+            }
+            if (m.contains("normalMapFilePath")) {
+                mat.normalMapFilePath = m["normalMapFilePath"].get<std::string>();
+            }
+            if (m.contains("enableEffectMask")) {
+                mat.enableEffectMask = m["enableEffectMask"].get<bool>();
+            }
+            if (m.contains("customEffectType")) {
+                mat.customEffectType = m["customEffectType"].get<int32_t>();
+            }
+            if (m.contains("customEffectParam")) {
+                mat.customEffectParam = m["customEffectParam"].get<float>();
+            }
+
+            SetMaterialOverride(meshIdx, mat);
+        }
+    }
+}
+
+std::shared_ptr<Component> SkinnedMeshRendererComponent::Clone() {
+    auto clone = std::make_shared<SkinnedMeshRendererComponent>();
+    clone->CopyPropertiesFrom(this);
+    clone->isVisible_ = this->isVisible_;
+    clone->materialOverrides_ = this->materialOverrides_;
+    if (!this->modelFilename_.empty()) {
+        clone->LoadModel(this->modelFilename_);
+    }
+    return clone;
 }
 
 void SkinnedMeshRendererComponent::SetEnableEffectMask(bool enable) {

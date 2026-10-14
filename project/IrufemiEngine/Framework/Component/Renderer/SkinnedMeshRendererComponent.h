@@ -85,6 +85,12 @@ public:
      */
     void Deserialize(const nlohmann::json& j) override;
 
+    /**
+     * @brief コンポーネントのディープコピーを生成する
+     * @return 複製されたコンポーネントの共有ポインタ
+     */
+    std::shared_ptr<Component> Clone() override;
+
     // アニメーターや他のロジックからポーズを流し込むための窓口
     /**
      * @brief RawObject を取得する。
