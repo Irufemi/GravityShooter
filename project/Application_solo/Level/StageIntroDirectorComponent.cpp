@@ -1,6 +1,7 @@
 #include "StageIntroDirectorComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
+#include "Framework/Scene/SceneManager.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Camera/CameraComponent.h"
 #include "Framework/Component/Camera/CameraShakeComponent.h"
@@ -87,6 +88,7 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
     // 自機を入力無効化し、初期位置（カメラ後方）へオフセット
     if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
         playerComp->SetInputEnabled(false);
+        playerComp->SetState(PlayerFlightState::WarpEntry);
     }
 
     Irufemi::Vector3 startPos = initialShipLocalPos_;
@@ -154,6 +156,9 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
     if (auto ship = shipObj_.lock()) {
         if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
             playerComp->SetInputEnabled(config.isInputEnabled);
+            if (config.isInputEnabled) {
+                playerComp->SetState(PlayerFlightState::Idle); // イントロ完了時に通常操縦へ移行
+            }
         }
     }
 
@@ -175,6 +180,16 @@ void StageIntroDirectorComponent::Update() {
     }
 
     auto engine = GetEngine();
+    // 暗転（SceneTransitionのフェードイン）が明けるまでは演出タイマーを待機し、
+    // 画面が明るくなったまさにその瞬間に自機の飛来・ブラー収束・突破衝撃波を魅せる
+    if (engine) {
+        if (auto sm = engine->GetSceneManager()) {
+            if (sm->IsLoading() || sm->IsTransitioning()) {
+                UpdateWarpVisuals(0.0f);
+                return;
+            }
+        }
+    }
     float deltaTime = engine ? engine->GetDeltaTime() : (1.0f / 60.0f);
     if (deltaTime <= 0.0f) {
         deltaTime = 1.0f / 60.0f;

@@ -109,7 +109,7 @@ void GravitySingularityTransitionDriver::OnUpdate(PostProcessManager* ppm, float
         float blurProgress = std::pow(factor, 2.0f);
         ppm->GetRadialBlurParams().blurWidth = blurProgress * 0.045f;
         ppm->GetRadialBlurParams().center = singularityCenter;
-        ppm->GetRadialBlurParams().numSamples = 16;
+        ppm->GetRadialBlurParams().numSamples = 24;
 
         // 2. 重力色収差（ChromaticAberration: 派手な虹色ノイズを排し、繊細な重力プリズム光へ）
         float chromaProgress = std::pow(factor, 1.6f);

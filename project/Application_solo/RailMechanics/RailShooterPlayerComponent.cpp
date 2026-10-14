@@ -87,36 +87,10 @@ void RailShooterPlayerComponent::Update() {
 
     // --- ワープ進入射出シーケンス（特異点突破・急制動滑り込み） ---
     if (currentState_ == PlayerFlightState::WarpEntry) {
-        entryTimer_ += deltaTime;
-        float t = std::clamp(entryTimer_ / kWarpEntryDuration_, 0.0f, 1.0f);
-        // 3次イーズアウト（超光速進入からの減速急制動）
-        float ease = 1.0f - std::pow(1.0f - t, 3.0f);
-
-        // カメラ奥側（Z = -16.0m）から定位置（Z = 0.0m）へ滑り込む
-        float entryZ = std::lerp(-16.0f, 0.0f, ease);
-        float entryPitch = std::sin((1.0f - t) * 3.14159265f) * 0.15f; // 前傾からのノーズアップ
-
-        // ホバリング微動の重畳
-        hoverTimer_ += deltaTime * hoverFrequency_;
-        float hoverY = std::sin(hoverTimer_) * hoverAmplitude_ * ease;
-
-        transform->SetPosition({currentOffset_.x, currentOffset_.y + hoverY, entryZ});
-        transform->SetRotation({entryPitch, 0.0f, 0.0f});
-
-        // スロットル通知（アフターバーナー点火・減速）
-        float entryThrottle = (1.0f - t) * 1.5f;
-        for (const auto& listener : throttleChangeListeners_) {
-            if (listener) {
-                listener(entryThrottle);
-            }
-        }
-
-        if (t >= 1.0f) {
-            transform->SetPosition({currentOffset_.x, currentOffset_.y, 0.0f});
-            transform->SetRotation({0.0f, 0.0f, 0.0f});
-            SetState(PlayerFlightState::Idle); // 進入完了、通常操縦へシームレス移行
-        }
-        return; // 進入完了までプレイヤー入力を一時マスク
+        // StageIntroDirectorComponent が位置・姿勢・ラジアルブラー・SEを一元制御するため、
+        // ここでの直接的なトランスフォーム上書きをスキップして競合を防止する。
+        // StageIntroDirectorComponent 完了時に通常操縦ステート（Idle）へ移行される。
+        return;
     }
 
     // --- キー入力による上下左右の回避運動 ---

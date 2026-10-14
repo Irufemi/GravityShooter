@@ -250,7 +250,7 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
         }
     }
 
-    // 3. カメラの大激震シェイク発火（振幅 0.045m, 継続1.1秒, 22Hz）
+    // 3. カメラの大激震シェイク発火（振幅 0.045m, 継続1.8秒, 22Hz）
     if (auto camObj = cameraObj_.lock()) {
         auto shake = camObj->GetComponent<CameraShakeComponent>();
         if (!shake) {
@@ -625,7 +625,7 @@ void TitleSceneDirectorComponent::UpdateLaunchPostProcess(float deltaTime) {
     auto& rb = ppm->GetRadialBlurParams();
     rb.center = kSingularityCenter;
     rb.blurWidth = targetBlurWidth;
-    rb.numSamples = 12;
+    rb.numSamples = 24;
 
     // 3. 光学的赤方偏移 (ChromaticAberration): 超光速突破に伴う繊細な波長ズレ
     auto& ca = ppm->GetChromaticAberrationParams();

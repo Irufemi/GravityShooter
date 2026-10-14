@@ -56,8 +56,8 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
     const auto& initialCameraPos = director->GetInitialCameraPos();
 
     // 1. 自機は正面の重力の壁（奥の特異点）へ向かって猛スピードでダイブ
-    float startShipZ = initialShipPos.z - 0.45f + 50.0f;
-    float boostZ = startShipZ + p3 * 100.0f;
+    float startShipZ = initialShipPos.z - 0.45f + 70.0f;
+    float boostZ = startShipZ + p3 * 160.0f;
     if (shipTransform) {
         shipTransform->SetPosition({initialShipPos.x, 0.52f, boostZ});
         shipTransform->SetScale({1.0f, 1.0f, 1.0f});
@@ -65,8 +65,8 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
 
     // 2. カメラは前進の勢いをそのまま維持し、重力波の膜の目前までドリーイン
     if (cameraTransform) {
-        float startCamZ = initialCameraPos.z + 22.0f;
-        float camDollyZ = startCamZ + p3 * 25.0f;
+        float startCamZ = initialCameraPos.z + 28.0f;
+        float camDollyZ = startCamZ + p3 * 30.0f;
         cameraTransform->SetPosition({initialCameraPos.x, initialCameraPos.y, camDollyZ});
     }
 
@@ -80,9 +80,9 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
     director->SetTargetThrusterScaleZ(2.8f);
 
     // 4. 重力特異点跳躍（暗転）の発火
-    // 自機が奥の重力の壁にドカンと突入し、激しい流体の乱れが広がった瞬間（p3 >= 0.55）に暗転へ移行
-    if (p3 >= 0.55f && !director->HasTriggeredSceneTransition()) {
-        director->TriggerSceneTransition(0.35f);
+    // スラスター遠ざかり音（3.55s）のテールが宇宙の彼方に消え入る瞬間（p3 >= 0.70）に暗転へ移行
+    if (p3 >= 0.70f && !director->HasTriggeredSceneTransition()) {
+        director->TriggerSceneTransition(0.45f);
     }
 
     // 5. 自機突入に呼応する星雲特異点のインプロージョン（事象の地平線爆発的拡大＆渦超加速）

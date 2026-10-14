@@ -80,7 +80,7 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
 
     // 自機の超推力突進（画面中央の特異点へ向けて自然にスロープ上昇しながら前進）
     if (shipTransform) {
-        float boostZ = initialShipPos.z - 0.45f + accelCurve * 50.0f;
+        float boostZ = initialShipPos.z - 0.45f + accelCurve * 70.0f;
         float targetY = std::lerp(initialShipPos.y, 0.52f, accelCurve);
         shipTransform->SetPosition({initialShipPos.x, targetY, boostZ});
         shipTransform->SetRotation({0.0f, 0.0f, 0.0f});
@@ -88,7 +88,7 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
 
     // カメラ滑らかドリーイン（自機を見送りつつ衝撃波に乗って前進）
     if (cameraTransform) {
-        float camDollyZ = initialCameraPos.z + accelCurve * 22.0f;
+        float camDollyZ = initialCameraPos.z + accelCurve * 28.0f;
         cameraTransform->SetPosition({initialCameraPos.x, initialCameraPos.y, camDollyZ});
     }
 
