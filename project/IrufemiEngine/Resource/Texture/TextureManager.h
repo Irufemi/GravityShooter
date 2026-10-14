@@ -229,17 +229,15 @@ public:
     }
 
 private:
-    /**
-     * @brief 現在のシーンが初期化中かどうかを判定する
-     */
     bool IsCurrentSceneInitializing() const;
     DirectXCommon* dxCommon_ = nullptr;
+    // NOTE: 非同期テクスチャロードタスク（ThreadPool）とメインスレッドからのテクスチャ検索・参照カウント更新の
+    // 排他制御を低レイヤーで行うため、生の std::mutex を意図して維持しています。
+    mutable std::mutex mutex_;
 
     ResourceCachePool texturePool_;
     mutable std::unordered_map<std::string, ResourceHandle> nameToHandleMap_;
     std::vector<std::shared_ptr<Texture>> textureResources_;
-
-    mutable std::mutex mutex_;
 
     std::unique_ptr<ThreadPool> threadPool_;
     std::shared_ptr<TaskGroup> taskGroup_;           ///< 重要タスク用

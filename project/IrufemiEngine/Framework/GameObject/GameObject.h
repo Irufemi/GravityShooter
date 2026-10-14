@@ -474,6 +474,8 @@ private:
     std::vector<std::shared_ptr<Component>> components_;
     std::unordered_map<std::type_index, std::vector<Component*>> componentMap_;
     class TransformComponent* transformCache_ = nullptr;
+    // NOTE: オブジェクト階層の再帰トラバースやイベント伝播で同一スレッドから再入（往復呼び出し）
+    // が発生するため、通常の排他ロックではなく std::recursive_mutex を意図して使用しています。
     mutable std::recursive_mutex structureMutex_; ///< 構造変更（子オブジェクト・コンポーネント着脱）用ミューテックス
 
 private:

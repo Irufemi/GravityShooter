@@ -53,12 +53,13 @@ void Log::OutPutLog(std::ostream& os, const std::string& message) {
 
     bool isError = (&os == &std::cerr);
 
-    std::lock_guard<std::mutex> lock(logMutex_);
     if (logStream_.is_open()) {
         logStream_ << message << "\n";
     }
-    logHistory_.push_back({message, isError});
-    if (logHistory_.size() > kMaxLogLines) {
-        logHistory_.pop_front(); // std::deque による O(1) 先頭削除
-    }
+    logHistory_.WithWrite([&](LogContainer& history) {
+        history.push_back({message, isError});
+        if (history.size() > kMaxLogLines) {
+            history.pop_front(); // std::deque による O(1) 先頭削除
+        }
+    });
 }

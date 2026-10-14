@@ -124,6 +124,8 @@ private:
     HANDLE fenceEvent_ = nullptr;
 
     // --- 非同期転送（アップロード）系 ---
+    // NOTE: データ保護ではなく、バックグラウンドスレッドからのテクスチャ等のアップロードコマンド記録と
+    // GPU実行シーケンスを直列化するクリティカルセクションのため生の std::mutex を使用しています。
     std::mutex uploadMutex_;
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> uploadCommandAllocator_ = nullptr;
     Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> uploadCommandList_ = nullptr;

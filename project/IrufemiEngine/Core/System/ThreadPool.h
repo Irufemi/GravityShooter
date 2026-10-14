@@ -84,6 +84,8 @@ private:
     std::queue<std::function<void()>> tasks_;
 
     // 同期用
+    // NOTE: std::condition_variable::wait に渡す std::unique_lock<std::mutex> が
+    // 言語仕様上必須のため、Synchronized<T> ではなく生の std::mutex を意図して維持しています。
     mutable std::mutex queueMutex_;
     std::condition_variable condition_;
     std::atomic<bool> stop_;

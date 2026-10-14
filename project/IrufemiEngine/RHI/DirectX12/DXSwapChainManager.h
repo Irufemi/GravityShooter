@@ -223,6 +223,7 @@ private:
 
     uint32_t nextRtvIndex_ = 4;
     uint32_t nextDsvIndex_ = 1;
-
+    // NOTE: GPU フェンス完了待ちと連動した RTV/DSV デスクリプタの遅延解放・スロット割当の
+    // 競合を防ぐための低レイヤー排他制御用ミューテックスです。
     std::mutex descriptorMutex_;
 };

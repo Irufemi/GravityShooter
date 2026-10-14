@@ -11,6 +11,7 @@
 #include "Core/Shape/LinePrimitive.h"
 #include "Physics/Collision/DynamicBVH.h"
 #include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
+#include "Core/Utility/Synchronized.h"
 
 class ColliderComponent;
 class GameObject;
@@ -142,14 +143,15 @@ private:
     std::vector<ColliderComponent*> colliders_;
 
     // --- 遅延登録用キュー ---
-    std::mutex pendingMutex_;                     ///< 遅延コマンド操作用ミューテックス
-    std::vector<ColliderComponent*> pendingAdds_; ///< 追加予定のコライダーリスト
-
     struct PendingRemove {
         ColliderComponent* collider;
         int bvhNodeId;
     };
-    std::vector<PendingRemove> pendingRemoves_; ///< 削除予定のコライダーリスト
+    struct PendingCommands {
+        std::vector<ColliderComponent*> adds;
+        std::vector<PendingRemove> removes;
+    };
+    Irufemi::Synchronized<PendingCommands, std::mutex> pendingCommands_; ///< 遅延コマンド操作用（スレッドセーフ）
 
     std::unique_ptr<Line3DBatch> debugLine_ = nullptr;
     DebugPrimitiveRenderer* debugPrimitiveRenderer_ = nullptr;

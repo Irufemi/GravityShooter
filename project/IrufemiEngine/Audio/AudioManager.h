@@ -2,11 +2,11 @@
 
 #include "Audio/Sound.h"
 #include "Audio/VoiceInstance.h"
+#include "Core/Utility/Synchronized.h"
 #include <unordered_map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <mutex>
 #include <chrono>
 #include <wrl/client.h> // ComPtr用
 
@@ -36,25 +36,6 @@ private:
     IXAudio2SubmixVoice* pSubmixSe_{nullptr};  ///< 効果音専用バス
     IXAudio2SubmixVoice* pSubmixUi_{nullptr};  ///< UI効果音専用バス
 
-    // ロードした音声データをファイル名をキーにして保持するマップ
-    mutable std::mutex registryMutex_; ///< soundRegistry_ / categoryMap_ 保護用ミューテックス
-    std::unordered_map<std::string, std::shared_ptr<Sound>> soundRegistry_;
-
-    // 再生中の VoiceInstance を一元管理
-    mutable std::mutex voiceMutex_; ///< activeVoices_ 保護用ミューテックス
-    std::vector<std::shared_ptr<VoiceInstance>> activeVoices_;
-
-    // カテゴリ名 → その中にあるファイル名リスト
-    std::unordered_map<std::string, std::vector<std::string>> categoryMap_;
-
-    // ファイナライズ済みフラグ
-    bool finalized_{false};
-
-    // ボリュームキャッシュ（不要なSetVolume呼び出し防止用）
-    float cachedMasterVolume_{-1.0f};
-    float cachedBgmVolume_{-1.0f};
-    float cachedSeVolume_{-1.0f};
-
     /**
      * @struct FadeTask
      * @brief 再生中ボイスの音量補間・自動停止タスク
@@ -68,7 +49,6 @@ private:
         float elapsedTime{0.0f};     ///< 経過時間 (秒)
         bool stopOnComplete{true};   ///< 完了時にボイスを停止・破棄するか
     };
-    std::vector<FadeTask> fadeTasks_;
 
     /**
      * @struct CategoryFadeTask
@@ -82,7 +62,29 @@ private:
         float fadeDuration{0.0f};  ///< フェードにかける秒数
         float elapsedTime{0.0f};   ///< 経過時間 (秒)
     };
-    std::vector<CategoryFadeTask> categoryFadeTasks_;
+
+    // ロードした音声データとカテゴリを保持するレジストリ（std::shared_mutex による読み取り最適化）
+    struct SoundRegistryState {
+        std::unordered_map<std::string, std::shared_ptr<Sound>> registry;
+        std::unordered_map<std::string, std::vector<std::string>> categoryMap;
+    };
+    mutable Irufemi::Synchronized<SoundRegistryState> soundRegistry_;
+
+    // 再生中の VoiceInstance およびフェードタスクを一元管理
+    struct VoiceState {
+        std::vector<std::shared_ptr<VoiceInstance>> activeVoices;
+        std::vector<FadeTask> fadeTasks;
+        std::vector<CategoryFadeTask> categoryFadeTasks;
+    };
+    mutable Irufemi::Synchronized<VoiceState, std::mutex> voiceState_;
+
+    // ファイナライズ済みフラグ
+    bool finalized_{false};
+
+    // ボリュームキャッシュ（不要なSetVolume呼び出し防止用）
+    float cachedMasterVolume_{-1.0f};
+    float cachedBgmVolume_{-1.0f};
+    float cachedSeVolume_{-1.0f};
 
     std::chrono::steady_clock::time_point lastUpdateTime_{std::chrono::steady_clock::now()};
 

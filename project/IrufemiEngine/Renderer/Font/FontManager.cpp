@@ -22,20 +22,23 @@
 #include "RHI/DirectX12/DescriptorPool.h"
 #include "Resource/Texture/TextureManager.h"
 
+#include "Core/Utility/Synchronized.h"
+
 #include <unordered_map>
 #include <vector>
-#include <mutex>
 #include <filesystem>
 #include <algorithm>
 
 // 内部実装の定義
 struct FontManager::Impl {
     msdfgen::FreetypeHandle* ftLibrary = nullptr;
-    std::unordered_map<std::string, msdfgen::FontHandle*> fonts;
 
-    // キャッシュされた文字情報: FontID -> (文字コード -> GlyphInfo)
-    std::unordered_map<std::string, std::unordered_map<char32_t, GlyphInfo>> glyphCache;
-    std::mutex cacheMutex;
+    struct FontCacheData {
+        std::unordered_map<std::string, msdfgen::FontHandle*> fonts;
+        // キャッシュされた文字情報: FontID -> (文字コード -> GlyphInfo)
+        std::unordered_map<std::string, std::unordered_map<char32_t, GlyphInfo>> glyphCache;
+    };
+    Irufemi::Synchronized<FontCacheData> cache_;
 
     // アトラス管理 (stb_rect_pack用)
     stbrp_context packContext;
@@ -117,12 +120,15 @@ void FontManager::Initialize(IrufemiEngine* engine) {
 void FontManager::Finalize() {
     impl_->threadPool.reset(); // スレッドプールの停止を待機
 
-    for (auto& pair : impl_->fonts) {
-        if (pair.second) {
-            msdfgen::destroyFont(pair.second);
+    impl_->cache_.WithWrite([](auto& data) {
+        for (auto& pair : data.fonts) {
+            if (pair.second) {
+                msdfgen::destroyFont(pair.second);
+            }
         }
-    }
-    impl_->fonts.clear();
+        data.fonts.clear();
+        data.glyphCache.clear();
+    });
 
     if (impl_->ftLibrary) {
         msdfgen::deinitializeFreetype(impl_->ftLibrary);
@@ -133,8 +139,9 @@ void FontManager::Finalize() {
 bool FontManager::LoadFont(const std::string& fontId, const std::string& ttfPath) {
     msdfgen::FontHandle* font = msdfgen::loadFont(impl_->ftLibrary, ttfPath.c_str());
     if (font) {
-        std::lock_guard<std::mutex> lock(impl_->cacheMutex);
-        impl_->fonts[fontId] = font;
+        impl_->cache_.WithWrite([&](auto& data) {
+            data.fonts[fontId] = font;
+        });
         return true;
     }
     return false;
@@ -164,11 +171,14 @@ void FontManager::LoadAllFromFolder(const std::string& folderPath) {
 }
 
 std::vector<std::string> FontManager::GetLoadedFontIds() const {
-    std::vector<std::string> ids;
-    for (const auto& pair : impl_->fonts) {
-        ids.push_back(pair.first);
-    }
-    return ids;
+    return impl_->cache_.WithRead([](const auto& data) {
+        std::vector<std::string> ids;
+        ids.reserve(data.fonts.size());
+        for (const auto& pair : data.fonts) {
+            ids.push_back(pair.first);
+        }
+        return ids;
+    });
 }
 
 bool FontManager::IsAllLoaded() const {
@@ -185,14 +195,14 @@ void FontManager::PrecacheTextSync(const std::string& fontId, const std::wstring
 }
 
 void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wstring& text) {
-    std::lock_guard<std::mutex> lock(impl_->cacheMutex);
-    auto it = impl_->fonts.find(fontId);
-    if (it == impl_->fonts.end()) {
+    auto lock = impl_->cache_.Write();
+    auto it = lock->fonts.find(fontId);
+    if (it == lock->fonts.end()) {
         return;
     }
     msdfgen::FontHandle* font = it->second;
 
-    auto& fontCache = impl_->glyphCache[fontId];
+    auto& fontCache = lock->glyphCache[fontId];
 
     msdfgen::FontMetrics metrics;
     msdfgen::getFontMetrics(metrics, font, msdfgen::FONT_SCALING_NONE);
@@ -391,8 +401,8 @@ void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wst
 }
 
 std::optional<GlyphInfo> FontManager::GetGlyph(const std::string& fontId, char32_t character) {
-    std::lock_guard<std::mutex> lock(impl_->cacheMutex);
-    auto& fontCache = impl_->glyphCache[fontId];
+    auto lock = impl_->cache_.Write();
+    auto& fontCache = lock->glyphCache[fontId];
     auto it = fontCache.find(character);
 
     // すでに正常な文字データが存在する場合はそれを返す
@@ -406,8 +416,8 @@ std::optional<GlyphInfo> FontManager::GetGlyph(const std::string& fontId, char32
     dummy.character = character;
     dummy.width = -1.0f; // 未生成状態を示すフラグとして width = -1 を使用
 
-    auto fontIt = impl_->fonts.find(fontId);
-    if (fontIt != impl_->fonts.end()) {
+    auto fontIt = lock->fonts.find(fontId);
+    if (fontIt != lock->fonts.end()) {
         msdfgen::FontHandle* font = fontIt->second;
         msdfgen::FontMetrics metrics;
         msdfgen::getFontMetrics(metrics, font, msdfgen::FONT_SCALING_NONE);

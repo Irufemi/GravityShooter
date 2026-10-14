@@ -141,15 +141,16 @@ void AudioManager::Finalize() {
 
     // 【一線級エンジン規約 Step 2: Leaves】すべての SourceVoice を安全に停止・破棄・解放
     {
-        std::lock_guard<std::mutex> lock(voiceMutex_);
-        for (auto& voice : activeVoices_) {
-            if (voice) {
-                voice->Destroy();
+        voiceState_.WithWrite([](auto& state) {
+            for (auto& voice : state.activeVoices) {
+                if (voice) {
+                    voice->Destroy();
+                }
             }
-        }
-        activeVoices_.clear();
-        fadeTasks_.clear();
-        categoryFadeTasks_.clear();
+            state.activeVoices.clear();
+            state.fadeTasks.clear();
+            state.categoryFadeTasks.clear();
+        });
     }
 
     // 【一線級エンジン規約 Step 3: Branches】サブミックスボイスの破棄（MasteringVoiceより先に破棄）
@@ -179,12 +180,13 @@ void AudioManager::Finalize() {
 }
 
 bool AudioManager::IsManagedVoice(std::shared_ptr<VoiceInstance> instance) const {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    return std::find(activeVoices_.begin(), activeVoices_.end(), instance) != activeVoices_.end();
+    return voiceState_.WithRead([&](const auto& state) {
+        return std::find(state.activeVoices.begin(), state.activeVoices.end(), instance) != state.activeVoices.end();
+    });
 }
 
 void AudioManager::Update(float deltaTime) {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
+    auto lock = voiceState_.Write();
 
     // デルタタイム算出（未指定または0以下の場合は高精度クロックから自己補正）
     float dt = deltaTime;
@@ -197,7 +199,7 @@ void AudioManager::Update(float deltaTime) {
     dt = std::clamp(dt, 0.0f, 0.2f);
 
     // 1. フェードタスク（音量補間・オートメーション）の更新
-    for (auto& task : fadeTasks_) {
+    for (auto& task : lock->fadeTasks) {
         auto voice = task.voice.lock();
         if (!voice) {
             continue;
@@ -234,7 +236,7 @@ void AudioManager::Update(float deltaTime) {
     }
 
     // 完了したフェードタスクのクリーンアップ
-    std::erase_if(fadeTasks_, [](const FadeTask& task) {
+    std::erase_if(lock->fadeTasks, [](const FadeTask& task) {
         auto v = task.voice.lock();
         if (!v) {
             return true;
@@ -243,7 +245,7 @@ void AudioManager::Update(float deltaTime) {
     });
 
     // 2. カテゴリフェードタスク（バス全体の音量オートメーション）の更新
-    for (auto& task : categoryFadeTasks_) {
+    for (auto& task : lock->categoryFadeTasks) {
         task.elapsedTime += dt;
         if (task.elapsedTime < task.delayDuration) {
             continue; // 遅延待機中
@@ -269,22 +271,21 @@ void AudioManager::Update(float deltaTime) {
     }
 
     // 完了したカテゴリフェードタスクのクリーンアップ
-    std::erase_if(categoryFadeTasks_, [](const CategoryFadeTask& task) {
+    std::erase_if(lock->categoryFadeTasks, [](const CategoryFadeTask& task) {
         return (task.elapsedTime >= (task.delayDuration + task.fadeDuration));
     });
 
     // 3. 終了したボイスをリストから削除
     // 削除されると shared_ptr の参照が外れ、VoiceInstance のデストラクタで DestroyVoice される
-    std::erase_if(activeVoices_,
+    std::erase_if(lock->activeVoices,
                   [](const std::shared_ptr<VoiceInstance>& instance) { return instance->GetCallback()->IsFinished(); });
 }
 
 void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath, ThreadPool* threadPool) {
-    {
-        std::lock_guard<std::mutex> lock(registryMutex_);
-        soundRegistry_.clear();
-        categoryMap_.clear();
-    }
+    soundRegistry_.WithWrite([](auto& state) {
+        state.registry.clear();
+        state.categoryMap.clear();
+    });
     namespace fs = std::filesystem;
     std::string targetPath = folderPath;
     if (!fs::exists(targetPath) || !fs::is_directory(targetPath)) {
@@ -314,10 +315,11 @@ void AudioManager::LoadAllSoundsFromFolder(const std::string& folderPath, Thread
     }
 
     // 全てのカテゴリ名リストをソート
-    std::lock_guard<std::mutex> lock(registryMutex_);
-    for (auto& [cat, names] : categoryMap_) {
-        std::sort(names.begin(), names.end());
-    }
+    soundRegistry_.WithWrite([](auto& state) {
+        for (auto& [cat, names] : state.categoryMap) {
+            std::sort(names.begin(), names.end());
+        }
+    });
 }
 
 // サブフォルダ単位でロードするオーバーロード版
@@ -354,9 +356,10 @@ void AudioManager::LoadSoundsFromFolder(const std::string& folderPath, const std
 
             auto sd = std::make_shared<Sound>();
             if (sd->Load(wpath)) {
-                std::lock_guard<std::mutex> lock(registryMutex_);
-                soundRegistry_[key] = sd;
-                categoryMap_[category].push_back(filename);
+                soundRegistry_.WithWrite([&](auto& state) {
+                    state.registry[key] = sd;
+                    state.categoryMap[category].push_back(filename);
+                });
             } else {
                 Log::OutPutLog(std::cerr, "[AudioManager] Warning: Failed to load sound file: " + key + "\n");
             }
@@ -375,39 +378,43 @@ void AudioManager::LoadSoundsFromFolder(const std::string& folderPath, const std
 
     // threadPoolがない同期ロード時のみここでソート
     if (!threadPool) {
-        std::lock_guard<std::mutex> lock(registryMutex_);
-        auto& names = categoryMap_[category];
-        std::sort(names.begin(), names.end());
+        soundRegistry_.WithWrite([&](auto& state) {
+            auto& names = state.categoryMap[category];
+            std::sort(names.begin(), names.end());
+        });
     }
 }
 
 std::vector<std::string> AudioManager::GetSoundNames(const std::string& category) const {
-    std::lock_guard<std::mutex> lock(registryMutex_);
-    auto it = categoryMap_.find(category);
-    if (it == categoryMap_.end()) {
-        return {};
-    }
-    return it->second;
+    return soundRegistry_.WithRead([&](const auto& state) -> std::vector<std::string> {
+        auto it = state.categoryMap.find(category);
+        if (it == state.categoryMap.end()) {
+            return {};
+        }
+        return it->second;
+    });
 }
 
 std::shared_ptr<Sound> AudioManager::GetSoundData(const std::string& name) const {
-    std::lock_guard<std::mutex> lock(registryMutex_);
-    auto it = soundRegistry_.find(name);
-    if (it != soundRegistry_.end()) {
-        return it->second;
-    }
-    return nullptr;
+    return soundRegistry_.WithRead([&](const auto& state) -> std::shared_ptr<Sound> {
+        auto it = state.registry.find(name);
+        if (it != state.registry.end()) {
+            return it->second;
+        }
+        return nullptr;
+    });
 }
 
 std::vector<std::string> AudioManager::GetCategories() const {
-    std::lock_guard<std::mutex> lock(registryMutex_);
-    std::vector<std::string> cats;
-    cats.reserve(categoryMap_.size());
-    for (auto const& [cat, _] : categoryMap_) {
-        cats.push_back(cat);
-    }
-    std::sort(cats.begin(), cats.end());
-    return cats;
+    return soundRegistry_.WithRead([](const auto& state) {
+        std::vector<std::string> cats;
+        cats.reserve(state.categoryMap.size());
+        for (auto const& [cat, _] : state.categoryMap) {
+            cats.push_back(cat);
+        }
+        std::sort(cats.begin(), cats.end());
+        return cats;
+    });
 }
 
 IXAudio2SubmixVoice* AudioManager::GetSubmixVoice(AudioCategory category) const {
@@ -452,20 +459,20 @@ void AudioManager::SetCategoryVolume(AudioCategory category, float volume) {
 }
 
 void AudioManager::FadeCategoryVolume(AudioCategory category, float targetVolume, float duration, float delay) {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
+    voiceState_.WithWrite([&](auto& state) {
+        // 既存の同一カテゴリのフェードタスクがあれば除去
+        std::erase_if(state.categoryFadeTasks, [category](const CategoryFadeTask& t) { return t.category == category; });
 
-    // 既存の同一カテゴリのフェードタスクがあれば除去
-    std::erase_if(categoryFadeTasks_, [category](const CategoryFadeTask& t) { return t.category == category; });
+        CategoryFadeTask task;
+        task.category = category;
+        task.startVolume = GetCategoryVolume(category);
+        task.targetVolume = std::clamp(targetVolume, 0.0f, 1.0f);
+        task.delayDuration = (std::max)(0.0f, delay);
+        task.fadeDuration = (std::max)(0.001f, duration);
+        task.elapsedTime = 0.0f;
 
-    CategoryFadeTask task;
-    task.category = category;
-    task.startVolume = GetCategoryVolume(category);
-    task.targetVolume = std::clamp(targetVolume, 0.0f, 1.0f);
-    task.delayDuration = (std::max)(0.0f, delay);
-    task.fadeDuration = (std::max)(0.001f, duration);
-    task.elapsedTime = 0.0f;
-
-    categoryFadeTasks_.push_back(task);
+        state.categoryFadeTasks.push_back(task);
+    });
 }
 
 float AudioManager::GetCategoryVolume(AudioCategory category) const {
@@ -537,10 +544,9 @@ std::weak_ptr<VoiceInstance> AudioManager::Play(std::shared_ptr<Sound> soundData
 
     // 管理インスタンスを生成してリストに追加
     auto instance = std::make_shared<VoiceInstance>(pSourceVoice, std::move(callback), category);
-    {
-        std::lock_guard<std::mutex> lock(voiceMutex_);
-        activeVoices_.push_back(instance);
-    }
+    voiceState_.WithWrite([&](auto& state) {
+        state.activeVoices.push_back(instance);
+    });
     return instance;
 }
 
@@ -578,102 +584,119 @@ void AudioManager::Stop(const std::weak_ptr<VoiceInstance>& instance) {
     }
 
     // 管理リストから除去 (shared_ptr が外れて VoiceInstance のデストラクタで破棄される)
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    std::erase(activeVoices_, locked);
+    voiceState_.WithWrite([&](auto& state) {
+        std::erase(state.activeVoices, locked);
+    });
 }
 
 void AudioManager::StopAll() {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    for (auto& voice : activeVoices_) {
-        if (voice) {
-            voice->Destroy();
+    voiceState_.WithWrite([](auto& state) {
+        for (auto& voice : state.activeVoices) {
+            if (voice) {
+                voice->Destroy();
+            }
         }
-    }
-    activeVoices_.clear();
+        state.activeVoices.clear();
+    });
 }
 
 void AudioManager::StopCategory(AudioCategory category, float fadeOutDuration) {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    if (fadeOutDuration <= 0.0f) {
-        // 即時停止・破棄
-        for (auto it = activeVoices_.begin(); it != activeVoices_.end();) {
-            if (*it && (*it)->GetCategory() == category) {
-                (*it)->Destroy();
-                it = activeVoices_.erase(it);
-            } else {
-                ++it;
+    voiceState_.WithWrite([&](auto& state) {
+        if (fadeOutDuration <= 0.0f) {
+            // 即時停止・破棄
+            for (auto it = state.activeVoices.begin(); it != state.activeVoices.end();) {
+                if (*it && (*it)->GetCategory() == category) {
+                    (*it)->Destroy();
+                    it = state.activeVoices.erase(it);
+                } else {
+                    ++it;
+                }
             }
-        }
-    } else {
-        // フェードアウトタスクを登録して滑らかに減衰停止
-        for (auto& voice : activeVoices_) {
-            if (voice && voice->GetCategory() == category) {
-                std::erase_if(fadeTasks_, [&](const FadeTask& task) {
-                    auto v = task.voice.lock();
-                    return v && v == voice;
-                });
+        } else {
+            // フェードアウトタスクを登録して滑らかに減衰停止
+            for (auto& voice : state.activeVoices) {
+                if (voice && voice->GetCategory() == category) {
+                    std::erase_if(state.fadeTasks, [&](const FadeTask& task) {
+                        auto v = task.voice.lock();
+                        return v && v == voice;
+                    });
 
-                FadeTask task;
-                task.voice = voice;
-                task.startVolume = voice->GetVolume();
-                task.targetVolume = 0.0f;
-                task.sustainDuration = 0.0f;
-                task.fadeDuration = (std::max)(0.001f, fadeOutDuration);
-                task.elapsedTime = 0.0f;
-                task.stopOnComplete = true;
-                fadeTasks_.push_back(task);
+                    FadeTask task;
+                    task.voice = voice;
+                    task.startVolume = voice->GetVolume();
+                    task.targetVolume = 0.0f;
+                    task.sustainDuration = 0.0f;
+                    task.fadeDuration = (std::max)(0.001f, fadeOutDuration);
+                    task.elapsedTime = 0.0f;
+                    task.stopOnComplete = true;
+                    state.fadeTasks.push_back(task);
+                }
             }
         }
-    }
+    });
 }
 
 void AudioManager::PauseAll() {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    for (auto& voice : activeVoices_) {
-        if (voice) {
-            voice->Pause();
+    voiceState_.WithWrite([](auto& state) {
+        for (auto& voice : state.activeVoices) {
+            if (voice) {
+                voice->Pause();
+            }
         }
-    }
+    });
 }
 
 void AudioManager::ResumeAll() {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    for (auto& voice : activeVoices_) {
-        if (voice) {
-            voice->Resume();
+    voiceState_.WithWrite([](auto& state) {
+        for (auto& voice : state.activeVoices) {
+            if (voice) {
+                voice->Resume();
+            }
         }
-    }
+    });
 }
 
 void AudioManager::PauseCategory(AudioCategory category) {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    for (auto& voice : activeVoices_) {
-        if (voice && voice->GetCategory() == category) {
-            voice->Pause();
+    voiceState_.WithWrite([&](auto& state) {
+        for (auto& voice : state.activeVoices) {
+            if (voice && voice->GetCategory() == category) {
+                voice->Pause();
+            }
         }
-    }
+    });
 }
 
 void AudioManager::ResumeCategory(AudioCategory category) {
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    for (auto& voice : activeVoices_) {
-        if (voice && voice->GetCategory() == category) {
-            voice->Resume();
+    voiceState_.WithWrite([&](auto& state) {
+        for (auto& voice : state.activeVoices) {
+            if (voice && voice->GetCategory() == category) {
+                voice->Resume();
+            }
         }
-    }
+    });
 }
 
 bool AudioManager::HasSound(const std::string& key) const {
-    return soundRegistry_.find(key) != soundRegistry_.end();
+    return soundRegistry_.WithRead([&](const auto& state) {
+        return state.registry.find(key) != state.registry.end();
+    });
 }
 
 std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& filePath, const std::string& key) {
     std::string normPath = NormalizePath(filePath);
     std::string useKey = key.empty() ? normPath : key;
 
-    auto it = soundRegistry_.find(useKey);
-    if (it != soundRegistry_.end()) {
-        return it->second;
+    {
+        auto sound = soundRegistry_.WithRead([&](const auto& state) -> std::shared_ptr<Sound> {
+            auto it = state.registry.find(useKey);
+            if (it != state.registry.end()) {
+                return it->second;
+            }
+            return nullptr;
+        });
+        if (sound) {
+            return sound;
+        }
     }
 
     auto sound = std::make_shared<Sound>();
@@ -682,7 +705,9 @@ std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& fil
         return nullptr;
     }
 
-    soundRegistry_.emplace(useKey, sound);
+    soundRegistry_.WithWrite([&](auto& state) {
+        state.registry.emplace(useKey, sound);
+    });
     return sound;
 }
 
@@ -710,21 +735,22 @@ void AudioManager::FadeVoice(std::weak_ptr<VoiceInstance> voice, float targetVol
         return;
     }
 
-    std::lock_guard<std::mutex> lock(voiceMutex_);
-    // 同一ボイスに対する既存のフェードタスクがあれば上書き
-    std::erase_if(fadeTasks_, [&](const FadeTask& task) {
-        auto v = task.voice.lock();
-        return v && v == strongVoice;
+    voiceState_.WithWrite([&](auto& state) {
+        // 同一ボイスに対する既存のフェードタスクがあれば上書き
+        std::erase_if(state.fadeTasks, [&](const FadeTask& task) {
+            auto v = task.voice.lock();
+            return v && v == strongVoice;
+        });
+
+        FadeTask task;
+        task.voice = voice;
+        task.startVolume = strongVoice->GetVolume();
+        task.targetVolume = targetVolume;
+        task.sustainDuration = (std::max)(0.0f, delay);
+        task.fadeDuration = (std::max)(0.001f, duration);
+        task.elapsedTime = 0.0f;
+        task.stopOnComplete = stopOnComplete;
+
+        state.fadeTasks.push_back(task);
     });
-
-    FadeTask task;
-    task.voice = voice;
-    task.startVolume = strongVoice->GetVolume();
-    task.targetVolume = targetVolume;
-    task.sustainDuration = std::max(0.0f, delay);
-    task.fadeDuration = std::max(0.001f, duration);
-    task.elapsedTime = 0.0f;
-    task.stopOnComplete = stopOnComplete;
-
-    fadeTasks_.push_back(task);
 }

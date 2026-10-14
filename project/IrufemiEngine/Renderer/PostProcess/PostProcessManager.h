@@ -1374,15 +1374,18 @@ private:
     ID3D12RootSignature* rootSig_ = nullptr;
     DXGI_FORMAT rtvFormat_ = DXGI_FORMAT_UNKNOWN;
 
-    Mode mode_ = Mode::None; // 互換性用（内部では不使用にする）
-
-    std::mutex modesMutex_;
+    // NOTE: 描画スレッドでのレンダーグラフ実行（CommitPendingModes / GetActiveModes）と
+    // ゲームスレッドからのエフェクト追加・削除の排他制御を行い、かつ GetActiveModes での
+    // 参照返却パフォーマンスを担保するため、生の std::mutex を意図して維持しています。
+    mutable std::mutex modesMutex_;
     std::vector<Mode> activePreUI_;
     std::vector<PostProcessModeInfo> pendingPreUI_;
 
     std::vector<Mode> activePostUI_;
     std::vector<PostProcessModeInfo> pendingPostUI_;
 
+    // NOTE: GPU定数バッファのマップ領域（mappedCustomEffectParams_）への直接 memcpy と
+    // スロット割り当ての同期を行う低レイヤー制御のため、生の std::mutex を意図して維持しています。
     std::mutex customParamsMutex_;
     std::array<CustomEffectParams, kMaxCustomEffectParams> persistentCustomParams_{};
     std::unordered_map<uint64_t, uint32_t> objectToSlotMap_;

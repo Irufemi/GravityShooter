@@ -8,6 +8,7 @@
 #include <mutex>
 #include <atomic>
 #include "Core/System/ThreadPool.h"
+#include "Core/Utility/Synchronized.h"
 
 // 前方宣言
 class DirectXCommon;
@@ -97,8 +98,7 @@ private:
     DirectXCommon* dxCommon_ = nullptr;
     ThreadPool* threadPool_ = nullptr;
 
-    std::mutex requestMutex_;
-    std::vector<ScreenCaptureRequest> pendingRequests_;
+    Irufemi::Synchronized<std::vector<ScreenCaptureRequest>> pendingRequests_;
 
     // キャプチャ中の多重実行を防ぐためのフラグやバッファ管理
     std::atomic<bool> isEncoding_{false};

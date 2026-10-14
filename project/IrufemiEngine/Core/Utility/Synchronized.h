@@ -2,14 +2,30 @@
 #include <shared_mutex>
 #include <mutex>
 #include <utility>
+#include <type_traits>
 
 namespace Irufemi {
 
+namespace Detail {
+    template <typename M, typename = void>
+    struct IsSharedMutex : std::false_type {};
+
+    template <typename M>
+    struct IsSharedMutex<M, std::void_t<decltype(std::declval<M>().lock_shared()),
+                                         decltype(std::declval<M>().unlock_shared())>> : std::true_type {};
+
+    template <typename M>
+    using SharedOrUniqueLock = std::conditional_t<IsSharedMutex<M>::value,
+                                                  std::shared_lock<M>,
+                                                  std::unique_lock<M>>;
+}
+
 /**
  * @class Synchronized
- * @brief データとその保護用共有ミューテックスを一体化し、スレッド安全なアクセスを強制するRAIIモニタ型ラッパー
+ * @brief データとその保護用ミューテックスを一体化し、スレッド安全なアクセスを強制するRAIIモニタ型ラッパー
  * @details 内部データへのアクセスには必ず ReadLock または WriteLock の取得を要するため、
  *          マルチスレッド環境におけるロックの取得忘れやデータ競合をコンパイルレベルで根絶します。
+ *          MutexType が lock_shared を持つ場合は共有ロック（shared_lock）、通常の mutex の場合は unique_lock に自動でフォールバックします。
  * @tparam T スレッドセーフに保護する対象のデータ型
  * @tparam MutexType 使用するミューテックス型（デフォルト: std::shared_mutex）
  */
@@ -31,7 +47,7 @@ public:
 
     private:
         const T& data_;
-        std::shared_lock<MutexType> lock_;
+        Detail::SharedOrUniqueLock<MutexType> lock_;
     };
 
     /**
@@ -90,7 +106,7 @@ public:
      */
     template <typename Func>
     auto WithRead(Func&& func) const -> decltype(func(std::declval<const T&>())) {
-        std::shared_lock<MutexType> lock(mutex_);
+        Detail::SharedOrUniqueLock<MutexType> lock(mutex_);
         return func(data_);
     }
 

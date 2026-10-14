@@ -47,9 +47,8 @@ void ScreenCaptureManager::Update() {
 
 bool ScreenCaptureManager::RequestCapture(const std::wstring& filePath, ScreenCaptureType type,
                                           std::function<void()> onComplete) {
-    std::lock_guard<std::mutex> lock(requestMutex_);
     if (isEncoding_) {
-        return false; // 処理中はリクエストを破棄または待機 (ここでは簡単のため破棄)
+        return false;
     }
 
     ScreenCaptureRequest req;
@@ -60,13 +59,14 @@ bool ScreenCaptureManager::RequestCapture(const std::wstring& filePath, ScreenCa
     req.isDepthRequested = false;
     req.onComplete = onComplete;
 
-    pendingRequests_.push_back(req);
+    pendingRequests_.WithWrite([&req](auto& requests) {
+        requests.push_back(req);
+    });
     return true;
 }
 
 bool ScreenCaptureManager::RequestCaptureWithMetadata(const std::wstring& filePath, ScreenCaptureType type,
                                                       std::function<void()> onComplete) {
-    std::lock_guard<std::mutex> lock(requestMutex_);
     if (isEncoding_) {
         return false;
     }
@@ -79,12 +79,13 @@ bool ScreenCaptureManager::RequestCaptureWithMetadata(const std::wstring& filePa
     req.isDepthRequested = false;
     req.onComplete = onComplete;
 
-    pendingRequests_.push_back(req);
+    pendingRequests_.WithWrite([&req](auto& requests) {
+        requests.push_back(req);
+    });
     return true;
 }
 
 bool ScreenCaptureManager::RequestCaptureWithAlpha(const std::wstring& filePath, std::function<void()> onComplete) {
-    std::lock_guard<std::mutex> lock(requestMutex_);
     if (isEncoding_) {
         return false;
     }
@@ -97,12 +98,13 @@ bool ScreenCaptureManager::RequestCaptureWithAlpha(const std::wstring& filePath,
     req.isDepthRequested = false;
     req.onComplete = onComplete;
 
-    pendingRequests_.push_back(req);
+    pendingRequests_.WithWrite([&req](auto& requests) {
+        requests.push_back(req);
+    });
     return true;
 }
 
 bool ScreenCaptureManager::RequestCaptureDepth(const std::wstring& filePath, std::function<void()> onComplete) {
-    std::lock_guard<std::mutex> lock(requestMutex_);
     if (isEncoding_) {
         return false;
     }
@@ -115,17 +117,21 @@ bool ScreenCaptureManager::RequestCaptureDepth(const std::wstring& filePath, std
     req.isDepthRequested = true;
     req.onComplete = onComplete;
 
-    pendingRequests_.push_back(req);
+    pendingRequests_.WithWrite([&req](auto& requests) {
+        requests.push_back(req);
+    });
     return true;
 }
 
 bool ScreenCaptureManager::IsCaptureWithAlphaRequested() const {
-    for (const auto& req : pendingRequests_) {
-        if (req.isAlphaRequested) {
-            return true;
+    return pendingRequests_.WithRead([](const auto& requests) {
+        for (const auto& req : requests) {
+            if (req.isAlphaRequested) {
+                return true;
+            }
         }
-    }
-    return false;
+        return false;
+    });
 }
 
 void ScreenCaptureManager::RecordMetadata(IrufemiEngine* engine) {
@@ -157,135 +163,153 @@ void ScreenCaptureManager::RecordMetadata(IrufemiEngine* engine) {
 }
 
 void ScreenCaptureManager::OnPreUIDraw(ID3D12GraphicsCommandList* commandList, RenderTexture* mainRenderTexture) {
-    std::lock_guard<std::mutex> lock(requestMutex_);
-    if (pendingRequests_.empty() || isEncoding_) {
+    if (isEncoding_) {
         return;
     }
 
-    for (size_t i = 0; i < pendingRequests_.size(); ++i) {
-        auto& req = pendingRequests_[i];
-        if (req.type == ScreenCaptureType::SceneOnly && !req.isDepthRequested) {
-
-            if (!colorCopyBuffer_) {
-                auto desc = mainRenderTexture->GetResource()->GetDesc();
-                desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-                CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
-                HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                                             D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                                             IID_PPV_ARGS(&colorCopyBuffer_));
-                IRUFEMI_ASSERT(SUCCEEDED(hr) && "Failed to create color copy buffer for screen capture!");
-                if (FAILED(hr)) {
-                    return;
-                }
+    std::optional<ScreenCaptureRequest> matchedReq;
+    pendingRequests_.WithWrite([&matchedReq](auto& requests) {
+        for (auto it = requests.begin(); it != requests.end(); ++it) {
+            if (it->type == ScreenCaptureType::SceneOnly && !it->isDepthRequested) {
+                matchedReq = *it;
+                requests.erase(it);
+                break;
             }
+        }
+    });
 
-            DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(),
-                                            D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
-            DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
-                                            D3D12_RESOURCE_STATE_COPY_DEST);
+    if (!matchedReq) {
+        return;
+    }
+    const auto& req = *matchedReq;
 
-            commandList->CopyResource(colorCopyBuffer_.Get(), mainRenderTexture->GetResource());
-
-            DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
-                                            D3D12_RESOURCE_STATE_COMMON);
-            DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(),
-                                            D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-            if (req.isMetadataRequested) {
-                RecordMetadata(dxCommon_->GetEngine());
-            }
-
-            ExecuteCopyTask(colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
-
-            pendingRequests_.erase(pendingRequests_.begin() + i);
-            break;
+    if (!colorCopyBuffer_) {
+        auto desc = mainRenderTexture->GetResource()->GetDesc();
+        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
+        HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
+                                                                     D3D12_RESOURCE_STATE_COMMON, nullptr,
+                                                                     IID_PPV_ARGS(&colorCopyBuffer_));
+        IRUFEMI_ASSERT(SUCCEEDED(hr) && "Failed to create color copy buffer for screen capture!");
+        if (FAILED(hr)) {
+            return;
         }
     }
+
+    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(),
+                                    D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
+                                    D3D12_RESOURCE_STATE_COPY_DEST);
+
+    commandList->CopyResource(colorCopyBuffer_.Get(), mainRenderTexture->GetResource());
+
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+                                    D3D12_RESOURCE_STATE_COMMON);
+    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(),
+                                    D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+    if (req.isMetadataRequested) {
+        RecordMetadata(dxCommon_->GetEngine());
+    }
+
+    ExecuteCopyTask(colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
 }
 
 void ScreenCaptureManager::OnPostUIDraw(ID3D12GraphicsCommandList* commandList, ID3D12Resource* backBuffer) {
-    std::lock_guard<std::mutex> lock(requestMutex_);
-    if (pendingRequests_.empty() || isEncoding_) {
+    if (isEncoding_) {
         return;
     }
 
-    for (size_t i = 0; i < pendingRequests_.size(); ++i) {
-        auto& req = pendingRequests_[i];
-        if (req.type == ScreenCaptureType::WithUI) {
-
-            if (!colorCopyBuffer_) {
-                auto desc = backBuffer->GetDesc();
-                desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-                D3D12_HEAP_PROPERTIES heapProps{};
-                heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-                dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                                D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                                IID_PPV_ARGS(&colorCopyBuffer_));
+    std::optional<ScreenCaptureRequest> matchedReq;
+    pendingRequests_.WithWrite([&matchedReq](auto& requests) {
+        for (auto it = requests.begin(); it != requests.end(); ++it) {
+            if (it->type == ScreenCaptureType::WithUI) {
+                matchedReq = *it;
+                requests.erase(it);
+                break;
             }
-
-            DirectXUtils::TransitionBarrier(commandList, backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                            D3D12_RESOURCE_STATE_COPY_SOURCE);
-            DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
-                                            D3D12_RESOURCE_STATE_COPY_DEST);
-
-            commandList->CopyResource(colorCopyBuffer_.Get(), backBuffer);
-
-            DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
-                                            D3D12_RESOURCE_STATE_COMMON);
-            DirectXUtils::TransitionBarrier(commandList, backBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE,
-                                            D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-            if (req.isMetadataRequested) {
-                RecordMetadata(dxCommon_->GetEngine());
-            }
-
-            ExecuteCopyTask(colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
-
-            pendingRequests_.erase(pendingRequests_.begin() + i);
-            break;
         }
+    });
+
+    if (!matchedReq) {
+        return;
     }
+    const auto& req = *matchedReq;
+
+    if (!colorCopyBuffer_) {
+        auto desc = backBuffer->GetDesc();
+        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        D3D12_HEAP_PROPERTIES heapProps{};
+        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+        dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
+                                                        D3D12_RESOURCE_STATE_COMMON, nullptr,
+                                                        IID_PPV_ARGS(&colorCopyBuffer_));
+    }
+
+    DirectXUtils::TransitionBarrier(commandList, backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET,
+                                    D3D12_RESOURCE_STATE_COPY_SOURCE);
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
+                                    D3D12_RESOURCE_STATE_COPY_DEST);
+
+    commandList->CopyResource(colorCopyBuffer_.Get(), backBuffer);
+
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+                                    D3D12_RESOURCE_STATE_COMMON);
+    DirectXUtils::TransitionBarrier(commandList, backBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE,
+                                    D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+    if (req.isMetadataRequested) {
+        RecordMetadata(dxCommon_->GetEngine());
+    }
+
+    ExecuteCopyTask(colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
 }
 
 void ScreenCaptureManager::OnPostDepthDraw(ID3D12GraphicsCommandList* commandList, ID3D12Resource* depthBuffer) {
-    std::lock_guard<std::mutex> lock(requestMutex_);
-    if (pendingRequests_.empty() || isEncoding_) {
+    if (isEncoding_) {
         return;
     }
 
-    for (size_t i = 0; i < pendingRequests_.size(); ++i) {
-        auto& req = pendingRequests_[i];
-        if (req.isDepthRequested) {
-
-            if (!depthCopyBuffer_) {
-                auto desc = depthBuffer->GetDesc();
-                desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-                desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-                D3D12_HEAP_PROPERTIES heapProps{};
-                heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-                dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                                D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                                IID_PPV_ARGS(&depthCopyBuffer_));
+    std::optional<ScreenCaptureRequest> matchedReq;
+    pendingRequests_.WithWrite([&matchedReq](auto& requests) {
+        for (auto it = requests.begin(); it != requests.end(); ++it) {
+            if (it->isDepthRequested) {
+                matchedReq = *it;
+                requests.erase(it);
+                break;
             }
-
-            DirectXUtils::TransitionBarrier(commandList, depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE,
-                                            D3D12_RESOURCE_STATE_COPY_SOURCE);
-            DirectXUtils::TransitionBarrier(commandList, depthCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
-                                            D3D12_RESOURCE_STATE_COPY_DEST);
-
-            commandList->CopyResource(depthCopyBuffer_.Get(), depthBuffer);
-
-            DirectXUtils::TransitionBarrier(commandList, depthCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
-                                            D3D12_RESOURCE_STATE_COMMON);
-            DirectXUtils::TransitionBarrier(commandList, depthBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE,
-                                            D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-            ExecuteCopyTask(depthCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
-
-            pendingRequests_.erase(pendingRequests_.begin() + i);
-            break;
         }
+    });
+
+    if (!matchedReq) {
+        return;
     }
+    const auto& req = *matchedReq;
+
+    if (!depthCopyBuffer_) {
+        auto desc = depthBuffer->GetDesc();
+        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        D3D12_HEAP_PROPERTIES heapProps{};
+        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+        dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
+                                                        D3D12_RESOURCE_STATE_COMMON, nullptr,
+                                                        IID_PPV_ARGS(&depthCopyBuffer_));
+    }
+
+    DirectXUtils::TransitionBarrier(commandList, depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                                    D3D12_RESOURCE_STATE_COPY_SOURCE);
+    DirectXUtils::TransitionBarrier(commandList, depthCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
+                                    D3D12_RESOURCE_STATE_COPY_DEST);
+
+    commandList->CopyResource(depthCopyBuffer_.Get(), depthBuffer);
+
+    DirectXUtils::TransitionBarrier(commandList, depthCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+                                    D3D12_RESOURCE_STATE_COMMON);
+    DirectXUtils::TransitionBarrier(commandList, depthBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE,
+                                    D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+    ExecuteCopyTask(depthCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
 }
 
 void ScreenCaptureManager::ExecuteCopyTask(ID3D12Resource* sourceResource, D3D12_RESOURCE_STATES currentState,

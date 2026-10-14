@@ -3,10 +3,12 @@
 #include "Core/Utility/JsonUtility.h"
 
 const nlohmann::json& PrefabManager::GetPrefabJson(const std::string& filepath) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = jsonCache_.find(filepath);
-    if (it != jsonCache_.end()) {
-        return it->second;
+    auto existing = cache_.WithRead([&](const PrefabCacheData& data) -> std::shared_ptr<nlohmann::json> {
+        auto it = data.jsonCache.find(filepath);
+        return (it != data.jsonCache.end()) ? it->second : nullptr;
+    });
+    if (existing) {
+        return *existing;
     }
 
     nlohmann::json root;
@@ -15,17 +17,20 @@ const nlohmann::json& PrefabManager::GetPrefabJson(const std::string& filepath) 
         return kEmptyJson;
     }
 
-    auto [insertedIt, success] = jsonCache_.emplace(filepath, std::move(root));
-    return insertedIt->second;
+    auto jsonPtr = std::make_shared<nlohmann::json>(std::move(root));
+    return cache_.WithWrite([&](PrefabCacheData& data) -> const nlohmann::json& {
+        auto [insertedIt, success] = data.jsonCache.emplace(filepath, jsonPtr);
+        return *insertedIt->second;
+    });
 }
 
 std::shared_ptr<GameObject> PrefabManager::GetTemplate(const std::string& filepath) {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto it = templateCache_.find(filepath);
-        if (it != templateCache_.end()) {
-            return it->second;
-        }
+    auto cached = cache_.WithRead([&](const PrefabCacheData& data) -> std::shared_ptr<GameObject> {
+        auto it = data.templateCache.find(filepath);
+        return (it != data.templateCache.end()) ? it->second : nullptr;
+    });
+    if (cached) {
+        return cached;
     }
 
     const nlohmann::json& root = GetPrefabJson(filepath);
@@ -36,14 +41,14 @@ std::shared_ptr<GameObject> PrefabManager::GetTemplate(const std::string& filepa
     auto templateObj = std::make_shared<GameObject>();
     templateObj->Deserialize(root);
 
-    std::lock_guard<std::mutex> lock(mutex_);
-    // Double-checked locking
-    auto it = templateCache_.find(filepath);
-    if (it != templateCache_.end()) {
-        return it->second;
-    }
-    templateCache_[filepath] = templateObj;
-    return templateObj;
+    return cache_.WithWrite([&](PrefabCacheData& data) -> std::shared_ptr<GameObject> {
+        auto it = data.templateCache.find(filepath);
+        if (it != data.templateCache.end()) {
+            return it->second;
+        }
+        data.templateCache[filepath] = templateObj;
+        return templateObj;
+    });
 }
 
 std::shared_ptr<GameObject> PrefabManager::Instantiate(const std::string& filepath) {
@@ -62,12 +67,13 @@ PrefabManager::~PrefabManager() {
 }
 
 void PrefabManager::ClearCache() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (auto& [path, templateObj] : templateCache_) {
-        if (templateObj && !templateObj->IsDestroyed()) {
-            templateObj->Destroy();
+    cache_.WithWrite([](PrefabCacheData& data) {
+        for (auto& [path, templateObj] : data.templateCache) {
+            if (templateObj && !templateObj->IsDestroyed()) {
+                templateObj->Destroy();
+            }
         }
-    }
-    jsonCache_.clear();
-    templateCache_.clear();
+        data.jsonCache.clear();
+        data.templateCache.clear();
+    });
 }

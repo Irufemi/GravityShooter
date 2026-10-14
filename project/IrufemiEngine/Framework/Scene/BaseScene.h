@@ -241,6 +241,8 @@ protected:
 
 private:
     // --- オブジェクト管理 ---
+    // NOTE: シーン更新・描画・破棄ループ中にオブジェクトの動的生成や再帰的削除が
+    // 発生するため、同一スレッドでの再入を安全に許可する std::recursive_mutex を意図して使用しています。
     std::recursive_mutex sceneMutex_;
     std::vector<std::shared_ptr<GameObject>> gameObjects_;
     std::vector<std::shared_ptr<GameObject>> pendingAdds_;

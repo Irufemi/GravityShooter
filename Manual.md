@@ -74,6 +74,72 @@ IrufemiEngineのコアやコンポーネントを拡張する際、パフォー�
      }
      ```
 
+### 1.1.0c マルチスレッド安全性の指針（Synchronized<T> の活用と排他制御ルール）
+
+IrufemiEngine はレンダースレッド、オーディオスレッド、ThreadPool によるバックグラウンドタスクなど、高度な並列処理を行っています。データ競合やデッドロックを防止し、保守性を最大化するため、以下のスレッドセーフティ規約を厳守してください。
+
+#### 1. 共有データ保護の第一選択: `Irufemi::Synchronized<T>`
+データとそれを保護するミューテックスが生のままバラバラに定義されていると、ロックの掛け忘れや意図しない競合の原因になります。複数のスレッドからアクセスされるデータホルダー、キャッシュ、レジストリ、キュー等には、RAIIモニタ型ラッパー `Synchronized<T>` を使用してください。
+
+- **ヘッダー**: `#include "Core/Utility/Synchronized.h"`
+- **基本機能**:
+  - `WithRead([&](const T& data) { ... })`: 読み取りアクセス（戻り値の透過的返却対応）
+  - `WithWrite([&](T& data) { ... })`: 排他書き込みアクセス
+  - `Write()` / `Read()`: RAII ガードオブジェクトを取得（ポインタ構文 `lock->field` で直接アクセス可能）
+
+```cpp
+#include "Core/Utility/Synchronized.h"
+
+// 1. 基本的なデータ構造の保護（デフォルトは std::shared_mutex によるリーダー/ライター最適化）
+struct CacheData {
+    std::unordered_map<std::string, ModelData> models;
+};
+Irufemi::Synchronized<CacheData> modelCache_;
+
+// 読み取り（複数スレッドで並行アクセス可能）
+auto model = modelCache_.WithRead([&](const auto& data) -> std::shared_ptr<ModelData> {
+    auto it = data.models.find(name);
+    return (it != data.models.end()) ? it->second : nullptr;
+});
+
+// 排他書き込み
+modelCache_.WithWrite([&](auto& data) {
+    data.models[name] = newModel;
+});
+
+// 2. 単純な std::mutex を使用したい場合
+Irufemi::Synchronized<std::vector<Task>, std::mutex> taskQueue_;
+```
+
+#### 2. 遅延キューのスワップ退避パターン（ロック保持時間の極小化）
+キューに追加されたコマンドやリクエストを処理する際、ループ全体でロックを保持し続けるとワーカースレッドが待機（競合）してしまいます。`WithWrite` 内でローカル変数に `std::move` してキューを空にし、ロック解放後に重いループ処理を実行するパターンを徹底してください。
+
+```cpp
+// 推奨: ロック内でキューをスワップ・ムーブして即座にロックを解放
+std::vector<Collider*> toAdd;
+pendingCommands_.WithWrite([&](auto& data) {
+    toAdd = std::move(data.adds);
+    data.adds.clear();
+});
+
+// ロック外で安全に重い初期化や登録ループを実行
+for (auto* col : toAdd) {
+    RegisterColliderInternal(col);
+}
+```
+
+#### 3. 生ミューテックス・再帰ミューテックスの例外使用基準
+以下の明確な技術的理由がある場合に限り、生の `std::mutex` や `std::recursive_mutex` の使用が許可されます。その際は、**必ずメンバ変数宣言部に理由コメントを明記**してください。
+
+1. **`std::condition_variable` との連携**:
+   - 言語仕様上 `std::unique_lock<std::mutex>` が直接必要なため（例: `ThreadPool`, `TelemetrySender`）。
+2. **階層トラバース・同一スレッドからの再入**:
+   - オブジェクトツリーの往復呼び出しやシーン更新中の再帰削除を保護するため `std::recursive_mutex` が必要な場合（例: `GameObject`, `BaseScene`, `SceneObjectRegistry`）。
+3. **GPU API / 低レイヤーの処理フロー直列化**:
+   - データコンテナの保護ではなく、DirectX 12 API 呼出シーケンスや GPU フェンス待機を直列化する場合（例: `DXCommandManager`, `DescriptorPool`）。
+4. **スレッドセーフでない外部 C-API の直列化**:
+   - ライブラリ全体をグローバルに排他制御する場合（例: `AssimpMutex`）。
+
 ---
 
 ### 1.1.1 外部ライブラリの手動セットアップ（クローン直後の手順）

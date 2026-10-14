@@ -6,6 +6,8 @@
 #include <mutex>
 #include <nlohmann/json.hpp>
 
+#include "Core/Utility/Synchronized.h"
+
 class GameObject;
 
 /**
@@ -49,7 +51,9 @@ public:
     void ClearCache();
 
 private:
-    std::mutex mutex_;
-    std::unordered_map<std::string, nlohmann::json> jsonCache_;
-    std::unordered_map<std::string, std::shared_ptr<GameObject>> templateCache_;
+    struct PrefabCacheData {
+        std::unordered_map<std::string, std::shared_ptr<nlohmann::json>> jsonCache;
+        std::unordered_map<std::string, std::shared_ptr<GameObject>> templateCache;
+    };
+    Irufemi::Synchronized<PrefabCacheData> cache_;
 };

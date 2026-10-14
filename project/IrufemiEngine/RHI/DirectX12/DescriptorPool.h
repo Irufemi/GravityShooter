@@ -120,5 +120,7 @@ private:
 
     std::vector<uint32_t> freeList_;
     std::priority_queue<Pending> pending_;
+    // NOTE: GPU 描画スレッドや非同期ロードスレッドからの SRV/UAV スロット割当・GC 回収を
+    // 排他制御するための低レイヤー生ミューテックスです。
     mutable std::mutex mutex_;
 };

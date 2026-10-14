@@ -58,6 +58,8 @@ private:
     void ThreadLoop();
 
     std::thread workerThread_;
+    // NOTE: std::condition_variable::wait に渡す std::unique_lock<std::mutex> が
+    // 言語仕様上必須のため、Synchronized<T> ではなく生の std::mutex を意図して維持しています。
     std::mutex dataMutex_;
     std::condition_variable cv_;
     std::atomic<bool> isRunning_{false};

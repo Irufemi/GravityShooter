@@ -35,50 +35,51 @@ void CollisionManager::Clear() {
     previousCollisions_.clear();
     dynamicBVH_.Clear();
 
-    std::lock_guard<std::mutex> pendingLock(pendingMutex_);
-    pendingAdds_.clear();
-    pendingRemoves_.clear();
+    pendingCommands_.WithWrite([](PendingCommands& q) {
+        q.adds.clear();
+        q.removes.clear();
+    });
 }
 
 void CollisionManager::RegisterCollider(ColliderComponent* collider) {
     if (!collider) {
         return;
     }
-    std::lock_guard<std::mutex> lock(pendingMutex_);
-    // 重複を避けて末尾に追加
-    Irufemi::Container::PushBackUnique(pendingAdds_, collider);
+    pendingCommands_.WithWrite([collider](PendingCommands& q) {
+        // 重複を避けて末尾に追加
+        Irufemi::Container::PushBackUnique(q.adds, collider);
+    });
 }
 
 void CollisionManager::UnregisterCollider(ColliderComponent* collider) {
     if (!collider) {
         return;
     }
-    std::lock_guard<std::mutex> lock(pendingMutex_);
-    auto it = std::find_if(pendingRemoves_.begin(), pendingRemoves_.end(),
-                           [collider](const PendingRemove& pr) { return pr.collider == collider; });
-    if (it == pendingRemoves_.end()) {
-        pendingRemoves_.push_back({collider, collider->GetBvhNodeId()});
-    }
+    pendingCommands_.WithWrite([collider](PendingCommands& q) {
+        auto it = std::find_if(q.removes.begin(), q.removes.end(),
+                               [collider](const PendingRemove& pr) { return pr.collider == collider; });
+        if (it == q.removes.end()) {
+            q.removes.push_back({collider, collider->GetBvhNodeId()});
+        }
+    });
 }
 
 void CollisionManager::FlushPendingCommands() {
-    std::vector<ColliderComponent*> adds;
-    std::vector<PendingRemove> removes;
+    PendingCommands current;
+    pendingCommands_.WithWrite([&current](PendingCommands& q) {
+        current = std::move(q);
+        q.adds.clear();
+        q.removes.clear();
+    });
 
-    {
-        std::lock_guard<std::mutex> pendingLock(pendingMutex_);
-        adds = std::move(pendingAdds_);
-        removes = std::move(pendingRemoves_);
-    }
-
-    if (adds.empty() && removes.empty()) {
+    if (current.adds.empty() && current.removes.empty()) {
         return;
     }
 
     std::unique_lock<std::shared_mutex> lock(collidersMutex_);
 
     // 削除の適用
-    for (const PendingRemove& removeInfo : removes) {
+    for (const PendingRemove& removeInfo : current.removes) {
         ColliderComponent* collider = removeInfo.collider;
         if (Irufemi::Container::EraseSwap(colliders_, collider)) {
             if (removeInfo.bvhNodeId != -1) {
@@ -106,7 +107,7 @@ void CollisionManager::FlushPendingCommands() {
     }
 
     // 追加の適用
-    for (ColliderComponent* collider : adds) {
+    for (ColliderComponent* collider : current.adds) {
         if (!collider) {
             continue;
         }
@@ -334,12 +335,11 @@ void CollisionManager::DrawDebug(GameObject* selectedObject) {
     debugLine_->ClearInstances();
 
     debugRemoveList_.clear();
-    {
-        std::lock_guard<std::mutex> pendingLock(pendingMutex_);
-        for (const auto& pr : pendingRemoves_) {
+    pendingCommands_.WithRead([&](const auto& data) {
+        for (const auto& pr : data.removes) {
             debugRemoveList_.push_back(pr.collider);
         }
-    }
+    });
 
     std::shared_lock<std::shared_mutex> collidersLock(collidersMutex_);
     for (ColliderComponent* collider : colliders_) {

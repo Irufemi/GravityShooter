@@ -66,21 +66,22 @@ void ShaderManager::Initialize() {
 Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::GetOrCompile(const std::wstring& filePath,
                                                              const ShaderCompileOptions& options,
                                                              const wchar_t* profileOverride, std::string* outErrorLog) {
-    std::lock_guard<std::mutex> lock(mutex_);
-
     // 1. キャッシュキーの構築
     ShaderKey key;
     key.filePath = filePath;
     key.entryPoint = options.entryPoint;
     key.macros = options.macros;
 
-    // 2. キャッシュの検索
-    auto it = cache_.find(key);
-    if (it != cache_.end()) {
-        return it->second;
+    // 2. キャッシュの検索（共有ロック）
+    auto cached = cache_.WithRead([&](const ShaderCacheMap& c) -> Microsoft::WRL::ComPtr<IDxcBlob> {
+        auto it = c.find(key);
+        return (it != c.end()) ? it->second : nullptr;
+    });
+    if (cached) {
+        return cached;
     }
 
-    // 3. コンパイルまたはCSO読み込み
+    // 3. コンパイルまたはCSO読み込み（I/Oやコンパイル中はロックを保持しない）
     Microsoft::WRL::ComPtr<IDxcBlob> blob;
 #ifdef RUNTIME_SHADER_COMPILE
     std::wstring resolvedPath = ResolveSourcePath(filePath);
@@ -107,9 +108,11 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::GetOrCompile(const std::wstring&
     }
 #endif
 
-    // 4. キャッシュに登録
+    // 4. キャッシュに登録（排他ロック）
     if (blob) {
-        cache_[key] = blob;
+        cache_.WithWrite([&](ShaderCacheMap& c) {
+            c[key] = blob;
+        });
     }
 
     return blob;
@@ -126,10 +129,9 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::ReloadShader(const std::wstring&
     key.entryPoint = options.entryPoint;
     key.macros = options.macros;
 
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        cache_.erase(key);
-    }
+    cache_.WithWrite([&](ShaderCacheMap& c) {
+        c.erase(key);
+    });
 
     return GetOrCompile(filePath, options, profileOverride, outErrorLog);
 }
@@ -138,8 +140,9 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::ReloadShader(const std::wstring&
  * @brief キャッシュをクリアする
  */
 void ShaderManager::ClearCache() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    cache_.clear();
+    cache_.WithWrite([](ShaderCacheMap& c) {
+        c.clear();
+    });
 }
 
 /**

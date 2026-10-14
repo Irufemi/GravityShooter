@@ -86,6 +86,8 @@ public:
                                    const std::vector<std::shared_ptr<GameObject>>& pendingAdds);
 
 private:
+    // NOTE: 子階層の一括登録/解除や名前重複解決において再帰呼出し（再入）が発生するため、
+    // std::recursive_mutex を意図して使用しています。
     std::recursive_mutex registryMutex_;
 
     // 名前インデックス (同名オブジェクトが存在し得るため vector<weak_ptr> で管理)

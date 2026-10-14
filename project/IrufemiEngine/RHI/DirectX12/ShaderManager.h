@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <tuple>
+#include "Core/Utility/Synchronized.h"
 
 /**
  * @class ShaderManager
@@ -71,8 +72,8 @@ private:
     };
 
     std::unique_ptr<ShaderCompiler> compiler_;
-    std::map<ShaderKey, Microsoft::WRL::ComPtr<IDxcBlob>> cache_;
-    std::mutex mutex_;
+    using ShaderCacheMap = std::map<ShaderKey, Microsoft::WRL::ComPtr<IDxcBlob>>;
+    Irufemi::Synchronized<ShaderCacheMap> cache_;
 
     std::vector<std::wstring> searchPaths_;
     std::wstring binaryPath_;
