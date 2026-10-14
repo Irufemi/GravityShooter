@@ -28,38 +28,34 @@ public:
      * @return 確保されたコンポーネントの shared_ptr（カスタムデリータ付き）
      */
     template <typename... Args>
-    /**
-     * @brief Create を実行する。
-     */
     std::shared_ptr<T> Create(Args&&... args) {
-        /**
-         * @brief lock を実行する。
-         */
         std::lock_guard<std::mutex> lock(mutex_);
 
-        // 既存のチャンクから空きスロットを探す
-        for (size_t chunkIdx = 0; chunkIdx < chunks_.size(); ++chunkIdx) {
-            auto& chunk = chunks_[chunkIdx];
-            for (size_t i = 0; i < ChunkSize; ++i) {
-                if (!chunk->active[i]) {
-                    chunk->active[i] = true;
-                    // Placement new を使用して事前確保されたメモリ領域にオブジェクトを構築
-                    T* ptr = new (&chunk->data[i]) T(std::forward<Args>(args)...);
+        // フリーリストから O(1) で空きスロットを取得
+        if (!freeList_.empty()) {
+            Slot slot = freeList_.back();
+            freeList_.pop_back();
 
-                    // shared_ptrが破棄される際に呼ばれるカスタムデリータ
-                    return std::shared_ptr<T>(
-                        ptr, [chunkIdx, i](T* p) { ComponentPool::GetInstance().Free(chunkIdx, i, p); });
-                }
-            }
+            auto& chunk = chunks_[slot.chunkIdx];
+            chunk->active[slot.itemIdx] = true;
+            T* ptr = new (&chunk->data[slot.itemIdx]) T(std::forward<Args>(args)...);
+
+            return std::shared_ptr<T>(
+                ptr, [slot](T* p) { ComponentPool::GetInstance().Free(slot.chunkIdx, slot.itemIdx, p); });
         }
 
         // 全チャンクが埋まっていれば新しいチャンクを追加
         auto newChunk = std::make_unique<Chunk>();
-        newChunk->active[0] = true;
-        T* ptr = new (&newChunk->data[0]) T(std::forward<Args>(args)...);
-
         size_t newChunkIdx = chunks_.size();
         chunks_.push_back(std::move(newChunk));
+
+        // 残りのスロットをフリーリストに追加（逆順で追加しインデックスの若い順に取り出せるようにする）
+        for (size_t i = ChunkSize - 1; i >= 1; --i) {
+            freeList_.push_back({newChunkIdx, i});
+        }
+
+        chunks_[newChunkIdx]->active[0] = true;
+        T* ptr = new (&chunks_[newChunkIdx]->data[0]) T(std::forward<Args>(args)...);
 
         return std::shared_ptr<T>(ptr, [newChunkIdx](T* p) { ComponentPool::GetInstance().Free(newChunkIdx, 0, p); });
     }
@@ -69,9 +65,6 @@ public:
      * @details メモリが連続しているため、CPUキャッシュヒット率が劇的に向上します
      */
     template <typename Func>
-    /**
-     * @brief ForEach を実行する。
-     */
     void ForEach(Func f) {
         // パフォーマンス最優先のためロックを取らずに実行します（Update専用）
         for (auto& chunk : chunks_) {
@@ -87,9 +80,6 @@ private:
     ComponentPool() = default;
     ~ComponentPool() {
         // プール破棄時の処理（念のため強制的にデストラクタを呼ぶ）
-        /**
-         * @brief lock を実行する。
-         */
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& chunk : chunks_) {
             for (size_t i = 0; i < ChunkSize; ++i) {
@@ -99,6 +89,7 @@ private:
                 }
             }
         }
+        freeList_.clear();
     }
 
     ComponentPool(const ComponentPool&) = delete;
@@ -108,15 +99,13 @@ private:
      * @brief shared_ptrの参照カウントが0になった時に呼ばれ、メモリを解放状態にする
      */
     void Free(size_t chunkIdx, size_t itemIdx, T* p) {
-        /**
-         * @brief lock を実行する。
-         */
         std::lock_guard<std::mutex> lock(mutex_);
         if (!chunks_[chunkIdx]->active[itemIdx]) {
             return; // 既に破棄済みの場合は多重デストラクトを防ぐ
         }
         p->~T(); // デストラクタを明示的に呼び出す
         chunks_[chunkIdx]->active[itemIdx] = false;
+        freeList_.push_back({chunkIdx, itemIdx});
     }
 
     struct Chunk {
@@ -126,7 +115,13 @@ private:
         bool active[ChunkSize] = {false};
     };
 
+    struct Slot {
+        size_t chunkIdx;
+        size_t itemIdx;
+    };
+
     std::vector<std::unique_ptr<Chunk>> chunks_;
+    std::vector<Slot> freeList_;
     std::mutex mutex_;
 };
 

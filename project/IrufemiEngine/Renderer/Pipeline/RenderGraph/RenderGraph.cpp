@@ -5,6 +5,7 @@
 #include "Renderer/Data/RenderContext.h"
 #include <algorithm>
 #include <string>
+#include "Core/Utility/StringUtility.h"
 
 void RenderGraph::AddPass(std::unique_ptr<IRenderPass> pass) {
     if (pass) {
@@ -122,7 +123,7 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
             lifetimes[i].physicalResource = transientResourceManager_->AcquirePlacedResource(
                 tDesc.desc, bestOffset, D3D12_RESOURCE_STATE_COMMON, tDesc.hasClearValue ? &tDesc.clearValue : nullptr);
             if (lifetimes[i].physicalResource) {
-                std::wstring wname(tDesc.name.begin(), tDesc.name.end());
+                std::wstring wname = ConvertString(tDesc.name);
                 lifetimes[i].physicalResource->SetName(wname.c_str());
 
                 // RenderTextureラッパーも初期化
