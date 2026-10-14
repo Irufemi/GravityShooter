@@ -134,41 +134,52 @@ public: // メンバ関数
     static void DebugMaterialBy3D(Material* material);
 
     /**
-     * @brief DebugMaterialBy2D を実行する。
+     * @brief 2Dスプライト用マテリアルのプロパティ（カラー、UVタイリング等）を編集するImGui UIを表示する
+     * @param[in,out] material 編集対象のマテリアル
      */
     static void DebugMaterialBy2D(Material* material);
 
     /**
-     * @brief DebugObjMaterial を実行する。
+     * @brief OBJモデル用マテリアルのプロパティ（環境光・拡散反射光・鏡面反射光等）を編集するImGui UIを表示する
+     * @param[in,out] material 編集対象のOBJマテリアル
+     * @param[in] unique_id ImGuiのウィジェット識別子用プレフィックス
      */
     static void DebugObjMaterial(Irufemi::ObjMaterial* material, const char* unique_id = "");
 
     /**
-     * @brief DebugMaterialByParticle を実行する。
+     * @brief パーティクル用マテリアルのブレンドモード・カラー設定を編集するImGui UIを表示する
+     * @param[in,out] material 編集対象のマテリアル
      */
     static void DebugMaterialByParticle(Material* material);
 
     /**
-     * @brief テクスチャの選択・変更UI
+     * @brief 3Dオブジェクト用テクスチャの選択・差し替えUIを表示する
+     * @param[in,out] resource 編集対象の3Dリソース
+     * @param[in,out] selectedTextureIndex 選択中のテクスチャインデックス
      */
     void DebugTexture(Object3DResource* resource, int& selectedTextureIndex);
     /**
-     * @brief DebugTexture を実行する。
+     * @brief 2Dスプライト用テクスチャの選択・差し替えUIを表示する
+     * @param[in,out] resource 編集対象の2Dリソース
+     * @param[in,out] selectedTextureIndex 選択中のテクスチャインデックス
      */
     void DebugTexture(Object2DResource* resource, int& selectedTextureIndex);
 
     /**
-     * @brief DebugDirectionalLight を実行する。
+     * @brief 平行光源（DirectionalLight）の向き・色・強度を編集するImGui UIを表示する
+     * @param[in,out] directionalLightData 編集対象のディレクショナルライトデータ
      */
     static void DebugDirectionalLight(DirectionalLight* directionalLightData);
 
     /**
-     * @brief DebugUvTransform を実行する。
+     * @brief UV座標変換（Transform形式：スケール・回転・移動）を編集するImGui UIを表示する
+     * @param[in,out] uvTransform 編集対象のUVトランスフォーム
      */
     static void DebugUvTransform(Irufemi::Transform& uvTransform);
 
     /**
-     * @brief DebugUvTransform を実行する。
+     * @brief UV座標変換（Matrix4x4形式）を分解・編集するImGui UIを表示する
+     * @param[in,out] uvTransform 編集対象のUV変換行列
      */
     static void DebugUvTransform(Irufemi::Matrix4x4& uvTransform);
 

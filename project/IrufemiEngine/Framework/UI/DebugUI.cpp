@@ -94,7 +94,7 @@ struct LightEditorContext {
     }
 };
 
-LightEditorContext s_lightEditorContext;
+LightEditorContext lightEditorContext_;
 #endif // USE_IMGUI
 } // namespace
 
@@ -298,46 +298,46 @@ void DebugUI::DebugLights([[maybe_unused]] DirectionalLight* directionalLight,
             // Light Editor タブ
             if (ImGui::BeginTabItem("Editor")) {
                 ImGui::SeparatorText("PointLight Template");
-                ImGui::ColorEdit4("PL Color", &s_lightEditorContext.pointLight.color.x);
-                ImGui::DragFloat3("PL Position", &s_lightEditorContext.pointLight.position.x, 0.01f);
-                ImGui::DragFloat("PL Intensity", &s_lightEditorContext.pointLight.intensity, 0.01f, 0.0f);
-                ImGui::DragFloat("PL Radius", &s_lightEditorContext.pointLight.radius, 0.01f, 0.0f);
-                ImGui::DragFloat("PL Decay", &s_lightEditorContext.pointLight.decay, 0.01f, 0.0f);
+                ImGui::ColorEdit4("PL Color", &lightEditorContext_.pointLight.color.x);
+                ImGui::DragFloat3("PL Position", &lightEditorContext_.pointLight.position.x, 0.01f);
+                ImGui::DragFloat("PL Intensity", &lightEditorContext_.pointLight.intensity, 0.01f, 0.0f);
+                ImGui::DragFloat("PL Radius", &lightEditorContext_.pointLight.radius, 0.01f, 0.0f);
+                ImGui::DragFloat("PL Decay", &lightEditorContext_.pointLight.decay, 0.01f, 0.0f);
                 if (ImGui::Button("Add PointLight to Scene")) {
-                    auto newLight = std::make_unique<PointLight>(s_lightEditorContext.pointLight);
+                    auto newLight = std::make_unique<PointLight>(lightEditorContext_.pointLight);
                     pointLights.push_back(std::move(newLight));
                 }
 
                 ImGui::Separator();
 
                 ImGui::SeparatorText("SpotLight Template");
-                ImGui::ColorEdit4("SL Color", &s_lightEditorContext.spotLight.color.x);
-                ImGui::DragFloat3("SL Position", &s_lightEditorContext.spotLight.position.x, 0.01f);
-                ImGui::DragFloat("SL Intensity", &s_lightEditorContext.spotLight.intensity, 0.01f, 0.0f);
-                ImGui::DragFloat3("SL Direction", &s_lightEditorContext.spotLight.direction.x, 0.01f);
-                s_lightEditorContext.spotLight.direction =
-                    Irufemi::Math::Normalize(s_lightEditorContext.spotLight.direction);
-                ImGui::DragFloat("SL Distance", &s_lightEditorContext.spotLight.distance, 0.01f, 0.0f);
-                ImGui::DragFloat("SL Decay", &s_lightEditorContext.spotLight.decay, 0.01f, 0.0f);
-                ImGui::DragFloat("SL CosAngle", &s_lightEditorContext.spotLight.cosAngle, 0.01f, 0.0f, 1.0f);
+                ImGui::ColorEdit4("SL Color", &lightEditorContext_.spotLight.color.x);
+                ImGui::DragFloat3("SL Position", &lightEditorContext_.spotLight.position.x, 0.01f);
+                ImGui::DragFloat("SL Intensity", &lightEditorContext_.spotLight.intensity, 0.01f, 0.0f);
+                ImGui::DragFloat3("SL Direction", &lightEditorContext_.spotLight.direction.x, 0.01f);
+                lightEditorContext_.spotLight.direction =
+                    Irufemi::Math::Normalize(lightEditorContext_.spotLight.direction);
+                ImGui::DragFloat("SL Distance", &lightEditorContext_.spotLight.distance, 0.01f, 0.0f);
+                ImGui::DragFloat("SL Decay", &lightEditorContext_.spotLight.decay, 0.01f, 0.0f);
+                ImGui::DragFloat("SL CosAngle", &lightEditorContext_.spotLight.cosAngle, 0.01f, 0.0f, 1.0f);
                 if (ImGui::Button("Add SpotLight to Scene")) {
-                    auto newLight = std::make_unique<SpotLight>(s_lightEditorContext.spotLight);
+                    auto newLight = std::make_unique<SpotLight>(lightEditorContext_.spotLight);
                     spotLights.push_back(std::move(newLight));
                 }
 
                 ImGui::Separator();
 
                 ImGui::SeparatorText("AreaLight Template");
-                ImGui::ColorEdit4("AL Color", &s_lightEditorContext.areaLight.color.x);
-                ImGui::DragFloat3("AL Position", &s_lightEditorContext.areaLight.position.x, 0.01f);
-                ImGui::DragFloat("AL Intensity", &s_lightEditorContext.areaLight.intensity, 0.01f, 0.0f);
-                ImGui::DragFloat3("AL Direction", &s_lightEditorContext.areaLight.direction.x, 0.01f);
-                s_lightEditorContext.areaLight.direction =
-                    Irufemi::Math::Normalize(s_lightEditorContext.areaLight.direction);
-                ImGui::DragFloat("AL Range", &s_lightEditorContext.areaLight.range, 0.01f, 0.0f);
-                ImGui::DragFloat2("AL Size", &s_lightEditorContext.areaLight.size.x, 0.01f, 0.0f);
+                ImGui::ColorEdit4("AL Color", &lightEditorContext_.areaLight.color.x);
+                ImGui::DragFloat3("AL Position", &lightEditorContext_.areaLight.position.x, 0.01f);
+                ImGui::DragFloat("AL Intensity", &lightEditorContext_.areaLight.intensity, 0.01f, 0.0f);
+                ImGui::DragFloat3("AL Direction", &lightEditorContext_.areaLight.direction.x, 0.01f);
+                lightEditorContext_.areaLight.direction =
+                    Irufemi::Math::Normalize(lightEditorContext_.areaLight.direction);
+                ImGui::DragFloat("AL Range", &lightEditorContext_.areaLight.range, 0.01f, 0.0f);
+                ImGui::DragFloat2("AL Size", &lightEditorContext_.areaLight.size.x, 0.01f, 0.0f);
                 if (ImGui::Button("Add AreaLight to Scene")) {
-                    auto newLight = std::make_unique<AreaLight>(s_lightEditorContext.areaLight);
+                    auto newLight = std::make_unique<AreaLight>(lightEditorContext_.areaLight);
                     areaLights.push_back(std::move(newLight));
                 }
 

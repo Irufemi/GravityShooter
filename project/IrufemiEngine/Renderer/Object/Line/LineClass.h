@@ -124,7 +124,7 @@ public:
      * @param[in] alloc DescriptorPool ポインタ
      */
     static void SetSrvAllocator(DescriptorPool* alloc) {
-        s_srvAllocator_ = alloc;
+        srvAllocator_ = alloc;
     }
 
     /**
@@ -161,11 +161,12 @@ private:
     };
 
     /**
-     * @brief CreateOrResizeInstanceBuffer を実行する。
+     * @brief インスタンシング描画用の頂点/インスタンスバッファを生成またはリサイズする
+     * @param[in] instanceCount 確保する最大インスタンス数
      */
     void CreateOrResizeInstanceBuffer(uint32_t instanceCount);
     /**
-     * @brief EnsureInstancingSRV を実行する。
+     * @brief StructuredBuffer に対する SRV デスクリプタの確保と更新を保証する
      */
     void EnsureInstancingSRV();
 
@@ -173,7 +174,7 @@ private:
     // 静的依存
     static DirectXCommon* dx_;
     static DrawManager* drawManager_;
-    static DescriptorPool* s_srvAllocator_;
+    static DescriptorPool* srvAllocator_;
     static class IrufemiEngine* engine_;
 
     std::unique_ptr<LineResource> baseLineResource_ = nullptr;

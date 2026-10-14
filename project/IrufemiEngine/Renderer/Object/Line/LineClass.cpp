@@ -10,14 +10,14 @@
 
 DirectXCommon* Line3DBatch::dx_ = nullptr;
 DrawManager* Line3DBatch::drawManager_ = nullptr;
-DescriptorPool* Line3DBatch::s_srvAllocator_ = nullptr;
+DescriptorPool* Line3DBatch::srvAllocator_ = nullptr;
 IrufemiEngine* Line3DBatch::engine_ = nullptr;
 
 Line3DBatch::~Line3DBatch() {
-    if (s_srvAllocator_ && dx_) {
+    if (srvAllocator_ && dx_) {
         for (uint32_t& idx : instancingSrvIndex_) {
             if (idx != UINT32_MAX) {
-                s_srvAllocator_->FreeAfterFence(idx, dx_->GetCurrentFrameFenceValue());
+                srvAllocator_->FreeAfterFence(idx, dx_->GetCurrentFrameFenceValue());
                 idx = UINT32_MAX;
             }
         }
@@ -158,9 +158,9 @@ void Line3DBatch::EnsureInstancingSRV() {
     }
 
     if (instancingSrvIndex_[frameIndex] == UINT32_MAX) {
-        instancingSrvIndex_[frameIndex] = s_srvAllocator_->Allocate();
-        instancingSrvCPU_[frameIndex] = s_srvAllocator_->GetCPUHandle(instancingSrvIndex_[frameIndex]);
-        instancingSrvGPU_[frameIndex] = s_srvAllocator_->GetGPUHandle(instancingSrvIndex_[frameIndex]);
+        instancingSrvIndex_[frameIndex] = srvAllocator_->Allocate();
+        instancingSrvCPU_[frameIndex] = srvAllocator_->GetCPUHandle(instancingSrvIndex_[frameIndex]);
+        instancingSrvGPU_[frameIndex] = srvAllocator_->GetGPUHandle(instancingSrvIndex_[frameIndex]);
     }
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};

@@ -37,7 +37,7 @@ void Log::Initialize() {
     // 時刻を使ってファイル名を決定
     std::string logFilePath = FileSystem::GetLogPath() + "/" + dateString + ".log";
     // ファイルを使って書き込み準備
-    logStream.open(logFilePath, std::ios::out | std::ios::trunc);
+    logStream_.open(logFilePath, std::ios::out | std::ios::trunc);
 
     // 出力ウィンドウへの文字出力
     OutPutLog(std::cout, "Hello,DirectX!\n");

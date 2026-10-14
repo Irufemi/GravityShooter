@@ -233,40 +233,69 @@ public:
 private:
     // --- 頂点生成・インデックス生成の分割ヘルパー ---
     /**
-     * @brief GenerateSphereVertices を実行する。
+     * @brief 球体（UV Sphere）の頂点データ（座標・法線・UV）を生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] radius 球の半径
+     * @param[in] subdivision 経度・緯度の分割数
      */
     static void GenerateSphereVertices(PrimitiveData& data, float radius, uint32_t subdivision);
     /**
-     * @brief GenerateSphereIndices を実行する。
+     * @brief 球体（UV Sphere）のインデックスバッファを生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] subdivision 経度・緯度の分割数
      */
     static void GenerateSphereIndices(PrimitiveData& data, uint32_t subdivision);
 
     /**
-     * @brief GenerateCylinderVertices を実行する。
+     * @brief 円柱（Cylinder / Cone / Frustum）の頂点データを生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] bottomRadius 底面の半径
+     * @param[in] topRadius 上面の半径
+     * @param[in] height 円柱の高さ
+     * @param[in] segments 円周方向の分割数
+     * @param[in] hasTop 上蓋のポリゴンを生成するかどうか
+     * @param[in] hasBottom 底蓋のポリゴンを生成するかどうか
+     * @param[in] centered Y軸中心を原点とするか（falseの場合は底面が原点）
      */
     static void GenerateCylinderVertices(PrimitiveData& data, float bottomRadius, float topRadius, float height,
                                          uint32_t segments, bool hasTop, bool hasBottom, bool centered);
     /**
-     * @brief GenerateCylinderIndices を実行する。
+     * @brief 円柱のインデックスバッファを生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] segments 円周方向の分割数
+     * @param[in] hasTop 上蓋のインデックスを生成するかどうか
+     * @param[in] hasBottom 底蓋のインデックスを生成するかどうか
      */
     static void GenerateCylinderIndices(PrimitiveData& data, uint32_t segments, bool hasTop, bool hasBottom);
 
     /**
-     * @brief GenerateRingVertices を実行する。
+     * @brief 扇形リング（AOE予告円環・扇形）の頂点データを生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] params 内径・外径・中心角などのリングパラメータ
      */
     static void GenerateRingVertices(PrimitiveData& data, const RingParams& params);
     /**
-     * @brief GenerateRingIndices を実行する。
+     * @brief 扇形リングのインデックスバッファを生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] segments 円弧方向の分割数
      */
     static void GenerateRingIndices(PrimitiveData& data, uint32_t segments);
 
     /**
-     * @brief GenerateTorusVertices を実行する。
+     * @brief トーラス（ドーナツ型円環面）の頂点データを生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] majorRadius 大半径（ドーナツ中心からチューブ中心までの距離）
+     * @param[in] minorRadius 小半径（チューブの太さ半径）
+     * @param[in] majorSegments 大円の分割数
+     * @param[in] minorSegments チューブ円周の分割数
      */
     static void GenerateTorusVertices(PrimitiveData& data, float majorRadius, float minorRadius, uint32_t majorSegments,
                                       uint32_t minorSegments);
     /**
-     * @brief GenerateTorusIndices を実行する。
+     * @brief トーラスのインデックスバッファを生成する
+     * @param[out] data 生成結果を格納するプリミティブデータ
+     * @param[in] majorSegments 大円の分割数
+     * @param[in] minorSegments チューブ円周の分割数
      */
     static void GenerateTorusIndices(PrimitiveData& data, uint32_t majorSegments, uint32_t minorSegments);
 
