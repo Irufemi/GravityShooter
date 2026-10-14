@@ -29,13 +29,14 @@ public: // 定数バッファ構造体 (HLSL: register b6 / RootSlot::Special)
         float softIntersectionRange = 4.0f; //!< 柱との深度ソフト交差幅
         float densityScale = 1.0f;          //!< 雲密度倍率
 
-        Irufemi::Vector4 colDeepSpace{0.003f, 0.006f, 0.014f, 1.0f};  //!< 深宇宙の漆黒（深淵）
-        Irufemi::Vector4 colTeal{0.03f, 0.40f, 0.44f, 1.0f};          //!< 澄んだディープティール
-        Irufemi::Vector4 colCyan{0.12f, 0.78f, 0.88f, 1.0f};          //!< 鮮烈なエレクトリックシアン
-        Irufemi::Vector4 colWhite{0.85f, 0.96f, 1.00f, 1.0f};         //!< 純白ハイライト光条
-        Irufemi::Vector4 colAmethyst{0.24f, 0.08f, 0.35f, 1.0f};      //!< 幻想的なアメジストパープル
-        Irufemi::Vector4 colHorizonSky{0.005f, 0.010f, 0.025f, 1.0f};  //!< 地平線スカイドーム色（特異点深宇宙の漆黒へ同調）
-        Irufemi::Vector4 cameraSnapXZ{0.0f, 0.0f, 0.0f, 0.0f};        //!< カメラXZ追従スナップ座標 (xy: XZ位置, zw: 予備)
+        Irufemi::Vector4 colDeepSpace{0.003f, 0.006f, 0.014f, 1.0f}; //!< 深宇宙の漆黒（深淵）
+        Irufemi::Vector4 colTeal{0.03f, 0.40f, 0.44f, 1.0f};         //!< 澄んだディープティール
+        Irufemi::Vector4 colCyan{0.12f, 0.78f, 0.88f, 1.0f};         //!< 鮮烈なエレクトリックシアン
+        Irufemi::Vector4 colWhite{0.85f, 0.96f, 1.00f, 1.0f};        //!< 純白ハイライト光条
+        Irufemi::Vector4 colAmethyst{0.24f, 0.08f, 0.35f, 1.0f};     //!< 幻想的なアメジストパープル
+        Irufemi::Vector4 colHorizonSky{0.005f, 0.010f, 0.025f,
+                                       1.0f}; //!< 地平線スカイドーム色（特異点深宇宙の漆黒へ同調）
+        Irufemi::Vector4 cameraSnapXZ{0.0f, 0.0f, 0.0f, 0.0f}; //!< カメラXZ追従スナップ座標 (xy: XZ位置, zw: 予備)
     };
 
 public: // 頂点構造体
