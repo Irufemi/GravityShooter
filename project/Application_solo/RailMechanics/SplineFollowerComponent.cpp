@@ -88,5 +88,3 @@ void SplineFollowerComponent::Update() {
         SnapToDistance(currentDistance_ + speed_ * deltaTime);
     }
 }
-
-void SplineFollowerComponent::Draw() {}

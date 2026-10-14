@@ -28,10 +28,13 @@ public:
 
     void OnIDRemapped(const std::unordered_map<uint64_t, uint64_t>& idMap) override;
 
+    static constexpr int kSearchRetryInterval = 30;        ///< ターゲット検索リトライ間隔 (フレーム数)
+    static constexpr float kDefaultDistanceOffset = 80.0f; ///< ターゲット前方の基準オフセット距離 (m)
+
 private:
-    uint64_t targetObjectID_ = 0;  ///< 追従する基準となるターゲットのオブジェクトID
-    float distanceOffset_ = 80.0f; ///< ターゲットからどれだけ前方に離れるか (m)
-    Irufemi::Vector3 localOffset_ = {0.0f, 0.0f, 0.0f}; ///< レール中心からのXYローカルオフセット
+    uint64_t targetObjectID_ = 0;                          ///< 追従する基準となるターゲットのオブジェクトID
+    float distanceOffset_ = kDefaultDistanceOffset;        ///< ターゲットからどれだけ前方に離れるか (m)
+    Irufemi::Vector3 localOffset_ = {0.0f, 0.0f, 0.0f};    ///< レール中心からのXYローカルオフセット
 
     std::weak_ptr<GameObject> targetObject_;
     SplineFollowerComponent* targetFollower_ = nullptr;

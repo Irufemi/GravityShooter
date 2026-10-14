@@ -278,6 +278,7 @@ void EnemySpawnerComponent::Update() {
         }
     }
 
+#if defined(_DEBUG)
     auto engine = GetEngine();
     auto input = engine ? engine->GetInputManager() : nullptr;
     if (!input) {
@@ -318,6 +319,7 @@ void EnemySpawnerComponent::Update() {
 
         SpawnEnemy(spawnPos, spawnRot);
     }
+#endif
 }
 
 GameObject* EnemySpawnerComponent::SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,

@@ -6,15 +6,37 @@
 #include <memory>
 #include <unordered_map>
 
+/**
+ * @class EnemySpawnerComponent
+ * @brief 敵キャラクターのオブジェクトプール管理およびインスタンシング一括描画制御を行うスポナー
+ * @details 複数の敵プレハブ（通常敵、急降下ドローン、偏差スナイパー等）ごとに ObjectPool と
+ *          ModelBatchRendererComponent を保持し、ゼロアロケーションでの生成とドローコール削減を実現します。
+ */
 class EnemySpawnerComponent : public Component {
 public:
     EnemySpawnerComponent() = default;
     ~EnemySpawnerComponent() override;
 
+    /**
+     * @brief 初期化処理
+     */
     void Initialize() override;
+
+    /**
+     * @brief 各プレハブプールの事前生成および事前確保を実行
+     */
     void Start() override;
+
+    /**
+     * @brief 毎フレーム、アクティブな敵のワールド行列をバッチレンダラーへ一括収集
+     */
     void Update() override;
+
+    /**
+     * @brief インスペクター向けプロパティの登録
+     */
     void OnRegisterProperties() override;
+
     std::string GetComponentName() const override {
         return "EnemySpawnerComponent";
     }

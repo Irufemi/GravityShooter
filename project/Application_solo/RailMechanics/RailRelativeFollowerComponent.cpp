@@ -70,7 +70,7 @@ void RailRelativeFollowerComponent::Update() {
             // FindGameObject はシーンのミューテックスをロックするため、
             // 毎フレーム複数スレッドから呼ばれると深刻なスレッド競合（ガタつき）の原因になる。
             // そのためリトライ頻度を落とす。
-            if (++retryCounter_ < 30) {
+            if (++retryCounter_ < kSearchRetryInterval) {
                 return;
             }
             retryCounter_ = 0;
