@@ -34,7 +34,7 @@ inline float SmoothStep(float t) {
 void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
-    isKioskLoopMode_ = true; // 常時ループ展示モードをデフォルト有効化！
+    isKioskLoopMode_ = true;                  // 常時ループ展示モードをデフォルト有効化！
     demoMode_ = DemoMode::TransitionShowcase; // 画面遷移ショーケースデモをデフォルトに設定
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
@@ -160,8 +160,8 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
     wasF7Down_ = isF7Down;
 
     if (f7Triggered) {
-        demoMode_ = (demoMode_ == DemoMode::TransitionShowcase) ? DemoMode::StandardAttract
-                                                               : DemoMode::TransitionShowcase;
+        demoMode_ =
+            (demoMode_ == DemoMode::TransitionShowcase) ? DemoMode::StandardAttract : DemoMode::TransitionShowcase;
         auto sm = engine_->GetSceneManager();
         if (isKioskLoopMode_ && sm && sm->GetCurrent() == "Title") {
             // モード切り替え時にデモタイムラインを即座に再起動
@@ -280,72 +280,72 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                 targetCursorPos.x = std::lerp(posSweepStart_.x, posSweepRight_.x, t);
                 targetCursorPos.y = std::lerp(posSweepStart_.y, posSweepRight_.y, t);
             } else if (demoTimeline_ < 2.80f) {
-            // 区間2 (1.40s〜2.80s): 右ガレキから自機頭上を経由し、左ガレキへS字クロス通過
-            float t = (demoTimeline_ - 1.40f) / 1.40f;
-            targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
+                // 区間2 (1.40s〜2.80s): 右ガレキから自機頭上を経由し、左ガレキへS字クロス通過
+                float t = (demoTimeline_ - 1.40f) / 1.40f;
+                targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
 
-            // 自機頭上クロス（t ≒ 0.5 付近）で重力光彩パルス ＆ 全ガレキ一斉衝撃波を発火！
-            if (t >= 0.45f && !hasTriggeredDemoPulse_) {
-                hasTriggeredDemoPulse_ = true;
-                if (dirComp) {
-                    if (auto nebulaComp = dirComp->GetNebulaComponent()) {
-                        nebulaComp->TriggerPulse(1.0f);
-                    }
-                    dirComp->TriggerGravitationalShockwave(1.0f);
-                }
-            }
-        } else if (demoTimeline_ < 4.20f) {
-            // 区間3 (2.80s〜4.20s): 左ガレキからメニュー「HOW TO PLAY」へ滑らかに吸い寄せ合流
-            float t = SmoothStep((demoTimeline_ - 2.80f) / 1.40f);
-            targetCursorPos.x = std::lerp(posSweepLeft_.x, posHowToPlay_.x, t);
-            targetCursorPos.y = std::lerp(posSweepLeft_.y, posHowToPlay_.y, t);
-        }
-        // 【Phase 2-1】 4.20s 〜 5.60s : 「HOW TO PLAY」上でピタッと静止ホバー（拡大演出をじっくり魅せる）
-        else if (demoTimeline_ < 5.60f) {
-            targetCursorPos = posHowToPlay_;
-        }
-        // 【Phase 2-2】 5.60s 〜 7.00s : 「OPTIONS」へ移動し、ピタッと静止ホバー（UI行き来の心地よさ）
-        else if (demoTimeline_ < 7.00f) {
-            float t = SmoothStep(std::clamp((demoTimeline_ - 5.60f) / 0.50f, 0.0f, 1.0f));
-            targetCursorPos.x = std::lerp(posHowToPlay_.x, posOptions_.x, t);
-            targetCursorPos.y = std::lerp(posHowToPlay_.y, posOptions_.y, t);
-            // 6.10s 〜 7.00s の間は posOptions_ 上で完全静止
-        }
-        // 【Phase 2-3】 7.00s 〜 8.00s : 本命「GAME START」へスッと吸い寄せ
-        else if (demoTimeline_ < 8.00f) {
-            float t = SmoothStep(std::clamp((demoTimeline_ - 7.00f) / 0.60f, 0.0f, 1.0f));
-            targetCursorPos.x = std::lerp(posOptions_.x, posStart_.x, t);
-            targetCursorPos.y = std::lerp(posOptions_.y, posStart_.y, t);
-        }
-        // 【Phase 2-4】 8.00s 〜 8.60s : STARTボタン上で一瞬のタメ（呼吸・出撃への期待感）
-        else if (demoTimeline_ < 8.60f) {
-            targetCursorPos = posStart_;
-        }
-        // 【Phase 3】 8.60s 〜 : GAME START クリック決定 ＆ 出撃演出発火
-        else {
-            targetCursorPos = posStart_;
-
-            if (!hasSubmitted_) {
-                hasSubmitted_ = true;
-                UISound::PlayDecide(); // 通常決定時と完全に同一の決定音を発音！
-
-                if (currentScenePtr) {
-                    if (auto menuMgr = currentScenePtr->FindGameObject("MenuManager")) {
-                        if (auto menuCtrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
-                            menuCtrl->TriggerScreenFlash(); // 決定瞬間の白光フラッシュ
-                            menuCtrl->StartDismissAnimation();
-                            menuCtrl->SetLaunching(true);
+                // 自機頭上クロス（t ≒ 0.5 付近）で重力光彩パルス ＆ 全ガレキ一斉衝撃波を発火！
+                if (t >= 0.45f && !hasTriggeredDemoPulse_) {
+                    hasTriggeredDemoPulse_ = true;
+                    if (dirComp) {
+                        if (auto nebulaComp = dirComp->GetNebulaComponent()) {
+                            nebulaComp->TriggerPulse(1.0f);
                         }
-                        if (dirComp) {
-                            isDemoInGame_ = true;                // InGame側での帰還を待機
-                            dirComp->SetNextSceneName("InGame"); // 本編 InGame シーンへ直接出撃！
-                            dirComp->StartLaunchSequence();
-                        }
+                        dirComp->TriggerGravitationalShockwave(1.0f);
                     }
                 }
+            } else if (demoTimeline_ < 4.20f) {
+                // 区間3 (2.80s〜4.20s): 左ガレキからメニュー「HOW TO PLAY」へ滑らかに吸い寄せ合流
+                float t = SmoothStep((demoTimeline_ - 2.80f) / 1.40f);
+                targetCursorPos.x = std::lerp(posSweepLeft_.x, posHowToPlay_.x, t);
+                targetCursorPos.y = std::lerp(posSweepLeft_.y, posHowToPlay_.y, t);
+            }
+            // 【Phase 2-1】 4.20s 〜 5.60s : 「HOW TO PLAY」上でピタッと静止ホバー（拡大演出をじっくり魅せる）
+            else if (demoTimeline_ < 5.60f) {
+                targetCursorPos = posHowToPlay_;
+            }
+            // 【Phase 2-2】 5.60s 〜 7.00s : 「OPTIONS」へ移動し、ピタッと静止ホバー（UI行き来の心地よさ）
+            else if (demoTimeline_ < 7.00f) {
+                float t = SmoothStep(std::clamp((demoTimeline_ - 5.60f) / 0.50f, 0.0f, 1.0f));
+                targetCursorPos.x = std::lerp(posHowToPlay_.x, posOptions_.x, t);
+                targetCursorPos.y = std::lerp(posHowToPlay_.y, posOptions_.y, t);
+                // 6.10s 〜 7.00s の間は posOptions_ 上で完全静止
+            }
+            // 【Phase 2-3】 7.00s 〜 8.00s : 本命「GAME START」へスッと吸い寄せ
+            else if (demoTimeline_ < 8.00f) {
+                float t = SmoothStep(std::clamp((demoTimeline_ - 7.00f) / 0.60f, 0.0f, 1.0f));
+                targetCursorPos.x = std::lerp(posOptions_.x, posStart_.x, t);
+                targetCursorPos.y = std::lerp(posOptions_.y, posStart_.y, t);
+            }
+            // 【Phase 2-4】 8.00s 〜 8.60s : STARTボタン上で一瞬のタメ（呼吸・出撃への期待感）
+            else if (demoTimeline_ < 8.60f) {
+                targetCursorPos = posStart_;
+            }
+            // 【Phase 3】 8.60s 〜 : GAME START クリック決定 ＆ 出撃演出発火
+            else {
+                targetCursorPos = posStart_;
+
+                if (!hasSubmitted_) {
+                    hasSubmitted_ = true;
+                    UISound::PlayDecide(); // 通常決定時と完全に同一の決定音を発音！
+
+                    if (currentScenePtr) {
+                        if (auto menuMgr = currentScenePtr->FindGameObject("MenuManager")) {
+                            if (auto menuCtrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
+                                menuCtrl->TriggerScreenFlash(); // 決定瞬間の白光フラッシュ
+                                menuCtrl->StartDismissAnimation();
+                                menuCtrl->SetLaunching(true);
+                            }
+                            if (dirComp) {
+                                isDemoInGame_ = true;                // InGame側での帰還を待機
+                                dirComp->SetNextSceneName("InGame"); // 本編 InGame シーンへ直接出撃！
+                                dirComp->StartLaunchSequence();
+                            }
+                        }
+                    }
+                }
             }
         }
-    }
 
         // 仮想カーソル座標を反映（出撃決定後は上書きを終了してサニタイズ）
         if (!hasSubmitted_) {

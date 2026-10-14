@@ -27,8 +27,7 @@ public:
      * @brief プールからメモリを確保し、コンポーネントを生成する
      * @return 確保されたコンポーネントの shared_ptr（カスタムデリータ付き）
      */
-    template <typename... Args>
-    std::shared_ptr<T> Create(Args&&... args) {
+    template <typename... Args> std::shared_ptr<T> Create(Args&&... args) {
         std::lock_guard<std::mutex> lock(mutex_);
 
         // フリーリストから O(1) で空きスロットを取得
@@ -64,8 +63,7 @@ public:
      * @brief 確保されている全てのコンポーネントに対して一括で処理を行う（DODのコア）
      * @details メモリが連続しているため、CPUキャッシュヒット率が劇的に向上します
      */
-    template <typename Func>
-    void ForEach(Func f) {
+    template <typename Func> void ForEach(Func f) {
         // パフォーマンス最優先のためロックを取らずに実行します（Update専用）
         for (auto& chunk : chunks_) {
             for (size_t i = 0; i < ChunkSize; ++i) {

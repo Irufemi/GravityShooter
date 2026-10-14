@@ -17,7 +17,8 @@ public:
      * @brief コンストラクタ
      * @param targetDirectory 監視対象のディレクトリパス
      * @param onChangeCallback 変更検知時に呼ばれるコールバック関数
-     * @warning このコールバックは監視用ワーカースレッドから直接呼び出されます。DirectXリソースの操作などメインスレッド専用の処理を行う場合は、スレッドセーフに実装するかメインスレッドへのキューイングを行ってください。
+     * @warning
+     * このコールバックは監視用ワーカースレッドから直接呼び出されます。DirectXリソースの操作などメインスレッド専用の処理を行う場合は、スレッドセーフに実装するかメインスレッドへのキューイングを行ってください。
      */
     DirectoryWatcher(const std::filesystem::path& targetDirectory, std::function<void()> onChangeCallback);
 

@@ -75,19 +75,19 @@ private:
     void CleanupWarpVisuals();
 
     // インスペクター調整可能プロパティ
-    float warpInDuration_ = 0.70f;          ///< 重力の壁突破・急減速にかける時間（秒）
-    float arrivalDuration_ = 0.35f;         ///< 到着整流・ノーズダイブ収束にかける時間（秒）
-    float bootupDuration_ = 0.65f;          ///< FCSシステムブートにかける時間（秒）
-    float startOffsetZ_ = -35.00f;          ///< 重力の壁の向こう側（初期後方オフセット、メートル）
-    float warpInFovBoostDeg_ = 14.0f;       ///< 突入時の最大FOV拡張ブースト量（度）
-    float maxWarpBlurWidth_ = 0.085f;       ///< 突入時の最大ラジアルブラー強度
+    float warpInDuration_ = 0.70f;    ///< 重力の壁突破・急減速にかける時間（秒）
+    float arrivalDuration_ = 0.35f;   ///< 到着整流・ノーズダイブ収束にかける時間（秒）
+    float bootupDuration_ = 0.65f;    ///< FCSシステムブートにかける時間（秒）
+    float startOffsetZ_ = -35.00f;    ///< 重力の壁の向こう側（初期後方オフセット、メートル）
+    float warpInFovBoostDeg_ = 14.0f; ///< 突入時の最大FOV拡張ブースト量（度）
+    float maxWarpBlurWidth_ = 0.085f; ///< 突入時の最大ラジアルブラー強度
     std::string targetShipName_ = "Player"; ///< 演出対象の自機オブジェクト名
 
     // 内部状態管理
     StageIntroState introState_ = StageIntroState::WarpIn;
     float stateTimer_ = 0.0f;
     bool hasInitializedShip_ = false;
-    bool hasTriggeredBreach_ = false;       ///< 重力の壁突破インパルス発火済みフラグ
+    bool hasTriggeredBreach_ = false; ///< 重力の壁突破インパルス発火済みフラグ
 
     std::weak_ptr<GameObject> shipObj_;
     Irufemi::Vector3 initialShipLocalPos_{0.0f, 0.0f, 0.0f};

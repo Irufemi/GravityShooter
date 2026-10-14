@@ -264,8 +264,7 @@ void TitleCosmicNebulaComponent::Draw() {
             if (auto fluid = engine->GetFluidSimulation()) {
                 cmdList->SetGraphicsRootDescriptorTable(static_cast<UINT>(RootSlot::ShadowMap),
                                                         fluid->GetVelocitySRV());
-                cmdList->SetGraphicsRootDescriptorTable(static_cast<UINT>(RootSlot::DepthMap),
-                                                        fluid->GetDensitySRV());
+                cmdList->SetGraphicsRootDescriptorTable(static_cast<UINT>(RootSlot::DepthMap), fluid->GetDensitySRV());
             }
 
             // SV_VertexID による全画面最奥三角形描画 (3頂点)

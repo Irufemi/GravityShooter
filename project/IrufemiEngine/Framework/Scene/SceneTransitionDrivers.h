@@ -91,4 +91,3 @@ public:
 private:
     std::optional<Irufemi::Vector4> customColor_;
 };
-

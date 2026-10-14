@@ -461,7 +461,8 @@ void AudioManager::SetCategoryVolume(AudioCategory category, float volume) {
 void AudioManager::FadeCategoryVolume(AudioCategory category, float targetVolume, float duration, float delay) {
     voiceState_.WithWrite([&](auto& state) {
         // 既存の同一カテゴリのフェードタスクがあれば除去
-        std::erase_if(state.categoryFadeTasks, [category](const CategoryFadeTask& t) { return t.category == category; });
+        std::erase_if(state.categoryFadeTasks,
+                      [category](const CategoryFadeTask& t) { return t.category == category; });
 
         CategoryFadeTask task;
         task.category = category;
@@ -544,9 +545,7 @@ std::weak_ptr<VoiceInstance> AudioManager::Play(std::shared_ptr<Sound> soundData
 
     // 管理インスタンスを生成してリストに追加
     auto instance = std::make_shared<VoiceInstance>(pSourceVoice, std::move(callback), category);
-    voiceState_.WithWrite([&](auto& state) {
-        state.activeVoices.push_back(instance);
-    });
+    voiceState_.WithWrite([&](auto& state) { state.activeVoices.push_back(instance); });
     return instance;
 }
 
@@ -584,9 +583,7 @@ void AudioManager::Stop(const std::weak_ptr<VoiceInstance>& instance) {
     }
 
     // 管理リストから除去 (shared_ptr が外れて VoiceInstance のデストラクタで破棄される)
-    voiceState_.WithWrite([&](auto& state) {
-        std::erase(state.activeVoices, locked);
-    });
+    voiceState_.WithWrite([&](auto& state) { std::erase(state.activeVoices, locked); });
 }
 
 void AudioManager::StopAll() {
@@ -677,9 +674,7 @@ void AudioManager::ResumeCategory(AudioCategory category) {
 }
 
 bool AudioManager::HasSound(const std::string& key) const {
-    return soundRegistry_.WithRead([&](const auto& state) {
-        return state.registry.find(key) != state.registry.end();
-    });
+    return soundRegistry_.WithRead([&](const auto& state) { return state.registry.find(key) != state.registry.end(); });
 }
 
 std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& filePath, const std::string& key) {
@@ -705,9 +700,7 @@ std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& fil
         return nullptr;
     }
 
-    soundRegistry_.WithWrite([&](auto& state) {
-        state.registry.emplace(useKey, sound);
-    });
+    soundRegistry_.WithWrite([&](auto& state) { state.registry.emplace(useKey, sound); });
     return sound;
 }
 

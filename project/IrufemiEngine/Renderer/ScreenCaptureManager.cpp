@@ -59,9 +59,7 @@ bool ScreenCaptureManager::RequestCapture(const std::wstring& filePath, ScreenCa
     req.isDepthRequested = false;
     req.onComplete = onComplete;
 
-    pendingRequests_.WithWrite([&req](auto& requests) {
-        requests.push_back(req);
-    });
+    pendingRequests_.WithWrite([&req](auto& requests) { requests.push_back(req); });
     return true;
 }
 
@@ -79,9 +77,7 @@ bool ScreenCaptureManager::RequestCaptureWithMetadata(const std::wstring& filePa
     req.isDepthRequested = false;
     req.onComplete = onComplete;
 
-    pendingRequests_.WithWrite([&req](auto& requests) {
-        requests.push_back(req);
-    });
+    pendingRequests_.WithWrite([&req](auto& requests) { requests.push_back(req); });
     return true;
 }
 
@@ -98,9 +94,7 @@ bool ScreenCaptureManager::RequestCaptureWithAlpha(const std::wstring& filePath,
     req.isDepthRequested = false;
     req.onComplete = onComplete;
 
-    pendingRequests_.WithWrite([&req](auto& requests) {
-        requests.push_back(req);
-    });
+    pendingRequests_.WithWrite([&req](auto& requests) { requests.push_back(req); });
     return true;
 }
 
@@ -117,9 +111,7 @@ bool ScreenCaptureManager::RequestCaptureDepth(const std::wstring& filePath, std
     req.isDepthRequested = true;
     req.onComplete = onComplete;
 
-    pendingRequests_.WithWrite([&req](auto& requests) {
-        requests.push_back(req);
-    });
+    pendingRequests_.WithWrite([&req](auto& requests) { requests.push_back(req); });
     return true;
 }
 
@@ -196,8 +188,8 @@ void ScreenCaptureManager::OnPreUIDraw(ID3D12GraphicsCommandList* commandList, R
         }
     }
 
-    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(),
-                                    D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
+    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
+                                    D3D12_RESOURCE_STATE_COPY_SOURCE);
     DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
                                     D3D12_RESOURCE_STATE_COPY_DEST);
 
@@ -205,8 +197,8 @@ void ScreenCaptureManager::OnPreUIDraw(ID3D12GraphicsCommandList* commandList, R
 
     DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
                                     D3D12_RESOURCE_STATE_COMMON);
-    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(),
-                                    D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(), D3D12_RESOURCE_STATE_COPY_SOURCE,
+                                    D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     if (req.isMetadataRequested) {
         RecordMetadata(dxCommon_->GetEngine());

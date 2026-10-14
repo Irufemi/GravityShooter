@@ -73,8 +73,7 @@ public:
      * @tparam Func 呼び出し可能オブジェクト型 (void(const std::string&, const CVar&))
      * @param func 各CVarを受け取る関数またはラムダ式
      */
-    template <typename Func>
-    static void ForEachCVar(Func&& func) {
+    template <typename Func> static void ForEachCVar(Func&& func) {
         GetSynchronizedRegistry().WithRead([&](const RegistryType& reg) {
             for (const auto& [name, cvar] : reg) {
                 if (cvar) {

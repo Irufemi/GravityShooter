@@ -139,9 +139,7 @@ void FontManager::Finalize() {
 bool FontManager::LoadFont(const std::string& fontId, const std::string& ttfPath) {
     msdfgen::FontHandle* font = msdfgen::loadFont(impl_->ftLibrary, ttfPath.c_str());
     if (font) {
-        impl_->cache_.WithWrite([&](auto& data) {
-            data.fonts[fontId] = font;
-        });
+        impl_->cache_.WithWrite([&](auto& data) { data.fonts[fontId] = font; });
         return true;
     }
     return false;

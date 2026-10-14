@@ -66,9 +66,9 @@ public:
     // 出撃シーケンスのステージ分割定数（スラスター遠ざかり音3.55秒のドップラー減衰に完全同期）
     static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
     static constexpr float kDurationAccelerate_ = 1.80f; ///< [Phase 2: 咆哮] アフターバーナー急加速
-    static constexpr float kDurationBreak_ = 1.30f;      ///< [Phase 3: 重力の壁突入] 正面壁激突・深層潜行
-    static constexpr float kDurationAfterglow_ = 0.45f;  ///< [Phase 4: 余韻] 事象の地平線突破・暗転完了
-    static constexpr float kDurationFreeze_ = 0.045f;    ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
+    static constexpr float kDurationBreak_ = 1.30f; ///< [Phase 3: 重力の壁突入] 正面壁激突・深層潜行
+    static constexpr float kDurationAfterglow_ = 0.45f; ///< [Phase 4: 余韻] 事象の地平線突破・暗転完了
+    static constexpr float kDurationFreeze_ = 0.045f; ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
     static constexpr float kTotalLaunchDuration_ = 4.05f; ///< 全体演出長 (秒: ドップラー音響と完全同期)
 
     /**
@@ -185,9 +185,9 @@ public:
         Irufemi::Vector3 driftFreq;
         Irufemi::Vector3 blastVelocity;
         float phase = 0.0f;
-        float orbitRadius = 0.0f;  //!< 銀河公転半径 (m)
-        float orbitAngle = 0.0f;   //!< 現在の公転角度 (rad)
-        float orbitSpeed = 0.0f;   //!< 差動公転角速度 (rad/s)
+        float orbitRadius = 0.0f; //!< 銀河公転半径 (m)
+        float orbitAngle = 0.0f;  //!< 現在の公転角度 (rad)
+        float orbitSpeed = 0.0f;  //!< 差動公転角速度 (rad/s)
     };
 
     std::vector<AsteroidInstanceData>& GetAsteroidInstances() {
@@ -257,7 +257,8 @@ private:
     void RenderAsteroidBelt();
 
     /**
-     * @brief 出撃加速・突破時の動的シネマティック・ポストプロセス制御（トンネル視野狭窄・特異点ラジアルブラー・動的色収差）
+     * @brief
+     * 出撃加速・突破時の動的シネマティック・ポストプロセス制御（トンネル視野狭窄・特異点ラジアルブラー・動的色収差）
      * @param[in] deltaTime 経過時間
      */
     void UpdateLaunchPostProcess(float deltaTime);
@@ -282,8 +283,9 @@ private: // メンバ変数
     std::weak_ptr<GameObject> shipObj_;
     std::weak_ptr<GameObject> cameraObj_;
     std::vector<std::weak_ptr<GameObject>> debrisObjs_;
-    class ModelBatchRendererComponent* asteroidBatchRenderer_ = nullptr; ///< 42基の小惑星を一括描画するGPUインスタンシングレンダラー
-    std::vector<AsteroidInstanceData> asteroidInstances_;                ///< プロシージャル生成した42基のアステロイド群
+    class ModelBatchRendererComponent* asteroidBatchRenderer_ =
+        nullptr; ///< 42基の小惑星を一括描画するGPUインスタンシングレンダラー
+    std::vector<AsteroidInstanceData> asteroidInstances_; ///< プロシージャル生成した42基のアステロイド群
     std::weak_ptr<GameObject> nebulaObj_;
 
     // 自機スラスター演出（GameScene完全準拠のTransform Scale制御）
@@ -325,9 +327,9 @@ private: // メンバ変数
     float launchTimer_ = 0.0f;
     bool hasTriggeredSceneTransition_ = false;
     bool hasExplodedDebris_ = false;
-    bool isMicroFreezing_ = false;         ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
-    float freezeTimer_ = 0.0f;             ///< マイクロフリーズ経過タイマー
-    bool hasTriggeredRelease_ = false;     ///< 臨界解放マイルストーン発火済みフラグ
+    bool isMicroFreezing_ = false;           ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
+    float freezeTimer_ = 0.0f;               ///< マイクロフリーズ経過タイマー
+    bool hasTriggeredRelease_ = false;       ///< 臨界解放マイルストーン発火済みフラグ
     bool isLaunchPostProcessActive_ = false; ///< 出撃ポストプロセス（多層エフェクト）稼働中フラグ
-    std::string nextSceneName_ = "InGame";  ///< 出撃完了時の遷移先シーン名
+    std::string nextSceneName_ = "InGame";   ///< 出撃完了時の遷移先シーン名
 };

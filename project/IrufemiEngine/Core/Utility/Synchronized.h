@@ -7,30 +7,28 @@
 namespace Irufemi {
 
 namespace Detail {
-    template <typename M, typename = void>
-    struct IsSharedMutex : std::false_type {};
+template <typename M, typename = void> struct IsSharedMutex : std::false_type {};
 
-    template <typename M>
-    struct IsSharedMutex<M, std::void_t<decltype(std::declval<M>().lock_shared()),
-                                         decltype(std::declval<M>().unlock_shared())>> : std::true_type {};
+template <typename M>
+struct IsSharedMutex<
+    M, std::void_t<decltype(std::declval<M>().lock_shared()), decltype(std::declval<M>().unlock_shared())>>
+    : std::true_type {};
 
-    template <typename M>
-    using SharedOrUniqueLock = std::conditional_t<IsSharedMutex<M>::value,
-                                                  std::shared_lock<M>,
-                                                  std::unique_lock<M>>;
-}
+template <typename M>
+using SharedOrUniqueLock = std::conditional_t<IsSharedMutex<M>::value, std::shared_lock<M>, std::unique_lock<M>>;
+} // namespace Detail
 
 /**
  * @class Synchronized
  * @brief データとその保護用ミューテックスを一体化し、スレッド安全なアクセスを強制するRAIIモニタ型ラッパー
  * @details 内部データへのアクセスには必ず ReadLock または WriteLock の取得を要するため、
  *          マルチスレッド環境におけるロックの取得忘れやデータ競合をコンパイルレベルで根絶します。
- *          MutexType が lock_shared を持つ場合は共有ロック（shared_lock）、通常の mutex の場合は unique_lock に自動でフォールバックします。
+ *          MutexType が lock_shared を持つ場合は共有ロック（shared_lock）、通常の mutex の場合は unique_lock
+ * に自動でフォールバックします。
  * @tparam T スレッドセーフに保護する対象のデータ型
  * @tparam MutexType 使用するミューテックス型（デフォルト: std::shared_mutex）
  */
-template <typename T, typename MutexType = std::shared_mutex>
-class Synchronized {
+template <typename T, typename MutexType = std::shared_mutex> class Synchronized {
 public:
     /**
      * @class ReadGuard
@@ -38,12 +36,17 @@ public:
      */
     class ReadGuard {
     public:
-        ReadGuard(const T& data, MutexType& mutex)
-            : data_(data), lock_(mutex) {}
+        ReadGuard(const T& data, MutexType& mutex) : data_(data), lock_(mutex) {}
 
-        const T* operator->() const noexcept { return &data_; }
-        const T& operator*() const noexcept { return data_; }
-        const T& Get() const noexcept { return data_; }
+        const T* operator->() const noexcept {
+            return &data_;
+        }
+        const T& operator*() const noexcept {
+            return data_;
+        }
+        const T& Get() const noexcept {
+            return data_;
+        }
 
     private:
         const T& data_;
@@ -56,12 +59,17 @@ public:
      */
     class WriteGuard {
     public:
-        WriteGuard(T& data, MutexType& mutex)
-            : data_(data), lock_(mutex) {}
+        WriteGuard(T& data, MutexType& mutex) : data_(data), lock_(mutex) {}
 
-        T* operator->() noexcept { return &data_; }
-        T& operator*() noexcept { return data_; }
-        T& Get() noexcept { return data_; }
+        T* operator->() noexcept {
+            return &data_;
+        }
+        T& operator*() noexcept {
+            return data_;
+        }
+        T& Get() noexcept {
+            return data_;
+        }
 
     private:
         T& data_;
@@ -72,8 +80,7 @@ public:
     explicit Synchronized(const T& initialValue) : data_(initialValue) {}
     explicit Synchronized(T&& initialValue) : data_(std::move(initialValue)) {}
 
-    template <typename... Args>
-    explicit Synchronized(Args&&... args) : data_(std::forward<Args>(args)...) {}
+    template <typename... Args> explicit Synchronized(Args&&... args) : data_(std::forward<Args>(args)...) {}
 
     ~Synchronized() = default;
 
@@ -104,8 +111,7 @@ public:
      * @param func 読み取り専用データ参照を受け取る関数
      * @return 関数の戻り値
      */
-    template <typename Func>
-    auto WithRead(Func&& func) const -> decltype(func(std::declval<const T&>())) {
+    template <typename Func> auto WithRead(Func&& func) const -> decltype(func(std::declval<const T&>())) {
         Detail::SharedOrUniqueLock<MutexType> lock(mutex_);
         return func(data_);
     }
@@ -116,8 +122,7 @@ public:
      * @param func 変更可能データ参照を受け取る関数
      * @return 関数の戻り値
      */
-    template <typename Func>
-    auto WithWrite(Func&& func) -> decltype(func(std::declval<T&>())) {
+    template <typename Func> auto WithWrite(Func&& func) -> decltype(func(std::declval<T&>())) {
         std::unique_lock<MutexType> lock(mutex_);
         return func(data_);
     }

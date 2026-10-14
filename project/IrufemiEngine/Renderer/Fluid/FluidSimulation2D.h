@@ -25,13 +25,13 @@ public: // 内部定数・構造体
      * @brief フレームごとの外力・染料注入リクエスト
      */
     struct InjectionRequest {
-        Irufemi::Vector2 posUV{0.5f, 0.5f};      //!< 注入中心UV (0.0 - 1.0)
-        Irufemi::Vector2 velocity{0.0f, 0.0f};    //!< 注入速度ベクトル (UV/sec)
+        Irufemi::Vector2 posUV{0.5f, 0.5f};             //!< 注入中心UV (0.0 - 1.0)
+        Irufemi::Vector2 velocity{0.0f, 0.0f};          //!< 注入速度ベクトル (UV/sec)
         Irufemi::Vector4 color{1.0f, 1.0f, 1.0f, 1.0f}; //!< 注入カラー・濃度 (RGBA)
-        float radius = 0.05f;                    //!< 影響半径 (UV空間)
-        float vortexStrength = 0.0f;             //!< 重力特異点（回転渦）強度
-        float pullStrength = 0.0f;               //!< 重力特異点（吸引力）強度
-        float type = 0.0f;                       //!< 0: 通常速度, 1: 染料, 2: 重力特異点
+        float radius = 0.05f;                           //!< 影響半径 (UV空間)
+        float vortexStrength = 0.0f;                    //!< 重力特異点（回転渦）強度
+        float pullStrength = 0.0f;                      //!< 重力特異点（吸引力）強度
+        float type = 0.0f;                              //!< 0: 通常速度, 1: 染料, 2: 重力特異点
     };
 
     /**

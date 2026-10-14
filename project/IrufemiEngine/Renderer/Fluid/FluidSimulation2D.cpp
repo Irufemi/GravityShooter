@@ -30,9 +30,9 @@ Microsoft::WRL::ComPtr<ID3D12Resource> CreateUAVTexture(ID3D12Device* device, ui
     desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> resource;
-    HRESULT hr = device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                 D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr,
-                                                 IID_PPV_ARGS(resource.GetAddressOf()));
+    HRESULT hr =
+        device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                                        nullptr, IID_PPV_ARGS(resource.GetAddressOf()));
     ASSERT_IF_FAILED(hr);
     return resource;
 }
@@ -53,15 +53,31 @@ FluidSimulation2D::~FluidSimulation2D() {
         auto* pool = dxCommon_->GetSrvPool();
         if (pool) {
             for (int i = 0; i < 2; ++i) {
-                if (velocitySrvIndices_[i] != DescriptorPool::kInvalid) pool->Free(velocitySrvIndices_[i]);
-                if (densitySrvIndices_[i] != DescriptorPool::kInvalid) pool->Free(densitySrvIndices_[i]);
-                if (pressureSrvIndices_[i] != DescriptorPool::kInvalid) pool->Free(pressureSrvIndices_[i]);
-                if (velocityUavIndices_[i] != DescriptorPool::kInvalid) pool->Free(velocityUavIndices_[i]);
-                if (densityUavIndices_[i] != DescriptorPool::kInvalid) pool->Free(densityUavIndices_[i]);
-                if (pressureUavIndices_[i] != DescriptorPool::kInvalid) pool->Free(pressureUavIndices_[i]);
+                if (velocitySrvIndices_[i] != DescriptorPool::kInvalid) {
+                    pool->Free(velocitySrvIndices_[i]);
+                }
+                if (densitySrvIndices_[i] != DescriptorPool::kInvalid) {
+                    pool->Free(densitySrvIndices_[i]);
+                }
+                if (pressureSrvIndices_[i] != DescriptorPool::kInvalid) {
+                    pool->Free(pressureSrvIndices_[i]);
+                }
+                if (velocityUavIndices_[i] != DescriptorPool::kInvalid) {
+                    pool->Free(velocityUavIndices_[i]);
+                }
+                if (densityUavIndices_[i] != DescriptorPool::kInvalid) {
+                    pool->Free(densityUavIndices_[i]);
+                }
+                if (pressureUavIndices_[i] != DescriptorPool::kInvalid) {
+                    pool->Free(pressureUavIndices_[i]);
+                }
             }
-            if (divergenceSrvIndex_ != DescriptorPool::kInvalid) pool->Free(divergenceSrvIndex_);
-            if (divergenceUavIndex_ != DescriptorPool::kInvalid) pool->Free(divergenceUavIndex_);
+            if (divergenceSrvIndex_ != DescriptorPool::kInvalid) {
+                pool->Free(divergenceSrvIndex_);
+            }
+            if (divergenceUavIndex_ != DescriptorPool::kInvalid) {
+                pool->Free(divergenceUavIndex_);
+            }
         }
     }
 }
@@ -161,7 +177,8 @@ void FluidSimulation2D::CreatePipelines() {
 
     auto shaderManager = dxCommon_->GetShaderManager();
 
-    auto CompileAndCreatePSO = [&](const std::wstring& shaderName, Microsoft::WRL::ComPtr<ID3D12PipelineState>& outPSO) {
+    auto CompileAndCreatePSO = [&](const std::wstring& shaderName,
+                                   Microsoft::WRL::ComPtr<ID3D12PipelineState>& outPSO) {
         ShaderCompileOptions options{};
         options.entryPoint = L"main";
         auto blob = shaderManager ? shaderManager->GetOrCompile(shaderName, options, L"cs_6_0") : nullptr;
@@ -213,7 +230,8 @@ void FluidSimulation2D::AddDensity(const Irufemi::Vector2& uv, const Irufemi::Ve
     injectionQueue_.push_back(req);
 }
 
-void FluidSimulation2D::AddGravityVortex(const Irufemi::Vector2& uv, float pullStrength, float swirlStrength, float radius) {
+void FluidSimulation2D::AddGravityVortex(const Irufemi::Vector2& uv, float pullStrength, float swirlStrength,
+                                         float radius) {
     InjectionRequest req{};
     req.posUV = uv;
     req.pullStrength = pullStrength;
@@ -274,13 +292,18 @@ void FluidSimulation2D::DispatchCompute() {
         if (psoInject_ && mappedInjectParams_) {
             commandList->SetPipelineState(psoInject_.Get());
             mappedInjectParams_->injectType = 3.0f; // Clear mode
-            commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1, injectParamsCB_->GetGPUVirtualAddress());
+            commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1,
+                                                          injectParamsCB_->GetGPUVirtualAddress());
 
             for (int i = 0; i < 2; ++i) {
-                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(velocitySrvIndices_[i]));
-                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1, pool->GetGPUHandle(densitySrvIndices_[i]));
-                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(velocityUavIndices_[i]));
-                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1, pool->GetGPUHandle(densityUavIndices_[i]));
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
+                                                           pool->GetGPUHandle(velocitySrvIndices_[i]));
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1,
+                                                           pool->GetGPUHandle(densitySrvIndices_[i]));
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
+                                                           pool->GetGPUHandle(velocityUavIndices_[i]));
+                commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1,
+                                                           pool->GetGPUHandle(densityUavIndices_[i]));
                 commandList->Dispatch(dispatchX, dispatchY, 1);
                 DirectXUtils::UAVBarrier(commandList, velocityTex_[i].Get());
                 DirectXUtils::UAVBarrier(commandList, densityTex_[i].Get());
@@ -289,7 +312,8 @@ void FluidSimulation2D::DispatchCompute() {
         return; // リセットフレームは移流・解法処理をスキップして即座に静寂状態を確立
     }
 
-    commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b0, globalParamsCB_->GetGPUVirtualAddress());
+    commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b0,
+                                                  globalParamsCB_->GetGPUVirtualAddress());
 
     // ------------------------------------------------------------------------
     // 1. 半ラグランジュ移流 (Advection)
@@ -300,10 +324,14 @@ void FluidSimulation2D::DispatchCompute() {
     uint32_t readDen = densityPingPong_;
     uint32_t writeDen = 1 - densityPingPong_;
 
-    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(velocitySrvIndices_[readVel]));
-    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1, pool->GetGPUHandle(densitySrvIndices_[readDen]));
-    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(velocityUavIndices_[writeVel]));
-    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1, pool->GetGPUHandle(densityUavIndices_[writeDen]));
+    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
+                                               pool->GetGPUHandle(velocitySrvIndices_[readVel]));
+    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1,
+                                               pool->GetGPUHandle(densitySrvIndices_[readDen]));
+    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
+                                               pool->GetGPUHandle(velocityUavIndices_[writeVel]));
+    commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1,
+                                               pool->GetGPUHandle(densityUavIndices_[writeDen]));
     commandList->Dispatch(dispatchX, dispatchY, 1);
 
     velocityPingPong_ = writeVel;
@@ -328,17 +356,22 @@ void FluidSimulation2D::DispatchCompute() {
                 mappedInjectParams_->pullStrength = req.pullStrength;
                 mappedInjectParams_->injectType = req.type;
             }
-            commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1, injectParamsCB_->GetGPUVirtualAddress());
+            commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1,
+                                                          injectParamsCB_->GetGPUVirtualAddress());
 
             readVel = velocityPingPong_;
             writeVel = 1 - velocityPingPong_;
             readDen = densityPingPong_;
             writeDen = 1 - densityPingPong_;
 
-            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(velocitySrvIndices_[readVel]));
-            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1, pool->GetGPUHandle(densitySrvIndices_[readDen]));
-            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(velocityUavIndices_[writeVel]));
-            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1, pool->GetGPUHandle(densityUavIndices_[writeDen]));
+            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
+                                                       pool->GetGPUHandle(velocitySrvIndices_[readVel]));
+            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1,
+                                                       pool->GetGPUHandle(densitySrvIndices_[readDen]));
+            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
+                                                       pool->GetGPUHandle(velocityUavIndices_[writeVel]));
+            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1,
+                                                       pool->GetGPUHandle(densityUavIndices_[writeDen]));
             commandList->Dispatch(dispatchX, dispatchY, 1);
 
             velocityPingPong_ = writeVel;
@@ -358,8 +391,10 @@ void FluidSimulation2D::DispatchCompute() {
         readVel = velocityPingPong_;
         writeVel = 1 - velocityPingPong_;
 
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(velocitySrvIndices_[readVel]));
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(velocityUavIndices_[writeVel]));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
+                                                   pool->GetGPUHandle(velocitySrvIndices_[readVel]));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
+                                                   pool->GetGPUHandle(velocityUavIndices_[writeVel]));
         commandList->Dispatch(dispatchX, dispatchY, 1);
 
         velocityPingPong_ = writeVel;
@@ -371,8 +406,10 @@ void FluidSimulation2D::DispatchCompute() {
     // ------------------------------------------------------------------------
     if (psoDivergence_) {
         commandList->SetPipelineState(psoDivergence_.Get());
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(velocitySrvIndices_[velocityPingPong_]));
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(divergenceUavIndex_));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
+                                                   pool->GetGPUHandle(velocitySrvIndices_[velocityPingPong_]));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
+                                                   pool->GetGPUHandle(divergenceUavIndex_));
         commandList->Dispatch(dispatchX, dispatchY, 1);
 
         DirectXUtils::UAVBarrier(commandList, divergenceTex_.Get());
@@ -384,14 +421,17 @@ void FluidSimulation2D::DispatchCompute() {
     if (psoJacobi_) {
         commandList->SetPipelineState(psoJacobi_.Get());
         // gInDivergence は反復中不変 (register t1)
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1, pool->GetGPUHandle(divergenceSrvIndex_));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1,
+                                                   pool->GetGPUHandle(divergenceSrvIndex_));
 
         for (uint32_t iter = 0; iter < jacobiIterations_; ++iter) {
             uint32_t readPress = pressurePingPong_;
             uint32_t writePress = 1 - pressurePingPong_;
 
-            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(pressureSrvIndices_[readPress]));
-            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(pressureUavIndices_[writePress]));
+            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
+                                                       pool->GetGPUHandle(pressureSrvIndices_[readPress]));
+            commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
+                                                       pool->GetGPUHandle(pressureUavIndices_[writePress]));
             commandList->Dispatch(dispatchX, dispatchY, 1);
 
             pressurePingPong_ = writePress;
@@ -407,9 +447,12 @@ void FluidSimulation2D::DispatchCompute() {
         readVel = velocityPingPong_;
         writeVel = 1 - velocityPingPong_;
 
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0, pool->GetGPUHandle(velocitySrvIndices_[readVel]));
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1, pool->GetGPUHandle(pressureSrvIndices_[pressurePingPong_]));
-        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0, pool->GetGPUHandle(velocityUavIndices_[writeVel]));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
+                                                   pool->GetGPUHandle(velocitySrvIndices_[readVel]));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1,
+                                                   pool->GetGPUHandle(pressureSrvIndices_[pressurePingPong_]));
+        commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
+                                                   pool->GetGPUHandle(velocityUavIndices_[writeVel]));
         commandList->Dispatch(dispatchX, dispatchY, 1);
 
         velocityPingPong_ = writeVel;

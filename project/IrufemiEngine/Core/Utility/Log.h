@@ -20,7 +20,7 @@ public:
 private: // メンバ変数
     inline static std::ofstream logStream_;
     inline static Irufemi::Synchronized<LogContainer, std::mutex> logHistory_; // ログ履歴 (スレッドセーフ)
-    static constexpr size_t kMaxLogLines = 1000;                               // メモリ保護のための最大行数
+    static constexpr size_t kMaxLogLines = 1000; // メモリ保護のための最大行数
 
 public: // メンバ関数
     /// <summary>

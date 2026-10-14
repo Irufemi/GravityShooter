@@ -30,16 +30,15 @@ enum class RootSlot : UINT {
  * @details DXRootSignatureManager::CreateRootSignatures() の computeRootParameters に完全対応します。
  */
 enum class ComputeRootSlot : UINT {
-    SRV_t0 = 0,        ///< register(t0) - SRV DescriptorTable (Num: 1)
-    SRV_t1 = 1,        ///< register(t1) - SRV DescriptorTable (Num: 1)
-    SRV_t2 = 2,        ///< register(t2) - SRV DescriptorTable (Num: 1)
-    UAV_u0 = 3,        ///< register(u0) - UAV DescriptorTable (Num: 1)
-    CBV_b0 = 4,        ///< register(b0) - Root CBV
-    CBV_b1 = 5,        ///< register(b1) - Root CBV
-    UAV_u1 = 6,        ///< register(u1) - UAV DescriptorTable (Num: 1)
-    UAV_u2 = 7,        ///< register(u2) - UAV DescriptorTable (Num: 1)
-    UAV_u3 = 8,        ///< register(u3) - UAV DescriptorTable (Num: 1)
-    Constants_b2 = 9,  ///< register(b2) - 32-bit Constants (Num: 2)
-    SRV_t3 = 10,       ///< register(t3) - Root SRV (Buffer)
+    SRV_t0 = 0,       ///< register(t0) - SRV DescriptorTable (Num: 1)
+    SRV_t1 = 1,       ///< register(t1) - SRV DescriptorTable (Num: 1)
+    SRV_t2 = 2,       ///< register(t2) - SRV DescriptorTable (Num: 1)
+    UAV_u0 = 3,       ///< register(u0) - UAV DescriptorTable (Num: 1)
+    CBV_b0 = 4,       ///< register(b0) - Root CBV
+    CBV_b1 = 5,       ///< register(b1) - Root CBV
+    UAV_u1 = 6,       ///< register(u1) - UAV DescriptorTable (Num: 1)
+    UAV_u2 = 7,       ///< register(u2) - UAV DescriptorTable (Num: 1)
+    UAV_u3 = 8,       ///< register(u3) - UAV DescriptorTable (Num: 1)
+    Constants_b2 = 9, ///< register(b2) - 32-bit Constants (Num: 2)
+    SRV_t3 = 10,      ///< register(t3) - Root SRV (Buffer)
 };
-

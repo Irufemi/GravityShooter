@@ -208,11 +208,9 @@ void TitleSceneDirectorComponent::SpawnAsteroidBelt() {
             baseScale *= 1.5f; // 遥か遠景の小惑星は雄大に巨大化
         }
         // 各軸にわずかな非対称性を持たせてゴツゴツ感を強調
-        Irufemi::Vector3 scale{
-            baseScale * (1.0f + (distTumble(rng) * 1.5f)),
-            baseScale * (1.0f + (distTumble(rng) * 1.5f)),
-            baseScale * (1.0f + (distTumble(rng) * 1.5f))
-        };
+        Irufemi::Vector3 scale{baseScale * (1.0f + (distTumble(rng) * 1.5f)),
+                               baseScale * (1.0f + (distTumble(rng) * 1.5f)),
+                               baseScale * (1.0f + (distTumble(rng) * 1.5f))};
 
         // 星雲の流動速度に完全同期した角速度（1周 約20〜45秒、角速度 0.14〜0.28 rad/s）
         // 星雲の渦潮（Cosmic Nebula Swirl）に乗ってグングン流れるダイナミックなペース
@@ -312,11 +310,8 @@ void TitleSceneDirectorComponent::TriggerDebrisExplosion() {
         if (ast.currentPos.z < 45.0f) {
             float angle = static_cast<float>(i) * 0.785398f;
             float outwardSpeed = 3.5f + static_cast<float>(i % 3) * 1.5f;
-            ast.blastVelocity = Irufemi::Vector3{
-                std::cos(angle) * outwardSpeed,
-                std::sin(angle) * outwardSpeed * 0.6f,
-                -2.0f
-            };
+            ast.blastVelocity =
+                Irufemi::Vector3{std::cos(angle) * outwardSpeed, std::sin(angle) * outwardSpeed * 0.6f, -2.0f};
         }
     }
 }
@@ -353,8 +348,6 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
             shake->PlayShakeSeconds(0.045f, kDurationAccelerate_, 22.0f);
         }
     }
-
-
 }
 
 void TitleSceneDirectorComponent::Update() {
@@ -524,8 +517,8 @@ void TitleSceneDirectorComponent::TriggerSceneTransition(float fadeDuration) {
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
             // 重力特異点跳躍（事象の地平線への空間吸い込み・重力色収差・流体渦巻き連動）
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::GravitySingularity, fadeDuration, EaseType::EaseInCubic,
-                             Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::GravitySingularity, fadeDuration,
+                             EaseType::EaseInCubic, Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
         }
     }
 }

@@ -167,41 +167,40 @@ void PauseScene::CreateUIElements() {
         std::function<void()> action;
     };
 
-    const std::vector<MenuEntry> entries = {{L"RESUME", MenuItem::Resume,
-                                             [this]() {
-                                                 UISound::PlayCancel();
-                                                 transitionState_ = TransitionState::Closing;
-                                                 transitionTimer_ = 0.0f;
-                                             }},
-                                            {L"RETRY", MenuItem::Retry,
-                                             [this]() {
-                                                 UISound::PlayDecide();
-                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                                                     sm->LoadScene("InGame", SceneTransition::Type::RadialBlur, 0.45f,
-                                                                   EaseType::EaseInOutQuad,
-                                                                   Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
-                                                 }
-                                             }},
-                                            {L"OPTIONS", MenuItem::Options,
-                                             [this]() {
-                                                 UISound::PlayDecide();
-                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                                                     sm->PushScene("OptionsScene");
-                                                 }
-                                             }},
-                                            {L"TITLE", MenuItem::Title,
-                                             [this]() {
-                                                 UISound::PlayDecide();
-                                                 if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                                                     sm->TransitionTo("Title", SceneTransition::Type::RadialBlur, 0.6f,
-                                                                      EaseType::EaseInCubic,
-                                                                      Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
-                                                 }
-                                             }},
-                                            {L"QUIT", MenuItem::Quit, []() {
-                                                 UISound::PlayDecide();
-                                                 PostQuitMessage(0);
-                                             }}};
+    const std::vector<MenuEntry> entries = {
+        {L"RESUME", MenuItem::Resume,
+         [this]() {
+             UISound::PlayCancel();
+             transitionState_ = TransitionState::Closing;
+             transitionTimer_ = 0.0f;
+         }},
+        {L"RETRY", MenuItem::Retry,
+         [this]() {
+             UISound::PlayDecide();
+             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                 sm->LoadScene("InGame", SceneTransition::Type::RadialBlur, 0.45f, EaseType::EaseInOutQuad,
+                               Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+             }
+         }},
+        {L"OPTIONS", MenuItem::Options,
+         [this]() {
+             UISound::PlayDecide();
+             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                 sm->PushScene("OptionsScene");
+             }
+         }},
+        {L"TITLE", MenuItem::Title,
+         [this]() {
+             UISound::PlayDecide();
+             if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
+                 sm->TransitionTo("Title", SceneTransition::Type::RadialBlur, 0.6f, EaseType::EaseInCubic,
+                                  Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+             }
+         }},
+        {L"QUIT", MenuItem::Quit, []() {
+             UISound::PlayDecide();
+             PostQuitMessage(0);
+         }}};
 
     menuItems_.clear();
     for (size_t i = 0; i < entries.size(); ++i) {

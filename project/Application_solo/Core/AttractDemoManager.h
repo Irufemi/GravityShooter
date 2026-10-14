@@ -24,7 +24,7 @@ public:
      */
     enum class DemoMode {
         TransitionShowcase, ///< 【画面遷移ショーケース】起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ
-        StandardAttract     ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
+        StandardAttract ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
     };
 
     AttractDemoManager() = default;
@@ -103,8 +103,8 @@ private:
     IrufemiEngine* engine_ = nullptr;
 
     // --- 状態管理 ---
-    std::string previousScene_ = "";  ///< 前フレームのシーン名（遷移検知用）
-    bool isKioskLoopMode_ = true;     ///< 常時ループ展示フラグ（デフォルトON）
+    std::string previousScene_ = "";                   ///< 前フレームのシーン名（遷移検知用）
+    bool isKioskLoopMode_ = true;                      ///< 常時ループ展示フラグ（デフォルトON）
     DemoMode demoMode_ = DemoMode::TransitionShowcase; ///< 現在のデモモード（画面遷移ショーケースがデフォルト）
     bool isDemoPlaying_ = false;      ///< Titleシーンでのデモタイムライン進行中フラグ
     bool isDemoInGame_ = false;       ///< InGameシーンでの3.5秒帰還待ちフラグ

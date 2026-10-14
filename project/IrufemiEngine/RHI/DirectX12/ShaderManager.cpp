@@ -110,9 +110,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::GetOrCompile(const std::wstring&
 
     // 4. キャッシュに登録（排他ロック）
     if (blob) {
-        cache_.WithWrite([&](ShaderCacheMap& c) {
-            c[key] = blob;
-        });
+        cache_.WithWrite([&](ShaderCacheMap& c) { c[key] = blob; });
     }
 
     return blob;
@@ -129,9 +127,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::ReloadShader(const std::wstring&
     key.entryPoint = options.entryPoint;
     key.macros = options.macros;
 
-    cache_.WithWrite([&](ShaderCacheMap& c) {
-        c.erase(key);
-    });
+    cache_.WithWrite([&](ShaderCacheMap& c) { c.erase(key); });
 
     return GetOrCompile(filePath, options, profileOverride, outErrorLog);
 }
@@ -140,9 +136,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::ReloadShader(const std::wstring&
  * @brief キャッシュをクリアする
  */
 void ShaderManager::ClearCache() {
-    cache_.WithWrite([](ShaderCacheMap& c) {
-        c.clear();
-    });
+    cache_.WithWrite([](ShaderCacheMap& c) { c.clear(); });
 }
 
 /**

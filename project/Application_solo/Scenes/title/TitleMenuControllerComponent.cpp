@@ -336,7 +336,8 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
     // 1. キーボード / ゲームパッドによるフォーカス項目の決定（Space, Enter, またはPad_A）
     // マウス左クリック操作時は画面外誤決定を防ぐため、カーソル位置判定(isCursorSubmit)に委ねる
     bool isSubmit = false;
-    bool isMouseClick = inputManager->IsMouseButtonPressed(Mouse::Button::Left) || inputManager->IsKeyPressed(VK_LBUTTON);
+    bool isMouseClick =
+        inputManager->IsMouseButtonPressed(Mouse::Button::Left) || inputManager->IsKeyPressed(VK_LBUTTON);
     if (!isMouseClick) {
         isSubmit = InputHelper::IsActionPressed(inputManager, GameAction::UI_Submit);
     }

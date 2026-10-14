@@ -24,7 +24,6 @@ void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
         director->SetLaunchStartRot(director->GetInitialShipRot());
     }
 
-
     // 出撃SE再生（Springin' Sound Stock 製「気を溜める1」によるエネルギー充填・タメ）
     if (auto engine = director->GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
