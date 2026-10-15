@@ -181,39 +181,55 @@ public: // メンバ関数
     }
 
     /**
-     * @brief NearClip (近平面) を設定する。
-     * @param[in] nearClip 設定する NearClip の値
-     */
-    void SetNearClip(float nearClip) {
-        this->nearClip_ = nearClip;
-        this->nearZ_ = nearClip;
-        this->isDirtyProjection_ = true;
-    }
-
-    /**
-     * @brief FarClip (遠平面) を設定する。
-     * @param[in] farClip 設定する FarClip の値
-     */
-    void SetFarClip(float farClip) {
-        this->farClip_ = farClip;
-        this->farZ_ = farClip;
-        this->isDirtyProjection_ = true;
-    }
-
-    /**
-     * @brief NearZ (透視投影深度限界手前側) を設定する。
+     * @brief 3D透視投影の深度限界(手前側)を設定する
      * @param[in] nearZ 設定する NearZ の値
      */
     void SetNearZ(float nearZ) {
-        SetNearClip(nearZ);
+        this->nearZ_ = nearZ;
+        this->isDirtyProjection_ = true;
     }
 
     /**
-     * @brief FarZ (透視投影深度限界奥側) を設定する。
+     * @brief 3D透視投影の深度限界(奥側)を設定する
      * @param[in] farZ 設定する FarZ の値
      */
     void SetFarZ(float farZ) {
-        SetFarClip(farZ);
+        this->farZ_ = farZ;
+        this->isDirtyProjection_ = true;
+    }
+
+    /**
+     * @brief 3DカメラのNearClipを設定する（SetNearZのエイリアス）
+     * @param[in] nearClip 設定する NearClip の値
+     */
+    void SetNearClip(float nearClip) {
+        SetNearZ(nearClip);
+    }
+
+    /**
+     * @brief 3DカメラのFarClipを設定する（SetFarZのエイリアス）
+     * @param[in] farClip 設定する FarClip の値
+     */
+    void SetFarClip(float farClip) {
+        SetFarZ(farClip);
+    }
+
+    /**
+     * @brief 2D正射影の近平面を設定する（UI空間用）
+     * @param[in] nearClip 設定する正射影近平面の値
+     */
+    void SetOrthographicNearClip(float nearClip) {
+        this->nearClip_ = nearClip;
+        this->isDirtyProjection_ = true;
+    }
+
+    /**
+     * @brief 2D正射影の遠平面を設定する（UI空間用）
+     * @param[in] farClip 設定する正射影遠平面の値
+     */
+    void SetOrthographicFarClip(float farClip) {
+        this->farClip_ = farClip;
+        this->isDirtyProjection_ = true;
     }
 
     /**
@@ -329,6 +345,34 @@ public: // メンバ関数
      */
     const float& GetFarZ() const {
         return farZ_;
+    }
+
+    /**
+     * @brief 3DカメラのNearClipを取得する（GetNearZのエイリアス）
+     */
+    const float& GetNearClip() const {
+        return nearZ_;
+    }
+
+    /**
+     * @brief 3DカメラのFarClipを取得する（GetFarZのエイリアス）
+     */
+    const float& GetFarClip() const {
+        return farZ_;
+    }
+
+    /**
+     * @brief 2D正射影の近平面を取得する（UI空間用）
+     */
+    const float& GetOrthographicNearClip() const {
+        return nearClip_;
+    }
+
+    /**
+     * @brief 2D正射影の遠平面を取得する（UI空間用）
+     */
+    const float& GetOrthographicFarClip() const {
+        return farClip_;
     }
 
     /**

@@ -135,6 +135,4 @@ private:
 
     Irufemi::Vector3 positionOffset_{0.0f, 0.0f, 0.0f}; ///< Shake等による座標オフセット
     Irufemi::Vector3 rotationOffset_{0.0f, 0.0f, 0.0f}; ///< Shake等による回転オフセット
-
-    std::string registeredCameraKey_; ///< CameraManager に登録した一意な識別キー
 };

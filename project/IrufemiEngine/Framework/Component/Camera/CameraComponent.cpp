@@ -13,10 +13,7 @@ void CameraComponent::OnDestroy() {
     if (gameObject_) {
         auto* engine = GetEngine();
         if (engine && engine->GetCameraManager()) {
-            if (!registeredCameraKey_.empty()) {
-                engine->GetCameraManager()->RemoveCamera(registeredCameraKey_);
-                registeredCameraKey_.clear();
-            } else if (camera_) {
+            if (camera_) {
                 engine->GetCameraManager()->RemoveCamera(camera_);
             }
         }
@@ -43,10 +40,10 @@ void CameraComponent::OnAwake() {
         int clientHeight = engine ? engine->GetGameResolutionHeight() : 720;
         camera_->Initialize(clientWidth, clientHeight);
 
-        // プロパティ値を適用
+        // プロパティ値を適用（3D透視投影パラメータのみを設定し、2D正射影空間を保護）
         camera_->SetFovY(fovAngleY_);
-        camera_->SetNearClip(nearZ_);
-        camera_->SetFarClip(farZ_);
+        camera_->SetNearZ(nearZ_);
+        camera_->SetFarZ(farZ_);
     }
 }
 
@@ -54,10 +51,9 @@ void CameraComponent::Start() {
     if (gameObject_) {
         auto* engine = GetEngine();
         if (engine && engine->GetCameraManager() && camera_) {
-            registeredCameraKey_ = gameObject_->GetName() + "_" + std::to_string(gameObject_->GetInstanceID());
-            engine->GetCameraManager()->AddCamera(registeredCameraKey_, camera_);
+            engine->GetCameraManager()->AddCamera(gameObject_->GetName(), camera_);
             if (makeActive_) {
-                engine->GetCameraManager()->SetActiveCamera(registeredCameraKey_);
+                engine->GetCameraManager()->SetActiveCamera(gameObject_->GetName());
             }
 
             // 初期位置・角度を即座にCameraオブジェクトへ反映（第0フレーム同期）
@@ -65,8 +61,8 @@ void CameraComponent::Start() {
                 camera_->SetTranslate(Irufemi::Math::Add(transform->GetWorldPosition(), positionOffset_));
                 camera_->SetRotate(Irufemi::Math::Add(transform->GetWorldRotation(), rotationOffset_));
                 camera_->SetFovY(fovAngleY_);
-                camera_->SetNearClip(nearZ_);
-                camera_->SetFarClip(farZ_);
+                camera_->SetNearZ(nearZ_);
+                camera_->SetFarZ(farZ_);
                 camera_->UpdateMatrix();
             }
         }
@@ -87,10 +83,10 @@ void CameraComponent::Update() {
     camera_->SetTranslate(Irufemi::Math::Add(transform->GetWorldPosition(), positionOffset_));
     camera_->SetRotate(Irufemi::Math::Add(transform->GetWorldRotation(), rotationOffset_));
 
-    // パラメータの動的更新反映
+    // パラメータの動的更新反映（3D透視投影パラメータのみを設定）
     camera_->SetFovY(fovAngleY_);
-    camera_->SetNearClip(nearZ_);
-    camera_->SetFarClip(farZ_);
+    camera_->SetNearZ(nearZ_);
+    camera_->SetFarZ(farZ_);
 
     camera_->UpdateMatrix();
 }
