@@ -87,8 +87,9 @@ public:
 private:
     void InitializeAudio();
 
-    std::string audioPath_ = "audio/BGM/bgm_default.wav"; // デフォルト
-    int audioType_ = static_cast<int>(AudioType::SE);     // シリアライズ用
+    std::string audioPath_ = ""; // デフォルト
+    std::string loadedAudioPath_ = ""; ///< 現在ロードされている音源パス
+    int audioType_ = static_cast<int>(AudioType::SE); // シリアライズ用
     bool playOnAwake_ = false;
     bool loop_ = false;
     float volume_ = 1.0f;

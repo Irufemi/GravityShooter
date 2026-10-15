@@ -19,17 +19,19 @@ void AudioSourceComponent::OnRegisterProperties() {
 }
 
 void AudioSourceComponent::Initialize() {
-    InitializeAudio();
+    if (!audioPath_.empty()) {
+        InitializeAudio();
+    }
 }
 
 void AudioSourceComponent::OnSpawned() {
-    if (!player_) {
+    if (!player_ || loadedAudioPath_ != audioPath_) {
         InitializeAudio();
     }
 }
 
 void AudioSourceComponent::Start() {
-    if (!player_) {
+    if (!player_ || loadedAudioPath_ != audioPath_) {
         InitializeAudio();
     }
     auto engine = GetEngine();
@@ -49,17 +51,22 @@ void AudioSourceComponent::OnDestroy() {
 }
 
 void AudioSourceComponent::InitializeAudio() {
-    if (player_) {
-        return;
-    }
     auto engine = GetEngine();
     if (!engine) {
         return;
     }
 
+    if (audioPath_.empty()) {
+        return;
+    }
+
     auto audioManager = engine->GetAudioManager();
     if (audioManager) {
-        player_ = std::make_unique<AudioPlayer>(audioManager, static_cast<AudioType>(audioType_));
+        if (!player_) {
+            player_ = std::make_unique<AudioPlayer>(audioManager, static_cast<AudioType>(audioType_));
+        } else {
+            player_->SetAudioType(static_cast<AudioType>(audioType_));
+        }
 
         std::string fullPath = "resources/" + audioPath_;
         if (audioPath_.find("resources/") == 0) {
@@ -68,11 +75,7 @@ void AudioSourceComponent::InitializeAudio() {
         player_->Initialize(fullPath);
         player_->SetVolume(volume_);
         lastVolume_ = volume_;
-    }
-
-    // スタンドアロン実行時、またはPlayMode実行中のみ即時再生する（Editモードでの誤発火を防止）
-    if (playOnAwake_ && engine->IsPlayMode()) {
-        Play();
+        loadedAudioPath_ = audioPath_;
     }
 }
 
@@ -86,6 +89,15 @@ void AudioSourceComponent::Update() {
             player_->Stop();
         }
         return;
+    }
+
+    // パスがインスペクタ等で動的に変更された場合のホットリロード
+    if (loadedAudioPath_ != audioPath_) {
+        bool wasPlaying = player_ && player_->IsPlaying();
+        InitializeAudio();
+        if (wasPlaying) {
+            Play();
+        }
     }
 
     // インスペクターからの動的変更を反映（変更があった場合のみSetVolumeを実行）
@@ -109,13 +121,7 @@ void AudioSourceComponent::Stop() {
 
 void AudioSourceComponent::SetAudioPath(const std::string& path) {
     audioPath_ = path;
-    if (player_) {
-        std::string fullPath = "resources/" + audioPath_;
-        if (audioPath_.find("resources/") == 0) {
-            fullPath = audioPath_;
-        }
-        player_->Initialize(fullPath);
-    }
+    InitializeAudio();
 }
 
 void AudioSourceComponent::SetVolume(float volume) {
