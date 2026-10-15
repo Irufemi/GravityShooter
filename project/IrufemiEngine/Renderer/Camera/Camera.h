@@ -181,12 +181,39 @@ public: // メンバ関数
     }
 
     /**
-     * @brief FarClip を設定する。
+     * @brief NearClip (近平面) を設定する。
+     * @param[in] nearClip 設定する NearClip の値
+     */
+    void SetNearClip(float nearClip) {
+        this->nearClip_ = nearClip;
+        this->nearZ_ = nearClip;
+        this->isDirtyProjection_ = true;
+    }
+
+    /**
+     * @brief FarClip (遠平面) を設定する。
      * @param[in] farClip 設定する FarClip の値
      */
-    void SetFarClip(const float& farClip) {
+    void SetFarClip(float farClip) {
         this->farClip_ = farClip;
+        this->farZ_ = farClip;
         this->isDirtyProjection_ = true;
+    }
+
+    /**
+     * @brief NearZ (透視投影深度限界手前側) を設定する。
+     * @param[in] nearZ 設定する NearZ の値
+     */
+    void SetNearZ(float nearZ) {
+        SetNearClip(nearZ);
+    }
+
+    /**
+     * @brief FarZ (透視投影深度限界奥側) を設定する。
+     * @param[in] farZ 設定する FarZ の値
+     */
+    void SetFarZ(float farZ) {
+        SetFarClip(farZ);
     }
 
     /**

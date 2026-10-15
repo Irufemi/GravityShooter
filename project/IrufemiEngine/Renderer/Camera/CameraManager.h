@@ -28,6 +28,12 @@ public:
     void RemoveCamera(const std::string& name);
 
     /**
+     * @brief 指定したカメラインスタンスを削除します
+     * @param camera 削除するカメラのインスタンス
+     */
+    void RemoveCamera(const std::shared_ptr<Camera>& camera);
+
+    /**
      * @brief アクティブ（現在描画に使用する）カメラを設定します
      * @param name アクティブにするカメラの識別名
      */

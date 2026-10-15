@@ -13,7 +13,12 @@ void CameraComponent::OnDestroy() {
     if (gameObject_) {
         auto* engine = GetEngine();
         if (engine && engine->GetCameraManager()) {
-            engine->GetCameraManager()->RemoveCamera(gameObject_->GetName());
+            if (!registeredCameraKey_.empty()) {
+                engine->GetCameraManager()->RemoveCamera(registeredCameraKey_);
+                registeredCameraKey_.clear();
+            } else if (camera_) {
+                engine->GetCameraManager()->RemoveCamera(camera_);
+            }
         }
     }
 }
@@ -40,6 +45,7 @@ void CameraComponent::OnAwake() {
 
         // プロパティ値を適用
         camera_->SetFovY(fovAngleY_);
+        camera_->SetNearClip(nearZ_);
         camera_->SetFarClip(farZ_);
     }
 }
@@ -48,9 +54,10 @@ void CameraComponent::Start() {
     if (gameObject_) {
         auto* engine = GetEngine();
         if (engine && engine->GetCameraManager() && camera_) {
-            engine->GetCameraManager()->AddCamera(gameObject_->GetName(), camera_);
+            registeredCameraKey_ = gameObject_->GetName() + "_" + std::to_string(gameObject_->GetInstanceID());
+            engine->GetCameraManager()->AddCamera(registeredCameraKey_, camera_);
             if (makeActive_) {
-                engine->GetCameraManager()->SetActiveCamera(gameObject_->GetName());
+                engine->GetCameraManager()->SetActiveCamera(registeredCameraKey_);
             }
 
             // 初期位置・角度を即座にCameraオブジェクトへ反映（第0フレーム同期）
@@ -58,6 +65,7 @@ void CameraComponent::Start() {
                 camera_->SetTranslate(Irufemi::Math::Add(transform->GetWorldPosition(), positionOffset_));
                 camera_->SetRotate(Irufemi::Math::Add(transform->GetWorldRotation(), rotationOffset_));
                 camera_->SetFovY(fovAngleY_);
+                camera_->SetNearClip(nearZ_);
                 camera_->SetFarClip(farZ_);
                 camera_->UpdateMatrix();
             }
@@ -81,6 +89,7 @@ void CameraComponent::Update() {
 
     // パラメータの動的更新反映
     camera_->SetFovY(fovAngleY_);
+    camera_->SetNearClip(nearZ_);
     camera_->SetFarClip(farZ_);
 
     camera_->UpdateMatrix();

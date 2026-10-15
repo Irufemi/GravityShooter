@@ -30,6 +30,27 @@ void CameraManager::RemoveCamera(const std::string& name) {
     }
 }
 
+void CameraManager::RemoveCamera(const std::shared_ptr<Camera>& camera) {
+    if (!camera) {
+        return;
+    }
+    for (auto it = cameras_.begin(); it != cameras_.end(); ++it) {
+        if (it->second == camera) {
+            std::string name = it->first;
+            cameras_.erase(it);
+            if (activeCameraName_ == name) {
+                activeCameraName_.clear();
+                activeCameraCache_ = nullptr;
+                if (!cameras_.empty()) {
+                    activeCameraName_ = cameras_.begin()->first;
+                    activeCameraCache_ = cameras_.begin()->second.get();
+                }
+            }
+            break;
+        }
+    }
+}
+
 void CameraManager::SetActiveCamera(const std::string& name) {
     auto it = cameras_.find(name);
     if (it != cameras_.end()) {
