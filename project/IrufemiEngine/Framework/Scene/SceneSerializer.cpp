@@ -45,7 +45,7 @@ bool SceneSerializer::Exists(IScene* scene, const std::string& sceneName) {
     return fs::exists(GetSceneFilePath(scene, sceneName));
 }
 
-bool SceneSerializer::SavePrefab(std::shared_ptr<GameObject> obj, const std::string& filepath) {
+bool SceneSerializer::SavePrefab(const std::shared_ptr<GameObject>& obj, const std::string& filepath) {
     if (!obj) {
         return false;
     }
@@ -56,11 +56,19 @@ bool SceneSerializer::SavePrefab(std::shared_ptr<GameObject> obj, const std::str
 }
 
 nlohmann::json SceneSerializer::GetPrefabJson(const std::string& filepath) {
-    return prefabManager_ ? prefabManager_->GetPrefabJson(filepath) : nlohmann::json::object();
+    if (!prefabManager_) {
+        Log::OutPutLog(std::cerr, "[SceneSerializer] PrefabManager is null! Cannot get prefab JSON: " + filepath);
+        return nlohmann::json::object();
+    }
+    return prefabManager_->GetPrefabJson(filepath);
 }
 
 std::shared_ptr<GameObject> SceneSerializer::LoadPrefab(const std::string& filepath) {
-    return prefabManager_ ? prefabManager_->Instantiate(filepath) : nullptr;
+    if (!prefabManager_) {
+        Log::OutPutLog(std::cerr, "[SceneSerializer] PrefabManager is null! Cannot load prefab: " + filepath);
+        return nullptr;
+    }
+    return prefabManager_->Instantiate(filepath);
 }
 
 void SceneSerializer::ClearCache() {

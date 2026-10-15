@@ -47,7 +47,7 @@ public:
      * @param obj 保存対象の GameObject
      * @param filepath 保存先のパス (例: resources/prefabs/MyObject.json)
      */
-    static bool SavePrefab(std::shared_ptr<GameObject> obj, const std::string& filepath);
+    static bool SavePrefab(const std::shared_ptr<GameObject>& obj, const std::string& filepath);
 
     /**
      * @brief プレハブファイルから GameObject を復元・生成する

@@ -142,5 +142,7 @@ private:
     bool lastEnable_ = false;
     int32_t lastType_ = -1;
     float lastParam_ = -1.0f;
+    PostProcessManager::CustomEffectParams lastCustomParams_{};
+    bool isParamsDirty_ = true;
     PostProcessManager* cachedPostProcessManager_ = nullptr;
 };

@@ -116,4 +116,8 @@ private:
 
     ParticleField fieldData_;
     int fieldType_ = 0;
+
+    ParticleField lastFieldData_{};
+    int lastFieldType_ = -1;
+    bool isFirstUpdate_ = true;
 };

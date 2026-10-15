@@ -34,6 +34,7 @@ void EffectMaskComponent::OnDestroy() {
 
 void EffectMaskComponent::SetCustomParams(const PostProcessManager::CustomEffectParams& params) {
     customParams_ = params;
+    isParamsDirty_ = true;
     if (enableEffectMask_ && customEffectType_ > 0) {
         if (!cachedPostProcessManager_) {
             if (auto* engine = GetEngine()) {
@@ -46,6 +47,8 @@ void EffectMaskComponent::SetCustomParams(const PostProcessManager::CustomEffect
             }
             assignedSlot_ = cachedPostProcessManager_->RegisterCustomEffectParams(ownerId_, customParams_);
             cachedEffectParam_ = static_cast<float>(assignedSlot_) / 255.0f;
+            lastCustomParams_ = customParams_;
+            isParamsDirty_ = false;
         }
     }
 }
@@ -58,10 +61,15 @@ void EffectMaskComponent::Update() {
             }
         }
 
-        if (cachedPostProcessManager_) {
+        // パラメータが変化した時のみ再登録
+        const bool needRegister = isParamsDirty_ || (lastCustomParams_ != customParams_) ||
+                                  (lastEnable_ != enableEffectMask_) || (lastType_ != customEffectType_);
+        if (needRegister && cachedPostProcessManager_) {
             ownerId_ = gameObject_ ? gameObject_->GetInstanceID() : reinterpret_cast<uint64_t>(this);
             assignedSlot_ = cachedPostProcessManager_->RegisterCustomEffectParams(ownerId_, customParams_);
             cachedEffectParam_ = static_cast<float>(assignedSlot_) / 255.0f;
+            lastCustomParams_ = customParams_;
+            isParamsDirty_ = false;
         }
     } else {
         cachedEffectParam_ = 0.0f;

@@ -3,6 +3,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Core/System/IrufemiEngine.h"
+#include <cstring>
 ParticleFieldComponent::ParticleFieldComponent() {
     fieldData_.type = 1; // Default to Point Attractor
     fieldType_ = static_cast<int>(fieldData_.type);
@@ -51,8 +52,17 @@ void ParticleFieldComponent::Update() {
     }
 
     fieldData_.type = static_cast<uint32_t>(fieldType_);
-    if (fieldHandle_.IsValid() && gpuParticleManager_) {
+
+    // ダーティチェック: パラメータや位置に変更があった場合のみ GPU へバッファ転送
+    const bool isDirty = isFirstUpdate_ ||
+                         (std::memcmp(&lastFieldData_, &fieldData_, sizeof(ParticleField)) != 0) ||
+                         (lastFieldType_ != fieldType_);
+
+    if (isDirty && fieldHandle_.IsValid() && gpuParticleManager_) {
         gpuParticleManager_->UpdateFieldData(fieldHandle_, fieldData_);
+        lastFieldData_ = fieldData_;
+        lastFieldType_ = fieldType_;
+        isFirstUpdate_ = false;
     }
 }
 
