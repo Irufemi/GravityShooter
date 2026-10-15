@@ -98,8 +98,8 @@ private:
      */
     void Free(size_t chunkIdx, size_t itemIdx, T* p) {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (!chunks_[chunkIdx]->active[itemIdx]) {
-            return; // 既に破棄済みの場合は多重デストラクトを防ぐ
+        if (chunkIdx >= chunks_.size() || !chunks_[chunkIdx] || !chunks_[chunkIdx]->active[itemIdx]) {
+            return; // 既に破棄済み、またはプール終了時の範囲外アクセス・多重デストラクトを防ぐ
         }
         p->~T(); // デストラクタを明示的に呼び出す
         chunks_[chunkIdx]->active[itemIdx] = false;

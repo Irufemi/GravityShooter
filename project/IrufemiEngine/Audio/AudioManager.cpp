@@ -2,7 +2,6 @@
 #include "Audio/AudioManager.h"
 #include "Core/System/ThreadPool.h"
 #include "Core/System/TaskGroup.h"
-#include <cassert>
 #include <filesystem> // フォルダ内のファイルを探索するために使用
 #include <algorithm>  // 文字列を小文字に変換するために使用
 #include <vector>
