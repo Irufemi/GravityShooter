@@ -182,8 +182,7 @@ void ScreenCaptureManager::OnPreUIDraw(ID3D12GraphicsCommandList* commandList, R
         HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
                                                                      D3D12_RESOURCE_STATE_COMMON, nullptr,
                                                                      IID_PPV_ARGS(&colorCopyBuffer_));
-        ASSERT_IF_FAILED_MSG(hr, "Failed to create color copy buffer for screen capture!");
-        if (FAILED(hr)) {
+        if (!IRUFEMI_CHECK_HR(hr, "Failed to create color copy buffer for screen capture!")) {
             return;
         }
     }
@@ -236,8 +235,7 @@ void ScreenCaptureManager::OnPostUIDraw(ID3D12GraphicsCommandList* commandList, 
         HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
                                                         D3D12_RESOURCE_STATE_COMMON, nullptr,
                                                         IID_PPV_ARGS(&colorCopyBuffer_));
-        ASSERT_IF_FAILED_MSG(hr, "Failed to create color copy buffer for screen capture (WithUI)!");
-        if (FAILED(hr)) {
+        if (!IRUFEMI_CHECK_HR(hr, "Failed to create color copy buffer for screen capture (WithUI)!")) {
             return;
         }
     }
@@ -291,8 +289,7 @@ void ScreenCaptureManager::OnPostDepthDraw(ID3D12GraphicsCommandList* commandLis
         HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
                                                         D3D12_RESOURCE_STATE_COMMON, nullptr,
                                                         IID_PPV_ARGS(&depthCopyBuffer_));
-        ASSERT_IF_FAILED_MSG(hr, "Failed to create depth copy buffer for screen capture!");
-        if (FAILED(hr)) {
+        if (!IRUFEMI_CHECK_HR(hr, "Failed to create depth copy buffer for screen capture!")) {
             return;
         }
     }

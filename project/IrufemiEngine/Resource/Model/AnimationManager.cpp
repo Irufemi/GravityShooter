@@ -492,8 +492,7 @@ SkinCluster AnimationManager::CreateSkinCluster(const SkeletonData& skeleton, co
     skinCluster.inputVertexResource = dxCommon_->CreateBufferResource(sizeof(VertexData) * totalVertices);
     VertexData* mappedInputVertices = nullptr;
     HRESULT hrInput = skinCluster.inputVertexResource->Map(0, nullptr, reinterpret_cast<void**>(&mappedInputVertices));
-    ASSERT_IF_FAILED_MSG(hrInput, "Failed to map input vertex resource.");
-    if (FAILED(hrInput) || !mappedInputVertices) {
+    if (!IRUFEMI_CHECK_HR(hrInput, "Failed to map input vertex resource.") || !mappedInputVertices) {
         return skinCluster;
     }
     size_t vertexOffset = 0;
@@ -526,8 +525,7 @@ SkinCluster AnimationManager::CreateSkinCluster(const SkeletonData& skeleton, co
         skinCluster.paletteResource[i] = dxCommon_->CreateBufferResource(sizeof(WellForGPU) * skeleton.joints.size());
         WellForGPU* mappedPalette = nullptr;
         HRESULT hrPalette = skinCluster.paletteResource[i]->Map(0, nullptr, reinterpret_cast<void**>(&mappedPalette));
-        ASSERT_IF_FAILED_MSG(hrPalette, "Failed to map palette resource.");
-        if (FAILED(hrPalette) || !mappedPalette) {
+        if (!IRUFEMI_CHECK_HR(hrPalette, "Failed to map palette resource.") || !mappedPalette) {
             return skinCluster;
         }
         skinCluster.mappedPalette[i] = {mappedPalette, skeleton.joints.size()};
@@ -553,8 +551,7 @@ SkinCluster AnimationManager::CreateSkinCluster(const SkeletonData& skeleton, co
     skinCluster.influenceResource = dxCommon_->CreateBufferResource(sizeof(VertexInfluence) * totalVertices);
     VertexInfluence* mappedInfluence = nullptr;
     HRESULT hrInfluence = skinCluster.influenceResource->Map(0, nullptr, reinterpret_cast<void**>(&mappedInfluence));
-    ASSERT_IF_FAILED_MSG(hrInfluence, "Failed to map influence resource.");
-    if (FAILED(hrInfluence) || !mappedInfluence) {
+    if (!IRUFEMI_CHECK_HR(hrInfluence, "Failed to map influence resource.") || !mappedInfluence) {
         return skinCluster;
     }
     std::memset(mappedInfluence, 0, sizeof(VertexInfluence) * totalVertices);

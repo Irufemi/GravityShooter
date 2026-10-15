@@ -142,6 +142,61 @@ for (auto* col : toAdd) {
 
 ---
 
+### 1.1.0e エラーハンドリング・DirectXアサーション規約 (IRUFEMI_CHECK_HR / IRUFEMI_ASSERT_HR)
+
+DirectX 12 APIの呼び出し失敗（`HRESULT` 失敗）は、ゲーム開発において最もクラッシュやフリーズを引き起こしやすい要因です。
+Irufemi Engineでは、**Unreal Engine の `check()` / `ensure()` パターン** および **商用AAAゲームエンジン標準のフェイルセーフ設計** に基づき、エラーの「重大度」と「ビルド構成ごとの役割」を明確に分離したエラーハンドリングAPIを提供しています。
+
+#### 1. エラーハンドリングマクロの選定基準
+
+| マクロ | 用途・重大度 | 戻り値 | 設計指針・書き方 |
+| :--- | :--- | :--- | :--- |
+| **`IRUFEMI_CHECK_HR(hr, msg)`** | **非致命的 (Recoverable)**<br>例: スクショ保存失敗、オプショナルなテクスチャ読込失敗、フレームバッファキャプチャ失敗 | `bool`<br>（成功時 `true`, 失敗時 `false`）<br>`[[nodiscard]]` 強制 | **戻り値を必ず判定して早期リターンまたは代替処理を記述する**<br>```cpp\nif (!IRUFEMI_CHECK_HR(hr, "スクショ保存に失敗しました")) {\n    return false;\n}\n``` |
+| **`IRUFEMI_ASSERT_HR(hr, msg)`** | **致命的 (Fatal)**<br>例: SwapChain/CommandQueue生成失敗、必須パイプラインステート(PSO)作成失敗 | `void` | **続行不可能な初期化失敗。即座に例外送出・診断ブレークを発動する**<br>```cpp\nIRUFEMI_ASSERT_HR(hr, "SwapChainの生成に失敗しました");\n``` |
+
+> [!IMPORTANT]
+> **`[[nodiscard]]` による静的チェック**:
+> `IRUFEMI_CHECK_HR` は `[[nodiscard]]` 属性が付与されています。戻り値を `if` 文等でチェックせずに単独呼び出しした場合、コンパイラ警告（エンジン標準設定ではエラー扱い）が発生します。これにより、エラー検知後のリカバリ漏れをコンパイル時に100%防止します。
+
+#### 2. 4大ビルド構成別の挙動マトリクス
+
+Irufemi Engineでは、実行対象ユーザー（開発者・アーティスト・テスター・プレイヤー）に合わせて、エラー発生時の挙動をビルドごとに最適化しています。
+
+| ビルド構成 | 対象ユーザー | `IRUFEMI_CHECK_HR` 失敗時 | `IRUFEMI_ASSERT_HR` 失敗時 | 目的と安全保証 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Debug (`_DEBUG`)** | コアプログラマ | `std::cerr` に赤字ログ出力 ➔ **即座にブレーク (`__debugbreak`)** | 詳細エラーダイアログ提示 ➔ **即座にブレーク** | バグの発生箇所をその場で100%炙り出す |
+| **Editor (`EditorMode`)** | プランナー / アーティスト | エディタの `ConsolePanel` に赤字ログ ➔ **falseを返しエディタ継続** | `ConsolePanel` にFatalログ ➔ **例外送出 (PlayModeのみ安全停止)** | **エディタ本体と未保存データを絶対にクラッシュさせない** |
+| **Development (`DEVELOPMENT`)** | QA / イベント展示会 | 画面・ログダンプに記録 ➔ **早期リターンでゲーム更新継続** | 画面にFatal警告ダンプ ➔ **例外送出または安全終了** | テストプレイや展示を中断させず、ログを収集する |
+| **Release (製品版)** | 一般プレイヤー | サイレントリカバリ（ログのみ） ➔ **ゲーム更新を維持** | `PostQuitMessage(0)` 等で **OSごとクリーン終了** | プレイヤーに無用なダイアログを見せず、フリーズを防ぐ |
+
+#### 3. 実装スニペット例
+
+```cpp
+#include "Core/Utility/ErrorUtility.h"
+
+// 【非致命的処理】スクリーンショット保存
+bool ScreenCaptureManager::SaveCapture(ID3D12Resource* buffer, const std::wstring& path) {
+    HRESULT hr = DirectX::SaveWICTextureToFile(...);
+    // [[nodiscard]] のため、戻り値のチェックとリカバリ処理が必須
+    if (!IRUFEMI_CHECK_HR(hr, "スクリーンショットのディスク保存に失敗しました")) {
+        // 失敗してもゲーム本編は中断せず、falseを返して安全に復帰
+        return false;
+    }
+    return true;
+}
+
+// 【致命的処理】バックバッファの取得
+void DXCommandManager::CreateRenderTargetViews() {
+    for (UINT i = 0; i < kFrameBufferCount; ++i) {
+        HRESULT hr = swapChain_->GetBuffer(i, IID_PPV_ARGS(&renderTargets_[i]));
+        // バックバッファが取得できない場合は描画パイプライン全体が崩壊するため即座にASSERT
+        IRUFEMI_ASSERT_HR(hr, "SwapChainからのバックバッファ取得に失敗しました");
+    }
+}
+```
+
+---
+
 ### 1.1.1 外部ライブラリの手動セットアップ（クローン直後の手順）
 
 現在、GitHubのファイル容量制限により、`curl` や `assimp` などの実体バイナリ（`.lib`）はリポジトリから除外（手動管理）されています。

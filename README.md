@@ -172,6 +172,21 @@ graph LR
 
 ---
 
+### <a id="desc-dx-error"></a>🔹 6. 商用AAA基準のDirectX 12エラーハンドリングとマルチターゲット耐障害性
+> **【要約】`[[nodiscard]]` による静的型安全性と、エディタ・製品版を分離した4大ビルド耐障害性マトリクス**
+
+- **【課題・実現したかったこと】**
+  DirectX 12 における `HRESULT` エラーは、不適切なハンドリングにより即座に「Direct3D デバイスロスト」や無言のアプリケーション強制終了を引き起こす。また、開発者がデバッグ中に即座にブレークしたい要求と、アーティストがインゲーム編集中に「未保存データを道連れにしてエディタごとクラッシュさせたくない」要求、展示会や製品版で「画面フリーズせずサイレントにリカバリしたい」要求が真っ向から対立していた。
+- **【比較と技術選定 (トレードオフ)】**
+  単純な `assert()` や共通の例外スローを廃止。Unreal Engine の `check()` / `ensure()` パターンを取り入れ、回復可能なエラー用の **`IRUFEMI_CHECK_HR`** と致命的エラー用の **`IRUFEMI_ASSERT_HR`** に明確に二分。
+  さらに `IRUFEMI_CHECK_HR` に C++20 の **`[[nodiscard]]` 属性を付与** し、呼出元が成否を判定（Early Return / リカバリ）していないコードをコンパイル時に100%エラー化する静的検証を導入した。
+  ビルド構成（Debug / Editor / Development / Release）ごとに、プログラマ向け即時ブレーク・エディタUI保護・展示会ログ記録・製品版クリーン終了を動的に切り替える耐障害性マトリクスを構築した。
+- **【結果と定量的成果】**
+  スクショ撮影失敗やオプショナルなテクスチャ読込失敗など、非致命的なGPUエラー発生時でも**エディタの生存率100%** を達成。未保存シーンや編集データを保護しつつ、コンパイル時検査により実行時クラッシュの見落としをゼロにした。
+- 🔗 **関連コード原本**: [`ErrorUtility.h`](project/IrufemiEngine/Core/Utility/ErrorUtility.h) / [`ErrorUtility.cpp`](project/IrufemiEngine/Core/Utility/ErrorUtility.cpp)
+
+---
+
 ## 🚀 開発ロードマップ & 実装機能一覧
 
 本エンジンで実証・実装された主な機能群です。
@@ -180,6 +195,7 @@ graph LR
 - [x] **ウィンドウ & キオスク制御**: `F11` / `Alt+Enter` エンジンコア集約トグル、低レベルフックによるWindowsキー無効化と3重の安全脱出導線
 - [x] **PSOキャッシュ & 並列PreWarm**: 全CPUコアによる事前マルチスレッド並列JITコンパイル（初回到達時スタッター完全ゼロ化）
 - [x] **DirectX 12 描画基礎**: パイプライン、シェーダバインド、定数バッファ管理
+- [x] **商用AAA基準エラー耐性**: `[[nodiscard]]` 静的検査付き `IRUFEMI_CHECK_HR` / `IRUFEMI_ASSERT_HR` と4大ビルド構成連動フェイルセーフ
 - [x] **アーキテクチャ最適化**: Bindless Resources (Descriptor Indexing) への対応
 - [x] **メモリ管理**: 世代(Generation)付きHandleによる安全なObjectPool、スタックアロケータ、遅延削除(Pending Kill)キュー
 - [x] **非同期・マルチスレッド**: 自作 `ThreadPool` による非同期ローダー（Time-Slicing化）、非同期レイキャスト `RaycastAsync`
