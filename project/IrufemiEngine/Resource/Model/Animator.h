@@ -3,8 +3,12 @@
 #include <string>
 #include <memory>
 #include "Resource/Model/Data/Animation.h"
-#include "Resource/Model/Data/SkeletonData.h"
 #include "Resource/Model/Data/SkeletonPose.h"
+
+namespace Irufemi {
+struct SkeletonData;
+}
+using Irufemi::SkeletonData;
 
 class IrufemiEngine;
 

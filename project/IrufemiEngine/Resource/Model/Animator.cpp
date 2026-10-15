@@ -1,6 +1,7 @@
 #include "Resource/Model/Animator.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Resource/Model/AnimationManager.h"
+#include "Resource/Model/Data/SkeletonData.h"
 #include "Framework/UI/DebugUI.h"
 #include "Core/Math/Math.h"
 #include <cmath>

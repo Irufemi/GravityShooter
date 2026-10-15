@@ -21,18 +21,15 @@ struct Material;
 namespace Irufemi {
 struct ObjMaterial;
 struct Transform;
-} // namespace Irufemi
-namespace Irufemi {
 struct Matrix4x4;
-}
+struct Sphere;
+struct Animation;
+} // namespace Irufemi
+
 struct DirectionalLight;
 struct PointLight;
 struct SpotLight;
 struct AreaLight;
-namespace Irufemi {
-struct Sphere;
-struct Animation;
-} // namespace Irufemi
 struct LightningParams;
 
 #ifdef USE_IMGUI
