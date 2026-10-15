@@ -28,8 +28,8 @@ public:
                              const std::vector<PostProcessManager::Mode>& modes, class RenderTexture* srcTexture,
                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
                              const PostProcessManager::PostProcessWorkspace& workspace, bool isFinalOutput = true,
-                             bool isBackBufferTarget = false,
-                             const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
+                             bool isBackBufferTarget = false, const D3D12_VIEWPORT* targetViewport = nullptr,
+                             const D3D12_RECT* targetScissor = nullptr);
 
 private:
     /**

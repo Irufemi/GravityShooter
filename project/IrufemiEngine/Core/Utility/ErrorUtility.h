@@ -76,7 +76,7 @@ public:
     } while (0)
 
 // 後方互換用エイリアス
-#define ASSERT_IF_FAILED(hr)          IRUFEMI_ASSERT_HR((hr), "")
+#define ASSERT_IF_FAILED(hr) IRUFEMI_ASSERT_HR((hr), "")
 #define ASSERT_IF_FAILED_MSG(hr, msg) IRUFEMI_ASSERT_HR((hr), (msg))
 
 // =============================================================================

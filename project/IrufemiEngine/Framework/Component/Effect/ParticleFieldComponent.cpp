@@ -54,8 +54,7 @@ void ParticleFieldComponent::Update() {
     fieldData_.type = static_cast<uint32_t>(fieldType_);
 
     // ダーティチェック: パラメータや位置に変更があった場合のみ GPU へバッファ転送
-    const bool isDirty = isFirstUpdate_ ||
-                         (std::memcmp(&lastFieldData_, &fieldData_, sizeof(ParticleField)) != 0) ||
+    const bool isDirty = isFirstUpdate_ || (std::memcmp(&lastFieldData_, &fieldData_, sizeof(ParticleField)) != 0) ||
                          (lastFieldType_ != fieldType_);
 
     if (isDirty && fieldHandle_.IsValid() && gpuParticleManager_) {

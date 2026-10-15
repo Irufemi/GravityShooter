@@ -63,7 +63,8 @@ bool ErrorUtility::ReportDxError(HRESULT hr, const std::string& msg, const char*
         fullMsg += "\nLine: " + std::to_string(line);
     }
 
-    // ログ出力（std::cerr に送ることで Log::logHistory_ に isError = true で入り、Editorの ConsolePanel に赤字表示される）
+    // ログ出力（std::cerr に送ることで Log::logHistory_ に isError = true で入り、Editorの ConsolePanel
+    // に赤字表示される）
     Log::OutPutLog(std::cerr, fullMsg);
 
 #if defined(_DEBUG)

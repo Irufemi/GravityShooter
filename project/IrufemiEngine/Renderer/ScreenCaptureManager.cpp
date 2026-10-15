@@ -233,8 +233,8 @@ void ScreenCaptureManager::OnPostUIDraw(ID3D12GraphicsCommandList* commandList, 
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
         HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                        D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                        IID_PPV_ARGS(&colorCopyBuffer_));
+                                                                     D3D12_RESOURCE_STATE_COMMON, nullptr,
+                                                                     IID_PPV_ARGS(&colorCopyBuffer_));
         if (!IRUFEMI_CHECK_HR(hr, "Failed to create color copy buffer for screen capture (WithUI)!")) {
             return;
         }
@@ -287,8 +287,8 @@ void ScreenCaptureManager::OnPostDepthDraw(ID3D12GraphicsCommandList* commandLis
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
         HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                        D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                        IID_PPV_ARGS(&depthCopyBuffer_));
+                                                                     D3D12_RESOURCE_STATE_COMMON, nullptr,
+                                                                     IID_PPV_ARGS(&depthCopyBuffer_));
         if (!IRUFEMI_CHECK_HR(hr, "Failed to create depth copy buffer for screen capture!")) {
             return;
         }
