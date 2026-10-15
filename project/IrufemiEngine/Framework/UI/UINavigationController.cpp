@@ -42,7 +42,7 @@ bool UINavigationController::Update(InputManager* input, float deltaTime) {
         if (stickVal > kStickThreshold_) {
             currentStickDir = -1; // 上
         } else if (stickVal < -kStickThreshold_) {
-            currentStickDir = 1;  // 下
+            currentStickDir = 1; // 下
         }
     }
 

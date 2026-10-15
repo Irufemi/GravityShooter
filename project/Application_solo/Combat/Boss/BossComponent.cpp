@@ -185,11 +185,10 @@ void BossComponent::RemoveShield(std::shared_ptr<GameObject> shield) {
     if (!shield) {
         return;
     }
-    auto it = std::remove_if(shields_.begin(), shields_.end(),
-                             [&shield](const std::weak_ptr<GameObject>& w) {
-                                 auto s = w.lock();
-                                 return !s || s == shield;
-                             });
+    auto it = std::remove_if(shields_.begin(), shields_.end(), [&shield](const std::weak_ptr<GameObject>& w) {
+        auto s = w.lock();
+        return !s || s == shield;
+    });
     shields_.erase(it, shields_.end());
 }
 

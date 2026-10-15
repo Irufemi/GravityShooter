@@ -274,7 +274,8 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
                 }
             }
 
-            // キーボード / 十字キー選択時は仮想カーソルを非表示にし、ボタンのハイライト演出のみで表現（クラシックスタイル）
+            // キーボード /
+            // 十字キー選択時は仮想カーソルを非表示にし、ボタンのハイライト演出のみで表現（クラシックスタイル）
             inputManager->SetIsUsingGamepadCursor(false);
 
             // 目標スケールの更新

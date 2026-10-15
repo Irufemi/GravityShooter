@@ -11,7 +11,7 @@ class InputManager;
  */
 enum class NavigationInputMode {
     GamepadOrKeyboard, //!< ゲームパッド（十字キー/スティック）またはキーボードによるフォーカス操作中
-    Mouse              //!< マウス（物理移動・クリック）による操作中
+    Mouse //!< マウス（物理移動・クリック）による操作中
 };
 
 /**
@@ -161,9 +161,9 @@ private:
     bool isRepeating_ = false;
     int lastStickDir_ = 0; // -1, 0, 1
 
-    static constexpr float kInitialRepeatDelay_ = 0.35f; // 長押し開始までの待機時間（秒）
-    static constexpr float kRepeatInterval_ = 0.10f;     // 連続送り間隔（秒）
-    static constexpr float kStickThreshold_ = 0.55f;     // スティック倒し判定閾値
+    static constexpr float kInitialRepeatDelay_ = 0.35f;    // 長押し開始までの待機時間（秒）
+    static constexpr float kRepeatInterval_ = 0.10f;        // 連続送り間隔（秒）
+    static constexpr float kStickThreshold_ = 0.55f;        // スティック倒し判定閾値
     static constexpr float kStickReleaseThreshold_ = 0.25f; // スティック戻り判定閾値
 
     std::function<void(int newIndex)> onSelectionChanged_;
