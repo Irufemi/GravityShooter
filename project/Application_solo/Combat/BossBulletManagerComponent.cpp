@@ -36,9 +36,8 @@ void BossBulletManagerComponent::Initialize() {
     virtualManager_->Setup(0, maxBullets_, factory);
 
     bulletDataList_.resize(maxBullets_);
-    while (!activeVirtualIds_.empty()) {
-        activeVirtualIds_.pop();
-    }
+    activeVirtualIds_.clear();
+    activeVirtualIds_.reserve(maxBullets_);
 }
 
 void BossBulletManagerComponent::Start() {
@@ -60,8 +59,7 @@ void BossBulletManagerComponent::Update() {
         return; // ポーズ中（TimeScale == 0）は弾幕更新を完全停止
     }
 
-    int activeCount = static_cast<int>(activeVirtualIds_.size());
-    if (activeCount == 0) {
+    if (activeVirtualIds_.empty()) {
         return;
     }
 
@@ -73,44 +71,43 @@ void BossBulletManagerComponent::Update() {
     };
 
     // --- Phase 1: 弾の移動 & 寿命判定 & 弾幕クラスタAABBの算出 ---
-    survivedBulletVids_.clear();
-    survivedBulletVids_.reserve(activeCount);
-
     Irufemi::Vector3 clusterMin = {(std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(),
                                    (std::numeric_limits<float>::max)()};
     Irufemi::Vector3 clusterMax = {-(std::numeric_limits<float>::max)(), -(std::numeric_limits<float>::max)(),
                                    -(std::numeric_limits<float>::max)()};
 
-    for (int i = 0; i < activeCount; ++i) {
-        int vid = activeVirtualIds_.front();
-        activeVirtualIds_.pop();
-
+    for (size_t i = 0; i < activeVirtualIds_.size();) {
+        int vid = activeVirtualIds_[i];
         auto& data = bulletDataList_[vid];
         data.lifeTimer -= dt;
 
         auto* vi = virtualManager_->GetInstance(vid);
-        if (vi) {
-            if (data.lifeTimer <= 0.0f) {
+        if (!vi || data.lifeTimer <= 0.0f) {
+            if (vi) {
                 playExplosion(vi->position);
-                ReleaseBullet(vid);
-                continue;
             }
-
-            vi->position += data.velocity * dt;
-            survivedBulletVids_.push_back(vid);
-
-            // クラスタAABBの拡張（hitRadius_分も含める）
-            clusterMin.x = (std::min)(clusterMin.x, vi->position.x - hitRadius_);
-            clusterMin.y = (std::min)(clusterMin.y, vi->position.y - hitRadius_);
-            clusterMin.z = (std::min)(clusterMin.z, vi->position.z - hitRadius_);
-
-            clusterMax.x = (std::max)(clusterMax.x, vi->position.x + hitRadius_);
-            clusterMax.y = (std::max)(clusterMax.y, vi->position.y + hitRadius_);
-            clusterMax.z = (std::max)(clusterMax.z, vi->position.z + hitRadius_);
+            ReleaseBullet(vid);
+            // Swap-and-Pop による O(1) 削除
+            activeVirtualIds_[i] = activeVirtualIds_.back();
+            activeVirtualIds_.pop_back();
+            continue;
         }
+
+        vi->position += data.velocity * dt;
+
+        // クラスタAABBの拡張（hitRadius_分も含める）
+        clusterMin.x = (std::min)(clusterMin.x, vi->position.x - hitRadius_);
+        clusterMin.y = (std::min)(clusterMin.y, vi->position.y - hitRadius_);
+        clusterMin.z = (std::min)(clusterMin.z, vi->position.z - hitRadius_);
+
+        clusterMax.x = (std::max)(clusterMax.x, vi->position.x + hitRadius_);
+        clusterMax.y = (std::max)(clusterMax.y, vi->position.y + hitRadius_);
+        clusterMax.z = (std::max)(clusterMax.z, vi->position.z + hitRadius_);
+
+        ++i;
     }
 
-    if (survivedBulletVids_.empty()) {
+    if (activeVirtualIds_.empty()) {
         return;
     }
 
@@ -180,9 +177,13 @@ void BossBulletManagerComponent::Update() {
     }
 
     // --- Phase 3: 弾 vs 事前フェッチされた被弾候補のバッチ判定 ---
-    for (int vid : survivedBulletVids_) {
+    for (size_t i = 0; i < activeVirtualIds_.size();) {
+        int vid = activeVirtualIds_[i];
         auto* vi = virtualManager_->GetInstance(vid);
         if (!vi) {
+            ReleaseBullet(vid);
+            activeVirtualIds_[i] = activeVirtualIds_.back();
+            activeVirtualIds_.pop_back();
             continue;
         }
         const auto& p = vi->position;
@@ -243,8 +244,10 @@ void BossBulletManagerComponent::Update() {
         if (isHit) {
             playExplosion(vi->position);
             ReleaseBullet(vid);
+            activeVirtualIds_[i] = activeVirtualIds_.back();
+            activeVirtualIds_.pop_back();
         } else {
-            activeVirtualIds_.push(vid); // 生存弾をキューに維持
+            ++i;
         }
     }
 }
@@ -277,7 +280,7 @@ void BossBulletManagerComponent::SpawnBullet(const Irufemi::Vector3& position, c
         data.velocity = velocity;
         data.lifeTimer = defaultLifeTime_;
         bulletDataList_[vid] = data;
-        activeVirtualIds_.push(vid);
+        activeVirtualIds_.push_back(vid);
     }
 }
 

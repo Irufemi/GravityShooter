@@ -5,7 +5,6 @@
 #include "Core/Math/Geometry/AABB.h"
 #include <memory>
 #include <vector>
-#include <queue>
 
 class GameObject;
 class VirtualEntityManagerComponent;
@@ -64,7 +63,7 @@ private:
 
     VirtualEntityManagerComponent* virtualManager_ = nullptr;
     std::vector<BossBulletData> bulletDataList_;
-    std::queue<int> activeVirtualIds_;
+    std::vector<int> activeVirtualIds_;
     std::vector<ColliderComponent*> prefetchedColliders_;
     class EffectManagerComponent* effectManager_ = nullptr;
 
@@ -80,6 +79,5 @@ private:
         Irufemi::AABB broadAABB{};
     };
 
-    std::vector<int> survivedBulletVids_;
     std::vector<CachedTargetProxy> targetProxies_;
 };

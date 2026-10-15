@@ -165,25 +165,32 @@ void BossComponent::OnRegisterProperties() {
 }
 
 std::shared_ptr<GameObject> BossComponent::ExtractDebris() {
-    if (shields_.empty()) {
-        return nullptr;
-    }
+    while (!shields_.empty()) {
+        auto debrisWeak = shields_.back();
+        shields_.pop_back();
 
-    auto debris = shields_.back();
-    shields_.pop_back();
-
-    if (debris) {
-        auto debrisComp = debris->GetComponent<DebrisComponent>();
-        if (debrisComp) {
-            debrisComp->SetState(DebrisState::Idle);
-            debrisComp->SetTarget(std::weak_ptr<GameObject>());
+        if (auto debris = debrisWeak.lock()) {
+            auto debrisComp = debris->GetComponent<DebrisComponent>();
+            if (debrisComp) {
+                debrisComp->SetState(DebrisState::Idle);
+                debrisComp->SetTarget(std::weak_ptr<GameObject>());
+            }
+            return debris;
         }
     }
-    return debris;
+    return nullptr;
 }
 
 void BossComponent::RemoveShield(std::shared_ptr<GameObject> shield) {
-    Irufemi::Container::EraseSwap(shields_, shield);
+    if (!shield) {
+        return;
+    }
+    auto it = std::remove_if(shields_.begin(), shields_.end(),
+                             [&shield](const std::weak_ptr<GameObject>& w) {
+                                 auto s = w.lock();
+                                 return !s || s == shield;
+                             });
+    shields_.erase(it, shields_.end());
 }
 
 void BossComponent::TakeDamage(float damage) {

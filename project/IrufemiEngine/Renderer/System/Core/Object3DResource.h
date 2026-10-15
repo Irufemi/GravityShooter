@@ -1,6 +1,7 @@
 #pragma once
 #include "Renderer/System/Core/BaseResource.h"
 #include <vector>
+#include <atomic>
 #include "RHI/DirectX12/DirectXCommon.h"
 #include <wrl.h>
 #include <d3d12.h>
@@ -41,7 +42,7 @@ public:
      */
     void SetCustomPSO(ID3D12PipelineState* pso) {
         customPSOName_.clear();
-        customPSO_ = pso;
+        customPSO_.store(pso, std::memory_order_release);
     }
     /**
      * @brief CustomPSO を設定する（名前指定・推奨）。
@@ -59,28 +60,31 @@ public:
         customCull_ = cull;
 
         // 設定時に即座に解決してキャッシュ
-        customPSO_ = nullptr;
+        ID3D12PipelineState* resolved = nullptr;
         if (!customPSOName_.empty()) {
             if (auto* dxCommon = GetDxCommon()) {
                 if (auto* pm = dxCommon->GetPSOManager()) {
-                    customPSO_ = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    resolved = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
                 }
             }
         }
+        customPSO_.store(resolved, std::memory_order_release);
     }
     /**
      * @brief CustomPSO を取得する（事前解決済みキャッシュを O(1) で返却）。
      * @return 取得された CustomPSO
      */
     ID3D12PipelineState* GetCustomPSO() const {
-        if (!customPSO_ && !customPSOName_.empty()) {
+        ID3D12PipelineState* pso = customPSO_.load(std::memory_order_acquire);
+        if (!pso && !customPSOName_.empty()) {
             if (auto* dxCommon = GetDxCommon()) {
                 if (auto* pm = dxCommon->GetPSOManager()) {
-                    customPSO_ = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    pso = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    customPSO_.store(pso, std::memory_order_release);
                 }
             }
         }
-        return customPSO_;
+        return pso;
     }
 
     /**
@@ -273,7 +277,7 @@ protected:
     class TextureManager* textureManager_ = nullptr;
 
     // --- カスタム描画設定 ---
-    mutable ID3D12PipelineState* customPSO_ = nullptr;
+    mutable std::atomic<ID3D12PipelineState*> customPSO_{nullptr};
     std::string customPSOName_ = "";
     Irufemi::BlendMode customBlend_ = Irufemi::BlendMode::kBlendModeNormal;
     PSOManager::DepthWrite customDepth_ = PSOManager::DepthWrite::Enable;

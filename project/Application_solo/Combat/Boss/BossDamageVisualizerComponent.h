@@ -54,16 +54,29 @@ public:
     }
 
     /**
-     * @brief 被弾シェイクのフレーム数を取得する
+     * @brief 被弾シェイクの持続時間（秒）を取得する
      */
-    int GetDamageShakeFrames() const {
-        return damageShakeFrames_;
+    float GetDamageShakeDuration() const {
+        return damageShakeDuration_;
     }
     /**
-     * @brief 被弾シェイクのフレーム数を設定する
+     * @brief 被弾シェイクの持続時間（秒）を設定する
+     */
+    void SetDamageShakeDuration(float val) {
+        damageShakeDuration_ = val;
+    }
+
+    /**
+     * @brief 被弾シェイクのフレーム数を取得する（互換用）
+     */
+    int GetDamageShakeFrames() const {
+        return static_cast<int>(damageShakeDuration_ * 60.0f);
+    }
+    /**
+     * @brief 被弾シェイクのフレーム数を設定する（互換用）
      */
     void SetDamageShakeFrames(int val) {
-        damageShakeFrames_ = val;
+        damageShakeDuration_ = static_cast<float>(val) / 60.0f;
     }
 
     /**
@@ -93,16 +106,29 @@ public:
     }
 
     /**
-     * @brief 撃破シェイクのフレーム数を取得する
+     * @brief 撃破シェイクの持続時間（秒）を取得する
      */
-    int GetDeathShakeFrames() const {
-        return deathShakeFrames_;
+    float GetDeathShakeDuration() const {
+        return deathShakeDuration_;
     }
     /**
-     * @brief 撃破シェイクのフレーム数を設定する
+     * @brief 撃破シェイクの持続時間（秒）を設定する
+     */
+    void SetDeathShakeDuration(float val) {
+        deathShakeDuration_ = val;
+    }
+
+    /**
+     * @brief 撃破シェイクのフレーム数を取得する（互換用）
+     */
+    int GetDeathShakeFrames() const {
+        return static_cast<int>(deathShakeDuration_ * 60.0f);
+    }
+    /**
+     * @brief 撃破シェイクのフレーム数を設定する（互換用）
      */
     void SetDeathShakeFrames(int val) {
-        deathShakeFrames_ = val;
+        deathShakeDuration_ = static_cast<float>(val) / 60.0f;
     }
 
     /**
@@ -132,15 +158,14 @@ private:
 private:
     BossComponent* bossComp_ = nullptr;
     mutable std::weak_ptr<GameObject> mainCameraObj_;
-    mutable CameraShakeComponent* cachedCameraShakeComp_ = nullptr;
 
     // 被弾シェイク
     float damageShakeIntensity_ = 0.4f;
-    int damageShakeFrames_ = 10;
+    float damageShakeDuration_ = 0.16f;
     float damageShakeFrequency_ = 15.0f;
 
     // 撃破シェイク
     float deathShakeIntensity_ = 2.0f;
-    int deathShakeFrames_ = 60;
+    float deathShakeDuration_ = 1.0f;
     float deathShakeFrequency_ = 10.0f;
 };

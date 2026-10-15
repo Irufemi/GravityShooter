@@ -8,16 +8,15 @@
 void BossDamageVisualizerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     RegisterProperty("Damage Shake Intensity", &damageShakeIntensity_);
-    RegisterProperty("Damage Shake Frames", &damageShakeFrames_);
+    RegisterProperty("Damage Shake Duration", &damageShakeDuration_);
     RegisterProperty("Damage Shake Frequency", &damageShakeFrequency_);
     RegisterProperty("Death Shake Intensity", &deathShakeIntensity_);
-    RegisterProperty("Death Shake Frames", &deathShakeFrames_);
+    RegisterProperty("Death Shake Duration", &deathShakeDuration_);
     RegisterProperty("Death Shake Frequency", &deathShakeFrequency_);
 }
 
 void BossDamageVisualizerComponent::Initialize() {
     mainCameraObj_.reset();
-    cachedCameraShakeComp_ = nullptr;
 }
 
 void BossDamageVisualizerComponent::Start() {
@@ -65,16 +64,8 @@ std::shared_ptr<GameObject> BossDamageVisualizerComponent::GetMainCamera() const
 }
 
 CameraShakeComponent* BossDamageVisualizerComponent::GetCameraShake() const {
-    if (cachedCameraShakeComp_) {
-        if (auto cam = mainCameraObj_.lock()) {
-            return cachedCameraShakeComp_;
-        }
-        cachedCameraShakeComp_ = nullptr;
-    }
-
     if (auto cam = GetMainCamera()) {
-        cachedCameraShakeComp_ = cam->GetComponent<CameraShakeComponent>();
-        return cachedCameraShakeComp_;
+        return cam->GetComponent<CameraShakeComponent>();
     }
     return nullptr;
 }
@@ -84,16 +75,16 @@ void BossDamageVisualizerComponent::TriggerDamageShake(float damage) {
         // 基準ダメージ(50.0f)に対するスケーリング係数 (0.5倍 〜 2.0倍の範囲でクランプ)
         float factor = std::clamp(damage / 50.0f, 0.5f, 2.0f);
         float intensity = damageShakeIntensity_ * factor;
-        int frames = static_cast<int>(damageShakeFrames_ * factor);
+        float duration = damageShakeDuration_ * factor;
         float frequency = damageShakeFrequency_ * factor;
 
-        shake->PlayShake(intensity, frames, frequency);
+        shake->PlayShakeSeconds(intensity, duration, frequency);
     }
 }
 
 void BossDamageVisualizerComponent::TriggerDeathShake() {
     if (auto shake = GetCameraShake()) {
-        shake->PlayShake(deathShakeIntensity_, deathShakeFrames_, deathShakeFrequency_);
+        shake->PlayShakeSeconds(deathShakeIntensity_, deathShakeDuration_, deathShakeFrequency_);
     }
 }
 

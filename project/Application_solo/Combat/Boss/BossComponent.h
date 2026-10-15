@@ -147,10 +147,18 @@ public:
 
     /**
      * @brief シールドがすべて破壊された状態かどうか
-     * @return シールドがゼロかつ初期化完了していれば true
+     * @return 有効なシールドがゼロかつ初期化完了していれば true
      */
     bool IsShieldDepleted() const {
-        return isShieldsInitialized_ && initialShieldsSpawned_ > 0 && shields_.empty();
+        if (!isShieldsInitialized_ || initialShieldsSpawned_ <= 0) {
+            return false;
+        }
+        for (const auto& w : shields_) {
+            if (!w.expired()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -177,7 +185,7 @@ private:
     std::unique_ptr<IBossState> currentState_;
 
     std::weak_ptr<GameObject> bossContainer_;
-    std::vector<std::shared_ptr<GameObject>> shields_;
+    std::vector<std::weak_ptr<GameObject>> shields_;
     struct BossDiedListenerEntry {
         ListenerId id;
         std::function<void()> callback;
