@@ -5,7 +5,6 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Core/Utility/ErrorUtility.h"
 #include <algorithm>
-#include <cassert>
 #include <d3d12.h>
 #include <dxcapi.h>
 #include <iostream>
@@ -57,56 +56,63 @@ void PostProcessManager::ResetAllParams(bool clearPostUI) {
 void PostProcessManager::Update(float totalTime) {
     CommitPendingModes();
 
-    noiseParams_.time = totalTime;
-    nightVisionParams_.time = totalTime;
-    if (mappedNoise_) {
-        *mappedNoise_ = noiseParams_;
+    // アクティブなエフェクトのみ時間更新および定数バッファ同期を実施（GPU転送帯域の最適化）
+    if (HasActiveMode(Mode::Noise)) {
+        noiseParams_.time = totalTime;
+        if (mappedNoise_) {
+            *mappedNoise_ = noiseParams_;
+        }
+    }
+    if (HasActiveMode(Mode::NightVision)) {
+        nightVisionParams_.time = totalTime;
+    }
+    if (HasActiveMode(Mode::Glitch)) {
+        glitchParams_.time = totalTime;
+        if (mappedGlitch_) {
+            *mappedGlitch_ = glitchParams_;
+        }
+    }
+    if (HasActiveMode(Mode::DisplacementMap)) {
+        displacementMapParams_.time = totalTime * displacementMapParams_.timeScale;
     }
 
-    // 他のパラメータも同期
-    if (mappedVignette_) {
+    if (mappedVignette_ && HasActiveMode(Mode::Vignette)) {
         *mappedVignette_ = vignetteParams_;
     }
-    if (mappedSmoothing_) {
+    if (mappedSmoothing_ && HasActiveMode(Mode::Smoothing)) {
         *mappedSmoothing_ = smoothingParams_;
     }
-    if (mappedGaussian_) {
+    if (mappedGaussian_ && HasActiveMode(Mode::GaussianFilter)) {
         *mappedGaussian_ = gaussianParams_;
     }
-    if (mappedRadialBlur_) {
+    if (mappedRadialBlur_ && HasActiveMode(Mode::RadialBlur)) {
         *mappedRadialBlur_ = radialBlurParams_;
     }
-    if (mappedOutline_) {
+    if (mappedOutline_ && HasActiveMode(Mode::DepthBasedOutline)) {
         *mappedOutline_ = outlineParams_;
     }
-    if (mappedDissolve_) {
+    if (mappedDissolve_ && HasActiveMode(Mode::Dissolve)) {
         *mappedDissolve_ = dissolveParams_;
     }
-    if (mappedHsv_) {
+    if (mappedHsv_ && HasActiveMode(Mode::HSV)) {
         *mappedHsv_ = hsvParams_;
     }
-    if (mappedToneMapping_) {
+    if (mappedToneMapping_ && HasActiveMode(Mode::ToneMapping)) {
         *mappedToneMapping_ = toneMappingParams_;
     }
-    if (mappedFade_) {
+    if (mappedFade_ && HasActiveMode(Mode::Fade)) {
         *mappedFade_ = fadeParams_;
     }
-    if (mappedSlide_) {
+    if (mappedSlide_ && HasActiveMode(Mode::Slide)) {
         *mappedSlide_ = slideParams_;
     }
-    if (mappedBloom_) {
+    if (mappedBloom_ && HasActiveMode(Mode::Bloom)) {
         *mappedBloom_ = bloomParams_;
     }
-    if (mappedLightShafts_) {
+    if (mappedLightShafts_ && HasActiveMode(Mode::LightShafts)) {
         *mappedLightShafts_ = lightShaftsParams_;
     }
-
-    glitchParams_.time = totalTime;
-    if (mappedGlitch_) {
-        *mappedGlitch_ = glitchParams_;
-    }
-
-    if (mappedDualKawase_) {
+    if (mappedDualKawase_ && HasActiveMode(Mode::DualKawaseBlur)) {
         *mappedDualKawase_ = dualKawaseParams_;
     }
 

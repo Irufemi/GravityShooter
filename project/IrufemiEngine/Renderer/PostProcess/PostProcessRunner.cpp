@@ -4,7 +4,6 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Core/Math/MathFunction.h"
 #include <algorithm>
-#include <cassert>
 
 using Mode = PostProcessManager::Mode;
 
