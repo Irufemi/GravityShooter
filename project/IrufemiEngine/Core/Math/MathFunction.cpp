@@ -580,10 +580,11 @@ Quaternion MakeRotateAxisAngleQuaternion(Vector3 axis, float angle) {
     return {n.x * s, n.y * s, n.z * s, std::cos(half)};
 }
 
-Vector3 RotateVector(Vector3 vector, const Quaternion& quaternion) {
-    Quaternion p = {vector.x, vector.y, vector.z, 0.0f};
-    Quaternion res = quaternion * p * Conjugate(quaternion);
-    return {res.x, res.y, res.z};
+Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion) {
+    Vector3 qv{quaternion.x, quaternion.y, quaternion.z};
+    Vector3 uv = Cross(qv, vector);
+    Vector3 uuv = Cross(qv, uv);
+    return vector + ((uv * quaternion.w) + uuv) * 2.0f;
 }
 
 Matrix4x4 MakeRotateMatrix(const Quaternion& q) {
@@ -638,7 +639,31 @@ Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t) {
 }
 
 Vector3 ToEuler(const Quaternion& q) {
-    return ExtractEulerFromMatrix(MakeRotateMatrix(q));
+    // MakeRotateMatrix(q) の要素と MakeRotateXYZMatrix の関係から直接導出
+    // 行列アロケーションおよび 3 回のベクトル正規化（std::sqrt）を撤廃
+    float m00 = q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z;
+    float m01 = 2.0f * (q.x * q.y + q.w * q.z);
+    float m02 = 2.0f * (q.x * q.z - q.w * q.y);
+    float m12 = 2.0f * (q.y * q.z + q.w * q.x);
+    float m22 = q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z;
+    float m21 = 2.0f * (q.y * q.z - q.w * q.x);
+    float m11 = q.w * q.w - q.x * q.x + q.y * q.y - q.z * q.z;
+
+    float cy = std::sqrt(m00 * m00 + m01 * m01);
+    constexpr float kEpsilon = 1e-6f;
+    Vector3 euler{};
+
+    if (cy > kEpsilon) {
+        euler.x = std::atan2(m12, m22);
+        euler.y = std::atan2(-m02, cy);
+        euler.z = std::atan2(m01, m00);
+    } else {
+        // ジンバルロック時のフォールバック (pitch = ±90 deg)
+        euler.x = std::atan2(-m21, m11);
+        euler.y = std::atan2(-m02, cy);
+        euler.z = 0.0f;
+    }
+    return euler;
 }
 
 Quaternion ToQuaternionFromEuler(Vector3 euler) {

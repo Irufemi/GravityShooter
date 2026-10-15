@@ -396,7 +396,7 @@ Quaternion MakeRotateAxisAngleQuaternion(Vector3 axis, float angle);
 /**
  * @brief クォータニオンによるベクトル回転
  */
-Vector3 RotateVector(Vector3 vector, const Quaternion& quaternion);
+Vector3 RotateVector(const Vector3& vector, const Quaternion& quaternion);
 
 /**
  * @brief クォータニオンから回転行列を作成
