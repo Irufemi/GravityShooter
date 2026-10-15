@@ -24,13 +24,7 @@ public:
     void Start() override;
     void Update() override;
 
-    /**
-     * @brief ボス死亡時のコールバックを設定する
-     * @param[in] callback 呼び出される関数オブジェクト
-     */
-    void SetOnBossDied(std::function<void()> callback) {
-        onBossDied_ = std::move(callback);
-    }
+    using ListenerId = uint32_t;
 
     /**
      * @brief 撃破演出シーケンス完了時のコールバックを設定する
@@ -48,10 +42,28 @@ public:
     }
 
     /**
-     * @brief 撃破時のイベントリスナーを追加する
+     * @brief 撃破時のイベントリスナーを追加する（マルチキャスト）
+     * @param[in] callback 呼び出される関数オブジェクト
+     * @return 登録解除用のリスナーID (ListenerId)
      */
-    void AddOnBossDiedListener(std::function<void()> callback) {
-        onBossDiedListeners_.push_back(std::move(callback));
+    ListenerId AddOnBossDiedListener(std::function<void()> callback) {
+        ListenerId id = ++nextBossDiedListenerId_;
+        onBossDiedListeners_.push_back({id, std::move(callback)});
+        return id;
+    }
+
+    /**
+     * @brief 登録済みの撃破リスナーをIDで解除する
+     * @param[in] id AddOnBossDiedListener が返却したListenerId
+     * @return 正常に解除できた場合 true
+     */
+    bool RemoveOnBossDiedListener(ListenerId id);
+
+    /**
+     * @brief すべての撃破リスナーを一括解除する
+     */
+    void ClearOnBossDiedListeners() {
+        onBossDiedListeners_.clear();
     }
 
     /**
@@ -166,9 +178,14 @@ private:
 
     std::weak_ptr<GameObject> bossContainer_;
     std::vector<std::shared_ptr<GameObject>> shields_;
+    struct BossDiedListenerEntry {
+        ListenerId id;
+        std::function<void()> callback;
+    };
+
     std::vector<std::function<void(float damage)>> onDamageTakenListeners_;
-    std::vector<std::function<void()>> onBossDiedListeners_;
-    std::function<void()> onBossDied_;
+    std::vector<BossDiedListenerEntry> onBossDiedListeners_;
+    ListenerId nextBossDiedListenerId_ = 0;
     std::function<void()> onDeathSequenceFinished_;
 
     DebrisManagerComponent* debrisManager_ = nullptr;

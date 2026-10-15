@@ -22,14 +22,7 @@ public:
         return "PlayerHealthComponent";
     }
 
-    /**
-     * @brief プレイヤー死亡時のプライマリコールバック（ゲーム進行制御用）を設定する
-     * @details GameLoopManagerなどの単一オーナーがシーン遷移やリスタート制御を行うために使用します。
-     * @param[in] callback 呼び出される関数オブジェクト
-     */
-    void SetOnPlayerDied(std::function<void()> callback) {
-        onPlayerDied_ = std::move(callback);
-    }
+    using ListenerId = uint32_t;
 
     /**
      * @brief 死亡演出シーケンス完了時のコールバックを設定する
@@ -40,7 +33,7 @@ public:
     }
 
     /**
-     * @brief プレイヤー死亡を通知する（プライマリハンドラおよび全登録リスナーを実行）
+     * @brief プレイヤー死亡を通知する（登録されたすべてのリスナーを実行）
      */
     void NotifyPlayerDied();
 
@@ -57,12 +50,28 @@ public:
     }
 
     /**
-     * @brief 死亡時のオブザーバーリスナー（演出・UI・サウンド等）を追加する
-     * @details 演出コンポーネント（PlayerDamageVisualizer等）が死亡時のエフェクトトリガーを購読するために使用します。
+     * @brief プレイヤー死亡時のイベントリスナーを追加する（マルチキャスト）
      * @param[in] callback 呼び出される関数オブジェクト
+     * @return 登録解除用のリスナーID (ListenerId)
      */
-    void AddOnPlayerDiedListener(std::function<void()> callback) {
-        onPlayerDiedListeners_.push_back(std::move(callback));
+    ListenerId AddOnPlayerDiedListener(std::function<void()> callback) {
+        ListenerId id = ++nextPlayerDiedListenerId_;
+        onPlayerDiedListeners_.push_back({id, std::move(callback)});
+        return id;
+    }
+
+    /**
+     * @brief 登録済みの死亡リスナーをIDで解除する
+     * @param[in] id AddOnPlayerDiedListener が返却したListenerId
+     * @return 正常に解除できた場合 true
+     */
+    bool RemoveOnPlayerDiedListener(ListenerId id);
+
+    /**
+     * @brief すべての死亡リスナーを一括解除する
+     */
+    void ClearOnPlayerDiedListeners() {
+        onPlayerDiedListeners_.clear();
     }
 
     void LoadStatusFromJson();
@@ -123,9 +132,14 @@ private:
     float invincibilityTimer_ = 0.0f;
     float maxInvincibilityTime_ = 1.0f;
 
+    struct PlayerDiedListenerEntry {
+        ListenerId id;
+        std::function<void()> callback;
+    };
+
     std::vector<std::function<void(int damage)>> onDamageTakenListeners_;
-    std::vector<std::function<void()>> onPlayerDiedListeners_;
-    std::function<void()> onPlayerDied_;
+    std::vector<PlayerDiedListenerEntry> onPlayerDiedListeners_;
+    ListenerId nextPlayerDiedListenerId_ = 0;
     std::function<void()> onDeathSequenceFinished_;
 
     class ColliderComponent* collider_ = nullptr;

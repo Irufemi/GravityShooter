@@ -73,8 +73,8 @@ void BossBulletManagerComponent::Update() {
     };
 
     // --- Phase 1: 弾の移動 & 寿命判定 & 弾幕クラスタAABBの算出 ---
-    std::vector<int> survivedBulletVids;
-    survivedBulletVids.reserve(activeCount);
+    survivedBulletVids_.clear();
+    survivedBulletVids_.reserve(activeCount);
 
     Irufemi::Vector3 clusterMin = {(std::numeric_limits<float>::max)(), (std::numeric_limits<float>::max)(),
                                    (std::numeric_limits<float>::max)()};
@@ -97,7 +97,7 @@ void BossBulletManagerComponent::Update() {
             }
 
             vi->position += data.velocity * dt;
-            survivedBulletVids.push_back(vid);
+            survivedBulletVids_.push_back(vid);
 
             // クラスタAABBの拡張（hitRadius_分も含める）
             clusterMin.x = (std::min)(clusterMin.x, vi->position.x - hitRadius_);
@@ -110,7 +110,7 @@ void BossBulletManagerComponent::Update() {
         }
     }
 
-    if (survivedBulletVids.empty()) {
+    if (survivedBulletVids_.empty()) {
         return;
     }
 
@@ -118,26 +118,14 @@ void BossBulletManagerComponent::Update() {
     auto engine = GetEngine();
     auto cm = engine ? engine->GetCollisionManager() : nullptr;
 
-    struct CachedTargetProxy {
-        ColliderComponent* collider = nullptr;
-        GameObject* gameObject = nullptr;
-        PlayerHealthComponent* playerHealth = nullptr;
-        DestructibleEnvironmentComponent* destructible = nullptr;
-        DebrisComponent* debris = nullptr;
-        bool isEnvironment = false;
-        bool isSphere = false;
-        Irufemi::Sphere sphere{};
-        Irufemi::AABB broadAABB{};
-    };
-
-    std::vector<CachedTargetProxy> targetProxies;
+    targetProxies_.clear();
 
     if (cm) {
         Irufemi::AABB clusterAABB{clusterMin, clusterMax};
         prefetchedColliders_.clear();
         cm->QueryAABB(clusterAABB, prefetchedColliders_);
 
-        targetProxies.reserve(prefetchedColliders_.size());
+        targetProxies_.reserve(prefetchedColliders_.size());
         for (auto col : prefetchedColliders_) {
             if (!col) {
                 continue;
@@ -171,7 +159,8 @@ void BossBulletManagerComponent::Update() {
             proxy.debris = debrisComp;
             proxy.isEnvironment = isEnv;
 
-            if (auto sphereCol = dynamic_cast<SphereColliderComponent*>(col)) {
+            if (col->GetColliderType() == ColliderComponent::ColliderType::Sphere) {
+                auto sphereCol = static_cast<SphereColliderComponent*>(col);
                 proxy.isSphere = true;
                 proxy.sphere = sphereCol->GetWorldSphere();
                 float totalR = proxy.sphere.radius + hitRadius_;
@@ -186,12 +175,12 @@ void BossBulletManagerComponent::Update() {
                 proxy.broadAABB.max = {bbox.max.x + hitRadius_, bbox.max.y + hitRadius_, bbox.max.z + hitRadius_};
             }
 
-            targetProxies.push_back(proxy);
+            targetProxies_.push_back(proxy);
         }
     }
 
     // --- Phase 3: 弾 vs 事前フェッチされた被弾候補のバッチ判定 ---
-    for (int vid : survivedBulletVids) {
+    for (int vid : survivedBulletVids_) {
         auto* vi = virtualManager_->GetInstance(vid);
         if (!vi) {
             continue;
@@ -207,8 +196,8 @@ void BossBulletManagerComponent::Update() {
 #endif
 
         bool isHit = false;
-        if (!targetProxies.empty()) {
-            for (const auto& proxy : targetProxies) {
+        if (!targetProxies_.empty()) {
+            for (const auto& proxy : targetProxies_) {
                 // 1. Broadphase: ターゲットの拡張AABB内かチェック
                 if (p.x < proxy.broadAABB.min.x || p.x > proxy.broadAABB.max.x || p.y < proxy.broadAABB.min.y ||
                     p.y > proxy.broadAABB.max.y || p.z < proxy.broadAABB.min.z || p.z > proxy.broadAABB.max.z) {

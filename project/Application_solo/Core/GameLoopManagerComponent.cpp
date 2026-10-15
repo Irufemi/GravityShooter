@@ -20,13 +20,19 @@
 GameLoopManagerComponent::~GameLoopManagerComponent() {
     if (auto player = playerObj_.lock()) {
         if (auto health = player->GetComponent<PlayerHealthComponent>()) {
-            health->SetOnPlayerDied(nullptr);
+            if (playerDiedListenerId_ != 0) {
+                health->RemoveOnPlayerDiedListener(playerDiedListenerId_);
+                playerDiedListenerId_ = 0;
+            }
             health->SetOnDeathSequenceFinished(nullptr);
         }
     }
     if (auto boss = bossObj_.lock()) {
         if (auto b = boss->GetComponent<BossComponent>()) {
-            b->SetOnBossDied(nullptr);
+            if (bossDiedListenerId_ != 0) {
+                b->RemoveOnBossDiedListener(bossDiedListenerId_);
+                bossDiedListenerId_ = 0;
+            }
             b->SetOnDeathSequenceFinished(nullptr);
         }
     }
@@ -36,6 +42,8 @@ void GameLoopManagerComponent::Initialize() {
     state_ = State::Playing;
     playerObj_.reset();
     bossObj_.reset();
+    playerDiedListenerId_ = 0;
+    bossDiedListenerId_ = 0;
 
     // 事前キャッシュ: ResultScene で使用するテキストのSDF生成をバックグラウンドで事前に行う
     if (auto engine = GetEngine()) {
@@ -62,7 +70,7 @@ bool GameLoopManagerComponent::BindTargets() {
         if (auto playerObj = scene->FindGameObject(targetPlayerName_)) {
             if (auto playerHealth = playerObj->GetComponent<PlayerHealthComponent>()) {
                 playerObj_ = playerObj;
-                playerHealth->SetOnPlayerDied([this]() { OnPlayerDied(); });
+                playerDiedListenerId_ = playerHealth->AddOnPlayerDiedListener([this]() { OnPlayerDied(); });
                 playerHealth->SetOnDeathSequenceFinished([this]() { OnDeathSequenceFinished(); });
             }
         }
@@ -72,7 +80,7 @@ bool GameLoopManagerComponent::BindTargets() {
         if (auto bossObj = scene->FindGameObject(targetBossName_)) {
             if (auto boss = bossObj->GetComponent<BossComponent>()) {
                 bossObj_ = bossObj;
-                boss->SetOnBossDied([this]() { OnBossDied(); });
+                bossDiedListenerId_ = boss->AddOnBossDiedListener([this]() { OnBossDied(); });
                 boss->SetOnDeathSequenceFinished([this]() { OnDeathSequenceFinished(); });
             }
         }

@@ -8,6 +8,7 @@
 #include "Core/Utility/JsonUtility.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include <algorithm>
 
 void PlayerHealthComponent::LoadStatusFromJson() {
     if (statusDataPath_.empty()) {
@@ -158,14 +159,22 @@ void PlayerHealthComponent::TakeDamage(int damage) {
 }
 
 void PlayerHealthComponent::NotifyPlayerDied() {
-    if (onPlayerDied_) {
-        onPlayerDied_();
-    }
-    for (const auto& listener : onPlayerDiedListeners_) {
-        if (listener) {
-            listener();
+    auto listenersCopy = onPlayerDiedListeners_;
+    for (const auto& entry : listenersCopy) {
+        if (entry.callback) {
+            entry.callback();
         }
     }
+}
+
+bool PlayerHealthComponent::RemoveOnPlayerDiedListener(ListenerId id) {
+    auto it = std::remove_if(onPlayerDiedListeners_.begin(), onPlayerDiedListeners_.end(),
+                             [id](const PlayerDiedListenerEntry& entry) { return entry.id == id; });
+    if (it != onPlayerDiedListeners_.end()) {
+        onPlayerDiedListeners_.erase(it, onPlayerDiedListeners_.end());
+        return true;
+    }
+    return false;
 }
 
 void PlayerHealthComponent::NotifyDeathSequenceFinished() {

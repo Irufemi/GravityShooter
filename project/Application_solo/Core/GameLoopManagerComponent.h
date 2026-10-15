@@ -83,4 +83,7 @@ private:
     // 生ポインタを排除し、安全な参照追跡のために weak_ptr で管理
     std::weak_ptr<GameObject> playerObj_;
     std::weak_ptr<GameObject> bossObj_;
+
+    uint32_t playerDiedListenerId_ = 0;
+    uint32_t bossDiedListenerId_ = 0;
 };

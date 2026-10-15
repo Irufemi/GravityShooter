@@ -1,6 +1,8 @@
 #pragma once
 #include "Framework/Component/Component.h"
 #include "Core/Math/Vector3.h"
+#include "Core/Shape/Sphere.h"
+#include "Core/Math/Geometry/AABB.h"
 #include <memory>
 #include <vector>
 #include <queue>
@@ -8,6 +10,9 @@
 class GameObject;
 class VirtualEntityManagerComponent;
 class ColliderComponent;
+class PlayerHealthComponent;
+class DestructibleEnvironmentComponent;
+class DebrisComponent;
 
 class BossBulletManagerComponent : public Component {
 public:
@@ -62,4 +67,19 @@ private:
     std::queue<int> activeVirtualIds_;
     std::vector<ColliderComponent*> prefetchedColliders_;
     class EffectManagerComponent* effectManager_ = nullptr;
+
+    struct CachedTargetProxy {
+        ColliderComponent* collider = nullptr;
+        GameObject* gameObject = nullptr;
+        PlayerHealthComponent* playerHealth = nullptr;
+        DestructibleEnvironmentComponent* destructible = nullptr;
+        DebrisComponent* debris = nullptr;
+        bool isEnvironment = false;
+        bool isSphere = false;
+        Irufemi::Sphere sphere{};
+        Irufemi::AABB broadAABB{};
+    };
+
+    std::vector<int> survivedBulletVids_;
+    std::vector<CachedTargetProxy> targetProxies_;
 };

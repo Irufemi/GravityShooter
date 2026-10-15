@@ -211,14 +211,22 @@ void BossComponent::NotifyDamageTaken(float damage) {
 }
 
 void BossComponent::NotifyBossDied() {
-    if (onBossDied_) {
-        onBossDied_();
-    }
-    for (auto& listener : onBossDiedListeners_) {
-        if (listener) {
-            listener();
+    auto listenersCopy = onBossDiedListeners_;
+    for (const auto& entry : listenersCopy) {
+        if (entry.callback) {
+            entry.callback();
         }
     }
+}
+
+bool BossComponent::RemoveOnBossDiedListener(ListenerId id) {
+    auto it = std::remove_if(onBossDiedListeners_.begin(), onBossDiedListeners_.end(),
+                             [id](const BossDiedListenerEntry& entry) { return entry.id == id; });
+    if (it != onBossDiedListeners_.end()) {
+        onBossDiedListeners_.erase(it, onBossDiedListeners_.end());
+        return true;
+    }
+    return false;
 }
 
 void BossComponent::NotifyDeathSequenceFinished() {
