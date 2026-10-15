@@ -92,6 +92,12 @@ void DebrisComponent::OnDisable() {
     }
 }
 
+void DebrisComponent::OnDestroy() {
+    if (manager_) {
+        manager_->UnregisterDebris(this, state_);
+    }
+}
+
 void DebrisComponent::DestroyAsShield() {
     if (state_ != DebrisState::BossOrbiting) {
         return;

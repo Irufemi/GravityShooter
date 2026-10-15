@@ -182,7 +182,7 @@ void ScreenCaptureManager::OnPreUIDraw(ID3D12GraphicsCommandList* commandList, R
         HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
                                                                      D3D12_RESOURCE_STATE_COMMON, nullptr,
                                                                      IID_PPV_ARGS(&colorCopyBuffer_));
-        IRUFEMI_ASSERT(SUCCEEDED(hr) && "Failed to create color copy buffer for screen capture!");
+        ASSERT_IF_FAILED_MSG(hr, "Failed to create color copy buffer for screen capture!");
         if (FAILED(hr)) {
             return;
         }
@@ -233,9 +233,13 @@ void ScreenCaptureManager::OnPostUIDraw(ID3D12GraphicsCommandList* commandList, 
         desc.Flags = D3D12_RESOURCE_FLAG_NONE;
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-        dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
+        HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
                                                         D3D12_RESOURCE_STATE_COMMON, nullptr,
                                                         IID_PPV_ARGS(&colorCopyBuffer_));
+        ASSERT_IF_FAILED_MSG(hr, "Failed to create color copy buffer for screen capture (WithUI)!");
+        if (FAILED(hr)) {
+            return;
+        }
     }
 
     DirectXUtils::TransitionBarrier(commandList, backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -284,9 +288,13 @@ void ScreenCaptureManager::OnPostDepthDraw(ID3D12GraphicsCommandList* commandLis
         desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
         D3D12_HEAP_PROPERTIES heapProps{};
         heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-        dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
+        HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
                                                         D3D12_RESOURCE_STATE_COMMON, nullptr,
                                                         IID_PPV_ARGS(&depthCopyBuffer_));
+        ASSERT_IF_FAILED_MSG(hr, "Failed to create depth copy buffer for screen capture!");
+        if (FAILED(hr)) {
+            return;
+        }
     }
 
     DirectXUtils::TransitionBarrier(commandList, depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE,

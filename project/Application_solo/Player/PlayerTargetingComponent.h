@@ -10,9 +10,10 @@
 #include <unordered_map>
 #include <cstdint>
 
+#include "Physics/CollisionManager.h"
+
 class GameObject;
 class LockonMarkerUIComponent;
-struct RaycastHit;
 
 /**
  * @class PlayerTargetingComponent
@@ -120,7 +121,7 @@ private:
         bool canSee = false;                    ///< 壁裏チェック完了前はfalse（透過防止）
         bool hasCheckedOnce = false;            ///< 初回判定が実行されたかどうか
         float lastCheckTime = -1.0f;
-        std::shared_ptr<std::future<std::pair<bool, RaycastHit>>> pendingTask;
+        std::unique_ptr<std::future<std::pair<bool, RaycastHit>>> pendingTask;
     };
     std::unordered_map<uint64_t, TargetVisibilityCache> visibilityCache_;
 

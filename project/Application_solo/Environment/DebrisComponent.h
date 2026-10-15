@@ -24,6 +24,7 @@ public:
     void Initialize() override;
     void OnEnable() override;
     void OnDisable() override;
+    void OnDestroy() override;
     void OnCollisionEnter(GameObject* hitObject) override;
 
     void OnRegisterProperties() override;

@@ -492,7 +492,10 @@ SkinCluster AnimationManager::CreateSkinCluster(const SkeletonData& skeleton, co
     skinCluster.inputVertexResource = dxCommon_->CreateBufferResource(sizeof(VertexData) * totalVertices);
     VertexData* mappedInputVertices = nullptr;
     HRESULT hrInput = skinCluster.inputVertexResource->Map(0, nullptr, reinterpret_cast<void**>(&mappedInputVertices));
-    IRUFEMI_ASSERT(SUCCEEDED(hrInput) && "Failed to map input vertex resource.");
+    ASSERT_IF_FAILED_MSG(hrInput, "Failed to map input vertex resource.");
+    if (FAILED(hrInput) || !mappedInputVertices) {
+        return skinCluster;
+    }
     size_t vertexOffset = 0;
     for (const auto& mesh : objModel.meshes) {
         if (!mesh.vertices.empty()) {
@@ -523,7 +526,10 @@ SkinCluster AnimationManager::CreateSkinCluster(const SkeletonData& skeleton, co
         skinCluster.paletteResource[i] = dxCommon_->CreateBufferResource(sizeof(WellForGPU) * skeleton.joints.size());
         WellForGPU* mappedPalette = nullptr;
         HRESULT hrPalette = skinCluster.paletteResource[i]->Map(0, nullptr, reinterpret_cast<void**>(&mappedPalette));
-        IRUFEMI_ASSERT(SUCCEEDED(hrPalette) && "Failed to map palette resource.");
+        ASSERT_IF_FAILED_MSG(hrPalette, "Failed to map palette resource.");
+        if (FAILED(hrPalette) || !mappedPalette) {
+            return skinCluster;
+        }
         skinCluster.mappedPalette[i] = {mappedPalette, skeleton.joints.size()};
 
         uint32_t paletteSrvIndex = dxCommon_->GetSrvPool()->Allocate();
@@ -547,7 +553,10 @@ SkinCluster AnimationManager::CreateSkinCluster(const SkeletonData& skeleton, co
     skinCluster.influenceResource = dxCommon_->CreateBufferResource(sizeof(VertexInfluence) * totalVertices);
     VertexInfluence* mappedInfluence = nullptr;
     HRESULT hrInfluence = skinCluster.influenceResource->Map(0, nullptr, reinterpret_cast<void**>(&mappedInfluence));
-    IRUFEMI_ASSERT(SUCCEEDED(hrInfluence) && "Failed to map influence resource.");
+    ASSERT_IF_FAILED_MSG(hrInfluence, "Failed to map influence resource.");
+    if (FAILED(hrInfluence) || !mappedInfluence) {
+        return skinCluster;
+    }
     std::memset(mappedInfluence, 0, sizeof(VertexInfluence) * totalVertices);
     skinCluster.mappedInfluence = {mappedInfluence, totalVertices};
 
