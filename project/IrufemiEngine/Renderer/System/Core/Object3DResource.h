@@ -57,16 +57,26 @@ public:
         customBlend_ = blend;
         customDepth_ = depth;
         customCull_ = cull;
-    }
-    /**
-     * @brief CustomPSO を取得する。名前指定がある場合は PSOManager から動的解決する。
-     * @return 取得された CustomPSO
-     */
-    ID3D12PipelineState* GetCustomPSO() const {
+
+        // 設定時に即座に解決してキャッシュ
+        customPSO_ = nullptr;
         if (!customPSOName_.empty()) {
             if (auto* dxCommon = GetDxCommon()) {
                 if (auto* pm = dxCommon->GetPSOManager()) {
-                    return pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    customPSO_ = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                }
+            }
+        }
+    }
+    /**
+     * @brief CustomPSO を取得する（事前解決済みキャッシュを O(1) で返却）。
+     * @return 取得された CustomPSO
+     */
+    ID3D12PipelineState* GetCustomPSO() const {
+        if (!customPSO_ && !customPSOName_.empty()) {
+            if (auto* dxCommon = GetDxCommon()) {
+                if (auto* pm = dxCommon->GetPSOManager()) {
+                    customPSO_ = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
                 }
             }
         }
@@ -263,7 +273,7 @@ protected:
     class TextureManager* textureManager_ = nullptr;
 
     // --- カスタム描画設定 ---
-    ID3D12PipelineState* customPSO_ = nullptr;
+    mutable ID3D12PipelineState* customPSO_ = nullptr;
     std::string customPSOName_ = "";
     Irufemi::BlendMode customBlend_ = Irufemi::BlendMode::kBlendModeNormal;
     PSOManager::DepthWrite customDepth_ = PSOManager::DepthWrite::Enable;

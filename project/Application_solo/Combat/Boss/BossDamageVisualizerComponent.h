@@ -132,6 +132,7 @@ private:
 private:
     BossComponent* bossComp_ = nullptr;
     mutable std::weak_ptr<GameObject> mainCameraObj_;
+    mutable CameraShakeComponent* cachedCameraShakeComp_ = nullptr;
 
     // 被弾シェイク
     float damageShakeIntensity_ = 0.4f;

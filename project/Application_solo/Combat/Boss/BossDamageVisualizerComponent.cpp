@@ -3,6 +3,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/Camera/CameraShakeComponent.h"
+#include <algorithm>
 
 void BossDamageVisualizerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
@@ -16,6 +17,7 @@ void BossDamageVisualizerComponent::OnRegisterProperties() {
 
 void BossDamageVisualizerComponent::Initialize() {
     mainCameraObj_.reset();
+    cachedCameraShakeComp_ = nullptr;
 }
 
 void BossDamageVisualizerComponent::Start() {
@@ -63,16 +65,29 @@ std::shared_ptr<GameObject> BossDamageVisualizerComponent::GetMainCamera() const
 }
 
 CameraShakeComponent* BossDamageVisualizerComponent::GetCameraShake() const {
+    if (cachedCameraShakeComp_) {
+        if (auto cam = mainCameraObj_.lock()) {
+            return cachedCameraShakeComp_;
+        }
+        cachedCameraShakeComp_ = nullptr;
+    }
+
     if (auto cam = GetMainCamera()) {
-        return cam->GetComponent<CameraShakeComponent>();
+        cachedCameraShakeComp_ = cam->GetComponent<CameraShakeComponent>();
+        return cachedCameraShakeComp_;
     }
     return nullptr;
 }
 
 void BossDamageVisualizerComponent::TriggerDamageShake(float damage) {
-    (void)damage;
     if (auto shake = GetCameraShake()) {
-        shake->PlayShake(damageShakeIntensity_, damageShakeFrames_, damageShakeFrequency_);
+        // 基準ダメージ(50.0f)に対するスケーリング係数 (0.5倍 〜 2.0倍の範囲でクランプ)
+        float factor = std::clamp(damage / 50.0f, 0.5f, 2.0f);
+        float intensity = damageShakeIntensity_ * factor;
+        int frames = static_cast<int>(damageShakeFrames_ * factor);
+        float frequency = damageShakeFrequency_ * factor;
+
+        shake->PlayShake(intensity, frames, frequency);
     }
 }
 
