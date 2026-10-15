@@ -64,9 +64,9 @@ public:
      * @brief Position を設定する。
      * @param[in] x 設定する Position の値
      * @param[in] y 設定する Position の値
-     * @param[in] 0.0f 設定する Position の値
+     * @param[in] z 設定する Position の Z 座標
      */
-    void SetPosition(const float& x, const float& y, const float& z = 0.0f) {
+    void SetPosition(float x, float y, float z = 0.0f) {
         if (resource_) {
             resource_->GetTransform().translate = {x, y, z};
         }
@@ -76,7 +76,7 @@ public:
      * @brief Rotation を設定する。
      * @param[in] rotate 設定する Rotation の値
      */
-    void SetRotation(const float& rotate) {
+    void SetRotation(float rotate) {
         if (resource_) {
             resource_->GetTransform().rotate = {0.0f, 0.0f, rotate};
         }
@@ -87,7 +87,7 @@ public:
      * @param[in] scaleX 設定する Scale の値
      * @param[in] scaleY 設定する Scale の値
      */
-    void SetScale(const float& scaleX, const float& scaleY) {
+    void SetScale(float scaleX, float scaleY) {
         if (resource_) {
             resource_->GetTransform().scale = {scaleX, scaleY, 1.0f};
         }

@@ -184,7 +184,7 @@ public: // メンバ関数
      * @brief 2Dスクリーン座標位置を取得する
      * @return XY座標
      */
-    const Irufemi::Vector2 GetPosition2D() const;
+    Irufemi::Vector2 GetPosition2D() const;
 
     /**
      * @brief 回転角を取得する
@@ -230,7 +230,7 @@ public: // メンバ関数
     /**
      * @brief スプライトのサイズを設定
      */
-    void SetSize(const float& width, const float& height);
+    void SetSize(float width, float height);
 
     /**
      * @brief UIスケールを設定（解像度対応用）
@@ -245,7 +245,7 @@ public: // メンバ関数
      * @param[in] ax X座標 (0:左, 0.5:中央, 1:右)
      * @param[in] ay Y座標 (0:上, 0.5:中央, 1:下)
      */
-    void SetAnchor(const float& ax, const float& ay) {
+    void SetAnchor(float ax, float ay) {
         anchor_ = {ax, ay};
         isDirty_ = true;
     }
@@ -253,7 +253,7 @@ public: // メンバ関数
     /**
      * @brief 位置を設定
      */
-    void SetPosition(const float& x, const float& y, const float& z = 0.0f) {
+    void SetPosition(float x, float y, float z = 0.0f) {
         if (resource_) {
             resource_->GetTransform().translate = {x, y, z};
         }
@@ -263,7 +263,7 @@ public: // メンバ関数
     /**
      * @brief 回転を設定（Z軸回転）
      */
-    void SetRotation(const float& rotate) {
+    void SetRotation(float rotate) {
         if (resource_) {
             resource_->GetTransform().rotate = Irufemi::Vector3{0.0f, 0.0f, rotate};
         }

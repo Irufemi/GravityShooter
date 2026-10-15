@@ -191,7 +191,7 @@ void Sprite::Draw() {
     }
 }
 
-void Sprite::SetSize(const float& width, const float& height) {
+void Sprite::SetSize(float width, float height) {
     size_.x = width;
     size_.y = height;
     // 実サイズはscaleとuiScale_で表現
@@ -201,7 +201,7 @@ void Sprite::SetSize(const float& width, const float& height) {
     isDirty_ = true;
 }
 
-const Irufemi::Vector2 Sprite::GetPosition2D() const {
+Irufemi::Vector2 Sprite::GetPosition2D() const {
     if (!resource_) {
         return {0.0f, 0.0f};
     }
