@@ -8,6 +8,7 @@
 #include <functional>
 #include <future>
 #include <atomic>
+#include <tuple>
 #include "Core/System/TaskGroup.h"
 
 /**
@@ -126,8 +127,10 @@ template <class F, class... Args>
 auto ThreadPool::Enqueue(F&& f, Args&&... args) -> std::future<typename std::invoke_result_t<F, Args...>> {
     using return_type = typename std::invoke_result_t<F, Args...>;
 
-    auto task =
-        std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+    auto task = std::make_shared<std::packaged_task<return_type()>>(
+        [func = std::forward<F>(f), argsTuple = std::make_tuple(std::forward<Args>(args)...)]() mutable -> return_type {
+            return std::apply(std::move(func), std::move(argsTuple));
+        });
 
     std::future<return_type> res = task->get_future();
     {
@@ -152,8 +155,10 @@ auto ThreadPool::Enqueue(std::shared_ptr<TaskGroup> group, F&& f,
     }
 
     using return_type = typename std::invoke_result_t<F, Args...>;
-    auto task =
-        std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+    auto task = std::make_shared<std::packaged_task<return_type()>>(
+        [func = std::forward<F>(f), argsTuple = std::make_tuple(std::forward<Args>(args)...)]() mutable -> return_type {
+            return std::apply(std::move(func), std::move(argsTuple));
+        });
 
     std::future<return_type> res = task->get_future();
     {
@@ -169,10 +174,17 @@ auto ThreadPool::Enqueue(std::shared_ptr<TaskGroup> group, F&& f,
         }
 
         tasks_.emplace([task, group]() {
+            // RAII スコープガード: タスク実行中の例外発生時でも確実に通知を行い、Wait() のデッドロックを防ぐ
+            struct TaskGroupScopeGuard {
+                std::shared_ptr<TaskGroup> grp;
+                ~TaskGroupScopeGuard() {
+                    if (grp) {
+                        grp->NotifyTaskFinished();
+                    }
+                }
+            } guard{group};
+
             (*task)();
-            if (group) {
-                group->NotifyTaskFinished();
-            }
         });
     }
     condition_.notify_one();
