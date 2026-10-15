@@ -1,7 +1,9 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "Renderer/DrawManager.h"
 #include "RHI/DirectX12/DirectXCommon.h"
+#include "RHI/DirectX12/RenderTexture.h"
 #include "Core/System/IrufemiEngine.h"
+#include "Core/Math/MathFunction.h"
 #include "Renderer/Data/RenderContext.h"
 #include <algorithm>
 #include <string>
@@ -36,6 +38,50 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
     rc.fontManager = engine ? engine->GetFontManager() : nullptr;
     rc.psoManager = engine ? engine->GetPSOManager() : nullptr;
     rc.commandList = cmdList;
+
+#ifdef EditorMode
+    rc.isEditorMode = true;
+    if (engine && engine->GetMainRenderTexture()) {
+        rc.outputResource = engine->GetMainRenderTexture()->GetResource();
+        rc.outputRTV = engine->GetMainRenderTexture()->GetRtvHandle();
+    }
+    rc.viewport.Width = static_cast<float>(engine ? engine->GetGameResolutionWidth() : 1280);
+    rc.viewport.Height = static_cast<float>(engine ? engine->GetGameResolutionHeight() : 720);
+    rc.viewport.TopLeftX = 0.0f;
+    rc.viewport.TopLeftY = 0.0f;
+    rc.viewport.MinDepth = 0.0f;
+    rc.viewport.MaxDepth = 1.0f;
+
+    rc.scissorRect.left = 0;
+    rc.scissorRect.right = engine ? engine->GetGameResolutionWidth() : 1280;
+    rc.scissorRect.top = 0;
+    rc.scissorRect.bottom = engine ? engine->GetGameResolutionHeight() : 720;
+#else
+    rc.isEditorMode = false;
+    rc.outputResource = nullptr;
+    if (dxCommon) {
+        rc.outputRTV = dxCommon->GetRtvHandles(dxCommon->GetCurrentBackBufferIndex());
+    }
+    if (engine) {
+        float clientW = static_cast<float>(engine->GetClientWidth());
+        float clientH = static_cast<float>(engine->GetClientHeight());
+        float gameW = static_cast<float>(engine->GetGameResolutionWidth());
+        float gameH = static_cast<float>(engine->GetGameResolutionHeight());
+        Irufemi::Math::LetterboxInfo view = Irufemi::Math::CalculateLetterbox(clientW, clientH, gameW, gameH);
+
+        rc.viewport.Width = view.viewW;
+        rc.viewport.Height = view.viewH;
+        rc.viewport.TopLeftX = view.viewX;
+        rc.viewport.TopLeftY = view.viewY;
+        rc.viewport.MinDepth = 0.0f;
+        rc.viewport.MaxDepth = 1.0f;
+
+        rc.scissorRect.left = static_cast<LONG>(view.viewX);
+        rc.scissorRect.right = static_cast<LONG>(view.viewX + view.viewW);
+        rc.scissorRect.top = static_cast<LONG>(view.viewY);
+        rc.scissorRect.bottom = static_cast<LONG>(view.viewY + view.viewH);
+    }
+#endif
 
     // 1. Compile Phase (全パスの Setup を実行し、リソース要求を収集)
     RenderGraphBuilder builder;

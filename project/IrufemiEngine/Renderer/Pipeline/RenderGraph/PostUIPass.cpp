@@ -92,17 +92,10 @@ void PostUIPass::Execute(const Irufemi::RenderContext& rc) {
     DirectXUtils::TransitionBarrier(cmdList, engine->GetMainRenderTexture()->GetResource(),
                                     D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    // 最終出力先の決定
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-    bool isBackBufferTarget = false;
-#ifdef EditorMode
-    // EditorMode の場合、最終出力先は mainRenderTexture になる
-    rtvHandle = engine->GetMainRenderTexture()->GetRtvHandle();
-#else
-    // 最終出力先はバックバッファ
-    rtvHandle = drawManager->GetDxCommon()->GetRtvHandles(drawManager->GetDxCommon()->GetCurrentBackBufferIndex());
-    isBackBufferTarget = true;
-#endif
+    // 最終出力先の決定 (RenderContextから取得)
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rc.outputRTV;
+    bool isBackBufferTarget = !rc.isEditorMode;
 
-    ppMgr->Draw(cmdList, ppSrcTex, rtvHandle, workspace, PostProcessManager::Layer::PostUI, isBackBufferTarget);
+    ppMgr->Draw(cmdList, ppSrcTex, rtvHandle, workspace, PostProcessManager::Layer::PostUI, isBackBufferTarget,
+                &rc.viewport, &rc.scissorRect);
 }

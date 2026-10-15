@@ -186,7 +186,8 @@ void PostProcessManager::Update(float totalTime) {
 
 void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderTexture* srcTexture,
                               D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, const PostProcessWorkspace& workspace, Layer layer,
-                              bool isBackBufferTarget) {
+                              bool isBackBufferTarget, const D3D12_VIEWPORT* targetViewport,
+                              const D3D12_RECT* targetScissor) {
     // bindlessBufferOffset_ と combinedBufferOffset_ は PreUI (最初のパス) のみリセットする
     if (layer == Layer::PreUI) {
         bindlessBufferOffset_ = 0;
@@ -204,7 +205,8 @@ void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderText
     combinedParams_.useMask = (layer == Layer::PreUI) ? 1 : 0;
 
     PostProcessRunner runner;
-    runner.Run(this, commandList, modesToDraw, srcTexture, rtvHandle, workspace, true, isBackBufferTarget);
+    runner.Run(this, commandList, modesToDraw, srcTexture, rtvHandle, workspace, true, isBackBufferTarget,
+               targetViewport, targetScissor);
 }
 
 void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,

@@ -1022,7 +1022,13 @@ public: // セッター
     void ApplyPSO(const std::string& shaderName);
 
     /**
-     * @brief 電撃エフェクト用パラメータを特設スロットにバインドする
+     * @brief 汎用カスタム定数バッファ（RootSlot::Special）をバインドする
+     * @param address 定数バッファ構造体の GPU 仮想アドレス
+     */
+    void BindCustomConstantBuffer(D3D12_GPU_VIRTUAL_ADDRESS address);
+
+    /**
+     * @brief 電撃エフェクト用パラメータを特設スロットにバインドする（後方互換用）
      * @param address LightningParams 構造体の GPU 仮想アドレス
      */
     void BindLightningParams(D3D12_GPU_VIRTUAL_ADDRESS address);

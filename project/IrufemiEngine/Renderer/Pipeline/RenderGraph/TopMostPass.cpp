@@ -8,17 +8,9 @@
 #include "Renderer/Data/RenderContext.h"
 
 void TopMostPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
-#ifdef EditorMode
-    if (rc.engine) {
-        if (auto* tex = rc.engine->GetMainRenderTexture()) {
-            builder.RequireState(tex->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-        }
+    if (rc.outputResource) {
+        builder.RequireState(rc.outputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
     }
-#else
-    // 実行時はバックバッファ（スワップチェーン）に直接書き込む
-    (void)builder;
-    (void)rc;
-#endif
 }
 
 void TopMostPass::Execute(const Irufemi::RenderContext& rc) {
@@ -29,54 +21,10 @@ void TopMostPass::Execute(const Irufemi::RenderContext& rc) {
     }
     auto* cmdList = drawManager->GetDxCommon()->GetCommandList();
 
-#ifdef EditorMode
-    // EditorModeの場合はSceneViewに表示させるためMainRenderTextureに書き込む
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = engine->GetMainRenderTexture()->GetRtvHandle();
-#else
-    // 実行時はバックバッファに書き込む
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
-        drawManager->GetDxCommon()->GetRtvHandles(drawManager->GetDxCommon()->GetCurrentBackBufferIndex());
-#endif
-    // 深度バッファは無効化(TopMostのため)
-    cmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
-
-    // ビューポートとシザーの設定を明示的に行う
-    D3D12_VIEWPORT viewport{};
-    D3D12_RECT scissor{};
-
-#ifdef EditorMode
-    viewport.Width = static_cast<float>(engine->GetGameResolutionWidth());
-    viewport.Height = static_cast<float>(engine->GetGameResolutionHeight());
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-
-    scissor.left = 0;
-    scissor.right = engine->GetGameResolutionWidth();
-    scissor.top = 0;
-    scissor.bottom = engine->GetGameResolutionHeight();
-#else
-    float clientW = static_cast<float>(engine->GetClientWidth());
-    float clientH = static_cast<float>(engine->GetClientHeight());
-    float gameW = static_cast<float>(engine->GetGameResolutionWidth());
-    float gameH = static_cast<float>(engine->GetGameResolutionHeight());
-
-    Irufemi::Math::LetterboxInfo view = Irufemi::Math::CalculateLetterbox(clientW, clientH, gameW, gameH);
-
-    viewport.Width = view.viewW;
-    viewport.Height = view.viewH;
-    viewport.TopLeftX = view.viewX;
-    viewport.TopLeftY = view.viewY;
-
-    scissor.left = static_cast<LONG>(viewport.TopLeftX);
-    scissor.right = static_cast<LONG>(viewport.TopLeftX + viewport.Width);
-    scissor.top = static_cast<LONG>(viewport.TopLeftY);
-    scissor.bottom = static_cast<LONG>(viewport.TopLeftY + viewport.Height);
-#endif
-
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-    cmdList->RSSetViewports(1, &viewport);
-    cmdList->RSSetScissorRects(1, &scissor);
+    // 深度バッファは無効化(TopMostのため)、出力先RTVとビューポート・シザーを適用
+    cmdList->OMSetRenderTargets(1, &rc.outputRTV, false, nullptr);
+    cmdList->RSSetViewports(1, &rc.viewport);
+    cmdList->RSSetScissorRects(1, &rc.scissorRect);
 
     // キューの描画関数を定義
     auto DrawWithPSO = [&](const auto& queue, auto drawFunc, const char* psoName) {

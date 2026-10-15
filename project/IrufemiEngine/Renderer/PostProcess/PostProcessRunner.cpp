@@ -10,22 +10,19 @@ using Mode = PostProcessManager::Mode;
 
 namespace {
 void SetupOutputViewport(IrufemiEngine* engine, DirectXCommon* dxCommon, bool isBackBufferTarget,
+                         const D3D12_VIEWPORT* explicitViewport, const D3D12_RECT* explicitScissor,
                          D3D12_VIEWPORT& outViewport, D3D12_RECT& outScissor) {
+    if (explicitViewport && explicitScissor) {
+        outViewport = *explicitViewport;
+        outScissor = *explicitScissor;
+        return;
+    }
+
     if (isBackBufferTarget) {
-#ifdef EditorMode
-        outViewport.Width = static_cast<FLOAT>(engine->GetGameResolutionWidth());
-        outViewport.Height = static_cast<FLOAT>(engine->GetGameResolutionHeight());
-        outViewport.TopLeftX = 0;
-        outViewport.TopLeftY = 0;
-        outScissor.left = 0;
-        outScissor.right = engine->GetGameResolutionWidth();
-        outScissor.top = 0;
-        outScissor.bottom = engine->GetGameResolutionHeight();
-#else
-        float clientW = static_cast<float>(dxCommon->GetClientWidth());
-        float clientH = static_cast<float>(dxCommon->GetClientHeight());
-        float gameW = static_cast<float>(engine->GetGameResolutionWidth());
-        float gameH = static_cast<float>(engine->GetGameResolutionHeight());
+        float clientW = dxCommon ? static_cast<float>(dxCommon->GetClientWidth()) : 1280.0f;
+        float clientH = dxCommon ? static_cast<float>(dxCommon->GetClientHeight()) : 720.0f;
+        float gameW = engine ? static_cast<float>(engine->GetGameResolutionWidth()) : 1280.0f;
+        float gameH = engine ? static_cast<float>(engine->GetGameResolutionHeight()) : 720.0f;
         Irufemi::Math::LetterboxInfo view = Irufemi::Math::CalculateLetterbox(clientW, clientH, gameW, gameH);
 
         outViewport.Width = view.viewW;
@@ -36,16 +33,15 @@ void SetupOutputViewport(IrufemiEngine* engine, DirectXCommon* dxCommon, bool is
         outScissor.right = static_cast<LONG>(outViewport.TopLeftX + outViewport.Width);
         outScissor.top = static_cast<LONG>(outViewport.TopLeftY);
         outScissor.bottom = static_cast<LONG>(outViewport.TopLeftY + outViewport.Height);
-#endif
     } else {
-        outViewport.Width = static_cast<FLOAT>(engine->GetGameResolutionWidth());
-        outViewport.Height = static_cast<FLOAT>(engine->GetGameResolutionHeight());
+        outViewport.Width = static_cast<FLOAT>(engine ? engine->GetGameResolutionWidth() : 1280);
+        outViewport.Height = static_cast<FLOAT>(engine ? engine->GetGameResolutionHeight() : 720);
         outViewport.TopLeftX = 0;
         outViewport.TopLeftY = 0;
         outScissor.left = 0;
-        outScissor.right = engine->GetGameResolutionWidth();
+        outScissor.right = engine ? engine->GetGameResolutionWidth() : 1280;
         outScissor.top = 0;
-        outScissor.bottom = engine->GetGameResolutionHeight();
+        outScissor.bottom = engine ? engine->GetGameResolutionHeight() : 720;
     }
     outViewport.MinDepth = 0.0f;
     outViewport.MaxDepth = 1.0f;
@@ -63,7 +59,8 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
                                       const std::vector<Mode>& modes, RenderTexture* srcTexture,
                                       D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
                                       const PostProcessManager::PostProcessWorkspace& workspace, bool isFinalOutput,
-                                      bool isBackBufferTarget) {
+                                      bool isBackBufferTarget, const D3D12_VIEWPORT* targetViewport,
+                                      const D3D12_RECT* targetScissor) {
     RenderTexture* currentSource = srcTexture;
 
     bool needsFinalPass = isFinalOutput;
@@ -423,8 +420,9 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
             D3D12_VIEWPORT fullViewport{};
             D3D12_RECT fullScissorRect{};
 
-            SetupOutputViewport(manager->engine_, manager->dxCommon_, writeToScreen && isBackBufferTarget, fullViewport,
-                                fullScissorRect);
+            SetupOutputViewport(manager->engine_, manager->dxCommon_, writeToScreen && isBackBufferTarget,
+                                writeToScreen ? targetViewport : nullptr, writeToScreen ? targetScissor : nullptr,
+                                fullViewport, fullScissorRect);
             commandList->RSSetViewports(1, &fullViewport);
             commandList->RSSetScissorRects(1, &fullScissorRect);
 
@@ -488,8 +486,9 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
             // Viewport と Scissor の設定
             D3D12_VIEWPORT fullViewport{};
             D3D12_RECT fullScissorRect{};
-            SetupOutputViewport(manager->engine_, manager->dxCommon_, writeToScreen && isBackBufferTarget, fullViewport,
-                                fullScissorRect);
+            SetupOutputViewport(manager->engine_, manager->dxCommon_, writeToScreen && isBackBufferTarget,
+                                writeToScreen ? targetViewport : nullptr, writeToScreen ? targetScissor : nullptr,
+                                fullViewport, fullScissorRect);
             commandList->RSSetViewports(1, &fullViewport);
             commandList->RSSetScissorRects(1, &fullScissorRect);
 
@@ -556,7 +555,8 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         // Viewport と Scissor の設定
         D3D12_VIEWPORT fullViewport{};
         D3D12_RECT fullScissorRect{};
-        SetupOutputViewport(manager->engine_, manager->dxCommon_, isBackBufferTarget, fullViewport, fullScissorRect);
+        SetupOutputViewport(manager->engine_, manager->dxCommon_, isBackBufferTarget, targetViewport, targetScissor,
+                            fullViewport, fullScissorRect);
         commandList->RSSetViewports(1, &fullViewport);
         commandList->RSSetScissorRects(1, &fullScissorRect);
 

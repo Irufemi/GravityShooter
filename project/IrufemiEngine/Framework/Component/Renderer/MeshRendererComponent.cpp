@@ -104,17 +104,7 @@ void MeshRendererComponent::SetIsSkydome(bool isSkydome) {
 }
 
 void MeshRendererComponent::Update() {
-    // TransformComponent があれば、その座標を StaticModelObject に渡す（同期）
-    if (GetTransform() && obj_) {
-        obj_->SetTranslate(GetTransform()->GetWorldPosition());
-        obj_->SetRotate(GetTransform()->GetWorldRotation());
-        obj_->SetScale(GetTransform()->GetWorldScale());
-    }
-
-    // StaticModelObject の行列計算などを実行
-    if (obj_) {
-        obj_->Update();
-    }
+    SyncRenderState();
 }
 
 void MeshRendererComponent::SyncRenderState() {

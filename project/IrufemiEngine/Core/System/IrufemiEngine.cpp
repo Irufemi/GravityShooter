@@ -1185,11 +1185,15 @@ void IrufemiEngine::ApplyPSO(const std::string& shaderName) {
     }
 }
 
-void IrufemiEngine::BindLightningParams(D3D12_GPU_VIRTUAL_ADDRESS address) {
+void IrufemiEngine::BindCustomConstantBuffer(D3D12_GPU_VIRTUAL_ADDRESS address) {
     if (address == 0) {
         return;
     }
     GetCommandList()->SetGraphicsRootConstantBufferView((UINT)RootSlot::Special, address);
+}
+
+void IrufemiEngine::BindLightningParams(D3D12_GPU_VIRTUAL_ADDRESS address) {
+    BindCustomConstantBuffer(address);
 }
 
 bool IrufemiEngine::IsAssetLoading() const {

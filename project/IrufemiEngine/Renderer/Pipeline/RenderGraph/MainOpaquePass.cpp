@@ -112,7 +112,7 @@ void MainOpaquePass::Execute(const Irufemi::RenderContext& rc) {
             }
 
             if (p.customCBVAddress != 0 && p.customCBVAddress != currentCustomCBV) {
-                engine->BindLightningParams(p.customCBVAddress);
+                engine->BindCustomConstantBuffer(p.customCBVAddress);
                 currentCustomCBV = p.customCBVAddress;
             }
 

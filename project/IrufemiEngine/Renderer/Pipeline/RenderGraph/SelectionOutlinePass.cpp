@@ -10,7 +10,9 @@
 #include "Renderer/Data/RenderContext.h"
 
 void SelectionOutlinePass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
-#ifdef EditorMode
+    if (!rc.isEditorMode) {
+        return;
+    }
     auto* drawManager = rc.drawManager;
     auto* engine = rc.engine;
     if (!drawManager || !engine) {
@@ -28,11 +30,12 @@ void SelectionOutlinePass::Setup(RenderGraphBuilder& builder, const Irufemi::Ren
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     maskHandle_ = builder.CreateTransientResource("SelectionMask", desc);
     builder.RequireTransientState(maskHandle_, D3D12_RESOURCE_STATE_RENDER_TARGET);
-#endif
 }
 
 void SelectionOutlinePass::Execute(const Irufemi::RenderContext& rc) {
-#ifdef EditorMode
+    if (!rc.isEditorMode) {
+        return;
+    }
     auto* drawManager = rc.drawManager;
     auto* engine = rc.engine;
     if (!drawManager || !engine) {
@@ -107,5 +110,4 @@ void SelectionOutlinePass::Execute(const Irufemi::RenderContext& rc) {
         // 3頂点でフルスクリーンを描画
         cmdList->DrawInstanced(3, 1, 0, 0);
     }
-#endif
 }

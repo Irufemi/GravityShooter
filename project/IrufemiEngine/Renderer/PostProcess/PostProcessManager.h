@@ -604,7 +604,8 @@ public:
      */
     void Draw(ID3D12GraphicsCommandList* commandList, class RenderTexture* srcTexture,
               D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, const PostProcessWorkspace& workspace, Layer layer = Layer::PreUI,
-              bool isBackBufferTarget = false);
+              bool isBackBufferTarget = false,
+              const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
 
     /**
      * @brief Bindless 定数バッファのリングオフセットを安全にインクリメントする

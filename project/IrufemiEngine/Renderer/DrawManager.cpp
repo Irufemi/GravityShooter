@@ -1,5 +1,6 @@
 #include "Core/Utility/ErrorUtility.h"
 #include "Core/Utility/Log.h"
+#include "Core/Math/MathFunction.h"
 #include <iostream>
 #include "Renderer/DrawManager.h"
 using namespace RenderPackets;
@@ -1420,27 +1421,26 @@ void DrawManager::SetRenderTargetToBackBuffer(bool useDepth) {
     // ビューポートとシザーをスワップチェーンサイズに合わせてLetterbox計算して戻す
     float clientW = dxCommon_->GetViewport().Width;
     float clientH = dxCommon_->GetViewport().Height;
-    float targetAspect = static_cast<float>(engine_->GetGameResolutionWidth()) / engine_->GetGameResolutionHeight();
-    float windowAspect = clientW / clientH;
+    float gameW = static_cast<float>(engine_->GetGameResolutionWidth());
+    float gameH = static_cast<float>(engine_->GetGameResolutionHeight());
+    Irufemi::Math::LetterboxInfo view = Irufemi::Math::CalculateLetterbox(clientW, clientH, gameW, gameH);
 
     D3D12_VIEWPORT viewport{};
+    viewport.Width = view.viewW;
+    viewport.Height = view.viewH;
+    viewport.TopLeftX = view.viewX;
+    viewport.TopLeftY = view.viewY;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
 
-    if (windowAspect > targetAspect) {
-        viewport.Height = clientH;
-        viewport.Width = clientH * targetAspect;
-        viewport.TopLeftX = (clientW - viewport.Width) / 2.0f;
-        viewport.TopLeftY = 0.0f;
-    } else {
-        viewport.Width = clientW;
-        viewport.Height = clientW / targetAspect;
-        viewport.TopLeftX = 0.0f;
-        viewport.TopLeftY = (clientH - viewport.Height) / 2.0f;
-    }
+    D3D12_RECT scissor{};
+    scissor.left = static_cast<LONG>(view.viewX);
+    scissor.right = static_cast<LONG>(view.viewX + view.viewW);
+    scissor.top = static_cast<LONG>(view.viewY);
+    scissor.bottom = static_cast<LONG>(view.viewY + view.viewH);
 
     commandList_->RSSetViewports(1, &viewport);
-    commandList_->RSSetScissorRects(1, &dxCommon_->GetScissorRect());
+    commandList_->RSSetScissorRects(1, &scissor);
 
     // レンダーターゲット追跡のリセット
     currentRenderTexture_ = nullptr;
