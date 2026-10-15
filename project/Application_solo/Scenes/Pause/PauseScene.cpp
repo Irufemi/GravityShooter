@@ -236,6 +236,9 @@ void PauseScene::CreateUIElements() {
 
     selectedIndex_ = 0;
     lastHoveredIndex_ = -1;
+    nav_.SetItemCount(static_cast<int>(menuItems_.size()));
+    nav_.SetSelectedIndex(0, false);
+    nav_.SetOnSelectionChanged([](int) { UISound::PlayCursor(); });
 }
 
 void PauseScene::Update() {
@@ -317,7 +320,21 @@ void PauseScene::UpdateInput(float deltaTime) {
     input->UpdateVirtualCursor(deltaTime);
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
-    // 2. マウス/仮想カーソルによるホバー判定（動的Textバウンディングボックス＆スケール連動）
+    // 2. ナビゲーションコントローラーによるキーボード/パッド入力更新（長押しリピート・即時トリガー対応）
+    bool navMoved = nav_.Update(input, deltaTime);
+    if (navMoved) {
+        selectedIndex_ = nav_.GetSelectedIndex();
+        // 仮想カーソルを選択項目位置へスナップ同期
+        if (selectedIndex_ >= 0 && selectedIndex_ < static_cast<int>(menuItems_.size())) {
+            if (auto obj = menuItems_[selectedIndex_].gameObject) {
+                if (auto t = obj->GetTransform()) {
+                    input->SetVirtualCursorPosition({t->GetPosition().x, t->GetPosition().y});
+                }
+            }
+        }
+    }
+
+    // 3. マウス/仮想カーソルによるホバー判定（静止中はパッド操作の引き戻しをブロック）
     int mouseHoveredIndex = -1;
     for (size_t i = 0; i < menuItems_.size(); ++i) {
         if (IsCursorOverItem(static_cast<int>(i), cursorPos)) {
@@ -326,34 +343,10 @@ void PauseScene::UpdateInput(float deltaTime) {
         }
     }
 
-    if (mouseHoveredIndex >= 0 && mouseHoveredIndex != selectedIndex_) {
-        selectedIndex_ = mouseHoveredIndex;
-        UISound::PlayCursor();
-    }
-
-    // 3. キーボード・ゲームパッドの上下移動判定
-    bool moveUp = input->IsKeyPressed(VK_UP) || input->IsKeyPressed('W') || input->DPadUp();
-    bool moveDown = input->IsKeyPressed(VK_DOWN) || input->IsKeyPressed('S') || input->DPadDown();
-
-    // スティック入力（デッドゾーン付き）
-    float stickY = input->GetLeftStickY();
-    if (stickY > 0.6f && lastHoveredIndex_ != -2) {
-        moveUp = true;
-        lastHoveredIndex_ = -2;
-    } else if (stickY < -0.6f && lastHoveredIndex_ != -3) {
-        moveDown = true;
-        lastHoveredIndex_ = -3;
-    } else if (std::abs(stickY) < 0.3f) {
-        lastHoveredIndex_ = -1;
-    }
-
-    if (moveUp) {
-        selectedIndex_ =
-            (selectedIndex_ - 1 + static_cast<int>(menuItems_.size())) % static_cast<int>(menuItems_.size());
-        UISound::PlayCursor();
-    } else if (moveDown) {
-        selectedIndex_ = (selectedIndex_ + 1) % static_cast<int>(menuItems_.size());
-        UISound::PlayCursor();
+    if (mouseHoveredIndex >= 0) {
+        if (nav_.TrySetHoveredIndex(mouseHoveredIndex, input)) {
+            selectedIndex_ = nav_.GetSelectedIndex();
+        }
     }
 
     // 4. 決定判定（論理アクション UI_Submit または カーソルクリック）
@@ -364,6 +357,7 @@ void PauseScene::UpdateInput(float deltaTime) {
         pressedItemIndex_ = -1;
         if (mouseHoveredIndex >= 0) {
             pressedItemIndex_ = mouseHoveredIndex;
+            nav_.SetSelectedIndex(mouseHoveredIndex);
             selectedIndex_ = mouseHoveredIndex;
             isDecide = true; // 即時レスポンス
         }
@@ -372,6 +366,7 @@ void PauseScene::UpdateInput(float deltaTime) {
     // 解放瞬間の確定（Drag-outキャンセル対応）
     if (input->IsCursorActionReleased()) {
         if (pressedItemIndex_ >= 0 && IsCursorOverItem(pressedItemIndex_, cursorPos)) {
+            nav_.SetSelectedIndex(pressedItemIndex_);
             selectedIndex_ = pressedItemIndex_;
             isDecide = true;
         }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework/Component/Component.h"
+#include "Framework/UI/UINavigationController.h"
 #include "Core/Math/Vector2.h"
 #include "Scenes/title/State/ITitleMenuState.h"
 #include <memory>
@@ -149,6 +150,7 @@ private:                                                      // メンバ変数
 
     int currentIndex_ = 0; //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
     int pressedButtonIndex_ = -1; //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
+    UINavigationController nav_;
 
     // 全画面インパクトフラッシュ用状態
     float flashTimer_ = 0.0f;

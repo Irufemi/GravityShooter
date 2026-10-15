@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework/Scene/BaseScene.h"
+#include "Framework/UI/UINavigationController.h"
 #include "Core/Math/Vector2.h"
 #include <string>
 #include <vector>
@@ -83,6 +84,7 @@ private:
     int selectedIndex_ = 0;
     int lastHoveredIndex_ = -1;
     int pressedItemIndex_ = -1;
+    UINavigationController nav_;
 
     float openCooldownTimer_ = 0.2f;
     float originalBGMVolume_ = 1.0f;

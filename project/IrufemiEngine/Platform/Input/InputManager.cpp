@@ -744,6 +744,54 @@ bool InputManager::IsCancelPressed() const {
     return cancel;
 }
 
+bool InputManager::HasPhysicalMouseMoved(float threshold) const {
+    if (!mouse_) {
+        return false;
+    }
+    const auto& delta = mouse_->GetDelta();
+    return std::hypot(delta.x, delta.y) > threshold;
+}
+
+bool InputManager::IsNavUpPressed() const {
+    if (IsKeyPressed(VK_UP) || IsKeyPressed('W')) {
+        return true;
+    }
+    if (DPadUpPressed()) {
+        return true;
+    }
+    return false;
+}
+
+bool InputManager::IsNavDownPressed() const {
+    if (IsKeyPressed(VK_DOWN) || IsKeyPressed('S')) {
+        return true;
+    }
+    if (DPadDownPressed()) {
+        return true;
+    }
+    return false;
+}
+
+bool InputManager::IsNavLeftPressed() const {
+    if (IsKeyPressed(VK_LEFT) || IsKeyPressed('A')) {
+        return true;
+    }
+    if (DPadLeftPressed()) {
+        return true;
+    }
+    return false;
+}
+
+bool InputManager::IsNavRightPressed() const {
+    if (IsKeyPressed(VK_RIGHT) || IsKeyPressed('D')) {
+        return true;
+    }
+    if (DPadRightPressed()) {
+        return true;
+    }
+    return false;
+}
+
 bool InputManager::HasAnyInput() const {
     // 1. ゲームパッドの入力判定（接続時のみ）
     if (gamepad_ && gamepad_->IsConnected()) {

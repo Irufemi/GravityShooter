@@ -636,6 +636,9 @@
     <ClCompile Include="Framework\UI\UISelectionGroup.cpp">
       <Filter>Framework\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\UI\UINavigationController.cpp">
+      <Filter>Framework\UI</Filter>
+    </ClCompile>
     <ClCompile Include="Renderer\Object\2D\Primitive\Primitive2DObject.cpp">
       <Filter>Renderer\Object\2D\Primitive</Filter>
     </ClCompile>
@@ -1176,6 +1179,9 @@
       <Filter>Framework\UI</Filter>
     </ClInclude>
     <ClInclude Include="Framework\UI\UISelectionGroup.h">
+      <Filter>Framework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\UI\UINavigationController.h">
       <Filter>Framework\UI</Filter>
     </ClInclude>
     <ClInclude Include="Framework\Component\Audio\AudioSourceComponent.h">

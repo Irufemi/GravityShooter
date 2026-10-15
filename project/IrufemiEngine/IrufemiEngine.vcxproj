@@ -339,6 +339,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Framework\Scene\SceneTransitionDrivers.cpp" />
     <ClCompile Include="Framework\UI\UIAnimator.cpp" />
     <ClCompile Include="Framework\UI\UISelectionGroup.cpp" />
+    <ClCompile Include="Framework\UI\UINavigationController.cpp" />
     <ClCompile Include="Renderer\Object\2D\Primitive\Primitive2DObject.cpp" />
     <ClCompile Include="Renderer\Object\2D\PrimitiveBatch\Primitive2DBatch.cpp" />
     <ClCompile Include="Renderer\Object\2D\SpriteBatch\SpriteBatch.cpp" />
@@ -520,6 +521,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Scene\SceneTransitionDrivers.h" />
     <ClInclude Include="Framework\UI\UIAnimator.h" />
     <ClInclude Include="Framework\UI\UISelectionGroup.h" />
+    <ClInclude Include="Framework\UI\UINavigationController.h" />
     <ClInclude Include="Framework\Component\Audio\AudioSourceComponent.h" />
     <ClInclude Include="Framework\Component\Component.h" />
     <ClInclude Include="Framework\Component\ComponentFactory.h" />

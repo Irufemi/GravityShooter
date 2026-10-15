@@ -43,6 +43,9 @@ void TitleMenuControllerComponent::Initialize() {
     currentScales_ = {1.15f, 1.0f, 1.0f, 1.0f};
     targetScales_ = {1.15f, 0.95f, 0.95f, 0.95f};
 
+    nav_.SetItemCount(static_cast<int>(buttonNames_.size()));
+    nav_.SetSelectedIndex(0, false);
+
     flashTimer_ = 0.0f;
     titleBreatheTimer_ = 0.0f;
 
@@ -254,48 +257,29 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
 
     // デモ再生中（放置デモまたはF8キオスク固定展示）は手動キーボード・十字キー入力を遮断
     if (!AttractDemoManager::IsAttractModeActive()) {
-        int moveDelta = 0;
+        float deltaTime = engine->GetDeltaTime();
+        bool navMoved = nav_.Update(inputManager, deltaTime);
 
-        // キーボード / 十字キー
-        bool isPadDpad = inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP) ||
-                         inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN);
+        if (navMoved) {
+            currentIndex_ = nav_.GetSelectedIndex();
+            UISound::PlayCursor();
 
-        if (inputManager->IsKeyPressed(VK_UP) || inputManager->IsKeyPressed('W') ||
-            inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP)) {
-            moveDelta = -1;
-        } else if (inputManager->IsKeyPressed(VK_DOWN) || inputManager->IsKeyPressed('S') ||
-                   inputManager->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN)) {
-            moveDelta = 1;
-        }
-
-        // フォーカス移動の実行（キーボード / 十字キー）
-        if (moveDelta != 0) {
-            int oldIndex = currentIndex_;
-            currentIndex_ = (currentIndex_ + moveDelta + static_cast<int>(buttonNames_.size())) %
-                            static_cast<int>(buttonNames_.size());
-
-            if (oldIndex != currentIndex_) {
-                UISound::PlayCursor();
-
-                // 選択されたボタンの位置へ仮想カーソルをスナップ同期（星雲トレイルおよびUI整合性の両立）
-                if (auto scene = GetScene()) {
-                    if (auto btn = scene->FindGameObject(buttonNames_[currentIndex_])) {
-                        if (auto t = btn->GetTransform()) {
-                            const auto& btnPos = t->GetPosition();
-                            inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
-                        }
+            // 選択されたボタンの位置へ仮想カーソルをスナップ同期（星雲トレイルおよびUI整合性の両立）
+            if (auto scene = GetScene()) {
+                if (auto btn = scene->FindGameObject(buttonNames_[currentIndex_])) {
+                    if (auto t = btn->GetTransform()) {
+                        const auto& btnPos = t->GetPosition();
+                        inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
                     }
                 }
+            }
 
-                // ゲームパッド十字キー操作時はリングカーソルを明瞭に表示
-                if (isPadDpad) {
-                    inputManager->SetIsUsingGamepadCursor(true);
-                }
+            // キーボード / 十字キー選択時は仮想カーソルを非表示にし、ボタンのハイライト演出のみで表現（クラシックスタイル）
+            inputManager->SetIsUsingGamepadCursor(false);
 
-                // 目標スケールの更新
-                for (size_t i = 0; i < targetScales_.size(); ++i) {
-                    targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
-                }
+            // 目標スケールの更新
+            for (size_t i = 0; i < targetScales_.size(); ++i) {
+                targetScales_[i] = (static_cast<int>(i) == currentIndex_) ? 1.15f : 0.95f;
             }
             return;
         }
@@ -305,8 +289,9 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
     const auto& cursorPos = inputManager->GetVirtualCursorPosition();
     for (size_t i = 0; i < buttonNames_.size(); ++i) {
         if (IsCursorOverButton(static_cast<int>(i), cursorPos)) {
-            if (currentIndex_ != static_cast<int>(i)) {
-                currentIndex_ = static_cast<int>(i);
+            // 静止マウスの時はパッド/キーによる選択の上書きをブロック
+            if (nav_.TrySetHoveredIndex(static_cast<int>(i), inputManager)) {
+                currentIndex_ = nav_.GetSelectedIndex();
                 UISound::PlayCursor();
                 for (size_t k = 0; k < targetScales_.size(); ++k) {
                     targetScales_[k] = (static_cast<int>(k) == currentIndex_) ? 1.15f : 0.95f;
@@ -353,6 +338,7 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
             if (IsCursorOverButton(static_cast<int>(i), cursorPos)) {
                 pressedButtonIndex_ = static_cast<int>(i);
                 currentIndex_ = static_cast<int>(i);
+                nav_.SetSelectedIndex(currentIndex_);
                 isCursorSubmit = true; // 押下即時レスポンスを確保
                 break;
             }
@@ -364,6 +350,7 @@ void TitleMenuControllerComponent::HandleSelectionInput() {
         if (pressedButtonIndex_ >= 0) {
             if (IsCursorOverButton(pressedButtonIndex_, cursorPos)) {
                 currentIndex_ = pressedButtonIndex_;
+                nav_.SetSelectedIndex(currentIndex_);
                 isCursorSubmit = true;
             }
             pressedButtonIndex_ = -1;
@@ -610,6 +597,8 @@ void TitleMenuControllerComponent::RestoreFocusOnResume() {
 
     // Idle状態へ復帰（メニューUIの再表示とフォーカススケール設定を実行）
     ChangeState(MenuState::Idle);
+    nav_.SetSelectedIndex(currentIndex_, false);
+    nav_.SetGamepadMode();
 
     auto engine = GetEngine();
     if (!engine) {

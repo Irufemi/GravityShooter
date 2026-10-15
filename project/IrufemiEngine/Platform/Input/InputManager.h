@@ -217,6 +217,21 @@ public:
     /** @brief マウスホイールの回転差分を取得する */
     float GetMouseWheelDelta() const;
 
+    /** @brief 物理マウスが今フレームで有意に移動したか判定（ジッター耐性閾値考慮） */
+    bool HasPhysicalMouseMoved(float threshold = 2.0f) const;
+
+    /** @name ナビゲーション統合入力（UI用ワンショット） */
+    ///@{
+    /** @brief ナビゲーション上方向が押された瞬間か判定（VK_UP / Wキー / D-Pad上） */
+    bool IsNavUpPressed() const;
+    /** @brief ナビゲーション下方向が押された瞬間か判定（VK_DOWN / Sキー / D-Pad下） */
+    bool IsNavDownPressed() const;
+    /** @brief ナビゲーション左方向が押された瞬間か判定（VK_LEFT / Aキー / D-Pad左） */
+    bool IsNavLeftPressed() const;
+    /** @brief ナビゲーション右方向が押された瞬間か判定（VK_RIGHT / Dキー / D-Pad右） */
+    bool IsNavRightPressed() const;
+    ///@}
+
     /** @brief エディタ用：仮想的なマウスローカル座標を上書き設定する */
     void SetVirtualMousePosition(const Irufemi::Vector2& pos, bool enable) {
         if (mouse_) {
