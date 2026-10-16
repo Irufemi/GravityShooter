@@ -1,5 +1,9 @@
 #include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
 #include "Renderer/PostProcess/Effects/PostProcessEffectUtils.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
+#include "Renderer/Data/RenderContext.h"
+#include "Renderer/DrawManager.h"
+#include "Core/System/IrufemiEngine.h"
 #include "RHI/DirectX12/RenderTexture.h"
 #include "RHI/DirectX12/RootSignatureConfig.h"
 
@@ -127,6 +131,41 @@ void CombinedPostEffect::RenderFinalCopyPass(const PostProcessRenderContext& con
     commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::CustomEffectParams,
                                                    manager->customEffectParamsCB_->GetGPUVirtualAddress());
     commandList->DrawInstanced(3, 1, 0, 0);
+}
+
+void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
+                                       TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
+                                       bool writeToScreen) {
+    if (!renderGraph || !manager) return;
+
+    renderGraph->AddPass("PostProcess_Combined",
+        [inputHandle, outputHandle](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
+            builder.RequireTransientState(inputHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            if (outputHandle != kInvalidHandle) {
+                builder.RequireTransientState(outputHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
+            } else if (rc.engine && rc.engine->GetMainRenderTexture()) {
+                builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+            }
+        },
+        [this, manager, inputHandle, outputHandle, writeToScreen](const Irufemi::RenderContext& rc) {
+            auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
+            auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
+
+            D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
+            if (outputHandle != kInvalidHandle) {
+                auto* outTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(outputHandle);
+                if (!outTex) return;
+                targetRtv = outTex->GetRtvHandle();
+            } else {
+                targetRtv = rc.engine->GetMainRenderTexture()->GetRtvHandle();
+            }
+
+            PostProcessRenderContext ctx{
+                manager, cmdList, inputTex, targetRtv, writeToScreen, false, nullptr, nullptr
+            };
+            Render(ctx);
+        }
+    );
 }
 
 } // namespace Irufemi

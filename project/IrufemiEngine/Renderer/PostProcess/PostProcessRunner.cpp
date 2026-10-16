@@ -286,3 +286,91 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
 
     return finalWrittenTexture;
 }
+
+void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
+                                      const std::vector<Mode>& modes,
+                                      TransientResourceHandle srcHandle, TransientResourceHandle dstHandle,
+                                      bool isFinalOutput) {
+    if (!renderGraph || !manager) return;
+
+    if (modes.empty()) {
+        // エフェクトなしの場合、直接出力先へコピーパスを追加
+        if (isFinalOutput && dstHandle != srcHandle) {
+            combinedEffect_->ClearBatch();
+            combinedEffect_->PopulatePasses(renderGraph, manager, srcHandle, dstHandle, true);
+        }
+        return;
+    }
+
+    TransientResourceHandle currentIn = srcHandle;
+    size_t modeIdx = 0;
+    int pingPongIdx = 0;
+
+    while (modeIdx < modes.size()) {
+        Mode mode = modes[modeIdx];
+        bool isLastBatch = (modeIdx == modes.size() - 1);
+        bool writeToScreen = isFinalOutput && isLastBatch;
+
+        TransientResourceHandle nextOut = writeToScreen ? dstHandle : workHandles_[pingPongIdx % 2];
+
+        if (mode == Mode::Bloom) {
+            // Bloomは通常加算合成のため、途中の場合はピンポンバッファへ
+            bloomEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
+            currentIn = nextOut;
+            pingPongIdx++;
+            modeIdx++;
+        }
+        else if (mode == Mode::LightShafts) {
+            lightShaftsEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
+            currentIn = nextOut;
+            pingPongIdx++;
+            modeIdx++;
+        }
+        else if (mode == Mode::Smoothing) {
+            smoothingEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
+            currentIn = nextOut;
+            pingPongIdx++;
+            modeIdx++;
+        }
+        else if (mode == Mode::GaussianFilter) {
+            gaussianEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
+            currentIn = nextOut;
+            pingPongIdx++;
+            modeIdx++;
+        }
+        else if (mode == Mode::DualKawaseBlur) {
+            kawaseBlurEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
+            currentIn = nextOut;
+            pingPongIdx++;
+            modeIdx++;
+        }
+        else {
+            // 統合バッチ
+            std::vector<Mode> batch;
+            size_t lookAhead = modeIdx;
+            while (lookAhead < modes.size() && modes[lookAhead] != Mode::Bloom &&
+                   modes[lookAhead] != Mode::LightShafts && modes[lookAhead] != Mode::Smoothing &&
+                   modes[lookAhead] != Mode::GaussianFilter && modes[lookAhead] != Mode::DualKawaseBlur &&
+                   batch.size() < 16) {
+
+                bool needsSeparate = RequiresSeparatePass(modes[lookAhead]);
+                if (!batch.empty() && needsSeparate) break;
+                batch.push_back(modes[lookAhead]);
+                lookAhead++;
+                if (needsSeparate) break;
+            }
+
+            isLastBatch = (lookAhead == modes.size());
+            writeToScreen = isFinalOutput && isLastBatch;
+            nextOut = writeToScreen ? dstHandle : workHandles_[pingPongIdx % 2];
+
+            combinedEffect_->SetBatch(batch);
+            combinedEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
+
+            currentIn = nextOut;
+            pingPongIdx++;
+            modeIdx = lookAhead;
+        }
+    }
+}
+

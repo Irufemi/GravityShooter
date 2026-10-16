@@ -30,6 +30,9 @@ public:
 
     bool RequiresSeparatePass() const override { return false; }
     void Render(const PostProcessRenderContext& context) override;
+    void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
+                        TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
+                        bool writeToScreen) override;
 
     /**
      * @brief エフェクトなしの画面コピー（Final Pass）を描画する

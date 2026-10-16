@@ -9,6 +9,9 @@ void UIPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc
     if (rc.engine && rc.engine->GetMainRenderTexture()) {
         builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
     }
+    if (rc.drawManager && rc.drawManager->GetDxCommon()) {
+        builder.RequireState(rc.drawManager->GetDxCommon()->GetDepthStencilResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    }
 }
 
 void UIPass::Execute(const Irufemi::RenderContext& rc) {

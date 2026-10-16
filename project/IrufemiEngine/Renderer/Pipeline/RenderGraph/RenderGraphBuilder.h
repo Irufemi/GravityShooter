@@ -80,6 +80,18 @@ public:
     }
 
     /**
+     * @brief 名前から TransientResourceHandle を検索する
+     */
+    TransientResourceHandle FindTransientResource(const std::string& name) const {
+        for (size_t i = 0; i < transientDescs_.size(); ++i) {
+            if (transientDescs_[i].name == name) {
+                return static_cast<TransientResourceHandle>(i);
+            }
+        }
+        return kInvalidHandle;
+    }
+
+    /**
      * @brief 一時テクスチャのステート要求
      */
     void RequireTransientState(TransientResourceHandle handle, D3D12_RESOURCE_STATES state) {

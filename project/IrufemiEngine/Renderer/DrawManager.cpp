@@ -34,6 +34,7 @@ using namespace RenderPackets;
 #include "Renderer/Pipeline/RenderGraph/PostUIPass.h"
 #include "Renderer/Pipeline/RenderGraph/TopMostPass.h"
 #include "Renderer/Pipeline/RenderGraph/PostProcessPass.h"
+#include "Renderer/Pipeline/RenderGraph/PostProcessCopyPass.h"
 #include "Renderer/Pipeline/RenderGraph/SelectionOutlinePass.h"
 #include "Resource/Model/ModelManager.h"
 #include "Core/System/IrufemiEngine.h"
@@ -258,8 +259,10 @@ void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
     renderGraph_->AddPass(std::make_unique<MainOpaquePass>());
     renderGraph_->AddPass(std::make_unique<FogPass>());
     renderGraph_->AddPass(std::make_unique<MainTransparentPass>());
+    renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PreUISrc"));
     renderGraph_->AddPass(std::make_unique<PostProcessPass>());
     renderGraph_->AddPass(std::make_unique<UIPass>());
+    renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc"));
     renderGraph_->AddPass(std::make_unique<PostUIPass>());
     renderGraph_->AddPass(std::make_unique<TopMostPass>());
     renderGraph_->AddPass(std::make_unique<SelectionOutlinePass>());

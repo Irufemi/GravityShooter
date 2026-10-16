@@ -276,6 +276,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Renderer\Pipeline\RenderGraph\ShadowPass.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\TransientResourceManager.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\UIPass.cpp" />
+    <ClCompile Include="Renderer\Pipeline\RenderGraph\PostProcessCopyPass.cpp" />
     <ClCompile Include="Renderer\Pipeline\RenderGraph\PostUIPass.cpp" />
     <ClCompile Include="Renderer\PostProcess\PostProcessManager.cpp" />
     <ClCompile Include="Renderer\PostProcess\PostProcessRunner.cpp" />
@@ -496,6 +497,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Renderer\Pipeline\RenderGraph\ShadowPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\TransientResourceManager.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\UIPass.h" />
+    <ClInclude Include="Renderer\Pipeline\RenderGraph\PostProcessCopyPass.h" />
+    <ClInclude Include="Renderer\Pipeline\RenderGraph\LambdaRenderPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\PostUIPass.h" />
     <ClInclude Include="Renderer\PostProcess\PostProcessManager.h" />
     <ClInclude Include="Renderer\PostProcess\PostProcessRunner.h" />

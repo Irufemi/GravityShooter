@@ -7,6 +7,8 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include "Renderer/Pipeline/RenderGraph/TransientResourceManager.h"
 
+#include "Renderer/Pipeline/RenderGraph/LambdaRenderPass.h"
+
 class DrawManager;
 class IrufemiEngine;
 
@@ -26,6 +28,15 @@ public:
      * @param[in] pass 登録する IRenderPass を実装したクラスのユニークポインタ
      */
     void AddPass(std::unique_ptr<IRenderPass> pass);
+
+    /**
+     * @brief ラムダ式を用いてインラインでパスを登録する（Unreal Engine RDG 準拠）
+     */
+    template <typename SetupFn, typename ExecFn>
+    void AddPass(const std::string& name, SetupFn&& setup, ExecFn&& exec) {
+        passes_.push_back(std::make_unique<LambdaRenderPass>(
+            name, std::forward<SetupFn>(setup), std::forward<ExecFn>(exec)));
+    }
 
     /**
      * @brief 登録されたすべてのパスを順に実行する

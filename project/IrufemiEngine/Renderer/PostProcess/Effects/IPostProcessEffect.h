@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Renderer/PostProcess/PostProcessManager.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include <d3d12.h>
 
 class RenderTexture;
-class RenderGraphBuilder;
 class RenderGraph;
 
 namespace Irufemi {
@@ -55,6 +55,13 @@ public:
      * @param context 描画コンテキスト
      */
     virtual void Render(const PostProcessRenderContext& context) = 0;
+
+    /**
+     * @brief このエフェクトの描画工程を RenderGraph にパスとして登録する
+     */
+    virtual void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
+                                TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
+                                bool writeToScreen) {}
 };
 
 } // namespace Irufemi

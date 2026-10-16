@@ -56,6 +56,14 @@ public:
                              bool isBackBufferTarget = false, const D3D12_VIEWPORT* targetViewport = nullptr,
                              const D3D12_RECT* targetScissor = nullptr);
 
+    /**
+     * @brief RenderGraphにポストプロセスの全サブパスを展開・登録する (Zero-Manual-Barriers)
+     */
+    void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
+                        const std::vector<PostProcessManager::Mode>& modes,
+                        TransientResourceHandle srcHandle, TransientResourceHandle dstHandle,
+                        bool isFinalOutput = true);
+
 private:
     bool RequiresSeparatePass(PostProcessManager::Mode mode) const;
 
