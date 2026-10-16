@@ -253,19 +253,7 @@ void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
     // レンダーグラフの構築
     renderGraph_ = std::make_unique<RenderGraph>();
     renderGraph_->InitializeTransientResourceManager(dxCommon_);
-
-    renderGraph_->AddPass(std::make_unique<ComputePass>());
-    renderGraph_->AddPass(std::make_unique<ShadowPass>());
-    renderGraph_->AddPass(std::make_unique<MainOpaquePass>());
-    renderGraph_->AddPass(std::make_unique<FogPass>());
-    renderGraph_->AddPass(std::make_unique<MainTransparentPass>());
-    renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PreUISrc"));
-    renderGraph_->AddPass(std::make_unique<PostProcessPass>());
-    renderGraph_->AddPass(std::make_unique<UIPass>());
-    renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc"));
-    renderGraph_->AddPass(std::make_unique<PostUIPass>());
-    renderGraph_->AddPass(std::make_unique<TopMostPass>());
-    renderGraph_->AddPass(std::make_unique<SelectionOutlinePass>());
+    BuildRenderGraph(engine_);
 
     // シャドウマップの初期化 (2048x2048) - 全フレーム分
     for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
@@ -1581,11 +1569,56 @@ void DrawManager::EndShadowPass() {
     }
 }
 
+void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
+    if (!renderGraph_ || !engine) {
+        return;
+    }
+
+    renderGraph_->ClearPasses();
+
+    // 1. GPGPU・シャドウ・不透明・フォグ・半透明ジオメトリ描画パス
+    renderGraph_->AddPass(std::make_unique<ComputePass>());
+    renderGraph_->AddPass(std::make_unique<ShadowPass>());
+    renderGraph_->AddPass(std::make_unique<MainOpaquePass>());
+    renderGraph_->AddPass(std::make_unique<FogPass>());
+    renderGraph_->AddPass(std::make_unique<MainTransparentPass>());
+
+    // 2. Pre-UI ポストプロセス（有効時のみパスを登録して不要なコピーとバリアを完全カリング）
+    auto ppMgr = engine->GetPostProcessManager();
+    const auto& preUiModes = ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PreUI)
+                                   : std::vector<PostProcessManager::Mode>{};
+    if (!preUiModes.empty()) {
+        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PreUISrc"));
+        renderGraph_->AddPass(std::make_unique<PostProcessPass>());
+    }
+
+    // 3. UI 描画パス
+    renderGraph_->AddPass(std::make_unique<UIPass>());
+
+    // 4. Post-UI ポストプロセス
+    const auto& postUiModes = ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PostUI)
+                                    : std::vector<PostProcessManager::Mode>{};
+    if (!postUiModes.empty()) {
+        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc"));
+        renderGraph_->AddPass(std::make_unique<PostUIPass>());
+    } else {
+        // PostUIエフェクトが無効な場合でも、メインテクスチャからバックバッファ/出力先への安全な最終画面転送を行う
+        renderGraph_->AddPass(std::make_unique<PostUIPass>());
+    }
+
+    // 5. 最前面UIおよび選択アウトライン
+    renderGraph_->AddPass(std::make_unique<TopMostPass>());
+    renderGraph_->AddPass(std::make_unique<SelectionOutlinePass>());
+}
+
 void DrawManager::ExecuteRenderQueues(IrufemiEngine* engine) {
     // 全スレッドのローカル描画キューをメインキューへ一括マージ
     MergeThreadLocalQueues();
 
     if (renderGraph_) {
+        // 有効なエフェクト状態や描画リクエストに応じて動的にRenderGraphを再構築
+        BuildRenderGraph(engine);
+
         // メインレンダリングテクスチャの初期状態を登録 (RenderGraph内で遷移するため)
         renderGraph_->SetInitialResourceState(engine->GetMainRenderTexture()->GetResource(),
                                               D3D12_RESOURCE_STATE_RENDER_TARGET);

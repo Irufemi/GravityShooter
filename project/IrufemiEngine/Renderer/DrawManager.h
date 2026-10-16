@@ -312,6 +312,11 @@ public:
 
     // --- Execute Queues ---
     /**
+     * @brief RenderGraphを現在のフレームの描画要求に応じて動的に構築する (Pass Culling & Dynamic Graph Building)
+     */
+    void BuildRenderGraph(class IrufemiEngine* engine);
+
+    /**
      * @brief ExecuteRenderQueues を実行する。
      */
     void ExecuteRenderQueues(class IrufemiEngine* engine);
