@@ -58,6 +58,14 @@ class DirectXCommon;
 class IrufemiEngine;
 class PostProcessRunner;
 
+namespace Irufemi {
+class BloomEffect;
+class LightShaftsEffect;
+class SeparableBlurEffect;
+class KawaseBlurEffect;
+class CombinedPostEffect;
+}
+
 /**
  * @struct PostProcessModeInfo
  * @brief エフェクトとその優先度を保持する内部用構造体
@@ -105,6 +113,11 @@ enum class EffectLayer {
 
 class PostProcessManager {
     friend class PostProcessRunner;
+    friend class Irufemi::BloomEffect;
+    friend class Irufemi::LightShaftsEffect;
+    friend class Irufemi::SeparableBlurEffect;
+    friend class Irufemi::KawaseBlurEffect;
+    friend class Irufemi::CombinedPostEffect;
 
 public:
     using Mode = PostProcessMode;

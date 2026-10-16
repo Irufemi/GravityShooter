@@ -279,6 +279,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Renderer\Pipeline\RenderGraph\PostUIPass.cpp" />
     <ClCompile Include="Renderer\PostProcess\PostProcessManager.cpp" />
     <ClCompile Include="Renderer\PostProcess\PostProcessRunner.cpp" />
+    <ClCompile Include="Renderer\PostProcess\Effects\BloomEffect.cpp" />
+    <ClCompile Include="Renderer\PostProcess\Effects\LightShaftsEffect.cpp" />
+    <ClCompile Include="Renderer\PostProcess\Effects\SeparableBlurEffect.cpp" />
+    <ClCompile Include="Renderer\PostProcess\Effects\KawaseBlurEffect.cpp" />
+    <ClCompile Include="Renderer\PostProcess\Effects\CombinedPostEffect.cpp" />
     <ClCompile Include="Core\System\EngineCVars.cpp" />
     <ClCompile Include="Framework\Utility\CVar.cpp" />
     <ClCompile Include="Core\System\IrufemiEngine.cpp" />
@@ -550,6 +555,13 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Framework\Component\Effect\GlobalPostProcessComponent.h" />
     <ClInclude Include="Framework\Component\Effect\FogComponent.h" />
     <ClInclude Include="Framework\Component\Effect\PostProcessSettings.h" />
+    <ClInclude Include="Renderer\PostProcess\Effects\IPostProcessEffect.h" />
+    <ClInclude Include="Renderer\PostProcess\Effects\PostProcessEffectUtils.h" />
+    <ClInclude Include="Renderer\PostProcess\Effects\BloomEffect.h" />
+    <ClInclude Include="Renderer\PostProcess\Effects\LightShaftsEffect.h" />
+    <ClInclude Include="Renderer\PostProcess\Effects\SeparableBlurEffect.h" />
+    <ClInclude Include="Renderer\PostProcess\Effects\KawaseBlurEffect.h" />
+    <ClInclude Include="Renderer\PostProcess\Effects\CombinedPostEffect.h" />
     <ClInclude Include="Framework\Component\UI\ButtonComponent.h" />
     <ClInclude Include="Framework\Component\UI\SliderComponent.h" />
     <ClInclude Include="Framework\Component\UI\CanvasComponent.h" />
