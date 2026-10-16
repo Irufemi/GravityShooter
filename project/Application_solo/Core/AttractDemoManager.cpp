@@ -34,7 +34,15 @@ inline float SmoothStep(float t) {
 void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
-    isKioskLoopMode_ = true;                  // 常時ループ展示モードをデフォルト有効化！
+#ifdef EditorMode
+    isKioskLoopMode_ = false;                  // エディタ開発環境では展示ループを初期無効化
+    s_isKioskModeActive_ = false;
+    s_isAttractModeActive_ = false;
+#else
+    isKioskLoopMode_ = true;                  // スタンドアロン展示ビルドではループ展示を有効化
+    s_isKioskModeActive_ = true;
+    s_isAttractModeActive_ = true;
+#endif
     demoMode_ = DemoMode::TransitionShowcase; // 画面遷移ショーケースデモをデフォルトに設定
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
@@ -46,8 +54,6 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
-    s_isKioskModeActive_ = true;
-    s_isAttractModeActive_ = true;
 }
 
 void AttractDemoManager::OnFinalize() {
@@ -62,6 +68,17 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
     if (!engine_) {
         return;
     }
+
+#ifdef EditorMode
+    // エディタ非Play（Edit）状態では、ゲームデモのタイマー更新や自動遷移を完全停止
+    if (!engine_->IsPlayMode()) {
+        s_isKioskModeActive_ = false;
+        s_isAttractModeActive_ = false;
+        isDemoPlaying_ = false;
+        isDemoInGame_ = false;
+        return;
+    }
+#endif
 
     if (deltaTime <= 0.0f) {
         deltaTime = 1.0f / 60.0f;

@@ -40,10 +40,23 @@ public:
 
     /**
      * @brief ヒープ上の指定オフセットにリソースを作成・配置する
+     * @param desc リソース記述子
+     * @param offset ヒープ上のオフセット
+     * @param initialState 新規作成時の初期ステート
+     * @param clearValue クリア値（任意）
+     * @param[out] outCurrentState キャッシュ再利用または新規作成時の実際のリソースステートを受け取るポインタ（任意）
      * @return 成功時はリソースのポインタ、失敗時はnullptr
      */
     ID3D12Resource* AcquirePlacedResource(const D3D12_RESOURCE_DESC& desc, uint64_t offset,
-                                          D3D12_RESOURCE_STATES initialState, const D3D12_CLEAR_VALUE* clearValue);
+                                          D3D12_RESOURCE_STATES initialState, const D3D12_CLEAR_VALUE* clearValue,
+                                          D3D12_RESOURCE_STATES* outCurrentState = nullptr);
+
+    /**
+     * @brief リソースの最新ステートをキャッシュ情報に反映する
+     * @param resource 対象リソース
+     * @param state 更新後のステート
+     */
+    void UpdateResourceState(ID3D12Resource* resource, D3D12_RESOURCE_STATES state);
 
     /**
      * @brief HeapSize を取得する。
@@ -74,6 +87,7 @@ private:
         Microsoft::WRL::ComPtr<ID3D12Resource> resource;
         bool inUse;
         uint64_t allocationSize;
+        D3D12_RESOURCE_STATES currentState = D3D12_RESOURCE_STATE_COMMON;
     };
     std::vector<CachedResource> resourcePool_;
 };

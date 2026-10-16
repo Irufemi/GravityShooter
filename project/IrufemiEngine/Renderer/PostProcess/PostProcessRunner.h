@@ -5,6 +5,7 @@
 #include <d3d12.h>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 class RenderGraph;
 
@@ -30,12 +31,14 @@ public:
      * @brief 有効なエフェクト群およびピンポンバッファに必要な一時リソースを申告する
      */
     void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,
-                          const std::vector<PostProcessManager::Mode>& modes);
+                          const std::vector<PostProcessManager::Mode>& modes,
+                          PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI);
 
     /**
      * @brief RenderGraphから一時リソースを解決する
      */
-    void ResolveResources(RenderGraph* renderGraph, const std::vector<PostProcessManager::Mode>& modes);
+    void ResolveResources(RenderGraph* renderGraph, const std::vector<PostProcessManager::Mode>& modes,
+                          PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI);
 
     /**
      * @brief Ping-Pong方式で指定されたエフェクト配列を順次ディスパッチする
@@ -44,6 +47,7 @@ public:
      * @param modes 実行するエフェクトのリスト
      * @param srcTexture 最初の入力テクスチャ
      * @param rtvHandle 最終出力先のレンダーターゲットビュー (isFinalOutput=trueの場合に使用)
+     * @param layer 実行レイヤー (PreUI / PostUI)
      * @param isFinalOutput このランナーの最後がバックバッファへの出力かどうか
      * @param isBackBufferTarget バックバッファ描画フラグ
      * @param targetViewport 明示的ビューポート
@@ -52,8 +56,10 @@ public:
      */
     class RenderTexture* Run(PostProcessManager* manager, ID3D12GraphicsCommandList* commandList,
                              const std::vector<PostProcessManager::Mode>& modes, class RenderTexture* srcTexture,
-                             D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalOutput = true,
-                             bool isBackBufferTarget = false, const D3D12_VIEWPORT* targetViewport = nullptr,
+                             D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
+                             PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI,
+                             bool isFinalOutput = true, bool isBackBufferTarget = false,
+                             const D3D12_VIEWPORT* targetViewport = nullptr,
                              const D3D12_RECT* targetScissor = nullptr);
 
     /**
@@ -62,13 +68,25 @@ public:
     void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
                         const std::vector<PostProcessManager::Mode>& modes,
                         TransientResourceHandle srcHandle, TransientResourceHandle dstHandle,
+                        PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI,
                         bool isFinalOutput = true);
 
 private:
     bool RequiresSeparatePass(PostProcessManager::Mode mode) const;
 
-    TransientResourceHandle workHandles_[2] = {kInvalidHandle, kInvalidHandle};
-    class RenderTexture* workTextures_[2] = {nullptr, nullptr};
+    void TransitionResource(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource,
+                            D3D12_RESOURCE_STATES targetState);
+
+    std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> localResourceStates_;
+
+    TransientResourceHandle workHandles_[2][2] = {
+        {kInvalidHandle, kInvalidHandle},
+        {kInvalidHandle, kInvalidHandle}
+    };
+    class RenderTexture* workTextures_[2][2] = {
+        {nullptr, nullptr},
+        {nullptr, nullptr}
+    };
 
     std::unique_ptr<Irufemi::BloomEffect> bloomEffect_;
     std::unique_ptr<Irufemi::LightShaftsEffect> lightShaftsEffect_;

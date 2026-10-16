@@ -151,8 +151,11 @@ void SceneViewPanel::Draw() {
 
                 engine->GetInputManager()->SetVirtualMousePosition(scaledVirtualPos, true);
 
-                if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
-                    cameraController_.UpdateCameraInput(camera, engine->GetInputManager());
+                // 非Play（Edit）時のみエディタカメラの操作入力を受け付ける（Play中はゲームカメラに委譲）
+                if (!editorManager_->IsPlayMode()) {
+                    if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
+                        cameraController_.UpdateCameraInput(camera, engine->GetInputManager());
+                    }
                 }
 
                 HandlePicking(mousePos, minPos, maxPos, size);

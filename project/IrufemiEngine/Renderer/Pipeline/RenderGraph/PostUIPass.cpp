@@ -44,7 +44,7 @@ void PostUIPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext
     if (!activeModes.empty()) {
         D3D12_RESOURCE_DESC desc = mainRenderTex->GetResource()->GetDesc();
         if (auto* runner = ppMgr->GetRunner()) {
-            runner->DeclareResources(builder, desc, activeModes);
+            runner->DeclareResources(builder, desc, activeModes, PostProcessManager::Layer::PostUI);
         }
     }
 }
@@ -60,9 +60,14 @@ void PostUIPass::Execute(const Irufemi::RenderContext& rc) {
     auto* renderGraph = drawManager->GetRenderGraph();
     const auto& activeModes = ppMgr->GetActiveModes(PostProcessManager::Layer::PostUI);
 
+    if (rc.isEditorMode && activeModes.empty()) {
+        // エディタモードでは MainRenderTexture 自身が出力先であるため、エフェクトなし時の自己コピーをスキップ
+        return;
+    }
+
     if (!activeModes.empty()) {
         if (auto* runner = ppMgr->GetRunner()) {
-            runner->ResolveResources(renderGraph, activeModes);
+            runner->ResolveResources(renderGraph, activeModes, PostProcessManager::Layer::PostUI);
         }
     }
 

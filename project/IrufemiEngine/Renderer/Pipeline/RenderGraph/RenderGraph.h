@@ -124,7 +124,6 @@ private:
     std::vector<std::unique_ptr<IRenderPass>> passes_;
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> resourceStates_;
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> finalResourceStates_;
-    std::unordered_map<uint64_t, ID3D12Resource*> activeResourceByOffset_;
 
     std::unique_ptr<TransientResourceManager> transientResourceManager_;
     std::vector<ID3D12Resource*> transientPhysicalResources_;

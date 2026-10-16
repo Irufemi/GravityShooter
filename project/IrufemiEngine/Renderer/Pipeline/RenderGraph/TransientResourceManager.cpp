@@ -51,7 +51,8 @@ void TransientResourceManager::ResetForFrame() {
 
 ID3D12Resource* TransientResourceManager::AcquirePlacedResource(const D3D12_RESOURCE_DESC& desc, uint64_t offset,
                                                                 D3D12_RESOURCE_STATES initialState,
-                                                                const D3D12_CLEAR_VALUE* clearValue) {
+                                                                const D3D12_CLEAR_VALUE* clearValue,
+                                                                D3D12_RESOURCE_STATES* outCurrentState) {
     if (!heap_) {
         return nullptr;
     }
@@ -70,6 +71,9 @@ ID3D12Resource* TransientResourceManager::AcquirePlacedResource(const D3D12_RESO
             res.desc.DepthOrArraySize == desc.DepthOrArraySize && clearValueMatch) {
 
             res.inUse = true;
+            if (outCurrentState) {
+                *outCurrentState = res.currentState;
+            }
             return res.resource.Get();
         }
     }
@@ -92,6 +96,10 @@ ID3D12Resource* TransientResourceManager::AcquirePlacedResource(const D3D12_RESO
             cache.clearValue = *clearValue;
         }
         cache.allocationSize = allocInfo.SizeInBytes;
+        cache.currentState = initialState;
+        if (outCurrentState) {
+            *outCurrentState = initialState;
+        }
         resourcePool_.push_back(cache);
         return resource.Get();
     }
@@ -100,6 +108,18 @@ ID3D12Resource* TransientResourceManager::AcquirePlacedResource(const D3D12_RESO
     HR_CHECK(hr, "TransientResourceManager: CreatePlacedResource failed!");
 
     return nullptr;
+}
+
+void TransientResourceManager::UpdateResourceState(ID3D12Resource* resource, D3D12_RESOURCE_STATES state) {
+    if (!resource) {
+        return;
+    }
+    for (auto& res : resourcePool_) {
+        if (res.resource.Get() == resource) {
+            res.currentState = state;
+            return;
+        }
+    }
 }
 
 #ifdef USE_IMGUI

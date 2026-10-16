@@ -57,7 +57,7 @@ void PostProcessPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderCo
         // Runner および各エフェクトへ中間リソース宣言を委譲
         D3D12_RESOURCE_DESC desc = mainRenderTex->GetResource()->GetDesc();
         if (auto* runner = ppMgr->GetRunner()) {
-            runner->DeclareResources(builder, desc, activeModes);
+            runner->DeclareResources(builder, desc, activeModes, PostProcessManager::Layer::PreUI);
         }
     }
 }
@@ -71,11 +71,11 @@ void PostProcessPass::Execute(const Irufemi::RenderContext& rc) {
     auto ppMgr = engine->GetPostProcessManager();
     auto* cmdList = drawManager->GetDxCommon()->GetCommandList();
     auto* renderGraph = drawManager->GetRenderGraph();
-    const auto& activeModes = ppMgr->GetActiveModes();
+    const auto& activeModes = ppMgr->GetActiveModes(PostProcessManager::Layer::PreUI);
 
     if (!activeModes.empty()) {
         if (auto* runner = ppMgr->GetRunner()) {
-            runner->ResolveResources(renderGraph, activeModes);
+            runner->ResolveResources(renderGraph, activeModes, PostProcessManager::Layer::PreUI);
         }
     }
 

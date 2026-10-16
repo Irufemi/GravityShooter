@@ -1602,8 +1602,10 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
         renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc"));
         renderGraph_->AddPass(std::make_unique<PostUIPass>());
     } else {
-        // PostUIエフェクトが無効な場合でも、メインテクスチャからバックバッファ/出力先への安全な最終画面転送を行う
+#ifndef EditorMode
+        // スタンドアロン実行時は、PostUIエフェクトが無効な場合でもメインテクスチャからバックバッファへの最終画面転送を行う
         renderGraph_->AddPass(std::make_unique<PostUIPass>());
+#endif
     }
 
     // 5. 最前面UIおよび選択アウトライン

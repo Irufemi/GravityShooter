@@ -214,7 +214,7 @@ void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderText
     combinedParams_.useMask = (layer == Layer::PreUI) ? 1 : 0;
 
     if (runner_) {
-        runner_->Run(this, commandList, modesToDraw, srcTexture, rtvHandle, true, isBackBufferTarget,
+        runner_->Run(this, commandList, modesToDraw, srcTexture, rtvHandle, layer, true, isBackBufferTarget,
                      targetViewport, targetScissor);
     }
 }
