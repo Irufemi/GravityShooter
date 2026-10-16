@@ -629,6 +629,34 @@ auto obj = scene->FindGameObjectByID(targetId);
 本エンジンの描画は **RenderGraph（レンダーグラフ）** という仕組みで自動管理されています。
 ユーザーが `Draw()` を呼ぶと、すぐに画面に描画されるわけではなく、**DrawManagerのキュー（予約リスト）に登録（Submit）** されます。その後、エンジン側が適切な順序（Opaque → Transparent → UIなど）でまとめてGPUへ描画命令を出します。
 
+##### 1. リソースバリアの自動管理（手動バリア不要）
+RenderGraph では、各パスが使用するテクスチャ等のリソース状態（`SRV` / `RTV` / `UAV` / `COPY_DEST` 等）を `Setup` フェーズで宣言します。
+エンジンが直前の状態から必要なステートへの `TransitionBarrier` を自動で計算・発行するため、**描画パスやシェーダー呼び出し側で手動バリアを記述する必要はありません**。
+
+##### 2. 一時テクスチャ（Transient Resource）のメモリ再利用
+ポストプロセスの中間テクスチャなど、フレーム内でのみ使用するリソースは `CreateTransientResource` で確保します。
+寿命（最初に使用されるパスから最後に使用されるパス）が重複しない一時リソース同士は、同一のGPUメモリヒープ上で自動的にエイリアシング（再利用）され、VRAM消費量を大幅に削減します。
+また、ポストプロセスが無効なフレームでは不要なパスやコピー処理自体が自動的に除外（パスカリング）されます。
+
+##### 3. ラムダ式による軽量パス登録（AddPass）
+簡単な描画処理やカスタムエフェクトを追加する場合、クラスを新規定義せずにラムダ式で直接パスを登録できます。
+
+```cpp
+// 例: ラムダ式を用いたレンダーパスの登録
+renderGraph->AddPass("CustomEffectPass",
+    [inputHandle, outputHandle](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
+        // 1. 入出力リソースに必要なステートを宣言
+        builder.RequireTransientState(inputHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        builder.RequireTransientState(outputHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    },
+    [inputHandle, outputHandle](const Irufemi::RenderContext& rc) {
+        // 2. 描画コマンドの発行（バリアは直前に自動発行済み）
+        auto* cmdList = rc.commandList;
+        // ... パイプライン設定と描画コマンド ...
+    }
+);
+```
+
 #### 2.1.4 カメラの操作 (CameraManager / Camera)
 3D空間を描画するための「視点」を管理します。
 
@@ -2386,8 +2414,9 @@ void ExampleScene::DrawDebugTab() {
    - ゲームロジックは必ず `Application/` ディレクトリ配下に作成します。
 
 2. **新しい描画表現 (RenderPass) の追加**
-   - 独自のシェーダーや特殊な描画パイプラインを追加したい場合は、`DrawManager` に直接書くのではなく、`IRenderPass` を継承したクラスを作成し、`RenderGraph` に登録してください。
-   - これにより、他の描画パスに影響を与えずに安全に機能を追加できます。
+   - 独自のシェーダーや特殊な描画パイプラインを追加したい場合は、`DrawManager` に直接ハードコードするのではなく、`IRenderPass` を継承したクラスを作成するか、`renderGraph->AddPass`（ラムダ登録）を用いて `RenderGraph` に登録してください。
+   - **ポストプロセスエフェクトを追加する場合**:
+     `IPostProcessEffect` インターフェースを継承したクラスを作成し、`PopulatePasses` を実装して RenderGraph にサブパスを登録します。エフェクト内部で `DirectXUtils::TransitionBarrier` 等の手動バリアは記述せず、必ず `builder.RequireTransientState(...)` または `builder.RequireState(...)` でリソース状態を宣言してください。RenderGraph が自動的に最小限のバリアを計算・発行します。
 
 3. **ドキュメントの更新**
    - `Manager` の関数名を変えたり、全く新しい機能（例: ECSシステム）を導入した場合は、必ずこの `Manual.md` も合わせて更新し、チームメンバーがすぐに使えるようにしてください。
