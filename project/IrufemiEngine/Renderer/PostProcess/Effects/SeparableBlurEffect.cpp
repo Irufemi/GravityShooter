@@ -1,4 +1,5 @@
 #include "Renderer/PostProcess/Effects/SeparableBlurEffect.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "RHI/DirectX12/RenderTexture.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 
@@ -6,15 +7,29 @@ namespace Irufemi {
 
 SeparableBlurEffect::SeparableBlurEffect(PostProcessManager::Mode mode) : mode_(mode) {}
 
+void SeparableBlurEffect::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) {
+    D3D12_RESOURCE_DESC workDesc = baseDesc;
+    workDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    blurIntermediateHandle_ = builder.CreateTransientResource("SeparableBlurIntermediate", workDesc);
+    builder.RequireTransientState(blurIntermediateHandle_, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+}
+
+void SeparableBlurEffect::ResolveResources(RenderGraph* renderGraph) {
+    if (renderGraph) {
+        blurIntermediateTex_ = (blurIntermediateHandle_ != kInvalidHandle)
+                                   ? renderGraph->GetTransientRenderTexture(blurIntermediateHandle_)
+                                   : nullptr;
+    }
+}
+
 void SeparableBlurEffect::Render(const PostProcessRenderContext& context) {
     auto* manager = context.manager;
     auto* commandList = context.commandList;
     auto* currentSource = context.sourceTexture;
     D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = context.targetRtv;
-    const auto& workspace = *(context.workspace);
     bool writeToScreen = context.writeToScreen;
 
-    RenderTexture* blurH = workspace.bloomBlur;
+    RenderTexture* blurH = blurIntermediateTex_;
     if (!blurH) {
         return;
     }

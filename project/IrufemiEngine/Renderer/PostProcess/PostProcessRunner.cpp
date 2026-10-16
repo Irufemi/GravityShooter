@@ -4,6 +4,7 @@
 #include "Renderer/PostProcess/Effects/SeparableBlurEffect.h"
 #include "Renderer/PostProcess/Effects/KawaseBlurEffect.h"
 #include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "RHI/DirectX12/RenderTexture.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 #include <algorithm>
@@ -27,10 +28,72 @@ bool PostProcessRunner::RequiresSeparatePass(Mode mode) const {
             mode == Mode::DirectionalBlur || mode == Mode::DepthOfField);
 }
 
+void PostProcessRunner::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,
+                                         const std::vector<Mode>& modes) {
+    if (modes.empty()) {
+        return;
+    }
+
+    // 1. ピンポン作業用バッファ2枚の作成（UNORM）
+    D3D12_RESOURCE_DESC workDesc = baseDesc;
+    workDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    workHandles_[0] = builder.CreateTransientResource("PP_Work0", workDesc);
+    workHandles_[1] = builder.CreateTransientResource("PP_Work1", workDesc);
+    builder.RequireTransientState(workHandles_[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    builder.RequireTransientState(workHandles_[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    // 2. 有効な各エフェクトに中間リソース宣言を委譲
+    bool hasBloom = false;
+    bool hasLightShafts = false;
+    bool hasSmoothing = false;
+    bool hasGaussian = false;
+    bool hasKawase = false;
+
+    for (auto mode : modes) {
+        if (mode == Mode::Bloom) hasBloom = true;
+        if (mode == Mode::LightShafts) hasLightShafts = true;
+        if (mode == Mode::Smoothing) hasSmoothing = true;
+        if (mode == Mode::GaussianFilter) hasGaussian = true;
+        if (mode == Mode::DualKawaseBlur) hasKawase = true;
+    }
+
+    if (hasBloom && bloomEffect_) {
+        bloomEffect_->DeclareResources(builder, baseDesc);
+    }
+    if (hasLightShafts && lightShaftsEffect_) {
+        lightShaftsEffect_->DeclareResources(builder, baseDesc);
+    }
+    if (hasSmoothing && smoothingEffect_) {
+        smoothingEffect_->DeclareResources(builder, baseDesc);
+    }
+    if (hasGaussian && gaussianEffect_) {
+        gaussianEffect_->DeclareResources(builder, baseDesc);
+    }
+    if (hasKawase && kawaseBlurEffect_) {
+        kawaseBlurEffect_->DeclareResources(builder, baseDesc);
+    }
+}
+
+void PostProcessRunner::ResolveResources(RenderGraph* renderGraph, const std::vector<Mode>& modes) {
+    if (!renderGraph || modes.empty()) {
+        return;
+    }
+
+    workTextures_[0] = (workHandles_[0] != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(workHandles_[0]) : nullptr;
+    workTextures_[1] = (workHandles_[1] != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(workHandles_[1]) : nullptr;
+
+    for (auto mode : modes) {
+        if (mode == Mode::Bloom && bloomEffect_) bloomEffect_->ResolveResources(renderGraph);
+        if (mode == Mode::LightShafts && lightShaftsEffect_) lightShaftsEffect_->ResolveResources(renderGraph);
+        if (mode == Mode::Smoothing && smoothingEffect_) smoothingEffect_->ResolveResources(renderGraph);
+        if (mode == Mode::GaussianFilter && gaussianEffect_) gaussianEffect_->ResolveResources(renderGraph);
+        if (mode == Mode::DualKawaseBlur && kawaseBlurEffect_) kawaseBlurEffect_->ResolveResources(renderGraph);
+    }
+}
+
 RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12GraphicsCommandList* commandList,
                                       const std::vector<Mode>& modes, RenderTexture* srcTexture,
-                                      D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
-                                      const PostProcessManager::PostProcessWorkspace& workspace, bool isFinalOutput,
+                                      D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalOutput,
                                       bool isBackBufferTarget, const D3D12_VIEWPORT* targetViewport,
                                       const D3D12_RECT* targetScissor) {
     RenderTexture* currentSource = srcTexture;
@@ -48,7 +111,8 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         // 1. Bloom
         if (mode == Mode::Bloom) {
             writeToScreen = false;
-            RenderTexture* nextTarget = workspace.workTextures[pingPongIdx % 2];
+            RenderTexture* nextTarget = workTextures_[pingPongIdx % 2];
+            if (!nextTarget) break;
             D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = nextTarget->GetRtvHandle();
 
             DirectXUtils::TransitionBarrier(commandList, nextTarget->GetResource(),
@@ -56,7 +120,7 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
                                             D3D12_RESOURCE_STATE_RENDER_TARGET);
 
             Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle, &workspace,
+                manager, commandList, currentSource, targetHandle,
                 writeToScreen, isBackBufferTarget, targetViewport, targetScissor
             };
             bloomEffect_->Render(ctx);
@@ -71,22 +135,22 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         }
         // 2. Light Shafts (ゴッドレイ)
         else if (mode == Mode::LightShafts) {
-            RenderTexture* nextTarget = writeToScreen ? nullptr : workspace.workTextures[pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : nextTarget->GetRtvHandle();
+            RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[pingPongIdx % 2];
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
-            if (!writeToScreen) {
+            if (!writeToScreen && nextTarget) {
                 DirectXUtils::TransitionBarrier(commandList, nextTarget->GetResource(),
                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                                 D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
 
             Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle, &workspace,
+                manager, commandList, currentSource, targetHandle,
                 writeToScreen, isBackBufferTarget, targetViewport, targetScissor
             };
             lightShaftsEffect_->Render(ctx);
 
-            if (!writeToScreen) {
+            if (!writeToScreen && nextTarget) {
                 DirectXUtils::TransitionBarrier(commandList, nextTarget->GetResource(),
                                                 D3D12_RESOURCE_STATE_RENDER_TARGET,
                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -100,17 +164,17 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         }
         // 3. Smoothing / GaussianFilter
         else if (mode == Mode::Smoothing || mode == Mode::GaussianFilter) {
-            RenderTexture* nextTarget = writeToScreen ? nullptr : workspace.workTextures[pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : nextTarget->GetRtvHandle();
+            RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[pingPongIdx % 2];
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
-            if (!writeToScreen) {
+            if (!writeToScreen && nextTarget) {
                 DirectXUtils::TransitionBarrier(commandList, nextTarget->GetResource(),
                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                                 D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
 
             Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle, &workspace,
+                manager, commandList, currentSource, targetHandle,
                 writeToScreen, isBackBufferTarget, targetViewport, targetScissor
             };
 
@@ -120,7 +184,7 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
                 gaussianEffect_->Render(ctx);
             }
 
-            if (!writeToScreen) {
+            if (!writeToScreen && nextTarget) {
                 DirectXUtils::TransitionBarrier(commandList, nextTarget->GetResource(),
                                                 D3D12_RESOURCE_STATE_RENDER_TARGET,
                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -134,16 +198,16 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         }
         // 4. DualKawaseBlur
         else if (mode == Mode::DualKawaseBlur) {
-            RenderTexture* nextTarget = writeToScreen ? nullptr : workspace.workTextures[pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : nextTarget->GetRtvHandle();
+            RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[pingPongIdx % 2];
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
             Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle, &workspace,
+                manager, commandList, currentSource, targetHandle,
                 writeToScreen, isBackBufferTarget, targetViewport, targetScissor
             };
             kawaseBlurEffect_->Render(ctx);
 
-            if (!writeToScreen) {
+            if (!writeToScreen && nextTarget) {
                 pingPongIdx++;
                 finalWrittenTexture = nextTarget;
             } else {
@@ -180,10 +244,10 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
             if (writeToScreen) {
                 needsFinalPass = false;
             }
-            RenderTexture* nextTarget = writeToScreen ? nullptr : workspace.workTextures[pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : nextTarget->GetRtvHandle();
+            RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[pingPongIdx % 2];
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
-            if (!writeToScreen) {
+            if (!writeToScreen && nextTarget) {
                 DirectXUtils::TransitionBarrier(commandList, nextTarget->GetResource(),
                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                                 D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -191,12 +255,12 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
 
             combinedEffect_->SetBatch(batch);
             Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle, &workspace,
+                manager, commandList, currentSource, targetHandle,
                 writeToScreen, isBackBufferTarget, targetViewport, targetScissor
             };
             combinedEffect_->Render(ctx);
 
-            if (!writeToScreen) {
+            if (!writeToScreen && nextTarget) {
                 DirectXUtils::TransitionBarrier(commandList, nextTarget->GetResource(),
                                                 D3D12_RESOURCE_STATE_RENDER_TARGET,
                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -213,7 +277,7 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
     // 最終出力パス（中間テクスチャからバックバッファへの転送が必要な場合）
     if (needsFinalPass) {
         Irufemi::PostProcessRenderContext ctx{
-            manager, commandList, currentSource, rtvHandle, &workspace,
+            manager, commandList, currentSource, rtvHandle,
             true, isBackBufferTarget, targetViewport, targetScissor
         };
         Irufemi::CombinedPostEffect::RenderFinalCopyPass(ctx);

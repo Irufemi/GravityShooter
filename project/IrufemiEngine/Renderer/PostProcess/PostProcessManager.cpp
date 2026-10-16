@@ -11,6 +11,9 @@
 #include <string>
 #include <wrl/client.h>
 
+PostProcessManager::PostProcessManager() : runner_(std::make_unique<PostProcessRunner>()) {}
+PostProcessManager::~PostProcessManager() = default;
+
 void PostProcessManager::Initialize(IrufemiEngine* engine, DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat) {
     engine_ = engine;
     dxCommon_ = dxCommon;
@@ -191,7 +194,7 @@ void PostProcessManager::Update(float totalTime) {
 }
 
 void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderTexture* srcTexture,
-                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, const PostProcessWorkspace& workspace, Layer layer,
+                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer,
                               bool isBackBufferTarget, const D3D12_VIEWPORT* targetViewport,
                               const D3D12_RECT* targetScissor) {
     // bindlessBufferOffset_ と combinedBufferOffset_ は PreUI (最初のパス) のみリセットする
@@ -210,9 +213,10 @@ void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderText
 
     combinedParams_.useMask = (layer == Layer::PreUI) ? 1 : 0;
 
-    PostProcessRunner runner;
-    runner.Run(this, commandList, modesToDraw, srcTexture, rtvHandle, workspace, true, isBackBufferTarget,
-               targetViewport, targetScissor);
+    if (runner_) {
+        runner_->Run(this, commandList, modesToDraw, srcTexture, rtvHandle, true, isBackBufferTarget,
+                     targetViewport, targetScissor);
+    }
 }
 
 void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,

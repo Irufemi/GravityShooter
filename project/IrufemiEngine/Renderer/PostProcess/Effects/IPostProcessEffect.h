@@ -4,6 +4,8 @@
 #include <d3d12.h>
 
 class RenderTexture;
+class RenderGraphBuilder;
+class RenderGraph;
 
 namespace Irufemi {
 
@@ -16,7 +18,6 @@ struct PostProcessRenderContext {
     ID3D12GraphicsCommandList* commandList = nullptr;
     RenderTexture* sourceTexture = nullptr;
     D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
-    const PostProcessManager::PostProcessWorkspace* workspace = nullptr;
     bool writeToScreen = false;
     bool isBackBufferTarget = false;
     const D3D12_VIEWPORT* targetViewport = nullptr;
@@ -35,6 +36,19 @@ public:
      * @brief このエフェクトが独立した描画パスを要求するかどうか
      */
     virtual bool RequiresSeparatePass() const { return false; }
+
+    /**
+     * @brief このエフェクトが必要とする一時リソースを申告する
+     * @param builder RenderGraphビルダー
+     * @param baseDesc 入力リソースの基本デスクリプション
+     */
+    virtual void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) {}
+
+    /**
+     * @brief RenderGraphから一時リソースの解決（ポインタ取得）を行う
+     * @param renderGraph RenderGraphインスタンス
+     */
+    virtual void ResolveResources(RenderGraph* renderGraph) {}
 
     /**
      * @brief エフェクトの描画コマンドを発行する

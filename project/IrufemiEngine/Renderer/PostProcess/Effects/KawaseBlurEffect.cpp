@@ -1,17 +1,40 @@
 #include "Renderer/PostProcess/Effects/KawaseBlurEffect.h"
 #include "Renderer/PostProcess/Effects/PostProcessEffectUtils.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "RHI/DirectX12/RenderTexture.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 #include <algorithm>
+#include <string>
 
 namespace Irufemi {
+
+void KawaseBlurEffect::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) {
+    D3D12_RESOURCE_DESC kwDesc = baseDesc;
+    kwDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    for (int i = 0; i < PostProcessManager::kMaxKawaseIterations; ++i) {
+        kwDesc.Width = (std::max<UINT64>)(1, kwDesc.Width / 2);
+        kwDesc.Height = (std::max<UINT>)(1, kwDesc.Height / 2);
+        std::string name = "PP_Kawase_" + std::to_string(i);
+        handles_[i] = builder.CreateTransientResource(name, kwDesc);
+        builder.RequireTransientState(handles_[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    }
+}
+
+void KawaseBlurEffect::ResolveResources(RenderGraph* renderGraph) {
+    if (renderGraph) {
+        for (int i = 0; i < PostProcessManager::kMaxKawaseIterations; ++i) {
+            textures_[i] = (handles_[i] != kInvalidHandle)
+                               ? renderGraph->GetTransientRenderTexture(handles_[i])
+                               : nullptr;
+        }
+    }
+}
 
 void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
     auto* manager = context.manager;
     auto* commandList = context.commandList;
     auto* currentSource = context.sourceTexture;
     D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = context.targetRtv;
-    const auto& workspace = *(context.workspace);
     bool writeToScreen = context.writeToScreen;
 
     int32_t iterations = (std::min)(PostProcessManager::kMaxKawaseIterations,
@@ -20,7 +43,7 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
 
     // 1. Downsample Pass Loop
     for (int i = 0; i < iterations; ++i) {
-        RenderTexture* kwTex = workspace.kawaseTextures[i];
+        RenderTexture* kwTex = textures_[i];
         if (!kwTex) {
             break;
         }
@@ -54,7 +77,7 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
 
     // 2. Upsample Pass Loop
     for (int i = iterations - 2; i >= 0; --i) {
-        RenderTexture* kwTex = workspace.kawaseTextures[i];
+        RenderTexture* kwTex = textures_[i];
         if (!kwTex && i != 0) {
             continue;
         }

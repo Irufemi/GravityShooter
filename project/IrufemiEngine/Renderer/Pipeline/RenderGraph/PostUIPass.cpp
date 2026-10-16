@@ -3,6 +3,7 @@
 #include "Renderer/DrawManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
+#include "Renderer/PostProcess/PostProcessRunner.h"
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
@@ -35,8 +36,6 @@ void PostUIPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext
         builder.RequireState(tex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     }
 
-    workTextureHandles_.clear();
-
     D3D12_RESOURCE_DESC desc = mainRenderTex->GetResource()->GetDesc();
 
     // 入力ソース退避用テクスチャ (エフェクトの有無に関わらず常に必要)
@@ -44,16 +43,8 @@ void PostUIPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext
     builder.RequireTransientState(postUiSrcHandle_, D3D12_RESOURCE_STATE_COPY_DEST);
 
     if (!activeModes.empty()) {
-        // ピンポンバッファ用の一時テクスチャ (最大2枚)
-        // ポストプロセスの中間計算はリニア空間で行うため、UNORM を指定する
-        D3D12_RESOURCE_DESC workDesc = desc;
-        workDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        workTextureHandles_.push_back(builder.CreateTransientResource("PP_PostUI_Work0", workDesc));
-        workTextureHandles_.push_back(builder.CreateTransientResource("PP_PostUI_Work1", workDesc));
-
-        // 初期ステートは全て SRV (内部で書き込み前に RTV に遷移させる)
-        for (auto handle : workTextureHandles_) {
-            builder.RequireTransientState(handle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        if (auto* runner = ppMgr->GetRunner()) {
+            runner->DeclareResources(builder, desc, activeModes);
         }
     }
 }
@@ -67,24 +58,22 @@ void PostUIPass::Execute(const Irufemi::RenderContext& rc) {
     auto ppMgr = engine->GetPostProcessManager();
     auto* cmdList = drawManager->GetDxCommon()->GetCommandList();
     auto* renderGraph = drawManager->GetRenderGraph();
+    const auto& activeModes = ppMgr->GetActiveModes(PostProcessManager::Layer::PostUI);
 
-    PostProcessManager::PostProcessWorkspace workspace;
-
-    if (!workTextureHandles_.empty()) {
-        workspace.workTextures[0] = renderGraph->GetTransientRenderTexture(workTextureHandles_[0]);
-        workspace.workTextures[1] = renderGraph->GetTransientRenderTexture(workTextureHandles_[1]);
+    if (!activeModes.empty()) {
+        if (auto* runner = ppMgr->GetRunner()) {
+            runner->ResolveResources(renderGraph, activeModes);
+        }
     }
 
     // CopyResource (mainRenderTex -> ppSrcTex)
     auto ppSrcTex = renderGraph->GetTransientRenderTexture(postUiSrcHandle_);
 
-    // RenderGraph によるステート管理のため開始時に COPY_SOURCE に手動で遷移
     DirectXUtils::TransitionBarrier(cmdList, engine->GetMainRenderTexture()->GetResource(),
                                     D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
     cmdList->CopyResource(ppSrcTex->GetResource(), engine->GetMainRenderTexture()->GetResource());
 
-    // バリア遷移
     DirectXUtils::TransitionBarrier(cmdList, ppSrcTex->GetResource(), D3D12_RESOURCE_STATE_COPY_DEST,
                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     renderGraph->SetInitialResourceState(ppSrcTex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -96,6 +85,6 @@ void PostUIPass::Execute(const Irufemi::RenderContext& rc) {
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rc.outputRTV;
     bool isBackBufferTarget = !rc.isEditorMode;
 
-    ppMgr->Draw(cmdList, ppSrcTex, rtvHandle, workspace, PostProcessManager::Layer::PostUI, isBackBufferTarget,
+    ppMgr->Draw(cmdList, ppSrcTex, rtvHandle, PostProcessManager::Layer::PostUI, isBackBufferTarget,
                 &rc.viewport, &rc.scissorRect);
 }

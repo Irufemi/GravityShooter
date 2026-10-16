@@ -27,6 +27,5 @@ public:
     void Execute(const Irufemi::RenderContext& rc) override;
 
 private:
-    std::vector<TransientResourceHandle> workTextureHandles_;
     TransientResourceHandle postUiSrcHandle_ = kInvalidHandle;
 };

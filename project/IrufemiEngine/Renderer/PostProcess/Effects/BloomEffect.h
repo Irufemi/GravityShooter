@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer/PostProcess/Effects/IPostProcessEffect.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 
 namespace Irufemi {
 
@@ -14,7 +15,15 @@ public:
     ~BloomEffect() override = default;
 
     bool RequiresSeparatePass() const override { return true; }
+    void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) override;
+    void ResolveResources(RenderGraph* renderGraph) override;
     void Render(const PostProcessRenderContext& context) override;
+
+private:
+    TransientResourceHandle extractHandle_ = kInvalidHandle;
+    TransientResourceHandle blurHandle_ = kInvalidHandle;
+    RenderTexture* extractTex_ = nullptr;
+    RenderTexture* blurTex_ = nullptr;
 };
 
 } // namespace Irufemi

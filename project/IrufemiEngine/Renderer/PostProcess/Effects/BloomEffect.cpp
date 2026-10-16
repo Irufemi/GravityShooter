@@ -1,21 +1,37 @@
 #include "Renderer/PostProcess/Effects/BloomEffect.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "RHI/DirectX12/RenderTexture.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "RHI/DirectX12/RootSignatureConfig.h"
 
 namespace Irufemi {
 
+void BloomEffect::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) {
+    D3D12_RESOURCE_DESC workDesc = baseDesc;
+    workDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    extractHandle_ = builder.CreateTransientResource("BloomExtract", workDesc);
+    blurHandle_ = builder.CreateTransientResource("BloomBlur", workDesc);
+    builder.RequireTransientState(extractHandle_, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    builder.RequireTransientState(blurHandle_, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+}
+
+void BloomEffect::ResolveResources(RenderGraph* renderGraph) {
+    if (renderGraph) {
+        extractTex_ = (extractHandle_ != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(extractHandle_) : nullptr;
+        blurTex_ = (blurHandle_ != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(blurHandle_) : nullptr;
+    }
+}
+
 void BloomEffect::Render(const PostProcessRenderContext& context) {
     auto* manager = context.manager;
     auto* commandList = context.commandList;
     auto* currentSource = context.sourceTexture;
     D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = context.targetRtv;
-    const auto& workspace = *(context.workspace);
     bool writeToScreen = context.writeToScreen;
 
-    RenderTexture* bloomExtract = workspace.bloomExtract;
-    RenderTexture* blurH = workspace.bloomBlur;
-    RenderTexture* blurV = workspace.bloomExtract;
+    RenderTexture* bloomExtract = extractTex_;
+    RenderTexture* blurH = blurTex_;
+    RenderTexture* blurV = extractTex_;
 
     if (!bloomExtract || !blurH || !blurV) {
         return;

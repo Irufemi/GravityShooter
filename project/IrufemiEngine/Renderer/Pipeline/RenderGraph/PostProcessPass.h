@@ -23,12 +23,5 @@ public:
     void Execute(const Irufemi::RenderContext& rc) override;
 
 private:
-    std::vector<TransientResourceHandle> workTextureHandles_;
-    TransientResourceHandle bloomExtractHandle_ = kInvalidHandle;
-    TransientResourceHandle bloomBlurHandle_ = kInvalidHandle;
-    TransientResourceHandle lsExtractHandle_ = kInvalidHandle;
-    TransientResourceHandle lsBlurHandle_ = kInvalidHandle;
-    std::array<TransientResourceHandle, 8> kawaseTextureHandles_;
-
     TransientResourceHandle preUiSrcHandle_ = kInvalidHandle;
 };

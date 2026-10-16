@@ -120,6 +120,9 @@ class PostProcessManager {
     friend class Irufemi::CombinedPostEffect;
 
 public:
+    PostProcessManager();
+    ~PostProcessManager();
+
     using Mode = PostProcessMode;
     using Layer = EffectLayer;
 
@@ -613,12 +616,16 @@ public:
      * @param commandList コマンドリスト
      * @param srcTexture 元となるレンダリングテクスチャ（メインの描画結果）
      * @param rtvHandle 最終的な出力先（バックバッファ）のRTV
-     * @param workspace Transient Resource が割り当てられた作業用領域
      */
     void Draw(ID3D12GraphicsCommandList* commandList, class RenderTexture* srcTexture,
-              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, const PostProcessWorkspace& workspace, Layer layer = Layer::PreUI,
+              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer = Layer::PreUI,
               bool isBackBufferTarget = false, const D3D12_VIEWPORT* targetViewport = nullptr,
               const D3D12_RECT* targetScissor = nullptr);
+
+    /**
+     * @brief PostProcessRunner のインスタンスを取得する
+     */
+    PostProcessRunner* GetRunner() const { return runner_.get(); }
 
     /**
      * @brief Bindless 定数バッファのリングオフセットを安全にインクリメントする
@@ -1534,6 +1541,8 @@ private:
     uint32_t materialSrvIndex_ = 0;
     uint32_t velocitySrvIndex_ = 0;
     uint32_t dissolveNoiseIndex_[2]{0};
+
+    std::unique_ptr<PostProcessRunner> runner_;
 
     // 状態追跡用は上に移動済み
 };

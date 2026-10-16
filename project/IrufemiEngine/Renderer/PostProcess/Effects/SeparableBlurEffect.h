@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer/PostProcess/Effects/IPostProcessEffect.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 
 namespace Irufemi {
 
@@ -14,10 +15,14 @@ public:
     ~SeparableBlurEffect() override = default;
 
     bool RequiresSeparatePass() const override { return true; }
+    void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) override;
+    void ResolveResources(RenderGraph* renderGraph) override;
     void Render(const PostProcessRenderContext& context) override;
 
 private:
     PostProcessManager::Mode mode_;
+    TransientResourceHandle blurIntermediateHandle_ = kInvalidHandle;
+    RenderTexture* blurIntermediateTex_ = nullptr;
 };
 
 } // namespace Irufemi

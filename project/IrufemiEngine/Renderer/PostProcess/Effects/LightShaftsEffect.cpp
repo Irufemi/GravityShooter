@@ -1,20 +1,39 @@
 #include "Renderer/PostProcess/Effects/LightShaftsEffect.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "RHI/DirectX12/RenderTexture.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "RHI/DirectX12/RootSignatureConfig.h"
+#include <algorithm>
 
 namespace Irufemi {
+
+void LightShaftsEffect::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) {
+    D3D12_RESOURCE_DESC lsDesc = baseDesc;
+    lsDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    lsDesc.Width = (std::max<UINT64>)(1, lsDesc.Width / 2);
+    lsDesc.Height = (std::max<UINT>)(1, lsDesc.Height / 2);
+    lsExtractHandle_ = builder.CreateTransientResource("LS_Extract", lsDesc);
+    lsBlurHandle_ = builder.CreateTransientResource("LS_Blur", lsDesc);
+    builder.RequireTransientState(lsExtractHandle_, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    builder.RequireTransientState(lsBlurHandle_, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+}
+
+void LightShaftsEffect::ResolveResources(RenderGraph* renderGraph) {
+    if (renderGraph) {
+        lsExtract_ = (lsExtractHandle_ != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(lsExtractHandle_) : nullptr;
+        lsBlur_ = (lsBlurHandle_ != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(lsBlurHandle_) : nullptr;
+    }
+}
 
 void LightShaftsEffect::Render(const PostProcessRenderContext& context) {
     auto* manager = context.manager;
     auto* commandList = context.commandList;
     auto* currentSource = context.sourceTexture;
     D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = context.targetRtv;
-    const auto& workspace = *(context.workspace);
     bool writeToScreen = context.writeToScreen;
 
-    RenderTexture* lsExtract = workspace.lsExtract;
-    RenderTexture* lsBlur = workspace.lsBlur;
+    RenderTexture* lsExtract = lsExtract_;
+    RenderTexture* lsBlur = lsBlur_;
 
     if (!lsExtract || !lsBlur) {
         return;
