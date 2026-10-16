@@ -2,25 +2,25 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Core/Utility/JsonUtility.h"
 
-const nlohmann::json& PrefabManager::GetPrefabJson(const std::string& filepath) {
+std::shared_ptr<const nlohmann::json> PrefabManager::GetPrefabJson(const std::string& filepath) {
     auto existing = cache_.WithRead([&](const PrefabCacheData& data) -> std::shared_ptr<nlohmann::json> {
         auto it = data.jsonCache.find(filepath);
         return (it != data.jsonCache.end()) ? it->second : nullptr;
     });
     if (existing) {
-        return *existing;
+        return existing;
     }
 
     nlohmann::json root;
     if (!Irufemi::JsonUtility::LoadFromFile(filepath, root)) {
-        static const nlohmann::json kEmptyJson = nlohmann::json::object();
+        static const auto kEmptyJson = std::make_shared<nlohmann::json>(nlohmann::json::object());
         return kEmptyJson;
     }
 
     auto jsonPtr = std::make_shared<nlohmann::json>(std::move(root));
-    return cache_.WithWrite([&](PrefabCacheData& data) -> const nlohmann::json& {
+    return cache_.WithWrite([&](PrefabCacheData& data) -> std::shared_ptr<const nlohmann::json> {
         auto [insertedIt, success] = data.jsonCache.emplace(filepath, jsonPtr);
-        return *insertedIt->second;
+        return insertedIt->second;
     });
 }
 
@@ -33,13 +33,13 @@ std::shared_ptr<GameObject> PrefabManager::GetTemplate(const std::string& filepa
         return cached;
     }
 
-    const nlohmann::json& root = GetPrefabJson(filepath);
-    if (root.empty()) {
+    auto jsonPtr = GetPrefabJson(filepath);
+    if (!jsonPtr || jsonPtr->empty()) {
         return nullptr;
     }
 
     auto templateObj = std::make_shared<GameObject>();
-    templateObj->Deserialize(root);
+    templateObj->Deserialize(*jsonPtr);
 
     return cache_.WithWrite([&](PrefabCacheData& data) -> std::shared_ptr<GameObject> {
         auto it = data.templateCache.find(filepath);

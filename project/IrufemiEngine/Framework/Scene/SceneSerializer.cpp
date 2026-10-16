@@ -60,7 +60,8 @@ nlohmann::json SceneSerializer::GetPrefabJson(const std::string& filepath) {
         Log::OutPutLog(std::cerr, "[SceneSerializer] PrefabManager is null! Cannot get prefab JSON: " + filepath);
         return nlohmann::json::object();
     }
-    return prefabManager_->GetPrefabJson(filepath);
+    auto jsonPtr = prefabManager_->GetPrefabJson(filepath);
+    return jsonPtr ? *jsonPtr : nlohmann::json::object();
 }
 
 std::shared_ptr<GameObject> SceneSerializer::LoadPrefab(const std::string& filepath) {

@@ -2323,10 +2323,10 @@
         },
         {
           "data": {
-            "Damage Shake Frames": 10,
+            "Damage Shake Duration": 0.1599999964237213,
             "Damage Shake Frequency": 15.0,
             "Damage Shake Intensity": 0.4000000059604645,
-            "Death Shake Frames": 60,
+            "Death Shake Duration": 1.0,
             "Death Shake Frequency": 10.0,
             "Death Shake Intensity": 2.0
           },
@@ -2739,11 +2739,13 @@
         },
         {
           "data": {
-            "Arrival Duration": 0.35,
-            "Bootup Duration": 0.65,
+            "Arrival Duration": 0.3499999940395355,
+            "Bootup Duration": 0.6499999761581421,
             "Start Offset Z": -35.0,
             "Target Ship Name": "Player",
-            "WarpIn Duration": 0.70
+            "WarpIn Blur Width": 0.08500000089406967,
+            "WarpIn Duration": 0.699999988079071,
+            "WarpIn FOV Boost": 14.0
           },
           "type": "StageIntroDirectorComponent"
         }
@@ -2883,9 +2885,9 @@
         {
           "data": {
             "Color": [
-              0.008,
-              0.015,
-              0.030
+              0.00800000037997961,
+              0.014999999664723873,
+              0.029999999329447746
             ],
             "Density": 1.0,
             "Enabled": true,
@@ -2894,9 +2896,9 @@
             "Type (0:Lin, 1:Exp)": 0,
             "enabled": true,
             "fogColor": [
-              0.008,
-              0.015,
-              0.030
+              0.00800000037997961,
+              0.014999999664723873,
+              0.029999999329447746
             ],
             "fogDensity": 1.0,
             "fogEnd": 2200.0,

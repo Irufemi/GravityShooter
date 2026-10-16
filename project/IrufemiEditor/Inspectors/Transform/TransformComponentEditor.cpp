@@ -41,7 +41,6 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
     if (headerOpen) {
         if (ComponentUIHelpers::BeginPropertyTable("TransformTable")) {
             // Position
-            static Irufemi::Vector3 startPos;
             Irufemi::Vector3 pos = comp->GetPosition();
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("Position");
@@ -51,14 +50,8 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
                 comp->SetPosition(pos);
             }
             ImGui::PopItemWidth();
-            if (ImGui::IsItemActivated()) {
-                startPos = comp->GetPosition();
-            }
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                Irufemi::Vector3 endPos = comp->GetPosition();
-                actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<Irufemi::Vector3>>(
-                    startPos, endPos, [comp](const Irufemi::Vector3& v) { comp->SetPosition(v); }));
-            }
+            ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &pos,
+                                                  [comp](const Irufemi::Vector3& v) { comp->SetPosition(v); });
             ComponentUIHelpers::DrawPropertyResetButton(
                 "##Pos", pos.x != 0.0f || pos.y != 0.0f || pos.z != 0.0f, [&]() {
                     Irufemi::Vector3 oldPos = comp->GetPosition();
@@ -68,7 +61,6 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
                 });
 
             // Rotation
-            static Irufemi::Vector3 startRot;
             Irufemi::Vector3 rot = comp->GetRotation();
             Irufemi::Vector3 rotDegrees = {rot.x * (180.0f / 3.14159265f), rot.y * (180.0f / 3.14159265f),
                                            rot.z * (180.0f / 3.14159265f)};
@@ -83,14 +75,8 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
                 comp->SetRotation(rot);
             }
             ImGui::PopItemWidth();
-            if (ImGui::IsItemActivated()) {
-                startRot = comp->GetRotation();
-            }
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                Irufemi::Vector3 endRot = comp->GetRotation();
-                actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<Irufemi::Vector3>>(
-                    startRot, endRot, [comp](const Irufemi::Vector3& v) { comp->SetRotation(v); }));
-            }
+            ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &rot,
+                                                  [comp](const Irufemi::Vector3& v) { comp->SetRotation(v); });
             ComponentUIHelpers::DrawPropertyResetButton(
                 "##Rot", rot.x != 0.0f || rot.y != 0.0f || rot.z != 0.0f, [&]() {
                     Irufemi::Vector3 oldRot = comp->GetRotation();
@@ -100,7 +86,6 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
                 });
 
             // Scale
-            static Irufemi::Vector3 startScale;
             Irufemi::Vector3 scale = comp->GetScale();
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("Scale");
@@ -110,19 +95,14 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
                 comp->SetScale(scale);
             }
             ImGui::PopItemWidth();
-            if (ImGui::IsItemActivated()) {
-                startScale = comp->GetScale();
-            }
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                Irufemi::Vector3 endScale = comp->GetScale();
-                actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<Irufemi::Vector3>>(
-                    startScale, endScale, [comp](const Irufemi::Vector3& v) { comp->SetScale(v); }));
-            }
+            ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &scale,
+                                                  [comp](const Irufemi::Vector3& v) { comp->SetScale(v); });
             ComponentUIHelpers::DrawPropertyResetButton(
                 "##ScaleBtn", scale.x != 1.0f || scale.y != 1.0f || scale.z != 1.0f, [&]() {
                     Irufemi::Vector3 oldScale = comp->GetScale();
                     actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<Irufemi::Vector3>>(
-                        oldScale, Irufemi::Vector3{1, 1, 1}, [comp](const Irufemi::Vector3& v) { comp->SetScale(v); }));
+                        oldScale, Irufemi::Vector3{1, 1, 1},
+                        [comp](const Irufemi::Vector3& v) { comp->SetScale(v); }));
                 });
 
             ComponentUIHelpers::EndPropertyTable();
