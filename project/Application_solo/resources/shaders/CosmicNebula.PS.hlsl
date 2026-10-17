@@ -173,7 +173,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
         rotP.x * s + rotP.y * c
     );
 
-    // ★ 流体速度場と突入乱流によって、星雲のフィラメントが激流のように乱れて渦巻く！
+    // 流体速度場と突入乱流によるフィラメントガスの乱流計算
     swirlP += fluidVel * 0.25 + impactCurl;
     wakeDistort += fluidSpeed * 12.0 + length(impactCurl) * 45.0;
 
@@ -182,7 +182,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
     float f2 = ridgedNoise(swirlP * 5.0 - float2(time * 0.08, f1 * 1.2));
     float filament = pow(saturate(f1 * 0.65 + f2 * 0.50), 1.9);
 
-    // ★ 航跡・押し分けによるフィラメントガスの自然なヨレとちぎれ（Fluid Filament Dispersion）
+    // 航跡・押し分けによるフィラメントガスの分散計算（Fluid Filament Dispersion）
     if (wakeDistort > 0.001) {
         float tearNoise = ridgedNoise(swirlP * 6.5 + float2(dist * 3.0, 0.0));
         float tearFactor = smoothstep(0.25, 0.80, tearNoise) * saturate(wakeDistort);
@@ -223,7 +223,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
 
 
 
-    // ★ 自機突入インプロージョン（自機が飛び込んだ時のみ、中心0.0から穴が生まれ外側へ広がる）
+    // 自機突入インプロージョン（自機進入時のみ、中心から外側へ穴が拡大）
     float collapse = saturate(gNebula.centerUV.z);
     if (collapse > 0.001) {
         float voidRadius = collapse * 1.65;

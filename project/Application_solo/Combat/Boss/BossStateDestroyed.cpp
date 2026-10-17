@@ -109,7 +109,7 @@ void BossStateDestroyed::Enter(BossComponent* boss) {
     steps_.clear();
     currentStepIndex_ = 0;
 
-    // 演出シーケンスステップの登録（将来の演出拡張時はここに追加可能）
+    // TODO: ボス撃破演出の拡張シーケンスステップ追加
     steps_.push_back(std::make_unique<DeathStepExplosion>());
     steps_.push_back(std::make_unique<DeathStepFinish>());
 

@@ -2,7 +2,6 @@
 #include "Framework/Scene/SceneManager.h"
 #include "Irufemi.h"
 
-// デストラクタ
 SelectScene::~SelectScene() = default;
 
 // 初期化

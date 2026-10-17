@@ -59,7 +59,7 @@ public:
     void ResetForPool();
 
     /**
-     * @brief 接触権限をアトミックに消費する（AAA基準: 多重ダメージの完全防止）
+     * @brief 接触権限をアトミックに消費し、同一フレーム内の多重ダメージを防止する
      * @return 権限消費に成功した場合は true（初回のみ）、既にヒット済みの場合は false
      */
     bool ConsumeHitAuthority() {

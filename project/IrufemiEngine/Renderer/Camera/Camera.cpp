@@ -6,10 +6,7 @@
 #include <cmath>
 #include <algorithm>
 
-// コンストラクタ
 Camera::Camera() {}
-
-// デストラクタ
 Camera::~Camera() {}
 
 // 初期化

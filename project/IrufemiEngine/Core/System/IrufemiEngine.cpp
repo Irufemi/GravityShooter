@@ -94,7 +94,6 @@ static float s_gpuWaitTimeMs = 0.0f;
 
 IrufemiEngine::IrufemiEngine() = default;
 
-// デストラクタ
 IrufemiEngine::~IrufemiEngine() {
     Finalize();
 }
@@ -424,7 +423,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
         GetPSOManager()->PreWarmCommonPSOs(threadPool_.get());
     }
 
-    // 初回描画時の遅延ハードウェアコンパイル(JIT)を防止するためのダミー実行
+    // 初回描画時の遅延ハードウェアコンパイル（PSO JITウォームアップ）
     if (dxCommon_) {
         dxCommon_->PreWarmJITCompile();
     }

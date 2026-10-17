@@ -21,7 +21,7 @@ enum class EnemyBehaviorType {
 
 /**
  * @enum DespawnReason
- * @brief 敵キャラクターがシーンから退場・消滅する明確な理由（AAA基準ライフサイクル管理）
+ * @brief 敵キャラクターがシーンから退場・消滅する理由（ライフサイクル管理）
  */
 enum class DespawnReason {
     KilledByPlayer,  //!< プレイヤーの攻撃（ガレキ投擲・衝突）により撃破された

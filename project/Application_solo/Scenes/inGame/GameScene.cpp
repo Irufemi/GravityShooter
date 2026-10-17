@@ -8,7 +8,6 @@
 #include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
 #include "Framework/Scene/SceneSerializer.h"
 
-// デストラクタ
 GameScene::~GameScene() = default;
 
 // 初期化

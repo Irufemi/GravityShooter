@@ -14,9 +14,8 @@
 
 IrufemiEngine* Skybox::engine_ = nullptr;
 
-// コンストラクタ
 Skybox::Skybox() {}
-// デストラクタ
+
 Skybox::~Skybox() {
     UnMapResource();
     if (engine_ && engine_->GetTextureManager() && textureHandle_.IsValid()) {

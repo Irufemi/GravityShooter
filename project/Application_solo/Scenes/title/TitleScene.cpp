@@ -9,7 +9,6 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Scenes/title/TitleMenuControllerComponent.h"
 
-// デストラクタ
 TitleScene::~TitleScene() {}
 
 // 初期化

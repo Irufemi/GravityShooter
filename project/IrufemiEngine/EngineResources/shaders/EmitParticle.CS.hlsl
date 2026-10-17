@@ -102,7 +102,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
             else if (emitter.type == 2) // Ring
             {
                 float angle = rng.Generate1d() * 2.0f * 3.141592f;
-                // radius: 外径, 厚みは既存の計算でspreadを流用していたが、放射強度のspreadと被るのでここでは固定値の0.1などに固定するか、そのまま使う
+                // リング形状の生成（radius: 外径、厚みは固定幅0.1fでサンプリング）
                 float r = emitter.radius - (rng.Generate1d() * 0.1f);
                 float3 offset = float3(cos(angle), 0, sin(angle)) * r;
                 

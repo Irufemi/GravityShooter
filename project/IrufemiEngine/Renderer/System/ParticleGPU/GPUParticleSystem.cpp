@@ -33,7 +33,6 @@ DrawManager* GPUParticleSystem::drawManager_ = nullptr;
 TextureManager* GPUParticleSystem::textureManager_ = nullptr;
 IrufemiEngine* GPUParticleSystem::engine_ = nullptr;
 
-// コンストラクタ
 GPUParticleSystem::GPUParticleSystem() {
     emittersData_.emplace_back();
 }

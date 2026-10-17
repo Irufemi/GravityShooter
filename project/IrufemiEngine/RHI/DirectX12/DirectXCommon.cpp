@@ -677,35 +677,18 @@ DirectXCommon::UploadTextureData(const Microsoft::WRL::ComPtr<ID3D12Resource>& t
     return intermediateResource;
 }
 
-/*テクスチャを貼ろう*/
-
 /// DirectX12のTextureResourceを作る
-
 Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateTextureResource(const DirectX::TexMetadata& metadata) {
     // 1. metadataを基にResourceの設定
     // 2. 利用するHeapの設定
     // 3. Resourceを生成する
 
-    /*テクスチャを正しく配置しよう*/
-
-    /// 正式な手順
-
-    // before
-    // 1. TextureデータそのものをCPUに読み込む
-    // 2. DirectX12のTextureResourceを作る)(MainMemory)
-    // 3. TextureResourceに1で読んだデータを転送する(WriteToSubResource)
-
-    // after
-    // 1.Textureデータその物をCPUで読み込む
-
-    // 2. DirectX12TextureResourceを作る(VRAM)
-    // 3. CPUに書き込む用にUploadHeapのResourceを作る(IntermediateResource)
-    // 4. 3に対してCPUでデータを書き込む
-    // 5. CommandListに3を2に転送するコマンドを積む
-    // 6. CommandQueueを使って実行する
-    // 7. 6の事項完了を待つ
-
-    /*テクスチャを貼ろう*/
+    // 1. TextureデータをCPUで読み込む
+    // 2. DirectX12 TextureResourceを作る(VRAM)
+    // 3. CPU書き込み用にUploadHeapのResourceを作る(IntermediateResource)
+    // 4. IntermediateResourceへCPUでデータを書き込む
+    // 5. CommandListに中間バッファからVRAMへの転送コマンドを積む
+    // 6. CommandQueueを使って実行し完了を待つ
 
     // metadataを基にResourceの設定
     D3D12_RESOURCE_DESC resourceDesc{};
@@ -723,13 +706,8 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateTextureResource(cons
     //  heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK; // WriteBackポリシーでCPUアクセス可能
     // heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0; //プロセッサの近くに配置
 
-    /*テクスチャを正しく配置しよう*/
-
     // TextureResourceを作る(VRAM)
-
     heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
-
-    /*テクスチャを貼ろう*/
 
     // Resourceの生成
     Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
@@ -739,12 +717,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateTextureResource(cons
         &resourceDesc,        // Resourceの設定
         // D3D12_RESOURCE_STATE_GENERIC_READ, //初回のResourceState。Textureは基本読むだけ。
 
-        /*テクスチャを正しく配置しよう*/
-
         D3D12_RESOURCE_STATE_COPY_DEST, // データ転送される設定
-
-        /*テクスチャを貼ろう*/
-
         nullptr,                              // Clear最適値。使わないのでnullptr
         IID_PPV_ARGS(resource.GetAddressOf()) // 作成するResourceポインタへのポインタ
     );
@@ -752,10 +725,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateTextureResource(cons
     return resource;
 }
 
-/*テクスチャを貼ろう*/
-
 /// Textureデータを読む
-
 DirectX::ScratchImage DirectXCommon::LoadTexture(const std::string& filePath) {
     using namespace DirectX;
 
@@ -943,7 +913,7 @@ void DirectXCommon::PreWarmJITCompile() {
         // --- Compute PSO ---
         uploadCommandList->SetComputeRootSignature(GetComputeRootSignature());
 
-        // SetPipelineState とダミー Dispatch(0,0,0) を発行し、
+        // ウォームアップ用の空 Dispatch(0,0,0) を発行し、
         // NVIDIAやIntelのドライバに対し、最初のDraw()より前に強制的に
         // ハードウェア専用のISA（機械語）へJITコンパイルさせる
         const char* csNames[] = {"Skinning",

@@ -94,7 +94,7 @@ void PushInstantUndo(EditorActionManager* actionManager, const T& oldVal, const 
 }
 
 /**
- * @brief AAA基準の3カラム（名前、値、リセット）プロパティテーブルを開始する
+ * @brief 3カラム（名前、値、リセット）プロパティテーブルの描画を開始する
  * @param tableId テーブルの固有ID（デフォルトは "PropertiesTable"）
  * @return テーブルの構築に成功した場合は true
  */

@@ -49,7 +49,7 @@ bool IsDistortionOrBlurEffect(int32_t mode) {
 }
 
 /**
- * @brief マスク（ID）ベースのカスタムアウトラインを適用する（AAAアプローチ）
+ * @brief マスク（ID）ベースのカスタムアウトラインを適用する
  * 
  * 自身のピクセルだけでなく周囲のマスクIDをサンプリングし、エッジを検出します。
  * 境界と判定された場合、最も支配的なマスクIDに対応する CustomEffectParams を取得し、色と太さを適用します。

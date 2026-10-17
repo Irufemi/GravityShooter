@@ -239,7 +239,7 @@ void StaticModelObject::Draw() {
         Update();
     }
 
-    // --- 【追加】描画直前のバッファ同期 ---
+    // --- 描画直前のバッファ同期 ---
     SyncBeforeDraw();
 
     // 視錐台カリング
@@ -335,11 +335,7 @@ void StaticModelObject::DebugTab() {
                         std::string unique_id = "##" + std::to_string(i);
                         ui_->DebugObjMaterial(mat, unique_id.c_str());
 
-                        // テクスチャ選択
-                        // 注意：この部分はStaticModelObjectがテクスチャのインデックスを保持する仕組みがないと完全には機能しません。
-                        // 今はUIのみ表示します。
-                        int tempIndex = 0; // ダミー
-                        // ui_->DebugTexture(...)
+                        // TODO: StaticModelObjectにテクスチャインデックス保持機構が実装され次第、テクスチャ選択UI(ui_->DebugTexture)を有効化する
                     }
                     ImGui::TreePop();
                 }

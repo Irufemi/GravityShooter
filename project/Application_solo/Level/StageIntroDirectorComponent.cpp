@@ -237,7 +237,7 @@ void StageIntroDirectorComponent::Update() {
     }
     const auto& config = it->second;
 
-    // 所要時間はインスペクタープロパティから動的に取得（コード内ハードコードを完全排除）
+    // インスペクターのプロパティから所要時間を取得
     float duration = 1.0f;
     if (config.durationMember) {
         duration = (std::max)(0.001f, this->*(config.durationMember));

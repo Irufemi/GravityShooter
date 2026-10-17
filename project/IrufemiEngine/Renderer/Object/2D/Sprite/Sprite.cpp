@@ -181,7 +181,7 @@ void Sprite::Draw() {
         Update();
     }
 
-    // --- 【追加】描画直前のバッファ同期 ---
+    // --- 描画直前のバッファ同期 ---
     SyncBeforeDraw();
 
     if (isTopMost_) {

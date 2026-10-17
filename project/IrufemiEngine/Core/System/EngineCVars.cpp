@@ -12,7 +12,7 @@
 DEFINE_CVAR_INT("r.DisplayMode", 0, "Display Mode (0=Windowed, 1=Borderless)");
 DEFINE_CVAR_BOOL("r.VSync", true, "Enable Vertical Synchronization");
 
-// --- Audio Settings (将来用) ---
+// --- Audio Settings (TODO: オーディオ設定CVarsの拡張) ---
 DEFINE_CVAR_FLOAT("a.MasterVolume", 1.0f, "Master Volume multiplier");
 DEFINE_CVAR_FLOAT("a.BGMVolume", 1.0f, "BGM Volume multiplier");
 DEFINE_CVAR_FLOAT("a.SEVolume", 1.0f, "SE Volume multiplier");
@@ -23,7 +23,7 @@ DEFINE_CVAR_FLOAT("i.CursorSpeed", 650.0f, "Gamepad virtual cursor speed in pixe
 // --- Developer / Debug Settings ---
 DEFINE_CVAR_BOOL("d.ShowFPS", false, "Show FPS counter on screen");
 
-// 静的ライブラリでリンク落ちを防ぐためのダミー関数
+// 静的ライブラリのリンク最適化によるシンボル脱落を防止する参照用関数
 namespace Irufemi {
 void ReferenceEngineCVars() {}
 } // namespace Irufemi

@@ -133,12 +133,12 @@ void AudioManager::Finalize() {
     Irufemi::CVarSystem::SetOnChangeCallback("a.BGMVolume", nullptr);
     Irufemi::CVarSystem::SetOnChangeCallback("a.SEVolume", nullptr);
 
-    // 【一線級エンジン規約 Step 1】XAudio2処理スレッドの即時停止（非同期コールバック競合を完全遮断）
+    // 1. XAudio2処理スレッドの停止（非同期コールバック競合の防止）
     if (pXAudio2_) {
         pXAudio2_->StopEngine();
     }
 
-    // 【一線級エンジン規約 Step 2: Leaves】すべての SourceVoice を安全に停止・破棄・解放
+    // 2. すべての SourceVoice を停止・破棄
     {
         voiceState_.WithWrite([](auto& state) {
             for (auto& voice : state.activeVoices) {
@@ -152,7 +152,7 @@ void AudioManager::Finalize() {
         });
     }
 
-    // 【一線級エンジン規約 Step 3: Branches】サブミックスボイスの破棄（MasteringVoiceより先に破棄）
+    // 3. サブミックスボイスの破棄（MasteringVoiceより先に破棄）
     if (pSubmixUi_) {
         pSubmixUi_->DestroyVoice();
         pSubmixUi_ = nullptr;

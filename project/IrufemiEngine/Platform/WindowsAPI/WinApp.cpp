@@ -39,8 +39,6 @@ bool WinApp::Initialize(HINSTANCE hInstance, int width, int height, const std::w
     // 学校資料準拠：WNDCLASS + RegisterClass + CreateWindow
     // ─────────────────────────────────────────────────────
 
-    /*ウィンドウを作ろう*/
-
     /// ウィンドウクラスを登録する
 
     WNDCLASSW wc{};
@@ -83,8 +81,6 @@ bool WinApp::Initialize(HINSTANCE hInstance, int width, int height, const std::w
     if (!hwnd_) {
         return false;
     }
-
-    /*ウィンドウを作ろう*/
 
     /// ウィンドウを生成して表示
 

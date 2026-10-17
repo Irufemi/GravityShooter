@@ -137,7 +137,7 @@ void ErrorUtility::Warning(bool condition, const std::string& msg, const char* f
             fullMsg += "(File: " + std::string(file) + ", Line: " + std::to_string(line) + ")\n";
         }
 
-        // 警告ログ出力 (将来のコンソールにも送る)
+        // TODO: アプリ内デバッグコンソールへの警告ログ転送
         Log::OutPutLog(std::cerr, fullMsg);
 
         // 処理は停止せずそのまま続行

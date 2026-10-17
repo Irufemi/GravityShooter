@@ -667,7 +667,7 @@ public: // ゲッター
         defaultTimeScale_ = scale;
     }
     /**
-     * @brief 一定時間ゲーム全体を微小停止・減速させるヒットストップを発火する（AAA基準 Game Juice）
+     * @brief 一定時間ゲーム全体を微小停止・減速させるヒットストップを発火する
      * @param[in] duration 停止時間（秒、実時間ベース）
      * @param[in] slowScale 停止中のタイムスケール（0.0f で完全静止、0.1f 等でスロー）
      */
