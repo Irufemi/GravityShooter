@@ -20,9 +20,6 @@ void UIPass::Execute(const Irufemi::RenderContext& rc) {
     if (!drawManager || !engine) {
         return;
     }
-    if (auto scm = engine->GetScreenCaptureManager()) {
-        scm->OnPreUIDraw(engine->GetCommandList(), engine->GetMainRenderTexture());
-    }
 
     auto cmdList = engine->GetCommandList();
 

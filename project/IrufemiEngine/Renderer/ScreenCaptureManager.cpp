@@ -36,7 +36,8 @@ void ScreenCaptureManager::Finalize() {
     while (isEncoding_.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    colorCopyBuffer_.Reset();
+    colorCopyBufferWithoutUI_.Reset();
+    colorCopyBufferWithUI_.Reset();
     depthCopyBuffer_.Reset();
 }
 
@@ -154,8 +155,37 @@ void ScreenCaptureManager::RecordMetadata(IrufemiEngine* engine) {
     currentMetadataJson_ = ss.str();
 }
 
+bool ScreenCaptureManager::EnsureCopyBuffer(Microsoft::WRL::ComPtr<ID3D12Resource>& buffer,
+                                            ID3D12Resource* sourceResource, DXGI_FORMAT overrideFormat) {
+    if (!sourceResource) {
+        return false;
+    }
+
+    auto targetDesc = sourceResource->GetDesc();
+    targetDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    if (overrideFormat != DXGI_FORMAT_UNKNOWN) {
+        targetDesc.Format = overrideFormat;
+    }
+
+    if (buffer) {
+        auto currentDesc = buffer->GetDesc();
+        if (currentDesc.Width == targetDesc.Width && currentDesc.Height == targetDesc.Height &&
+            currentDesc.Format == targetDesc.Format && currentDesc.MipLevels == targetDesc.MipLevels &&
+            currentDesc.DepthOrArraySize == targetDesc.DepthOrArraySize) {
+            return true;
+        }
+        buffer.Reset();
+    }
+
+    CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
+    HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &targetDesc,
+                                                                 D3D12_RESOURCE_STATE_COMMON, nullptr,
+                                                                 IID_PPV_ARGS(&buffer));
+    return IRUFEMI_CHECK_HR(hr, "Failed to create copy buffer for screen capture!");
+}
+
 void ScreenCaptureManager::OnPreUIDraw(ID3D12GraphicsCommandList* commandList, RenderTexture* mainRenderTexture) {
-    if (isEncoding_) {
+    if (isEncoding_ || !mainRenderTexture || !mainRenderTexture->GetResource()) {
         return;
     }
 
@@ -175,39 +205,33 @@ void ScreenCaptureManager::OnPreUIDraw(ID3D12GraphicsCommandList* commandList, R
     }
     const auto& req = *matchedReq;
 
-    if (!colorCopyBuffer_) {
-        auto desc = mainRenderTexture->GetResource()->GetDesc();
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-        CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
-        HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                                     D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                                     IID_PPV_ARGS(&colorCopyBuffer_));
-        if (!IRUFEMI_CHECK_HR(hr, "Failed to create color copy buffer for screen capture!")) {
-            return;
-        }
+    if (!EnsureCopyBuffer(colorCopyBufferWithoutUI_, mainRenderTexture->GetResource())) {
+        return;
     }
 
-    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                    D3D12_RESOURCE_STATE_COPY_SOURCE);
-    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
+    // RenderGraph 完了後の mainRenderTexture は PIXEL_SHADER_RESOURCE に遷移しているため、
+    // PIXEL_SHADER_RESOURCE -> COPY_SOURCE -> PIXEL_SHADER_RESOURCE の対称バリアを発行する
+    DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(),
+                                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBufferWithoutUI_.Get(), D3D12_RESOURCE_STATE_COMMON,
                                     D3D12_RESOURCE_STATE_COPY_DEST);
 
-    commandList->CopyResource(colorCopyBuffer_.Get(), mainRenderTexture->GetResource());
+    commandList->CopyResource(colorCopyBufferWithoutUI_.Get(), mainRenderTexture->GetResource());
 
-    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBufferWithoutUI_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
                                     D3D12_RESOURCE_STATE_COMMON);
     DirectXUtils::TransitionBarrier(commandList, mainRenderTexture->GetResource(), D3D12_RESOURCE_STATE_COPY_SOURCE,
-                                    D3D12_RESOURCE_STATE_RENDER_TARGET);
+                                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     if (req.isMetadataRequested) {
         RecordMetadata(dxCommon_->GetEngine());
     }
 
-    ExecuteCopyTask(colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
+    ExecuteCopyTask(colorCopyBufferWithoutUI_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
 }
 
 void ScreenCaptureManager::OnPostUIDraw(ID3D12GraphicsCommandList* commandList, ID3D12Resource* backBuffer) {
-    if (isEncoding_) {
+    if (isEncoding_ || !backBuffer) {
         return;
     }
 
@@ -227,27 +251,18 @@ void ScreenCaptureManager::OnPostUIDraw(ID3D12GraphicsCommandList* commandList, 
     }
     const auto& req = *matchedReq;
 
-    if (!colorCopyBuffer_) {
-        auto desc = backBuffer->GetDesc();
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-        D3D12_HEAP_PROPERTIES heapProps{};
-        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-        HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                                     D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                                     IID_PPV_ARGS(&colorCopyBuffer_));
-        if (!IRUFEMI_CHECK_HR(hr, "Failed to create color copy buffer for screen capture (WithUI)!")) {
-            return;
-        }
+    if (!EnsureCopyBuffer(colorCopyBufferWithUI_, backBuffer)) {
+        return;
     }
 
     DirectXUtils::TransitionBarrier(commandList, backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET,
                                     D3D12_RESOURCE_STATE_COPY_SOURCE);
-    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON,
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBufferWithUI_.Get(), D3D12_RESOURCE_STATE_COMMON,
                                     D3D12_RESOURCE_STATE_COPY_DEST);
 
-    commandList->CopyResource(colorCopyBuffer_.Get(), backBuffer);
+    commandList->CopyResource(colorCopyBufferWithUI_.Get(), backBuffer);
 
-    DirectXUtils::TransitionBarrier(commandList, colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+    DirectXUtils::TransitionBarrier(commandList, colorCopyBufferWithUI_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
                                     D3D12_RESOURCE_STATE_COMMON);
     DirectXUtils::TransitionBarrier(commandList, backBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE,
                                     D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -256,11 +271,11 @@ void ScreenCaptureManager::OnPostUIDraw(ID3D12GraphicsCommandList* commandList, 
         RecordMetadata(dxCommon_->GetEngine());
     }
 
-    ExecuteCopyTask(colorCopyBuffer_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
+    ExecuteCopyTask(colorCopyBufferWithUI_.Get(), D3D12_RESOURCE_STATE_COMMON, req);
 }
 
 void ScreenCaptureManager::OnPostDepthDraw(ID3D12GraphicsCommandList* commandList, ID3D12Resource* depthBuffer) {
-    if (isEncoding_) {
+    if (isEncoding_ || !depthBuffer) {
         return;
     }
 
@@ -280,18 +295,8 @@ void ScreenCaptureManager::OnPostDepthDraw(ID3D12GraphicsCommandList* commandLis
     }
     const auto& req = *matchedReq;
 
-    if (!depthCopyBuffer_) {
-        auto desc = depthBuffer->GetDesc();
-        desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-        desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-        D3D12_HEAP_PROPERTIES heapProps{};
-        heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-        HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc,
-                                                                     D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                                     IID_PPV_ARGS(&depthCopyBuffer_));
-        if (!IRUFEMI_CHECK_HR(hr, "Failed to create depth copy buffer for screen capture!")) {
-            return;
-        }
+    if (!EnsureCopyBuffer(depthCopyBuffer_, depthBuffer, DXGI_FORMAT_R24_UNORM_X8_TYPELESS)) {
+        return;
     }
 
     DirectXUtils::TransitionBarrier(commandList, depthBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE,
@@ -325,7 +330,31 @@ void ScreenCaptureManager::ExecuteCopyTask(ID3D12Resource* sourceResource, D3D12
                                              currentState);
 
         if (SUCCEEDED(hr)) {
-            DirectX::SaveToWICFile(image.GetImages(), image.GetImageCount(), DirectX::WIC_FLAGS_NONE,
+            // アルファチャンネルのサニタイズ（全ピクセルの Alpha を 255 に上書きし、画像ビューアーでの白飛び・半透明ブレンドを防止）
+            for (size_t i = 0; i < image.GetImageCount(); ++i) {
+                const DirectX::Image* img = image.GetImage(i, 0, 0);
+                if (img && (img->format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+                            img->format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ||
+                            img->format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+                            img->format == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB)) {
+                    uint8_t* pixels = img->pixels;
+                    for (size_t y = 0; y < img->height; ++y) {
+                        uint8_t* row = pixels + y * img->rowPitch;
+                        for (size_t x = 0; x < img->width; ++x) {
+                            row[x * 4 + 3] = 255;
+                        }
+                    }
+                }
+            }
+
+            // カラーバッファは既にガンマ補正済みの色情報であるため、
+            // WICエンコード時に /gAMA=1.0 が付与されてビューアー側で二重ガンマ補正（白浮き）されるのを防ぐ
+            DirectX::WIC_FLAGS saveFlags = DirectX::WIC_FLAGS_NONE;
+            if (!req.isDepthRequested) {
+                saveFlags = DirectX::WIC_FLAGS_FORCE_SRGB;
+            }
+
+            DirectX::SaveToWICFile(image.GetImages(), image.GetImageCount(), saveFlags,
                                    DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), req.filePath.c_str());
 
             if (req.isMetadataRequested && !currentMetadataJson_.empty()) {

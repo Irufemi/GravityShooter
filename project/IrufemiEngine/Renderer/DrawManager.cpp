@@ -1688,6 +1688,11 @@ void DrawManager::ExecuteRenderQueues(IrufemiEngine* engine) {
         renderGraph_->Execute(this, engine);
     }
 
+    // ゲーム画面の全描画（フォント・UI含む）が完了した直後にゲーム画面キャプチャ（WithoutUI）を実行
+    if (auto scm = engine->GetScreenCaptureManager()) {
+        scm->OnPreUIDraw(engine->GetCommandList(), engine->GetMainRenderTexture());
+    }
+
     // RenderGraph 終了後はバックバッファを描画対象とする (TopMost UI など用)
     SetRenderTargetToBackBuffer(false);
 

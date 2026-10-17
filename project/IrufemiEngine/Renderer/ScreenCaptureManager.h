@@ -94,6 +94,12 @@ private:
      */
     void GenerateMetadataJson(const std::wstring& imagePath);
 
+    /**
+     * @brief コピー用バッファが存在し、コピー元と一致しているか確認し、必要なら再生成する。
+     */
+    bool EnsureCopyBuffer(Microsoft::WRL::ComPtr<ID3D12Resource>& buffer, ID3D12Resource* sourceResource,
+                          DXGI_FORMAT overrideFormat = DXGI_FORMAT_UNKNOWN);
+
 private:
     DirectXCommon* dxCommon_ = nullptr;
     ThreadPool* threadPool_ = nullptr;
@@ -103,8 +109,9 @@ private:
     // キャプチャ中の多重実行を防ぐためのフラグやバッファ管理
     std::atomic<bool> isEncoding_{false};
 
-    // 中間コピー用バッファ (ヒッチング防止のための一時退避先)
-    Microsoft::WRL::ComPtr<ID3D12Resource> colorCopyBuffer_;
+    // 中間コピー用バッファ (解像度やタイミングが異なるため分離管理)
+    Microsoft::WRL::ComPtr<ID3D12Resource> colorCopyBufferWithoutUI_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> colorCopyBufferWithUI_;
     Microsoft::WRL::ComPtr<ID3D12Resource> depthCopyBuffer_;
 
     // 一時的に記録しておくメタデータ内容
