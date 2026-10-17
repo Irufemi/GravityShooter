@@ -160,8 +160,7 @@ void DroneManagerComponent::Update() {
 
 void DroneManagerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
-    RegisterProperty("Drone Prefab Path", &dronePrefabPath_)
-        .SetPrefabFilter("SphereColliderComponent");
+    RegisterProperty("Drone Prefab Path", &dronePrefabPath_).SetPrefabFilter("SphereColliderComponent");
     RegisterProperty("Max Drones", &maxDrones_);
     RegisterPropertyRange("Orbit Radius", &orbitRadius_, 0.0f, 100.0f);
     RegisterPropertyRange("Orbit Speed", &orbitSpeed_, 0.0f, 10.0f);

@@ -407,7 +407,8 @@ public:
 
             if (!str->empty()) {
                 ImGui::SameLine();
-                ComponentUIHelpers::DrawOpenPrefabButton(*str, (std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(), ImVec2(65.0f, 0));
+                ComponentUIHelpers::DrawOpenPrefabButton(
+                    *str, (std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(), ImVec2(65.0f, 0));
             }
         } else {
             bool isPrefabPath = ComponentUIHelpers::IsValidPrefabPath(*str);
@@ -447,7 +448,8 @@ public:
 
             if (isPrefabPath) {
                 ImGui::SameLine();
-                ComponentUIHelpers::DrawOpenPrefabButton(*str, (std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(), ImVec2(65.0f, 0));
+                ComponentUIHelpers::DrawOpenPrefabButton(
+                    *str, (std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(), ImVec2(65.0f, 0));
             }
         }
 

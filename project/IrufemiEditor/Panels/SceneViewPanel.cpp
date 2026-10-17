@@ -124,7 +124,8 @@ void SceneViewPanel::Draw() {
             ImGui::GetWindowDrawList()->PopClipRect();
         }
 
-        // --- 編集コンテキスト切り替え（PrefabMode ⇄ 通常Sceneモード等）時のカメラコントローラー注視点・距離の再同期 ---
+        // --- 編集コンテキスト切り替え（PrefabMode ⇄ 通常Sceneモード等）時のカメラコントローラー注視点・距離の再同期
+        // ---
         if (editorManager_) {
             EditContext currentContext = editorManager_->GetEditContext();
             if (currentContext != lastEditContext_) {

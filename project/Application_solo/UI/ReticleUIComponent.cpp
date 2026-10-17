@@ -137,12 +137,8 @@ void ReticleUIComponent::Update() {
 
         // 瞬間的なネオン閃光 (白光 -> シアン)
         float flash = std::exp(-10.0f * t);
-        targetColor = Irufemi::Vector4{
-            std::lerp(0.1f, 1.0f, flash),
-            std::lerp(0.85f, 1.0f, flash),
-            1.0f,
-            std::lerp(0.65f, 1.0f, flash)
-        };
+        targetColor = Irufemi::Vector4{std::lerp(0.1f, 1.0f, flash), std::lerp(0.85f, 1.0f, flash), 1.0f,
+                                       std::lerp(0.65f, 1.0f, flash)};
     } else {
         // スケールのスムーズ補間
         currentScale_ = std::lerp(currentScale_, targetScale, (std::min)(1.0f, deltaTime * 16.0f));
