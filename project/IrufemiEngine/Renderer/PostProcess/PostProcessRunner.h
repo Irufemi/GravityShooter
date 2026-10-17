@@ -59,17 +59,15 @@ public:
                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
                              PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI,
                              bool isFinalOutput = true, bool isBackBufferTarget = false,
-                             const D3D12_VIEWPORT* targetViewport = nullptr,
-                             const D3D12_RECT* targetScissor = nullptr);
+                             const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
 
     /**
      * @brief RenderGraphにポストプロセスの全サブパスを展開・登録する (Zero-Manual-Barriers)
      */
     void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                        const std::vector<PostProcessManager::Mode>& modes,
-                        TransientResourceHandle srcHandle, TransientResourceHandle dstHandle,
-                        PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI,
-                        bool isFinalOutput = true);
+                        const std::vector<PostProcessManager::Mode>& modes, TransientResourceHandle srcHandle,
+                        TransientResourceHandle dstHandle,
+                        PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI, bool isFinalOutput = true);
 
 private:
     bool RequiresSeparatePass(PostProcessManager::Mode mode) const;
@@ -79,14 +77,8 @@ private:
 
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> localResourceStates_;
 
-    TransientResourceHandle workHandles_[2][2] = {
-        {kInvalidHandle, kInvalidHandle},
-        {kInvalidHandle, kInvalidHandle}
-    };
-    class RenderTexture* workTextures_[2][2] = {
-        {nullptr, nullptr},
-        {nullptr, nullptr}
-    };
+    TransientResourceHandle workHandles_[2][2] = {{kInvalidHandle, kInvalidHandle}, {kInvalidHandle, kInvalidHandle}};
+    class RenderTexture* workTextures_[2][2] = {{nullptr, nullptr}, {nullptr, nullptr}};
 
     std::unique_ptr<Irufemi::BloomEffect> bloomEffect_;
     std::unique_ptr<Irufemi::LightShaftsEffect> lightShaftsEffect_;

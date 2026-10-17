@@ -17,7 +17,9 @@ public:
     void Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) override;
     void Execute(const Irufemi::RenderContext& rc) override;
 
-    TransientResourceHandle GetOutputHandle() const { return dstHandle_; }
+    TransientResourceHandle GetOutputHandle() const {
+        return dstHandle_;
+    }
 
 private:
     std::string targetName_;

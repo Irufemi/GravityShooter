@@ -64,7 +64,7 @@ class LightShaftsEffect;
 class SeparableBlurEffect;
 class KawaseBlurEffect;
 class CombinedPostEffect;
-}
+} // namespace Irufemi
 
 /**
  * @struct PostProcessModeInfo
@@ -623,14 +623,15 @@ public:
      * @param rtvHandle 最終的な出力先（バックバッファ）のRTV
      */
     void Draw(ID3D12GraphicsCommandList* commandList, class RenderTexture* srcTexture,
-              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer = Layer::PreUI,
-              bool isBackBufferTarget = false, const D3D12_VIEWPORT* targetViewport = nullptr,
-              const D3D12_RECT* targetScissor = nullptr);
+              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer = Layer::PreUI, bool isBackBufferTarget = false,
+              const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
 
     /**
      * @brief PostProcessRunner のインスタンスを取得する
      */
-    PostProcessRunner* GetRunner() const { return runner_.get(); }
+    PostProcessRunner* GetRunner() const {
+        return runner_.get();
+    }
 
     /**
      * @brief Bindless 定数バッファのリングオフセットを安全にインクリメントする

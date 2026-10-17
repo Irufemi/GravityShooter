@@ -26,9 +26,8 @@ void KawaseBlurEffect::DeclareResources(RenderGraphBuilder& builder, const D3D12
 void KawaseBlurEffect::ResolveResources(RenderGraph* renderGraph) {
     if (renderGraph) {
         for (int i = 0; i < PostProcessManager::kMaxKawaseIterations; ++i) {
-            textures_[i] = (handles_[i] != kInvalidHandle)
-                               ? renderGraph->GetTransientRenderTexture(handles_[i])
-                               : nullptr;
+            textures_[i] =
+                (handles_[i] != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(handles_[i]) : nullptr;
         }
     }
 }
@@ -40,8 +39,8 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
     D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = context.targetRtv;
     bool writeToScreen = context.writeToScreen;
 
-    int32_t iterations = (std::min)(PostProcessManager::kMaxKawaseIterations,
-                                    (std::max)(1, manager->dualKawaseParams_.iterationCount));
+    int32_t iterations =
+        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, manager->dualKawaseParams_.iterationCount));
     RenderTexture* prevSource = currentSource;
 
     // 1. Downsample Pass Loop
@@ -63,8 +62,7 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
         scissorRect.bottom = kwTex->GetHeight();
         commandList->RSSetScissorRects(1, &scissorRect);
 
-        DirectXUtils::TransitionBarrier(commandList, kwTex->GetResource(),
-                                        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        DirectXUtils::TransitionBarrier(commandList, kwTex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                         D3D12_RESOURCE_STATE_RENDER_TARGET);
 
         if (manager->mappedDualKawase_) {
@@ -122,8 +120,7 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
                                 (isFinalUp && writeToScreen), upPso);
 
         if (!isFinalUp) {
-            DirectXUtils::TransitionBarrier(commandList, kwTex->GetResource(),
-                                            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            DirectXUtils::TransitionBarrier(commandList, kwTex->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
                                             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         }
         prevSource = kwTex;
@@ -134,16 +131,18 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
     D3D12_RECT fullScissorRect{};
 
     SetupOutputViewport(manager->engine_, manager->dxCommon_, writeToScreen && context.isBackBufferTarget,
-                        writeToScreen ? context.targetViewport : nullptr, writeToScreen ? context.targetScissor : nullptr,
-                        fullViewport, fullScissorRect);
+                        writeToScreen ? context.targetViewport : nullptr,
+                        writeToScreen ? context.targetScissor : nullptr, fullViewport, fullScissorRect);
     commandList->RSSetViewports(1, &fullViewport);
     commandList->RSSetScissorRects(1, &fullScissorRect);
 }
 
 void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                                     TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
-                                     bool writeToScreen) {
-    if (!renderGraph || !manager) return;
+                                      TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
+                                      bool writeToScreen) {
+    if (!renderGraph || !manager) {
+        return;
+    }
 
     D3D12_RESOURCE_DESC kwDesc{};
     if (auto* d = renderGraph->GetTransientDesc(inputHandle)) {
@@ -157,14 +156,15 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
         handles_[i] = renderGraph->GetOrCreateTransientResource(name, kwDesc);
     }
 
-    int32_t iterations = (std::min)(PostProcessManager::kMaxKawaseIterations,
-                                    (std::max)(1, manager->dualKawaseParams_.iterationCount));
+    int32_t iterations =
+        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, manager->dualKawaseParams_.iterationCount));
 
     // 1. Downsample Passes
     TransientResourceHandle prevHandle = inputHandle;
     for (int i = 0; i < iterations; ++i) {
         TransientResourceHandle currentTargetHandle = handles_[i];
-        renderGraph->AddPass("Kawase_Downsample_" + std::to_string(i),
+        renderGraph->AddPass(
+            "Kawase_Downsample_" + std::to_string(i),
             [prevHandle, currentTargetHandle](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
                 builder.RequireTransientState(prevHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
                 builder.RequireTransientState(currentTargetHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -173,7 +173,9 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
                 auto* prevTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(prevHandle);
                 auto* kwTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(currentTargetHandle);
-                if (!prevTex || !kwTex) return;
+                if (!prevTex || !kwTex) {
+                    return;
+                }
 
                 D3D12_VIEWPORT viewport{};
                 viewport.Width = (FLOAT)kwTex->GetWidth();
@@ -187,11 +189,12 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 scissorRect.bottom = kwTex->GetHeight();
                 cmdList->RSSetScissorRects(1, &scissorRect);
 
-                if (manager->mappedDualKawase_) *(manager->mappedDualKawase_) = manager->dualKawaseParams_;
+                if (manager->mappedDualKawase_) {
+                    *(manager->mappedDualKawase_) = manager->dualKawaseParams_;
+                }
                 manager->DrawSinglePass(cmdList, PostProcessManager::Mode::DualKawaseBlur, prevTex,
                                         kwTex->GetRtvHandle(), false, manager->dualKawaseDownsamplePSO_.Get());
-            }
-        );
+            });
         prevHandle = currentTargetHandle;
     }
 
@@ -200,12 +203,14 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
         bool isFinalUp = (i == 0);
         TransientResourceHandle upTargetHandle = isFinalUp ? outputHandle : handles_[i];
 
-        renderGraph->AddPass("Kawase_Upsample_" + std::to_string(i),
+        renderGraph->AddPass(
+            "Kawase_Upsample_" + std::to_string(i),
             [prevHandle, upTargetHandle, isFinalUp](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
                 builder.RequireTransientState(prevHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
                 if (isFinalUp && upTargetHandle == kInvalidHandle) {
                     if (rc.engine && rc.engine->GetMainRenderTexture()) {
-                        builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+                        builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(),
+                                             D3D12_RESOURCE_STATE_RENDER_TARGET);
                     }
                 } else if (upTargetHandle != kInvalidHandle) {
                     builder.RequireTransientState(upTargetHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -215,7 +220,9 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
                 auto* prevTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(prevHandle);
                 auto* kwTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(handles_[i]);
-                if (!prevTex) return;
+                if (!prevTex) {
+                    return;
+                }
 
                 D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
                 uint32_t tw = 0;
@@ -224,7 +231,9 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 if (isFinalUp) {
                     if (upTargetHandle != kInvalidHandle) {
                         auto* outTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(upTargetHandle);
-                        if (!outTex) return;
+                        if (!outTex) {
+                            return;
+                        }
                         targetRtv = outTex->GetRtvHandle();
                         tw = outTex->GetWidth();
                         th = outTex->GetHeight();
@@ -237,7 +246,9 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
                     cmdList->ClearRenderTargetView(targetRtv, clearColor, 0, nullptr);
                 } else {
-                    if (!kwTex) return;
+                    if (!kwTex) {
+                        return;
+                    }
                     targetRtv = kwTex->GetRtvHandle();
                     tw = kwTex->GetWidth();
                     th = kwTex->GetHeight();
@@ -259,8 +270,7 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                                                                           : manager->dualKawaseUpsamplePSO_.Get();
                 manager->DrawSinglePass(cmdList, PostProcessManager::Mode::DualKawaseBlur, prevTex, targetRtv,
                                         (isFinalUp && writeToScreen), upPso);
-            }
-        );
+            });
         prevHandle = upTargetHandle;
     }
 }

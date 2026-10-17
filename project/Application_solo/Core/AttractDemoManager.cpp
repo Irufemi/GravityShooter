@@ -35,11 +35,11 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
 #ifdef EditorMode
-    isKioskLoopMode_ = false;                  // エディタ開発環境では展示ループを初期無効化
+    isKioskLoopMode_ = false; // エディタ開発環境では展示ループを初期無効化
     s_isKioskModeActive_ = false;
     s_isAttractModeActive_ = false;
 #else
-    isKioskLoopMode_ = true;                  // スタンドアロン展示ビルドではループ展示を有効化
+    isKioskLoopMode_ = true; // スタンドアロン展示ビルドではループ展示を有効化
     s_isKioskModeActive_ = true;
     s_isAttractModeActive_ = true;
 #endif

@@ -178,9 +178,8 @@ bool ScreenCaptureManager::EnsureCopyBuffer(Microsoft::WRL::ComPtr<ID3D12Resourc
     }
 
     CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
-    HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &targetDesc,
-                                                                 D3D12_RESOURCE_STATE_COMMON, nullptr,
-                                                                 IID_PPV_ARGS(&buffer));
+    HRESULT hr = dxCommon_->GetDevice()->CreateCommittedResource(
+        &heapProps, D3D12_HEAP_FLAG_NONE, &targetDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&buffer));
     return IRUFEMI_CHECK_HR(hr, "Failed to create copy buffer for screen capture!");
 }
 
@@ -330,13 +329,13 @@ void ScreenCaptureManager::ExecuteCopyTask(ID3D12Resource* sourceResource, D3D12
                                              currentState);
 
         if (SUCCEEDED(hr)) {
-            // アルファチャンネルのサニタイズ（全ピクセルの Alpha を 255 に上書きし、画像ビューアーでの白飛び・半透明ブレンドを防止）
+            // アルファチャンネルのサニタイズ（全ピクセルの Alpha を 255
+            // に上書きし、画像ビューアーでの白飛び・半透明ブレンドを防止）
             for (size_t i = 0; i < image.GetImageCount(); ++i) {
                 const DirectX::Image* img = image.GetImage(i, 0, 0);
-                if (img && (img->format == DXGI_FORMAT_R8G8B8A8_UNORM ||
-                            img->format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ||
-                            img->format == DXGI_FORMAT_B8G8R8A8_UNORM ||
-                            img->format == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB)) {
+                if (img &&
+                    (img->format == DXGI_FORMAT_R8G8B8A8_UNORM || img->format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ||
+                     img->format == DXGI_FORMAT_B8G8R8A8_UNORM || img->format == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB)) {
                     uint8_t* pixels = img->pixels;
                     for (size_t y = 0; y < img->height; ++y) {
                         uint8_t* row = pixels + y * img->rowPitch;

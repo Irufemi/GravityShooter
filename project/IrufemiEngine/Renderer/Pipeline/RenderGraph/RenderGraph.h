@@ -32,10 +32,9 @@ public:
     /**
      * @brief ラムダ式を用いてインラインでパスを登録する（Unreal Engine RDG 準拠）
      */
-    template <typename SetupFn, typename ExecFn>
-    void AddPass(const std::string& name, SetupFn&& setup, ExecFn&& exec) {
-        passes_.push_back(std::make_unique<LambdaRenderPass>(
-            name, std::forward<SetupFn>(setup), std::forward<ExecFn>(exec)));
+    template <typename SetupFn, typename ExecFn> void AddPass(const std::string& name, SetupFn&& setup, ExecFn&& exec) {
+        passes_.push_back(
+            std::make_unique<LambdaRenderPass>(name, std::forward<SetupFn>(setup), std::forward<ExecFn>(exec)));
     }
 
     /**
