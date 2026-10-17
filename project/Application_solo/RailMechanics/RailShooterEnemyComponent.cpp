@@ -78,12 +78,16 @@ void RailShooterEnemyComponent::Initialize() {
         targetable->SetTargetablePredicate([this]() { return IsAlive(); });
     }
 
-    // コライダーのサイズ・形状はプレハブ（アセット）側を100%尊重し、コードによる勝手な追加・上書きを行わない
+    // コライダーのサイズ・形状およびレイヤー・マスクはプレハブ（アセット）側を最優先し、未設定時のみフォールバックを設定
     if (auto collider = gameObject_->GetComponent<ColliderComponent>()) {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
-                collider->SetLayer(cm->GetLayerMask("Enemy"));
-                collider->SetMask(cm->GetLayerMask("Player") | cm->GetLayerMask("Debris_Player"));
+                if (collider->GetLayer() == 0) {
+                    collider->SetLayer(cm->GetLayerMask("Enemy"));
+                }
+                if (collider->GetMask() == 0) {
+                    collider->SetMask(cm->GetLayerMask("Player") | cm->GetLayerMask("Debris_Player"));
+                }
             }
         }
     }

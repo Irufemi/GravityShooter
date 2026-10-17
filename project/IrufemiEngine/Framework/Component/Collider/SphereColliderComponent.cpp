@@ -15,7 +15,6 @@ void SphereColliderComponent::OnRegisterProperties() {
     ColliderComponent::OnRegisterProperties();
     RegisterProperty("Local Offset", &localOffset_);
     RegisterProperty("Local Radius", &localRadius_);
-    // TODO: 必要に応じてシリアライズ対象にLayerおよびMaskプロパティを追加する
 }
 
 void SphereColliderComponent::DrawDebug() {}

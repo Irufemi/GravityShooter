@@ -64,7 +64,50 @@
 ---
 
 ## 2. 関連コンポーネント一覧
-- `StageIntroDirectorComponent` ([`StageIntroDirectorComponent.h`](file:///f:/school/3_0/WP0/WP0/project/Application_solo/Level/StageIntroDirectorComponent.h) / [`.cpp`](file:///f:/school/3_0/WP0/WP0/project/Application_solo/Level/StageIntroDirectorComponent.cpp))
-- `TitleSceneDirectorComponent` ([`TitleSceneDirectorComponent.h`](file:///f:/school/3_0/WP0/WP0/project/Application_solo/Scenes/title/TitleSceneDirectorComponent.h) / [`.cpp`](file:///f:/school/3_0/WP0/WP0/project/Application_solo/Scenes/title/TitleSceneDirectorComponent.cpp))
-- `RailShooterPlayerComponent` ([`RailShooterPlayerComponent.h`](file:///f:/school/3_0/WP0/WP0/project/Application_solo/RailMechanics/RailShooterPlayerComponent.h) / [`.cpp`](file:///f:/school/3_0/WP0/WP0/project/Application_solo/RailMechanics/RailShooterPlayerComponent.cpp))
-- `ReticleUIComponent` ([`ReticleUIComponent.h`](file:///f:/school/3_0/WP0/WP0/project/Application_solo/UI/ReticleUIComponent.h))
+- `StageIntroDirectorComponent` ([`StageIntroDirectorComponent.h`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/Level/StageIntroDirectorComponent.h) / [`.cpp`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/Level/StageIntroDirectorComponent.cpp))
+- `TitleSceneDirectorComponent` ([`TitleSceneDirectorComponent.h`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/Scenes/title/TitleSceneDirectorComponent.h) / [`.cpp`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/Scenes/title/TitleSceneDirectorComponent.cpp))
+- `RailShooterPlayerComponent` ([`RailShooterPlayerComponent.h`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/RailMechanics/RailShooterPlayerComponent.h) / [`.cpp`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/RailMechanics/RailShooterPlayerComponent.cpp))
+- `ReticleUIComponent` ([`ReticleUIComponent.h`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/UI/ReticleUIComponent.h))
+
+---
+
+## 3. マルチプレハブ管理の体系化とインスペクター編集基盤（Phase 2）
+
+### 概要
+`EnemySpawnerComponent` 内に現在個別実装されている「複数プレハブの解析・GPU Instancing用バッチレンダラー構築・オブジェクトプール管理」をエンジン層の汎用基盤（`MultiPrefabPoolManager`）へ昇格・体系化し、インスペクターからプレハブリストを気軽に追加・編集可能にする。
+
+### データ構造とインターフェース設計仕様
+```cpp
+// プレハブスポーン設定
+struct PrefabSpawnConfig {
+    std::string prefabPath;   // プレハブアセットパス (例: resources/prefabs/Enemy_DiveDrone.json)
+    uint32_t poolSize = 20;   // 事前確保プール数
+};
+
+// 汎用マルチプレハブ管理クラス (IrufemiEngine/Framework/Prefab/ 配下)
+class MultiPrefabPoolManager {
+public:
+    void Initialize(GameObject* owner);
+    void RegisterPrefab(const PrefabSpawnConfig& config);
+    void PreloadAll();
+
+    GameObject* Spawn(const std::string& prefabPath, const Irufemi::Vector3& position,
+                      const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
+    void Despawn(GameObject* obj);
+
+private:
+    struct Entry {
+        PrefabMetrics metrics;
+        std::shared_ptr<ModelBatchRendererComponent> batchRenderer;
+        std::unique_ptr<ObjectPool<GameObject>> pool;
+    };
+    std::unordered_map<std::string, Entry> pools_;
+};
+```
+
+### インスペクター編集UIの要件
+1. スポナー側で `std::vector<PrefabSpawnConfig>` を保持し、`OnRegisterProperties()` または専用エディタ経由でリスト表示。
+2. インスペクター上に `[+ Add Prefab]` ボタンを配置し、行ごとに `.SetPrefabFilter("RailShooterEnemyComponent")` 付きのコンボボックスとプール数スライダーを描画。
+3. プレハブをドラッグ＆ドロップまたはファイル選択するだけで、C++の再ビルド不要で敵のバリエーションや初期確保数を自由に調整可能にする。
+4. `EnemySpawnerComponent` だけでなく、`DebrisManagerComponent` や `BulletManager` にも展開可能な汎用設計とする。
+
