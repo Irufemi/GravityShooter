@@ -717,7 +717,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateTextureResource(cons
         &resourceDesc,        // Resourceの設定
         // D3D12_RESOURCE_STATE_GENERIC_READ, //初回のResourceState。Textureは基本読むだけ。
 
-        D3D12_RESOURCE_STATE_COPY_DEST, // データ転送される設定
+        D3D12_RESOURCE_STATE_COPY_DEST,       // データ転送される設定
         nullptr,                              // Clear最適値。使わないのでnullptr
         IID_PPV_ARGS(resource.GetAddressOf()) // 作成するResourceポインタへのポインタ
     );
