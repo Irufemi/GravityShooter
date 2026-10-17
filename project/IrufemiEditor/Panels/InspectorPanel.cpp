@@ -12,6 +12,7 @@
 #include "Commands/EditorActionManager.h"
 #include "Commands/EditorCommands.h"
 #include "Framework/Component/ComponentFactory.h"
+#include "UI/ComponentUIHelpers.h"
 #include <unordered_set>
 #include <map>
 #include <cstring>
@@ -31,6 +32,11 @@ void InspectorPanel::Draw() {
         bool isLocked = selected->GetIsLocked();
         if (isLocked) {
             ImGui::BeginDisabled();
+        }
+
+        // --- Prefab Instance Header (Unity/UnrealライクなPrefabバナー) ---
+        if (!selected->GetSourcePrefabPath().empty()) {
+            ComponentUIHelpers::DrawPrefabHeaderBanner(selected->GetSourcePrefabPath());
         }
 
         char nameBuffer[256];

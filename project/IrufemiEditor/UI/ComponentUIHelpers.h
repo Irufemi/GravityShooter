@@ -242,6 +242,29 @@ template <typename T> void DrawColliderCommonProperties(T* comp, EditorActionMan
 
 void DrawFallbackPropertiesGUI(Component* component, EditorActionManager* actionManager);
 
+/**
+ * @brief 文字列が有効なプレハブアセットパス（ファイル存在かつ.json/.prefab）か判定する
+ * @param path 判定対象パス（例: "resources/prefabs/Enemy_GravityGolem.json"）
+ * @return プレハブとして編集可能な実在ファイルであれば true
+ */
+bool IsValidPrefabPath(const std::string& path);
+
+/**
+ * @brief 指定プレハブを編集する [Open Prefab] ボタンを描画し、クリック時に安全にPrefabModeへ遷移する
+ * @param prefabPath プレハブファイルのパス
+ * @param label ボタン表示名（nullptrなら ICON_FA_WRENCH " Open"）
+ * @param buttonSize ボタンサイズ（0, 0 なら自動レイアウト）
+ * @return ボタンが押されてPrefabModeに入った場合 true
+ */
+bool DrawOpenPrefabButton(const std::string& prefabPath, const char* label = nullptr, ImVec2 buttonSize = ImVec2(0, 0));
+
+/**
+ * @brief インスペクター最上部に配置する標準Prefabインスタンスヘッダーを描画する
+ * @param prefabPath 参照元のプレハブパス (GameObject::GetSourcePrefabPath())
+ * @return PrefabModeへ遷移した場合 true
+ */
+bool DrawPrefabHeaderBanner(const std::string& prefabPath);
+
 } // namespace Irufemi::Editor::UI
 
 // 後方互換性エイリアス（既存の ComponentUIHelpers:: 呼び出しを 100% 維持）

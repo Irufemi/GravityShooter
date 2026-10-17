@@ -407,16 +407,14 @@ public:
 
             if (!str->empty()) {
                 ImGui::SameLine();
-                if (ImGui::Button((std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(), ImVec2(65.0f, 0))) {
-                    if (auto em = EditorManager::GetInstance()) {
-                        em->EnterPrefabMode(*str);
-                    }
-                }
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Open in Prefab Edit Mode");
-                }
+                ComponentUIHelpers::DrawOpenPrefabButton(*str, (std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(), ImVec2(65.0f, 0));
             }
         } else {
+            bool isPrefabPath = ComponentUIHelpers::IsValidPrefabPath(*str);
+            if (isPrefabPath) {
+                ImGui::SetNextItemWidth((std::max)(50.0f, ImGui::GetContentRegionAvail().x - 70.0f));
+            }
+
             char buffer[256];
             strncpy_s(buffer, sizeof(buffer), str->c_str(), _TRUNCATE);
 
@@ -445,6 +443,11 @@ public:
                             }
                         }));
                 }
+            }
+
+            if (isPrefabPath) {
+                ImGui::SameLine();
+                ComponentUIHelpers::DrawOpenPrefabButton(*str, (std::string(ICON_FA_WRENCH " Open##") + prop.name).c_str(), ImVec2(65.0f, 0));
             }
         }
 

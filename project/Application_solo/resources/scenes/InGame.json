@@ -2557,7 +2557,9 @@
             {
               "data": {
                 "Active Drones (Batch)": 0,
+                "Drone Prefab Path": "resources/prefabs/BossDrone.json",
                 "Fire Interval": 3.0,
+                "Max Drones": 50,
                 "Orbit Radius": 15.0,
                 "Orbit Speed": 1.0
               },
@@ -2631,6 +2633,7 @@
             },
             {
               "data": {
+                "Bullet Prefab Path": "resources/prefabs/BossBullet.json",
                 "Default Life Time": 5.0,
                 "Hit Effect Key": "Dust",
                 "Hit Radius": 0.5,

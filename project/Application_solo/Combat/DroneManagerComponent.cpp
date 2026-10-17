@@ -160,6 +160,9 @@ void DroneManagerComponent::Update() {
 
 void DroneManagerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
+    RegisterProperty("Drone Prefab Path", &dronePrefabPath_)
+        .SetPrefabFilter("SphereColliderComponent");
+    RegisterProperty("Max Drones", &maxDrones_);
     RegisterPropertyRange("Orbit Radius", &orbitRadius_, 0.0f, 100.0f);
     RegisterPropertyRange("Orbit Speed", &orbitSpeed_, 0.0f, 10.0f);
     RegisterPropertyRange("Fire Interval", &fireInterval_, 0.1f, 10.0f);
@@ -173,7 +176,7 @@ void DroneManagerComponent::DeployDrones(std::weak_ptr<GameObject> boss, int cou
 
     if (!dronePool_) {
         auto factory = [this, boss]() {
-            auto obj = GetGameObject()->Instantiate("resources/prefabs/BossDrone.json");
+            auto obj = GetGameObject()->Instantiate(dronePrefabPath_);
             if (obj) {
                 obj->SetIsActive(false);
                 obj->SetIsSerializable(false); // セーブデータ（InGame.json）への混入を防止

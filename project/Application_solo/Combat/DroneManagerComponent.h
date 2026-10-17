@@ -57,6 +57,7 @@ private:
     float orbitRadius_ = 15.0f;
     float orbitSpeed_ = 1.0f;
     float fireInterval_ = 3.0f;
+    std::string dronePrefabPath_ = "resources/prefabs/BossDrone.json";
 
     std::weak_ptr<GameObject> boss_;
     std::weak_ptr<GameObject> player_;

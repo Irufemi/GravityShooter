@@ -58,6 +58,7 @@ private:
     Irufemi::Vector3 bulletScale_ = {0.5f, 0.5f, 0.5f};
     float hitRadius_ = 0.5f;
     std::string hitEffectKey_ = "Dust";
+    std::string bulletPrefabPath_ = "resources/prefabs/BossBullet.json";
     /// @brief 攻撃対象となるプレイヤーのGameObject ID
     uint64_t targetPlayerID_ = 0;
 

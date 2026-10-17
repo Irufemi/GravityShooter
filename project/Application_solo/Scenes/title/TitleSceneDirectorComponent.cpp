@@ -62,7 +62,9 @@ void TitleSceneDirectorComponent::Initialize() {
 }
 
 void TitleSceneDirectorComponent::OnRegisterProperties() {
-    // インスペクタ用
+    Component::OnRegisterProperties();
+    RegisterProperty("Thruster Prefab Path", &thrusterEffectPrefabPath_);
+    RegisterProperty("Nozzle Offset", &nozzleOffset_);
 }
 
 TransformComponent* TitleSceneDirectorComponent::GetShipTransform() const {
@@ -278,7 +280,7 @@ void TitleSceneDirectorComponent::SetupThrusterEffect() {
     }
 
     // GameSceneと全く同じ player_thruster_effect.json をノズル位置にアタッチ生成
-    auto thruster = shipObj->Instantiate("resources/prefabs/player_thruster_effect.json", nozzleOffset_, true);
+    auto thruster = shipObj->Instantiate(thrusterEffectPrefabPath_, nozzleOffset_, true);
     if (thruster) {
         thruster->SetIsSerializable(false); // シーン保存時の汚染防止
         thruster->SetHideInHierarchy(true);

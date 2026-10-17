@@ -617,5 +617,74 @@ void SwitchColliderType(GameObject* go, ColliderComponent* oldComp, ColliderComp
     }
 }
 
+bool IsValidPrefabPath(const std::string& path) {
+    if (path.empty()) {
+        return false;
+    }
+    std::filesystem::path p(path);
+    std::string ext = p.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    if (ext != ".json" && ext != ".prefab") {
+        return false;
+    }
+    return std::filesystem::exists(p) && std::filesystem::is_regular_file(p);
+}
+
+bool DrawOpenPrefabButton(const std::string& prefabPath, const char* label, ImVec2 buttonSize) {
+    bool isValid = IsValidPrefabPath(prefabPath);
+    if (!isValid) {
+        ImGui::BeginDisabled();
+    }
+
+    std::string btnText = label ? label : (std::string(ICON_FA_WRENCH " Open##") + prefabPath);
+    if (buttonSize.x == 0.0f) {
+        buttonSize.x = 65.0f;
+    }
+
+    bool clicked = false;
+    if (ImGui::Button(btnText.c_str(), buttonSize)) {
+        if (auto em = EditorManager::GetInstance()) {
+            em->EnterPrefabMode(prefabPath);
+            clicked = true;
+        }
+    }
+
+    if (!isValid) {
+        ImGui::EndDisabled();
+    } else if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Open in Prefab Edit Mode:\n%s", prefabPath.c_str());
+    }
+
+    return clicked;
+}
+
+bool DrawPrefabHeaderBanner(const std::string& prefabPath) {
+    if (prefabPath.empty()) {
+        return false;
+    }
+
+    bool clicked = false;
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.22f, 0.35f, 0.85f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 6.0f));
+    if (ImGui::BeginChild("PrefabHeaderBanner", ImVec2(0, 36.0f), true, ImGuiWindowFlags_NoScrollbar)) {
+        std::string prefabStem = std::filesystem::path(prefabPath).stem().string();
+        ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s Prefab: %s", ICON_FA_CUBE, prefabStem.c_str());
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Source: %s", prefabPath.c_str());
+        }
+
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 70.0f);
+        if (DrawOpenPrefabButton(prefabPath, ICON_FA_ARROW_UP_RIGHT_FROM_SQUARE " Open", ImVec2(65.0f, 22.0f))) {
+            clicked = true;
+        }
+    }
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+
+    return clicked;
+}
+
 } // namespace Irufemi::Editor::UI
 #endif // EditorMode

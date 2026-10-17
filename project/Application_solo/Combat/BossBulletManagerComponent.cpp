@@ -253,6 +253,7 @@ void BossBulletManagerComponent::Update() {
 }
 
 void BossBulletManagerComponent::OnRegisterProperties() {
+    RegisterProperty("Bullet Prefab Path", &bulletPrefabPath_);
     RegisterProperty("Max Bullets", &maxBullets_);
     RegisterProperty("Default Life Time", &defaultLifeTime_);
     RegisterPropertyRange("Hit Radius", &hitRadius_, 0.1f, 10.0f);

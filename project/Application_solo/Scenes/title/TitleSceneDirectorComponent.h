@@ -291,6 +291,7 @@ private: // メンバ変数
     // 自機スラスター演出（GameScene完全準拠のTransform Scale制御）
     std::weak_ptr<GameObject> thrusterObj_;
     Irufemi::Vector3 nozzleOffset_{0.0f, 0.0f, -0.48f};
+    std::string thrusterEffectPrefabPath_ = "resources/prefabs/player_thruster_effect.json";
     float currentThrusterScaleZ_ = 0.85f;
     float targetThrusterScaleZ_ = 0.85f;
 
