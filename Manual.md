@@ -238,7 +238,7 @@ IrufemiEngine のエディタは、モダンなゲームエンジン（Unity等�
    - D&D 時にアセットの相対パスが自動的にコンポーネントへセットされるため、すぐに画面上でプレビュー可能です。
 
 #### 1.2.2 プレハブ (Prefab) システム
-Unityライクな「オブジェクトのテンプレート化」をサポートしています。
+オブジェクトの構成やパラメータをテンプレート化して再利用する仕組みです。
 
 1. **Prefabの作成・保存**:
    - Hierarchy パネルでオブジェクトを右クリックし、「**Save as Prefab**」を選択します。
@@ -260,6 +260,34 @@ Unityライクな「オブジェクトのテンプレート化」をサポート
    ```
    > [!NOTE]
    > `SceneSerializer::LoadPrefab` も後方互換としてそのまま動作しますが、内部的には `PrefabManager` へ委譲されています。シーン遷移時にはキャッシュが自動解放されます。
+
+4. **Prefab分離編集モード (Isolation Stage)**:
+   - シーン内の他オブジェクトに干渉されることなく、プレハブ単体を隔離されたクリーンな空間で編集できます。
+   - **進入方法**:
+     - Project Browser 上で `.prefab.json` を **ダブルクリック**
+     - Hierarchy 上のPrefabインスタンスを **ダブルクリック**
+     - Inspector 上部のPrefabバナーの **`[Open Prefab]`** ボタンをクリック
+     - コンポーネント内の `.prefab.json` パス項目横の **`[Open]`** ボタンをクリック
+   - **編集画面の機能**:
+     - 原点 (0, 0, 0) XZ平面グリッドが自動表示され、スケールや接地感の確認が容易です。
+     - Hierarchy 最上部に階層インジケータ（`◀ Exit Prefab (SceneName)`）が表示され、クリックまたは **`Esc`** キーで安全にシーンへ復帰できます。
+     - **`Ctrl + S`** を押すと、Prefab編集モード中はシーンではなく編集中の `.prefab.json` が自動保存されます。
+   - **誤操作防止ガード**:
+     - プレハブ編集中は、誤動作防止のため **Playモードへの移行が自動でロック** されます（ツールバーのPlayボタンも無効化）。
+     - シーンとプレハブ間でのUndoデータの混ざりを防ぐため、突入時および離脱時にUndo履歴が自動でクリアされます。
+     - Prefabのルートオブジェクト（Root）に対する誤った削除や複製操作は保護されます。
+
+5. **コンポーネント開発向け共通UIウィジェット (`ComponentUIHelpers`)**:
+   - 独自のコンポーネント内でプレハブパスを扱う際、[`ComponentUIHelpers.h`](project/IrufemiEditor/UI/ComponentUIHelpers.h) の共通関数を利用できます。
+   ```cpp
+   #include "UI/ComponentUIHelpers.h"
+
+   // プレハブパスの横にワンクリックで編集モードを開くボタンを描画
+   IrufemiEditor::ComponentUIHelpers::DrawOpenPrefabButton(dronePrefabPath_);
+
+   // Inspector最上部にPrefabメタデータバナーを描画
+   IrufemiEditor::ComponentUIHelpers::DrawPrefabHeaderBanner(prefabAssetPath_);
+   ```
 
 #### 1.2.3 コンソールパネル (Console)
 エンジンからのログ出力（エラー、警告、情報）は、エディタ下部の **Console** パネルに表示されます。

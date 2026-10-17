@@ -223,6 +223,11 @@
     - 現在のXAudio2ベースのオーディオ管理から、AAA業界標準である **FMOD** （NieR:Automata等で採用）へと完全に移行する。これにより、複雑なストリーミング再生や3D空間音響、動的なBGM遷移（インタラクティブオーディオ）を専用ツール(FMOD Studio)と連携して実現する。
 
 ### ✨ エディタの高度化と表現力の向上 (Editor & Rendering Features)
+- [x] **Prefab分離編集モード (Isolation Stage) と誤操作防止ガード、共通UIヘルパー基盤の実装**
+    - シーンから隔離されたクリーンな空間でプレハブ単体を編集できるIsolation Stageを構築。
+    - 原点 (0, 0, 0) XZ平面グリッド自動描画、Hierarchy上部への階層インジケータ（パンくずリスト）表示とEscキー離脱。
+    - 編集中のPlayモード移行ブロック（ツールバーボタン無効化）、突入・離脱時のUndo履歴クリアによるシーン/プレハブ境界の整合性維持、PrefabRoot保護。
+    - 共通UIヘルパー（`ComponentUIHelpers::DrawOpenPrefabButton`, `DrawPrefabHeaderBanner`）の新設と、Inspectorおよび各マネージャーコンポーネント（DroneManager, BossBulletManager, TitleSceneDirector）への展開によるデータ駆動化。
 - [x] **マスクベースのカスタムアウトライン描画 (AAAアプローチ導入)**
     - 個別エフェクト(EffectMask)のアウトライン抽出を周辺ピクセル参照による拡張(Dilation)に変更し、背景境界でも途切れない太線・指定カラーでの描画に対応。
 - [ ] **VFX (ComputeShader / パーティクル等) のエディタプレビュー機能**
