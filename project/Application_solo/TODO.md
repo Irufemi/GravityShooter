@@ -204,4 +204,14 @@
   - [x] 射影行列成分（$P_{22}, P_{32}$）を用いたパースペクティブ深度復元式（$z_{\text{view}} = \frac{P_{32}}{z_{\text{ndc}} - P_{22}}$）による高速・高精度なカメラ距離算出
   - [x] 最奥深度（Skybox/Skydome）のピクセル自動除外（`discard`）とハードウェアアルファブレンド合成
   - [x] `FogComponent` によるシーン・エディタからのリアルタイムパラメータ調整（Color, Start, End, Density, Type）
+
+## 12. ステージ突入・戦闘開始シークエンス（ブートアップ＆整流演出）
+- [x] **タイトル出撃からインゲーム突入への接続演出（StageIntroDirectorComponent）**
+  - [x] メニューカーソル選択音（`se_menu_cursor`）の誤鳴動を撤去
+  - [x] 急制動時のノーズダイブ・整流バネ挙動（減衰振動方程式 $\theta_{pitch}(t) = \theta_{max} \cdot e^{-\lambda t} \cdot \cos(\omega t)$）の実装
+  - [x] 自機基準回転（`initialShipLocalRot_`）の保存および安定化・スキップ時の復元
+  - [x] `TriggerFCSBootupSequence()` による専用SE（`se_fcs_online.mp3`）再生とレティクル起動アニメーションの同期
+- [x] **HUD・レティクル展開アニメーション（ReticleUIComponent）**
+  - [x] FCSオンライン時のスプリング展開アニメーション（初期スケール 2.2x $\to$ 1.0x 収縮・オーバーシュート）
+  - [x] 起動エミッシブ閃光パルス同期
 

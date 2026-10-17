@@ -70,6 +70,41 @@
                 - `ClearGameObjects()`: シーン破棄・クリア時に全オブジェクトの `Destroy()` を明示的に実行し、コンポーネントの確実なライフサイクル終了を保証。
             - `SceneTransitionButtonComponent`: 同一オブジェクトのコンポーネント取得を `OnAwake()` に移行。
             - `PlayerTargetingComponent`: `Start()` での `LockonMarkerUIComponent` 未取得時フォールバック解決を追加。
+- [ ] **Phase 6: マルチプレハブ管理の体系化とインスペクター編集基盤 (MultiPrefabPoolManager)**
+    - **概要**: `EnemySpawnerComponent` 内に現在個別実装されている「複数プレハブの解析・GPU Instancing用バッチレンダラー構築・オブジェクトプール管理」をエンジン層の汎用基盤（`MultiPrefabPoolManager`）へ昇格・体系化し、インスペクターからプレハブリストを気軽に追加・編集可能にする。
+    - **データ構造とインターフェース設計仕様**:
+      ```cpp
+      // プレハブスポーン設定
+      struct PrefabSpawnConfig {
+          std::string prefabPath;   // プレハブアセットパス (例: resources/prefabs/Enemy_DiveDrone.json)
+          uint32_t poolSize = 20;   // 事前確保プール数
+      };
+
+      // 汎用マルチプレハブ管理クラス (IrufemiEngine/Framework/Prefab/ 配下)
+      class MultiPrefabPoolManager {
+      public:
+          void Initialize(GameObject* owner);
+          void RegisterPrefab(const PrefabSpawnConfig& config);
+          void PreloadAll();
+
+          GameObject* Spawn(const std::string& prefabPath, const Irufemi::Vector3& position,
+                            const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
+          void Despawn(GameObject* obj);
+
+      private:
+          struct Entry {
+              PrefabMetrics metrics;
+              std::shared_ptr<ModelBatchRendererComponent> batchRenderer;
+              std::unique_ptr<ObjectPool<GameObject>> pool;
+          };
+          std::unordered_map<std::string, Entry> pools_;
+      };
+      ```
+    - **インスペクター編集UIの要件**:
+      1. スポナー側で `std::vector<PrefabSpawnConfig>` を保持し、`OnRegisterProperties()` または専用エディタ経由でリスト表示。
+      2. インスペクター上に `[+ Add Prefab]` ボタンを配置し、行ごとに `.SetPrefabFilter("RailShooterEnemyComponent")` 付きのコンボボックスとプール数スライダーを描画。
+      3. プレハブをドラッグ＆ドロップまたはファイル選択するだけで、C++の再ビルド不要で敵のバリエーションや初期確保数を自由に調整可能にする。
+      4. `EnemySpawnerComponent` だけでなく、`DebrisManagerComponent` や `BulletManager` にも展開可能な汎用設計とする。
 
 ### 🏃 次世代アニメーション＆モデルアーキテクチャ (Ultimate Animation System)
 - [x] **Phase 1: 二段構えアーキテクチャの構築（低レイヤー＆コンポーネント分離）**
