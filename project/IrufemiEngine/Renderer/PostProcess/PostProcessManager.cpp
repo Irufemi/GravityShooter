@@ -205,9 +205,8 @@ void PostProcessManager::BeginFrame() {
 }
 
 void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderTexture* srcTexture,
-                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer,
-                              bool isBackBufferTarget, const D3D12_VIEWPORT* targetViewport,
-                              const D3D12_RECT* targetScissor) {
+                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer, bool isBackBufferTarget,
+                              const D3D12_VIEWPORT* targetViewport, const D3D12_RECT* targetScissor) {
     if (layer == Layer::PreUI) {
         BeginFrame();
     }

@@ -53,11 +53,21 @@ void PostProcessRunner::DeclareResources(RenderGraphBuilder& builder, const D3D1
     bool hasKawase = false;
 
     for (auto mode : modes) {
-        if (mode == Mode::Bloom) hasBloom = true;
-        if (mode == Mode::LightShafts) hasLightShafts = true;
-        if (mode == Mode::Smoothing) hasSmoothing = true;
-        if (mode == Mode::GaussianFilter) hasGaussian = true;
-        if (mode == Mode::DualKawaseBlur) hasKawase = true;
+        if (mode == Mode::Bloom) {
+            hasBloom = true;
+        }
+        if (mode == Mode::LightShafts) {
+            hasLightShafts = true;
+        }
+        if (mode == Mode::Smoothing) {
+            hasSmoothing = true;
+        }
+        if (mode == Mode::GaussianFilter) {
+            hasGaussian = true;
+        }
+        if (mode == Mode::DualKawaseBlur) {
+            hasKawase = true;
+        }
     }
 
     if (hasBloom && bloomEffect_) {
@@ -92,23 +102,32 @@ void PostProcessRunner::ResolveResources(RenderGraph* renderGraph, const std::ve
                                      : nullptr;
 
     for (auto mode : modes) {
-        if (mode == Mode::Bloom && bloomEffect_) bloomEffect_->ResolveResources(renderGraph);
-        if (mode == Mode::LightShafts && lightShaftsEffect_) lightShaftsEffect_->ResolveResources(renderGraph);
-        if (mode == Mode::Smoothing && smoothingEffect_) smoothingEffect_->ResolveResources(renderGraph);
-        if (mode == Mode::GaussianFilter && gaussianEffect_) gaussianEffect_->ResolveResources(renderGraph);
-        if (mode == Mode::DualKawaseBlur && kawaseBlurEffect_) kawaseBlurEffect_->ResolveResources(renderGraph);
+        if (mode == Mode::Bloom && bloomEffect_) {
+            bloomEffect_->ResolveResources(renderGraph);
+        }
+        if (mode == Mode::LightShafts && lightShaftsEffect_) {
+            lightShaftsEffect_->ResolveResources(renderGraph);
+        }
+        if (mode == Mode::Smoothing && smoothingEffect_) {
+            smoothingEffect_->ResolveResources(renderGraph);
+        }
+        if (mode == Mode::GaussianFilter && gaussianEffect_) {
+            gaussianEffect_->ResolveResources(renderGraph);
+        }
+        if (mode == Mode::DualKawaseBlur && kawaseBlurEffect_) {
+            kawaseBlurEffect_->ResolveResources(renderGraph);
+        }
     }
 }
 
 void PostProcessRunner::TransitionResource(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource,
-                                          D3D12_RESOURCE_STATES targetState) {
+                                           D3D12_RESOURCE_STATES targetState) {
     if (!resource || !commandList) {
         return;
     }
     auto it = localResourceStates_.find(resource);
-    D3D12_RESOURCE_STATES currentState = (it != localResourceStates_.end())
-                                             ? it->second
-                                             : D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    D3D12_RESOURCE_STATES currentState =
+        (it != localResourceStates_.end()) ? it->second : D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     if (currentState != targetState) {
         DirectXUtils::TransitionBarrier(commandList, resource, currentState, targetState);
         localResourceStates_[resource] = targetState;
@@ -118,8 +137,8 @@ void PostProcessRunner::TransitionResource(ID3D12GraphicsCommandList* commandLis
 RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12GraphicsCommandList* commandList,
                                       const std::vector<Mode>& modes, RenderTexture* srcTexture,
                                       D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, PostProcessManager::Layer layer,
-                                      bool isFinalOutput, bool isBackBufferTarget,
-                                      const D3D12_VIEWPORT* targetViewport, const D3D12_RECT* targetScissor) {
+                                      bool isFinalOutput, bool isBackBufferTarget, const D3D12_VIEWPORT* targetViewport,
+                                      const D3D12_RECT* targetScissor) {
     localResourceStates_.clear();
 
     RenderTexture* currentSource = srcTexture;
@@ -139,15 +158,15 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         if (mode == Mode::Bloom) {
             writeToScreen = false;
             RenderTexture* nextTarget = workTextures_[layerIdx][pingPongIdx % 2];
-            if (!nextTarget) break;
+            if (!nextTarget) {
+                break;
+            }
             D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = nextTarget->GetRtvHandle();
 
             TransitionResource(commandList, nextTarget->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-            Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle,
-                writeToScreen, isBackBufferTarget, targetViewport, targetScissor
-            };
+            Irufemi::PostProcessRenderContext ctx{manager,       commandList,        currentSource,  targetHandle,
+                                                  writeToScreen, isBackBufferTarget, targetViewport, targetScissor};
             bloomEffect_->Render(ctx);
 
             TransitionResource(commandList, nextTarget->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -159,16 +178,15 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         // 2. Light Shafts (ゴッドレイ)
         else if (mode == Mode::LightShafts) {
             RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[layerIdx][pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle =
+                writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
             if (!writeToScreen && nextTarget) {
                 TransitionResource(commandList, nextTarget->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
 
-            Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle,
-                writeToScreen, isBackBufferTarget, targetViewport, targetScissor
-            };
+            Irufemi::PostProcessRenderContext ctx{manager,       commandList,        currentSource,  targetHandle,
+                                                  writeToScreen, isBackBufferTarget, targetViewport, targetScissor};
             lightShaftsEffect_->Render(ctx);
 
             if (!writeToScreen && nextTarget) {
@@ -184,16 +202,15 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         // 3. Smoothing / GaussianFilter
         else if (mode == Mode::Smoothing || mode == Mode::GaussianFilter) {
             RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[layerIdx][pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle =
+                writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
             if (!writeToScreen && nextTarget) {
                 TransitionResource(commandList, nextTarget->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
 
-            Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle,
-                writeToScreen, isBackBufferTarget, targetViewport, targetScissor
-            };
+            Irufemi::PostProcessRenderContext ctx{manager,       commandList,        currentSource,  targetHandle,
+                                                  writeToScreen, isBackBufferTarget, targetViewport, targetScissor};
 
             if (mode == Mode::Smoothing) {
                 smoothingEffect_->Render(ctx);
@@ -214,16 +231,15 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         // 4. DualKawaseBlur
         else if (mode == Mode::DualKawaseBlur) {
             RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[layerIdx][pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle =
+                writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
             if (!writeToScreen && nextTarget) {
                 TransitionResource(commandList, nextTarget->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
 
-            Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle,
-                writeToScreen, isBackBufferTarget, targetViewport, targetScissor
-            };
+            Irufemi::PostProcessRenderContext ctx{manager,       commandList,        currentSource,  targetHandle,
+                                                  writeToScreen, isBackBufferTarget, targetViewport, targetScissor};
             kawaseBlurEffect_->Render(ctx);
 
             if (!writeToScreen && nextTarget) {
@@ -265,17 +281,16 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
                 needsFinalPass = false;
             }
             RenderTexture* nextTarget = writeToScreen ? nullptr : workTextures_[layerIdx][pingPongIdx % 2];
-            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
+            D3D12_CPU_DESCRIPTOR_HANDLE targetHandle =
+                writeToScreen ? rtvHandle : (nextTarget ? nextTarget->GetRtvHandle() : rtvHandle);
 
             if (!writeToScreen && nextTarget) {
                 TransitionResource(commandList, nextTarget->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
 
             combinedEffect_->SetBatch(batch);
-            Irufemi::PostProcessRenderContext ctx{
-                manager, commandList, currentSource, targetHandle,
-                writeToScreen, isBackBufferTarget, targetViewport, targetScissor
-            };
+            Irufemi::PostProcessRenderContext ctx{manager,       commandList,        currentSource,  targetHandle,
+                                                  writeToScreen, isBackBufferTarget, targetViewport, targetScissor};
             combinedEffect_->Render(ctx);
 
             if (!writeToScreen && nextTarget) {
@@ -298,10 +313,8 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
             return finalWrittenTexture;
         }
 
-        Irufemi::PostProcessRenderContext ctx{
-            manager, commandList, currentSource, rtvHandle,
-            true, isBackBufferTarget, targetViewport, targetScissor
-        };
+        Irufemi::PostProcessRenderContext ctx{manager, commandList,        currentSource,  rtvHandle,
+                                              true,    isBackBufferTarget, targetViewport, targetScissor};
         Irufemi::CombinedPostEffect::RenderFinalCopyPass(ctx);
         finalWrittenTexture = nullptr;
     }
@@ -310,10 +323,12 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
 }
 
 void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                                      const std::vector<Mode>& modes,
-                                      TransientResourceHandle srcHandle, TransientResourceHandle dstHandle,
-                                      PostProcessManager::Layer layer, bool isFinalOutput) {
-    if (!renderGraph || !manager) return;
+                                       const std::vector<Mode>& modes, TransientResourceHandle srcHandle,
+                                       TransientResourceHandle dstHandle, PostProcessManager::Layer layer,
+                                       bool isFinalOutput) {
+    if (!renderGraph || !manager) {
+        return;
+    }
 
     if (modes.empty()) {
         // エフェクトなしの場合、直接出力先へコピーパスを追加
@@ -351,32 +366,27 @@ void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
             currentIn = nextOut;
             pingPongIdx++;
             modeIdx++;
-        }
-        else if (mode == Mode::LightShafts) {
+        } else if (mode == Mode::LightShafts) {
             lightShaftsEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
             currentIn = nextOut;
             pingPongIdx++;
             modeIdx++;
-        }
-        else if (mode == Mode::Smoothing) {
+        } else if (mode == Mode::Smoothing) {
             smoothingEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
             currentIn = nextOut;
             pingPongIdx++;
             modeIdx++;
-        }
-        else if (mode == Mode::GaussianFilter) {
+        } else if (mode == Mode::GaussianFilter) {
             gaussianEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
             currentIn = nextOut;
             pingPongIdx++;
             modeIdx++;
-        }
-        else if (mode == Mode::DualKawaseBlur) {
+        } else if (mode == Mode::DualKawaseBlur) {
             kawaseBlurEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
             currentIn = nextOut;
             pingPongIdx++;
             modeIdx++;
-        }
-        else {
+        } else {
             // 統合バッチ
             std::vector<Mode> batch;
             size_t lookAhead = modeIdx;
@@ -386,10 +396,14 @@ void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
                    batch.size() < 16) {
 
                 bool needsSeparate = RequiresSeparatePass(modes[lookAhead]);
-                if (!batch.empty() && needsSeparate) break;
+                if (!batch.empty() && needsSeparate) {
+                    break;
+                }
                 batch.push_back(modes[lookAhead]);
                 lookAhead++;
-                if (needsSeparate) break;
+                if (needsSeparate) {
+                    break;
+                }
             }
 
             isLastBatch = (lookAhead == modes.size());
@@ -405,4 +419,3 @@ void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
         }
     }
 }
-

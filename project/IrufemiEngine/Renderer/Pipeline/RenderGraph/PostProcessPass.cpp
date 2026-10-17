@@ -93,9 +93,8 @@ void PostProcessPass::Execute(const Irufemi::RenderContext& rc) {
         }
     }
 
-    auto ppSrcTex = (preUiSrcHandle_ != kInvalidHandle)
-                        ? renderGraph->GetTransientRenderTexture(preUiSrcHandle_)
-                        : engine->GetMainRenderTexture();
+    auto ppSrcTex = (preUiSrcHandle_ != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(preUiSrcHandle_)
+                                                        : engine->GetMainRenderTexture();
 
     // 最終出力先は常に mainRenderTexture
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = engine->GetMainRenderTexture()->GetRtvHandle();

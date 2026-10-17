@@ -35,7 +35,9 @@ public:
     /**
      * @brief このエフェクトが独立した描画パスを要求するかどうか
      */
-    virtual bool RequiresSeparatePass() const { return false; }
+    virtual bool RequiresSeparatePass() const {
+        return false;
+    }
 
     /**
      * @brief このエフェクトが必要とする一時リソースを申告する

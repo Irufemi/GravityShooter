@@ -71,14 +71,13 @@ void PostUIPass::Execute(const Irufemi::RenderContext& rc) {
         }
     }
 
-    auto ppSrcTex = (postUiSrcHandle_ != kInvalidHandle)
-                        ? renderGraph->GetTransientRenderTexture(postUiSrcHandle_)
-                        : engine->GetMainRenderTexture();
+    auto ppSrcTex = (postUiSrcHandle_ != kInvalidHandle) ? renderGraph->GetTransientRenderTexture(postUiSrcHandle_)
+                                                         : engine->GetMainRenderTexture();
 
     // 最終出力先の決定 (RenderContextから取得)
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rc.outputRTV;
     bool isBackBufferTarget = !rc.isEditorMode;
 
-    ppMgr->Draw(cmdList, ppSrcTex, rtvHandle, PostProcessManager::Layer::PostUI, isBackBufferTarget,
-                &rc.viewport, &rc.scissorRect);
+    ppMgr->Draw(cmdList, ppSrcTex, rtvHandle, PostProcessManager::Layer::PostUI, isBackBufferTarget, &rc.viewport,
+                &rc.scissorRect);
 }

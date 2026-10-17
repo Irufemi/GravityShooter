@@ -28,7 +28,7 @@ struct RenderContext {
     // 出力先レンダーターゲットおよび描画領域の一元管理
     ID3D12Resource* outputResource = nullptr; //!< 出力先リソース（Editor時はMainRenderTexture、Standalone時はnullptr）
     D3D12_CPU_DESCRIPTOR_HANDLE
-        outputRTV{}; //!< 出力先RTVハンドル（Editor時はMainRenderTexture、Standalone時はBackBuffer）
+    outputRTV{}; //!< 出力先RTVハンドル（Editor時はMainRenderTexture、Standalone時はBackBuffer）
     D3D12_VIEWPORT viewport{}; //!< 出力先ビューポート（レターボックス計算済み）
     D3D12_RECT scissorRect{};  //!< 出力先シザー矩形（レターボックス計算済み）
     bool isEditorMode = false; //!< エディタモード実行中かどうか

@@ -14,7 +14,7 @@ void CombinedPostEffect::Render(const PostProcessRenderContext& context) {
 }
 
 void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context,
-                                        const std::vector<PostProcessManager::Mode>& batch) {
+                                         const std::vector<PostProcessManager::Mode>& batch) {
     auto* manager = context.manager;
     auto* commandList = context.commandList;
     auto* currentSource = context.sourceTexture;
@@ -36,8 +36,7 @@ void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context
     commandList->ClearRenderTargetView(targetHandle, clearColor, 0, nullptr);
 
     // 3. パイプライン・シグネチャ設定
-    commandList->SetPipelineState(writeToScreen ? manager->finalCombinedPSO_.Get()
-                                                : manager->combinedPSO_.Get());
+    commandList->SetPipelineState(writeToScreen ? manager->finalCombinedPSO_.Get() : manager->combinedPSO_.Get());
     commandList->SetGraphicsRootSignature(manager->rootSig_);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -46,8 +45,7 @@ void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context
     D3D12_RECT fullScissorRect{};
     SetupOutputViewport(manager->engine_, manager->dxCommon_, writeToScreen && context.isBackBufferTarget,
                         writeToScreen ? context.targetViewport : nullptr,
-                        writeToScreen ? context.targetScissor : nullptr,
-                        fullViewport, fullScissorRect);
+                        writeToScreen ? context.targetScissor : nullptr, fullViewport, fullScissorRect);
     commandList->RSSetViewports(1, &fullViewport);
     commandList->RSSetScissorRects(1, &fullScissorRect);
 
@@ -69,16 +67,14 @@ void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context
         manager->dxCommon_->GetEngine()->GetEffectMaskTexture()->GetSrvIndex();
 
     // 6. 定数バッファのバインド
-    commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon,
-                                                   manager->bindlessCB_->GetGPUVirtualAddress() +
-                                                       manager->bindlessBufferOffset_ *
-                                                           sizeof(PostProcessManager::BindlessParams));
+    commandList->SetGraphicsRootConstantBufferView(
+        (UINT)RootSlot::LightCommon, manager->bindlessCB_->GetGPUVirtualAddress() +
+                                         manager->bindlessBufferOffset_ * sizeof(PostProcessManager::BindlessParams));
     manager->TryIncrementBindlessOffset();
 
-    commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material,
-                                                   manager->combinedCB_->GetGPUVirtualAddress() +
-                                                       manager->combinedBufferOffset_ *
-                                                           sizeof(PostProcessManager::CombinedParams));
+    commandList->SetGraphicsRootConstantBufferView(
+        (UINT)RootSlot::Material, manager->combinedCB_->GetGPUVirtualAddress() +
+                                      manager->combinedBufferOffset_ * sizeof(PostProcessManager::CombinedParams));
     manager->TryIncrementCombinedOffset();
 
     commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::CustomEffectParams,
@@ -109,9 +105,8 @@ void CombinedPostEffect::RenderFinalCopyPass(const PostProcessRenderContext& con
 
     D3D12_VIEWPORT fullViewport{};
     D3D12_RECT fullScissorRect{};
-    SetupOutputViewport(manager->engine_, manager->dxCommon_, context.isBackBufferTarget,
-                        context.targetViewport, context.targetScissor,
-                        fullViewport, fullScissorRect);
+    SetupOutputViewport(manager->engine_, manager->dxCommon_, context.isBackBufferTarget, context.targetViewport,
+                        context.targetScissor, fullViewport, fullScissorRect);
     commandList->RSSetViewports(1, &fullViewport);
     commandList->RSSetScissorRects(1, &fullScissorRect);
 
@@ -121,16 +116,14 @@ void CombinedPostEffect::RenderFinalCopyPass(const PostProcessRenderContext& con
     manager->mappedBindless_[manager->bindlessBufferOffset_].maskTextureIndex =
         manager->dxCommon_->GetEngine()->GetEffectMaskTexture()->GetSrvIndex();
 
-    commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon,
-                                                   manager->bindlessCB_->GetGPUVirtualAddress() +
-                                                       manager->bindlessBufferOffset_ *
-                                                           sizeof(PostProcessManager::BindlessParams));
+    commandList->SetGraphicsRootConstantBufferView(
+        (UINT)RootSlot::LightCommon, manager->bindlessCB_->GetGPUVirtualAddress() +
+                                         manager->bindlessBufferOffset_ * sizeof(PostProcessManager::BindlessParams));
     manager->TryIncrementBindlessOffset();
 
-    commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material,
-                                                   manager->combinedCB_->GetGPUVirtualAddress() +
-                                                       manager->combinedBufferOffset_ *
-                                                           sizeof(PostProcessManager::CombinedParams));
+    commandList->SetGraphicsRootConstantBufferView(
+        (UINT)RootSlot::Material, manager->combinedCB_->GetGPUVirtualAddress() +
+                                      manager->combinedBufferOffset_ * sizeof(PostProcessManager::CombinedParams));
     manager->TryIncrementCombinedOffset();
 
     commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::CustomEffectParams,
@@ -139,18 +132,21 @@ void CombinedPostEffect::RenderFinalCopyPass(const PostProcessRenderContext& con
 }
 
 void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                                       TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
-                                       bool writeToScreen) {
+                                        TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
+                                        bool writeToScreen) {
     PopulatePasses(renderGraph, manager, inputHandle, outputHandle, writeToScreen, batch_, false);
 }
 
 void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                                       TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
-                                       bool writeToScreen, const std::vector<PostProcessManager::Mode>& batch,
-                                       bool useMask) {
-    if (!renderGraph || !manager) return;
+                                        TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
+                                        bool writeToScreen, const std::vector<PostProcessManager::Mode>& batch,
+                                        bool useMask) {
+    if (!renderGraph || !manager) {
+        return;
+    }
 
-    renderGraph->AddPass("PostProcess_Combined",
+    renderGraph->AddPass(
+        "PostProcess_Combined",
         [inputHandle, outputHandle, writeToScreen](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
             builder.RequireTransientState(inputHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             if (outputHandle != kInvalidHandle) {
@@ -160,7 +156,8 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
                     builder.RequireState(rc.outputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
                 }
             } else if (rc.engine && rc.engine->GetMainRenderTexture()) {
-                builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+                builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(),
+                                     D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
             if (rc.engine) {
                 if (auto tex = rc.engine->GetEffectMaskTexture()) {
@@ -194,7 +191,9 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
             D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
             if (outputHandle != kInvalidHandle) {
                 auto* outTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(outputHandle);
-                if (!outTex) return;
+                if (!outTex) {
+                    return;
+                }
                 targetRtv = outTex->GetRtvHandle();
             } else if (isBackBuffer) {
                 targetRtv = rc.outputRTV;
@@ -205,15 +204,12 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
             const D3D12_VIEWPORT* vp = isBackBuffer ? &rc.viewport : nullptr;
             const D3D12_RECT* sc = isBackBuffer ? &rc.scissorRect : nullptr;
 
-            PostProcessRenderContext ctx{
-                manager, cmdList, inputTex, targetRtv, writeToScreen, isBackBuffer, vp, sc
-            };
+            PostProcessRenderContext ctx{manager, cmdList, inputTex, targetRtv, writeToScreen, isBackBuffer, vp, sc};
 
             // 各レイヤーのマスク設定を反映
             manager->combinedParams_.useMask = useMask ? 1 : 0;
             RenderWithBatch(ctx, batch);
-        }
-    );
+        });
 }
 
 } // namespace Irufemi

@@ -1586,8 +1586,8 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
 
     // 2. Pre-UI ポストプロセス（有効時のみサブパスを展開して不要なコピーとバリアを完全カリング）
     auto ppMgr = engine->GetPostProcessManager();
-    const auto& preUiModes = ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PreUI)
-                                   : std::vector<PostProcessManager::Mode>{};
+    const auto& preUiModes =
+        ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PreUI) : std::vector<PostProcessManager::Mode>{};
     if (!preUiModes.empty() && ppMgr && ppMgr->GetRunner()) {
         D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
         auto preUiSrc = renderGraph_->CreateTransientResource("PP_PreUISrc", desc);
@@ -1600,8 +1600,8 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
     renderGraph_->AddPass(std::make_unique<UIPass>());
 
     // 4. Post-UI ポストプロセス
-    const auto& postUiModes = ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PostUI)
-                                    : std::vector<PostProcessManager::Mode>{};
+    const auto& postUiModes =
+        ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PostUI) : std::vector<PostProcessManager::Mode>{};
     if (!postUiModes.empty() && ppMgr && ppMgr->GetRunner()) {
         D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
         auto postUiSrc = renderGraph_->CreateTransientResource("PP_PostUISrc", desc);
@@ -1682,8 +1682,7 @@ void DrawManager::ExecuteRenderQueues(IrufemiEngine* engine) {
         }
 
         // 深度バッファの最終ステート（次フレームの PreDraw / ClearDepthStencilView のため DEPTH_WRITE）を登録
-        renderGraph_->SetFinalResourceState(dxCommon_->GetDepthStencilResource(),
-                                            D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        renderGraph_->SetFinalResourceState(dxCommon_->GetDepthStencilResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
         renderGraph_->Execute(this, engine);
     }

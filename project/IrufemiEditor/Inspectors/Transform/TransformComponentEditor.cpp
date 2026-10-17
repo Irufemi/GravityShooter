@@ -101,8 +101,7 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
                 "##ScaleBtn", scale.x != 1.0f || scale.y != 1.0f || scale.z != 1.0f, [&]() {
                     Irufemi::Vector3 oldScale = comp->GetScale();
                     actionManager->PushAndExecute(std::make_unique<ChangeValueCommand<Irufemi::Vector3>>(
-                        oldScale, Irufemi::Vector3{1, 1, 1},
-                        [comp](const Irufemi::Vector3& v) { comp->SetScale(v); }));
+                        oldScale, Irufemi::Vector3{1, 1, 1}, [comp](const Irufemi::Vector3& v) { comp->SetScale(v); }));
                 });
 
             ComponentUIHelpers::EndPropertyTable();

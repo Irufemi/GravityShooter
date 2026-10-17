@@ -28,25 +28,24 @@ public:
         batch_.clear();
     }
 
-    bool RequiresSeparatePass() const override { return false; }
+    bool RequiresSeparatePass() const override {
+        return false;
+    }
     void Render(const PostProcessRenderContext& context) override;
-    void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                        TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
-                        bool writeToScreen) override;
+    void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager, TransientResourceHandle inputHandle,
+                        TransientResourceHandle outputHandle, bool writeToScreen) override;
 
     /**
      * @brief バッチおよびマスクフラグを直接指定してパスを構築する
      */
-    void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                        TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
-                        bool writeToScreen, const std::vector<PostProcessManager::Mode>& batch,
-                        bool useMask);
+    void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager, TransientResourceHandle inputHandle,
+                        TransientResourceHandle outputHandle, bool writeToScreen,
+                        const std::vector<PostProcessManager::Mode>& batch, bool useMask);
 
     /**
      * @brief 指定したバッチ情報を用いて描画を実行する
      */
-    void RenderWithBatch(const PostProcessRenderContext& context,
-                         const std::vector<PostProcessManager::Mode>& batch);
+    void RenderWithBatch(const PostProcessRenderContext& context, const std::vector<PostProcessManager::Mode>& batch);
 
     /**
      * @brief エフェクトなしの画面コピー（Final Pass）を描画する
