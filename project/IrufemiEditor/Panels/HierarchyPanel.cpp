@@ -14,6 +14,7 @@
 
 #include <functional>
 #include <algorithm>
+#include <filesystem>
 
 void HierarchyPanel::Initialize(EditorManager* editorManager) {
     editorManager_ = editorManager;
@@ -25,6 +26,14 @@ void HierarchyPanel::Draw() {
     }
 
     ImGui::Begin(GetName(), &isOpen_);
+
+    if (editorManager_->IsPrefabMode()) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 1.0f, 1.0f));
+        std::string prefabName = std::filesystem::path(editorManager_->GetEditingPrefabPath()).stem().string();
+        ImGui::Text("%s PREFAB: %s", ICON_FA_CUBE, prefabName.c_str());
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+    }
 
     auto* engine = editorManager_->GetEngine();
     if (engine && engine->GetSceneManager()) {

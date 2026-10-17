@@ -129,7 +129,18 @@ void EditorActionManager::CreateObjectFromAsset(const std::string& assetPath, co
 
     if (newObj) {
         newObj->SetIsSerializable(true); // エディタから生成されたものは保存対象
-        PushAndExecute(std::make_unique<CreateObjectCommand>(baseScene, newObj));
+
+        // PrefabMode 中なら、生成したオブジェクトを Prefab の階層下（選択中オブジェクトまたはPrefabルート）に自動配置
+        std::shared_ptr<GameObject> parent = nullptr;
+        if (editorManager_->IsPrefabMode()) {
+            if (auto selected = editorManager_->GetSelectedObject()) {
+                parent = selected;
+            } else {
+                parent = editorManager_->GetEditingPrefabRoot();
+            }
+        }
+
+        PushAndExecute(std::make_unique<CreateObjectCommand>(baseScene, newObj, parent));
         editorManager_->SetSelectedObject(newObj);
     }
 }
@@ -183,13 +194,30 @@ void EditorActionManager::CreatePrimitiveObject(const std::string& typeName) {
 
     if (obj) {
         obj->SetIsSerializable(true); // エディタから生成されたものは保存対象
-        PushAndExecute(std::make_unique<CreateObjectCommand>(baseScene, obj));
+
+        // PrefabMode 中なら、生成したオブジェクトを Prefab の階層下（選択中オブジェクトまたはPrefabルート）に自動配置
+        std::shared_ptr<GameObject> parent = nullptr;
+        if (editorManager_->IsPrefabMode()) {
+            if (auto selected = editorManager_->GetSelectedObject()) {
+                parent = selected;
+            } else {
+                parent = editorManager_->GetEditingPrefabRoot();
+            }
+        }
+
+        PushAndExecute(std::make_unique<CreateObjectCommand>(baseScene, obj, parent));
         editorManager_->SetSelectedObject(obj);
     }
 }
 
 void EditorActionManager::DuplicateObject(std::shared_ptr<GameObject> target) {
     if (!target || !editorManager_) {
+        return;
+    }
+
+    // PrefabMode 中のルートオブジェクトは複製不可（単一ルート維持のため）
+    if (editorManager_->IsPrefabMode() && target == editorManager_->GetEditingPrefabRoot()) {
+        Log::OutPutLog(std::cout, "Cannot duplicate the root GameObject in Prefab Mode.");
         return;
     }
     auto* engine = editorManager_->GetEngine();
@@ -219,6 +247,12 @@ void EditorActionManager::DuplicateObject(std::shared_ptr<GameObject> target) {
 
 void EditorActionManager::DeleteObject(std::shared_ptr<GameObject> target) {
     if (!target || !editorManager_) {
+        return;
+    }
+
+    // PrefabMode 中の Prefab ルートオブジェクトは削除不可（ステージ破綻防止）
+    if (editorManager_->IsPrefabMode() && target == editorManager_->GetEditingPrefabRoot()) {
+        Log::OutPutLog(std::cout, "Cannot delete the root GameObject in Prefab Mode.");
         return;
     }
     auto* engine = editorManager_->GetEngine();

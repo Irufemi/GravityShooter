@@ -312,6 +312,20 @@ void SceneViewPanel::DrawImGuizmo(ImVec2 minPos, ImVec2 size) {
     ImGuizmo::SetRect(minPos.x, minPos.y, size.x, size.y);
 
     auto* engine = editorManager_->GetEngine();
+    if (!engine) {
+        return;
+    }
+
+    // PrefabMode 中は、原点 (0, 0, 0) を中心とした XZ 平面グリッドを描画して接地・スケール感を視覚化
+    if (editorManager_->IsPrefabMode()) {
+        if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
+            Irufemi::Matrix4x4 view = camera->GetViewMatrix();
+            Irufemi::Matrix4x4 proj = camera->GetPerspectiveFovMatrix();
+            Irufemi::Matrix4x4 identity = Irufemi::Math::MakeIdentity4x4();
+            ImGuizmo::DrawGrid(&view.m[0][0], &proj.m[0][0], &identity.m[0][0], 10.0f);
+        }
+    }
+
     if (auto selectedObj = editorManager_->GetSelectedObject()) {
         // ロックされている、またはフォルダの場合はギズモを非表示・操作不可にする
         if (selectedObj->GetIsLocked() || selectedObj->GetIsFolder()) {

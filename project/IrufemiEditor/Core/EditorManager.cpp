@@ -127,6 +127,11 @@ void EditorManager::OnUpdate(float deltaTime) {
 }
 
 void EditorManager::EnterPlayMode() {
+    if (IsPrefabMode()) {
+        Log::OutPutLog(std::cout, "PlayMode is disabled while editing a prefab. Please exit Prefab Mode first.");
+        return;
+    }
+
     if (!engine_ || !engine_->GetSceneManager()) {
         return;
     }
@@ -309,6 +314,30 @@ void EditorManager::EnterPrefabMode(const std::string& prefabPath) {
 
     editContext_ = EditContext::Prefab;
     editingPrefabPath_ = prefabPath;
+
+    // 7. Undo/Redo履歴をクリア（シーンを跨ぐ不正なUndo操作によるクラッシュを防止）
+    if (actionManager_) {
+        actionManager_->ClearHistory();
+    }
+}
+
+void EditorManager::SaveCurrent() {
+    if (IsPrefabMode()) {
+        if (editingPrefabRoot_) {
+            std::string prefabName = std::filesystem::path(editingPrefabPath_).stem().string();
+            editingPrefabRoot_->SetName(prefabName);
+
+            SceneSerializer::SavePrefab(editingPrefabRoot_, editingPrefabPath_);
+            SceneSerializer::ClearCache();
+            Log::OutPutLog(std::cout, "Prefab saved successfully: " + editingPrefabPath_);
+        }
+    } else if (engine_ && engine_->GetSceneManager()) {
+        std::string currentSceneName = engine_->GetSceneManager()->GetCurrent();
+        if (!currentSceneName.empty()) {
+            SceneSerializer::Save(engine_->GetSceneManager()->GetCurrentScene(), currentSceneName);
+            Log::OutPutLog(std::cout, "Scene saved successfully: " + currentSceneName);
+        }
+    }
 }
 
 void EditorManager::ExitPrefabMode(bool saveChanges) {
@@ -374,6 +403,11 @@ void EditorManager::ExitPrefabMode(bool saveChanges) {
     }
 
     baseScene->WarmUpRenderState();
+
+    // 6. Undo/Redo履歴をクリア（メインシーン復元後のダングリング参照を防止）
+    if (actionManager_) {
+        actionManager_->ClearHistory();
+    }
 
     editContext_ = EditContext::Scene;
     editingPrefabPath_ = "";
@@ -516,18 +550,22 @@ void EditorManager::OnDrawUI() {
                 currentSceneName = engine_->GetSceneManager()->GetCurrent();
             }
 
-            if (ImGui::MenuItem("Save Scene")) {
-                if (engine_ && engine_->GetSceneManager() && !currentSceneName.empty()) {
-                    SceneSerializer::Save(engine_->GetSceneManager()->GetCurrentScene(), currentSceneName);
+            if (IsPrefabMode()) {
+                if (ImGui::MenuItem("Save Prefab", "Ctrl+S")) {
+                    SaveCurrent();
                 }
-            }
-            if (ImGui::MenuItem("Load Scene")) {
-                if (engine_ && engine_->GetSceneManager() && !currentSceneName.empty()) {
-                    auto* scene = engine_->GetSceneManager()->GetCurrentScene();
-                    if (scene) {
-                        // 既存のオブジェクトを消してからロードしたい場合はここで処理が必要
-                        SceneSerializer::Load(scene, currentSceneName);
-                        ClearSelectedObject(); // ロードしたら選択を解除
+            } else {
+                if (ImGui::MenuItem("Save Scene", "Ctrl+S")) {
+                    SaveCurrent();
+                }
+                if (ImGui::MenuItem("Load Scene")) {
+                    if (engine_ && engine_->GetSceneManager() && !currentSceneName.empty()) {
+                        auto* scene = engine_->GetSceneManager()->GetCurrentScene();
+                        if (scene) {
+                            // 既存のオブジェクトを消してからロードしたい場合はここで処理が必要
+                            SceneSerializer::Load(scene, currentSceneName);
+                            ClearSelectedObject(); // ロードしたら選択を解除
+                        }
                     }
                 }
             }
@@ -686,6 +724,10 @@ void EditorManager::OnDrawUI() {
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f);
 
         // Play ボタン
+        bool canPlay = !IsPrefabMode();
+        if (!canPlay) {
+            ImGui::BeginDisabled();
+        }
         if (playState_ == PlayState::Playing) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
         } else {
@@ -699,6 +741,12 @@ void EditorManager::OnDrawUI() {
             }
         }
         ImGui::PopStyleColor();
+        if (!canPlay) {
+            ImGui::EndDisabled();
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip | ImGuiHoveredFlags_AllowWhenDisabled)) {
+                ImGui::SetTooltip("PlayMode is disabled while in Prefab Mode.\nPlease exit Prefab Mode first.");
+            }
+        }
 
         ImGui::SameLine();
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f); // 同行でも念のため再度オフセット

@@ -86,6 +86,17 @@ public:
     bool IsPrefabMode() const {
         return editContext_ == EditContext::Prefab;
     }
+    std::shared_ptr<GameObject> GetEditingPrefabRoot() const {
+        return editingPrefabRoot_;
+    }
+    const std::string& GetEditingPrefabPath() const {
+        return editingPrefabPath_;
+    }
+
+    /**
+     * @brief 現在の編集コンテキストに応じてシーンまたはプレハブを保存する
+     */
+    void SaveCurrent();
 
     bool IsPickingAllowedInPlayMode() const {
         return isPickingAllowedInPlayMode_;

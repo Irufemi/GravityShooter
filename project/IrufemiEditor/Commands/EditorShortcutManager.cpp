@@ -45,5 +45,17 @@ void EditorShortcutManager::Update() {
     if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
         actionManager_->Redo();
     }
+
+    // Ctrl + S で保存 (PrefabMode中ならPrefab保存、通常シーンならScene保存)
+    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+        editorManager_->SaveCurrent();
+    }
+
+    // Escape キー: PrefabMode 中であれば安全にキャンセル離脱
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
+        if (editorManager_->IsPrefabMode()) {
+            editorManager_->ExitPrefabMode(false);
+        }
+    }
 }
 #endif // EditorMode
