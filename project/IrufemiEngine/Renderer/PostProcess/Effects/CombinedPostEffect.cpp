@@ -10,6 +10,11 @@
 namespace Irufemi {
 
 void CombinedPostEffect::Render(const PostProcessRenderContext& context) {
+    RenderWithBatch(context, batch_);
+}
+
+void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context,
+                                        const std::vector<PostProcessManager::Mode>& batch) {
     auto* manager = context.manager;
     auto* commandList = context.commandList;
     auto* currentSource = context.sourceTexture;
@@ -17,9 +22,9 @@ void CombinedPostEffect::Render(const PostProcessRenderContext& context) {
     bool writeToScreen = context.writeToScreen;
 
     // 1. パラメータの詰め替えとGPU同期
-    manager->combinedParams_.effectCount = static_cast<int32_t>(batch_.size());
-    for (size_t i = 0; i < batch_.size(); ++i) {
-        manager->combinedParams_.effects[i] = static_cast<int32_t>(batch_[i]);
+    manager->combinedParams_.effectCount = static_cast<int32_t>(batch.size());
+    for (size_t i = 0; i < batch.size(); ++i) {
+        manager->combinedParams_.effects[i] = static_cast<int32_t>(batch[i]);
     }
     if (manager->mappedCombined_) {
         manager->mappedCombined_[manager->combinedBufferOffset_] = manager->combinedParams_;
@@ -51,10 +56,10 @@ void CombinedPostEffect::Render(const PostProcessRenderContext& context) {
         currentSource ? currentSource->GetSrvIndex() : 0;
 
     uint32_t extraIdx = manager->depthSrvIndex_;
-    for (size_t i = 0; i < batch_.size(); ++i) {
-        if (PostProcessManager::UsesDepthBuffer(batch_[i])) {
+    for (size_t i = 0; i < batch.size(); ++i) {
+        if (PostProcessManager::UsesDepthBuffer(batch[i])) {
             extraIdx = manager->depthSrvIndex_;
-        } else if (batch_[i] == PostProcessManager::Mode::Dissolve) {
+        } else if (batch[i] == PostProcessManager::Mode::Dissolve) {
             int noiseIdx = (manager->dissolveParams_.noiseType <= 0) ? 0 : 1;
             extraIdx = manager->dissolveNoiseIndex_[noiseIdx];
         }
@@ -136,34 +141,77 @@ void CombinedPostEffect::RenderFinalCopyPass(const PostProcessRenderContext& con
 void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
                                        TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
                                        bool writeToScreen) {
+    PopulatePasses(renderGraph, manager, inputHandle, outputHandle, writeToScreen, batch_, false);
+}
+
+void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
+                                       TransientResourceHandle inputHandle, TransientResourceHandle outputHandle,
+                                       bool writeToScreen, const std::vector<PostProcessManager::Mode>& batch,
+                                       bool useMask) {
     if (!renderGraph || !manager) return;
 
     renderGraph->AddPass("PostProcess_Combined",
-        [inputHandle, outputHandle](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
+        [inputHandle, outputHandle, writeToScreen](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
             builder.RequireTransientState(inputHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             if (outputHandle != kInvalidHandle) {
                 builder.RequireTransientState(outputHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
+            } else if (!rc.isEditorMode && writeToScreen) {
+                if (rc.outputResource) {
+                    builder.RequireState(rc.outputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
+                }
             } else if (rc.engine && rc.engine->GetMainRenderTexture()) {
                 builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
+            if (rc.engine) {
+                if (auto tex = rc.engine->GetEffectMaskTexture()) {
+                    builder.RequireState(tex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                }
+                if (auto tex = rc.engine->GetNormalTexture()) {
+                    builder.RequireState(tex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                }
+                if (auto tex = rc.engine->GetMaterialTexture()) {
+                    builder.RequireState(tex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                }
+                if (auto tex = rc.engine->GetVelocityTexture()) {
+                    builder.RequireState(tex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                }
+            }
+            if (rc.drawManager && rc.drawManager->GetDxCommon()) {
+                builder.RequireState(rc.drawManager->GetDxCommon()->GetDepthStencilResource(),
+                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            }
         },
-        [this, manager, inputHandle, outputHandle, writeToScreen](const Irufemi::RenderContext& rc) {
+        [this, manager, inputHandle, outputHandle, writeToScreen, batch, useMask](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
 
+            if (rc.drawManager && rc.drawManager->GetPerFrameData()) {
+                manager->GetOutlineParams().projectionInverse =
+                    Irufemi::Math::Inverse(rc.drawManager->GetPerFrameData()->camera.projection);
+            }
+
+            bool isBackBuffer = writeToScreen && !rc.isEditorMode;
             D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
             if (outputHandle != kInvalidHandle) {
                 auto* outTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(outputHandle);
                 if (!outTex) return;
                 targetRtv = outTex->GetRtvHandle();
+            } else if (isBackBuffer) {
+                targetRtv = rc.outputRTV;
             } else {
                 targetRtv = rc.engine->GetMainRenderTexture()->GetRtvHandle();
             }
 
+            const D3D12_VIEWPORT* vp = isBackBuffer ? &rc.viewport : nullptr;
+            const D3D12_RECT* sc = isBackBuffer ? &rc.scissorRect : nullptr;
+
             PostProcessRenderContext ctx{
-                manager, cmdList, inputTex, targetRtv, writeToScreen, false, nullptr, nullptr
+                manager, cmdList, inputTex, targetRtv, writeToScreen, isBackBuffer, vp, sc
             };
-            Render(ctx);
+
+            // 各レイヤーのマスク設定を反映
+            manager->combinedParams_.useMask = useMask ? 1 : 0;
+            RenderWithBatch(ctx, batch);
         }
     );
 }

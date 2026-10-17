@@ -68,6 +68,40 @@ public:
 #endif
 
     /**
+     * @brief グラフ構築時に一時リソースの仮想ハンドルを即座に作成・取得する
+     */
+    TransientResourceHandle CreateTransientResource(const std::string& name, const D3D12_RESOURCE_DESC& desc,
+                                                    const D3D12_CLEAR_VALUE* clearValue = nullptr) {
+        return builder_.CreateTransientResource(name, desc, clearValue);
+    }
+
+    /**
+     * @brief 既存の一時リソースがあればそのハンドルを返し、なければ新規作成する
+     */
+    TransientResourceHandle GetOrCreateTransientResource(const std::string& name, const D3D12_RESOURCE_DESC& desc,
+                                                         const D3D12_CLEAR_VALUE* clearValue = nullptr) {
+        return builder_.GetOrCreateTransientResource(name, desc, clearValue);
+    }
+
+    /**
+     * @brief 名前から一時リソースハンドルを検索する
+     */
+    TransientResourceHandle FindTransientResource(const std::string& name) const {
+        return builder_.FindTransientResource(name);
+    }
+
+    /**
+     * @brief 一時リソースの記述情報（D3D12_RESOURCE_DESC）を取得する
+     */
+    const D3D12_RESOURCE_DESC* GetTransientDesc(TransientResourceHandle handle) const {
+        const auto& descs = builder_.GetTransientDescs();
+        if (handle < descs.size()) {
+            return &descs[handle].desc;
+        }
+        return nullptr;
+    }
+
+    /**
      * @brief 描画実行時に一時リソースの実際のポインタを取得する
      */
     ID3D12Resource* GetTransientResource(TransientResourceHandle handle) {
@@ -121,6 +155,7 @@ public:
     }
 
 private:
+    RenderGraphBuilder builder_;
     std::vector<std::unique_ptr<IRenderPass>> passes_;
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> resourceStates_;
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> finalResourceStates_;

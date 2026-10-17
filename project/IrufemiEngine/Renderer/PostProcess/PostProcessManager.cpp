@@ -193,20 +193,23 @@ void PostProcessManager::Update(float totalTime) {
     combinedParams_.dofSamples = dofParams_.samples;
 }
 
+void PostProcessManager::BeginFrame() {
+    bindlessBufferOffset_ = 0;
+    combinedBufferOffset_ = 0;
+
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+    if (mappedCustomEffectParams_) {
+        std::memcpy(mappedCustomEffectParams_ + 1, persistentCustomParams_.data() + 1,
+                    (kMaxCustomEffectParams - 1) * sizeof(CustomEffectParams));
+    }
+}
+
 void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderTexture* srcTexture,
                               D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer,
                               bool isBackBufferTarget, const D3D12_VIEWPORT* targetViewport,
                               const D3D12_RECT* targetScissor) {
-    // bindlessBufferOffset_ と combinedBufferOffset_ は PreUI (最初のパス) のみリセットする
     if (layer == Layer::PreUI) {
-        bindlessBufferOffset_ = 0;
-        combinedBufferOffset_ = 0;
-
-        std::lock_guard<std::mutex> lock(customParamsMutex_);
-        if (mappedCustomEffectParams_) {
-            std::memcpy(mappedCustomEffectParams_ + 1, persistentCustomParams_.data() + 1,
-                        (kMaxCustomEffectParams - 1) * sizeof(CustomEffectParams));
-        }
+        BeginFrame();
     }
 
     const std::vector<Mode>& modesToDraw = (layer == Layer::PreUI) ? activePreUI_ : activePostUI_;

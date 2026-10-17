@@ -599,6 +599,11 @@ public:
     void Initialize(IrufemiEngine* engine, DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat);
 
     /**
+     * @brief フレーム描画開始処理（リングバッファオフセットのリセットおよびカスタムパラメータの同期）
+     */
+    void BeginFrame();
+
+    /**
      * @brief エンジンへの参照を取得
      */
     IrufemiEngine* GetEngine() const {

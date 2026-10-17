@@ -112,6 +112,14 @@ void LightShaftsEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
                                       bool writeToScreen) {
     if (!renderGraph || !manager) return;
 
+    D3D12_RESOURCE_DESC desc{};
+    if (auto* d = renderGraph->GetTransientDesc(inputHandle)) {
+        desc = *d;
+    }
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    lsExtractHandle_ = renderGraph->GetOrCreateTransientResource("LS_Extract", desc);
+    lsBlurHandle_ = renderGraph->GetOrCreateTransientResource("LS_Blur", desc);
+
     // 1. Light Shafts Extract Pass
     renderGraph->AddPass("LS_Extract",
         [this, inputHandle](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
@@ -121,9 +129,10 @@ void LightShaftsEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
         [this, manager, inputHandle](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
-            if (!inputTex || !lsExtract_) return;
+            auto* lsExtract = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(lsExtractHandle_);
+            if (!inputTex || !lsExtract) return;
 
-            D3D12_CPU_DESCRIPTOR_HANDLE lsExtractRtv = lsExtract_->GetRtvHandle();
+            D3D12_CPU_DESCRIPTOR_HANDLE lsExtractRtv = lsExtract->GetRtvHandle();
             cmdList->OMSetRenderTargets(1, &lsExtractRtv, false, nullptr);
             float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
             cmdList->ClearRenderTargetView(lsExtractRtv, clearColor, 0, nullptr);
@@ -153,9 +162,11 @@ void LightShaftsEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
         },
         [this, manager](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
-            if (!lsExtract_ || !lsBlur_) return;
+            auto* lsExtract = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(lsExtractHandle_);
+            auto* lsBlur = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(lsBlurHandle_);
+            if (!lsExtract || !lsBlur) return;
 
-            D3D12_CPU_DESCRIPTOR_HANDLE lsBlurRtv = lsBlur_->GetRtvHandle();
+            D3D12_CPU_DESCRIPTOR_HANDLE lsBlurRtv = lsBlur->GetRtvHandle();
             cmdList->OMSetRenderTargets(1, &lsBlurRtv, false, nullptr);
             float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
             cmdList->ClearRenderTargetView(lsBlurRtv, clearColor, 0, nullptr);
@@ -163,7 +174,7 @@ void LightShaftsEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
             cmdList->SetGraphicsRootSignature(manager->rootSig_);
             cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-            manager->mappedBindless_[manager->bindlessBufferOffset_].mainTextureIndex = lsExtract_->GetSrvIndex();
+            manager->mappedBindless_[manager->bindlessBufferOffset_].mainTextureIndex = lsExtract->GetSrvIndex();
             manager->mappedBindless_[manager->bindlessBufferOffset_].extraTextureIndex = 0;
             cmdList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon,
                                                        manager->bindlessCB_->GetGPUVirtualAddress() +
@@ -190,7 +201,8 @@ void LightShaftsEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
         [this, manager, inputHandle, outputHandle, writeToScreen](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
-            if (!lsBlur_) return;
+            auto* lsBlur = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(lsBlurHandle_);
+            if (!lsBlur) return;
 
             D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
             if (outputHandle != kInvalidHandle) {
@@ -211,7 +223,7 @@ void LightShaftsEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
 
             manager->mappedBindless_[manager->bindlessBufferOffset_].mainTextureIndex =
                 inputTex ? inputTex->GetSrvIndex() : 0;
-            manager->mappedBindless_[manager->bindlessBufferOffset_].extraTextureIndex = lsBlur_->GetSrvIndex();
+            manager->mappedBindless_[manager->bindlessBufferOffset_].extraTextureIndex = lsBlur->GetSrvIndex();
             cmdList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon,
                                                        manager->bindlessCB_->GetGPUVirtualAddress() +
                                                            manager->bindlessBufferOffset_ *

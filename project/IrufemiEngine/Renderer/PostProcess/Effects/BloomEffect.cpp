@@ -105,6 +105,14 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
                                 bool writeToScreen) {
     if (!renderGraph || !manager) return;
 
+    D3D12_RESOURCE_DESC desc{};
+    if (auto* d = renderGraph->GetTransientDesc(inputHandle)) {
+        desc = *d;
+    }
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    extractHandle_ = renderGraph->GetOrCreateTransientResource("Bloom_Extract", desc);
+    blurHandle_ = renderGraph->GetOrCreateTransientResource("Bloom_Blur", desc);
+
     // 1. High Luminance Extract Pass
     renderGraph->AddPass("Bloom_Extract",
         [this, inputHandle](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
@@ -114,9 +122,10 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
         [this, manager, inputHandle](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
-            if (!inputTex || !extractTex_) return;
+            auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
+            if (!inputTex || !extractTex) return;
             manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, inputTex,
-                                    extractTex_->GetRtvHandle(), false, manager->bloomExtractPSO_.Get());
+                                    extractTex->GetRtvHandle(), false, manager->bloomExtractPSO_.Get());
         }
     );
 
@@ -128,11 +137,13 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
         },
         [this, manager](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
-            if (!extractTex_ || !blurTex_) return;
+            auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
+            auto* blurTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(blurHandle_);
+            if (!extractTex || !blurTex) return;
             manager->bloomParams_.direction = {1.0f, 0.0f};
             if (manager->mappedBloom_) *(manager->mappedBloom_) = manager->bloomParams_;
-            manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, extractTex_,
-                                    blurTex_->GetRtvHandle(), false, manager->bloomBlurHPSO_.Get());
+            manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, extractTex,
+                                    blurTex->GetRtvHandle(), false, manager->bloomBlurHPSO_.Get());
         }
     );
 
@@ -144,11 +155,13 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
         },
         [this, manager](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
-            if (!extractTex_ || !blurTex_) return;
+            auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
+            auto* blurTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(blurHandle_);
+            if (!extractTex || !blurTex) return;
             manager->bloomParams_.direction = {0.0f, 1.0f};
             if (manager->mappedBloom_) *(manager->mappedBloom_) = manager->bloomParams_;
-            manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, blurTex_,
-                                    extractTex_->GetRtvHandle(), false, manager->bloomBlurVPSO_.Get());
+            manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, blurTex,
+                                    extractTex->GetRtvHandle(), false, manager->bloomBlurVPSO_.Get());
         }
     );
 
@@ -166,6 +179,7 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
         [this, manager, inputHandle, outputHandle, writeToScreen](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
+            auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
             D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
             if (outputHandle != kInvalidHandle) {
                 auto* outTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(outputHandle);
@@ -186,7 +200,7 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
             manager->mappedBindless_[manager->bindlessBufferOffset_].mainTextureIndex =
                 inputTex ? inputTex->GetSrvIndex() : 0;
             manager->mappedBindless_[manager->bindlessBufferOffset_].extraTextureIndex =
-                extractTex_ ? extractTex_->GetSrvIndex() : 0;
+                extractTex ? extractTex->GetSrvIndex() : 0;
             cmdList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon,
                                                        manager->bindlessCB_->GetGPUVirtualAddress() +
                                                            manager->bindlessBufferOffset_ *

@@ -93,6 +93,13 @@ void SeparableBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMa
 
     std::string passPrefix = (mode_ == PostProcessManager::Mode::Smoothing) ? "Smoothing" : "Gaussian";
 
+    D3D12_RESOURCE_DESC desc{};
+    if (auto* d = renderGraph->GetTransientDesc(inputHandle)) {
+        desc = *d;
+    }
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    blurIntermediateHandle_ = renderGraph->GetOrCreateTransientResource(passPrefix + "_Intermediate", desc);
+
     // 1. Horizontal Blur Pass
     renderGraph->AddPass(passPrefix + "_BlurH",
         [this, inputHandle](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
@@ -102,7 +109,8 @@ void SeparableBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMa
         [this, manager, inputHandle](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
-            if (!inputTex || !blurIntermediateTex_) return;
+            auto* blurIntermediateTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(blurIntermediateHandle_);
+            if (!inputTex || !blurIntermediateTex) return;
 
             ID3D12PipelineState* psoH =
                 (mode_ == PostProcessManager::Mode::Smoothing) ? manager->smoothingBlurPSO_.Get() : manager->gaussianBlurPSO_.Get();
@@ -114,7 +122,7 @@ void SeparableBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMa
                 manager->gaussianParams_.direction = {1.0f, 0.0f};
                 if (manager->mappedGaussian_) *(manager->mappedGaussian_) = manager->gaussianParams_;
             }
-            manager->DrawSinglePass(cmdList, mode_, inputTex, blurIntermediateTex_->GetRtvHandle(), false, psoH);
+            manager->DrawSinglePass(cmdList, mode_, inputTex, blurIntermediateTex->GetRtvHandle(), false, psoH);
         }
     );
 
@@ -130,7 +138,8 @@ void SeparableBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMa
         },
         [this, manager, outputHandle, writeToScreen](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
-            if (!blurIntermediateTex_) return;
+            auto* blurIntermediateTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(blurIntermediateHandle_);
+            if (!blurIntermediateTex) return;
 
             D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
             if (outputHandle != kInvalidHandle) {
@@ -159,7 +168,7 @@ void SeparableBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMa
             cmdList->OMSetRenderTargets(1, &targetRtv, false, nullptr);
             float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
             cmdList->ClearRenderTargetView(targetRtv, clearColor, 0, nullptr);
-            manager->DrawSinglePass(cmdList, mode_, blurIntermediateTex_, targetRtv, writeToScreen, psoV);
+            manager->DrawSinglePass(cmdList, mode_, blurIntermediateTex, targetRtv, writeToScreen, psoV);
         }
     );
 }

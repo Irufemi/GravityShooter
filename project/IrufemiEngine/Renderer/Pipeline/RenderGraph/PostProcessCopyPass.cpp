@@ -6,8 +6,8 @@
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "RHI/DirectX12/RenderTexture.h"
 
-PostProcessCopyPass::PostProcessCopyPass(const std::string& targetName)
-    : targetName_(targetName) {}
+PostProcessCopyPass::PostProcessCopyPass(const std::string& targetName, TransientResourceHandle dstHandle)
+    : targetName_(targetName), dstHandle_(dstHandle) {}
 
 void PostProcessCopyPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     auto* engine = rc.engine;
@@ -22,8 +22,10 @@ void PostProcessCopyPass::Setup(RenderGraphBuilder& builder, const Irufemi::Rend
     // コピー元として COPY_SOURCE を要求（RenderGraph が自動でバリアを発行）
     builder.RequireState(mainRenderTex->GetResource(), D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-    D3D12_RESOURCE_DESC desc = mainRenderTex->GetResource()->GetDesc();
-    dstHandle_ = builder.CreateTransientResource(targetName_, desc);
+    if (dstHandle_ == kInvalidHandle) {
+        D3D12_RESOURCE_DESC desc = mainRenderTex->GetResource()->GetDesc();
+        dstHandle_ = builder.GetOrCreateTransientResource(targetName_, desc);
+    }
 
     // コピー先として COPY_DEST を要求（RenderGraph が自動でバリアを発行）
     builder.RequireTransientState(dstHandle_, D3D12_RESOURCE_STATE_COPY_DEST);

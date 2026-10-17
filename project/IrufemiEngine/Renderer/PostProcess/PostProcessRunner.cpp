@@ -318,13 +318,22 @@ void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
     if (modes.empty()) {
         // エフェクトなしの場合、直接出力先へコピーパスを追加
         if (isFinalOutput && dstHandle != srcHandle) {
-            combinedEffect_->ClearBatch();
-            combinedEffect_->PopulatePasses(renderGraph, manager, srcHandle, dstHandle, true);
+            bool useMask = (layer == PostProcessManager::Layer::PreUI);
+            combinedEffect_->PopulatePasses(renderGraph, manager, srcHandle, dstHandle, true, {}, useMask);
         }
         return;
     }
 
     size_t layerIdx = static_cast<size_t>(layer);
+    std::string prefix = (layer == PostProcessManager::Layer::PreUI) ? "PP_PreUI_" : "PP_PostUI_";
+    D3D12_RESOURCE_DESC workDesc{};
+    if (auto* d = renderGraph->GetTransientDesc(srcHandle)) {
+        workDesc = *d;
+    }
+    workDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    workHandles_[layerIdx][0] = renderGraph->GetOrCreateTransientResource(prefix + "Work0", workDesc);
+    workHandles_[layerIdx][1] = renderGraph->GetOrCreateTransientResource(prefix + "Work1", workDesc);
+
     TransientResourceHandle currentIn = srcHandle;
     size_t modeIdx = 0;
     int pingPongIdx = 0;
@@ -387,8 +396,8 @@ void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
             writeToScreen = isFinalOutput && isLastBatch;
             nextOut = writeToScreen ? dstHandle : workHandles_[layerIdx][pingPongIdx % 2];
 
-            combinedEffect_->SetBatch(batch);
-            combinedEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen);
+            bool useMask = (layer == PostProcessManager::Layer::PreUI);
+            combinedEffect_->PopulatePasses(renderGraph, manager, currentIn, nextOut, writeToScreen, batch, useMask);
 
             currentIn = nextOut;
             pingPongIdx++;

@@ -36,6 +36,7 @@ using namespace RenderPackets;
 #include "Renderer/Pipeline/RenderGraph/PostProcessPass.h"
 #include "Renderer/Pipeline/RenderGraph/PostProcessCopyPass.h"
 #include "Renderer/Pipeline/RenderGraph/SelectionOutlinePass.h"
+#include "Renderer/PostProcess/PostProcessRunner.h"
 #include "Resource/Model/ModelManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
@@ -1583,13 +1584,16 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
     renderGraph_->AddPass(std::make_unique<FogPass>());
     renderGraph_->AddPass(std::make_unique<MainTransparentPass>());
 
-    // 2. Pre-UI ポストプロセス（有効時のみパスを登録して不要なコピーとバリアを完全カリング）
+    // 2. Pre-UI ポストプロセス（有効時のみサブパスを展開して不要なコピーとバリアを完全カリング）
     auto ppMgr = engine->GetPostProcessManager();
     const auto& preUiModes = ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PreUI)
                                    : std::vector<PostProcessManager::Mode>{};
-    if (!preUiModes.empty()) {
-        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PreUISrc"));
-        renderGraph_->AddPass(std::make_unique<PostProcessPass>());
+    if (!preUiModes.empty() && ppMgr && ppMgr->GetRunner()) {
+        D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
+        auto preUiSrc = renderGraph_->CreateTransientResource("PP_PreUISrc", desc);
+        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PreUISrc", preUiSrc));
+        ppMgr->GetRunner()->PopulatePasses(renderGraph_.get(), ppMgr, preUiModes, preUiSrc, kInvalidHandle,
+                                           PostProcessManager::Layer::PreUI, true);
     }
 
     // 3. UI 描画パス
@@ -1598,13 +1602,22 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
     // 4. Post-UI ポストプロセス
     const auto& postUiModes = ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PostUI)
                                     : std::vector<PostProcessManager::Mode>{};
-    if (!postUiModes.empty()) {
-        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc"));
-        renderGraph_->AddPass(std::make_unique<PostUIPass>());
+    if (!postUiModes.empty() && ppMgr && ppMgr->GetRunner()) {
+        D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
+        auto postUiSrc = renderGraph_->CreateTransientResource("PP_PostUISrc", desc);
+        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc", postUiSrc));
+        ppMgr->GetRunner()->PopulatePasses(renderGraph_.get(), ppMgr, postUiModes, postUiSrc, kInvalidHandle,
+                                           PostProcessManager::Layer::PostUI, true);
     } else {
 #ifndef EditorMode
         // スタンドアロン実行時は、PostUIエフェクトが無効な場合でもメインテクスチャからバックバッファへの最終画面転送を行う
-        renderGraph_->AddPass(std::make_unique<PostUIPass>());
+        if (ppMgr && ppMgr->GetRunner()) {
+            D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
+            auto postUiSrc = renderGraph_->CreateTransientResource("PP_PostUISrc", desc);
+            renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc", postUiSrc));
+            ppMgr->GetRunner()->PopulatePasses(renderGraph_.get(), ppMgr, {}, postUiSrc, kInvalidHandle,
+                                               PostProcessManager::Layer::PostUI, true);
+        }
 #endif
     }
 
@@ -1616,6 +1629,10 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
 void DrawManager::ExecuteRenderQueues(IrufemiEngine* engine) {
     // 全スレッドのローカル描画キューをメインキューへ一括マージ
     MergeThreadLocalQueues();
+
+    if (auto ppMgr = engine->GetPostProcessManager()) {
+        ppMgr->BeginFrame();
+    }
 
     if (renderGraph_) {
         // 有効なエフェクト状態や描画リクエストに応じて動的にRenderGraphを再構築
@@ -1663,6 +1680,10 @@ void DrawManager::ExecuteRenderQueues(IrufemiEngine* engine) {
             renderGraph_->SetFinalResourceState(engine->GetVelocityTexture()->GetResource(),
                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         }
+
+        // 深度バッファの最終ステート（次フレームの PreDraw / ClearDepthStencilView のため DEPTH_WRITE）を登録
+        renderGraph_->SetFinalResourceState(dxCommon_->GetDepthStencilResource(),
+                                            D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
         renderGraph_->Execute(this, engine);
     }

@@ -145,6 +145,18 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                                      bool writeToScreen) {
     if (!renderGraph || !manager) return;
 
+    D3D12_RESOURCE_DESC kwDesc{};
+    if (auto* d = renderGraph->GetTransientDesc(inputHandle)) {
+        kwDesc = *d;
+    }
+    kwDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    for (int i = 0; i < PostProcessManager::kMaxKawaseIterations; ++i) {
+        kwDesc.Width = (std::max<UINT64>)(1, kwDesc.Width / 2);
+        kwDesc.Height = (std::max<UINT>)(1, kwDesc.Height / 2);
+        std::string name = "PP_Kawase_" + std::to_string(i);
+        handles_[i] = renderGraph->GetOrCreateTransientResource(name, kwDesc);
+    }
+
     int32_t iterations = (std::min)(PostProcessManager::kMaxKawaseIterations,
                                     (std::max)(1, manager->dualKawaseParams_.iterationCount));
 
@@ -157,10 +169,10 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 builder.RequireTransientState(prevHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
                 builder.RequireTransientState(currentTargetHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
             },
-            [this, manager, prevHandle, i](const Irufemi::RenderContext& rc) {
+            [this, manager, prevHandle, currentTargetHandle, i](const Irufemi::RenderContext& rc) {
                 auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
                 auto* prevTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(prevHandle);
-                auto* kwTex = textures_[i];
+                auto* kwTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(currentTargetHandle);
                 if (!prevTex || !kwTex) return;
 
                 D3D12_VIEWPORT viewport{};
@@ -202,7 +214,7 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
             [this, manager, prevHandle, upTargetHandle, i, isFinalUp, writeToScreen](const Irufemi::RenderContext& rc) {
                 auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
                 auto* prevTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(prevHandle);
-                auto* kwTex = textures_[i];
+                auto* kwTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(handles_[i]);
                 if (!prevTex) return;
 
                 D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};

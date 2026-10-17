@@ -2651,5 +2651,27 @@ input->SetIsUsingGamepadCursor(true);
 > [!NOTE]
 > アセットクッカーおよびアセットサニタイザーの内部仕様、新しいモデル・音源を追加した際の命名・配置ルールについては、[scripts/README.md](file:///f:/school/3_0/WP0/WP0/scripts/README.md) を参照してください。
 
+---
+
+## 【描画パイプライン】RenderGraph によるポストプロセスのサブパス化と自動バリア
+
+IrufemiEngine では、DirectX 12 におけるリソース状態（PIXEL_SHADER_RESOURCE と RENDER_TARGET 等）の遷移不整合を防ぎ、一時リソースのメモリ再利用（エイリアシング）を安全に行うため、ポストプロセスの各ステップを **RenderGraph のサブパス** として展開・実行する設計を採用しています。
+
+### 1. アーキテクチャ概要
+従来の「単一の PostProcessPass の中で全エフェクトを直列実行する方式」から移行し、各ポストエフェクト（Bloom, DualKawaseBlur, SeparableBlur, LightShafts, CombinedPass）の内部ステップを独立した `RenderPass` として RenderGraph に直接登録します。
+
+- **Bloom**: 高輝度抽出（Extract） ➔ 水平ブラー（BlurH） ➔ 垂直ブラー（BlurV） ➔ 加算合成（Combine）
+- **DualKawaseBlur**: 複数段階のダウンサンプルパス ➔ 複数段階のアップサンプルパス
+- **SeparableBlur**: 水平ブラー ➔ 垂直ブラー
+- **LightShafts**: オクルージョン抽出 ➔ 放射状ブラー ➔ 加算合成
+
+### 2. リソースハンドル確定と自動バリアの仕組み
+1. **即時仮想ハンドル発行 (`GetOrCreateTransientResource`)**:
+   `BuildRenderGraph` のパス構築フェーズにおいて、`RenderGraph` から一時リソース（作業バッファやダウンサンプルバッファ）の仮想ハンドル `TransientResourceHandle` を確定・発行します。
+2. **RenderGraph による自動バリア管理**:
+   各サブパスの `Setup` 内で `RequireTransientState` を宣言することで、RenderGraph がリソースの寿命を計算し、パスの実行直前に `D3D12_RESOURCE_BARRIER_TYPE_TRANSITION` および `D3D12_RESOURCE_BARRIER_TYPE_ALIASING` を自動で発行します。
+3. **テクスチャの安全な取得**:
+   各サブパスの `Execute` 内では、`rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(handle)` を用いて直接テクスチャを取得するため、初期化順序やキャッシュ不整合によるヌルポインタ参照を防止します。
+
 
 

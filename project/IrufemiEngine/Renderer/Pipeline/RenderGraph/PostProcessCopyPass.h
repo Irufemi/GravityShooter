@@ -10,7 +10,8 @@
  */
 class PostProcessCopyPass : public IRenderPass {
 public:
-    explicit PostProcessCopyPass(const std::string& targetName = "PP_Src");
+    explicit PostProcessCopyPass(const std::string& targetName = "PP_Src",
+                                 TransientResourceHandle dstHandle = kInvalidHandle);
     ~PostProcessCopyPass() override = default;
 
     void Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) override;

@@ -84,10 +84,9 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
 #endif
 
     // 1. Compile Phase (全パスの Setup を実行し、リソース要求を収集)
-    RenderGraphBuilder builder;
     for (size_t i = 0; i < passes_.size(); ++i) {
-        builder.SetCurrentPassIndex(i);
-        passes_[i]->Setup(builder, rc);
+        builder_.SetCurrentPassIndex(i);
+        passes_[i]->Setup(builder_, rc);
     }
 
     // 2. Resource Allocation Phase (Transient Resource の寿命計算とエイリアシング)
@@ -100,8 +99,8 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
         ID3D12Resource* physicalResource = nullptr;
     };
 
-    const auto& transientDescs = builder.GetTransientDescs();
-    const auto& transientUsages = builder.GetTransientUsages();
+    const auto& transientDescs = builder_.GetTransientDescs();
+    const auto& transientUsages = builder_.GetTransientUsages();
     std::vector<TransientResourceLifetime> lifetimes(transientDescs.size());
 
     for (size_t i = 0; i < transientDescs.size(); ++i) {
@@ -206,7 +205,7 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
         }
 
         // 通常リソースの Transition バリア
-        for (const auto& usage : builder.GetUsages()) {
+        for (const auto& usage : builder_.GetUsages()) {
             if (usage.passIndex != passIdx || !usage.resource) {
                 continue;
             }
@@ -299,6 +298,7 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
 
 void RenderGraph::ClearPasses() {
     passes_.clear();
+    builder_.Clear();
 }
 
 void RenderGraph::ResetStates() {

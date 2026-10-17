@@ -92,6 +92,18 @@ public:
     }
 
     /**
+     * @brief 既に作成済みの場合は既存のハンドルを返し、なければ新しく作成する
+     */
+    TransientResourceHandle GetOrCreateTransientResource(const std::string& name, const D3D12_RESOURCE_DESC& desc,
+                                                         const D3D12_CLEAR_VALUE* clearValue = nullptr) {
+        auto existing = FindTransientResource(name);
+        if (existing != kInvalidHandle) {
+            return existing;
+        }
+        return CreateTransientResource(name, desc, clearValue);
+    }
+
+    /**
      * @brief 一時テクスチャのステート要求
      */
     void RequireTransientState(TransientResourceHandle handle, D3D12_RESOURCE_STATES state) {
