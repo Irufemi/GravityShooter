@@ -10,6 +10,7 @@ void OrbitCameraController::UpdateCameraInput(Camera* camera, InputManager* inpu
     }
 
     bool isMiddleButtonDown = input->IsMouseButtonDown(Mouse::Button::Middle);
+    bool isRightButtonDown = input->IsMouseButtonDown(Mouse::Button::Right);
     auto* keyboard = input->GetKeyboard();
     bool isShiftDown = keyboard->IsKeyDownDIK(DIK_LSHIFT) || keyboard->IsKeyDownDIK(DIK_RSHIFT);
     Irufemi::Vector2 mouseDelta = input->GetMouseDelta();
@@ -38,9 +39,9 @@ void OrbitCameraController::UpdateCameraInput(Camera* camera, InputManager* inpu
 
     bool cameraChanged = false;
 
-    if (isMiddleButtonDown) {
+    if (isMiddleButtonDown || isRightButtonDown) {
         if (isShiftDown) {
-            // パン操作 (Shift + 中ボタンドラッグ)
+            // パン操作 (Shift + 中/右ボタンドラッグ)
             const float panSpeed = 0.05f;
             const auto& worldMat = camera->GetWorldMatrix();
             Irufemi::Vector3 right = {worldMat.m[0][0], worldMat.m[0][1], worldMat.m[0][2]};
@@ -49,7 +50,7 @@ void OrbitCameraController::UpdateCameraInput(Camera* camera, InputManager* inpu
             target_ = Irufemi::Math::Add(target_, Irufemi::Math::Multiply(panSpeed * mouseDelta.y, up));
             cameraChanged = true;
         } else {
-            // オービット操作 (中ボタンドラッグ)
+            // オービット操作 (中/右ボタンドラッグ)
             const float rotationSpeed = 0.005f;
             Irufemi::Vector3 rotate = camera->GetRotate();
             rotate.y += mouseDelta.x * rotationSpeed;
@@ -73,7 +74,7 @@ void OrbitCameraController::UpdateCameraInput(Camera* camera, InputManager* inpu
     }
 
     // カメラの位置を更新
-    if (cameraChanged || isMiddleButtonDown) {
+    if (cameraChanged || isMiddleButtonDown || isRightButtonDown) {
         Irufemi::Vector3 rotate = camera->GetRotate();
         Irufemi::Matrix4x4 rotMat = Irufemi::Math::MakeRotateXYZMatrix(rotate);
         Irufemi::Vector3 offset = {0.0f, 0.0f, -distance_};
@@ -99,6 +100,38 @@ void OrbitCameraController::Focus(Camera* camera, const Irufemi::Vector3& target
 
     // 直ちにカメラ位置を更新
     Irufemi::Vector3 rotate = camera->GetRotate();
+    Irufemi::Matrix4x4 rotMat = Irufemi::Math::MakeRotateXYZMatrix(rotate);
+    Irufemi::Vector3 offset = {0.0f, 0.0f, -distance_};
+    offset = Irufemi::Math::TransformNormal(offset, rotMat);
+    camera->SetTranslate(Irufemi::Math::Add(target_, offset));
+    camera->UpdateMatrix();
+
+    isInitialized_ = true;
+    lastCameraPosition_ = camera->GetTranslate();
+    lastCameraRotation_ = camera->GetRotate();
+}
+
+void OrbitCameraController::Frame(Camera* camera, const Irufemi::Vector3& center, float radius) {
+    if (!camera) {
+        return;
+    }
+
+    float fovY = camera->GetFovY();
+    if (fovY <= 0.001f) {
+        fovY = 45.0f * (Irufemi::Math::PI / 180.0f);
+    }
+    float distance = (radius / std::sin(fovY * 0.5f)) * 1.35f;
+    if (distance < 1.0f) {
+        distance = 1.0f;
+    }
+
+    target_ = center;
+    distance_ = distance;
+
+    // 斜め見下ろし角度（ピッチ 15度, ヨー 0度）で綺麗に見下ろす
+    Irufemi::Vector3 rotate = {15.0f * (Irufemi::Math::PI / 180.0f), 0.0f, 0.0f};
+    camera->SetRotate(rotate);
+
     Irufemi::Matrix4x4 rotMat = Irufemi::Math::MakeRotateXYZMatrix(rotate);
     Irufemi::Vector3 offset = {0.0f, 0.0f, -distance_};
     offset = Irufemi::Math::TransformNormal(offset, rotMat);

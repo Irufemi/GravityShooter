@@ -24,7 +24,7 @@ public:
 private:
     EditorManager* editorManager_ = nullptr;
     OrbitCameraController cameraController_;
-    EditorModeState lastMode_ = EditorModeState::Edit;
+    EditContext lastEditContext_ = EditContext::Scene;
 
     // --- ギズモ用状態 ---
     ImGuizmo::OPERATION currentGizmoOperation_ = ImGuizmo::TRANSLATE;

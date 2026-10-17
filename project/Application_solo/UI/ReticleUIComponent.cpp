@@ -35,6 +35,12 @@ void ReticleUIComponent::Initialize() {
     }
 }
 
+void ReticleUIComponent::TriggerBootupAnimation() {
+    isBootingUp_ = true;
+    bootupTimer_ = kBootupDuration_;
+    currentScale_ = 2.2f;
+}
+
 void ReticleUIComponent::Update() {
     if (!gameObject_) {
         return;
@@ -115,8 +121,33 @@ void ReticleUIComponent::Update() {
         }
     }
 
-    // スケールのスムーズ補間
-    currentScale_ = std::lerp(currentScale_, targetScale, (std::min)(1.0f, deltaTime * 16.0f));
+    // FCSブートアップ時のスプリング展開処理（TODO仕様: 拡大から収縮してエミッシブ整流）
+    if (isBootingUp_) {
+        bootupTimer_ -= deltaTime;
+        if (bootupTimer_ <= 0.0f) {
+            bootupTimer_ = 0.0f;
+            isBootingUp_ = false;
+        }
+
+        float progress = 1.0f - (bootupTimer_ / kBootupDuration_);
+        // スプリング減衰収縮: 2.2 -> 0.92 -> 1.0
+        float t = progress;
+        float springScale = 1.0f + 1.2f * std::exp(-8.0f * t) * std::cos(14.0f * t);
+        currentScale_ = springScale;
+
+        // 瞬間的なネオン閃光 (白光 -> シアン)
+        float flash = std::exp(-10.0f * t);
+        targetColor = Irufemi::Vector4{
+            std::lerp(0.1f, 1.0f, flash),
+            std::lerp(0.85f, 1.0f, flash),
+            1.0f,
+            std::lerp(0.65f, 1.0f, flash)
+        };
+    } else {
+        // スケールのスムーズ補間
+        currentScale_ = std::lerp(currentScale_, targetScale, (std::min)(1.0f, deltaTime * 16.0f));
+    }
+
     transform->SetScale({currentScale_, currentScale_, 1.0f});
 
     if (primitiveRenderer_) {

@@ -18,6 +18,11 @@ public:
     void Initialize() override;
     void Update() override;
 
+    /**
+     * @brief FCSブート時のスプリング展開アニメーションを発火する
+     */
+    void TriggerBootupAnimation();
+
     std::string GetComponentName() const override {
         return "ReticleUIComponent";
     }
@@ -29,6 +34,11 @@ private:
     float currentScale_ = 1.0f;
     float pulseTimer_ = 0.0f;
     bool wasHovering_ = false;
+
+    // FCSブートアップ展開アニメーション
+    bool isBootingUp_ = false;
+    float bootupTimer_ = 0.0f;
+    const float kBootupDuration_ = 0.35f;
 
     const float kMagnetFriction_ = 0.5f; //!< 敵ホバー時のエイム吸着摩擦
 };

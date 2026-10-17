@@ -124,14 +124,29 @@ void SceneViewPanel::Draw() {
             ImGui::GetWindowDrawList()->PopClipRect();
         }
 
-        // --- モード切り替え（PrefabMode ⇄ 通常Editモード等）時のカメラコントローラー注視点・距離の再同期 ---
+        // --- 編集コンテキスト切り替え（PrefabMode ⇄ 通常Sceneモード等）時のカメラコントローラー注視点・距離の再同期 ---
         if (editorManager_) {
-            EditorModeState currentMode = editorManager_->GetCurrentMode();
-            if (currentMode != lastMode_) {
+            EditContext currentContext = editorManager_->GetEditContext();
+            if (currentContext != lastEditContext_) {
                 if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
-                    cameraController_.SyncTargetFromCamera(camera);
+                    if (editorManager_->IsPrefabMode()) {
+                        editorManager_->FramePrefabObject();
+                    } else {
+                        cameraController_.SyncTargetFromCamera(camera);
+                    }
                 }
-                lastMode_ = currentMode;
+                lastEditContext_ = currentContext;
+            }
+        }
+
+        // --- ビューポートカメラのフレーミング要求処理 (Unity: FrameSelected / Focus) ---
+        if (editorManager_) {
+            Irufemi::Vector3 frameTarget;
+            float frameRadius = 0.0f;
+            if (editorManager_->ConsumeCameraFrameRequest(frameTarget, frameRadius)) {
+                if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
+                    cameraController_.Frame(camera, frameTarget, frameRadius);
+                }
             }
         }
 
@@ -151,8 +166,8 @@ void SceneViewPanel::Draw() {
 
                 engine->GetInputManager()->SetVirtualMousePosition(scaledVirtualPos, true);
 
-                // 非Play（Edit）時のみエディタカメラの操作入力を受け付ける（Play中はゲームカメラに委譲）
-                if (!editorManager_->IsPlayMode()) {
+                // シミュレーション実行中（Playing）以外、またはPrefab編集中なら、常にエディタカメラの自由な視点操作を許可
+                if (!editorManager_->IsPlaying() || editorManager_->IsPrefabMode()) {
                     if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
                         cameraController_.UpdateCameraInput(camera, engine->GetInputManager());
                     }
@@ -160,9 +175,12 @@ void SceneViewPanel::Draw() {
 
                 HandlePicking(mousePos, minPos, maxPos, size);
 
-                // Fキーによるフォーカス機能
+                // Fキーによるフォーカス機能 (Unity: Frame Selected)
                 if (ImGui::IsKeyPressed(ImGuiKey_F)) {
-                    if (auto selectedObj = editorManager_->GetSelectedObject()) {
+                    if (editorManager_->IsPrefabMode()) {
+                        // Prefab編集時は常に原点 (0, 0, 0) をピボットとしてフレーミング
+                        editorManager_->FramePrefabObject();
+                    } else if (auto selectedObj = editorManager_->GetSelectedObject()) {
                         if (auto transform = selectedObj->GetTransform()) {
                             if (auto camera = engine->GetCameraManager()->GetActiveCamera()) {
                                 cameraController_.Focus(camera, transform->GetWorldPosition());

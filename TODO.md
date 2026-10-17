@@ -9,11 +9,15 @@
 ### 概要
 タイトル出撃（`TitleSceneDirectorComponent`）からゲームシーン（`StageIntroDirectorComponent`）への突入時、自機がカメラ後方から飛来して到着するモーメント（`Arrival` $\to$ `Active`）において、機体制御の整流とFCS（火器管制システム）起動の臨場感を高める演出。
 
-### 現在の状態（フック配備済み）
+### 現在の状態（実装完了）
 - A案適用済み: 誤解を招くメニューカーソル選択音（`se_menu_cursor`）を撤去。
-- `StageIntroDirectorComponent` 内に以下のフック関数を配備済み:
-  - `ApplyArrivalInertia(float progress)`
-  - `TriggerFCSBootupSequence()`
+- B案実装完了:
+  - `StageIntroDirectorComponent.cpp`:
+    - 急制動時のノーズダイブ・整流バネ挙動（減衰振動方程式 $\theta_{pitch}(t) = \theta_{max} \cdot e^{-\lambda t} \cdot \cos(\omega t)$）を `ApplyArrivalInertia` に適用。
+    - 自機基準回転（`initialShipLocalRot_`）を保存し、安定化・スキップ時にも正確に復元。
+    - `TriggerFCSBootupSequence()` 内で専用SE（`se_fcs_online.mp3`）再生と、`ReticleUIComponent::TriggerBootupAnimation()` の発火を連携。
+  - `ReticleUIComponent.h` / `ReticleUIComponent.cpp`:
+    - `TriggerBootupAnimation()` を実装し、HUDスプリング展開アニメーション（初期スケール 2.2倍 $\to$ 1.0倍への収縮・オーバーシュート）とエミッシブ輝度パルスを同期。
 
 ---
 

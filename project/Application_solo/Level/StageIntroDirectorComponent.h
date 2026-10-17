@@ -91,6 +91,7 @@ private:
 
     std::weak_ptr<GameObject> shipObj_;
     Irufemi::Vector3 initialShipLocalPos_{0.0f, 0.0f, 0.0f};
+    Irufemi::Vector3 initialShipLocalRot_{0.0f, 0.0f, 0.0f};
 
     // カメラFOV & ポストプロセス管理
     CameraComponent* GetCameraComponent() const;

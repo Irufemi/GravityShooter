@@ -228,7 +228,8 @@ void SpawnEnemyHandler::DrawEditorPreview(WaveManagerComponent* manager, const W
 
     float scaleMultiplier = data.parameters.value("Scale", 1.0f);
     Irufemi::Vector3 finalScale = baseScale * scaleMultiplier;
-    float finalRadius = baseRadius * scaleMultiplier;
+    float maxScale = (std::max)({std::abs(finalScale.x), std::abs(finalScale.y), std::abs(finalScale.z)});
+    float finalRadius = baseRadius * maxScale;
 
     auto previewBatch = manager->GetPreviewBatchRenderer(modelPath);
     if (previewBatch) {

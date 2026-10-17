@@ -26,6 +26,21 @@ public:
     void Focus(Camera* camera, const Irufemi::Vector3& targetPosition, float distance = -1.0f);
 
     /**
+     * @brief バウンディング球（中心と半径）に基づいて対象全体が収まる位置へ配置し注視します (Unity: FrameSelected)
+     * @param camera 操作対象のカメラ
+     * @param center 注視点（ピボット）のワールド座標
+     * @param radius オブジェクトのバウンディング半径
+     */
+    void Frame(Camera* camera, const Irufemi::Vector3& center, float radius);
+
+    const Irufemi::Vector3& GetTarget() const {
+        return target_;
+    }
+    float GetDistance() const {
+        return distance_;
+    }
+
+    /**
      * @brief 現在のカメラの位置・回転から、注視点（Target）を再計算し状態を同期させます。
      *        カメラが外部要因で動かされた直後などに呼び出します。
      * @param camera 操作対象のカメラ

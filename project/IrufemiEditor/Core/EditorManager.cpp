@@ -12,6 +12,7 @@
 #include "Framework/Component/Collider/AABBColliderComponent.h"
 #include "Framework/Component/Collider/OBBColliderComponent.h"
 #include "Renderer/Camera/CameraManager.h"
+#include "Renderer/Camera/Camera.h"
 #include "Core/Math/MathFunction.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
@@ -165,7 +166,7 @@ void EditorManager::EnterPlayMode() {
     // 保存したばかりのバックアップから復元して、完全に初期化し直す
     SceneSerializer::Load(scene, "temp/.temp_playmode");
 
-    currentMode_ = EditorModeState::Playing;
+    playState_ = PlayState::Playing;
     engine_->SetPlayMode(true);
     engine_->SetTimeScale(1.0f); // 再生時は等倍
 }
@@ -180,7 +181,7 @@ void EditorManager::ExitPlayMode() {
     // プレイモード中にシーンが変わっていた場合は元のシーンに戻す
     if (!playModeStartSceneName_.empty() && currentSceneName != playModeStartSceneName_) {
         engine_->GetSceneManager()->TransitionTo(playModeStartSceneName_, SceneTransition::Type::Fade, 0.0f);
-        currentMode_ = EditorModeState::Edit;
+        playState_ = PlayState::Stopped;
         engine_->SetPlayMode(false);
         engine_->SetTimeScale(1.0f);
         return;
@@ -212,19 +213,19 @@ void EditorManager::ExitPlayMode() {
 
     // バックアップから復元
     SceneSerializer::Load(scene, "temp/.temp_playmode");
-    currentMode_ = EditorModeState::Edit;
+    playState_ = PlayState::Stopped;
     engine_->SetPlayMode(false);
     engine_->SetTimeScale(1.0f);
 }
 
 void EditorManager::TogglePauseMode() {
-    if (currentMode_ == EditorModeState::Playing) {
-        currentMode_ = EditorModeState::Paused;
+    if (playState_ == PlayState::Playing) {
+        playState_ = PlayState::Paused;
         if (engine_) {
             engine_->SetTimeScale(0.0f); // 時を止める
         }
-    } else if (currentMode_ == EditorModeState::Paused) {
-        currentMode_ = EditorModeState::Playing;
+    } else if (playState_ == PlayState::Paused) {
+        playState_ = PlayState::Playing;
         if (engine_) {
             engine_->SetTimeScale(1.0f); // 時を動かす
         }
@@ -235,7 +236,7 @@ void EditorManager::EnterPrefabMode(const std::string& prefabPath) {
     if (!engine_ || !engine_->GetSceneManager()) {
         return;
     }
-    if (currentMode_ == EditorModeState::Playing || currentMode_ == EditorModeState::Paused) {
+    if (IsPlayMode()) {
         ExitPlayMode();
     }
 
@@ -283,19 +284,20 @@ void EditorManager::EnterPrefabMode(const std::string& prefabPath) {
     editingPrefabRoot_->SetName(prefabName);
     baseScene->AddGameObject(editingPrefabRoot_);
 
-    // 4. PrefabStage 専用エディタカメラ（Transient: 保存・階層非表示）を自動プロビジョニング
-    stageCameraObject_ = std::make_shared<GameObject>();
-    stageCameraObject_->SetName("__PrefabStageCamera__");
-    stageCameraObject_->SetHideInHierarchy(true); // ヒエラルキーに余計なカメラを表示しない
-    auto camComp = stageCameraObject_->AddComponent<CameraComponent>();
-    if (camComp) {
-        camComp->SetNearZ(0.1f);
-        camComp->SetFarZ(1000.0f);
-        camComp->SetFovAngleY(45.0f * (Irufemi::Math::PI / 180.0f));
-    }
-    baseScene->AddGameObject(stageCameraObject_);
+    // 4. PrefabStage 専用エディタカメラ（純粋な Viewport Camera）をプロビジョニング
+    // シーン内 GameObject ではなく純粋なカメラとして登録することで、Update ループによる強制上書きを防ぎ、
+    // OrbitCameraController による自由な視点操作（回転・パン・ドリー）を可能にする
+    stageCamera_ = std::make_shared<Camera>();
+    int clientWidth = engine_->GetGameResolutionWidth();
+    int clientHeight = engine_->GetGameResolutionHeight();
+    stageCamera_->Initialize(clientWidth > 0 ? clientWidth : 1280, clientHeight > 0 ? clientHeight : 720);
+    stageCamera_->SetNearZ(0.1f);
+    stageCamera_->SetFarZ(1000.0f);
+    stageCamera_->SetFovY(45.0f * (Irufemi::Math::PI / 180.0f));
+
     if (engine_ && engine_->GetCameraManager()) {
-        engine_->GetCameraManager()->SetActiveCamera(stageCameraObject_->GetName());
+        engine_->GetCameraManager()->AddCamera("__PrefabStageCamera__", stageCamera_);
+        engine_->GetCameraManager()->SetActiveCamera("__PrefabStageCamera__");
     }
 
     // 5. 描画ステートの事前同期（Transform・GPUデータウォームアップ）
@@ -305,7 +307,7 @@ void EditorManager::EnterPrefabMode(const std::string& prefabPath) {
     SetSelectedObject(editingPrefabRoot_);
     FramePrefabObject();
 
-    currentMode_ = EditorModeState::PrefabEdit;
+    editContext_ = EditContext::Prefab;
     editingPrefabPath_ = prefabPath;
 }
 
@@ -331,7 +333,11 @@ void EditorManager::ExitPrefabMode(bool saveChanges) {
 
     ClearSelectedObject();
     editingPrefabRoot_ = nullptr;
-    stageCameraObject_ = nullptr;
+
+    if (engine_ && engine_->GetCameraManager()) {
+        engine_->GetCameraManager()->RemoveCamera("__PrefabStageCamera__");
+    }
+    stageCamera_ = nullptr;
 
     // 2. GPU待機とステージクリーンアップ
     if (auto dxCommon = engine_->GetDirectXCommon()) {
@@ -369,12 +375,12 @@ void EditorManager::ExitPrefabMode(bool saveChanges) {
 
     baseScene->WarmUpRenderState();
 
-    currentMode_ = EditorModeState::Edit;
+    editContext_ = EditContext::Scene;
     editingPrefabPath_ = "";
 }
 
 void EditorManager::FramePrefabObject() {
-    if (!editingPrefabRoot_ || !stageCameraObject_) {
+    if (!editingPrefabRoot_ || !stageCamera_) {
         return;
     }
 
@@ -403,31 +409,9 @@ void EditorManager::FramePrefabObject() {
         radius = (std::max)(radius, scale * 1.5f);
     }
 
-    // 45度のFOVに基づいて、プレハブ全体が余裕を持って収まるカメラ距離を算出
-    float fovY = 45.0f * (Irufemi::Math::PI / 180.0f);
-    float distance = (radius / std::sin(fovY * 0.5f)) * 1.35f;
-
-    Irufemi::Vector3 targetCenter = centerOffset;
-    if (auto trans = editingPrefabRoot_->GetTransform()) {
-        targetCenter = Irufemi::Math::Add(trans->GetWorldPosition(), centerOffset);
-    }
-
-    if (auto camTrans = stageCameraObject_->GetTransform()) {
-        // 斜め上方から見下ろす位置にカメラを配置
-        Irufemi::Vector3 camPos = {targetCenter.x, targetCenter.y + radius * 0.5f, targetCenter.z - distance};
-        camTrans->SetPosition(camPos);
-        camTrans->SetRotation({8.0f * (Irufemi::Math::PI / 180.0f), 0.0f, 0.0f});
-    }
-
-    // CameraManager のアクティブカメラに即座に同期
-    if (engine_ && engine_->GetCameraManager()) {
-        if (auto cam = engine_->GetCameraManager()->GetActiveCamera()) {
-            if (auto camTrans = stageCameraObject_->GetTransform()) {
-                cam->SetTranslate(camTrans->GetWorldPosition());
-                cam->SetRotate(camTrans->GetWorldRotation());
-            }
-        }
-    }
+    // 大手エンジン標準設計: Prefab編集画面の回転軸（ピボット）はプレハブの原点 (0, 0, 0)
+    // カメラコントローラー（OrbitCameraController）に対して原点を中心としたフレーミングを要求
+    RequestCameraFrame(Irufemi::Vector3{0.0f, 0.0f, 0.0f}, radius);
 }
 
 void EditorManager::OnDrawUI() {
@@ -488,7 +472,7 @@ void EditorManager::OnDrawUI() {
         ImGui::DockBuilderFinish(dockspaceId);
     }
 
-    if (currentMode_ == EditorModeState::PrefabEdit) {
+    if (editContext_ == EditContext::Prefab) {
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.3f, 0.6f, 1.0f));
         if (ImGui::BeginChild("PrefabModeBanner", ImVec2(0, 32), true, ImGuiWindowFlags_NoScrollbar)) {
             ImGui::Text("%s PREFAB MODE: %s", ICON_FA_CUBE, editingPrefabPath_.c_str());
@@ -702,15 +686,15 @@ void EditorManager::OnDrawUI() {
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f);
 
         // Play ボタン
-        if (currentMode_ == EditorModeState::Playing) {
+        if (playState_ == PlayState::Playing) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
         } else {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         }
         if (ImGui::Button(ICON_FA_PLAY, ImVec2(playButtonWidth, playButtonHeight))) {
-            if (currentMode_ == EditorModeState::Edit) {
+            if (playState_ == PlayState::Stopped) {
                 EnterPlayMode();
-            } else if (currentMode_ == EditorModeState::Paused) {
+            } else if (playState_ == PlayState::Paused) {
                 TogglePauseMode();
             }
         }
@@ -720,13 +704,13 @@ void EditorManager::OnDrawUI() {
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f); // 同行でも念のため再度オフセット
 
         // Pause ボタン
-        if (currentMode_ == EditorModeState::Paused) {
+        if (playState_ == PlayState::Paused) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.2f, 1.0f));
         } else {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         }
         if (ImGui::Button(ICON_FA_PAUSE, ImVec2(playButtonWidth, playButtonHeight))) {
-            if (currentMode_ != EditorModeState::Edit) {
+            if (IsPlayMode()) {
                 TogglePauseMode();
             }
         }
@@ -738,7 +722,7 @@ void EditorManager::OnDrawUI() {
         // Step ボタン
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
         if (ImGui::Button(ICON_FA_FORWARD_STEP, ImVec2(playButtonWidth, playButtonHeight))) {
-            if (currentMode_ == EditorModeState::Paused) {
+            if (playState_ == PlayState::Paused) {
                 isStepRequested_ = true;
                 if (engine_) {
                     engine_->SetTimeScale(1.0f); // 時を1フレームだけ動かす
@@ -754,7 +738,7 @@ void EditorManager::OnDrawUI() {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
         if (ImGui::Button(ICON_FA_STOP, ImVec2(playButtonWidth, playButtonHeight))) {
-            if (currentMode_ != EditorModeState::Edit) {
+            if (IsPlayMode()) {
                 ExitPlayMode();
             }
         }

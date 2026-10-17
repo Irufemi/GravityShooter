@@ -97,9 +97,9 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
         poolData->baseOBBSize = metrics.obbSize;
     }
     if (metrics.hasSphereCollider) {
-        poolData->baseColliderRadius = (std::max)(metrics.colliderRadius, 1.3f);
+        poolData->baseColliderRadius = metrics.colliderRadius > 0.0f ? metrics.colliderRadius : 1.0f;
     } else {
-        poolData->baseColliderRadius = 1.6f;
+        poolData->baseColliderRadius = 1.0f;
     }
 
     // プレハブ専用の子 GameObject を作成して ModelBatchRendererComponent をアタッチ（1オブジェクト1コンポーネント原則）
@@ -349,10 +349,13 @@ GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabP
             transform->SetScale(poolData->baseScale * scaleMultiplier);
         }
 
+        // コライダーのローカルサイズ設定（プレハブアセットの設定値を忠実に維持）
+        // スケーリングは上記 TransformComponent::SetScale により、GetWorldSphere() / GetWorldOBB() で
+        // 自動的に worldScale が乗算されるため、ローカル値への scaleMultiplier 二重掛けは行わない
         if (auto collider = enemy->GetComponent<SphereColliderComponent>()) {
-            collider->SetLocalRadius(poolData->baseColliderRadius * scaleMultiplier);
+            collider->SetLocalRadius(poolData->baseColliderRadius);
         } else if (auto obb = enemy->GetComponent<OBBColliderComponent>()) {
-            obb->SetLocalSize(Irufemi::Math::Multiply(scaleMultiplier, poolData->baseOBBSize));
+            obb->SetLocalSize(poolData->baseOBBSize);
         }
 
         if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {

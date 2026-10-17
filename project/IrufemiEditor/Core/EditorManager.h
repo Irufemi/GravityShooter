@@ -9,15 +9,28 @@
 
 class IrufemiEngine;
 class GameObject;
+class Camera;
 class IEditorPanel;
 class EditorActionManager;
 class EditorShortcutManager;
 class ComponentEditorRegistry;
 
 /**
- * @brief エディタの現在の動作モード
+ * @brief シミュレーション実行状態 (Unity: EditorApplication.isPlaying/isPaused)
  */
-enum class EditorModeState { Edit, Playing, Paused, PrefabEdit };
+enum class PlayState {
+    Stopped, ///< 停止中（通常編集）
+    Playing, ///< 実行中
+    Paused   ///< 一時停止中
+};
+
+/**
+ * @brief 編集対象コンテキスト (Unity: PrefabStage)
+ */
+enum class EditContext {
+    Scene,   ///< 通常シーン編集
+    Prefab   ///< プレハブ孤立編集ステージ
+};
 
 /**
  * @class EditorManager
@@ -54,12 +67,26 @@ public:
     void SetSelectedObject(std::shared_ptr<GameObject> obj);
     void ClearSelectedObject();
 
-    EditorModeState GetCurrentMode() const {
-        return currentMode_;
+    PlayState GetPlayState() const {
+        return playState_;
     }
+    EditContext GetEditContext() const {
+        return editContext_;
+    }
+
     bool IsPlayMode() const {
-        return currentMode_ != EditorModeState::Edit;
+        return playState_ == PlayState::Playing || playState_ == PlayState::Paused;
     }
+    bool IsPlaying() const {
+        return playState_ == PlayState::Playing;
+    }
+    bool IsPaused() const {
+        return playState_ == PlayState::Paused;
+    }
+    bool IsPrefabMode() const {
+        return editContext_ == EditContext::Prefab;
+    }
+
     bool IsPickingAllowedInPlayMode() const {
         return isPickingAllowedInPlayMode_;
     }
@@ -106,14 +133,39 @@ public:
      */
     void FramePrefabObject();
 
+    /**
+     * @brief ビューポートカメラに対するフレーミング・フォーカスを要求する (Unity: SceneView.FrameSelected)
+     * @param target 注視点（ピボット）
+     * @param radius バウンディング半径
+     */
+    void RequestCameraFrame(const Irufemi::Vector3& target, float radius = 2.0f) {
+        cameraFrameTarget_ = target;
+        cameraFrameRadius_ = radius;
+        hasCameraFrameRequest_ = true;
+    }
+
+    bool ConsumeCameraFrameRequest(Irufemi::Vector3& outTarget, float& outRadius) {
+        if (hasCameraFrameRequest_) {
+            outTarget = cameraFrameTarget_;
+            outRadius = cameraFrameRadius_;
+            hasCameraFrameRequest_ = false;
+            return true;
+        }
+        return false;
+    }
+
 private:
     IrufemiEngine* engine_ = nullptr;
 
-    EditorModeState currentMode_ = EditorModeState::Edit;
+    PlayState playState_ = PlayState::Stopped;
+    EditContext editContext_ = EditContext::Scene;
+    bool hasCameraFrameRequest_ = false;
+    Irufemi::Vector3 cameraFrameTarget_{0.0f, 0.0f, 0.0f};
+    float cameraFrameRadius_ = 2.0f;
     std::string playModeStartSceneName_ = "";
     std::string editingPrefabPath_ = "";
     std::shared_ptr<GameObject> editingPrefabRoot_ = nullptr; ///< 編集中のプレハブルートオブジェクト（明示的保持）
-    std::shared_ptr<GameObject> stageCameraObject_ = nullptr; ///< ステージ専用エディタカメラ（Transient）
+    std::shared_ptr<Camera> stageCamera_ = nullptr;           ///< ステージ専用エディタカメラ（純粋なViewport Camera）
     bool isStepRequested_ = false;                            // コマ送りの予約フラグ
     bool isPickingAllowedInPlayMode_ = false; // プレイ中のオブジェクト選択（ピッキング）許可フラグ
     bool isExitPlayModeRequested_ = false; // ゲーム内からのプレイモード終了遅延リクエストフラグ

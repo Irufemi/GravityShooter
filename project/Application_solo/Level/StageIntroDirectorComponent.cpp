@@ -14,6 +14,7 @@
 #include "Input/GameAction.h"
 #include "Platform/Input/InputManager.h"
 #include "UI/UISound.h"
+#include "UI/ReticleUIComponent.h"
 #include <algorithm>
 #include <cmath>
 
@@ -74,6 +75,7 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
     }
 
     initialShipLocalPos_ = transform->GetPosition();
+    initialShipLocalRot_ = transform->GetRotation();
 
     // カメラの取得とベースFOVのキャッシュ
     if (cameraObj_.expired()) {
@@ -290,14 +292,20 @@ void StageIntroDirectorComponent::Update() {
 void StageIntroDirectorComponent::ApplyArrivalInertia(float progress) {
     if (auto ship = shipObj_.lock()) {
         if (auto transform = ship->GetTransform()) {
-            // 重力エネルギー体の整流挙動: 急制動に伴うノーズダイブとお辞儀（Damped Oscillation）
-            // progress: 0.0 -> 1.0 (arrivalDuration_ 0.50秒間)
-            float decay = std::exp(-5.0f * progress);
-            float oscillation = std::sin(progress * 3.14159265f * 2.5f);
-            float pitchOffset = -0.15f * decay * oscillation; // 約-8度から滑らかに0へ収束
+            // 急制動に伴う物理整流挙動（減衰振動方程式）
+            // θ_pitch(t) = θ_max * exp(-λ * t) * cos(ω * t)
+            // θ_max = -0.07 rad (約 -4.0度、急制動時の前傾ノーズダイブ)
+            // λ = 7.0 (減衰係数)
+            // ω = 22.0 rad/s (固有角振動数)
+            // t = progress * arrivalDuration_ (秒)
+            float t = progress * arrivalDuration_;
+            const float thetaMax = -0.07f;
+            const float lambda = 7.0f;
+            const float omega = 22.0f;
+            float pitchOffset = thetaMax * std::exp(-lambda * t) * std::cos(omega * t);
 
-            auto rot = transform->GetRotation();
-            rot.x = pitchOffset;
+            auto rot = initialShipLocalRot_;
+            rot.x += pitchOffset;
             transform->SetRotation(rot);
         }
     }
@@ -330,19 +338,26 @@ void StageIntroDirectorComponent::TriggerBreachImpulse() {
 }
 
 void StageIntroDirectorComponent::TriggerFCSBootupSequence() {
-    // 1. 重力FCSオンライン起動チャイム再生 (澄んだ高周波サイバネ展開音)
+    // 1. 重力FCSオンライン起動チャイム再生
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
             am->PlayByFile("resources/audio/SE/se_fcs_online.mp3", 0.85f, 1.0f, AudioCategory::SE);
         }
     }
 
-    // 2. 自機のピッチ角を完全な水平ホバリング姿勢へ安定化
+    // 2. 自機のピッチ角を基準姿勢へ安定化
     if (auto ship = shipObj_.lock()) {
         if (auto transform = ship->GetTransform()) {
-            auto rot = transform->GetRotation();
-            rot.x = 0.0f;
-            transform->SetRotation(rot);
+            transform->SetRotation(initialShipLocalRot_);
+        }
+    }
+
+    // 3. レティクルHUDのFCSブートアップスプリング展開アニメーションを発火
+    if (auto scene = GetScene()) {
+        if (auto reticleObj = scene->FindGameObject("Reticle")) {
+            if (auto reticleUI = reticleObj->GetComponent<ReticleUIComponent>()) {
+                reticleUI->TriggerBootupAnimation();
+            }
         }
     }
 }
@@ -355,13 +370,11 @@ void StageIntroDirectorComponent::SkipIntroSequence() {
     // 視覚ワーピング（FOV/ラジアルブラー）を確実に基準状態へリセット
     CleanupWarpVisuals();
 
-    // 自機座標と回転を定位置・水平ホバリングへ即座にスナップ
+    // 自機座標と回転を定位置・基準姿勢へ即座にスナップ
     if (auto ship = shipObj_.lock()) {
         if (auto transform = ship->GetTransform()) {
             transform->SetPosition(initialShipLocalPos_);
-            auto rot = transform->GetRotation();
-            rot.x = 0.0f;
-            transform->SetRotation(rot);
+            transform->SetRotation(initialShipLocalRot_);
         }
     }
 
