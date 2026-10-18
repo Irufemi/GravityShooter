@@ -404,6 +404,7 @@ protected:
 
     uint32_t materialCbIndex_ = static_cast<uint32_t>(-1);
     Material cpuMaterialData_{};
+    bool hasCustomColor_ = false;
     ResourceHandle textureHandle_{};
 
     std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> instanceBuffer_{};

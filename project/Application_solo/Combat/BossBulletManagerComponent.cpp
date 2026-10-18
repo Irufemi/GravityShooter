@@ -47,6 +47,9 @@ void BossBulletManagerComponent::Start() {
             effectManager_ = go->GetComponent<EffectManagerComponent>();
         }
     }
+    if (auto batchRenderer = gameObject_->GetComponent<ModelBatchRendererComponent>()) {
+        batchRenderer->SetColor(bulletColor_);
+    }
 }
 
 void BossBulletManagerComponent::Update() {

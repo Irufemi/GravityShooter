@@ -33,6 +33,9 @@ public:
     uint64_t GetTargetPathID() const {
         return targetPathID_;
     }
+    float GetSpeed() const {
+        return speed_;
+    }
 
     /**
      * @brief 指定した進行距離に即時スナップし、Transformの座標と回転を更新します。

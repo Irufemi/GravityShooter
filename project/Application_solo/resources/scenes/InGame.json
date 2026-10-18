@@ -2550,6 +2550,12 @@
             {
               "data": {
                 "autoClearEveryFrame": true,
+                "color": [
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0
+                ],
                 "modelName": "resources/model/BossDrone/boss_drone.obj"
               },
               "type": "ModelBatchRendererComponent"
@@ -2557,6 +2563,7 @@
             {
               "data": {
                 "Active Drones (Batch)": 0,
+                "Bullet Speed": 45.0,
                 "Drone Prefab Path": "resources/prefabs/BossDrone.json",
                 "Fire Interval": 3.0,
                 "Max Drones": 50,
@@ -2621,6 +2628,12 @@
             {
               "data": {
                 "autoClearEveryFrame": true,
+                "color": [
+                  0.8500000238418579,
+                  0.15000000596046448,
+                  1.0,
+                  1.0
+                ],
                 "modelName": "resources/model/BossDroneBullet/BossDroneBullet.obj"
               },
               "type": "ModelBatchRendererComponent"
@@ -2633,6 +2646,12 @@
             },
             {
               "data": {
+                "Bullet Color": [
+                  0.8500000238418579,
+                  0.15000000596046448,
+                  1.0,
+                  1.0
+                ],
                 "Bullet Prefab Path": "resources/prefabs/BossBullet.json",
                 "Default Life Time": 5.0,
                 "Hit Effect Key": "Dust",

@@ -12,6 +12,7 @@
 #include "Renderer/System/Core/BaseModel.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/Effect/EffectMaskComponent.h"
+#include "RailMechanics/SplineFollowerComponent.h"
 
 DroneManagerComponent::DroneManagerComponent() {}
 
@@ -55,14 +56,35 @@ void DroneManagerComponent::Update() {
     }
 
     Irufemi::Vector3 bossPos = bossTransform->GetWorldPosition();
+    Irufemi::Vector3 bossRight = bossTransform->GetWorldRight();
+    Irufemi::Vector3 bossUp = bossTransform->GetWorldUp();
 
-    // プレイヤーの座標取得
+    // プレイヤーの安全な取得フォールバック & レール走行慣性の取得（ガリレイ慣性補正）
     Irufemi::Vector3 playerPos = bossPos; // デフォルト
+    Irufemi::Vector3 railVelocity = {0.0f, 0.0f, 0.0f};
     bool hasPlayer = false;
+
+    if (player_.expired()) {
+        if (auto scene = gameObject_->GetScene()) {
+            player_ = scene->FindGameObject("Player");
+            if (player_.expired()) {
+                player_ = scene->FindGameObject("PlayerCart");
+            }
+        }
+    }
+
     if (auto player = player_.lock()) {
         if (auto playerTransform = player->GetComponent<TransformComponent>()) {
             playerPos = playerTransform->GetWorldPosition();
             hasPlayer = true;
+        }
+
+        // レール追従の走行速度ベクトルを抽出
+        auto cart = player->GetParent() ? player->GetParent() : player;
+        if (auto follower = cart->GetComponent<SplineFollowerComponent>()) {
+            if (auto cartTransform = cart->GetComponent<TransformComponent>()) {
+                railVelocity = cartTransform->GetWorldForward() * follower->GetSpeed();
+            }
         }
     }
 
@@ -92,10 +114,10 @@ void DroneManagerComponent::Update() {
         // 1. 旋回角度の更新
         anim.orbitAngle += orbitSpeed_ * deltaTime;
 
-        // 2. 座標の計算
+        // 2. 座標の計算（ボスの機体姿勢に同期する局所基底リングフォーメーション）
         float x = std::cos(anim.orbitAngle) * orbitRadius_;
         float y = std::sin(anim.orbitAngle) * orbitRadius_;
-        Irufemi::Vector3 targetPos = bossPos + Irufemi::Vector3{x, y, 0.0f};
+        Irufemi::Vector3 targetPos = bossPos + bossRight * x + bossUp * y;
 
         // 3. 向きの計算 (ゼロベクトル・ゼロ除算ガード)
         Irufemi::Vector3 rot = {0.0f, 0.0f, 0.0f};
@@ -111,14 +133,14 @@ void DroneManagerComponent::Update() {
             }
         }
 
-        // 4. 当たり判定（GameObject）のTransform更新
+        // 4. 当たり判定（GameObject）のTransform更新（ワールド空間に明示設定）
         auto t = droneObj->GetComponent<TransformComponent>();
         if (t) {
-            t->SetPosition(targetPos);
-            t->SetRotation(rot);
+            t->SetWorldPosition(targetPos);
+            t->SetWorldRotation(rot);
         }
 
-        // 5. 弾幕の発射処理 (ゼロベクトル・ゼロ除算ガード)
+        // 5. 弾幕の発射処理 (ガリレイ慣性補正 ＆ ゼロベクトルガード)
         anim.fireTimer += deltaTime;
         if (anim.fireTimer >= fireInterval_) {
             anim.fireTimer = 0.0f;
@@ -126,7 +148,9 @@ void DroneManagerComponent::Update() {
                 Irufemi::Vector3 diff = playerPos - targetPos;
                 if (diff.LengthSquared() > 1e-4f) {
                     Irufemi::Vector3 dirToPlayer = Irufemi::Math::Normalize(diff);
-                    bulletManager_->SpawnBullet(targetPos, dirToPlayer * 30.0f);
+                    // レール相対速度ベクトル + レール走行慣性速度ベクトル
+                    Irufemi::Vector3 bulletVelocity = dirToPlayer * bulletSpeed_ + railVelocity;
+                    bulletManager_->SpawnBullet(targetPos, bulletVelocity);
                 }
             }
         }
@@ -165,6 +189,7 @@ void DroneManagerComponent::OnRegisterProperties() {
     RegisterPropertyRange("Orbit Radius", &orbitRadius_, 0.0f, 100.0f);
     RegisterPropertyRange("Orbit Speed", &orbitSpeed_, 0.0f, 10.0f);
     RegisterPropertyRange("Fire Interval", &fireInterval_, 0.1f, 10.0f);
+    RegisterPropertyRange("Bullet Speed", &bulletSpeed_, 10.0f, 150.0f);
     RegisterProperty("Active Drones (Batch)", &activeDroneCount_);
 }
 

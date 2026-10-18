@@ -159,7 +159,7 @@ void ModelBatchRendererComponent::SetColor(const Irufemi::Vector4& color) {
 void ModelBatchRendererComponent::AddInstance(const Irufemi::Transform& t, int32_t effectType, float effectParam,
                                               bool enableMask) {
     if (batch_) {
-        batch_->AddInstance(t, effectType, effectParam, enableMask);
+        batch_->AddInstance(t, color_, effectType, effectParam, enableMask);
     }
 }
 

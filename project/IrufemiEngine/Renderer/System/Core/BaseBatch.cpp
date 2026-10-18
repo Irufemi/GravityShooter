@@ -55,6 +55,7 @@ BaseBatch::~BaseBatch() {
 
 void BaseBatch::SetColor(const Irufemi::Vector4& color) {
     cpuMaterialData_.color = color;
+    hasCustomColor_ = true;
 }
 
 void BaseBatch::SetEnvironmentCoefficient(float coefficient) {

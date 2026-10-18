@@ -47,7 +47,9 @@ void ModelBatch::CreateMaterialResources(const ObjMesh& mesh) {
             materialCbIndex_ = engine->GetMaterialBufferManager()->Allocate();
         }
     }
-    cpuMaterialData_.color = mesh.material.color;
+    if (!hasCustomColor_) {
+        cpuMaterialData_.color = mesh.material.color;
+    }
     cpuMaterialData_.enableLighting = mesh.material.enableLighting;
     cpuMaterialData_.uvTransform = mesh.material.uvTransform;
     cpuMaterialData_.metallic = mesh.material.metallic;
