@@ -34,15 +34,9 @@ inline float SmoothStep(float t) {
 void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
-#ifdef EditorMode
-    isKioskLoopMode_ = false; // エディタ開発環境では展示ループを初期無効化
+    isKioskLoopMode_ = false; // 通常起動・審査提出版では展示ループを初期無効化（手動プレイ最優先）
     s_isKioskModeActive_ = false;
     s_isAttractModeActive_ = false;
-#else
-    isKioskLoopMode_ = true; // スタンドアロン展示ビルドではループ展示を有効化
-    s_isKioskModeActive_ = true;
-    s_isAttractModeActive_ = true;
-#endif
     demoMode_ = DemoMode::TransitionShowcase; // 画面遷移ショーケースデモをデフォルトに設定
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
@@ -382,9 +376,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
             idleTimer_ = 0.0f;
         } else {
             idleTimer_ += deltaTime;
-            if (idleTimer_ >= kIdleThreshold_) {
-                StartTitleDemo();
-            }
+            // 審査・通常プレイ環境では自動デモ遷移を行わず、プレイヤーの自由な操作待ちを維持
         }
     }
 }
