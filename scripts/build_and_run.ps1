@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("Release", "Development", "Debug")]
+    [ValidateSet("Release", "Development", "Debug", "Editor")]
     [string]$Configuration = "Release",
     [switch]$Rebuild,
     [switch]$BuildOnly

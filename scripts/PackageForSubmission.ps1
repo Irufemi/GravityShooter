@@ -1,5 +1,5 @@
-﻿param (
-    [ValidateSet("Source", "Build", "All", "Menu")]
+param (
+    [ValidateSet("Source", "Build", "All", "Sega", "Menu")]
     [string]$Mode = "Menu",
     [string]$ScriptDir = "",
     [switch]$SkipBuild
@@ -91,9 +91,10 @@ function Get-DxcPath {
 
 function Invoke-ProjectBuild {
     param(
+        [string]$Configuration = "Release",
         [switch]$Rebuild
     )
-    Write-Header "Application_solo (Release) のビルドを開始します"
+    Write-Header "Application_solo ($Configuration) のビルドを開始します"
 
     $msbuildPath = Get-MSBuildPath
     Write-Info "使用する MSBuild: $msbuildPath"
@@ -107,13 +108,13 @@ function Invoke-ProjectBuild {
 
     $logDir = Join-Path $RootDir "logs\build"
     if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
-    $buildLog = Join-Path $logDir "package_build_Release_$Timestamp.log"
+    $buildLog = Join-Path $logDir "package_build_${Configuration}_$Timestamp.log"
 
     $buildArgs = @(
         $slnxPath,
         "-restore",                         # 新規クローン環境での NuGet パッケージ (freetype2) 自動復元
         "/t:$target",                       # ソリューション依存関係（エンジン層 .lib）を先に解決してビルド
-        "/p:Configuration=Release",
+        "/p:Configuration=$Configuration",
         "/p:Platform=x64",
         "/m",
         "/v:minimal",
@@ -258,9 +259,12 @@ function Get-CookedAssetMap {
 # 2. ソースコード提出用パッケージ作成（クリーン開発モード: アプローチA）
 # -----------------------------------------------------------------------------
 function Create-SourcePackage {
+    param(
+        [string]$CustomOutputDir = ""
+    )
     Write-Header "ソースコード提出用パッケージの作成を開始します (クリーン開発モード)"
 
-    $TargetDir = Join-Path $OutputDir "GravityShooter_SourceCode"
+    $TargetDir = if ($CustomOutputDir) { $CustomOutputDir } else { Join-Path $OutputDir "GravityShooter_SourceCode" }
 
     if (Test-Path $TargetDir) {
         Write-Info "既存の出力フォルダをクリーンアップ中..."
@@ -308,6 +312,8 @@ function Create-SourcePackage {
     # 除外ファイル拡張子
     # （※ 3Dモデル *.obj は保護、DCC編集元データ *.blend や中間ファイルを除外）
     $ExcludeExtensions = @(
+        "*.exe",                            # 実行ファイルを確実に除外
+        "*.dll",                            # バイナリDLLを除外
         "*.pdb",
         "*.ilk",
         "*.tlog",
@@ -371,7 +377,8 @@ function Create-SourcePackage {
 # -----------------------------------------------------------------------------
 function Create-PlayablePackage {
     param(
-        [switch]$SkipBuild
+        [switch]$SkipBuild,
+        [string]$CustomOutputDir = ""
     )
     Write-Header "実行ファイル（プレイ用）パッケージの作成を開始します (スマートクック適用)"
 
@@ -393,7 +400,7 @@ function Create-PlayablePackage {
         Write-Info "既存のビルド成果物を使用します: $ExeReleasePath"
     }
 
-    $TargetDir = Join-Path $OutputDir "GravityShooter_PlayableBuild"
+    $TargetDir = if ($CustomOutputDir) { $CustomOutputDir } else { Join-Path $OutputDir "GravityShooter_PlayableBuild" }
 
     if (Test-Path $TargetDir) {
         Write-Info "既存の出力フォルダをクリーンアップ中..."
@@ -468,16 +475,29 @@ function Create-PlayablePackage {
         Write-Info "README.md を同梱しました。"
     }
 
-    # 5. 審査員向け資料（ポートフォリオPDF & プログラム説明書PDFの同梱）
-    $docPortfolio = Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf"
-    if (Test-Path $docPortfolio) {
-        Copy-Item -Path $docPortfolio -Destination (Join-Path $TargetDir "LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf") -Force
-        Write-Info "ポートフォリオ.pdf を同梱しました。"
+    # 6. 審査員向け資料（実在するPDFの探索と同梱）
+    $portfolioCandidates = @(
+        (Join-Path $RootDir "docs\Portfolio_Koichi_Suehiro.pdf"),
+        (Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf")
+    )
+    foreach ($p in $portfolioCandidates) {
+        if (Test-Path $p) {
+            Copy-Item -Path $p -Destination (Join-Path $TargetDir (Split-Path -Leaf $p)) -Force
+            Write-Info "ポートフォリオPDFを同梱しました: $(Split-Path -Leaf $p)"
+            break
+        }
     }
-    $docManual = Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf"
-    if (Test-Path $docManual) {
-        Copy-Item -Path $docManual -Destination (Join-Path $TargetDir "LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf") -Force
-        Write-Info "プログラム説明書.pdf を同梱しました。"
+
+    $manualCandidates = @(
+        (Join-Path $RootDir "docs\ProgramSpec_Koichi_Suehiro.pdf"),
+        (Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf")
+    )
+    foreach ($m in $manualCandidates) {
+        if (Test-Path $m) {
+            Copy-Item -Path $m -Destination (Join-Path $TargetDir (Split-Path -Leaf $m)) -Force
+            Write-Info "プログラム説明書PDFを同梱しました: $(Split-Path -Leaf $m)"
+            break
+        }
     }
 
     $fileSizeMB = Get-FolderSizeMB $TargetDir
@@ -487,18 +507,230 @@ function Create-PlayablePackage {
 }
 
 # -----------------------------------------------------------------------------
+# 4. 自作エディタモード（EditorBuild）パッケージ作成
+# -----------------------------------------------------------------------------
+function Create-EditorPackage {
+    param(
+        [switch]$SkipBuild,
+        [string]$CustomOutputDir = ""
+    )
+    Write-Header "自作エディタモード（EditorBuild）パッケージの作成を開始します"
+
+    $ExeEditorPath = Join-Path $RootDir "generated\outputs\Editor\Application_solo.exe"
+
+    if (-not $SkipBuild) {
+        $buildOk = Invoke-ProjectBuild -Configuration "Editor"
+        if (-not $buildOk) {
+            Write-Warn "Editor構成のビルドに失敗したため、エディタパッケージの作成を中断しました。"
+            return
+        }
+    } else {
+        if (-not (Test-Path $ExeEditorPath)) {
+            Write-Warn "Editor構成のビルド成果物が見つかりません: $ExeEditorPath"
+            return
+        }
+        Write-Info "既存のビルド成果物を使用します: $ExeEditorPath"
+    }
+
+    $TargetDir = if ($CustomOutputDir) { $CustomOutputDir } else { Join-Path $OutputDir "GravityShooter_EditorBuild" }
+
+    if (Test-Path $TargetDir) {
+        Write-Info "既存の出力フォルダをクリーンアップ中..."
+        Remove-Item -Path $TargetDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $TargetDir | Out-Null
+
+    Write-Info "エディタ実行ファイルおよび専用設定ファイルを配置中..."
+
+    # 1. Exe本体
+    Copy-Item -Path $ExeEditorPath -Destination (Join-Path $TargetDir "GravityShooter_Editor.exe") -Force
+
+    # 2. imgui_editor.ini の配置（ウィンドウ配置設定ファイル）
+    $iniCandidates = @(
+        (Join-Path $RootDir "generated\outputs\Editor\imgui_editor.ini"),
+        (Join-Path $RootDir "project\Application_solo\imgui_editor.ini"),
+        (Join-Path $RootDir "project\IrufemiEngine\EngineResources\default_imgui.ini")
+    )
+    foreach ($ini in $iniCandidates) {
+        if (Test-Path $ini) {
+            Copy-Item -Path $ini -Destination (Join-Path $TargetDir "imgui_editor.ini") -Force
+            Write-Info "エディタ設定ファイルを配置しました: $(Split-Path -Leaf $ini) -> imgui_editor.ini"
+            break
+        }
+    }
+
+    # 3. resources/（エディタ用リソース転送）
+    $resSrc = Join-Path $RootDir "project\Application_solo\resources"
+    if (Test-Path $resSrc) {
+        $resDest = Join-Path $TargetDir "resources"
+        New-Item -ItemType Directory -Path $resDest -Force | Out-Null
+        $rcArgs = @(
+            $resSrc,
+            $resDest,
+            "/E",
+            "/NJH", "/NJS", "/NDL", "/NC", "/NS", "/NP",
+            "/XF", "*.blend", "*.blend1", "*.xcf", "*.aseprite", "*.pso",
+            "/XD", ".cache", "cache", "screenshots", "temp"
+        )
+        & robocopy @rcArgs | Out-Null
+    }
+
+    # 4. EngineResources/
+    $engineResSrc = Join-Path $RootDir "project\IrufemiEngine\EngineResources"
+    if (Test-Path $engineResSrc) {
+        $engineResDest = Join-Path $TargetDir "EngineResources"
+        New-Item -ItemType Directory -Path $engineResDest -Force | Out-Null
+        $rcArgs = @(
+            $engineResSrc,
+            $engineResDest,
+            "/E",
+            "/NJH", "/NJS", "/NDL", "/NC", "/NS", "/NP",
+            "/XF", "*.pso",
+            "/XD", ".cache", "cache"
+        )
+        & robocopy @rcArgs | Out-Null
+    }
+
+    # 5. オフラインシェーダーコンパイル
+    $compiledShaderDest = Join-Path $TargetDir "resources\shaders\compiled"
+    if (-not (Test-Path $compiledShaderDest)) {
+        New-Item -ItemType Directory -Path $compiledShaderDest -Force | Out-Null
+    }
+    $compileBat = Join-Path $RootDir "project\CompileShaders.bat"
+    $engineShaderSrc = Join-Path $RootDir "project\IrufemiEngine\EngineResources\shaders"
+    $appShaderSrc = Join-Path $RootDir "project\Application_solo\resources\shaders"
+    $dxcPath = Get-DxcPath
+
+    Write-Info "HLSLシェーダーを事前コンパイル中 (.cso を直接生成・配置)..."
+    & cmd.exe /c "`"$compileBat`" `"$engineShaderSrc`" `"$compiledShaderDest`" `"$dxcPath`"" | Out-Null
+    & cmd.exe /c "`"$compileBat`" `"$appShaderSrc`" `"$compiledShaderDest`" `"$dxcPath`"" | Out-Null
+
+    # 6. エディタ操作ガイド
+    $editorReadme = Join-Path $TargetDir "README_Editor.txt"
+    $readmeText = @"
+================================================================================
+ IrufemiEngine 自作エディタモード 操作ガイド
+================================================================================
+
+【概要】
+本パッケージは、自作ゲームエンジン「IrufemiEngine」に内包されている
+ゲーム内エディタ機能（Prefab分離編集モード、インスペクタ、ギズモ操作）を
+体験・審査していただくための独立した実行環境です。
+
+【起動方法】
+GravityShooter_Editor.exe をダブルクリックして起動してください。
+
+【主なエディタ機能】
+1. インスペクタパネル: シーン内のオブジェクトやコンポーネントの数値をリアルタイム変更
+2. プレハブ分離編集モード: Prefabファイルを単独で開き、原点グリッド上で安全に編集
+3. ギズモ操作: ImGuizmoによるオブジェクトの平行移動・回転・拡縮
+
+※ウィンドウ配置やドッキングレイアウトは imgui_editor.ini により初期化されます。
+"@
+    [System.IO.File]::WriteAllText($editorReadme, $readmeText, [System.Text.Encoding]::UTF8)
+
+    $fileSizeMB = Get-FolderSizeMB $TargetDir
+    Write-Success "自作エディタパッケージ作成完了!"
+    Write-Host "   出力先: $TargetDir" -ForegroundColor White
+    Write-Host "   サイズ: $fileSizeMB MB`n" -ForegroundColor Green
+}
+
+# -----------------------------------------------------------------------------
+# 5. SEGAカレッジ提出用 一式パッケージ生成（Playable + Editor + Source + 資料 + 動画むき出しZIP化）
+# -----------------------------------------------------------------------------
+function Create-SegaSubmissionPackage {
+    param(
+        [string]$ApplicantId = "S28000478",
+        [string]$ApplicantName = "末廣航一"
+    )
+    Write-Header "SEGAカレッジ提出用 一括パッケージの作成を開始します"
+
+    $pkgName = "${ApplicantId}_${ApplicantName}"
+    $targetDir = Join-Path $OutputDir $pkgName
+    $zipPath = Join-Path $OutputDir "${pkgName}.zip"
+
+    if (Test-Path $targetDir) {
+        Write-Info "既存の作業ディレクトリをクリーンアップ中..."
+        Remove-Item -Path $targetDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $targetDir | Out-Null
+
+    # 1. 01_PlayableBuild (最新Releaseビルド＆スマートクック: 製品版)
+    Write-Info "【1/5】01_PlayableBuild（製品版ゲーム本体）を生成中..."
+    Create-PlayablePackage -SkipBuild:$false -CustomOutputDir (Join-Path $targetDir "01_PlayableBuild")
+
+    # 2. 02_EditorBuild (自作エディタ体験パッケージ: エディタ版)
+    Write-Info "【2/5】02_EditorBuild（自作エディタ環境・Prefab編集）を生成中..."
+    Create-EditorPackage -SkipBuild:$false -CustomOutputDir (Join-Path $targetDir "02_EditorBuild")
+
+    # 3. 03_SourceCode (バイナリ完全除外クリーンソースコード)
+    Write-Info "【3/5】03_SourceCode（クリーンソースコード）を生成中..."
+    Create-SourcePackage -CustomOutputDir (Join-Path $targetDir "03_SourceCode")
+
+    # 4. 提出資料PDFの直下むき出し配置
+    Write-Info "【4/5】提出資料PDFを直下配置中..."
+    $docPortfolio = Join-Path $RootDir "docs\Portfolio_Koichi_Suehiro.pdf"
+    if (-not (Test-Path $docPortfolio)) {
+        $foundP = Get-ChildItem -Path (Join-Path $RootDir "docs") -Filter "*Portfolio*.pdf" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($foundP) { $docPortfolio = $foundP.FullName }
+    }
+    if ($docPortfolio -and (Test-Path $docPortfolio)) {
+        Copy-Item -Path $docPortfolio -Destination (Join-Path $targetDir (Split-Path -Leaf $docPortfolio)) -Force
+        Write-Success "ポートフォリオPDFを配置しました: $(Split-Path -Leaf $docPortfolio)"
+    }
+
+    $docManual = Join-Path $RootDir "docs\ProgramSpec_Koichi_Suehiro.pdf"
+    if (-not (Test-Path $docManual)) {
+        $foundM = Get-ChildItem -Path (Join-Path $RootDir "docs") -Filter "*ProgramSpec*.pdf" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($foundM) { $docManual = $foundM.FullName }
+    }
+    if ($docManual -and (Test-Path $docManual)) {
+        Copy-Item -Path $docManual -Destination (Join-Path $targetDir (Split-Path -Leaf $docManual)) -Force
+        Write-Success "プログラム説明書PDFを配置しました: $(Split-Path -Leaf $docManual)"
+    }
+
+    # 5. 動画ファイル (mp4) の直下むき出し配置
+    Write-Info "【5/5】動画ファイル (mp4) の確認と直下配置..."
+    $foundMovie = Get-ChildItem -Path $RootDir -Recurse -Filter "*.mp4" -Force -ErrorAction SilentlyContinue | 
+        Where-Object { $_.FullName -notmatch '\\_Submission\\' -and $_.FullName -notmatch '\\\.git\\' } | 
+        Select-Object -First 1
+
+    if ($foundMovie) {
+        $destMovieName = "${pkgName}_プレイ動画.mp4"
+        Copy-Item -Path $foundMovie.FullName -Destination (Join-Path $targetDir $destMovieName) -Force
+        Write-Success "動画ファイルを検出・直下配置しました: $destMovieName"
+    } else {
+        $destMoviePlaceholder = Join-Path $targetDir "${pkgName}_プレイ動画_ここに配置.txt"
+        Set-Content -Path $destMoviePlaceholder -Value "※提出用の mp4 動画ファイルをこの直下に配置してください。`nファイル名例: ${pkgName}_プレイ動画.mp4" -Encoding UTF8
+        Write-Warn "動画ファイル (*.mp4) が自動検出されなかったため、案内ファイルを配置しました: $(Split-Path -Leaf $destMoviePlaceholder)"
+    }
+
+    # 6. 提出用一括 ZIP 圧縮
+    Write-Info "提出用ZIPファイルを作成中: $zipPath..."
+    if (Test-Path $zipPath) { Remove-Item -Path $zipPath -Force }
+    Compress-Archive -Path "$targetDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
+
+    $zipSizeMB = [math]::Round((Get-Item $zipPath).Length / 1MB, 2)
+    Write-Header "SEGAカレッジ提出用パッケージ生成完了!"
+    Write-Success "完成ZIP: $zipPath"
+    Write-Host "   ZIPサイズ: $zipSizeMB MB" -ForegroundColor Green
+    Write-Host "   解凍後フォルダ: $targetDir`n" -ForegroundColor White
+}
+
+# -----------------------------------------------------------------------------
 # メインメニュー
 # -----------------------------------------------------------------------------
 if ($Mode -eq "Menu") {
     Write-Header "就職活動・技術審査用 パッケージ生成ツール (Cook & Pipeline Mode)"
     Write-Host "作成したいパッケージを選択してください:" -ForegroundColor Yellow
-    Write-Host "  [1] プレイ用パッケージ（最新コードを Release ビルド ＋ スマートクックで極限軽量化） ★推奨" -ForegroundColor Cyan
+    Write-Host "  [1] プレイ用パッケージ（最新コードを Release ビルド ＋ スマートクックで極限軽量化）" -ForegroundColor Cyan
     Write-Host "  [2] プレイ用パッケージ（既存 Exe を使用 ＋ スマートクック生成）" -ForegroundColor Cyan
     Write-Host "  [3] ソースコード提出用パッケージ (クリーン開発モード・完全整合版)" -ForegroundColor Cyan
-    Write-Host "  [4] 両方一括生成（Release ビルド後に両パッケージを作成） ★審査提出時推奨" -ForegroundColor Cyan
+    Write-Host "  [4] 両方一括生成（Release ビルド後に両パッケージを作成）" -ForegroundColor Cyan
+    Write-Host "  [5] SEGAカレッジ提出用 一式パッケージ生成（Playable + Source + 資料/動画むき出しZIP化） ★SEGA推奨" -ForegroundColor Green
     Write-Host "  [Q] 終了`n" -ForegroundColor Gray
 
-    $choice = Read-Host "選択 (1/2/3/4/Q)"
+    $choice = Read-Host "選択 (1/2/3/4/5/Q)"
     switch ($choice) {
         "1" { 
             Create-PlayablePackage -SkipBuild:$false
@@ -512,6 +744,9 @@ if ($Mode -eq "Menu") {
         "4" { 
             Create-PlayablePackage -SkipBuild:$false
             Create-SourcePackage
+        }
+        "5" { 
+            Create-SegaSubmissionPackage -ApplicantId "S28000478" -ApplicantName "末廣航一"
         }
         default {
             Write-Host "処理をキャンセルしました。" -ForegroundColor Gray
@@ -530,10 +765,14 @@ if ($Mode -eq "Menu") {
             Create-PlayablePackage -SkipBuild:$SkipBuild
             Create-SourcePackage
         }
+        "Sega" {
+            Create-SegaSubmissionPackage -ApplicantId "S28000478" -ApplicantName "末廣航一"
+        }
     }
 }
 
 Write-Header "すべての処理が完了しました"
 Write-Host "出力先フォルダ: $OutputDir" -ForegroundColor White
+
 
 

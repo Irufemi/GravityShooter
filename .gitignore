@@ -176,4 +176,8 @@ _Submission/
 # Asset Sanitizer Backups
 backup/
 
+# Executables & Output Binaries
+*.exe
+/project/Binaries/
+
 
