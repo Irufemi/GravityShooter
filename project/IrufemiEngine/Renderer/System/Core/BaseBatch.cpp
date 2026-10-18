@@ -55,20 +55,10 @@ BaseBatch::~BaseBatch() {
 
 void BaseBatch::SetColor(const Irufemi::Vector4& color) {
     cpuMaterialData_.color = color;
-    if (auto engine = dx_->GetEngine()) {
-        for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
-            engine->GetMaterialBufferManager()->Update(materialCbIndex_, cpuMaterialData_, i);
-        }
-    }
 }
 
 void BaseBatch::SetEnvironmentCoefficient(float coefficient) {
     cpuMaterialData_.environmentCoefficient = coefficient;
-    if (auto engine = dx_->GetEngine()) {
-        for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
-            engine->GetMaterialBufferManager()->Update(materialCbIndex_, cpuMaterialData_, i);
-        }
-    }
 }
 
 void BaseBatch::SetInstanceColor(uint32_t index, const Irufemi::Vector4& color) {

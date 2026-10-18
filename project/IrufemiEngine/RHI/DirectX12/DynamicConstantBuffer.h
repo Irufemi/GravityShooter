@@ -114,6 +114,10 @@ public:
      * @param frameIndex 対象のフレームバッファ
      */
     void Update(uint32_t index, const T& data, uint32_t frameIndex) {
+        if (index >= capacity_ || frameIndex >= kMaxFramesInFlight) {
+            IRUFEMI_ASSERT(false && "DynamicConstantBuffer::Update: Index out of bounds or buffer not allocated");
+            return;
+        }
         T* ptr = reinterpret_cast<T*>(mappedRawData_[frameIndex] + index * elementAlignedSize_);
         *ptr = data;
     }
@@ -125,6 +129,9 @@ public:
      * @return D3D12_GPU_VIRTUAL_ADDRESS
      */
     D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(uint32_t index, uint32_t frameIndex) const {
+        if (index >= capacity_ || frameIndex >= kMaxFramesInFlight || !resources_[frameIndex]) {
+            return 0;
+        }
         return resources_[frameIndex]->GetGPUVirtualAddress() + index * elementAlignedSize_;
     }
 

@@ -26,10 +26,10 @@ void BossBulletManagerComponent::Initialize() {
         virtualManager_ = gameObject_->AddComponent<VirtualEntityManagerComponent>().get();
     }
 
-    // バッチレンダラに球モデルを設定
+    // バッチレンダラに球モデルを設定し、弾色（紫色等）を反映
     if (auto batchRenderer = gameObject_->GetComponent<ModelBatchRendererComponent>()) {
         batchRenderer->LoadModel("resources/model/BossDroneBullet/BossDroneBullet.obj");
-        // TODO: マテリアル側での弾色設定（紫色等）に対応後、マテリアルパラメータを反映する
+        batchRenderer->SetColor(bulletColor_);
     }
 
     auto factory = []() -> std::shared_ptr<GameObject> { return nullptr; };
@@ -257,6 +257,7 @@ void BossBulletManagerComponent::OnRegisterProperties() {
     RegisterProperty("Max Bullets", &maxBullets_);
     RegisterProperty("Default Life Time", &defaultLifeTime_);
     RegisterPropertyRange("Hit Radius", &hitRadius_, 0.1f, 10.0f);
+    RegisterProperty("Bullet Color", &bulletColor_).SetTooltip("Bullet material color multiplier (RGBA)");
     RegisterProperty("Hit Effect Key", &hitEffectKey_);
     RegisterGameObjectRef("Target Player", &targetPlayerID_);
 }

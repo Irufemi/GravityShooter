@@ -410,13 +410,16 @@ void DebrisManagerComponent::Update() {
     pendingDestroys_.clear();
 }
 
-std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris() {
+std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris(int variationIndex) {
     if (variations_.empty()) {
         return nullptr;
     }
 
-    // TODO: Boss戦等の動的取得用途において、専用PrefabIndexの指定に対応する（現在は0番の固定Prefabを使用）
-    auto& var = variations_[0];
+    if (variationIndex < 0 || variationIndex >= static_cast<int>(variations_.size())) {
+        variationIndex = 0; // 範囲外時は安全にデフォルト0番へフォールバック
+    }
+
+    auto& var = variations_[variationIndex];
     int id = var.virtualManager->AddVirtualInstance({0, 0, 0}, {0, 0, 0}, {0.5f, 0.5f, 0.5f});
     auto obj = var.virtualManager->Promote(id);
     if (!obj) {
@@ -430,12 +433,25 @@ std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris() {
         if (comp) {
             comp->SetManager(this);
             comp->SetVirtualId(id);
-            comp->SetVariationIndex(0);
+            comp->SetVariationIndex(variationIndex);
             comp->ResetForPool();
             comp->SetState(DebrisState::Idle, true);
         }
     }
     return obj;
+}
+
+std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris(const std::string& variationId) {
+    if (variationId.empty() || variations_.empty()) {
+        return GetDebris(0);
+    }
+
+    for (size_t v = 0; v < variations_.size(); ++v) {
+        if (variations_[v].id == variationId) {
+            return GetDebris(static_cast<int>(v));
+        }
+    }
+    return GetDebris(0); // 未検出時はフォールバック
 }
 
 void DebrisManagerComponent::ReleaseDebris(std::shared_ptr<GameObject> debris) {

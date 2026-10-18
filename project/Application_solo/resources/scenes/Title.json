@@ -453,6 +453,14 @@
           "type": "TitleCosmicNebulaComponent"
         },
         {
+          "data": {
+            "Nozzle Offset": [
+              0.0,
+              0.0,
+              -0.47999998927116394
+            ],
+            "Thruster Prefab Path": "resources/prefabs/player_thruster_effect.json"
+          },
           "type": "TitleSceneDirectorComponent"
         }
       ],

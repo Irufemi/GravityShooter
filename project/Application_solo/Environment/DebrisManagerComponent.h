@@ -35,8 +35,15 @@ public:
 
     /**
      * @brief プールからガレキを1つ取り出す
+     * @param[in] variationIndex バリエーションインデックス（デフォルト: 0）
      */
-    std::shared_ptr<GameObject> GetDebris();
+    std::shared_ptr<GameObject> GetDebris(int variationIndex = 0);
+
+    /**
+     * @brief プールから特定のバリエーションIDのガレキを1つ取り出す
+     * @param[in] variationId バリエーションID文字列
+     */
+    std::shared_ptr<GameObject> GetDebris(const std::string& variationId);
 
     /**
      * @brief ガレキをプールに返却する（即時）

@@ -200,6 +200,17 @@ public:
         return textureManager_;
     }
 
+    /**
+     * @brief 環境マップ（CubeMap）のテクスチャハンドルを設定
+     */
+    void SetEnvironmentMapHandle(ResourceHandle handle) {
+        envMapHandle_ = handle;
+        MarkAsDirty();
+    }
+    ResourceHandle GetEnvironmentMapHandle() const {
+        return envMapHandle_;
+    }
+
     // --- 頂点・インデックス配列アクセサ ---
     std::vector<VertexData>& GetVertexDataList() {
         return vertexDataList_;
@@ -274,6 +285,7 @@ protected:
 
     // --- テクスチャ ---
     ResourceHandle textureHandle_;
+    ResourceHandle envMapHandle_;
     class TextureManager* textureManager_ = nullptr;
 
     // --- カスタム描画設定 ---

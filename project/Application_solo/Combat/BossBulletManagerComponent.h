@@ -1,6 +1,7 @@
 #pragma once
 #include "Framework/Component/Component.h"
 #include "Core/Math/Vector3.h"
+#include "Core/Math/Vector4.h"
 #include "Core/Shape/Sphere.h"
 #include "Core/Math/Geometry/AABB.h"
 #include <memory>
@@ -59,6 +60,7 @@ private:
     float hitRadius_ = 0.5f;
     std::string hitEffectKey_ = "Dust";
     std::string bulletPrefabPath_ = "resources/prefabs/BossBullet.json";
+    Irufemi::Vector4 bulletColor_ = {0.85f, 0.15f, 1.0f, 1.0f}; ///< ボス弾のカラー（鮮やかな紫色）
     /// @brief 攻撃対象となるプレイヤーのGameObject ID
     uint64_t targetPlayerID_ = 0;
 

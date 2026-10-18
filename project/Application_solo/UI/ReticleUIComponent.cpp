@@ -121,7 +121,7 @@ void ReticleUIComponent::Update() {
         }
     }
 
-    // FCSブートアップ時のスプリング展開処理（TODO仕様: 拡大から収縮してエミッシブ整流）
+    // FCSブートアップ時のスプリング展開処理（減衰振動スケール収縮とネオン閃光エミッシブ整流）
     if (isBootingUp_) {
         bootupTimer_ -= deltaTime;
         if (bootupTimer_ <= 0.0f) {

@@ -1716,6 +1716,12 @@ batchComponent->AddInstance(transform1);
 
 // 2個目には個別のエフェクト（例: Type 8 = Dissolve）を適用
 batchComponent->AddInstance(transform2, 8, effectParam, true);
+
+// バッチ全体のベースカラー（RGBA）を設定（敵弾の属性色やマテリアルカラー乗算）
+batchComponent->SetColor({0.85f, 0.15f, 1.0f, 1.0f});
+
+// インスタンスごとに固有カラーを指定して登録することも可能
+batchComponent->AddInstanceWorld(worldMatrix, {1.0f, 0.5f, 0.2f, 1.0f});
 ```
 
 ---

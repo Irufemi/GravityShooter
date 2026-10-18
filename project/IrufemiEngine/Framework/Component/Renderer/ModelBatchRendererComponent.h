@@ -5,6 +5,7 @@
 #include "Core/Shape/Sphere.h"
 #include "Core/Math/Math.h"
 #include "Core/Math/Transform.h"
+#include "Core/Math/Vector4.h"
 
 // 前方宣言
 class ModelBatch;
@@ -97,11 +98,37 @@ public:
     void Deserialize(const nlohmann::json& j) override;
 
     /**
+     * @brief インスペクター向けプロパティを登録します
+     */
+    void OnRegisterProperties() override;
+
+    /**
      * @brief 現在読み込まれているモデル名を取得します
      * @return モデル名文字列
      */
     const std::string& GetModelName() const {
         return modelName_;
+    }
+
+    /**
+     * @brief バッチ描画するインスタンスを追加します
+     * @param[in] t インスタンスのローカルトランスフォーム
+     * @param[in] effectType 適用するエフェクトタイプ（シェーダー側で解釈）
+     * @param[in] effectParam エフェクトパラメータ
+     * @param[in] enableMask マスク描画を有効にするか
+     */
+    /**
+     * @brief バッチ描画のベースカラーを設定します
+     * @param[in] color RGBAカラー
+     */
+    void SetColor(const Irufemi::Vector4& color);
+
+    /**
+     * @brief バッチ描画のベースカラーを取得します
+     * @return RGBAカラー
+     */
+    const Irufemi::Vector4& GetColor() const {
+        return color_;
     }
 
     /**
@@ -123,6 +150,17 @@ public:
      */
     void AddInstanceWorld(const Irufemi::Matrix4x4& world, int32_t effectType = 0, float effectParam = 0.0f,
                           bool enableMask = false);
+
+    /**
+     * @brief ワールド行列とカラーを指定してインスタンスを追加します
+     * @param[in] world ワールド変換行列
+     * @param[in] color インスタンスカラー
+     * @param[in] effectType 適用するエフェクトタイプ
+     * @param[in] effectParam エフェクトパラメータ
+     * @param[in] enableMask マスク描画を有効にするか
+     */
+    void AddInstanceWorld(const Irufemi::Matrix4x4& world, const Irufemi::Vector4& color, int32_t effectType = 0,
+                          float effectParam = 0.0f, bool enableMask = false);
 
     /**
      * @brief 登録されたインスタンスをすべてクリアします
@@ -153,7 +191,8 @@ public:
 
 private:
     std::unique_ptr<ModelBatch> batch_;   ///< 実際のバッチ描画を担うクラス
-    std::string modelName_ = "plane.obj"; ///< 読み込むモデル名
-    bool useGPUCulling_ = false;          ///< GPUカリングの有効フラグ
-    bool autoClearEveryFrame_ = true;     ///< 描画後にインスタンスを自動クリアするかどうか
+    std::string modelName_ = "plane.obj";                     ///< 読み込むモデル名
+    Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};      ///< ベースマテリアルカラー
+    bool useGPUCulling_ = false;                              ///< GPUカリングの有効フラグ
+    bool autoClearEveryFrame_ = true;                         ///< 描画後にインスタンスを自動クリアするかどうか
 };

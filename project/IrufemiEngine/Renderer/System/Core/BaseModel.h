@@ -289,6 +289,18 @@ public: // ゲッター・セッター
     }
 
     /**
+     * @brief 全メッシュリソースに環境マップ（CubeMap）を設定する
+     * @param[in] handle 環境マップテクスチャハンドル
+     */
+    void SetEnvironmentMap(ResourceHandle handle) {
+        for (auto& res : meshResources_) {
+            if (res) {
+                res->SetEnvironmentMapHandle(handle);
+            }
+        }
+    }
+
+    /**
      * @brief MarkAsDirty を実行する。
      */
     void MarkAsDirty() override {

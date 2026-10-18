@@ -12,7 +12,7 @@
 DEFINE_CVAR_INT("r.DisplayMode", 0, "Display Mode (0=Windowed, 1=Borderless)");
 DEFINE_CVAR_BOOL("r.VSync", true, "Enable Vertical Synchronization");
 
-// --- Audio Settings (TODO: オーディオ設定CVarsの拡張) ---
+// --- Audio Settings (Master, BGM, SE Volume) ---
 DEFINE_CVAR_FLOAT("a.MasterVolume", 1.0f, "Master Volume multiplier");
 DEFINE_CVAR_FLOAT("a.BGMVolume", 1.0f, "BGM Volume multiplier");
 DEFINE_CVAR_FLOAT("a.SEVolume", 1.0f, "SE Volume multiplier");

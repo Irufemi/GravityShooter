@@ -14,6 +14,7 @@ void ModelBatchRendererComponent::LoadModel(const std::string& filename) {
     modelName_ = filename;
     if (batch_ && !modelName_.empty()) {
         batch_->Initialize(modelName_);
+        batch_->SetColor(color_);
     }
 }
 
@@ -29,6 +30,7 @@ void ModelBatchRendererComponent::OnAwake() {
         batch_->Initialize(modelName_);
     }
 
+    batch_->SetColor(color_);
     // キャッシュされたGPUカリング設定を反映
     batch_->SetUseGPUCulling(useGPUCulling_);
 }
@@ -123,6 +125,7 @@ nlohmann::json ModelBatchRendererComponent::Serialize() {
     nlohmann::json j;
     j["modelName"] = modelName_;
     j["autoClearEveryFrame"] = autoClearEveryFrame_;
+    j["color"] = {color_.x, color_.y, color_.z, color_.w};
     return j;
 }
 
@@ -133,6 +136,23 @@ void ModelBatchRendererComponent::Deserialize(const nlohmann::json& j) {
     }
     if (j.contains("autoClearEveryFrame")) {
         autoClearEveryFrame_ = j["autoClearEveryFrame"];
+    }
+    if (j.contains("color")) {
+        auto& c = j["color"];
+        if (c.is_array() && c.size() >= 4) {
+            SetColor({c[0], c[1], c[2], c[3]});
+        }
+    }
+}
+
+void ModelBatchRendererComponent::OnRegisterProperties() {
+    RegisterProperty("Color", &color_).SetTooltip("Base material color multiplier (RGBA)");
+}
+
+void ModelBatchRendererComponent::SetColor(const Irufemi::Vector4& color) {
+    color_ = color;
+    if (batch_) {
+        batch_->SetColor(color_);
     }
 }
 
@@ -146,7 +166,14 @@ void ModelBatchRendererComponent::AddInstance(const Irufemi::Transform& t, int32
 void ModelBatchRendererComponent::AddInstanceWorld(const Irufemi::Matrix4x4& world, int32_t effectType,
                                                    float effectParam, bool enableMask) {
     if (batch_) {
-        batch_->AddInstanceWorld(world, {1, 1, 1, 1}, effectType, effectParam, enableMask);
+        batch_->AddInstanceWorld(world, color_, effectType, effectParam, enableMask);
+    }
+}
+
+void ModelBatchRendererComponent::AddInstanceWorld(const Irufemi::Matrix4x4& world, const Irufemi::Vector4& color,
+                                                   int32_t effectType, float effectParam, bool enableMask) {
+    if (batch_) {
+        batch_->AddInstanceWorld(world, color, effectType, effectParam, enableMask);
     }
 }
 

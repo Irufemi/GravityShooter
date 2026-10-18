@@ -4,6 +4,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Framework/Scene/BaseScene.h"
+#include "Core/Math/MathFunction.h"
 
 AnimatorComponent::AnimatorComponent() {
     animator_ = std::make_unique<Animator>();
@@ -62,13 +63,14 @@ void AnimatorComponent::Update() {
                     Irufemi::Vector3 deltaTrans = animator_->GetDeltaRootTranslation();
                     Irufemi::Quaternion deltaRot = animator_->GetDeltaRootRotation();
 
-                    // 現在のGameObjectのTransformに対して適用
-                    // TODO: 厳密にはキャラクターの現在の回転を考慮してdeltaTransをワールド空間に変換して足す必要がある
-                    // 今回は簡易的にローカル移動量をそのまま加算する
-                    transform->SetPosition(Irufemi::Math::Add(transform->GetPosition(), deltaTrans));
+                    // キャラクターの現在の回転を考慮してワールド空間へベクトル変換
+                    const Irufemi::Quaternion& currentQuat = transform->GetRotationQuat();
+                    Irufemi::Vector3 worldDelta = Irufemi::Math::RotateVector(deltaTrans, currentQuat);
+                    transform->SetPosition(Irufemi::Math::Add(transform->GetPosition(), worldDelta));
 
-                    // 回転も合成する場合（TransformComponentがオイラー角ならQuaternionに変換してから合成して戻す）
-                    // ひとまず移動のみ適用でも効果は確認できる
+                    // 回転ルートモーションの合成（クォータニオン乗算）
+                    Irufemi::Quaternion newQuat = Irufemi::Math::Multiply(currentQuat, deltaRot);
+                    transform->SetRotationQuat(newQuat);
                 }
             }
 

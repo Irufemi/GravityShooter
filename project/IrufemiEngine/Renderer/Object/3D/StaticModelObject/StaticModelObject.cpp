@@ -335,8 +335,7 @@ void StaticModelObject::DebugTab() {
                         std::string unique_id = "##" + std::to_string(i);
                         ui_->DebugObjMaterial(mat, unique_id.c_str());
 
-                        // TODO:
-                        // StaticModelObjectにテクスチャインデックス保持機構が実装され次第、テクスチャ選択UI(ui_->DebugTexture)を有効化する
+                        // ※テクスチャやアセットパスの設定は MeshRendererComponent / InspectorPanel で行われます
                     }
                     ImGui::TreePop();
                 }
