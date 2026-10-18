@@ -54,6 +54,9 @@ EditorManager::EditorManager() {
 }
 
 EditorManager::~EditorManager() {
+    if (engine_) {
+        engine_->SetQuitHandler(nullptr);
+    }
     if (sInstance == this) {
         sInstance = nullptr;
     }
@@ -66,6 +69,16 @@ EditorManager* EditorManager::GetInstance() {
 void EditorManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     engine_->SetPlayMode(false); // 初期はEditモード
+
+    // ゲーム内や緊急脱出のQuit要求をインターセプト
+    // プレイモード中であればエディタ自体を終了させず、Playモードを抜けて編集画面に安全に復帰する
+    engine_->SetQuitHandler([this]() -> bool {
+        if (IsPlayMode()) {
+            RequestExitPlayMode();
+            return true; // Quit処理を消費（エディタ終了を抑止）
+        }
+        return false; // Editモード等であれば通常のアプリ終了へ
+    });
 
     actionManager_ = std::make_unique<EditorActionManager>(this);
     shortcutManager_ = std::make_unique<EditorShortcutManager>(this, actionManager_.get());

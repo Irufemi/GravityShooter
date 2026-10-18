@@ -793,7 +793,7 @@ void IrufemiEngine::Execute() {
             if (inputManager_->IsKeyDown(VK_ESCAPE)) {
                 emergencyExitHoldTimer_ += deltaTime_;
                 if (emergencyExitHoldTimer_ >= 2.0f) {
-                    PostQuitMessage(0);
+                    RequestQuit();
                 }
             } else {
                 emergencyExitHoldTimer_ = 0.0f;
@@ -1256,4 +1256,13 @@ void IrufemiEngine::SetVSync(bool enable) {
     if (drawManager_) {
         drawManager_->SetVSync(enable);
     }
+}
+
+void IrufemiEngine::RequestQuit() {
+    if (quitHandler_) {
+        if (quitHandler_()) {
+            return;
+        }
+    }
+    PostQuitMessage(0);
 }

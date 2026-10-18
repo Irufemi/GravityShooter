@@ -197,9 +197,13 @@ void PauseScene::CreateUIElements() {
                                   Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},
-        {L"QUIT", MenuItem::Quit, []() {
+        {L"QUIT", MenuItem::Quit, [this]() {
              UISound::PlayDecide();
-             PostQuitMessage(0);
+             if (engine_) {
+                 engine_->RequestQuit();
+             } else {
+                 PostQuitMessage(0);
+             }
          }}};
 
     menuItems_.clear();

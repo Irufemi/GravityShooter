@@ -168,7 +168,7 @@ public:
     /**
      * @brief IrufemiEngine のインスタンスを取得する
      */
-    IrufemiEngine* GetEngine() const {
+    IrufemiEngine* GetEngine() const override {
         return engine_;
     }
 

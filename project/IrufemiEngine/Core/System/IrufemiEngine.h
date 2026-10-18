@@ -756,6 +756,26 @@ public: // ゲッター
     void SetPlayMode(bool play);
 
     /**
+     * @brief 終了リクエストハンドラの型定義
+     * @return true を返すとOS終了（PostQuitMessage）を抑止する（例: エディタのPlayモード終了への変換）
+     */
+    using QuitHandler = std::function<bool()>;
+
+    /**
+     * @brief 終了リクエストハンドラを設定する（エディタ連携用）
+     * @param[in] handler 終了リクエスト時に呼び出されるコールバック
+     */
+    void SetQuitHandler(QuitHandler handler) {
+        quitHandler_ = handler;
+    }
+
+    /**
+     * @brief ゲームまたはエディタからの安全な終了を要求する
+     * @details 登録されたQuitHandlerがあれば優先して呼び出します。未処理の場合はPostQuitMessage(0)を発行します。
+     */
+    void RequestQuit();
+
+    /**
      * @brief SelectedObject を取得する。
      * @return 取得された SelectedObject
      */
@@ -1172,6 +1192,7 @@ private: // メンバ変数
     int32_t pendingResizeHeight_ = 0;
     float displayToggleCooldown_ = 0.0f;  ///< 画面切り替えの連打防止クールダウンタイマー
     float emergencyExitHoldTimer_ = 0.0f; ///< ESC長押し緊急脱出（Fail-Safe Exit）用タイマー
+    QuitHandler quitHandler_ = nullptr;   ///< ゲーム終了リクエストのインターセプトハンドラ（エディタ連携用）
 
     /** @brief 保留中のウィンドウリサイズを安全なフレーム境界で適用する */
     void ApplyPendingResize();

@@ -377,13 +377,11 @@ void TitleMenuControllerComponent::ExecuteSelection() {
         },
         [](TitleMenuControllerComponent* self) {
             UISound::PlayDecide();
-#ifdef EditorMode
-            if (auto editor = EditorManager::GetInstance()) {
-                editor->RequestExitPlayMode();
-                return;
+            if (auto engine = self->GetEngine()) {
+                engine->RequestQuit();
+            } else {
+                PostQuitMessage(0);
             }
-#endif
-            PostQuitMessage(0);
         }};
 
     if (currentIndex_ >= 0 && static_cast<size_t>(currentIndex_) < kMenuActions.size()) {
