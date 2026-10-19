@@ -154,8 +154,11 @@
         <Border Grid.Row="5" Background="#141724" Padding="15,12" BorderBrush="#2A2F45" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Vertical">
                 <Grid Margin="0,0,0,8">
-                    <TextBlock Text="REMOTE COMMAND CONSOLE (UDP : 8889)" Foreground="#00E5FF" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
-                    <TextBlock x:Name="CommandStatusText" Text="Ready" Foreground="#8A92B2" FontSize="11" HorizontalAlignment="Right" FontFamily="Consolas"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse x:Name="ConnectionLed" Width="8" Height="8" Fill="#667085" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="REMOTE COMMAND CONSOLE (TCP : 8889)" Foreground="#00E5FF" FontSize="12" FontWeight="Bold" FontFamily="Consolas" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock x:Name="CommandStatusText" Text="Waiting for Game (127.0.0.1:8889)..." Foreground="#8A92B2" FontSize="11" HorizontalAlignment="Right" FontFamily="Consolas" VerticalAlignment="Center"/>
                 </Grid>
 
                 <!-- Quick Action Buttons -->

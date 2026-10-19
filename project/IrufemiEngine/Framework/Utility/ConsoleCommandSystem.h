@@ -42,9 +42,10 @@ public:
     /**
      * @brief コマンドライン文字列をパースして実行する
      * @param[in] commandLine スペース区切りのコマンド文字列（例: "spawn_debris 10000"）
+     * @param[out] outResult 実行結果メッセージ（成功・エラーログ等）の格納先（省略可能）
      * @return 実行に成功した場合は true、未登録コマンド等の場合は false
      */
-    static bool ExecuteCommand(const std::string& commandLine);
+    static bool ExecuteCommand(const std::string& commandLine, std::string* outResult = nullptr);
 
     /**
      * @brief 指定したコマンドが登録されているか判定する

@@ -149,6 +149,7 @@ namespace TelemetryMonitor
             
             MetricsList.ItemsSource = view;
             StartListening();
+            StartCommandClient();
         }
 
         private void StartListening()
@@ -286,24 +287,136 @@ namespace TelemetryMonitor
             UpdateGraph();
         }
 
-        #region Remote Control (UDP : 8889)
+        #region Remote Control (TCP : 8889)
+
+        private TcpClient? _cmdTcpClient;
+        private NetworkStream? _cmdStream;
+        private System.Threading.CancellationTokenSource? _cmdCts;
+
+        private void StartCommandClient()
+        {
+            _cmdCts = new System.Threading.CancellationTokenSource();
+            Task.Run(() => CommandClientLoopAsync(_cmdCts.Token));
+        }
+
+        private async Task CommandClientLoopAsync(System.Threading.CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                try
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        ConnectionLed.Fill = new SolidColorBrush(Color.FromRgb(102, 112, 133)); // Gray
+                        CommandStatusText.Text = "Connecting to Game (127.0.0.1:8889)...";
+                        CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(138, 146, 178));
+                    });
+
+                    _cmdTcpClient = new TcpClient();
+                    await _cmdTcpClient.ConnectAsync("127.0.0.1", 8889, ct);
+                    _cmdStream = _cmdTcpClient.GetStream();
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        ConnectionLed.Fill = new SolidColorBrush(Color.FromRgb(0, 255, 157)); // Green
+                        CommandStatusText.Text = "● Connected (TCP : 8889)";
+                        CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0, 255, 157));
+                    });
+
+                    // サーバーからの実行結果レスポンスを受信するループ
+                    byte[] buffer = new byte[4096];
+                    StringBuilder sb = new StringBuilder();
+
+                    while (!ct.IsCancellationRequested && _cmdTcpClient.Connected)
+                    {
+                        int bytesRead = await _cmdStream.ReadAsync(buffer, 0, buffer.Length, ct);
+                        if (bytesRead <= 0) break; // 切断
+
+                        string received = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        sb.Append(received);
+
+                        string fullStr = sb.ToString();
+                        int newlineIdx;
+                        while ((newlineIdx = fullStr.IndexOf('\n')) >= 0)
+                        {
+                            string line = fullStr.Substring(0, newlineIdx).TrimEnd('\r');
+                            fullStr = fullStr.Substring(newlineIdx + 1);
+
+                            if (!string.IsNullOrWhiteSpace(line))
+                            {
+                                Dispatcher.Invoke(() =>
+                                {
+                                    CommandStatusText.Text = line;
+                                    if (line.Contains("[Success]", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0, 255, 157)); // Green
+                                    }
+                                    else if (line.Contains("[Error]", StringComparison.OrdinalIgnoreCase) || line.Contains("Unknown", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(255, 51, 102)); // Red
+                                    }
+                                    else
+                                    {
+                                        CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0, 229, 255)); // Cyan
+                                    }
+                                });
+                            }
+                        }
+                        sb.Clear();
+                        sb.Append(fullStr);
+                    }
+                }
+                catch (Exception)
+                {
+                    // 接続失敗またはエラー時は少し待ってリトライ
+                }
+                finally
+                {
+                    _cmdStream?.Dispose();
+                    _cmdStream = null;
+                    _cmdTcpClient?.Close();
+                    _cmdTcpClient = null;
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        ConnectionLed.Fill = new SolidColorBrush(Color.FromRgb(102, 112, 133)); // Gray
+                        CommandStatusText.Text = "Disconnected. Retrying connection...";
+                        CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(138, 146, 178));
+                    });
+                }
+
+                try
+                {
+                    await Task.Delay(1500, ct);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+            }
+        }
 
         public async void SendCommand(string command)
         {
             if (string.IsNullOrWhiteSpace(command)) return;
 
+            if (_cmdStream == null || _cmdTcpClient == null || !_cmdTcpClient.Connected)
+            {
+                CommandStatusText.Text = "Cannot send: Not connected to Game.";
+                CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(255, 51, 102)); // Red
+                return;
+            }
+
             try
             {
-                using var client = new UdpClient();
-                byte[] data = Encoding.UTF8.GetBytes(command);
-                await client.SendAsync(data, data.Length, "127.0.0.1", 8889);
-
-                CommandStatusText.Text = $"Sent: \"{command}\"";
-                CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0, 255, 157)); // Green
+                byte[] data = Encoding.UTF8.GetBytes(command + "\n");
+                await _cmdStream.WriteAsync(data, 0, data.Length);
+                CommandStatusText.Text = $"Sent: \"{command}\" (Waiting response...)";
+                CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0, 229, 255)); // Cyan
             }
             catch (Exception ex)
             {
-                CommandStatusText.Text = $"Error: {ex.Message}";
+                CommandStatusText.Text = $"Send Error: {ex.Message}";
                 CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(255, 51, 102)); // Red
             }
         }
@@ -350,6 +463,9 @@ namespace TelemetryMonitor
 
         protected override void OnClosed(EventArgs e)
         {
+            _cmdCts?.Cancel();
+            _cmdStream?.Dispose();
+            _cmdTcpClient?.Close();
             _udpClient?.Close();
             base.OnClosed(e);
         }

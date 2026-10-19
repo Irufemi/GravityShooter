@@ -122,9 +122,17 @@ graph LR
   ・**【大量オブジェクト負荷テスト】**: 10,000オブジェクトの同時追尾ベンチマークにおいて、CPU側のディスパッチ負荷を **平均0.066ms** に抑え、高負荷時でも安定して動作することを確認。
   ・**【ゲーム本編の実運用】**: プレイヤーの視認性（弾幕の視認、敵の予兆検知）とゲームテンポを最優先し、本編中では数十〜100個のガレキが高密度かつ快適に物理循環するよう意図的に調整。敵撃破時に飛び散る破片を即座に次の武器としてリサイクルする、リッチで爽快な弾幕循環を実現。
 - 🔗 **関連コード原本**: [`VirtualEntityManagerComponent.h`](project/IrufemiEngine/Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h) / [`DebrisManagerComponent.cpp`](project/Application_solo/Environment/DebrisManagerComponent.cpp)
-
-> **💡 ワンクリック負荷検証の手順**:  
-> リポジトリ直下の **`Run_Benchmark.bat`** を実行すると、Releaseビルド（`/O3` 最適化）でゲーム本体と外部ツール `TelemetryMonitor` が連動起動します。`TelemetryMonitor` 下部の **【💥 10,000 Debris】** ボタンをクリックするだけで、誰でも即座に1万個ガレキの60FPS安定動作を追試・確認できます。
+> **💡 ワンクリック負荷検証の手順 & ハイブリッド通信設計**:  
+> リポジトリ直下の **`Run_Benchmark.bat`** を実行すると、Releaseビルド（`/O3` 最適化）でゲーム本体と外部ツール `TelemetryMonitor` が連動起動します。  
+> 
+> ```
+> [TelemetryMonitor (WPF)] ──(UDP: 8888 高頻度メトリクス受信 / ゼロ負荷)──> [Game Engine]
+>                          <──(TCP: 8889 到達保証コマンド送信 ＆ ログ返信)───> [Game Engine]
+> ```
+> 
+> - **UDP (Port: 8888)**: 毎フレームの描画負荷やFPSなどの数値を非同期ストリームし、ゲーム描画ループへの負荷を一切かけずにリアルタイムグラフ化。
+> - **TCP (Port: 8889)**: 外部ツールから `spawn_debris 10000` などの命令を確実に届かせ、ゲーム側の実行結果ログ（`[Success]` / `[Error]`）を双方向ストリーミング。接続状態（Connected / Disconnected）もリアルタイム可視化。
+> - `TelemetryMonitor` 下部の **【💥 10,000 Debris】** ボタンをクリックするだけで、誰でも即座に1万個ガレキの60FPS安定動作（平均0.066ms）を追試・確認できます（インゲーム内でも `F1` キーでコンソールを開閉可能）。
 
 **【図解: Sparse SetとInstance Promotionによるキャッシュ最適化】**
 ```mermaid

@@ -66,9 +66,12 @@ std::vector<std::string> ConsoleCommandSystem::Tokenize(const std::string& comma
     return tokens;
 }
 
-bool ConsoleCommandSystem::ExecuteCommand(const std::string& commandLine) {
+bool ConsoleCommandSystem::ExecuteCommand(const std::string& commandLine, std::string* outResult) {
     auto tokens = Tokenize(commandLine);
     if (tokens.empty()) {
+        if (outResult) {
+            *outResult = "[ConsoleCommand] Empty command.";
+        }
         return false;
     }
 
@@ -85,21 +88,33 @@ bool ConsoleCommandSystem::ExecuteCommand(const std::string& commandLine) {
     }
 
     if (!callbackToExecute) {
-        std::string warnMsg = "[ConsoleCommand] Unknown command: '" + commandName + "'\n";
-        Log::OutPutLog(std::cout, warnMsg);
+        std::string warnMsg = "[ConsoleCommand] Unknown command: '" + commandName + "'";
+        Log::OutPutLog(std::cout, warnMsg + "\n");
+        if (outResult) {
+            *outResult = warnMsg;
+        }
         return false;
     }
 
     try {
         callbackToExecute(args);
+        if (outResult) {
+            *outResult = "[Success] Executed: '" + commandLine + "'";
+        }
         return true;
     } catch (const std::exception& e) {
-        std::string errMsg = "[ConsoleCommand] Exception in command '" + commandName + "': " + e.what() + "\n";
-        Log::OutPutLog(std::cerr, errMsg);
+        std::string errMsg = "[ConsoleCommand] Exception in command '" + commandName + "': " + e.what();
+        Log::OutPutLog(std::cerr, errMsg + "\n");
+        if (outResult) {
+            *outResult = errMsg;
+        }
         return false;
     } catch (...) {
-        std::string errMsg = "[ConsoleCommand] Unknown exception in command '" + commandName + "'\n";
-        Log::OutPutLog(std::cerr, errMsg);
+        std::string errMsg = "[ConsoleCommand] Unknown exception in command '" + commandName + "'";
+        Log::OutPutLog(std::cerr, errMsg + "\n");
+        if (outResult) {
+            *outResult = errMsg;
+        }
         return false;
     }
 }
