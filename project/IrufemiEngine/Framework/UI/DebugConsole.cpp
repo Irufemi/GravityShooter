@@ -158,9 +158,8 @@ void DebugConsole::Draw([[maybe_unused]] bool isF1Triggered) {
             }
 
             if (prevHistoryPos != console->historyPos_) {
-                const char* historyStr = (console->historyPos_ >= 0)
-                                             ? console->commandHistory_[console->historyPos_].c_str()
-                                             : "";
+                const char* historyStr =
+                    (console->historyPos_ >= 0) ? console->commandHistory_[console->historyPos_].c_str() : "";
                 data->DeleteChars(0, data->BufTextLen);
                 data->InsertChars(0, historyStr);
             }

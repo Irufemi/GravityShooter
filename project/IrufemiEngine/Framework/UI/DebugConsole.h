@@ -25,12 +25,16 @@ public:
     /**
      * @brief コンソールの開閉をトグルする
      */
-    void ToggleOpen() { isOpen_ = !isOpen_; }
+    void ToggleOpen() {
+        isOpen_ = !isOpen_;
+    }
 
     /**
      * @brief コンソールが開いているか判定する
      */
-    bool IsOpen() const { return isOpen_; }
+    bool IsOpen() const {
+        return isOpen_;
+    }
 
     /**
      * @brief ログメッセージをコンソール履歴に追加する

@@ -52,14 +52,16 @@ void TelemetryReceiver::Initialize(uint16_t listenPort) {
                      sizeof(networkData_->listenAddr_)) == SOCKET_ERROR) {
                 closesocket(networkData_->listenSocket_);
                 networkData_->listenSocket_ = INVALID_SOCKET;
-                Log::OutPutLog(std::cerr, "[TelemetryReceiver] Failed to bind TCP port " + std::to_string(listenPort) + "\n");
+                Log::OutPutLog(std::cerr,
+                               "[TelemetryReceiver] Failed to bind TCP port " + std::to_string(listenPort) + "\n");
                 return;
             }
 
             if (listen(networkData_->listenSocket_, SOMAXCONN) == SOCKET_ERROR) {
                 closesocket(networkData_->listenSocket_);
                 networkData_->listenSocket_ = INVALID_SOCKET;
-                Log::OutPutLog(std::cerr, "[TelemetryReceiver] Failed to listen on TCP port " + std::to_string(listenPort) + "\n");
+                Log::OutPutLog(std::cerr,
+                               "[TelemetryReceiver] Failed to listen on TCP port " + std::to_string(listenPort) + "\n");
                 return;
             }
         }
@@ -68,7 +70,8 @@ void TelemetryReceiver::Initialize(uint16_t listenPort) {
     if (networkData_->listenSocket_ != INVALID_SOCKET) {
         isRunning_ = true;
         workerThread_ = std::thread(&TelemetryReceiver::ThreadLoop, this);
-        Log::OutPutLog(std::cout, "[TelemetryReceiver] TCP Server listening on 127.0.0.1:" + std::to_string(listenPort) + "\n");
+        Log::OutPutLog(std::cout,
+                       "[TelemetryReceiver] TCP Server listening on 127.0.0.1:" + std::to_string(listenPort) + "\n");
     }
 }
 
@@ -147,12 +150,14 @@ void TelemetryReceiver::ThreadLoop() {
         if (FD_ISSET(networkData_->listenSocket_, &readSet)) {
             sockaddr_in clientAddr{};
             int clientAddrLen = sizeof(clientAddr);
-            SOCKET newClient = accept(networkData_->listenSocket_, reinterpret_cast<sockaddr*>(&clientAddr), &clientAddrLen);
+            SOCKET newClient =
+                accept(networkData_->listenSocket_, reinterpret_cast<sockaddr*>(&clientAddr), &clientAddrLen);
             if (newClient != INVALID_SOCKET) {
                 uint64_t clientId = networkData_->nextClientId_++;
                 networkData_->clients_[clientId] = newClient;
                 networkData_->clientBuffers_[clientId] = "";
-                Log::OutPutLog(std::cout, "[TelemetryReceiver] TCP Client connected (ID: " + std::to_string(clientId) + ")\n");
+                Log::OutPutLog(std::cout,
+                               "[TelemetryReceiver] TCP Client connected (ID: " + std::to_string(clientId) + ")\n");
             }
         }
 
@@ -196,7 +201,8 @@ void TelemetryReceiver::ThreadLoop() {
                 closesocket(it->second);
                 networkData_->clients_.erase(it);
                 networkData_->clientBuffers_.erase(id);
-                Log::OutPutLog(std::cout, "[TelemetryReceiver] TCP Client disconnected (ID: " + std::to_string(id) + ")\n");
+                Log::OutPutLog(std::cout,
+                               "[TelemetryReceiver] TCP Client disconnected (ID: " + std::to_string(id) + ")\n");
             }
         }
     }

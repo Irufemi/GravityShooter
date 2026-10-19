@@ -153,23 +153,19 @@ void DebrisManagerComponent::Initialize() {
 
     // --- コンソールコマンドの登録 (ConsoleCommandSystem) ---
     Irufemi::ConsoleCommandSystem::RegisterCommand(
-        "spawn_debris",
-        "自機の前方に指定数のガレキを生成します。使用法: spawn_debris [count=100]",
+        "spawn_debris", "自機の前方に指定数のガレキを生成します。使用法: spawn_debris [count=100]",
         [this](const std::vector<std::string>& args) {
             int count = args.empty() ? 100 : std::stoi(args[0]);
             SpawnDebrisInFrontOfPlayer(count);
             Log::OutPutLog(std::cout, "[Command] Spawned " + std::to_string(count) + " debris.\n");
-        }
-    );
+        });
 
-    Irufemi::ConsoleCommandSystem::RegisterCommand(
-        "clear_debris",
-        "フィールド上の未昇格ガレキを一括消去・返却します。",
-        [this](const std::vector<std::string>& /*args*/) {
-            ClearAllDebris();
-            Log::OutPutLog(std::cout, "[Command] Cleared all virtual debris.\n");
-        }
-    );
+    Irufemi::ConsoleCommandSystem::RegisterCommand("clear_debris", "フィールド上の未昇格ガレキを一括消去・返却します。",
+                                                   [this](const std::vector<std::string>& /*args*/) {
+                                                       ClearAllDebris();
+                                                       Log::OutPutLog(std::cout,
+                                                                      "[Command] Cleared all virtual debris.\n");
+                                                   });
 }
 
 void DebrisManagerComponent::ClearAllDebris() {
