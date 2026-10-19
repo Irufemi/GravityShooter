@@ -144,6 +144,12 @@ graph LR
 > - **TCP (Port: 8889)**: 外部ツールから `spawn_debris 10000` などの命令を確実に届かせ、ゲーム側の実行結果ログ（`[Success]` / `[Error]`）を双方向ストリーミング。接続状態（Connected / Disconnected）もリアルタイム可視化。
 > - `TelemetryMonitor` 下部の **【💥 10,000 Debris】** ボタンをクリックするだけで、誰でも即座に1万個ガレキの60FPS安定動作（平均0.066ms）を追試・確認できます（インゲーム内でも `F1` キーでコンソールを開閉可能）。
 
+<p align="center">
+  <img src="docs/images/benchmark_10k_debris.png" alt="10,000 Debris Stress Test Benchmark" width="850px" />
+  <br>
+  <em>▲ 負荷検証実行画面：外部ツール TelemetryMonitor（左）と Release版ゲーム本体（右）。10,000オブジェクト展開時でも 60FPS / CPU 0.066ms を維持</em>
+</p>
+
 **【図解: Sparse SetとInstance Promotionによるキャッシュ最適化】**
 ```mermaid
 graph TD
