@@ -479,6 +479,10 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
     telemetrySender_ = std::make_unique<TelemetrySender>();
     telemetrySender_->Initialize();
 
+    // TelemetryReceiver の初期化 (ポート 8889 でリモートコマンドをリッスン)
+    telemetryReceiver_ = std::make_unique<TelemetryReceiver>();
+    telemetryReceiver_->Initialize(8889);
+
     // TelemetryGatherer の初期化 (ここでプロファイル項目をバインド)
     telemetryGatherer_ = std::make_unique<TelemetryGatherer>();
     telemetryGatherer_->Initialize(this);
@@ -486,6 +490,9 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
     // PrefabManager の初期化と SceneSerializer へのバインド
     prefabManager_ = std::make_unique<PrefabManager>();
     SceneSerializer::SetPrefabManager(prefabManager_.get());
+
+    // In-game Developer Console の初期化
+    debugConsole_ = std::make_unique<Irufemi::DebugConsole>();
 }
 
 // クリアカラーをfloat配列で持つ初期化
@@ -745,6 +752,10 @@ void IrufemiEngine::Finalize() {
         telemetrySender_->Finalize();
     }
 
+    if (telemetryReceiver_) {
+        telemetryReceiver_->Finalize();
+    }
+
     // OSタイマー精度の引き上げを解除
     timeEndPeriod(1);
 
@@ -903,6 +914,11 @@ void IrufemiEngine::Execute() {
 
 // フレーム開始処理
 void IrufemiEngine::StartFrame() {
+    // 外部ツール（TelemetryMonitor等）から届いたリモートコマンドをメインスレッド上で安全に実行
+    if (telemetryReceiver_) {
+        telemetryReceiver_->ProcessPendingCommands();
+    }
+
     // 時間の更新
     auto now = std::chrono::steady_clock::now();
     deltaTime_ = std::chrono::duration<float>(now - lastFrameTime_).count();
@@ -967,6 +983,12 @@ void IrufemiEngine::ProcessFrame() {
     currentBlend_ = Irufemi::BlendMode::kBlendModeNormal;
     currentDepth_ = PSOManager::DepthWrite::Enable;
     currentCull_ = PSOManager::CullMode::Back;
+
+    // インゲーム開発者コンソールの更新・描画 (F1でトグル)
+    if (debugConsole_ && inputManager_) {
+        bool isF1 = inputManager_->IsKeyPressed(VK_F1);
+        debugConsole_->Draw(isF1);
+    }
 
     // 描画処理に入る前にImGui_::Renderを積む
     ui_->QueueDrawCommands();

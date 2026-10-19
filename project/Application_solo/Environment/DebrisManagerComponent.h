@@ -24,10 +24,11 @@ struct DebrisAnimData {
 class DebrisManagerComponent : public Component {
 public:
     DebrisManagerComponent() = default;
-    ~DebrisManagerComponent() override = default;
+    ~DebrisManagerComponent() override;
 
     void Initialize() override;
     void Update() override;
+    void OnDestroy() override;
     void OnRegisterProperties() override;
     std::string GetComponentName() const override {
         return "DebrisManagerComponent";
@@ -104,6 +105,11 @@ public:
      * @param count 生成する個数
      */
     void SpawnDebrisInFrontOfPlayer(int count);
+
+    /**
+     * @brief フィールド上の全てのガレキを回収・消去する（ベンチマークリセット用）
+     */
+    void ClearAllDebris();
 
     // Debris パラメータのゲッター
     float GetDebrisPullSpeed() const {

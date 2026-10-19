@@ -19,6 +19,8 @@ namespace Irufemi {}
 #include "Renderer/Data/TransformationMatrix.h"
 #include "Core/System/ResourceHandle.h"
 #include "Core/Profiler/TelemetryGatherer.h"
+#include "Core/Profiler/TelemetryReceiver.h"
+#include "Framework/UI/DebugConsole.h"
 #include "Core/System/ThreadPool.h"
 #include "Renderer/ScreenCaptureManager.h"
 
@@ -492,6 +494,20 @@ public: // ゲッター
      */
     TelemetrySender* GetTelemetrySender() const {
         return telemetrySender_.get();
+    }
+    /**
+     * @brief TelemetryReceiver を取得する。
+     * @return 取得された TelemetryReceiver
+     */
+    TelemetryReceiver* GetTelemetryReceiver() const {
+        return telemetryReceiver_.get();
+    }
+    /**
+     * @brief DebugConsole を取得する。
+     * @return 取得された DebugConsole
+     */
+    Irufemi::DebugConsole* GetDebugConsole() const {
+        return debugConsole_.get();
     }
     /**
      * @brief PrefabManager を取得する。
@@ -1168,6 +1184,10 @@ private: // メンバ変数
     // Telemetry
     std::unique_ptr<TelemetrySender> telemetrySender_ = nullptr;
     std::unique_ptr<TelemetryGatherer> telemetryGatherer_ = nullptr;
+    std::unique_ptr<TelemetryReceiver> telemetryReceiver_ = nullptr;
+
+    // In-game Developer Console
+    std::unique_ptr<Irufemi::DebugConsole> debugConsole_ = nullptr;
 
     // Prefab Manager
     std::unique_ptr<PrefabManager> prefabManager_ = nullptr;

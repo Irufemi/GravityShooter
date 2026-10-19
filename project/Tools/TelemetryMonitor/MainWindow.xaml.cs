@@ -286,6 +286,68 @@ namespace TelemetryMonitor
             UpdateGraph();
         }
 
+        #region Remote Control (UDP : 8889)
+
+        public async void SendCommand(string command)
+        {
+            if (string.IsNullOrWhiteSpace(command)) return;
+
+            try
+            {
+                using var client = new UdpClient();
+                byte[] data = Encoding.UTF8.GetBytes(command);
+                await client.SendAsync(data, data.Length, "127.0.0.1", 8889);
+
+                CommandStatusText.Text = $"Sent: \"{command}\"";
+                CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0, 255, 157)); // Green
+            }
+            catch (Exception ex)
+            {
+                CommandStatusText.Text = $"Error: {ex.Message}";
+                CommandStatusText.Foreground = new SolidColorBrush(Color.FromRgb(255, 51, 102)); // Red
+            }
+        }
+
+        private void Button_Spawn10k_Click(object sender, RoutedEventArgs e)
+        {
+            SendCommand("spawn_debris 10000");
+        }
+
+        private void Button_Spawn1k_Click(object sender, RoutedEventArgs e)
+        {
+            SendCommand("spawn_debris 1000");
+        }
+
+        private void Button_ClearDebris_Click(object sender, RoutedEventArgs e)
+        {
+            SendCommand("clear_debris");
+        }
+
+        private void SendCommandButton_Click(object sender, RoutedEventArgs e)
+        {
+            string cmd = CommandInputTextBox.Text.Trim();
+            if (!string.IsNullOrEmpty(cmd))
+            {
+                SendCommand(cmd);
+                CommandInputTextBox.Clear();
+            }
+        }
+
+        private void CommandInputTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                string cmd = CommandInputTextBox.Text.Trim();
+                if (!string.IsNullOrEmpty(cmd))
+                {
+                    SendCommand(cmd);
+                    CommandInputTextBox.Clear();
+                }
+            }
+        }
+
+        #endregion
+
         protected override void OnClosed(EventArgs e)
         {
             _udpClient?.Close();

@@ -2,6 +2,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h"
+#include "Framework/Utility/ConsoleCommandSystem.h"
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 #include "Framework/Scene/SceneSerializer.h"
 #include "Framework/Scene/BaseScene.h"
@@ -28,6 +29,16 @@
 #include <algorithm>
 #include "Effects/EffectManagerComponent.h"
 #include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
+
+DebrisManagerComponent::~DebrisManagerComponent() {
+    Irufemi::ConsoleCommandSystem::UnregisterCommand("spawn_debris");
+    Irufemi::ConsoleCommandSystem::UnregisterCommand("clear_debris");
+}
+
+void DebrisManagerComponent::OnDestroy() {
+    Irufemi::ConsoleCommandSystem::UnregisterCommand("spawn_debris");
+    Irufemi::ConsoleCommandSystem::UnregisterCommand("clear_debris");
+}
 
 void DebrisManagerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
@@ -136,6 +147,43 @@ void DebrisManagerComponent::Initialize() {
         if (auto engine = scene->GetEngine()) {
             if (auto voxelMgr = engine->GetVoxelParticleManager()) {
                 voxelMgr->ReservePool("resources/model/Debris/Generic/Debris_Generic.obj", {2, 2, 2}, 16);
+            }
+        }
+    }
+
+    // --- コンソールコマンドの登録 (ConsoleCommandSystem) ---
+    Irufemi::ConsoleCommandSystem::RegisterCommand(
+        "spawn_debris",
+        "自機の前方に指定数のガレキを生成します。使用法: spawn_debris [count=100]",
+        [this](const std::vector<std::string>& args) {
+            int count = args.empty() ? 100 : std::stoi(args[0]);
+            SpawnDebrisInFrontOfPlayer(count);
+            Log::OutPutLog(std::cout, "[Command] Spawned " + std::to_string(count) + " debris.\n");
+        }
+    );
+
+    Irufemi::ConsoleCommandSystem::RegisterCommand(
+        "clear_debris",
+        "フィールド上の未昇格ガレキを一括消去・返却します。",
+        [this](const std::vector<std::string>& /*args*/) {
+            ClearAllDebris();
+            Log::OutPutLog(std::cout, "[Command] Cleared all virtual debris.\n");
+        }
+    );
+}
+
+void DebrisManagerComponent::ClearAllDebris() {
+    for (auto& var : variations_) {
+        if (!var.virtualManager) {
+            continue;
+        }
+        while (!var.activeIds.empty()) {
+            int id = var.activeIds.front();
+            var.activeIds.pop();
+            if (const auto* inst = var.virtualManager->GetInstance(id)) {
+                if (!inst->isPromoted) {
+                    var.virtualManager->RemoveVirtualInstance(id);
+                }
             }
         }
     }
@@ -381,7 +429,7 @@ void DebrisManagerComponent::Update() {
         }
     }
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) || defined(DEVELOPMENT)
     if (input) {
         if (input->IsKeyPressed('1') || input->IsKeyPressedDIK(0x02)) {
             SpawnDebrisInFrontOfPlayer(10);

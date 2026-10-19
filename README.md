@@ -20,6 +20,7 @@ C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven 
 | バッチファイル | 動作内容 |
 | :--- | :--- |
 | **`BuildAndRun.bat`** | **ゲーム本編（Release構成）** を最適化ビルドして即座に起動 |
+| **`Run_Benchmark.bat`** | **10,000オブジェクト負荷検証 ＆ 外部テレメトリ監視** をワンクリック連動起動 |
 | **`Launch_Telemetry.bat`** | **C# WPF 外部パフォーマンス監視ツール** をビルド・起動し、リアルタイムメトリクスを表示 |
 | **`PackageForSubmission.bat`** | 審査提出用パッケージ（製品版・**自作エディタ版**・ソースコード）をワンクリック自動生成 |
 
@@ -49,6 +50,36 @@ C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven 
 | **七転び八転び** | 3Dアクションゲーム | 4人 (約4ヶ月) | 非同期ローダー、Compute Shaderによる数十万ボクセル破壊、シーン管理・リソース管理 |
 | **血管壊回** | 見下ろし型 疑似3Dアクション | 3人 (約1ヶ月) | 3Dパーティクルによる血流表現、XY平面ベースの2D/3D融合コリジョン処理 |
 | **纏当て** | 3Dボスバトルアクション | 4人 (約1ヶ月) | DirectX 12 描画パイプラインの構築、デバッグUI環境の提供、描画用HLSLシェーダー |
+
+---
+
+## 🎯 コアゲームプレイ & エネミーAIシステム (Core Gameplay & AI)
+
+『Gravity Shooter』は、空間に漂う大量の瓦礫（ガレキ）を重力波で引き寄せ、攻防一体のシールドや高速弾丸として撃ち出す奥スクロール型の重力アクション・レールシューターです。
+
+### 🔄 最小ゲームループの確立 (Core Loop)
+```mermaid
+graph LR
+    A["🧲 ガレキ引き寄せ<br>(周囲の破片を自機周囲へ)"] --> B["🛡️ オービット展開<br>(旋回シールドで弾幕防御)"]
+    B --> C["🎯 マルチロックオン<br>(照準で複数の敵を捕捉)"]
+    C --> D["💥 時間差一斉射出<br>(敵機体を粉砕・ドロップ)"]
+    D --> A
+    style A fill:#2b6cb0,color:#fff
+    style B fill:#2c5282,color:#fff
+    style C fill:#9b2c2c,color:#fff
+    style D fill:#c53030,color:#fff
+```
+
+### 👾 3大エネミーAIと駆け引き (Enemy AI Behaviors)
+単に直進するだけの「動く的」を排し、自機の機動や速度ベクトルを認識して攻撃を仕掛ける3系統のAI行動ルーチンをC++ステートマシン・ストラテジーパターンで実装しています。
+
+| 敵タイプ | AI行動アルゴリズム | プレイヤーとの駆け引き・演出 (Game Juice) |
+| :--- | :--- | :--- |
+| **通常砲台<br>(`StandardGunner`)** | レールスプライン上の局所直交基底（Frenet-Serret）を維持しながら編隊飛行し、自機座標へ向けて正確に射撃。 | ガレキシールドを展開して正面から弾幕を受け止めつつ、隙を見て撃破する基礎駆け引き。 |
+| **未来予測スナイパー<br>(`PredictiveSniper`)** | 自機の移動速度ベクトルを計算し、弾速から逆算した「未来着弾予測地点」をロックオン。赤色シリンダーAOE予告線（Telegraph Laser）が高速パルス点滅。 | 予告線の射線軸から軸ずらしダッシュで回避するか、ガレキを前方に構えて直撃を防ぐ緊迫感のある駆け引き。 |
+| **ダイブボマー<br>(`DiveBomber`)** | 接近ステートから突撃ステートへ遷移し、機体を急加速させながら自機へ体当たり自爆を敢行。突入直前の機体ロール旋回挙動を数学的に制御。 | 自爆前の高速接近中に素早くロックオンし、カウンターでガレキをぶつけて粉砕・自爆阻止する爽快感。 |
+
+- 🔗 **関連コード原本**: [`RailShooterEnemyComponent.cpp`](project/Application_solo/RailMechanics/RailShooterEnemyComponent.cpp) / [`WaveManagerComponent.cpp`](project/Application_solo/Level/WaveManagerComponent.cpp)
 
 ---
 
@@ -89,12 +120,11 @@ C++ と DirectX 12 を用いてスクラッチから構築した、**GPU-Driven 
   ポインタベースの `GameObject` (OOP) では、メモリ断片化によるキャッシュミスでCPUの限界（16.6ms）がすぐに訪れる。そこで、ゲーム進行に必要な当たり判定（OBB等）はCPUに残し、視覚的な「大量の破片の物理演算」のみを Compute Shader にオフロードした。さらに、ガレキ制御等の演算は真面目に行わず `sin/cos` を用いた「騙しの物理演算（Fake Physics）」で軽量化。データ管理には、座標データを密配列で保持する `VirtualEntityManagerComponent` (Sparse Set アーキテクチャ) を採用した。
 - **【結果と定量的成果】**
   ・**【大量オブジェクト負荷テスト】**: 10,000オブジェクトの同時追尾ベンチマークにおいて、CPU側のディスパッチ負荷を **平均0.066ms** に抑え、高負荷時でも安定して動作することを確認。
-  ・**【ゲーム本編の実運用】**: プレイヤーの視認性（弾幕の視認、敵の予兆検知）とゲームテンポを最優先し、本編中では数十〜100個のガレキが高密度かつ快適に物理循環するよう意図的に調整。余裕を持ったリソースをGPUボクセル破壊やポストプロセスに割り当て、常時60FPSの安定描画を達成した。
-- 🔗 **関連コード原本**: [`VirtualEntityManagerComponent.h`](project/IrufemiEngine/Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h)
+  ・**【ゲーム本編の実運用】**: プレイヤーの視認性（弾幕の視認、敵の予兆検知）とゲームテンポを最優先し、本編中では数十〜100個のガレキが高密度かつ快適に物理循環するよう意図的に調整。敵撃破時に飛び散る破片を即座に次の武器としてリサイクルする、リッチで爽快な弾幕循環を実現。
+- 🔗 **関連コード原本**: [`VirtualEntityManagerComponent.h`](project/IrufemiEngine/Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h) / [`DebrisManagerComponent.cpp`](project/Application_solo/Environment/DebrisManagerComponent.cpp)
 
-> **📷 計測環境データ**
-> ※ここに「1万個のガレキが飛んでいる画面」と「60FPSが出ているデバッグ表記」のスクリーンショットを配置してください。
-> 計測条件：Releaseビルド, RTX 2060, オブジェクト数10,000個
+> **💡 ワンクリック負荷検証の手順**:  
+> リポジトリ直下の **`Run_Benchmark.bat`** を実行すると、Releaseビルド（`/O3` 最適化）でゲーム本体と外部ツール `TelemetryMonitor` が連動起動します。`TelemetryMonitor` 下部の **【💥 10,000 Debris】** ボタンをクリックするだけで、誰でも即座に1万個ガレキの60FPS安定動作を追試・確認できます。
 
 **【図解: Sparse SetとInstance Promotionによるキャッシュ最適化】**
 ```mermaid
@@ -121,11 +151,8 @@ graph TD
 - **【比較と技術選定 (トレードオフ)】**
   衝突判定を $O(N \log N)$ に落とすため動的AABBツリー (BVH) を実装。さらに、ツリーのノード管理をポインタで実装するとキャッシュミスが起きるため、あえてポインタを排し **「インデックスベースの配列プール」** を用いた Data-Oriented な実装を選択した。また、ウェーブや環境は JSON/CSV で外部定義し、`EnvironmentManagerComponent` でプーリングとバッチ描画（インスタンシング）を自動化するデータ駆動設計を導入した。
 - **【結果と定量的成果】**
-  プログラマ視点での高い保守性とシーンファイルの肥大化防止を達成。大量のガレキが密集してもFPSが落ちない安定した実行速度（CPUバウンドの解消）を実現した。
-- 🔗 **関連コード原本**: [`EnvironmentManagerComponent.h`](project/Application_solo/components/EnvironmentManagerComponent.h)
-
-> **📷 計測環境データ**
-> ※ここに「BVHのデバッグ描画（四角い枠）」の画面か「`std::vector<BVHNode>` でプール管理しているコード」のスクリーンショットを配置してください。
+  プログラマ視点での高い保守性とシーンファイルの肥大化防止を達成。大量のガレキや敵弾が密集する激しい弾幕戦でも、処理落ち（フレーム落ち）による操作遅延をゼロにし、プレイヤーの反射神経を裏切らない安定した実行速度（CPUバウンドの解消）を実現。
+- 🔗 **関連コード原本**: [`EnvironmentManagerComponent.h`](project/Application_solo/components/EnvironmentManagerComponent.h) / [`DynamicBVH.cpp`](project/IrufemiEngine/Physics/Collision/DynamicBVH.cpp)
 
 ---
 
@@ -167,11 +194,8 @@ graph LR
   単一の輪郭線抽出ではなく、「深度」「法線」「輝度」の3つの G-Buffer から複合的にエッジを抽出するマルチレイヤー・アウトラインシェーダーを独自に実装。煙については、HLSLによるレイマーチングを実装し、「境界球（Bounding Sphere）」との交差判定を数学的に事前計算してサンプリング区間を最小限に絞り込んだ。
   最適化面では、**Compute Shader による GPU フラスタムカリング** を導入し `ExecuteIndirect` で一括描画。さらに、テクスチャバインドのオーバーヘッドをゼロにするため、**Bindless Resources (Descriptor Indexing)** への移行を達成した。
 - **【結果と定量的成果】**
-  自作エンジンだからこそ可能な G-Buffer への直接アクセスを活かし、3D空間ノイズ（FBM等）を用いた濃密な爆煙の質感を実現。同時に、数万のオブジェクトが描画されてもCPU側にカリング負荷・バインド負荷を大きく抑えたパイプラインを確立した。
-- 🔗 **関連シェーダー**: [`ParticleGPU.PS.hlsl`](project/IrufemiEngine/EngineResources/shaders/ParticleGPU.PS.hlsl)
-
-> **📷 計測環境データ**
-> ※ここに「アウトラインや空間の歪みが綺麗にかかっているゲーム画面のアップ」と「可能なら 3つのG-Buffer の白黒サムネイル画像」を配置してください。
+  自作エンジンだからこそ可能な G-Buffer への直接アクセスを活かし、3D空間ノイズ（FBM等）を用いた濃密な爆煙の質感と、コミックライクなマルチレイヤー・アウトラインを実現。Compute Shader によるボクセル粉砕演出と連動し、敵機体を撃破した瞬間の「重厚な破壊感」を視覚的に最大化。同時に、数万のオブジェクトが描画されてもCPU側にカリング負荷・バインド負荷を大きく抑えたパイプラインを確立した。
+- 🔗 **関連シェーダー**: [`ParticleGPU.PS.hlsl`](project/IrufemiEngine/EngineResources/shaders/ParticleGPU.PS.hlsl) / [`DepthBasedOutline.PS.hlsl`](project/IrufemiEngine/EngineResources/shaders/DepthBasedOutline.PS.hlsl)
 
 ---
 
@@ -338,7 +362,7 @@ Unreal EngineのDDC（Derived Data Cache）思想を取り入れ、リポジト�
 
 | ツール / エディタ | 技術スタック / プロトコル | 特徴と設計のこだわり |
 | :--- | :--- | :--- |
-| **リアルタイム・テレメトリ監視ツール (`TelemetryMonitor`)** | C# / WPF (.NET 10)<br>**UDP通信 (Port: 8888)** | **【ゲームループ無負荷設計】** プロファイリング自体がゲームの動作を重くしては本末転倒であるため、TCPのようなハンドシェイク・再送待ちによるブロッキングを避け、**軽量なUDP通信**を採用。ゲームエンジン側は専用の独立ワーカースレッド（`std::thread` + `std::condition_variable`）から非同期送信することで、**ゲーム本体のメインループ・フレームレートに一切の負荷を与えない監視環境**を実現。GPUパーティクル数、CPU負荷、FPSを外部GUIからリアルタイム監視可能。 |
+| **双方向テレメトリ ＆ リモートコントロール (`TelemetryMonitor`)** | C# / WPF (.NET 10)<br>**UDP双方向通信 (受信: 8888 / 送信: 8889)** | **【ゲームループ無負荷 ＆ リアルタイム遠隔介入】** プロファイリング自体がゲームの動作を重くしては本末転倒であるため、軽量なUDP通信を採用。エンジン側は専用の独立ワーカースレッドから非同期送信することで、**ゲーム本体のメインループ・フレームレートに一切の負荷を与えない監視環境（Releaseビルド対応）**を実現。さらにツール下部のリモートパネルから `[💥 10,000 Debris]` などのコマンドを送信し、ゲーム画面の操作を邪魔することなく外部からリアルタイムに負荷実験を行える双方向司令塔として設計。ゲーム内でも `F1` キーで開発者コンソールを開いて同様の操作が可能。 |
 | **インハウス・ゲームエンジンエディタ (`IrufemiEditor`)** | C++ / DirectX 12 / ImGui | Commandパターンによる**Undo/Redo**、ドラッグ＆ドロップによる階層移動、3Dシーンビュー、階層ツリー、プロジェクトブラウザを完備。ボス行動ステートやスプラインウェイポイントを視覚的に編集できるカスタムインスペクター拡張基盤を搭載。**Prefab分離編集モード (Isolation Stage)** により、シーンから隔離されたクリーンな空間で原点グリッドや階層インジケータを参照しながら単体アセットの調整が可能。 |
 
 ---

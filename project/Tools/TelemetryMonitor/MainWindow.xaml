@@ -40,9 +40,11 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="300"/>
+            <RowDefinition Height="260"/>
             <RowDefinition Height="2"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="2"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
@@ -144,5 +146,35 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+        <!-- Divider -->
+        <Border Grid.Row="4" Background="#1E2233" />
+
+        <!-- Remote Command Console -->
+        <Border Grid.Row="5" Background="#141724" Padding="15,12" BorderBrush="#2A2F45" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Vertical">
+                <Grid Margin="0,0,0,8">
+                    <TextBlock Text="REMOTE COMMAND CONSOLE (UDP : 8889)" Foreground="#00E5FF" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
+                    <TextBlock x:Name="CommandStatusText" Text="Ready" Foreground="#8A92B2" FontSize="11" HorizontalAlignment="Right" FontFamily="Consolas"/>
+                </Grid>
+
+                <!-- Quick Action Buttons -->
+                <WrapPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <Button Content="💥 10,000 Debris" Click="Button_Spawn10k_Click" Background="#26304D" Foreground="#00FF9D" BorderBrush="#00FF9D" BorderThickness="1" Padding="10,6" Margin="0,0,8,6" Cursor="Hand" FontWeight="SemiBold" FontSize="12"/>
+                    <Button Content="📦 1,000 Debris" Click="Button_Spawn1k_Click" Background="#1F2538" Foreground="#E2E8F0" BorderBrush="#3B4261" BorderThickness="1" Padding="10,6" Margin="0,0,8,6" Cursor="Hand" FontSize="12"/>
+                    <Button Content="🧹 Clear Debris" Click="Button_ClearDebris_Click" Background="#1F2538" Foreground="#FF8A8A" BorderBrush="#52303A" BorderThickness="1" Padding="10,6" Margin="0,0,8,6" Cursor="Hand" FontSize="12"/>
+                </WrapPanel>
+
+                <!-- Command Input Box -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="CommandInputTextBox" Background="#0A0C14" Foreground="#FFFFFF" BorderBrush="#2A2F45" BorderThickness="1" Padding="10,6" FontSize="13" FontFamily="Consolas" VerticalContentAlignment="Center" KeyDown="CommandInputTextBox_KeyDown" CaretBrush="#00FF9D"/>
+                    <Button Grid.Column="1" Content="Send" Click="SendCommandButton_Click" Background="#00E5FF" Foreground="#0A0C14" FontWeight="Bold" Padding="16,6" Margin="8,0,0,0" Cursor="Hand" BorderThickness="0"/>
+                </Grid>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

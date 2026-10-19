@@ -235,6 +235,9 @@
     <Filter Include="Resource\Texture">
       <UniqueIdentifier>{6e22c4b3-4816-908b-8071-60a21c1b7077}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Framework\Utility">
+      <UniqueIdentifier>{a2b3c4d5-e6f7-8901-2345-6789abcdef01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Framework\Component\Effect\EffectMaskComponent.cpp">
@@ -777,6 +780,15 @@
     <ClCompile Include="Renderer\Fluid\FluidSimulation2D.cpp">
       <Filter>Renderer\Fluid</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\Utility\ConsoleCommandSystem.cpp">
+      <Filter>Framework\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Profiler\TelemetryReceiver.cpp">
+      <Filter>Core\Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\UI\DebugConsole.cpp">
+      <Filter>Framework\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framework\Component\Effect\EffectMaskComponent.h">
@@ -792,6 +804,9 @@
       <Filter>Core\System</Filter>
     </ClInclude>
     <ClInclude Include="Core\Profiler\TelemetrySender.h">
+      <Filter>Core\Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Profiler\TelemetryReceiver.h">
       <Filter>Core\Profiler</Filter>
     </ClInclude>
     <ClInclude Include="Core\Profiler\TelemetryGatherer.h">
@@ -1104,6 +1119,9 @@
       <Filter>Physics</Filter>
     </ClInclude>
     <ClInclude Include="Framework\UI\DebugUI.h">
+      <Filter>Framework\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\UI\DebugConsole.h">
       <Filter>Framework\UI</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\DrawManager.h">
@@ -1606,6 +1624,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\Fluid\FluidSimulation2D.h">
       <Filter>Renderer\Fluid</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Utility\ConsoleCommandSystem.h">
+      <Filter>Framework\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

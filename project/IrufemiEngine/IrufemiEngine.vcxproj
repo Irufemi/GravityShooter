@@ -392,12 +392,18 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Resource\Texture\TextureUtility.cpp" />
     <ClCompile Include="Framework\Component\VirtualEntity\VirtualEntityManagerComponent.cpp" />
     <ClCompile Include="Renderer\Fluid\FluidSimulation2D.cpp" />
+    <ClCompile Include="Framework\Utility\ConsoleCommandSystem.cpp" />
+    <ClCompile Include="Core\Profiler\TelemetryReceiver.cpp" />
+    <ClCompile Include="Framework\UI\DebugConsole.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Framework\UI\DebugConsole.h" />
+    <ClInclude Include="Framework\Utility\ConsoleCommandSystem.h" />
     <ClInclude Include="Framework\Utility\CVar.h" />
     <ClInclude Include="Engine\Irufemi.h" />
     <ClInclude Include="Core\System\IrufemiEngine.h" />
     <ClInclude Include="Core\Profiler\TelemetrySender.h" />
+    <ClInclude Include="Core\Profiler\TelemetryReceiver.h" />
     <ClInclude Include="Core\Profiler\TelemetryGatherer.h" />
     <ClInclude Include="Core\Profiler\GpuProfiler.h" />
     <ClInclude Include="Core\Math\Math.h" />
