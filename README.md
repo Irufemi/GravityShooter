@@ -147,7 +147,7 @@ graph LR
 <p align="center">
   <img src="docs/images/benchmark_10k_debris.png" alt="10,000 Debris Stress Test Benchmark" width="850px" />
   <br>
-  <em>▲ 外部ツール連携：TelemetryMonitor（左）からのTCPリモート操作と、Release版ゲーム（右）による10,000オブジェクト 60FPS負荷検証</em>
+  <em>▲ 外部ツール連携：TelemetryMonitor（右）からのTCPリモート操作と、Release版ゲーム（左）による10,000オブジェクト 60FPS負荷検証</em>
 </p>
 
 <p align="center">
