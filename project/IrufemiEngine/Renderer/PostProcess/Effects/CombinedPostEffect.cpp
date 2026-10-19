@@ -188,7 +188,8 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
             }
 
             // バックバッファへの直接転送は、PostUIレイヤー（!useMask）かつ画面出力時のみ許可する。
-            // PreUIレイヤー（useMask == true）は中間処理であるため、スタンドアロンであっても常に MainRenderTexture へ書き戻す。
+            // PreUIレイヤー（useMask == true）は中間処理であるため、スタンドアロンであっても常に MainRenderTexture
+            // へ書き戻す。
             bool isBackBuffer = writeToScreen && !rc.isEditorMode && !useMask;
             D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
             if (outputHandle != kInvalidHandle) {

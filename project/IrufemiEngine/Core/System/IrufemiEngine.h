@@ -1192,7 +1192,7 @@ private: // メンバ変数
     int32_t pendingResizeHeight_ = 0;
     float displayToggleCooldown_ = 0.0f;  ///< 画面切り替えの連打防止クールダウンタイマー
     float emergencyExitHoldTimer_ = 0.0f; ///< ESC長押し緊急脱出（Fail-Safe Exit）用タイマー
-    QuitHandler quitHandler_ = nullptr;   ///< ゲーム終了リクエストのインターセプトハンドラ（エディタ連携用）
+    QuitHandler quitHandler_ = nullptr; ///< ゲーム終了リクエストのインターセプトハンドラ（エディタ連携用）
 
     /** @brief 保留中のウィンドウリサイズを安全なフレーム境界で適用する */
     void ApplyPendingResize();
