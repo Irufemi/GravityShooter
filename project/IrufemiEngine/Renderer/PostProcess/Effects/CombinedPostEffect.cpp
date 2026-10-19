@@ -182,7 +182,8 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             }
         },
-        [this, manager, inputHandle, outputHandle, isBackBufferTarget, batch, useMask, writeToScreen](const Irufemi::RenderContext& rc) {
+        [this, manager, inputHandle, outputHandle, isBackBufferTarget, batch, useMask,
+         writeToScreen](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
 
