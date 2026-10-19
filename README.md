@@ -236,6 +236,12 @@ graph LR
   再コンパイルの待ち時間が減少し、ゲームバランス調整や演出作成のイテレーション速度が向上。2万文字規模（2100行以上）のマニュアルを執筆・整備し、将来の拡張や機能追加にも迷わず取り組める開発基盤を構築できた。
 - 📄 **関連ドキュメント原本**: [`Manual.md`](Manual.md)
 
+<p align="center">
+  <img src="docs/images/editor_interface.png" alt="Irufemi Engine Custom Editor GUI" width="850px" />
+  <br>
+  <em>▲ 自作エディタ操作画面：ImGuiベースのマルチドッキングUI、リアルタイムシーン階層、動的プロパティインスペクタ、およびオーサリング環境</em>
+</p>
+
 ---
 
 ### <a id="desc-dx-error"></a>🔹 6. DirectX 12 エラーハンドリングとビルド別フェイルセーフ
