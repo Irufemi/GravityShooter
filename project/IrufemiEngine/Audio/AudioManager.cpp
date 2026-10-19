@@ -680,6 +680,7 @@ std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& fil
     std::string normPath = NormalizePath(filePath);
     std::string useKey = key.empty() ? normPath : key;
 
+    // 1. 指定キーでの高速検索
     {
         auto sound = soundRegistry_.WithRead([&](const auto& state) -> std::shared_ptr<Sound> {
             auto it = state.registry.find(useKey);
@@ -693,13 +694,45 @@ std::shared_ptr<Sound> AudioManager::GetOrLoadSoundByFile(const std::string& fil
         }
     }
 
+    // 2. キャノニカルパス（エイリアス）解決
+    // "resources/audio/SE/xxx.mp3" や "audio/SE/xxx.mp3" から先頭プレフィックスを除去したキー ("SE/xxx.mp3") で再検索
+    std::string relativeKey = normPath;
+    const std::string kPrefixResourcesAudio = "resources/audio/";
+    const std::string kPrefixAudio = "audio/";
+    if (relativeKey.rfind(kPrefixResourcesAudio, 0) == 0) {
+        relativeKey = relativeKey.substr(kPrefixResourcesAudio.length());
+    } else if (relativeKey.rfind(kPrefixAudio, 0) == 0) {
+        relativeKey = relativeKey.substr(kPrefixAudio.length());
+    }
+
+    if (relativeKey != useKey) {
+        auto sound = soundRegistry_.WithRead([&](const auto& state) -> std::shared_ptr<Sound> {
+            auto it = state.registry.find(relativeKey);
+            if (it != state.registry.end()) {
+                return it->second;
+            }
+            return nullptr;
+        });
+        if (sound) {
+            // 次回からフルパス指定でも O(1) で引けるようにエイリアスを逆登録
+            soundRegistry_.WithWrite([&](auto& state) { state.registry.emplace(useKey, sound); });
+            return sound;
+        }
+    }
+
+    // 3. キャッシュに存在しない場合のみ同期ロードを実行
     auto sound = std::make_shared<Sound>();
     if (!sound->Load(ToWide(normPath))) {
         // 読み込み失敗時は nullptr を返す
         return nullptr;
     }
 
-    soundRegistry_.WithWrite([&](auto& state) { state.registry.emplace(useKey, sound); });
+    soundRegistry_.WithWrite([&](auto& state) {
+        state.registry.emplace(useKey, sound);
+        if (relativeKey != useKey) {
+            state.registry.emplace(relativeKey, sound);
+        }
+    });
     return sound;
 }
 

@@ -31,6 +31,12 @@
             "NearZ": 0.10000000149011612
           },
           "type": "CameraComponent"
+        },
+        {
+          "data": {
+            "Global Intensity Multiplier": 1.0
+          },
+          "type": "CameraShakeComponent"
         }
       ],
       "instanceId": 1000000000000000001,

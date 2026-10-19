@@ -341,12 +341,7 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
 
     // 3. カメラの大激震シェイク発火（振幅 0.045m, 継続1.8秒, 22Hz）
     if (auto camObj = cameraObj_.lock()) {
-        auto shake = camObj->GetComponent<CameraShakeComponent>();
-        if (!shake) {
-            auto newShake = camObj->AddComponent<CameraShakeComponent>();
-            shake = newShake.get();
-        }
-        if (shake) {
+        if (auto shake = camObj->GetComponent<CameraShakeComponent>()) {
             shake->PlayShakeSeconds(0.045f, kDurationAccelerate_, 22.0f);
         }
     }

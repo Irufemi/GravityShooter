@@ -30,12 +30,7 @@ void TitleLaunchStateAccelerate::Enter(TitleSceneDirectorComponent* director) {
 
     // 予兆としての単発衝撃インパルス（振幅 0.02m の瞬間シェイク）
     if (auto camObj = director->GetCameraObject().lock()) {
-        auto shake = camObj->GetComponent<CameraShakeComponent>();
-        if (!shake) {
-            auto newShake = camObj->AddComponent<CameraShakeComponent>();
-            shake = newShake.get();
-        }
-        if (shake) {
+        if (auto shake = camObj->GetComponent<CameraShakeComponent>()) {
             shake->PlayShakeSeconds(0.02f, TitleSceneDirectorComponent::kDurationFreeze_, 30.0f);
         }
     }

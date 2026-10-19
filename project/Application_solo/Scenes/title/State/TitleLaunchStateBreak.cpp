@@ -22,12 +22,7 @@ void TitleLaunchStateBreak::Enter(TitleSceneDirectorComponent* director) {
 
     // 2. 激突瞬間の空間インパルス（振幅 0.035m の正面衝撃波シェイク）
     if (auto camObj = director->GetCameraObject().lock()) {
-        auto shake = camObj->GetComponent<CameraShakeComponent>();
-        if (!shake) {
-            auto newShake = camObj->AddComponent<CameraShakeComponent>();
-            shake = newShake.get();
-        }
-        if (shake) {
+        if (auto shake = camObj->GetComponent<CameraShakeComponent>()) {
             shake->PlayShakeSeconds(0.035f, 0.45f, 24.0f);
         }
     }

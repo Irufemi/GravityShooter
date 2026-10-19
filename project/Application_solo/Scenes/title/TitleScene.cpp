@@ -22,6 +22,13 @@ void TitleScene::Initialize(IrufemiEngine* engine) {
             fm->PrecacheText("toro_glitch",
                              L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/-%:.,_ ()[]<>+!?");
         }
+        // 出撃演出で使用するSEの事前ウォームアップ（起動時キャッシュからのエイリアス解決を初回確定）
+        if (auto am = engine->GetAudioManager()) {
+            am->GetOrLoadSoundByFile("resources/audio/SE/se_launch_charge.mp3");
+            am->GetOrLoadSoundByFile("resources/audio/SE/se_debris_shatter.mp3");
+            am->GetOrLoadSoundByFile("resources/audio/SE/se_player_boost.mp3");
+            am->GetOrLoadSoundByFile("resources/audio/SE/se_gravity_warp.mp3");
+        }
     }
 
     // JSONからのロードは SceneManager が自動で行うため、ここでは手動で呼ばない
