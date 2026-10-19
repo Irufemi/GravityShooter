@@ -147,7 +147,13 @@ graph LR
 <p align="center">
   <img src="docs/images/benchmark_10k_debris.png" alt="10,000 Debris Stress Test Benchmark" width="850px" />
   <br>
-  <em>▲ 負荷検証実行画面：外部ツール TelemetryMonitor（左）と Release版ゲーム本体（右）。10,000オブジェクト展開時でも 60FPS / CPU 0.066ms を維持</em>
+  <em>▲ 外部ツール連携：TelemetryMonitor（左）からのTCPリモート操作と、Release版ゲーム（右）による10,000オブジェクト 60FPS負荷検証</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/debug_console_f1.png" alt="In-Game Developer Console (F1)" width="850px" />
+  <br>
+  <em>▲ インゲーム開発者コンソール（F1キー）：ゲーム画面内で直接コマンド入力・デバッグ操作が可能なImGuiオーバーレイUI</em>
 </p>
 
 **【図解: Sparse SetとInstance Promotionによるキャッシュ最適化】**
