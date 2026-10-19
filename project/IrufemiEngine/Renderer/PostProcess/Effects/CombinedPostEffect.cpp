@@ -145,13 +145,17 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
         return;
     }
 
+    // --- 一線級エンジンの設計: 出力先端末の決定ロジックを一元化 (Single Source of Truth) ---
+    // バックバッファへの直接出力は、「画面書き出し要求」かつ「エディタ外」、かつ「PostUIレイヤー(!useMask)」のときのみ
+    const bool isBackBufferTarget = writeToScreen && !useMask;
+
     renderGraph->AddPass(
         "PostProcess_Combined",
-        [inputHandle, outputHandle, writeToScreen](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
+        [inputHandle, outputHandle, isBackBufferTarget](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
             builder.RequireTransientState(inputHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             if (outputHandle != kInvalidHandle) {
                 builder.RequireTransientState(outputHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
-            } else if (!rc.isEditorMode && writeToScreen) {
+            } else if (isBackBufferTarget && !rc.isEditorMode) {
                 if (rc.outputResource) {
                     builder.RequireState(rc.outputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
                 }
@@ -178,7 +182,7 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             }
         },
-        [this, manager, inputHandle, outputHandle, writeToScreen, batch, useMask](const Irufemi::RenderContext& rc) {
+        [this, manager, inputHandle, outputHandle, isBackBufferTarget, batch, useMask, writeToScreen](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
 
@@ -187,10 +191,8 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
                     Irufemi::Math::Inverse(rc.drawManager->GetPerFrameData()->camera.projection);
             }
 
-            // バックバッファへの直接転送は、PostUIレイヤー（!useMask）かつ画面出力時のみ許可する。
-            // PreUIレイヤー（useMask == true）は中間処理であるため、スタンドアロンであっても常に MainRenderTexture
-            // へ書き戻す。
-            bool isBackBuffer = writeToScreen && !rc.isEditorMode && !useMask;
+            // 出力先RTVハンドルの取得 (Setup と 100% 同一の判定ロジック)
+            bool isBackBuffer = isBackBufferTarget && !rc.isEditorMode;
             D3D12_CPU_DESCRIPTOR_HANDLE targetRtv{};
             if (outputHandle != kInvalidHandle) {
                 auto* outTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(outputHandle);
