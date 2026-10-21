@@ -34,7 +34,12 @@ public:
         Draw(engine);
     }
 
+    void SetFadeAlpha(float alpha) override {
+        masterAlpha_ = alpha;
+    }
+
 private:
+    float masterAlpha_ = 1.0f; ///< フェードイン/アウトの全体不透明度
     std::shared_ptr<Camera> camera_;
     std::unique_ptr<Sprite> bgSprite_;
     std::unique_ptr<Text> nowLoadingText_;

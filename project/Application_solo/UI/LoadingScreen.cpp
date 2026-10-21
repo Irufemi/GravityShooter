@@ -133,14 +133,14 @@ void LoadingScreen::Update(float deltaTime) {
 
     if (nowLoadingText_) {
         float pulse = std::sin(animationTimer_ * 3.0f) * 0.12f + 0.88f;
-        nowLoadingText_->SetColor({0.30f * pulse, 0.92f * pulse, 1.0f, 0.92f});
+        nowLoadingText_->SetColor({0.30f * pulse, 0.92f * pulse, 1.0f, 0.92f * masterAlpha_});
         nowLoadingText_->Update();
     }
 
     // ドットの波打つアルファウェーブ
     for (int i = 0; i < dots_.size(); ++i) {
         float wave = std::sin(animationTimer_ * 4.2f - static_cast<float>(i) * 0.85f) * 0.5f + 0.5f;
-        float dAlpha = 0.20f + wave * 0.80f;
+        float dAlpha = (0.20f + wave * 0.80f) * masterAlpha_;
         dots_[i]->SetColor({0.30f, 0.92f, 1.0f, dAlpha});
         dots_[i]->Update();
     }
@@ -149,7 +149,7 @@ void LoadingScreen::Update(float deltaTime) {
     if (AttractDemoManager::IsAttractModeActive() && demoText_) {
         demoBlinkTimer_ += deltaTime * 2.8f;
         float pulse = std::sin(demoBlinkTimer_) * 0.5f + 0.5f;
-        float blinkAlpha = 0.30f + pulse * 0.55f;
+        float blinkAlpha = (0.30f + pulse * 0.55f) * masterAlpha_;
 
         if (AttractDemoManager::IsKioskModeActive()) {
             if (demoText_->GetText() != L"DEMO LOOP   |   PRESS F8 TO EXIT") {
@@ -186,12 +186,11 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
     // 1. 深遠な宇宙空間背景（漆黒ダークスペース）
     engine->SetBlend(Irufemi::BlendMode::kBlendModeNormal);
     if (bgSprite_) {
-        bgSprite_->SetColor({0.002f, 0.005f, 0.012f, 1.0f});
+        bgSprite_->SetColor({0.002f, 0.005f, 0.012f, 1.0f * masterAlpha_});
         bgSprite_->SetSize(screenW, screenH);
         bgSprite_->Draw();
     }
 
-    // 2. 重力水面膜（Gravitational Veil Surface）の波打ち更新と直接描画
     // 2. 重力水面膜（Gravitational Veil Surface）プロシージャル描画
     // GPUピクセルシェーダー（customEffectType = 10）により全画面1080p/4Kで滑らかに流動
     if (veilResource_) {
@@ -199,6 +198,7 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
         if (mat) {
             mat->customEffectType = 10;
             mat->customEffectParam = animationTimer_;
+            mat->color = {1.0f, 1.0f, 1.0f, masterAlpha_};
         }
 
         // 画面解像度追従

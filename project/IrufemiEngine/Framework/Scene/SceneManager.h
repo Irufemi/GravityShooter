@@ -156,6 +156,21 @@ public:
 
     /** @brief チラつき防止（アンチフリッカー）機能付きで、ローディング画面を描画すべきかを取得 */
     bool ShouldDrawLoadingScreen() const;
+
+    /** @brief ローディング画面のフェードアルファ（0.0f〜1.0f）を取得 */
+    float GetLoadingFadeAlpha() const {
+        return loadingFadeAlpha_;
+    }
+
+    /** @brief ローディング画面の最低表示保証時間（秒）を設定 */
+    void SetMinLoadingDuration(float duration) {
+        minLoadingDuration_ = (std::max)(0.0f, duration);
+    }
+
+    /** @brief ローディング画面の最低表示保証時間（秒）を取得 */
+    float GetMinLoadingDuration() const {
+        return minLoadingDuration_;
+    }
     ///@}
 
 private:
@@ -184,6 +199,13 @@ private:
 
     bool wasLoading_ = false;   ///< 前フレームがロード中だったか
     float loadingTimer_ = 0.0f; ///< ロード状態の継続時間を計測するタイマー
+
+    // --- ローディング画面の最低表示保証と優美なフェード演出 ---
+    float minLoadingDuration_ = 1.5f;     ///< 最低表示保証時間（秒、業界標準の1.5秒）
+    float loadingFadeInDuration_ = 0.3f;  ///< フェードイン時間（秒）
+    float loadingFadeDuration_ = 0.5f;    ///< 終了時のフェードアウト時間（秒）
+    float loadingFadeAlpha_ = 0.0f;       ///< 現在のローディング画面アルファ値（0.0f〜1.0f）
+    float loadingDismissTimer_ = 0.0f;    ///< フェードアウト経過タイマー
 
     // --- 非同期読み込み用 ---
     std::future<void> initFuture_;

@@ -242,8 +242,16 @@ bool SceneManager::UpdateLoadStatus() {
     if (isLoading) {
         // ロード画面のアニメーションなどのための時間加算は実時間で行う
         loadingTimer_ += engine_->GetRealDeltaTime();
-    } else {
+
+        // 0.3秒かけてふわっとフェードイン
+        if (loadingFadeInDuration_ > 0.001f) {
+            loadingFadeAlpha_ = (std::min)(1.0f, loadingTimer_ / loadingFadeInDuration_);
+        } else {
+            loadingFadeAlpha_ = 1.0f;
+        }
+    } else if (transitionPhase_ != TransitionPhase::Opening) {
         loadingTimer_ = 0.0f;
+        loadingFadeAlpha_ = 0.0f;
     }
 
     if (isLoading != wasLoading_) {
@@ -313,9 +321,10 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             transitionPhase_ = TransitionPhase::LoadingWait; // ロード待機フェーズへ
         }
     } else if (transitionPhase_ == TransitionPhase::LoadingWait) {
-        // 全てのアセットのロード完了を待つ (画面は真っ暗なまま、上にLoadingScreenが描画される)
-        if (!engine_->IsAssetLoading()) {
+        // 全てのアセットのロード完了 かつ 最低表示保証時間（1.5秒）を満たすのを待つ
+        if (!engine_->IsAssetLoading() && (loadingTimer_ >= minLoadingDuration_)) {
             transitionPhase_ = TransitionPhase::Opening;
+            loadingDismissTimer_ = 0.0f;
 
             // ---------------------------------------------------------
             // 【重要】フェードイン中 (Opening) は Update() がスキップされるため、
@@ -334,9 +343,18 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
                                                  pendingColor_);
         }
     } else if (transitionPhase_ == TransitionPhase::Opening) {
-        // フェードイン完了待ち
-        if (engine_->GetSceneTransition()->IsFinished()) {
+        // Openingフェーズ：新シーンの描画が裏で開始され、ローディング画面が0.5秒かけて優美にフェードアウト
+        loadingDismissTimer_ += engine_->GetRealDeltaTime();
+        float fadeProgress = (loadingFadeDuration_ > 0.001f)
+                                 ? (std::min)(1.0f, loadingDismissTimer_ / loadingFadeDuration_)
+                                 : 1.0f;
+        loadingFadeAlpha_ = 1.0f - fadeProgress;
+
+        // ポストプロセス演出完了 かつ ローディング画面フェードアウト完了で遷移終了
+        if (engine_->GetSceneTransition()->IsFinished() && fadeProgress >= 1.0f) {
             transitionPhase_ = TransitionPhase::None;
+            loadingFadeAlpha_ = 0.0f;
+            loadingTimer_ = 0.0f;
         }
     }
 
@@ -438,20 +456,27 @@ std::vector<SceneManager::Key> SceneManager::GetRegisteredKeys() const {
 }
 
 bool SceneManager::IsLoading() const {
-    // シーン遷移フェーズ中（非同期初期化中またはアセット完了待機中）のみロード状態とみなす
-    // ゲームプレイ進行中（Opening / None）にバックグラウンドタスク等で誤ってロード画面が割り込むのを防止
+    // シーン遷移フェーズ中（非同期初期化中またはアセット完了・最低保証待機中）をロード状態とみなす
+    // ゲームプレイ進行中（None）にバックグラウンドタスク等で誤ってロード画面が割り込むのを防止
     if (transitionPhase_ == TransitionPhase::Initializing) {
         return true;
     }
     if (transitionPhase_ == TransitionPhase::LoadingWait) {
-        return engine_->IsAssetLoading();
+        return true;
     }
     return false;
 }
 
 bool SceneManager::ShouldDrawLoadingScreen() const {
-    // チラつき防止：ロード状態になってから0.1秒以上経過した場合のみ描画する
-    return IsLoading() && (loadingTimer_ >= 0.1f);
+    // 初期化中およびロード待機中は描画
+    if (transitionPhase_ == TransitionPhase::Initializing || transitionPhase_ == TransitionPhase::LoadingWait) {
+        return true;
+    }
+    // Opening中（新シーン突入時）は、フェードアウトが完全に完了するまで描画を継続
+    if (transitionPhase_ == TransitionPhase::Opening && loadingFadeAlpha_ > 0.001f) {
+        return true;
+    }
+    return false;
 }
 
 void SceneManager::StartAsyncInitialize(const Key& next) {

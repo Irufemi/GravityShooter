@@ -105,7 +105,7 @@ PixelShaderOutput main(VertexShaderOutput input)
     // customEffectType == 10: 重力水面膜（Gravitational Veil Surface）プロシージャル描画
     if (gMaterial.customEffectType == 10)
     {
-        output.color = RenderGravitationalVeil(uv, gMaterial.customEffectParam);
+        output.color = RenderGravitationalVeil(uv, gMaterial.customEffectParam) * gMaterial.color * input.color;
         return output;
     }
 

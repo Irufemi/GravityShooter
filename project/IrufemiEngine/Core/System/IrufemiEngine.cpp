@@ -1027,6 +1027,7 @@ void IrufemiEngine::EndFrame() {
     // 影響を受けない最前面UIとしてロード画面を描画する
     if (sceneManager_ && sceneManager_->ShouldDrawLoadingScreen()) {
         if (loadingScreen_) {
+            loadingScreen_->SetFadeAlpha(sceneManager_->GetLoadingFadeAlpha());
             loadingScreen_->OnDrawLoadingScreen(this, deltaTime_);
         }
     }
