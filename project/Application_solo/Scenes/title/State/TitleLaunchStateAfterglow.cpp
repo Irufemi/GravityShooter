@@ -22,7 +22,7 @@ void TitleLaunchStateAfterglow::Enter(TitleSceneDirectorComponent* director) {
 
     // 安全弁: Break側で未発火だった場合は即座に重力特異点跳躍（暗転）を発火
     if (!director->HasTriggeredSceneTransition()) {
-        director->TriggerSceneTransition(0.45f);
+        director->TriggerSceneTransition();
     }
 }
 

@@ -38,6 +38,22 @@ public:
     }
 
     /**
+     * @brief 一時的な進行速度の倍率を取得します。
+     * @return float 速度倍率（標準: 1.0）
+     */
+    float GetSpeedMultiplier() const {
+        return speedMultiplier_;
+    }
+
+    /**
+     * @brief 一時的な進行速度の倍率を設定します（演出用ブースト・スロー用）。
+     * @param[in] mult 速度倍率
+     */
+    void SetSpeedMultiplier(float mult) {
+        speedMultiplier_ = (std::max)(0.0f, mult);
+    }
+
+    /**
      * @brief 指定した進行距離に即時スナップし、Transformの座標と回転を更新します。
      * @param dist スプライン上の距離 (m)
      */
@@ -48,6 +64,7 @@ public:
 private:
     float currentDistance_ = 0.0f;          ///< ルート（軌道）上の進み具合 (m)
     float speed_ = 10.0f;                   ///< 自動前進するスピード (m/s)
+    float speedMultiplier_ = 1.0f;          ///< 演出用の一時的スピード倍率（標準: 1.0）
     uint64_t targetPathID_ = 0;             ///< 追従対象のオブジェクトID
     SplineComponent* cachedPath_ = nullptr; ///< キャッシュされた対象のパス
 };

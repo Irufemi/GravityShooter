@@ -9,6 +9,7 @@
 
 class TransformComponent;
 class TitleCosmicNebulaComponent;
+class VoiceInstance;
 
 /**
  * @class TitleSceneDirectorComponent
@@ -68,7 +69,7 @@ public:
     static constexpr float kDurationAccelerate_ = 1.80f; ///< [Phase 2: 咆哮] アフターバーナー急加速
     static constexpr float kDurationBreak_ = 1.30f; ///< [Phase 3: 重力の壁突入] 正面壁激突・深層潜行
     static constexpr float kDurationAfterglow_ = 0.45f; ///< [Phase 4: 余韻] 事象の地平線突破・暗転完了
-    static constexpr float kDurationFreeze_ = 0.045f; ///< 臨界蓄圧（マイクロフリーズ）時間 (約3フレーム)
+    static constexpr float kDurationFreeze_ = 0.15f; ///< 臨界蓄圧（マイクロフリーズ・真空の静寂）時間 (約9フレーム)
     static constexpr float kTotalLaunchDuration_ = 4.05f; ///< 全体演出長 (秒: ドップラー音響と完全同期)
 
     /**
@@ -245,7 +246,40 @@ public:
     void SetTriggeredSceneTransition(bool triggered) {
         hasTriggeredSceneTransition_ = triggered;
     }
-    void TriggerSceneTransition(float fadeDuration = 0.6f);
+    void TriggerSceneTransition(float fadeDuration = -1.0f);
+
+    float GetTransitionDuration() const {
+        return transitionDuration_;
+    }
+    void SetTransitionDuration(float duration) {
+        transitionDuration_ = (std::max)(0.05f, duration);
+    }
+
+    // --- データ駆動 SE パスアクセサ ---
+    const std::string& GetChargeSePath() const {
+        return chargeSePath_;
+    }
+    const std::string& GetDebrisShatterSePath() const {
+        return debrisShatterSePath_;
+    }
+    const std::string& GetPlayerBoostSePath() const {
+        return playerBoostSePath_;
+    }
+    const std::string& GetGravityWarpSePath() const {
+        return gravityWarpSePath_;
+    }
+
+    /**
+     * @brief チャージ音のボイスインスタンスを設定します
+     */
+    void SetChargeVoiceInstance(std::weak_ptr<VoiceInstance> voice) {
+        chargeVoiceInstance_ = voice;
+    }
+
+    /**
+     * @brief 再生中のチャージ音を強制停止し、真空の静寂を作り出します
+     */
+    void StopChargeVoice();
 
 private:
     void CacheEntities();
@@ -294,6 +328,14 @@ private: // メンバ変数
     std::string thrusterEffectPrefabPath_ = "resources/prefabs/player_thruster_effect.json";
     float currentThrusterScaleZ_ = 0.85f;
     float targetThrusterScaleZ_ = 0.85f;
+
+    // 出撃シークエンス演出用SEプロパティ（完全データ駆動化・ハードコード排除）
+    std::string chargeSePath_ = "resources/audio/SE/se_launch_charge.mp3";
+    std::string debrisShatterSePath_ = "resources/audio/SE/se_debris_shatter.mp3";
+    std::string playerBoostSePath_ = "resources/audio/SE/se_player_boost.mp3";
+    std::string gravityWarpSePath_ = "resources/audio/SE/se_gravity_warp.mp3";
+    std::weak_ptr<VoiceInstance> chargeVoiceInstance_; ///< チャージ音のボイス弱参照（真空の静寂制御用）
+    float transitionDuration_ = 0.22f; ///< シーン遷移（暗転・明転）にかける時間（秒: 0.22sの鋭い暗転・明転でインゲーム演出との重複を排除）
 
     // 初期トランスフォームとカメラパラメータのキャッシュ
     Irufemi::Vector3 initialShipPos_{0.0f, 0.0f, 0.0f};

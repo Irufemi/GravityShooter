@@ -59,12 +59,35 @@ void TitleSceneDirectorComponent::Initialize() {
     asteroidInstances_.clear();
     asteroidBatchRenderer_ = nullptr;
     initialBgmVolume_ = 0.70f;
+
+    // シーン初期化時点で出撃シークエンスSEを完全先行プリロード（ディスクI/O根絶）
+    if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            if (!chargeSePath_.empty()) {
+                am->GetOrLoadSoundByFile(chargeSePath_);
+            }
+            if (!debrisShatterSePath_.empty()) {
+                am->GetOrLoadSoundByFile(debrisShatterSePath_);
+            }
+            if (!playerBoostSePath_.empty()) {
+                am->GetOrLoadSoundByFile(playerBoostSePath_);
+            }
+            if (!gravityWarpSePath_.empty()) {
+                am->GetOrLoadSoundByFile(gravityWarpSePath_);
+            }
+        }
+    }
 }
 
 void TitleSceneDirectorComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     RegisterProperty("Thruster Prefab Path", &thrusterEffectPrefabPath_);
     RegisterProperty("Nozzle Offset", &nozzleOffset_);
+    RegisterProperty("Charge SE Path", &chargeSePath_);
+    RegisterProperty("Debris Shatter SE Path", &debrisShatterSePath_);
+    RegisterProperty("Player Boost SE Path", &playerBoostSePath_);
+    RegisterProperty("Gravity Warp SE Path", &gravityWarpSePath_);
+    RegisterProperty("Transition Duration", &transitionDuration_);
 }
 
 TransformComponent* TitleSceneDirectorComponent::GetShipTransform() const {
@@ -328,14 +351,18 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
     // 1. ガレキのVoxel粉砕飛散を一斉発火！
     TriggerDebrisExplosion();
 
-    // 2. 音響の多重レイヤー同時炸裂！（エンジンのPlayByFileを活用した極めてクリーンな呼び出し）
+    // 2. 音響の多重レイヤー同時炸裂！（登録プロパティ変数を参照）
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            // A: 爆砕重低音（se_debris_shatter）
-            am->PlayByFile("resources/audio/SE/se_debris_shatter.mp3", 0.95f, 1.0f, AudioCategory::SE,
-                           "resources/audio/SE/se_menu_decide.mp3");
-            // B: 推進点火・ドップラー遠ざかり音（se_player_boost）
-            am->PlayByFile("resources/audio/SE/se_player_boost.mp3", 1.0f, 1.0f, AudioCategory::SE);
+            // A: 爆砕重低音
+            if (!debrisShatterSePath_.empty()) {
+                am->PlayByFile(debrisShatterSePath_, 0.95f, 1.0f, AudioCategory::SE,
+                               "resources/audio/SE/se_menu_decide.mp3");
+            }
+            // B: 推進点火・ドップラー遠ざかり音
+            if (!playerBoostSePath_.empty()) {
+                am->PlayByFile(playerBoostSePath_, 1.0f, 1.0f, AudioCategory::SE);
+            }
         }
     }
 
@@ -511,11 +538,12 @@ void TitleSceneDirectorComponent::TriggerSceneTransition(float fadeDuration) {
         return;
     }
     hasTriggeredSceneTransition_ = true;
+    float duration = (fadeDuration > 0.0f) ? fadeDuration : transitionDuration_;
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            // 重力特異点跳躍（事象の地平線への空間吸い込み・重力色収差・流体渦巻き連動）
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::GravitySingularity, fadeDuration,
-                             EaseType::EaseInCubic, Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
+            // 深遠な特異点ブラック（Fade）でスッと暗転・明転させ、インゲーム側の突入演出とのエフェクト二重重複を完全排除
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, duration,
+                             EaseType::EaseInOutQuad, Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
         }
     }
 }
@@ -712,4 +740,12 @@ bool TitleSceneDirectorComponent::GetClosestFrontDebrisScreenPos(Irufemi::Vector
 
 void TitleSceneDirectorComponent::TriggerGravitationalShockwave(float power) {
     shockwaveIntensity_ = (std::max)(shockwaveIntensity_, power);
+}
+
+void TitleSceneDirectorComponent::StopChargeVoice() {
+    if (auto engine = GetEngine()) {
+        if (auto am = engine->GetAudioManager()) {
+            am->Stop(chargeVoiceInstance_);
+        }
+    }
 }

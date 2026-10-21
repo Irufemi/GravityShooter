@@ -28,6 +28,12 @@ void PrimitiveRendererComponent::OnAwake() {
         }
         // 設定された形状（デフォルトはCube）で初期化
         primitive_->Initialize(static_cast<Irufemi::PrimitiveType>(currentTypeIndex_));
+        primitive_->SetIsTransparent(isTransparent_);
+        if (enableEffectMask_) {
+            primitive_->SetEnableEffectMask(enableEffectMask_);
+            primitive_->SetCustomEffectType(customEffectType_);
+            primitive_->SetCustomEffectParam(customEffectParam_);
+        }
     }
 }
 
@@ -116,6 +122,34 @@ void PrimitiveRendererComponent::SetUseClampSampler(int32_t useClamp) {
     }
 }
 
+void PrimitiveRendererComponent::SetIsTransparent(bool isTransparent) {
+    isTransparent_ = isTransparent;
+    if (primitive_) {
+        primitive_->SetIsTransparent(isTransparent);
+    }
+}
+
+void PrimitiveRendererComponent::SetEnableEffectMask(bool enable) {
+    enableEffectMask_ = enable;
+    if (primitive_) {
+        primitive_->SetEnableEffectMask(enable);
+    }
+}
+
+void PrimitiveRendererComponent::SetCustomEffectType(int32_t type) {
+    customEffectType_ = type;
+    if (primitive_) {
+        primitive_->SetCustomEffectType(type);
+    }
+}
+
+void PrimitiveRendererComponent::SetCustomEffectParam(float param) {
+    customEffectParam_ = param;
+    if (primitive_) {
+        primitive_->SetCustomEffectParam(param);
+    }
+}
+
 void PrimitiveRendererComponent::RebuildMesh() {
     if (!primitive_) {
         return;
@@ -158,6 +192,9 @@ void PrimitiveRendererComponent::RebuildMesh() {
 nlohmann::json PrimitiveRendererComponent::Serialize() {
     nlohmann::json j;
     j["currentTypeIndex"] = currentTypeIndex_;
+    if (isTransparent_) {
+        j["isTransparent"] = true;
+    }
 
     // それぞれのデフォルト値と異なる場合のみ出力
     if (radius_ != 1.0f) {
@@ -237,6 +274,9 @@ void PrimitiveRendererComponent::Deserialize(const nlohmann::json& j) {
     if (j.contains("currentTypeIndex")) {
         currentTypeIndex_ = j["currentTypeIndex"];
     }
+    if (j.contains("isTransparent")) {
+        isTransparent_ = j["isTransparent"];
+    }
     if (j.contains("radius")) {
         radius_ = j["radius"];
     }
@@ -275,6 +315,7 @@ void PrimitiveRendererComponent::Deserialize(const nlohmann::json& j) {
         primitive_ = std::make_unique<Primitive3DObject>();
         primitive_->Initialize(static_cast<Irufemi::PrimitiveType>(currentTypeIndex_));
     }
+    primitive_->SetIsTransparent(isTransparent_);
 
     // 形状を再構築
     Irufemi::PrimitiveType types[] = {Irufemi::PrimitiveType::Sphere, Irufemi::PrimitiveType::Plane,

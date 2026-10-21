@@ -7,6 +7,8 @@
 #include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
+#include "Core/System/IrufemiEngine.h"
+#include "Audio/AudioManager.h"
 #include <algorithm>
 #include <cmath>
 
@@ -15,7 +17,10 @@ void TitleLaunchStateAccelerate::Enter(TitleSceneDirectorComponent* director) {
         return;
     }
 
-    // 臨界蓄圧（マイクロフリーズ）開始：直ちにガレキ破砕せず、0.045秒のタメを作る
+    // 1. チャージSEの強制停止（真空の静寂を作り出す）
+    director->StopChargeVoice();
+
+    // 2. 臨界蓄圧（マイクロフリーズ）開始：直ちにガレキ破砕せず、0.045秒のタメを作る
     director->SetMicroFreezing(true);
     director->SetFreezeTimer(0.0f);
     director->SetTriggeredRelease(false);
@@ -28,10 +33,10 @@ void TitleLaunchStateAccelerate::Enter(TitleSceneDirectorComponent* director) {
         }
     }
 
-    // 予兆としての単発衝撃インパルス（振幅 0.02m の瞬間シェイク）
+    // 予兆としての単発衝撃インパルス（振幅 0.035m の瞬間シェイク）
     if (auto camObj = director->GetCameraObject().lock()) {
         if (auto shake = camObj->GetComponent<CameraShakeComponent>()) {
-            shake->PlayShakeSeconds(0.02f, TitleSceneDirectorComponent::kDurationFreeze_, 30.0f);
+            shake->PlayShakeSeconds(0.035f, TitleSceneDirectorComponent::kDurationFreeze_, 28.0f);
         }
     }
 }
@@ -52,12 +57,14 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
     if (director->IsMicroFreezing()) {
         director->AddFreezeTimer(dt);
 
-        // 0.045秒間は前進をロックし、超推力に耐える80Hz高周波ジッター（身震い）を重畳
+        // 0.15秒間は前進をロックし、超推力に耐える強烈な高周波ジッター（軋む身震い）を重畳
         if (director->GetFreezeTimer() < TitleSceneDirectorComponent::kDurationFreeze_) {
             if (shipTransform) {
-                float jitter = std::sin(director->GetFreezeTimer() * 180.0f) * 0.008f;
-                shipTransform->SetPosition({initialShipPos.x + jitter, initialShipPos.y, initialShipPos.z - 0.45f});
-                shipTransform->SetRotation({0.0f, 0.0f, jitter * 1.5f});
+                float timer = director->GetFreezeTimer();
+                float jitterX = std::sin(timer * 160.0f) * 0.015f;
+                float jitterY = std::cos(timer * 130.0f) * 0.008f;
+                shipTransform->SetPosition({initialShipPos.x + jitterX, initialShipPos.y + jitterY, initialShipPos.z - 0.45f});
+                shipTransform->SetRotation({0.0f, 0.0f, jitterX * 2.5f});
             }
             return; // フリーズ待機（前進加速・破砕展開を一時保留）
         }

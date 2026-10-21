@@ -196,6 +196,36 @@ public:
         material_.texturePath = path;
     }
     /**
+     * @brief EffectMask の有効/無効を設定する。
+     * @param[in] enable 有効フラグ
+     */
+    void SetEnableEffectMask(bool enable) {
+        material_.enableEffectMask = enable ? 1 : 0;
+        if (mesh_.resource) {
+            material_.UpdateMaterial(mesh_.resource.get(), GetTextureManagerInstance());
+        }
+    }
+    /**
+     * @brief CustomEffectType を設定する。
+     * @param[in] type エフェクトタイプ
+     */
+    void SetCustomEffectType(int32_t type) {
+        material_.customEffectType = type;
+        if (mesh_.resource) {
+            material_.UpdateMaterial(mesh_.resource.get(), GetTextureManagerInstance());
+        }
+    }
+    /**
+     * @brief CustomEffectParam を設定する。
+     * @param[in] param エフェクトパラメータ
+     */
+    void SetCustomEffectParam(float param) {
+        material_.customEffectParam = param;
+        if (mesh_.resource) {
+            material_.UpdateMaterial(mesh_.resource.get(), GetTextureManagerInstance());
+        }
+    }
+    /**
      * @brief Shape を設定する。
      * @param[in] type 設定する Shape の値
      */

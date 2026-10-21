@@ -2761,13 +2761,24 @@
         },
         {
           "data": {
-            "Arrival Duration": 0.3499999940395355,
-            "Bootup Duration": 0.6499999761581421,
-            "Start Offset Z": -35.0,
+            "Arrival Duration": 0.35,
+            "Bootup Duration": 0.65,
+            "Breach Progress Threshold": 0.32,
+            "Breach SE Path": "resources/audio/SE/se_water_breach.mp3",
+            "Breach Shake Amplitude": 0.09000000357627869,
+            "FCS Boot SE Path": "resources/audio/SE/se_fcs_online.mp3",
+            "Membrane Displacement": 0.038,
+            "Membrane Offset Z": -1.8,
+            "Membrane RGB Shift": 0.04,
+            "Membrane Scale X": 48.0,
+            "Membrane Scale Y": 36.0,
+            "Rail Speed Boost": 2.2,
+            "Start Offset Z": -4.800000190734863,
             "Target Ship Name": "Player",
-            "WarpIn Blur Width": 0.08500000089406967,
-            "WarpIn Duration": 0.699999988079071,
-            "WarpIn FOV Boost": 14.0
+            "Warp SE Path": "resources/audio/SE/se_gravity_warp.mp3",
+            "WarpIn Blur Width": 0.14000000059604645,
+            "WarpIn Duration": 1.8,
+            "WarpIn FOV Boost": 24.0
           },
           "type": "StageIntroDirectorComponent"
         }

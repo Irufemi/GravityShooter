@@ -483,9 +483,12 @@ float32_t3 ApplyKaleidoscope(float32_t2 uv, float32_t segments, Texture2D<float3
 
 // 汎用サンプリング: RGBズレ（色収差）
 float32_t3 SampleWithRGBShift(Texture2D<float32_t4> tex, SamplerState smp, float32_t2 uv, float32_t2 offset) {
-    float32_t r = tex.Sample(smp, uv + offset).r;
-    float32_t g = tex.Sample(smp, uv).g;
-    float32_t b = tex.Sample(smp, uv - offset).b;
+    float32_t2 uvR = clamp(uv + offset, 0.0005f, 0.9995f);
+    float32_t2 uvG = clamp(uv, 0.0005f, 0.9995f);
+    float32_t2 uvB = clamp(uv - offset, 0.0005f, 0.9995f);
+    float32_t r = tex.Sample(smp, uvR).r;
+    float32_t g = tex.Sample(smp, uvG).g;
+    float32_t b = tex.Sample(smp, uvB).b;
     return float32_t3(r, g, b);
 }
 
@@ -508,10 +511,10 @@ float32_t3 ApplyChromaticAberration(float32_t2 uv, float32_t intensity, Texture2
 }
 
 // 24. Displacement Map (歪み・陽炎)
-float32_t3 ApplyDisplacementMap(float32_t2 uv, float32_t time, float32_t intensity, Texture2D<float32_t4> tex, SamplerState smp) {
+float32_t3 ApplyDisplacementMap(float32_t2 uv, float32_t time, float32_t intensity, float32_t rgbShiftRatio, Texture2D<float32_t4> tex, SamplerState smp) {
     float32_t2 offset = GetNoiseOffsetUV(uv, time) * intensity;
-    // 歪ませつつ、少し色収差も混ぜる
-    return SampleWithRGBShift(tex, smp, uv + offset, offset * 0.5f);
+    // 歪ませつつ、指定された比率で色収差（RGBズレ）をブレンド
+    return SampleWithRGBShift(tex, smp, uv + offset, offset * rgbShiftRatio);
 }
 
 // 25. Directional Blur (方向ブラー)

@@ -155,6 +155,62 @@ public:
     void SetUseClampSampler(int32_t useClamp);
 
     /**
+     * @brief 半透明・エフェクト（遅延・Zソート描画、深度書き込み無効）かどうかを設定します
+     * @param[in] isTransparent 半透明描画を行う場合は true
+     */
+    void SetIsTransparent(bool isTransparent);
+
+    /**
+     * @brief 半透明・エフェクトかどうかを取得します
+     * @return 半透明描画が有効な場合は true
+     */
+    bool GetIsTransparent() const {
+        return isTransparent_;
+    }
+
+    /**
+     * @brief エフェクトマスクの有効/無効を設定します
+     * @param[in] enable 有効フラグ
+     */
+    void SetEnableEffectMask(bool enable);
+
+    /**
+     * @brief カスタムエフェクトのタイプを設定します
+     * @param[in] type エフェクトタイプ
+     */
+    void SetCustomEffectType(int32_t type);
+
+    /**
+     * @brief カスタムエフェクトのパラメータを設定します
+     * @param[in] param エフェクトパラメータ
+     */
+    void SetCustomEffectParam(float param);
+
+    /**
+     * @brief エフェクトマスクが有効かどうかを取得します
+     * @return 有効な場合は true
+     */
+    bool GetEnableEffectMask() const {
+        return enableEffectMask_;
+    }
+
+    /**
+     * @brief カスタムエフェクトのタイプを取得します
+     * @return エフェクトタイプ
+     */
+    int32_t GetCustomEffectType() const {
+        return customEffectType_;
+    }
+
+    /**
+     * @brief カスタムエフェクトのパラメータを取得します
+     * @return エフェクトパラメータ
+     */
+    float GetCustomEffectParam() const {
+        return customEffectParam_;
+    }
+
+    /**
      * @brief 現在の形状設定・分割数パラメータに基づいて 3D メッシュを再生成します
      */
     void RebuildMesh();
@@ -235,6 +291,10 @@ public:
 private:
     std::unique_ptr<Primitive3DObject> primitive_;
     int currentTypeIndex_ = 2; // デフォルトは Cube (2)
+    bool isTransparent_ = false;
+    bool enableEffectMask_ = false;
+    int32_t customEffectType_ = 0;
+    float customEffectParam_ = 0.0f;
 
     // --- メッシュ生成用パラメータ ---
     // 汎用

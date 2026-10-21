@@ -16,6 +16,7 @@ void SplineFollowerComponent::OnRegisterProperties() {
 void SplineFollowerComponent::Initialize() {
     cachedPath_ = nullptr;
     currentDistance_ = 0.0f;
+    speedMultiplier_ = 1.0f;
 }
 
 void SplineFollowerComponent::OnIDRemapped(const std::unordered_map<uint64_t, uint64_t>& idMap) {
@@ -84,7 +85,8 @@ void SplineFollowerComponent::Update() {
     }
 
     if (cachedPath_ && !cachedPath_->GetWaypoints().empty()) {
-        // 進行度を前進させる (m/s)
-        SnapToDistance(currentDistance_ + speed_ * deltaTime);
+        // 進行度を前進させる (m/s) : 演出用速度倍率を適用
+        float effectiveSpeed = speed_ * speedMultiplier_;
+        SnapToDistance(currentDistance_ + effectiveSpeed * deltaTime);
     }
 }

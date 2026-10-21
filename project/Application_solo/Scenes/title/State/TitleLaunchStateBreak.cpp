@@ -30,7 +30,9 @@ void TitleLaunchStateBreak::Enter(TitleSceneDirectorComponent* director) {
     // 3. 空間歪曲・重力波突破音 (低音ドローン＋空間スウォッシュ) を発火
     if (auto engine = director->GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            am->PlayByFileWithFade("resources/audio/SE/se_gravity_warp.mp3", 0.9f, 0.5f, 0.95f, AudioCategory::SE);
+            if (!director->GetGravityWarpSePath().empty()) {
+                am->PlayByFileWithFade(director->GetGravityWarpSePath(), 0.9f, 0.5f, 0.95f, AudioCategory::SE);
+            }
         }
     }
 }
@@ -77,7 +79,7 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
     // 4. 重力特異点跳躍（暗転）の発火
     // スラスター遠ざかり音（3.55s）のテールが宇宙の彼方に消え入る瞬間（p3 >= 0.70）に暗転へ移行
     if (p3 >= 0.70f && !director->HasTriggeredSceneTransition()) {
-        director->TriggerSceneTransition(0.45f);
+        director->TriggerSceneTransition();
     }
 
     // 5. 自機突入に呼応する星雲特異点のインプロージョン（事象の地平線爆発的拡大＆渦超加速）

@@ -220,7 +220,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
                 color.rgb = ApplyChromaticAberration(uv, instanceID > 0 ? cParams.param1 : gParams.chromaticAberrationIntensity, gTexture, gSampler);
                 break;
             case kPostProcessMode_DisplacementMap:
-                color.rgb = ApplyDisplacementMap(uv, gParams.displacementMapTime, instanceID > 0 ? cParams.param1 : gParams.displacementMapIntensity, gTexture, gSampler);
+                color.rgb = ApplyDisplacementMap(uv, gParams.displacementMapTime, instanceID > 0 ? cParams.param1 : gParams.displacementMapIntensity, instanceID > 0 ? cParams.param2 : 0.05f, gTexture, gSampler);
                 break;
             case kPostProcessMode_DirectionalBlur:
                 color.rgb = ApplyDirectionalBlur(uv, gParams.directionalBlurDirection, instanceID > 0 ? cParams.param1 : gParams.directionalBlurStrength, gParams.directionalBlurSamples, gTexture, gSampler);
@@ -343,7 +343,7 @@ PixelShaderOutput main(VertexShaderOutput input) {
                 break;
                 
             case kPostProcessMode_DisplacementMap:
-                color.rgb = ApplyDisplacementMap(uv, gParams.displacementMapTime, gParams.displacementMapIntensity, gTexture, gSampler);
+                color.rgb = ApplyDisplacementMap(uv, gParams.displacementMapTime, gParams.displacementMapIntensity, 0.05f, gTexture, gSampler);
                 break;
 
             case kPostProcessMode_DirectionalBlur:

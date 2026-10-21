@@ -27,8 +27,11 @@ void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
     // 出撃SE再生（Springin' Sound Stock 製「気を溜める1」によるエネルギー充填・タメ）
     if (auto engine = director->GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            am->PlayByFile("resources/audio/SE/se_launch_charge.mp3", 0.95f, 1.0f, AudioCategory::SE,
-                           "resources/audio/SE/se_player_boost.mp3");
+            if (!director->GetChargeSePath().empty()) {
+                auto voice = am->PlayByFile(director->GetChargeSePath(), 0.95f, 1.0f, AudioCategory::SE,
+                                            "resources/audio/SE/se_player_boost.mp3");
+                director->SetChargeVoiceInstance(voice);
+            }
         }
     }
 

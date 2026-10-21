@@ -80,6 +80,9 @@ void MaterialDesc::UpdateMaterial(Object3DResource* resource, TextureManager* te
     resource->GetMaterialData()->uvTransform = uvTransform;
     resource->GetMaterialData()->alphaReference = alphaReference;
     resource->GetMaterialData()->useClampSampler = useClampSampler;
+    resource->GetMaterialData()->customEffectType = customEffectType;
+    resource->GetMaterialData()->customEffectParam = customEffectParam;
+    resource->GetMaterialData()->enableEffectMask = enableEffectMask;
 
     // テクスチャハンドルの更新（変更検知）
     if (textureManager && texturePath != loadedTexturePath) {

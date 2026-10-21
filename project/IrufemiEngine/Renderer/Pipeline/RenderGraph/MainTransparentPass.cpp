@@ -115,6 +115,8 @@ void MainTransparentPass::Execute(const Irufemi::RenderContext& rc) {
                     engine->ApplyPSO("DebugPrimitive");
                 } else if (isGPUParticle) {
                     engine->ApplyPSO("GpuParticle");
+                } else {
+                    engine->ApplyPSO("Object3D");
                 }
             }
 

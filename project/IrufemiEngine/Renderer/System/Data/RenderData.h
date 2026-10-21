@@ -86,6 +86,9 @@ struct MaterialDesc {
     // clang-format on
     float alphaReference = 0.0f; //!< ディスカード閾値
     int32_t useClampSampler = 0; //!< サンプラー切替 (0:WRAP, 1:CLAMP)
+    int32_t customEffectType = 0;   //!< カスタムエフェクトのタイプ (0: なし)
+    float customEffectParam = 0.0f; //!< カスタムエフェクトのパラメータ
+    int32_t enableEffectMask = 0;   //!< 1: エフェクト等のマスクバッファにシルエットを出力する
 
     /**
      * @brief マテリアル設定をリソースへ反映する

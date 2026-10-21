@@ -3,6 +3,7 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
 #include "Framework/Component/Renderer/SkinnedMeshRendererComponent.h"
+#include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
 #include "Core/System/IrufemiEngine.h"
 
 EffectMaskComponent::EffectMaskComponent() {}
@@ -87,6 +88,11 @@ void EffectMaskComponent::Update() {
             skinnedRenderer->SetEnableEffectMask(enableEffectMask_);
             skinnedRenderer->SetCustomEffectType(customEffectType_);
             skinnedRenderer->SetCustomEffectParam(cachedEffectParam_);
+        }
+        if (auto primRenderer = gameObject_->GetComponent<PrimitiveRendererComponent>()) {
+            primRenderer->SetEnableEffectMask(enableEffectMask_);
+            primRenderer->SetCustomEffectType(customEffectType_);
+            primRenderer->SetCustomEffectParam(cachedEffectParam_);
         }
         lastEnable_ = enableEffectMask_;
         lastType_ = customEffectType_;
