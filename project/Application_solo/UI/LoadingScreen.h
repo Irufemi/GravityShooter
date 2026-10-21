@@ -3,11 +3,15 @@
 #include <vector>
 
 #include "Core/System/ILoadingScreen.h"
+#include "Core/Math/Vector2.h"
+#include "Core/Math/Vector3.h"
+#include "Core/Math/Vector4.h"
 class IrufemiEngine;
 class Sprite;
 class Primitive2DObject;
 class Camera;
 class Text;
+class Object2DResource;
 
 /**
  * @class LoadingScreen
@@ -31,19 +35,17 @@ public:
     }
 
 private:
-    std::unique_ptr<Camera> camera_;
+    std::shared_ptr<Camera> camera_;
     std::unique_ptr<Sprite> bgSprite_;
-    std::unique_ptr<Sprite> nowLoadingText_;
+    std::unique_ptr<Text> nowLoadingText_;
     std::vector<std::unique_ptr<Primitive2DObject>> dots_;
 
     // アトラクトデモ中のシステムオーバーレイHUD
     std::unique_ptr<Text> demoText_;
     float demoBlinkTimer_ = 0.0f;
 
-    // 重力ワープ空間HUD
-    std::unique_ptr<Text> warpStatusText_;
-    float warpPulseTimer_ = 0.0f;
-
     float animationTimer_ = 0.0f;
-    int dotCount_ = 0;
+
+    // --- 重力水面膜（Gravitational Veil Surface）---
+    std::unique_ptr<Object2DResource> veilResource_; ///< 全画面プロシージャル重力流体膜
 };
