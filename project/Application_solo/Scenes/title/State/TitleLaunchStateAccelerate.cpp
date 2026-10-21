@@ -63,7 +63,8 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
                 float timer = director->GetFreezeTimer();
                 float jitterX = std::sin(timer * 160.0f) * 0.015f;
                 float jitterY = std::cos(timer * 130.0f) * 0.008f;
-                shipTransform->SetPosition({initialShipPos.x + jitterX, initialShipPos.y + jitterY, initialShipPos.z - 0.45f});
+                shipTransform->SetPosition(
+                    {initialShipPos.x + jitterX, initialShipPos.y + jitterY, initialShipPos.z - 0.45f});
                 shipTransform->SetRotation({0.0f, 0.0f, jitterX * 2.5f});
             }
             return; // フリーズ待機（前進加速・破砕展開を一時保留）

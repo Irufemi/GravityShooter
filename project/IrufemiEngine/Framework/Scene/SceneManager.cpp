@@ -345,9 +345,8 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
     } else if (transitionPhase_ == TransitionPhase::Opening) {
         // Openingフェーズ：新シーンの描画が裏で開始され、ローディング画面が0.5秒かけて優美にフェードアウト
         loadingDismissTimer_ += engine_->GetRealDeltaTime();
-        float fadeProgress = (loadingFadeDuration_ > 0.001f)
-                                 ? (std::min)(1.0f, loadingDismissTimer_ / loadingFadeDuration_)
-                                 : 1.0f;
+        float fadeProgress =
+            (loadingFadeDuration_ > 0.001f) ? (std::min)(1.0f, loadingDismissTimer_ / loadingFadeDuration_) : 1.0f;
         loadingFadeAlpha_ = 1.0f - fadeProgress;
 
         // ポストプロセス演出完了 かつ ローディング画面フェードアウト完了で遷移終了
