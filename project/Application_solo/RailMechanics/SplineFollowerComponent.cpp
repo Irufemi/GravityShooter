@@ -49,8 +49,6 @@ void SplineFollowerComponent::SnapToDistance(float dist) {
         float totalLength = cachedPath_->GetTotalLength();
         if (currentDistance_ > totalLength) {
             currentDistance_ = totalLength;
-        } else if (currentDistance_ < 0.0f) {
-            currentDistance_ = 0.0f;
         }
 
         // レール上の座標と接線（進行方向）を距離ベースで取得

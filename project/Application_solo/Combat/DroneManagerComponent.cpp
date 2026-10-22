@@ -73,6 +73,7 @@ void DroneManagerComponent::Update() {
         }
     }
 
+    bool isCombatEngaged = true;
     if (auto player = player_.lock()) {
         if (auto playerTransform = player->GetComponent<TransformComponent>()) {
             playerPos = playerTransform->GetWorldPosition();
@@ -84,6 +85,10 @@ void DroneManagerComponent::Update() {
         if (auto follower = cart->GetComponent<SplineFollowerComponent>()) {
             if (auto cartTransform = cart->GetComponent<TransformComponent>()) {
                 railVelocity = cartTransform->GetWorldForward() * follower->GetSpeed();
+            }
+            // プレイヤーが演出中（負の距離、またはレール速度倍率が0.0f）の場合は戦闘未開戦として射撃を保留
+            if (follower->GetCurrentDistance() < 0.0f || follower->GetSpeedMultiplier() <= 0.0f) {
+                isCombatEngaged = false;
             }
         }
     }
@@ -140,8 +145,10 @@ void DroneManagerComponent::Update() {
             t->SetWorldRotation(rot);
         }
 
-        // 5. 弾幕の発射処理 (ガリレイ慣性補正 ＆ ゼロベクトルガード)
-        anim.fireTimer += deltaTime;
+        // 5. 弾幕の発射処理 (戦闘開戦中のみタイマー加算 ＆ ガリレイ慣性補正)
+        if (isCombatEngaged) {
+            anim.fireTimer += deltaTime;
+        }
         if (anim.fireTimer >= fireInterval_) {
             anim.fireTimer = 0.0f;
             if (bulletManager_ && hasPlayer) {

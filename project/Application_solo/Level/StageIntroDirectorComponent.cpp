@@ -192,6 +192,19 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
     transform->SetPosition(startPos);
     transform->CheckAndComputeMatrix();
 
+    // イントロ疾走区間として負のレール距離（-55.0m）からスタート！
+    if (playerCartObj_.expired()) {
+        if (auto scene = GetScene()) {
+            playerCartObj_ = scene->FindGameObject("PlayerCart");
+        }
+    }
+    if (auto cart = playerCartObj_.lock()) {
+        if (auto follower = cart->GetComponent<SplineFollowerComponent>()) {
+            follower->SnapToDistance(-55.0f);
+            follower->SetSpeedMultiplier(warpInRailSpeedBoost_);
+        }
+    }
+
     SetHUDActive(false);
     SetShipThrusterScale(3.8f, true); // 超光速突入用の超高出力オーバードライブブースト炎（3.8倍）を展開
     SetShipThrusterActive(true);      // 突入開始位置（後方）でスラスター点火
@@ -387,6 +400,16 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
     if (config.onEnterHook) {
         config.onEnterHook(this);
     }
+
+    // 通常戦闘（Active）へ移行した瞬間に、厳密に 0.0m 地点からレール進行を開始
+    if (introState_ == StageIntroState::Active) {
+        if (auto cart = playerCartObj_.lock()) {
+            if (auto follower = cart->GetComponent<SplineFollowerComponent>()) {
+                follower->SnapToDistance(0.0f);
+                follower->SetSpeedMultiplier(1.0f);
+            }
+        }
+    }
 }
 
 void StageIntroDirectorComponent::Update() {
@@ -539,7 +562,7 @@ void StageIntroDirectorComponent::Update() {
         // 空間配置された重力水面膜のアニメーション（前進中の静的波打ち -> 突入時の爆発的破裂拡大）
         UpdateMembraneVisuals(progress);
 
-        // レール進行速度の動的ブースト連動（2.4倍から1.0倍へ指数関数的に滑らかに減速）
+        // レール進行速度の動的ブースト連動（2.2倍から1.0倍へ指数関数的に滑らかに減速）
         if (auto cart = playerCartObj_.lock()) {
             if (auto follower = cart->GetComponent<SplineFollowerComponent>()) {
                 float mult = std::lerp(warpInRailSpeedBoost_, 1.0f, t);
@@ -701,9 +724,10 @@ void StageIntroDirectorComponent::SkipIntroSequence() {
     CleanupWarpVisuals();
     DestroyMembraneObject();
 
-    // レール速度倍率を確実に通常速度へリセット
+    // レール距離を厳密に 0.0m にスナップし、通常速度へ復帰
     if (auto cart = playerCartObj_.lock()) {
         if (auto follower = cart->GetComponent<SplineFollowerComponent>()) {
+            follower->SnapToDistance(0.0f);
             follower->SetSpeedMultiplier(1.0f);
         }
     }
