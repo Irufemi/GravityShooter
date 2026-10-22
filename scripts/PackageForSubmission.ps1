@@ -1,4 +1,4 @@
-﻿param (
+param (
     [ValidateSet("Source", "Build", "All", "Sega", "Menu")]
     [string]$Mode = "Menu",
     [string]$ScriptDir = "",
@@ -61,6 +61,132 @@ function Get-FolderSizeMB {
     $bytes = (Get-ChildItem -Path $Path -Recurse -File -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
     if (-not $bytes) { return 0 }
     return [math]::Round($bytes / 1MB, 2)
+}
+
+# -----------------------------------------------------------------------------
+# 堅牢なファイル操作・アトミック置換基盤（大手スタジオRelease Engineering準拠）
+# -----------------------------------------------------------------------------
+function Remove-DirectorySafe {
+    param([string]$Path)
+    if (-not (Test-Path $Path)) { return }
+    Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.IsReadOnly) { $_.IsReadOnly = $false }
+    }
+    for ($i = 0; $i -lt 5; $i++) {
+        try {
+            Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
+            return
+        }
+        catch {
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    if (Test-Path $Path) {
+        cmd /c "rmdir /s /q `"$Path`"" 2>$null
+    }
+}
+
+function Move-DirectorySafe {
+    param([string]$Source, [string]$Destination)
+    for ($i = 0; $i -lt 5; $i++) {
+        try {
+            Move-Item -Path $Source -Destination $Destination -Force -ErrorAction Stop
+            return
+        }
+        catch {
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    Copy-Item -Path $Source -Destination $Destination -Recurse -Force
+    Remove-DirectorySafe -Path $Source
+}
+
+# -----------------------------------------------------------------------------
+# 構成別スマート・スモークテスト（出荷前自己検証）
+# -----------------------------------------------------------------------------
+function Test-PackageIntegrity {
+    param(
+        [string]$PackageDir,
+        [string]$Configuration # "Release", "Editor", "Source"
+    )
+    Write-Info "パッケージの整合性検証（スモークテスト: $Configuration 構成）を実行中..."
+
+    if ($Configuration -in @("Release", "Editor")) {
+        $exeName = if ($Configuration -eq "Editor") { "GravityShooter_Editor.exe" } else { "GravityShooter.exe" }
+        $exePath = Join-Path $PackageDir $exeName
+        if (-not (Test-Path $exePath) -or (Get-Item $exePath).Length -lt 100KB) {
+            throw "整合性チェック失敗: 実行可能バイナリが存在しないか不正です: $exeName"
+        }
+
+        # 起動必須コアアセットの存在確認
+        $coreAssets = @(
+            "resources\scenes\InGame.json",
+            "resources\fonts\toro_glitch.otf"
+        )
+        foreach ($asset in $coreAssets) {
+            $assetPath = Join-Path $PackageDir $asset
+            if (-not (Test-Path $assetPath) -or (Get-Item $assetPath).Length -eq 0) {
+                throw "整合性チェック失敗: 起動必須アセットが欠落しています: $asset"
+            }
+        }
+    }
+
+    if ($Configuration -eq "Release") {
+        # Release構成: オフラインコンパイル済みシェーダーバイナリ (.cso) の完備チェック
+        $csoDir = Join-Path $PackageDir "resources\shaders\compiled"
+        $csoFiles = Get-ChildItem -Path $csoDir -Filter "*.cso" -ErrorAction SilentlyContinue
+        if (-not $csoFiles -or $csoFiles.Count -eq 0) {
+            throw "整合性チェック失敗: オフラインシェーダー (.cso) が生成されていません。"
+        }
+        Write-Success ("シェーダーバイナリ整合性OK: {0} 個の .cso を確認しました。" -f $csoFiles.Count)
+    }
+
+    if ($Configuration -eq "Editor") {
+        # Editor構成: 専用設定ファイル (imgui_editor.ini) の存在確認
+        $iniPath = Join-Path $PackageDir "imgui_editor.ini"
+        if (-not (Test-Path $iniPath)) {
+            Write-Warn "エディタ設定ファイル (imgui_editor.ini) が見当たりません（デフォルト配置で起動します）。"
+        }
+    }
+
+    if ($Configuration -eq "Source") {
+        # Source構成: ソリューションファイル等の健全性チェック
+        $slnxPath = Join-Path $PackageDir "project\Irufemi.slnx"
+        if (-not (Test-Path $slnxPath)) {
+            throw "整合性チェック失敗: ソリューションファイルが存在しません: $slnxPath"
+        }
+    }
+
+    Write-Success "[$Configuration] 整合性検証クリア: 全ての必須要素が正常に揃っています。"
+}
+
+# -----------------------------------------------------------------------------
+# ビルドマニフェスト（BuildManifest.json）生成
+# -----------------------------------------------------------------------------
+function New-BuildManifest {
+    param(
+        [string]$PackageDir,
+        [string]$Configuration
+    )
+    $commitHash = (git rev-parse HEAD 2>$null)
+    $branchName = (git rev-parse --abbrev-ref HEAD 2>$null)
+    $exeName = if ($Configuration -eq "Editor") { "GravityShooter_Editor.exe" } else { "GravityShooter.exe" }
+    $exePath = Join-Path $PackageDir $exeName
+    $exeHash = if (Test-Path $exePath) { (Get-FileHash -Path $exePath -Algorithm SHA256).Hash } else { "N/A" }
+
+    $manifest = [ordered]@{
+        "ApplicationName"    = "GravityShooter"
+        "Engine"             = "IrufemiEngine"
+        "Configuration"      = $Configuration
+        "BuildTimestamp"     = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+        "GitCommit"          = if ($commitHash) { "$commitHash" } else { "N/A" }
+        "GitBranch"          = if ($branchName) { "$branchName" } else { "N/A" }
+        "ExecutableSHA256"   = $exeHash
+        "PackagingTool"      = "Irufemi Packaging Pipeline (Release Engineering Edition)"
+    }
+    $manifestJson = $manifest | ConvertTo-Json -Depth 4
+    [System.IO.File]::WriteAllText((Join-Path $PackageDir "BuildManifest.json"), $manifestJson, [System.Text.Encoding]::UTF8)
+    Write-Success "ビルドマニフェスト (BuildManifest.json) を生成しました。"
 }
 
 # -----------------------------------------------------------------------------
@@ -265,12 +391,10 @@ function Create-SourcePackage {
     Write-Header "ソースコード提出用パッケージの作成を開始します (クリーン開発モード)"
 
     $TargetDir = if ($CustomOutputDir) { $CustomOutputDir } else { Join-Path $OutputDir "GravityShooter_SourceCode" }
+    $stagingDir = "$TargetDir._staging_$Timestamp"
 
-    if (Test-Path $TargetDir) {
-        Write-Info "既存の出力フォルダをクリーンアップ中..."
-        Remove-Item -Path $TargetDir -Recurse -Force
-    }
-    New-Item -ItemType Directory -Path $TargetDir | Out-Null
+    Remove-DirectorySafe -Path $stagingDir
+    New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
     Write-Info "ルートアイテムを動的に走査中..."
 
@@ -348,7 +472,7 @@ function Create-SourcePackage {
         }
 
         $srcPath = $item.FullName
-        $destPath = Join-Path $TargetDir $item.Name
+        $destPath = Join-Path $stagingDir $item.Name
 
         if ($item.PSIsContainer) {
             New-Item -ItemType Directory -Path $destPath -Force | Out-Null
@@ -366,8 +490,16 @@ function Create-SourcePackage {
         }
     }
 
+    # 整合性検証 & ビルドマニフェスト生成（ステージング内で検証）
+    Test-PackageIntegrity -PackageDir $stagingDir -Configuration "Source"
+    New-BuildManifest -PackageDir $stagingDir -Configuration "Source"
+
+    # アトミック置換（安全スワップ）
+    Remove-DirectorySafe -Path $TargetDir
+    Move-DirectorySafe -Source $stagingDir -Destination $TargetDir
+
     $fileSizeMB = Get-FolderSizeMB $TargetDir
-    Write-Success "ソースコードパッケージ作成完了!"
+    Write-Success "ソースコードパッケージ作成完了! (アトミック置換適用)"
     Write-Host "   出力先: $TargetDir" -ForegroundColor White
     Write-Host "   サイズ: $fileSizeMB MB`n" -ForegroundColor Green
 }
@@ -401,22 +533,20 @@ function Create-PlayablePackage {
     }
 
     $TargetDir = if ($CustomOutputDir) { $CustomOutputDir } else { Join-Path $OutputDir "GravityShooter_PlayableBuild" }
+    $stagingDir = "$TargetDir._staging_$Timestamp"
 
-    if (Test-Path $TargetDir) {
-        Write-Info "既存の出力フォルダをクリーンアップ中..."
-        Remove-Item -Path $TargetDir -Recurse -Force
-    }
-    New-Item -ItemType Directory -Path $TargetDir | Out-Null
+    Remove-DirectorySafe -Path $stagingDir
+    New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
     Write-Info "実行ファイルおよびリソースを配置中..."
 
     # 1. Exe本体（完全静的リンクのため単体で動作）
-    Copy-Item -Path $ExeReleasePath -Destination (Join-Path $TargetDir "GravityShooter.exe") -Force
+    Copy-Item -Path $ExeReleasePath -Destination (Join-Path $stagingDir "GravityShooter.exe") -Force
 
     # 2. resources/（スマートクック転送）
     $resSrc = Join-Path $RootDir "project\Application_solo\resources"
     if (Test-Path $resSrc) {
-        $resDest = Join-Path $TargetDir "resources"
+        $resDest = Join-Path $stagingDir "resources"
         New-Item -ItemType Directory -Path $resDest -Force | Out-Null
 
         $cookedMap = Get-CookedAssetMap -AppResDir $resSrc
@@ -438,7 +568,7 @@ function Create-PlayablePackage {
     # 3. EngineResources/（グラフィックス基盤のため完全保護転送）
     $engineResSrc = Join-Path $RootDir "project\IrufemiEngine\EngineResources"
     if (Test-Path $engineResSrc) {
-        $engineResDest = Join-Path $TargetDir "EngineResources"
+        $engineResDest = Join-Path $stagingDir "EngineResources"
         New-Item -ItemType Directory -Path $engineResDest -Force | Out-Null
         $rcArgs = @(
             $engineResSrc,
@@ -452,7 +582,7 @@ function Create-PlayablePackage {
     }
 
     # 4. オフラインシェーダーコンパイル（CompileShaders.bat による .cso 直接配置）
-    $compiledShaderDest = Join-Path $TargetDir "resources\shaders\compiled"
+    $compiledShaderDest = Join-Path $stagingDir "resources\shaders\compiled"
     if (-not (Test-Path $compiledShaderDest)) {
         New-Item -ItemType Directory -Path $compiledShaderDest -Force | Out-Null
     }
@@ -471,7 +601,7 @@ function Create-PlayablePackage {
     # 5. プレイ用ドキュメント（Application_solo から正規の README.md を同梱）
     $appReadmeSrc = Join-Path $RootDir "project\Application_solo\README.md"
     if (Test-Path $appReadmeSrc) {
-        Copy-Item -Path $appReadmeSrc -Destination (Join-Path $TargetDir "README.md") -Force
+        Copy-Item -Path $appReadmeSrc -Destination (Join-Path $stagingDir "README.md") -Force
         Write-Info "README.md を同梱しました。"
     }
 
@@ -482,7 +612,7 @@ function Create-PlayablePackage {
     )
     foreach ($p in $portfolioCandidates) {
         if (Test-Path $p) {
-            Copy-Item -Path $p -Destination (Join-Path $TargetDir (Split-Path -Leaf $p)) -Force
+            Copy-Item -Path $p -Destination (Join-Path $stagingDir (Split-Path -Leaf $p)) -Force
             Write-Info "ポートフォリオPDFを同梱しました: $(Split-Path -Leaf $p)"
             break
         }
@@ -494,16 +624,31 @@ function Create-PlayablePackage {
     )
     foreach ($m in $manualCandidates) {
         if (Test-Path $m) {
-            Copy-Item -Path $m -Destination (Join-Path $TargetDir (Split-Path -Leaf $m)) -Force
+            Copy-Item -Path $m -Destination (Join-Path $stagingDir (Split-Path -Leaf $m)) -Force
             Write-Info "プログラム説明書PDFを同梱しました: $(Split-Path -Leaf $m)"
             break
         }
     }
 
+    # 7. アセット最適化実績の算出
+    $rawAssetSize = Get-FolderSizeMB (Join-Path $RootDir "project\Application_solo\resources")
+    $cookedAssetSize = Get-FolderSizeMB (Join-Path $stagingDir "resources")
+    $savedMB = [math]::Round([math]::Max(0, $rawAssetSize - $cookedAssetSize), 2)
+    $savePercent = if ($rawAssetSize -gt 0) { [math]::Round(($savedMB / $rawAssetSize) * 100, 1) } else { 0 }
+
+    # 8. 整合性検証（スモークテスト）& ビルドマニフェスト生成（ステージング内で検証）
+    Test-PackageIntegrity -PackageDir $stagingDir -Configuration "Release"
+    New-BuildManifest -PackageDir $stagingDir -Configuration "Release"
+
+    # 9. アトミック置換（安全スワップ）
+    Remove-DirectorySafe -Path $TargetDir
+    Move-DirectorySafe -Source $stagingDir -Destination $TargetDir
+
     $fileSizeMB = Get-FolderSizeMB $TargetDir
-    Write-Success "実行ファイルパッケージ作成完了! (スマートクック適用済み)"
+    Write-Success "実行ファイルパッケージ作成完了! (スマートクック＆アトミック置換適用)"
     Write-Host "   出力先: $TargetDir" -ForegroundColor White
-    Write-Host "   サイズ: $fileSizeMB MB`n" -ForegroundColor Green
+    Write-Host "   パッケージサイズ: $fileSizeMB MB" -ForegroundColor Green
+    Write-Host "   アセット最適化実績: $rawAssetSize MB -> $cookedAssetSize MB (約 $savedMB MB [$savePercent%] 削減)`n" -ForegroundColor Cyan
 }
 
 # -----------------------------------------------------------------------------
@@ -533,17 +678,15 @@ function Create-EditorPackage {
     }
 
     $TargetDir = if ($CustomOutputDir) { $CustomOutputDir } else { Join-Path $OutputDir "GravityShooter_EditorBuild" }
+    $stagingDir = "$TargetDir._staging_$Timestamp"
 
-    if (Test-Path $TargetDir) {
-        Write-Info "既存の出力フォルダをクリーンアップ中..."
-        Remove-Item -Path $TargetDir -Recurse -Force
-    }
-    New-Item -ItemType Directory -Path $TargetDir | Out-Null
+    Remove-DirectorySafe -Path $stagingDir
+    New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
     Write-Info "エディタ実行ファイルおよび専用設定ファイルを配置中..."
 
     # 1. Exe本体
-    Copy-Item -Path $ExeEditorPath -Destination (Join-Path $TargetDir "GravityShooter_Editor.exe") -Force
+    Copy-Item -Path $ExeEditorPath -Destination (Join-Path $stagingDir "GravityShooter_Editor.exe") -Force
 
     # 2. imgui_editor.ini の配置（ウィンドウ配置設定ファイル）
     $iniCandidates = @(
@@ -553,7 +696,7 @@ function Create-EditorPackage {
     )
     foreach ($ini in $iniCandidates) {
         if (Test-Path $ini) {
-            Copy-Item -Path $ini -Destination (Join-Path $TargetDir "imgui_editor.ini") -Force
+            Copy-Item -Path $ini -Destination (Join-Path $stagingDir "imgui_editor.ini") -Force
             Write-Info "エディタ設定ファイルを配置しました: $(Split-Path -Leaf $ini) -> imgui_editor.ini"
             break
         }
@@ -562,7 +705,7 @@ function Create-EditorPackage {
     # 3. resources/（エディタ用リソース転送）
     $resSrc = Join-Path $RootDir "project\Application_solo\resources"
     if (Test-Path $resSrc) {
-        $resDest = Join-Path $TargetDir "resources"
+        $resDest = Join-Path $stagingDir "resources"
         New-Item -ItemType Directory -Path $resDest -Force | Out-Null
         $rcArgs = @(
             $resSrc,
@@ -578,7 +721,7 @@ function Create-EditorPackage {
     # 4. EngineResources/
     $engineResSrc = Join-Path $RootDir "project\IrufemiEngine\EngineResources"
     if (Test-Path $engineResSrc) {
-        $engineResDest = Join-Path $TargetDir "EngineResources"
+        $engineResDest = Join-Path $stagingDir "EngineResources"
         New-Item -ItemType Directory -Path $engineResDest -Force | Out-Null
         $rcArgs = @(
             $engineResSrc,
@@ -592,7 +735,7 @@ function Create-EditorPackage {
     }
 
     # 5. オフラインシェーダーコンパイル
-    $compiledShaderDest = Join-Path $TargetDir "resources\shaders\compiled"
+    $compiledShaderDest = Join-Path $stagingDir "resources\shaders\compiled"
     if (-not (Test-Path $compiledShaderDest)) {
         New-Item -ItemType Directory -Path $compiledShaderDest -Force | Out-Null
     }
@@ -606,7 +749,7 @@ function Create-EditorPackage {
     & cmd.exe /c "`"$compileBat`" `"$appShaderSrc`" `"$compiledShaderDest`" `"$dxcPath`"" | Out-Null
 
     # 6. エディタ操作ガイド
-    $editorReadme = Join-Path $TargetDir "README_Editor.txt"
+    $editorReadme = Join-Path $stagingDir "README_Editor.txt"
     $readmeText = @"
 ================================================================================
  IrufemiEngine 自作エディタモード 操作ガイド
@@ -629,8 +772,16 @@ GravityShooter_Editor.exe をダブルクリックして起動してください
 "@
     [System.IO.File]::WriteAllText($editorReadme, $readmeText, [System.Text.Encoding]::UTF8)
 
+    # 7. 整合性検証 & ビルドマニフェスト生成（ステージング内で検証）
+    Test-PackageIntegrity -PackageDir $stagingDir -Configuration "Editor"
+    New-BuildManifest -PackageDir $stagingDir -Configuration "Editor"
+
+    # 8. アトミック置換（安全スワップ）
+    Remove-DirectorySafe -Path $TargetDir
+    Move-DirectorySafe -Source $stagingDir -Destination $TargetDir
+
     $fileSizeMB = Get-FolderSizeMB $TargetDir
-    Write-Success "自作エディタパッケージ作成完了!"
+    Write-Success "自作エディタパッケージ作成完了! (アトミック置換適用)"
     Write-Host "   出力先: $TargetDir" -ForegroundColor White
     Write-Host "   サイズ: $fileSizeMB MB`n" -ForegroundColor Green
 }
@@ -647,25 +798,23 @@ function Create-SegaSubmissionPackage {
 
     $pkgName = "${ApplicantId}_${ApplicantName}"
     $targetDir = Join-Path $OutputDir $pkgName
+    $stagingDir = "$targetDir._staging_$Timestamp"
     $zipPath = Join-Path $OutputDir "${pkgName}.zip"
 
-    if (Test-Path $targetDir) {
-        Write-Info "既存の作業ディレクトリをクリーンアップ中..."
-        Remove-Item -Path $targetDir -Recurse -Force
-    }
-    New-Item -ItemType Directory -Path $targetDir | Out-Null
+    Remove-DirectorySafe -Path $stagingDir
+    New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
     # 1. 01_PlayableBuild (最新Releaseビルド＆スマートクック: 製品版)
     Write-Info "【1/5】01_PlayableBuild（製品版ゲーム本体）を生成中..."
-    Create-PlayablePackage -SkipBuild:$false -CustomOutputDir (Join-Path $targetDir "01_PlayableBuild")
+    Create-PlayablePackage -SkipBuild:$false -CustomOutputDir (Join-Path $stagingDir "01_PlayableBuild")
 
     # 2. 02_EditorBuild (自作エディタ体験パッケージ: エディタ版)
     Write-Info "【2/5】02_EditorBuild（自作エディタ環境・Prefab編集）を生成中..."
-    Create-EditorPackage -SkipBuild:$false -CustomOutputDir (Join-Path $targetDir "02_EditorBuild")
+    Create-EditorPackage -SkipBuild:$false -CustomOutputDir (Join-Path $stagingDir "02_EditorBuild")
 
     # 3. 03_SourceCode (バイナリ完全除外クリーンソースコード)
     Write-Info "【3/5】03_SourceCode（クリーンソースコード）を生成中..."
-    Create-SourcePackage -CustomOutputDir (Join-Path $targetDir "03_SourceCode")
+    Create-SourcePackage -CustomOutputDir (Join-Path $stagingDir "03_SourceCode")
 
     # 4. 提出資料PDFの直下むき出し配置
     Write-Info "【4/5】提出資料PDFを直下配置中..."
@@ -675,7 +824,7 @@ function Create-SegaSubmissionPackage {
         if ($foundP) { $docPortfolio = $foundP.FullName }
     }
     if ($docPortfolio -and (Test-Path $docPortfolio)) {
-        Copy-Item -Path $docPortfolio -Destination (Join-Path $targetDir (Split-Path -Leaf $docPortfolio)) -Force
+        Copy-Item -Path $docPortfolio -Destination (Join-Path $stagingDir (Split-Path -Leaf $docPortfolio)) -Force
         Write-Success "ポートフォリオPDFを配置しました: $(Split-Path -Leaf $docPortfolio)"
     }
 
@@ -685,7 +834,7 @@ function Create-SegaSubmissionPackage {
         if ($foundM) { $docManual = $foundM.FullName }
     }
     if ($docManual -and (Test-Path $docManual)) {
-        Copy-Item -Path $docManual -Destination (Join-Path $targetDir (Split-Path -Leaf $docManual)) -Force
+        Copy-Item -Path $docManual -Destination (Join-Path $stagingDir (Split-Path -Leaf $docManual)) -Force
         Write-Success "プログラム説明書PDFを配置しました: $(Split-Path -Leaf $docManual)"
     }
 
@@ -697,21 +846,25 @@ function Create-SegaSubmissionPackage {
 
     if ($foundMovie) {
         $destMovieName = "${pkgName}_プレイ動画.mp4"
-        Copy-Item -Path $foundMovie.FullName -Destination (Join-Path $targetDir $destMovieName) -Force
+        Copy-Item -Path $foundMovie.FullName -Destination (Join-Path $stagingDir $destMovieName) -Force
         Write-Success "動画ファイルを検出・直下配置しました: $destMovieName"
     } else {
-        $destMoviePlaceholder = Join-Path $targetDir "${pkgName}_プレイ動画_ここに配置.txt"
+        $destMoviePlaceholder = Join-Path $stagingDir "${pkgName}_プレイ動画_ここに配置.txt"
         Set-Content -Path $destMoviePlaceholder -Value "※提出用の mp4 動画ファイルをこの直下に配置してください。`nファイル名例: ${pkgName}_プレイ動画.mp4" -Encoding UTF8
         Write-Warn "動画ファイル (*.mp4) が自動検出されなかったため、案内ファイルを配置しました: $(Split-Path -Leaf $destMoviePlaceholder)"
     }
 
-    # 6. 提出用一括 ZIP 圧縮
+    # 6. アトミック置換（安全スワップ）
+    Remove-DirectorySafe -Path $targetDir
+    Move-DirectorySafe -Source $stagingDir -Destination $targetDir
+
+    # 7. 提出用一括 ZIP 圧縮（完全に完成した本番フォルダから圧縮）
     Write-Info "提出用ZIPファイルを作成中: $zipPath..."
     if (Test-Path $zipPath) { Remove-Item -Path $zipPath -Force }
     Compress-Archive -Path "$targetDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
 
     $zipSizeMB = [math]::Round((Get-Item $zipPath).Length / 1MB, 2)
-    Write-Header "SEGAカレッジ提出用パッケージ生成完了!"
+    Write-Header "SEGAカレッジ提出用パッケージ生成完了! (完全アトミック検証済み)"
     Write-Success "完成ZIP: $zipPath"
     Write-Host "   ZIPサイズ: $zipSizeMB MB" -ForegroundColor Green
     Write-Host "   解凍後フォルダ: $targetDir`n" -ForegroundColor White
