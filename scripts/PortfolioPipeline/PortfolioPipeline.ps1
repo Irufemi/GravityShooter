@@ -87,5 +87,54 @@ catch {
     exit 1
 }
 
-Write-Host "--- Environment check and preparation completed ---" -ForegroundColor Cyan
+# Step 4. Workspace Preparation & Git Clone (Chapter 02)
+Write-Host "Step 4: Preparing Workspace & Cloning Repository..." -ForegroundColor Cyan
+
+$zipName = 'LE3B_15_スエヒロ_コウイチ_GravityShooter'
+$generatedDir = Join-Path $ScriptDir "Generated"
+$workDir = Join-Path $generatedDir $zipName
+$intermediateDir = Join-Path $ScriptDir "Intermediate"
+
+$work1Path = Join-Path $workDir "01_個人作品"
+$interWork1Path = Join-Path $intermediateDir "01_個人作品"
+$cloneTempPath = Join-Path $interWork1Path "Source"
+$repoUrl = 'https://github.com/Irufemi/Irufemi.git'
+
+try {
+    # 1. Clean and initialize Intermediate and Generated workspace
+    Write-Host "  -> Resetting Intermediate workspace..."
+    if (Test-Path $intermediateDir) {
+        Remove-Item -Path $intermediateDir -Recurse -Force | Out-Null
+    }
+    if (-not (Test-Path $workDir)) {
+        New-Item -Path $workDir -ItemType Directory -Force | Out-Null
+    }
+    New-Item -Path $work1Path -ItemType Directory -Force | Out-Null
+    New-Item -Path $cloneTempPath -ItemType Directory -Force | Out-Null
+
+    # 2. Shallow clone (--depth 1)
+    Write-Host "  -> Cloning repository from $repoUrl (--depth 1)..."
+    git clone --depth 1 $repoUrl "$cloneTempPath"
+    if ($LASTEXITCODE -ne 0) {
+        throw "git clone failed with exit code $LASTEXITCODE."
+    }
+    Write-Host "  OK: Repository clone completed." -ForegroundColor Green
+
+    # 3. Deploy to Generated folder
+    $destProjPath = Join-Path $work1Path "ソースコード"
+    Write-Host "  -> Deploying to $destProjPath..."
+    if (Test-Path $destProjPath) {
+        Remove-Item -Path $destProjPath -Recurse -Force | Out-Null
+    }
+    Copy-Item -Path $cloneTempPath -Destination $destProjPath -Recurse -Force | Out-Null
+    Write-Host "  OK: Source files deployed to Generated successfully." -ForegroundColor Green
+}
+catch {
+    Write-Host "Error: Workspace preparation or git clone failed." -ForegroundColor Red
+    Write-Host "Details: $_" -ForegroundColor DarkGray
+    Read-Host "Press Enter to exit..."
+    exit 1
+}
+
+Write-Host "--- Pipeline processing completed successfully ---" -ForegroundColor Cyan
 Read-Host "Press Enter to exit..."

@@ -180,4 +180,13 @@ backup/
 *.exe
 /project/Binaries/
 
+# ====================================================================
+# Portfolio Pipeline temporary & output directories
+# ====================================================================
+Intermediate/
+Generated/
+scripts/PortfolioPipeline/Intermediate/
+scripts/PortfolioPipeline/Generated/
+
+
 
