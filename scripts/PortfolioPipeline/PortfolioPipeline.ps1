@@ -1,5 +1,6 @@
 param (
-    [string]$ScriptDir = ""
+    [string]$ScriptDir = "",
+    [string]$TargetWork = $null
 )
 
 $ErrorActionPreference = 'Stop'
@@ -87,21 +88,35 @@ catch {
     exit 1
 }
 
-# Step 4. Workspace Preparation & Git Clone (Chapter 02)
-Write-Host "Step 4: Preparing Workspace & Cloning Repository..." -ForegroundColor Cyan
+# Step 4. Config Loading & Data-Driven Workspace Processing (Chapter 03)
+Write-Host "Step 4: Loading Configuration & Processing Works..." -ForegroundColor Cyan
 
-$zipName = 'LE3B_15_スエヒロ_コウイチ_GravityShooter'
-$generatedDir = Join-Path $ScriptDir "Generated"
-$workDir = Join-Path $generatedDir $zipName
-$intermediateDir = Join-Path $ScriptDir "Intermediate"
-
-$work1Path = Join-Path $workDir "01_個人作品"
-$interWork1Path = Join-Path $intermediateDir "01_個人作品"
-$cloneTempPath = Join-Path $interWork1Path "Source"
-$repoUrl = 'https://github.com/Irufemi/Irufemi.git'
+$configFileName = 'config.psd1'
+$libDir = Join-Path $ScriptDir 'lib'
+$assertScript = Join-Path $libDir 'ConfigAssert.ps1'
 
 try {
-    # 1. Clean and initialize Intermediate and Generated workspace
+    # 1. Load Assert-Config validator
+    if (-not (Test-Path $assertScript)) {
+        throw "Validation script not found: $assertScript"
+    }
+    . $assertScript
+
+    # 2. Check and import config.psd1
+    $configPath = Join-Path $ScriptDir $configFileName
+    if (-not (Test-Path $configPath)) {
+        throw "Configuration file not found: $configFileName"
+    }
+
+    $config = Import-PowerShellDataFile -Path $configPath
+    Assert-Config -Config $config
+
+    $zipName = $config.output.zip_name
+    $generatedDir = Join-Path $ScriptDir $config.output.generated_dir
+    $workDir = Join-Path $generatedDir $zipName
+    $intermediateDir = Join-Path $ScriptDir "Intermediate"
+
+    # 3. Clean and prepare workspaces
     Write-Host "  -> Resetting Intermediate workspace..."
     if (Test-Path $intermediateDir) {
         Remove-Item -Path $intermediateDir -Recurse -Force | Out-Null
@@ -109,29 +124,54 @@ try {
     if (-not (Test-Path $workDir)) {
         New-Item -Path $workDir -ItemType Directory -Force | Out-Null
     }
-    New-Item -Path $work1Path -ItemType Directory -Force | Out-Null
-    New-Item -Path $cloneTempPath -ItemType Directory -Force | Out-Null
 
-    # 2. Shallow clone (--depth 1)
-    Write-Host "  -> Cloning repository from $repoUrl (--depth 1)..."
-    git clone --depth 1 $repoUrl "$cloneTempPath"
-    if ($LASTEXITCODE -ne 0) {
-        throw "git clone failed with exit code $LASTEXITCODE."
-    }
-    Write-Host "  OK: Repository clone completed." -ForegroundColor Green
+    # 4. Iterate over works
+    $matchedTarget = $false
+    foreach ($work in $config.works) {
+        if ([string]::IsNullOrEmpty($work.work_folder_name)) { continue }
+        if (-not [string]::IsNullOrEmpty($TargetWork) -and $work.work_folder_name -ne $TargetWork) { continue }
+        $matchedTarget = $true
 
-    # 3. Deploy to Generated folder
-    $destProjPath = Join-Path $work1Path "ソースコード"
-    Write-Host "  -> Deploying to $destProjPath..."
-    if (Test-Path $destProjPath) {
-        Remove-Item -Path $destProjPath -Recurse -Force | Out-Null
+        Write-Host "  -> Processing work: $($work.work_folder_name)..." -ForegroundColor Yellow
+        $workPath = Join-Path $workDir $work.work_folder_name
+        New-Item -Path $workPath -ItemType Directory -Force | Out-Null
+
+        $repoUrl = $work.git_repository_url
+        if (-not [string]::IsNullOrEmpty($repoUrl)) {
+            $interWorkPath = Join-Path $intermediateDir $work.work_folder_name
+            $cloneTempPath = Join-Path $interWorkPath "Source"
+
+            if (Test-Path $interWorkPath) {
+                Remove-Item -Path $interWorkPath -Recurse -Force | Out-Null
+            }
+            New-Item -Path $cloneTempPath -ItemType Directory -Force | Out-Null
+
+            Write-Host "     Cloning from $repoUrl (--depth 1)..."
+            git clone --depth 1 $repoUrl "$cloneTempPath"
+            if ($LASTEXITCODE -ne 0) {
+                throw "git clone failed for '$($work.work_folder_name)' with exit code $LASTEXITCODE."
+            }
+
+            $projFolder = if ($config.output.project_folder_name) {
+                $config.output.project_folder_name
+            } else {
+                'ソースコード'
+            }
+            $destProjPath = Join-Path $workPath $projFolder
+            if (Test-Path $destProjPath) {
+                Remove-Item -Path $destProjPath -Recurse -Force | Out-Null
+            }
+            Copy-Item -Path $cloneTempPath -Destination $destProjPath -Recurse -Force | Out-Null
+            Write-Host "     OK: Deployed to $destProjPath" -ForegroundColor Green
+        }
     }
-    Copy-Item -Path $cloneTempPath -Destination $destProjPath -Recurse -Force | Out-Null
-    Write-Host "  OK: Source files deployed to Generated successfully." -ForegroundColor Green
+
+    if (-not [string]::IsNullOrEmpty($TargetWork) -and -not $matchedTarget) {
+        throw "Target work '$TargetWork' was not found in config.psd1."
+    }
 }
 catch {
-    Write-Host "Error: Workspace preparation or git clone failed." -ForegroundColor Red
-    Write-Host "Details: $_" -ForegroundColor DarkGray
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
     Read-Host "Press Enter to exit..."
     exit 1
 }
