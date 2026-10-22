@@ -88,7 +88,44 @@ catch {
     exit 1
 }
 
-# Step 4. Config Loading & Data-Driven Workspace Processing (Chapter 03)
+# Safe directory deletion with ReadOnly flag removal and retry logic
+function Remove-DirectorySafe {
+    param([string]$Path)
+    if (-not (Test-Path $Path)) { return }
+    Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.IsReadOnly) { $_.IsReadOnly = $false }
+    }
+    for ($i = 0; $i -lt 5; $i++) {
+        try {
+            Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
+            return
+        }
+        catch {
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    if (Test-Path $Path) {
+        cmd /c "rmdir /s /q `"$Path`"" 2>$null
+    }
+}
+
+# Safe directory move with retry and copy fallback
+function Move-DirectorySafe {
+    param([string]$Source, [string]$Destination)
+    for ($i = 0; $i -lt 5; $i++) {
+        try {
+            Move-Item -Path $Source -Destination $Destination -Force -ErrorAction Stop
+            return
+        }
+        catch {
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    Copy-Item -Path $Source -Destination $Destination -Recurse -Force
+    Remove-DirectorySafe -Path $Source
+}
+
+# Step 4. Config Loading & Data-Driven Workspace Processing (Chapter 03 & 04)
 Write-Host "Step 4: Loading Configuration & Processing Works..." -ForegroundColor Cyan
 
 $configFileName = 'config.psd1'
@@ -108,8 +145,15 @@ try {
         throw "Configuration file not found: $configFileName"
     }
 
-    $config = Import-PowerShellDataFile -Path $configPath
-    Assert-Config -Config $config
+    try {
+        $config = Import-PowerShellDataFile -Path $configPath -ErrorAction Stop
+    }
+    catch {
+        $content = [System.IO.File]::ReadAllText($configPath, [System.Text.Encoding]::UTF8)
+        $sb = [scriptblock]::Create($content)
+        $config = & $sb
+    }
+    Assert-Config -Config $config -BaseDir $ScriptDir
 
     $zipName = $config.output.zip_name
     $generatedDir = Join-Path $ScriptDir $config.output.generated_dir
@@ -119,7 +163,7 @@ try {
     # 3. Clean and prepare workspaces
     Write-Host "  -> Resetting Intermediate workspace..."
     if (Test-Path $intermediateDir) {
-        Remove-Item -Path $intermediateDir -Recurse -Force | Out-Null
+        Remove-DirectorySafe -Path $intermediateDir
     }
     if (-not (Test-Path $workDir)) {
         New-Item -Path $workDir -ItemType Directory -Force | Out-Null
@@ -136,34 +180,52 @@ try {
         $workPath = Join-Path $workDir $work.work_folder_name
         New-Item -Path $workPath -ItemType Directory -Force | Out-Null
 
+        # Determine destination folder name from config
+        $projFolder = if (-not [string]::IsNullOrEmpty($config.output.project_folder_name)) {
+            $config.output.project_folder_name
+        } else {
+            'SourceCode'
+        }
+        $destProjPath = Join-Path $workPath $projFolder
+
+        # Initialize staging directory
+        $stagingPath = Join-Path $workPath '_staging_source'
+        if (Test-Path $stagingPath) {
+            Remove-DirectorySafe -Path $stagingPath
+        }
+
+        # Branch acquisition: Git clone or Local copy
         $repoUrl = $work.git_repository_url
+        $localPath = $work.local_source_path
+
         if (-not [string]::IsNullOrEmpty($repoUrl)) {
-            $interWorkPath = Join-Path $intermediateDir $work.work_folder_name
-            $cloneTempPath = Join-Path $interWorkPath "Source"
-
-            if (Test-Path $interWorkPath) {
-                Remove-Item -Path $interWorkPath -Recurse -Force | Out-Null
-            }
-            New-Item -Path $cloneTempPath -ItemType Directory -Force | Out-Null
-
             Write-Host "     Cloning from $repoUrl (--depth 1)..."
-            git clone --depth 1 $repoUrl "$cloneTempPath"
+            git clone --depth 1 $repoUrl "$stagingPath"
             if ($LASTEXITCODE -ne 0) {
                 throw "git clone failed for '$($work.work_folder_name)' with exit code $LASTEXITCODE."
             }
 
-            $projFolder = if ($config.output.project_folder_name) {
-                $config.output.project_folder_name
+            # Remove .git metadata directory to save space and avoid file locks
+            $gitMetaDir = Join-Path $stagingPath '.git'
+            if (Test-Path $gitMetaDir) {
+                Remove-DirectorySafe -Path $gitMetaDir
+            }
+        } else {
+            $resolvedLocal = if ([System.IO.Path]::IsPathRooted($localPath)) {
+                $localPath
             } else {
-                'ソースコード'
+                Join-Path $ScriptDir $localPath
             }
-            $destProjPath = Join-Path $workPath $projFolder
-            if (Test-Path $destProjPath) {
-                Remove-Item -Path $destProjPath -Recurse -Force | Out-Null
-            }
-            Copy-Item -Path $cloneTempPath -Destination $destProjPath -Recurse -Force | Out-Null
-            Write-Host "     OK: Deployed to $destProjPath" -ForegroundColor Green
+            Write-Host "     Copying local source from $resolvedLocal..."
+            Copy-Item -Path $resolvedLocal -Destination $stagingPath -Recurse -Force | Out-Null
         }
+
+        # Deploy from staging to destination (atomic replace)
+        if (Test-Path $destProjPath) {
+            Remove-DirectorySafe -Path $destProjPath
+        }
+        Move-DirectorySafe -Source $stagingPath -Destination $destProjPath
+        Write-Host "     OK: Deployed to $destProjPath" -ForegroundColor Green
     }
 
     if (-not [string]::IsNullOrEmpty($TargetWork) -and -not $matchedTarget) {

@@ -8,6 +8,10 @@
         @{
             work_folder_name = '01_個人作品'
             git_repository_url = 'https://github.com/Irufemi/GravityShooter.git'
+        },
+        @{
+            work_folder_name = '02_ローカル作品'
+            local_source_path = '.\TestLocalWork'
         }
     )
 }
