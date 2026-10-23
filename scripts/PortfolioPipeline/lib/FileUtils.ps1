@@ -1,33 +1,38 @@
 # FileUtils.ps1 - File and Directory utilities for Portfolio Pipeline
 
+function Remove-DirectorySafe {
+    param(
+        [string]$Path
+    )
+    if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path $Path)) { return }
+
+    # Clear readonly flags first to avoid UnauthorizedAccessException on Windows
+    Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.IsReadOnly) { $_.IsReadOnly = $false }
+    }
+
+    for ($i = 0; $i -lt 5; $i++) {
+        try {
+            Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
+            return
+        }
+        catch {
+            Start-Sleep -Milliseconds 300
+        }
+    }
+
+    # Fallback to cmd rmdir if locked
+    if (Test-Path $Path) {
+        cmd /c "rmdir /s /q `"$Path`"" 2>$null
+    }
+}
+
 function Recreate-Directory {
     param(
         [string]$Path
     )
     if ([string]::IsNullOrWhiteSpace($Path)) { return }
-
-    if (Test-Path $Path) {
-        # Clear readonly flags first to avoid UnauthorizedAccessException on Windows
-        Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
-            if ($_.IsReadOnly) { $_.IsReadOnly = $false }
-        }
-
-        for ($i = 0; $i -lt 5; $i++) {
-            try {
-                Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
-                break
-            }
-            catch {
-                Start-Sleep -Milliseconds 300
-            }
-        }
-
-        # Fallback to cmd rmdir if locked
-        if (Test-Path $Path) {
-            cmd /c "rmdir /s /q `"$Path`"" 2>$null
-        }
-    }
-
+    Remove-DirectorySafe -Path $Path
     New-Item -Path $Path -ItemType Directory -Force | Out-Null
 }
 
@@ -104,4 +109,29 @@ function New-InternetShortcut {
     )
     $content = "[InternetShortcut]`r`nURL=$Url`r`n"
     [System.IO.File]::WriteAllText($Path, $content, [System.Text.Encoding]::ASCII)
+}
+
+function Expand-AndFlattenArchive {
+    param (
+        [string]$ZipPath,
+        [string]$TempExtractDir,
+        [string]$DestinationDir
+    )
+    if (-not (Test-Path $ZipPath)) {
+        throw "ZIP archive not found: $ZipPath"
+    }
+
+    Recreate-Directory -Path $TempExtractDir
+    Expand-Archive -Path $ZipPath -DestinationPath $TempExtractDir -Force
+
+    Recreate-Directory -Path $DestinationDir
+
+    $topItems = Get-ChildItem -Path $TempExtractDir
+    $effectiveSource = $TempExtractDir
+    if ($topItems.Count -eq 1 -and $topItems[0].PSIsContainer) {
+        $effectiveSource = $topItems[0].FullName
+    }
+
+    Copy-ItemWithExclude -Source $effectiveSource -Destination $DestinationDir
+    Remove-DirectorySafe -Path $TempExtractDir
 }

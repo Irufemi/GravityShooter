@@ -1,6 +1,6 @@
 @{
     output = @{
-        zip_name = 'LE3B_15_スエヒロ_コウイチ_GravityShooter'
+        zip_name = 'LE3B_15_スエヒロ_コウイチ'
         generated_dir = '.\Generated'
         project_folder_name = 'ソースコード'
         executable_folder_name = '実行ファイル'
@@ -12,13 +12,6 @@
             local_source_path = '..\..'
             repository_url = 'https://github.com/Irufemi/GravityShooter'
             google_drive_file_id = '1Fu8OqSMYNQnXidBePLAkkJAE1afJq4BfktOCr9X-_YU'
-            google_drive_zip_id = ''
-        },
-        @{
-            work_folder_name = '02_ローカル作品'
-            local_source_path = '.\TestLocalWork'
-            repository_url = ''
-            google_drive_file_id = ''
             google_drive_zip_id = ''
         }
     )

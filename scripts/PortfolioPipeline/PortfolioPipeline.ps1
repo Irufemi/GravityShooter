@@ -1,7 +1,10 @@
 param (
     [string]$ScriptDir = "",
     [string]$TargetWork = $null,
-    [switch]$SkipDownload
+    [switch]$SkipDownload,
+    [switch]$SkipBuild,
+    [switch]$SkipSmokeTest,
+    [switch]$KeepIntermediate
 )
 
 $ErrorActionPreference = 'Stop'
@@ -89,62 +92,32 @@ catch {
     exit 1
 }
 
-# Safe directory deletion with ReadOnly flag removal and retry logic
-function Remove-DirectorySafe {
-    param([string]$Path)
-    if (-not (Test-Path $Path)) { return }
-    Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
-        if ($_.IsReadOnly) { $_.IsReadOnly = $false }
-    }
-    for ($i = 0; $i -lt 5; $i++) {
-        try {
-            Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
-            return
-        }
-        catch {
-            Start-Sleep -Milliseconds 500
-        }
-    }
-    if (Test-Path $Path) {
-        cmd /c "rmdir /s /q `"$Path`"" 2>$null
-    }
-}
-
-# Safe directory move with retry and copy fallback
-function Move-DirectorySafe {
-    param([string]$Source, [string]$Destination)
-    for ($i = 0; $i -lt 5; $i++) {
-        try {
-            Move-Item -Path $Source -Destination $Destination -Force -ErrorAction Stop
-            return
-        }
-        catch {
-            Start-Sleep -Milliseconds 500
-        }
-    }
-    Copy-Item -Path $Source -Destination $Destination -Recurse -Force
-    Remove-DirectorySafe -Path $Source
-}
-
-# Step 4. Config Loading & Data-Driven Workspace Processing (Chapter 03 & 04)
+# Step 4. Config Loading & Data-Driven Workspace Processing (Chapters 03 - 07)
 Write-Host "Step 4: Loading Configuration & Processing Works..." -ForegroundColor Cyan
 
 $configFileName = 'config.psd1'
 $libDir = Join-Path $ScriptDir 'lib'
 $assertScript = Join-Path $libDir 'ConfigAssert.ps1'
 $fileUtilsScript = Join-Path $libDir 'FileUtils.ps1'
+$buildUtilsScript = Join-Path $libDir 'BuildUtils.ps1'
+$tasksScript = Join-Path $libDir 'PipelineTasks.ps1'
+
+$pipelineSucceeded = $false
+$intermediateDir = Join-Path $ScriptDir "Intermediate"
 
 try {
-    # 1. Load validators and file utilities (Chapter 03 & 05)
-    if (-not (Test-Path $assertScript)) {
-        throw "Validation script not found: $assertScript"
-    }
+    # 1. Load validators and modules (Chapters 03, 05, 07)
+    if (-not (Test-Path $assertScript)) { throw "Validation script not found: $assertScript" }
     . $assertScript
 
-    if (-not (Test-Path $fileUtilsScript)) {
-        throw "FileUtils script not found: $fileUtilsScript"
-    }
+    if (-not (Test-Path $fileUtilsScript)) { throw "FileUtils script not found: $fileUtilsScript" }
     . $fileUtilsScript
+
+    if (-not (Test-Path $buildUtilsScript)) { throw "BuildUtils script not found: $buildUtilsScript" }
+    . $buildUtilsScript
+
+    if (-not (Test-Path $tasksScript)) { throw "PipelineTasks script not found: $tasksScript" }
+    . $tasksScript
 
     # 2. Check and import config.psd1
     $configPath = Join-Path $ScriptDir $configFileName
@@ -165,7 +138,6 @@ try {
     $zipName = $config.output.zip_name
     $generatedDir = Join-Path $ScriptDir $config.output.generated_dir
     $workDir = Join-Path $generatedDir $zipName
-    $intermediateDir = Join-Path $ScriptDir "Intermediate"
 
     # 3. Clean and prepare workspaces
     Write-Host "  -> Resetting Intermediate workspace..."
@@ -181,17 +153,16 @@ try {
         $portfolioId = $config.output.portfolio_google_drive_file_id
         if (-not [string]::IsNullOrEmpty($portfolioId)) {
             $pyDownloadScript = Join-Path $libDir "download_file.py"
-            Write-Host "  -> Downloading root portfolio document from Google Drive (ID: $portfolioId)..." -ForegroundColor Yellow
-            python "$pyDownloadScript" "$portfolioId" "$workDir"
-            if ($LASTEXITCODE -ne 0) {
-                throw "download_file.py failed for root portfolio document with exit code $LASTEXITCODE."
-            }
-            Write-Host "     OK: Root portfolio document deployed to $workDir" -ForegroundColor Green
+            Invoke-PipelineTask -Message "Downloading root portfolio document from Google Drive" `
+                -Action { Download-ProgramSpec -SpecId $portfolioId -WorkPath $workDir -PyScriptPath $pyDownloadScript } `
+                -ErrorMessage "Failed to download root portfolio document."
         }
     }
 
     # 4. Iterate over works
     $matchedTarget = $false
+    $workIndex = 1
+
     foreach ($work in $config.works) {
         if ([string]::IsNullOrEmpty($work.work_folder_name)) { continue }
         if (-not [string]::IsNullOrEmpty($TargetWork) -and $work.work_folder_name -ne $TargetWork) { continue }
@@ -201,7 +172,6 @@ try {
         $workPath = Join-Path $workDir $work.work_folder_name
         New-Item -Path $workPath -ItemType Directory -Force | Out-Null
 
-        # Determine destination folder name from config
         $projFolder = if (-not [string]::IsNullOrEmpty($config.output.project_folder_name)) {
             $config.output.project_folder_name
         } else {
@@ -209,38 +179,36 @@ try {
         }
         $destProjPath = Join-Path $workPath $projFolder
 
-        # Initialize staging directory
-        $stagingPath = Join-Path $workPath '_staging_source'
-        if (Test-Path $stagingPath) {
-            Remove-DirectorySafe -Path $stagingPath
-        }
-
-        # Branch acquisition: Git clone or Local copy
-        $repoUrl = $work.git_repository_url
-        $localPath = $work.local_source_path
-
-        if (-not [string]::IsNullOrEmpty($repoUrl)) {
-            Write-Host "     Cloning from $repoUrl (--depth 1)..."
-            git clone --depth 1 $repoUrl "$stagingPath"
-            if ($LASTEXITCODE -ne 0) {
-                throw "git clone failed for '$($work.work_folder_name)' with exit code $LASTEXITCODE."
-            }
-
-            Write-Host "     Filtering and deploying to destination..."
-            Recreate-Directory -Path $destProjPath
-            Copy-ItemWithExclude -Source $stagingPath -Destination $destProjPath
-            Remove-DirectorySafe -Path $stagingPath
+        $execFolder = if (-not [string]::IsNullOrEmpty($config.output.executable_folder_name)) {
+            $config.output.executable_folder_name
         } else {
-            $resolvedLocal = if ([System.IO.Path]::IsPathRooted($localPath)) {
-                $localPath
-            } else {
-                Join-Path $ScriptDir $localPath
-            }
-            Write-Host "     Filtering and deploying local source from $resolvedLocal..."
-            Recreate-Directory -Path $destProjPath
-            Copy-ItemWithExclude -Source $resolvedLocal -Destination $destProjPath
+            '実行ファイル'
         }
-        Write-Host "     OK: Deployed to $destProjPath" -ForegroundColor Green
+
+        # Intermediate workspace for work item
+        $interWorkPath = Join-Path $intermediateDir ("work_{0:00}" -f $workIndex)
+        $stagingSourcePath = Join-Path $interWorkPath "Source"
+        Recreate-Directory -Path $stagingSourcePath
+
+        # Source acquisition (Git clone or Local copy) into intermediate workspace
+        if (-not [string]::IsNullOrEmpty($work.git_repository_url)) {
+            Invoke-PipelineTask -Message "Cloning git repository" `
+                -Action { Get-SourceFromGit -RepoUrl $work.git_repository_url -CloneDestPath $stagingSourcePath } `
+                -ErrorMessage "Failed to clone git repository for '$($work.work_folder_name)'."
+        } else {
+            $resolvedLocal = if ([System.IO.Path]::IsPathRooted($work.local_source_path)) {
+                $work.local_source_path
+            } else {
+                Join-Path $ScriptDir $work.local_source_path
+            }
+            Invoke-PipelineTask -Message "Deploying local source" `
+                -Action { Copy-ItemWithExclude -Source $resolvedLocal -Destination $stagingSourcePath } `
+                -ErrorMessage "Failed to deploy local source for '$($work.work_folder_name)'."
+        }
+
+        # Deploy clean source to destination submission folder
+        Recreate-Directory -Path $destProjPath
+        Copy-ItemWithExclude -Source $stagingSourcePath -Destination $destProjPath
 
         # Generate repository shortcut (.url) if URL is configured
         $repoWebUrl = if (-not [string]::IsNullOrEmpty($work.repository_url)) {
@@ -254,52 +222,71 @@ try {
         if (-not [string]::IsNullOrEmpty($repoWebUrl)) {
             $shortcutPath = Join-Path $workPath "GitHub_Repository.url"
             New-InternetShortcut -Path $shortcutPath -Url $repoWebUrl
-            Write-Host "     OK: Created shortcut 'GitHub_Repository.url' -> $repoWebUrl" -ForegroundColor Green
         }
 
-        # Branch download: Google Drive file and zip (Chapter 06)
-        if (-not $SkipDownload) {
-            $pyDownloadScript = Join-Path $libDir "download_file.py"
-
-            # 1. Document / Slide download (PDF or Presentation)
-            $specId = $work.google_drive_file_id
-            if (-not [string]::IsNullOrEmpty($specId)) {
-                Write-Host "     Downloading document from Google Drive (ID: $specId)..."
-                python "$pyDownloadScript" "$specId" "$workPath"
-                if ($LASTEXITCODE -ne 0) {
-                    throw "download_file.py failed for '$($work.work_folder_name)' with exit code $LASTEXITCODE."
-                }
-            }
-
-            # 2. Executable ZIP download
-            $zipId = $work.google_drive_zip_id
-            if (-not [string]::IsNullOrEmpty($zipId)) {
-                $execFolder = if (-not [string]::IsNullOrEmpty($config.output.executable_folder_name)) {
-                    $config.output.executable_folder_name
-                } else {
-                    '実行ファイル'
-                }
-                $destExecPath = Join-Path $workPath $execFolder
-                Write-Host "     Downloading executable zip from Google Drive (ID: $zipId)..."
-                python "$pyDownloadScript" "$zipId" "$destExecPath"
-                if ($LASTEXITCODE -ne 0) {
-                    throw "download_file.py failed for executable zip in '$($work.work_folder_name)' with exit code $LASTEXITCODE."
-                }
-            }
-        } else {
-            Write-Host "     [INFO] Google Drive download skipped (-SkipDownload enabled)." -ForegroundColor DarkGray
+        # Document download from Google Drive
+        $pyDownloadScript = Join-Path $libDir "download_file.py"
+        if (-not $SkipDownload -and -not [string]::IsNullOrEmpty($work.google_drive_file_id)) {
+            Invoke-PipelineTask -Message "Downloading program document from Google Drive" `
+                -Action { Download-ProgramSpec -SpecId $work.google_drive_file_id -WorkPath $workPath -PyScriptPath $pyDownloadScript } `
+                -ErrorMessage "Failed to download document for '$($work.work_folder_name)'."
         }
 
+        # Executable acquisition from Google Drive ZIP
+        if (-not $SkipDownload -and -not [string]::IsNullOrEmpty($work.google_drive_zip_id)) {
+            Invoke-PipelineTask -Message "Deploying executable from Google Drive ZIP" `
+                -Action { Deploy-ExecutableFromZip -ZipId $work.google_drive_zip_id -WorkPath $workPath -ExecFolder $execFolder -PyScriptPath $pyDownloadScript } `
+                -ErrorMessage "Failed to deploy executable ZIP for '$($work.work_folder_name)'."
+        }
+
+        # Executable acquisition from local folder/ZIP
+        if (-not [string]::IsNullOrEmpty($work.local_executable_path)) {
+            Invoke-PipelineTask -Message "Deploying executable from local path" `
+                -Action { Deploy-ExecutableFromLocal -LocalPath $work.local_executable_path -WorkPath $workPath -ExecFolder $execFolder -RootPath $ScriptDir } `
+                -ErrorMessage "Failed to deploy local executable for '$($work.work_folder_name)'."
+        }
+
+        # Automated compilation via MSBuild in intermediate workspace
+        if ($work.project_msbuild_target_path -and -not $SkipBuild) {
+            Invoke-PipelineTask -Message "Building project via MSBuild" `
+                -Action {
+                    Invoke-MSBuildAndDeploy -Work $work -WorkIndex $workIndex `
+                        -WorkPath $workPath -ProjFolder $projFolder -ExecFolder $execFolder `
+                        -IntermediateBaseDir $intermediateDir
+                } `
+                -ErrorMessage "MSBuild build failed for '$($work.work_folder_name)'."
+        }
+
+        # Automated smoke test for executable
+        if (-not $SkipSmokeTest) {
+            Invoke-PipelineTask -Message "Running smoke test on executable" `
+                -Action {
+                    Test-ExecutableSmoke -WorkPath $workPath -ExecFolder $execFolder `
+                        -TestExecutableName $work.test_executable_name
+                } `
+                -ErrorMessage "Smoke test failed for '$($work.work_folder_name)'."
+        }
+
+        $workIndex++
     }
 
     if (-not [string]::IsNullOrEmpty($TargetWork) -and -not $matchedTarget) {
         throw "Target work '$TargetWork' was not found in config.psd1."
     }
+
+    $pipelineSucceeded = $true
 }
 catch {
     Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
     Read-Host "Press Enter to exit..."
     exit 1
+}
+finally {
+    if ($pipelineSucceeded -and -not $KeepIntermediate) {
+        if (Test-Path $intermediateDir) {
+            Remove-Item -Path $intermediateDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+        }
+    }
 }
 
 Write-Host "--- Pipeline processing completed successfully ---" -ForegroundColor Cyan
