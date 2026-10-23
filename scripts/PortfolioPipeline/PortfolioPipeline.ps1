@@ -4,7 +4,8 @@ param (
     [switch]$SkipDownload,
     [switch]$SkipBuild,
     [switch]$SkipSmokeTest,
-    [switch]$KeepIntermediate
+    [switch]$KeepIntermediate,
+    [switch]$NonInteractive
 )
 
 $ErrorActionPreference = 'Stop'
@@ -239,6 +240,17 @@ try {
                 -ErrorMessage "Failed to deploy executable ZIP for '$($work.work_folder_name)'."
         }
 
+        # Custom build script execution (e.g. PackageForSubmission.bat)
+        if (-not [string]::IsNullOrEmpty($work.build_script_path) -and -not $SkipBuild) {
+            Invoke-PipelineTask -Message "Running build script" `
+                -Action {
+                    Invoke-BuildScript -ScriptPath $work.build_script_path `
+                        -ScriptArgs $work.build_script_args `
+                        -RootPath $ScriptDir
+                } `
+                -ErrorMessage "Build script failed for '$($work.work_folder_name)'."
+        }
+
         # Executable acquisition from local folder/ZIP
         if (-not [string]::IsNullOrEmpty($work.local_executable_path)) {
             Invoke-PipelineTask -Message "Deploying executable from local path" `
@@ -290,4 +302,6 @@ finally {
 }
 
 Write-Host "--- Pipeline processing completed successfully ---" -ForegroundColor Cyan
-Read-Host "Press Enter to exit..."
+if (-not $NonInteractive) {
+    Read-Host "Press Enter to exit..."
+}

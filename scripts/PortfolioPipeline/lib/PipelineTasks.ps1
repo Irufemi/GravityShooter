@@ -85,6 +85,7 @@ function Deploy-ExecutableFromLocal {
     }
 
     $destExecPath = Join-Path $WorkPath $ExecFolder
+    Recreate-Directory -Path $destExecPath
     if ((Test-Path $resolvedPath -PathType Leaf) -and $resolvedPath -like '*.zip') {
         Expand-AndFlattenArchive -ZipPath $resolvedPath `
             -TempExtractDir (Join-Path $WorkPath 'temp_local_zip_extract') `
@@ -207,5 +208,31 @@ function Test-ExecutableSmoke {
         if ($null -ne $process -and -not $process.HasExited) {
             $process.Kill()
         }
+    }
+}
+
+function Invoke-BuildScript {
+    param(
+        [string]$ScriptPath,
+        [string]$ScriptArgs,
+        [string]$RootPath
+    )
+    $resolvedPath = $ScriptPath
+    if (-not [System.IO.Path]::IsPathRooted($ScriptPath)) {
+        $resolvedPath = [System.IO.Path]::GetFullPath((Join-Path $RootPath $ScriptPath))
+    }
+    if (-not (Test-Path $resolvedPath)) {
+        throw "Specified build script does not exist: $resolvedPath"
+    }
+
+    $ext = [System.IO.Path]::GetExtension($resolvedPath).ToLower()
+    if ($ext -eq '.ps1') {
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$resolvedPath" $ScriptArgs
+    } else {
+        & cmd.exe /c "`"$resolvedPath`" $ScriptArgs"
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Build script '$resolvedPath' failed with exit code $LASTEXITCODE."
     }
 }

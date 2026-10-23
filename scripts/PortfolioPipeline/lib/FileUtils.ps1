@@ -7,7 +7,7 @@ function Remove-DirectorySafe {
     if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path $Path)) { return }
 
     # Clear readonly flags first to avoid UnauthorizedAccessException on Windows
-    Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    Get-ChildItem -Path $Path -File -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
         if ($_.IsReadOnly) { $_.IsReadOnly = $false }
     }
 

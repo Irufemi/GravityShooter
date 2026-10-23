@@ -69,7 +69,7 @@ function Get-FolderSizeMB {
 function Remove-DirectorySafe {
     param([string]$Path)
     if (-not (Test-Path $Path)) { return }
-    Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    Get-ChildItem -Path $Path -File -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
         if ($_.IsReadOnly) { $_.IsReadOnly = $false }
     }
     for ($i = 0; $i -lt 5; $i++) {
@@ -605,42 +605,18 @@ function Create-PlayablePackage {
         Write-Info "README.md を同梱しました。"
     }
 
-    # 6. 審査員向け資料（実在するPDFの探索と同梱）
-    $portfolioCandidates = @(
-        (Join-Path $RootDir "docs\Portfolio_Koichi_Suehiro.pdf"),
-        (Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_ポートフォリオ.pdf")
-    )
-    foreach ($p in $portfolioCandidates) {
-        if (Test-Path $p) {
-            Copy-Item -Path $p -Destination (Join-Path $stagingDir (Split-Path -Leaf $p)) -Force
-            Write-Info "ポートフォリオPDFを同梱しました: $(Split-Path -Leaf $p)"
-            break
-        }
-    }
 
-    $manualCandidates = @(
-        (Join-Path $RootDir "docs\ProgramSpec_Koichi_Suehiro.pdf"),
-        (Join-Path $RootDir "docs\LE3B_15_スエヒロ_コウイチ_プログラム説明書.pdf")
-    )
-    foreach ($m in $manualCandidates) {
-        if (Test-Path $m) {
-            Copy-Item -Path $m -Destination (Join-Path $stagingDir (Split-Path -Leaf $m)) -Force
-            Write-Info "プログラム説明書PDFを同梱しました: $(Split-Path -Leaf $m)"
-            break
-        }
-    }
-
-    # 7. アセット最適化実績の算出
+    # 6. アセット最適化実績の算出
     $rawAssetSize = Get-FolderSizeMB (Join-Path $RootDir "project\Application_solo\resources")
     $cookedAssetSize = Get-FolderSizeMB (Join-Path $stagingDir "resources")
     $savedMB = [math]::Round([math]::Max(0, $rawAssetSize - $cookedAssetSize), 2)
     $savePercent = if ($rawAssetSize -gt 0) { [math]::Round(($savedMB / $rawAssetSize) * 100, 1) } else { 0 }
 
-    # 8. 整合性検証（スモークテスト）& ビルドマニフェスト生成（ステージング内で検証）
+    # 7. 整合性検証（スモークテスト）& ビルドマニフェスト生成（ステージング内で検証）
     Test-PackageIntegrity -PackageDir $stagingDir -Configuration "Release"
     New-BuildManifest -PackageDir $stagingDir -Configuration "Release"
 
-    # 9. アトミック置換（安全スワップ）
+    # 8. アトミック置換（安全スワップ）
     Remove-DirectorySafe -Path $TargetDir
     Move-DirectorySafe -Source $stagingDir -Destination $TargetDir
 
