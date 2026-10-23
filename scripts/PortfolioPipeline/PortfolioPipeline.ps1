@@ -131,13 +131,19 @@ Write-Host "Step 4: Loading Configuration & Processing Works..." -ForegroundColo
 $configFileName = 'config.psd1'
 $libDir = Join-Path $ScriptDir 'lib'
 $assertScript = Join-Path $libDir 'ConfigAssert.ps1'
+$fileUtilsScript = Join-Path $libDir 'FileUtils.ps1'
 
 try {
-    # 1. Load Assert-Config validator
+    # 1. Load validators and file utilities (Chapter 03 & 05)
     if (-not (Test-Path $assertScript)) {
         throw "Validation script not found: $assertScript"
     }
     . $assertScript
+
+    if (-not (Test-Path $fileUtilsScript)) {
+        throw "FileUtils script not found: $fileUtilsScript"
+    }
+    . $fileUtilsScript
 
     # 2. Check and import config.psd1
     $configPath = Join-Path $ScriptDir $configFileName
@@ -205,26 +211,20 @@ try {
                 throw "git clone failed for '$($work.work_folder_name)' with exit code $LASTEXITCODE."
             }
 
-            # Remove .git metadata directory to save space and avoid file locks
-            $gitMetaDir = Join-Path $stagingPath '.git'
-            if (Test-Path $gitMetaDir) {
-                Remove-DirectorySafe -Path $gitMetaDir
-            }
+            Write-Host "     Filtering and deploying to destination..."
+            Recreate-Directory -Path $destProjPath
+            Copy-ItemWithExclude -Source $stagingPath -Destination $destProjPath
+            Remove-DirectorySafe -Path $stagingPath
         } else {
             $resolvedLocal = if ([System.IO.Path]::IsPathRooted($localPath)) {
                 $localPath
             } else {
                 Join-Path $ScriptDir $localPath
             }
-            Write-Host "     Copying local source from $resolvedLocal..."
-            Copy-Item -Path $resolvedLocal -Destination $stagingPath -Recurse -Force | Out-Null
+            Write-Host "     Filtering and deploying local source from $resolvedLocal..."
+            Recreate-Directory -Path $destProjPath
+            Copy-ItemWithExclude -Source $resolvedLocal -Destination $destProjPath
         }
-
-        # Deploy from staging to destination (atomic replace)
-        if (Test-Path $destProjPath) {
-            Remove-DirectorySafe -Path $destProjPath
-        }
-        Move-DirectorySafe -Source $stagingPath -Destination $destProjPath
         Write-Host "     OK: Deployed to $destProjPath" -ForegroundColor Green
     }
 
