@@ -246,8 +246,7 @@ Irufemi::Vector3 SplineComponent::GetPointAtDistance(float distance) const {
         // 始点より手前の負の距離（イントロ疾走区間）：始点から接線逆方向へ線形外挿
         Irufemi::Vector3 startPos = GetPointAt(0.0f);
         Irufemi::Vector3 startTangent = GetTangentAt(0.0f);
-        return {startPos.x + startTangent.x * distance,
-                startPos.y + startTangent.y * distance,
+        return {startPos.x + startTangent.x * distance, startPos.y + startTangent.y * distance,
                 startPos.z + startTangent.z * distance};
     } else if (distance >= totalLength_) {
         t = 1.0f;
