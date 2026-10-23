@@ -189,5 +189,6 @@ scripts/PortfolioPipeline/Intermediate/
 scripts/PortfolioPipeline/Generated/
 scripts/PortfolioPipeline/TestLocalWork/
 
-
-
+# Google Drive API credentials & tokens (Never commit secret keys)
+scripts/PortfolioPipeline/lib/credentials.json
+scripts/PortfolioPipeline/lib/token.json

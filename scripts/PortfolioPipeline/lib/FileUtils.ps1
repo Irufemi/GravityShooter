@@ -68,10 +68,13 @@ function Copy-ItemWithExclude {
         foreach ($part in $parts) {
             # Exclusion rules:
             # - Dot-prefixed folders/files (.git, .vscode, .vs, etc.)
+            # - Build outputs and temporary folders (Generated, Intermediate, _Submission, bin, obj, Binaries)
             # - OS metadata (desktop.ini, Thumbs.db)
             # - macOS metadata (__MACOSX)
-            # - Debug information (*.pdb)
-            if ($part -match '^\..*' -or $part -eq 'desktop.ini' -or $part -eq 'Thumbs.db' -or $part -eq '__MACOSX' -or $part -like '*.pdb') {
+            # - Debug binaries (*.pdb, *.ilk)
+            if ($part -match '^\..*' -or 
+                $part -in @('Generated', 'Intermediate', '_Submission', 'bin', 'obj', 'Binaries', 'desktop.ini', 'Thumbs.db', '__MACOSX') -or 
+                $part -like '*.pdb' -or $part -like '*.ilk') {
                 $exclude = $true
                 break
             }
@@ -92,4 +95,13 @@ function Copy-ItemWithExclude {
             Copy-Item -Path $item.FullName -Destination $targetPath -Force
         }
     }
+}
+
+function New-InternetShortcut {
+    param (
+        [string]$Path,
+        [string]$Url
+    )
+    $content = "[InternetShortcut]`r`nURL=$Url`r`n"
+    [System.IO.File]::WriteAllText($Path, $content, [System.Text.Encoding]::ASCII)
 }

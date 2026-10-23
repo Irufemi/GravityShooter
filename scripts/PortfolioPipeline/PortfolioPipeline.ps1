@@ -1,6 +1,7 @@
 param (
     [string]$ScriptDir = "",
-    [string]$TargetWork = $null
+    [string]$TargetWork = $null,
+    [switch]$SkipDownload
 )
 
 $ErrorActionPreference = 'Stop'
@@ -175,6 +176,20 @@ try {
         New-Item -Path $workDir -ItemType Directory -Force | Out-Null
     }
 
+    # Root portfolio document download (Placed directly in submission root folder)
+    if (-not $SkipDownload) {
+        $portfolioId = $config.output.portfolio_google_drive_file_id
+        if (-not [string]::IsNullOrEmpty($portfolioId)) {
+            $pyDownloadScript = Join-Path $libDir "download_file.py"
+            Write-Host "  -> Downloading root portfolio document from Google Drive (ID: $portfolioId)..." -ForegroundColor Yellow
+            python "$pyDownloadScript" "$portfolioId" "$workDir"
+            if ($LASTEXITCODE -ne 0) {
+                throw "download_file.py failed for root portfolio document with exit code $LASTEXITCODE."
+            }
+            Write-Host "     OK: Root portfolio document deployed to $workDir" -ForegroundColor Green
+        }
+    }
+
     # 4. Iterate over works
     $matchedTarget = $false
     foreach ($work in $config.works) {
@@ -226,6 +241,55 @@ try {
             Copy-ItemWithExclude -Source $resolvedLocal -Destination $destProjPath
         }
         Write-Host "     OK: Deployed to $destProjPath" -ForegroundColor Green
+
+        # Generate repository shortcut (.url) if URL is configured
+        $repoWebUrl = if (-not [string]::IsNullOrEmpty($work.repository_url)) {
+            $work.repository_url
+        } elseif (-not [string]::IsNullOrEmpty($work.git_repository_url)) {
+            $work.git_repository_url
+        } else {
+            $null
+        }
+
+        if (-not [string]::IsNullOrEmpty($repoWebUrl)) {
+            $shortcutPath = Join-Path $workPath "GitHub_Repository.url"
+            New-InternetShortcut -Path $shortcutPath -Url $repoWebUrl
+            Write-Host "     OK: Created shortcut 'GitHub_Repository.url' -> $repoWebUrl" -ForegroundColor Green
+        }
+
+        # Branch download: Google Drive file and zip (Chapter 06)
+        if (-not $SkipDownload) {
+            $pyDownloadScript = Join-Path $libDir "download_file.py"
+
+            # 1. Document / Slide download (PDF or Presentation)
+            $specId = $work.google_drive_file_id
+            if (-not [string]::IsNullOrEmpty($specId)) {
+                Write-Host "     Downloading document from Google Drive (ID: $specId)..."
+                python "$pyDownloadScript" "$specId" "$workPath"
+                if ($LASTEXITCODE -ne 0) {
+                    throw "download_file.py failed for '$($work.work_folder_name)' with exit code $LASTEXITCODE."
+                }
+            }
+
+            # 2. Executable ZIP download
+            $zipId = $work.google_drive_zip_id
+            if (-not [string]::IsNullOrEmpty($zipId)) {
+                $execFolder = if (-not [string]::IsNullOrEmpty($config.output.executable_folder_name)) {
+                    $config.output.executable_folder_name
+                } else {
+                    '実行ファイル'
+                }
+                $destExecPath = Join-Path $workPath $execFolder
+                Write-Host "     Downloading executable zip from Google Drive (ID: $zipId)..."
+                python "$pyDownloadScript" "$zipId" "$destExecPath"
+                if ($LASTEXITCODE -ne 0) {
+                    throw "download_file.py failed for executable zip in '$($work.work_folder_name)' with exit code $LASTEXITCODE."
+                }
+            }
+        } else {
+            Write-Host "     [INFO] Google Drive download skipped (-SkipDownload enabled)." -ForegroundColor DarkGray
+        }
+
     }
 
     if (-not [string]::IsNullOrEmpty($TargetWork) -and -not $matchedTarget) {
