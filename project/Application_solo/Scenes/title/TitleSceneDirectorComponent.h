@@ -335,7 +335,8 @@ private: // メンバ変数
     std::string playerBoostSePath_ = "resources/audio/SE/se_player_boost.mp3";
     std::string gravityWarpSePath_ = "resources/audio/SE/se_gravity_warp.mp3";
     std::weak_ptr<VoiceInstance> chargeVoiceInstance_; ///< チャージ音のボイス弱参照（真空の静寂制御用）
-    float transitionDuration_ = 0.22f; ///< シーン遷移（暗転・明転）にかける時間（秒: 0.22sの鋭い暗転・明転でインゲーム演出との重複を排除）
+    float transitionDuration_ =
+        0.22f; ///< シーン遷移（暗転・明転）にかける時間（秒: 0.22sの鋭い暗転・明転でインゲーム演出との重複を排除）
 
     // 初期トランスフォームとカメラパラメータのキャッシュ
     Irufemi::Vector3 initialShipPos_{0.0f, 0.0f, 0.0f};

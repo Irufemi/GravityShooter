@@ -542,8 +542,8 @@ void TitleSceneDirectorComponent::TriggerSceneTransition(float fadeDuration) {
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
             // 深遠な特異点ブラック（Fade）でスッと暗転・明転させ、インゲーム側の突入演出とのエフェクト二重重複を完全排除
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, duration,
-                             EaseType::EaseInOutQuad, Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
+            sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, duration, EaseType::EaseInOutQuad,
+                             Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
         }
     }
 }

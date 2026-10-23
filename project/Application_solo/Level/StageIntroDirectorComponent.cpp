@@ -207,7 +207,7 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
 
     SetHUDActive(false);
     SetShipThrusterScale(3.8f, true); // 超光速突入用の超高出力オーバードライブブースト炎（3.8倍）を展開
-    SetShipThrusterActive(true);      // 突入開始位置（後方）でスラスター点火
+    SetShipThrusterActive(true); // 突入開始位置（後方）でスラスター点火
 
     // シーン突入開始の瞬間（フェードイン中・第1フレーム）から最大広角とラジアルブラーを先行点火！
     UpdateWarpVisuals(0.0f);
@@ -253,8 +253,8 @@ bool StageIntroDirectorComponent::EnsureMembraneInitialized() {
     // 3. PrimitiveRendererComponent 設定（Plane板ポリゴン・Unlit・テクスチャなし・完全透過）
     auto prim = membrane->AddComponent<PrimitiveRendererComponent>();
     prim->SetShape(Irufemi::PrimitiveType::Plane);
-    prim->SetTexture(""); // UVチェッカーのロードを完全遮断
-    prim->SetEnableLighting(false); // Unlit（重力エネルギー自己発光）
+    prim->SetTexture("");                       // UVチェッカーのロードを完全遮断
+    prim->SetEnableLighting(false);             // Unlit（重力エネルギー自己発光）
     prim->SetColor({0.15f, 0.85f, 1.0f, 0.0f}); // 背景を完全透過し、EffectMaskの空間歪曲のみを投影
     prim->SetIsTransparent(true); // 深度書き込み（DepthWrite）を無効化し、背後の環境物や敵の描画遮断を完全根絶
 
@@ -295,7 +295,8 @@ void StageIntroDirectorComponent::UpdateMembraneVisuals(float progress) {
         // 突破前: 自機の接近に伴い滑らかに重力界面の歪みがピークへ盛り上がる（クレッシェンド）
         if (maskComp) {
             float approach = std::clamp(progress / (std::max)(0.001f, breachProgressThreshold_), 0.0f, 1.0f);
-            float intensity = membraneDisplacementIntensity_ * (0.60f + 0.40f * approach) * (1.0f + 0.03f * std::sin(progress * 18.0f));
+            float intensity = membraneDisplacementIntensity_ * (0.60f + 0.40f * approach) *
+                              (1.0f + 0.03f * std::sin(progress * 18.0f));
             PostProcessManager::CustomEffectParams cParams{};
             cParams.param1 = intensity;
             cParams.param2 = membraneRgbShiftRatio_;
@@ -306,8 +307,10 @@ void StageIntroDirectorComponent::UpdateMembraneVisuals(float progress) {
             prim->SetColor({0.15f, 0.85f, 1.0f, 0.0f});
         }
     } else {
-        // 突破後（Breach Moment!）: 自機が重力界面を突き破り、界面が外側へ弾け飛びながら滑らかに空間へ消散（S字SmoothStep減衰）
-        float t = std::clamp((progress - breachProgressThreshold_) / (std::max)(0.001f, 1.0f - breachProgressThreshold_), 0.0f, 1.0f);
+        // 突破後（Breach Moment!）:
+        // 自機が重力界面を突き破り、界面が外側へ弾け飛びながら滑らかに空間へ消散（S字SmoothStep減衰）
+        float t = std::clamp(
+            (progress - breachProgressThreshold_) / (std::max)(0.001f, 1.0f - breachProgressThreshold_), 0.0f, 1.0f);
         float easeOut = 1.0f - t;
         float decay = easeOut * easeOut * (3.0f - 2.0f * easeOut); // C2連続 SmoothStep 減衰（末尾で傾きゼロに着地）
 
@@ -594,7 +597,7 @@ void StageIntroDirectorComponent::Update() {
     // 次のフェーズへ自動遷移
     if (progress >= 1.0f) {
         if (introState_ == StageIntroState::WarpIn) {
-            CleanupWarpVisuals(); // 到着時に確実に等倍復帰
+            CleanupWarpVisuals();    // 到着時に確実に等倍復帰
             DestroyMembraneObject(); // 到着時に物理膜オブジェクトを完全に解放
             // レール速度を確実に通常速度へリセット
             if (auto cart = playerCartObj_.lock()) {
@@ -793,7 +796,8 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
     // 自機が膜を突き破った瞬間からS字SmoothStep減衰（界面が外側へ弾けながら滑らかに通常空間へ溶け込む）
     float curve = 1.0f;
     if (progress >= breachProgressThreshold_) {
-        float t = std::clamp((progress - breachProgressThreshold_) / (std::max)(0.001f, 1.0f - breachProgressThreshold_), 0.0f, 1.0f);
+        float t = std::clamp(
+            (progress - breachProgressThreshold_) / (std::max)(0.001f, 1.0f - breachProgressThreshold_), 0.0f, 1.0f);
         float easeOut = 1.0f - t;
         curve = easeOut * easeOut * (3.0f - 2.0f * easeOut); // C2連続 SmoothStep
     }
@@ -860,7 +864,7 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
             } else if (progress < breachProgressThreshold_) {
                 // 突入初動: 特異点（ブラックホール）の闇の余韻から前方の重力界面へ突進
                 float approach = progress / (std::max)(0.001f, breachProgressThreshold_);
-                fadeColor = {0.0f, 0.0f, 0.0f, 1.0f}; // 特異点暗黒
+                fadeColor = {0.0f, 0.0f, 0.0f, 1.0f};      // 特異点暗黒
                 fadeIntensity = 0.45f * (1.0f - approach); // 0.45 -> 0.0 へ滑らかに透けていく
             }
 

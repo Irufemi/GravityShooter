@@ -56,7 +56,7 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
         mat->color = {1.0f, 1.0f, 1.0f, 1.0f};
         mat->enableLighting = false;
         mat->hasTexture = false;
-        mat->lightingMode = 0;   // None
+        mat->lightingMode = 0; // None
         mat->customEffectType = 10;
         mat->customEffectParam = 0.0f;
         mat->uvTransform = Irufemi::Math::MakeIdentity4x4();
