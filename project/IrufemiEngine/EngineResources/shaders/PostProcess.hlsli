@@ -30,6 +30,7 @@ static const int32_t kPostProcessMode_DisplacementMap = 24;
 static const int32_t kPostProcessMode_DirectionalBlur = 25;
 static const int32_t kPostProcessMode_Halftone = 26;
 static const int32_t kPostProcessMode_DepthOfField = 27;
+static const int32_t kPostProcessMode_GravityDistortion = 29;
 
 // --- ヘルパー関数 ---
 #include "Noise.hlsli"
@@ -613,5 +614,43 @@ float32_t3 ApplyDepthOfField(float32_t3 color, float32_t2 uv, Texture2D<float32_
     }
     
     return resultColor / totalWeight;
+}
+
+// 29. Gravity Distortion (重力空間歪曲 ＋ 色収差)
+float32_t3 ApplyGravityDistortion(float32_t2 uv, float32_t2 center, float32_t radius, float32_t intensity, float32_t waveWidth, float32_t chromaticRatio, float32_t time, Texture2D<float32_t4> tex, SamplerState smp) {
+    if (intensity <= 0.0001f || waveWidth <= 0.0001f) {
+        return tex.Sample(smp, uv).rgb;
+    }
+
+    float32_t2 delta = uv - center;
+    float32_t dist = length(delta);
+    if (dist <= 0.0001f) {
+        return tex.Sample(smp, uv).rgb;
+    }
+
+    float32_t2 dir = delta / dist;
+
+    // 波面（リング帯）の距離
+    float32_t d = abs(dist - radius);
+    if (d > waveWidth) {
+        return tex.Sample(smp, uv).rgb;
+    }
+
+    // ガウシアン風の滑らかな減衰窓
+    float32_t normD = d / waveWidth;
+    float32_t wave = (1.0f - normD * normD);
+    wave = wave * wave;
+
+    // 波紋の正弦波変位（中心に向かって引き込まれる、または外側に押し出される波）
+    float32_t disp = sin((dist - radius) / waveWidth * 3.14159265f) * wave * intensity;
+
+    float32_t2 offset = dir * disp;
+
+    // 波面のリング帯でしっかり赤・青が分離するよう色収差オフセットを強化
+    // chromaticRatio を画面比率の色ズレ幅として直接適用（例: 0.02 = 約20px）
+    float32_t2 chromaticOffset = dir * (wave * chromaticRatio);
+
+    // 色収差付きサンプリング（SampleWithRGBShift）
+    return SampleWithRGBShift(tex, smp, uv + offset, chromaticOffset);
 }
 

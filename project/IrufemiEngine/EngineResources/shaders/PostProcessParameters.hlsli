@@ -219,6 +219,15 @@ struct PostProcessParams {
     float32_t dofFocusRange;
     float32_t dofBlurSize;
     int32_t dofSamples;
+
+    // GravityDistortion
+    float32_t2 gravityDistortionCenter;
+    float32_t gravityDistortionRadius;
+    float32_t gravityDistortionIntensity;
+    float32_t gravityDistortionWaveWidth;
+    float32_t gravityDistortionChromaticRatio;
+    float32_t gravityDistortionTime;
+    float32_t pad_gravityDistortion;
 };
 
 struct VignetteParams {

@@ -52,6 +52,7 @@ enum class PostProcessMode {
     Halftone,              ///< ハーフトーン（網点・コミック調）
     DepthOfField,          ///< 被写界深度（DoF）
     LightShafts,           ///< ゴッドレイ（光の筋）
+    GravityDistortion,     ///< 重力波・空間歪曲（法線波紋＋色収差）
 };
 
 class DirectXCommon;
@@ -427,6 +428,20 @@ public:
     };
 
     /**
+     * @struct GravityDistortionParams
+     * @brief 重力波・空間歪曲エフェクト用パラメータ
+     */
+    struct GravityDistortionParams {
+        Irufemi::Vector2 center = {0.5f, 0.5f}; ///< 歪み中心 UV (0.0〜1.0)
+        float radius = 0.0f;                    ///< 現在の波面半径
+        float intensity = 0.0f;                 ///< 歪み強度
+        float waveWidth = 0.08f;                ///< 波面の太さ
+        float chromaticRatio = 0.04f;           ///< 色収差の強さ (RGBズレ)
+        float time = 0.0f;                      ///< 経過時間
+        float pad = 0.0f;
+    };
+
+    /**
      * @struct LightShaftsParams
      * @brief ゴッドレイ（光の筋）エフェクト用パラメータ
      */
@@ -568,14 +583,23 @@ public:
         float dofBlurSize;
         int32_t dofSamples;
 
+        // GravityDistortion
+        Irufemi::Vector2 gravityDistortionCenter;
+        float gravityDistortionRadius;
+        float gravityDistortionIntensity;
+        float gravityDistortionWaveWidth;
+        float gravityDistortionChromaticRatio;
+        float gravityDistortionTime;
+        float pad_gravityDistortion;
+
         // [Bindless]
         uint32_t mainTextureIndex;
         uint32_t extraTextureIndex;
         uint32_t maskTextureIndex;
         uint32_t padding_bindless;
 
-        // 256-byte alignment padding (Current size: 624 bytes, padded to 768 bytes)
-        uint32_t alignPadding[36];
+        // 256-byte alignment padding (Current size: 656 bytes, padded to 768 bytes)
+        uint32_t alignPadding[28];
     };
 
     struct alignas(256) BindlessParams {
@@ -1322,6 +1346,24 @@ public:
     LightShaftsParams& GetLightShaftsParams() {
         return lightShaftsParams_;
     }
+    /**
+     * @brief GravityDistortionParams を取得する。
+     * @return 取得された GravityDistortionParams
+     */
+    GravityDistortionParams& GetGravityDistortionParams() {
+        return gravityDistortionParams_;
+    }
+
+    /**
+     * @brief 重力波ディストーションを発火する
+     * @param centerUV 歪み中心スクリーンUV (0.0〜1.0)
+     * @param intensity 歪みの最大強度
+     * @param duration 演出持続時間（秒）
+     * @param maxRadius 最大波面半径
+     * @param chromaticRatio 色収差比率
+     */
+    void TriggerGravityDistortion(const Irufemi::Vector2& centerUV, float intensity = 0.08f, float duration = 0.5f,
+                                 float maxRadius = 1.2f, float chromaticRatio = 0.05f);
 
     /**
      * @brief DissolveNoiseIndex を設定する。
@@ -1532,6 +1574,13 @@ private:
     DisplacementMapParams displacementMapParams_;
     DirectionalBlurParams directionalBlurParams_;
     HalftoneParams halftoneParams_;
+    GravityDistortionParams gravityDistortionParams_;
+
+    bool gravityDistortionActive_ = false;
+    float gravityDistortionTimer_ = 0.0f;
+    float gravityDistortionDuration_ = 0.5f;
+    float gravityDistortionBaseIntensity_ = 0.08f;
+    float gravityDistortionMaxRadius_ = 1.2f;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> combinedCB_;
     CombinedParams* mappedCombined_ = nullptr;

@@ -17,6 +17,7 @@
 #include "Platform/Input/Mouse.h"
 #include "Core/Math/Random/Random.h"
 #include "Renderer/Camera/CameraManager.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include "Core/Math/MathFunction.h"
 #include "Physics/CollisionManager.h"
 #include "Framework/Component/Camera/CameraShakeComponent.h"
@@ -238,6 +239,13 @@ void GravityPlayerComponent::ExecutePullAction() {
                     orbitingDebris_.push_back(debrisObj);
                 }
             }
+        }
+    }
+
+    // 重力波ディストーション（空間波紋＋色収差）を発火！
+    if (auto engine = GetEngine()) {
+        if (auto ppManager = engine->GetPostProcessManager()) {
+            ppManager->TriggerGravityDistortion(Irufemi::Vector2(0.5f, 0.55f), 0.10f, 0.45f, 1.1f, 0.025f);
         }
     }
 }

@@ -42,6 +42,7 @@ bool IsDistortionOrBlurEffect(int32_t mode) {
         case kPostProcessMode_DirectionalBlur:
         case kPostProcessMode_Halftone:
         case kPostProcessMode_DepthOfField:
+        case kPostProcessMode_GravityDistortion:
             return true;
         default:
             return false;
@@ -231,6 +232,9 @@ PixelShaderOutput main(VertexShaderOutput input) {
             case kPostProcessMode_DepthOfField:
                 color.rgb = ApplyDepthOfField(color.rgb, uv, gExtraTexture, gSamplerPoint, gSampler, gParams.projectionInverse, instanceID > 0 ? cParams.param1 : gParams.dofFocusDistance, gParams.dofFocusRange, gParams.dofBlurSize, gParams.dofSamples, float32_t2(width, height), gTexture);
                 break;
+            case kPostProcessMode_GravityDistortion:
+                color.rgb = ApplyGravityDistortion(uv, gParams.gravityDistortionCenter, gParams.gravityDistortionRadius, instanceID > 0 ? cParams.param1 : gParams.gravityDistortionIntensity, gParams.gravityDistortionWaveWidth, gParams.gravityDistortionChromaticRatio, gParams.gravityDistortionTime, gTexture, gSampler);
+                break;
         }
     }
     
@@ -356,6 +360,10 @@ PixelShaderOutput main(VertexShaderOutput input) {
                 
             case kPostProcessMode_DepthOfField:
                 color.rgb = ApplyDepthOfField(color.rgb, uv, gExtraTexture, gSamplerPoint, gSampler, gParams.projectionInverse, gParams.dofFocusDistance, gParams.dofFocusRange, gParams.dofBlurSize, gParams.dofSamples, float32_t2(width, height), gTexture);
+                break;
+                
+            case kPostProcessMode_GravityDistortion:
+                color.rgb = ApplyGravityDistortion(uv, gParams.gravityDistortionCenter, gParams.gravityDistortionRadius, gParams.gravityDistortionIntensity, gParams.gravityDistortionWaveWidth, gParams.gravityDistortionChromaticRatio, gParams.gravityDistortionTime, gTexture, gSampler);
                 break;
         }
     }

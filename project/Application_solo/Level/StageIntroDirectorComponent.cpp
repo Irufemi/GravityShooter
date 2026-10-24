@@ -689,6 +689,13 @@ void StageIntroDirectorComponent::TriggerBreachImpulse() {
             fluid->AddDensity(centerUV, Irufemi::Vector4{0.15f, 0.90f, 1.0f, 1.0f} * 2.0f, 0.35f);
         }
     }
+
+    // 4. 重力波ディストーション（空間波紋＋色収差）を一斉発火！
+    if (auto engine = GetEngine()) {
+        if (auto ppm = engine->GetPostProcessManager()) {
+            ppm->TriggerGravityDistortion(Irufemi::Vector2(0.5f, 0.5f), 0.15f, 0.70f, 1.4f, 0.040f);
+        }
+    }
 }
 
 void StageIntroDirectorComponent::TriggerFCSBootupSequence() {

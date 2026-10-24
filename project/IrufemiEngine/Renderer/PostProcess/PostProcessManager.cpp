@@ -54,6 +54,7 @@ void PostProcessManager::ResetAllParams(bool clearPostUI) {
     directionalBlurParams_ = DirectionalBlurParams();
     halftoneParams_ = HalftoneParams();
     dofParams_ = DepthOfFieldParams();
+    gravityDistortionParams_ = GravityDistortionParams();
 }
 
 void PostProcessManager::Update(float totalTime) {
@@ -77,6 +78,24 @@ void PostProcessManager::Update(float totalTime) {
     }
     if (HasActiveMode(Mode::DisplacementMap)) {
         displacementMapParams_.time = totalTime * displacementMapParams_.timeScale;
+    }
+    if (gravityDistortionActive_) {
+        // 固定ステップまたは経過時間から進捗を計算 (エンジンのデルタタイム)
+        float dt = engine_ ? engine_->GetGameDeltaTime() : 0.016f;
+        gravityDistortionTimer_ += dt;
+        float progress = gravityDistortionTimer_ / (gravityDistortionDuration_ > 0.0001f ? gravityDistortionDuration_ : 0.5f);
+        if (progress >= 1.0f) {
+            gravityDistortionActive_ = false;
+            gravityDistortionParams_.intensity = 0.0f;
+            RemoveActiveMode(Mode::GravityDistortion);
+        } else {
+            // 半径をスムーズに拡大
+            gravityDistortionParams_.radius = progress * gravityDistortionMaxRadius_;
+            // 強度は 2次イージングで滑らかにフェードアウト
+            float fade = 1.0f - progress;
+            gravityDistortionParams_.intensity = gravityDistortionBaseIntensity_ * (fade * fade);
+            gravityDistortionParams_.time = totalTime;
+        }
     }
 
     if (mappedVignette_ && HasActiveMode(Mode::Vignette)) {
@@ -191,6 +210,13 @@ void PostProcessManager::Update(float totalTime) {
     combinedParams_.dofFocusRange = dofParams_.focusRange;
     combinedParams_.dofBlurSize = dofParams_.blurSize;
     combinedParams_.dofSamples = dofParams_.samples;
+
+    combinedParams_.gravityDistortionCenter = gravityDistortionParams_.center;
+    combinedParams_.gravityDistortionRadius = gravityDistortionParams_.radius;
+    combinedParams_.gravityDistortionIntensity = gravityDistortionParams_.intensity;
+    combinedParams_.gravityDistortionWaveWidth = gravityDistortionParams_.waveWidth;
+    combinedParams_.gravityDistortionChromaticRatio = gravityDistortionParams_.chromaticRatio;
+    combinedParams_.gravityDistortionTime = gravityDistortionParams_.time;
 }
 
 void PostProcessManager::BeginFrame() {
@@ -739,4 +765,20 @@ void PostProcessManager::ResetCustomEffectSlots() {
     for (int i = static_cast<int>(kMaxCustomEffectParams - 1); i >= 1; --i) {
         freeSlots_.push_back(static_cast<uint32_t>(i));
     }
+}
+
+void PostProcessManager::TriggerGravityDistortion(const Irufemi::Vector2& centerUV, float intensity, float duration,
+                                                 float maxRadius, float chromaticRatio) {
+    gravityDistortionParams_.center = centerUV;
+    gravityDistortionParams_.radius = 0.0f;
+    gravityDistortionParams_.waveWidth = 0.08f;
+    gravityDistortionParams_.chromaticRatio = chromaticRatio;
+    gravityDistortionBaseIntensity_ = intensity;
+    gravityDistortionDuration_ = (duration > 0.0f) ? duration : 0.5f;
+    gravityDistortionMaxRadius_ = maxRadius;
+    gravityDistortionTimer_ = 0.0f;
+    gravityDistortionActive_ = true;
+    gravityDistortionParams_.intensity = intensity;
+
+    AddActiveMode(Mode::GravityDistortion, Layer::PreUI, 1250);
 }
