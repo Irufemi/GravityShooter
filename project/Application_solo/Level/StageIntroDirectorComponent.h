@@ -102,7 +102,7 @@ private:
     std::string breachSePath_ = "resources/audio/SE/se_water_breach.mp3"; ///< 重力界面破断・空間突破音
     float breachProgressThreshold_ =
         0.32f; ///< 重力膜を突き破るタイミング（進行割合: 0.32 = 自機が膜Z=-1.8mに接触・貫通する瞬間）
-    float breachFlashIntensity_ = 0.30f;  ///< 重力膜突破時の白・シアン重力破断閃光強度（白飛びを抑え色収差を鮮明化）
+    float breachFlashIntensity_ = 0.30f; ///< 重力膜突破時の白・シアン重力破断閃光強度（白飛びを抑え色収差を鮮明化）
     float breachShakeAmplitude_ = 0.090f; ///< 重力膜突破時の正面カメラ激震振幅（メートル）
 
     // 内部状態管理

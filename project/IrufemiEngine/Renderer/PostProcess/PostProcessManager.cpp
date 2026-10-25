@@ -83,7 +83,8 @@ void PostProcessManager::Update(float totalTime) {
         // 固定ステップまたは経過時間から進捗を計算 (エンジンのデルタタイム)
         float dt = engine_ ? engine_->GetGameDeltaTime() : 0.016f;
         gravityDistortionTimer_ += dt;
-        float progress = gravityDistortionTimer_ / (gravityDistortionDuration_ > 0.0001f ? gravityDistortionDuration_ : 0.5f);
+        float progress =
+            gravityDistortionTimer_ / (gravityDistortionDuration_ > 0.0001f ? gravityDistortionDuration_ : 0.5f);
         if (progress >= 1.0f) {
             gravityDistortionActive_ = false;
             gravityDistortionParams_.intensity = 0.0f;
@@ -769,7 +770,7 @@ void PostProcessManager::ResetCustomEffectSlots() {
 }
 
 void PostProcessManager::TriggerGravityDistortion(const Irufemi::Vector2& centerUV, float intensity, float duration,
-                                                 float maxRadius, float chromaticRatio, float waveWidth) {
+                                                  float maxRadius, float chromaticRatio, float waveWidth) {
     gravityDistortionParams_.center = centerUV;
     gravityDistortionParams_.radius = 0.0f;
     gravityDistortionParams_.waveWidth = waveWidth;

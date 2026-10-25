@@ -1363,7 +1363,7 @@ public:
      * @param chromaticRatio 色収差比率
      */
     void TriggerGravityDistortion(const Irufemi::Vector2& centerUV, float intensity = 0.10f, float duration = 0.5f,
-                                 float maxRadius = 1.3f, float chromaticRatio = 0.035f, float waveWidth = 0.18f);
+                                  float maxRadius = 1.3f, float chromaticRatio = 0.035f, float waveWidth = 0.18f);
 
     /**
      * @brief DissolveNoiseIndex を設定する。
