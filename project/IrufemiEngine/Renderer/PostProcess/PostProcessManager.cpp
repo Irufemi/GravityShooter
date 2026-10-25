@@ -91,9 +91,10 @@ void PostProcessManager::Update(float totalTime) {
         } else {
             // 半径をスムーズに拡大
             gravityDistortionParams_.radius = progress * gravityDistortionMaxRadius_;
-            // 強度は 2次イージングで滑らかにフェードアウト
+            // 強度は 画面外まで力強い波を維持するサイン波フェードアウト（終盤まで波の形を保つ）
             float fade = 1.0f - progress;
-            gravityDistortionParams_.intensity = gravityDistortionBaseIntensity_ * (fade * fade);
+            float fadeCurve = std::sin(fade * 1.5707963f);
+            gravityDistortionParams_.intensity = gravityDistortionBaseIntensity_ * fadeCurve;
             gravityDistortionParams_.time = totalTime;
         }
     }
@@ -768,10 +769,10 @@ void PostProcessManager::ResetCustomEffectSlots() {
 }
 
 void PostProcessManager::TriggerGravityDistortion(const Irufemi::Vector2& centerUV, float intensity, float duration,
-                                                 float maxRadius, float chromaticRatio) {
+                                                 float maxRadius, float chromaticRatio, float waveWidth) {
     gravityDistortionParams_.center = centerUV;
     gravityDistortionParams_.radius = 0.0f;
-    gravityDistortionParams_.waveWidth = 0.08f;
+    gravityDistortionParams_.waveWidth = waveWidth;
     gravityDistortionParams_.chromaticRatio = chromaticRatio;
     gravityDistortionBaseIntensity_ = intensity;
     gravityDistortionDuration_ = (duration > 0.0f) ? duration : 0.5f;

@@ -460,12 +460,17 @@
         },
         {
           "data": {
+            "Charge SE Path": "resources/audio/SE/se_launch_charge.mp3",
+            "Debris Shatter SE Path": "resources/audio/SE/se_debris_shatter.mp3",
+            "Gravity Warp SE Path": "resources/audio/SE/se_gravity_warp.mp3",
             "Nozzle Offset": [
               0.0,
               0.0,
               -0.47999998927116394
             ],
-            "Thruster Prefab Path": "resources/prefabs/player_thruster_effect.json"
+            "Player Boost SE Path": "resources/audio/SE/se_player_boost.mp3",
+            "Thruster Prefab Path": "resources/prefabs/player_thruster_effect.json",
+            "Transition Duration": 0.2199999988079071
           },
           "type": "TitleSceneDirectorComponent"
         }

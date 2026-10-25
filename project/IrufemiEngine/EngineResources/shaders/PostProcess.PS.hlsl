@@ -42,7 +42,6 @@ bool IsDistortionOrBlurEffect(int32_t mode) {
         case kPostProcessMode_DirectionalBlur:
         case kPostProcessMode_Halftone:
         case kPostProcessMode_DepthOfField:
-        case kPostProcessMode_GravityDistortion:
             return true;
         default:
             return false;

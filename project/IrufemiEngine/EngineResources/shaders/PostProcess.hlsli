@@ -646,11 +646,18 @@ float32_t3 ApplyGravityDistortion(float32_t2 uv, float32_t2 center, float32_t ra
 
     float32_t2 offset = dir * disp;
 
-    // 波面のリング帯でしっかり赤・青が分離するよう色収差オフセットを強化
-    // chromaticRatio を画面比率の色ズレ幅として直接適用（例: 0.02 = 約20px）
+    // 1. テクスチャサンプリングのRGBズレ
     float32_t2 chromaticOffset = dir * (wave * chromaticRatio);
+    float32_t3 shiftedColor = SampleWithRGBShift(tex, smp, uv + offset, chromaticOffset);
 
-    // 色収差付きサンプリング（SampleWithRGBShift）
-    return SampleWithRGBShift(tex, smp, uv + offset, chromaticOffset);
+    // 2. スペクトルフリンジ（暗い背景下でも視認可能なプリズム分光発光）
+    // Remedy『Control』等のVFX手法: 歪みの法線勾配（disp）に応じて
+    // 外側（disp > 0）に赤/オレンジ、内側（disp < 0）にシアン/青の分光光彩を付加
+    float32_t redGlow   = saturate(disp * 15.0f);
+    float32_t blueGlow  = saturate(-disp * 15.0f);
+    float32_t greenGlow = saturate(abs(disp) * 3.0f);
+    float32_t3 prismGlow = float32_t3(redGlow, greenGlow * 0.5f, blueGlow) * (wave * 0.5f);
+
+    return shiftedColor + prismGlow;
 }
 

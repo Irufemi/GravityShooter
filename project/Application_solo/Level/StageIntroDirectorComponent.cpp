@@ -335,6 +335,8 @@ void StageIntroDirectorComponent::DestroyMembraneObject() {
         return;
     }
 
+    membraneObj_->Destroy();
+
     if (auto cart = playerCartObj_.lock()) {
         cart->RemoveChild(membraneObj_);
     } else if (auto parent = membraneObj_->GetParent()) {
@@ -690,10 +692,10 @@ void StageIntroDirectorComponent::TriggerBreachImpulse() {
         }
     }
 
-    // 4. 重力波ディストーション（空間波紋＋色収差）を一斉発火！
+    // 4. 重力波ディストーション（空間波紋＋色収差）を一斉発火！（超広域・高強度・極太ショックウェーブ）
     if (auto engine = GetEngine()) {
         if (auto ppm = engine->GetPostProcessManager()) {
-            ppm->TriggerGravityDistortion(Irufemi::Vector2(0.5f, 0.5f), 0.15f, 0.70f, 1.4f, 0.040f);
+            ppm->TriggerGravityDistortion(Irufemi::Vector2(0.5f, 0.5f), 0.28f, 0.65f, 1.6f, 0.045f, 0.22f);
         }
     }
 }
@@ -802,11 +804,14 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
     // 突入初動(progress < breachProgressThreshold_)は重力水面膜の流体揺らぎ・最大ブラーを維持し、
     // 自機が膜を突き破った瞬間からS字SmoothStep減衰（界面が外側へ弾けながら滑らかに通常空間へ溶け込む）
     float curve = 1.0f;
+    float blurCurve = 1.0f;
     if (progress >= breachProgressThreshold_) {
         float t = std::clamp(
             (progress - breachProgressThreshold_) / (std::max)(0.001f, 1.0f - breachProgressThreshold_), 0.0f, 1.0f);
         float easeOut = 1.0f - t;
         curve = easeOut * easeOut * (3.0f - 2.0f * easeOut); // C2連続 SmoothStep
+        // ラジアルブラーは突破の瞬間に急減衰させ、重力波紋のシャープな色収差を際立たせる
+        blurCurve = easeOut * easeOut * easeOut * easeOut;
     }
 
     // 1. カメラFOV動的ブレンド (最大広角から等倍へ滑らかに復帰)
@@ -824,7 +829,7 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
             }
 
             // ラジアルブラー ＆ 色収差（超高速突入の速度線）
-            float blurWidth = maxWarpBlurWidth_ * curve;
+            float blurWidth = maxWarpBlurWidth_ * blurCurve;
             if (blurWidth > 0.0005f) {
                 if (!isRadialBlurActive_) {
                     ppm->AddActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
