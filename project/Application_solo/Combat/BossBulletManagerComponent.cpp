@@ -294,3 +294,13 @@ void BossBulletManagerComponent::ReleaseBullet(int virtualId) {
         virtualManager_->RemoveVirtualInstance(virtualId);
     }
 }
+
+void BossBulletManagerComponent::ClearAllBullets() {
+    if (!virtualManager_) {
+        return;
+    }
+    for (int vid : activeVirtualIds_) {
+        virtualManager_->RemoveVirtualInstance(vid);
+    }
+    activeVirtualIds_.clear();
+}

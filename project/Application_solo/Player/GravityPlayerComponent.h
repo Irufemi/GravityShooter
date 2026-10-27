@@ -68,6 +68,11 @@ public:
     }
 
     /**
+     * @brief 自機撃破時、オービット中の全ガレキを中心特異点へ高速吸引・消滅させる
+     */
+    void AbsorbOrbitingDebrisToSingularity();
+
+    /**
      * @brief プレイヤーコマンドを実行する（Command Pattern）
      * @param[in] command 実行するコマンドオブジェクト
      */

@@ -43,6 +43,15 @@ void ParticleEmitterComponent::Update() {
 
 void ParticleEmitterComponent::Draw() {}
 
+void ParticleEmitterComponent::OnDisable() {
+    Stop();
+}
+
+void ParticleEmitterComponent::OnDestroy() {
+    Stop();
+    particleObj_.reset(); // 即座に ParticleObject を解体し、GPUから UnregisterEmitter させる
+}
+
 void ParticleEmitterComponent::Play() {
     particleObj_->Play();
 }
@@ -68,7 +77,11 @@ void ParticleEmitterComponent::Restart(bool withChildren) {
 }
 
 void ParticleEmitterComponent::Stop() {
-    particleObj_->Stop();
+    if (particleObj_) {
+        particleObj_->Stop();
+        // GameObjectが非アクティブ化されてもGPU側が放出を継続しないよう、即座にGPUバッファへ反映する
+        particleObj_->Update();
+    }
 }
 
 void ParticleEmitterComponent::EmitBurst(int count) {

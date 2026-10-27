@@ -180,9 +180,10 @@ void ResultManagerComponent::Update() {
         }
 
         auto input = engine->GetInputManager();
-        if (input && (input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A) ||
-                      input->IsButtonPressed(XINPUT_GAMEPAD_START))) {
+        bool userTrigger = input && (input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A) ||
+                                     input->IsButtonPressed(XINPUT_GAMEPAD_START));
 
+        if (userTrigger) {
             isExiting_ = true;
             UISound::PlayDecide(1.0f);
             engine->SetTimeScale(1.0f);
@@ -230,6 +231,12 @@ void ResultManagerComponent::ApplyEntryPostProcess() {
         ppm->AddActiveMode(PostProcessMode::ChromaticAberration, PostProcessManager::Layer::PreUI);
         auto& ca = ppm->GetChromaticAberrationParams();
         ca.intensity = 0.035f;
+
+        // スーパーノヴァ爆発の全画面白光を引き継ぎ、暗幕へと滑らかに収束させる
+        ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
+        ppm->GetFadeParams().color = Irufemi::Vector4{1.0f, 1.0f, 1.0f, 1.0f};
+        ppm->GetFadeParams().intensity = 1.0f;
+        hasWhiteFlash_ = true;
     }
 
     isPostProcessActive_ = true;
@@ -253,14 +260,14 @@ void ResultManagerComponent::UpdateEntryPostProcess(float progress) {
     if (ResultScene::IsClear()) {
         auto& rb = ppm->GetRadialBlurParams();
         rb.blurWidth = 0.040f * factor;
-
-        if (hasWhiteFlash_) {
-            // 最初の0.2秒程度で急激に閃光が収束する3次減衰カーブ
-            ppm->GetFadeParams().intensity = std::pow(1.0f - progress, 3.0f);
-        }
     } else {
         auto& ca = ppm->GetChromaticAberrationParams();
         ca.intensity = 0.035f * factor;
+    }
+
+    // クリア・ゲームオーバー問わず、前シーンからの白光を3次減衰カーブでスッと収束
+    if (hasWhiteFlash_) {
+        ppm->GetFadeParams().intensity = std::pow(1.0f - progress, 3.0f);
     }
 
     if (progress >= 1.0f) {

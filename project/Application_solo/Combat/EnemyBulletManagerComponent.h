@@ -66,6 +66,11 @@ public:
      */
     void ReturnBullet(GameObject* bullet);
 
+    /**
+     * @brief 自機撃破時、空間内の全敵弾を特異点へ吸収・一括回収する
+     */
+    void AbsorbAndClearAllBullets();
+
 private:
     void WarmupPool();
 

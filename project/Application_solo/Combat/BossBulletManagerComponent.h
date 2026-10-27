@@ -48,6 +48,11 @@ public:
      */
     void ReleaseBullet(int virtualId);
 
+    /**
+     * @brief 自機撃破時、アクティブな全ボス弾を一括回収・消滅させる
+     */
+    void ClearAllBullets();
+
 private:
     struct BossBulletData {
         Irufemi::Vector3 velocity = {0.0f, 0.0f, 0.0f};

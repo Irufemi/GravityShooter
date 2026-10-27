@@ -35,6 +35,14 @@ public:
      * @brief Draw を実行する。
      */
     void Draw() override;
+    /**
+     * @brief 非アクティブ化時の処理（放出の即時停止）
+     */
+    void OnDisable() override;
+    /**
+     * @brief 破棄時の処理（GPUエミッター登録の即時解除）
+     */
+    void OnDestroy() override;
 
     /**
      * @brief Renderable を取得する。

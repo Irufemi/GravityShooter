@@ -3,6 +3,7 @@
 #include <memory>
 
 class GameObject;
+class PlayerHealthComponent;
 enum class PlayerFlightState;
 
 /**
@@ -17,6 +18,7 @@ public:
     void Initialize() override;
     void Start() override;
     void Update() override;
+    void OnDestroy() override;
     void OnRegisterProperties() override;
 
     std::string GetComponentName() const override {
@@ -68,4 +70,6 @@ private:
     float currentScaleZ_ = 1.0f;                           ///< 現在のスラスターZスケール
     float targetScaleZ_ = 1.0f;                            ///< 目標のスラスターZスケール
     bool isThrusterActive_ = false; ///< スラスターの有効・無効状態（初期状態は待機）
+
+    PlayerHealthComponent* healthComp_ = nullptr; ///< 自機ヘルスコンポーネント（生存監視用）
 };

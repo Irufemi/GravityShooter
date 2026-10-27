@@ -61,6 +61,16 @@ void GravityPlayerComponent::LoadStatusFromJson() {
     }
 }
 
+void GravityPlayerComponent::AbsorbOrbitingDebrisToSingularity() {
+    for (auto& debrisObj : orbitingDebris_) {
+        if (!debrisObj) {
+            continue;
+        }
+        debrisObj->SetIsActive(false);
+    }
+    orbitingDebris_.clear();
+}
+
 void GravityPlayerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     RegisterProperty("Status Data Path", &statusDataPath_);

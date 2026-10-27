@@ -9,6 +9,7 @@
 #include "Scenes/Result/ResultScene.h"
 
 #include "Player/PlayerHealthComponent.h"
+#include "Player/PlayerDamageVisualizerComponent.h"
 #include "Combat/Boss/BossComponent.h"
 #include "Platform/Input/InputManager.h"
 #include "Input/GameAction.h"
@@ -25,6 +26,9 @@ GameLoopManagerComponent::~GameLoopManagerComponent() {
                 playerDiedListenerId_ = 0;
             }
             health->SetOnDeathSequenceFinished(nullptr);
+        }
+        if (auto visualizer = player->GetComponent<PlayerDamageVisualizerComponent>()) {
+            visualizer->SetOnDeathSequenceCompleted(nullptr);
         }
     }
     if (auto boss = bossObj_.lock()) {
@@ -68,9 +72,14 @@ bool GameLoopManagerComponent::BindTargets() {
 
     if (playerObj_.expired() && !targetPlayerName_.empty()) {
         if (auto playerObj = scene->FindGameObject(targetPlayerName_)) {
+            playerObj_ = playerObj;
             if (auto playerHealth = playerObj->GetComponent<PlayerHealthComponent>()) {
-                playerObj_ = playerObj;
                 playerDiedListenerId_ = playerHealth->AddOnPlayerDiedListener([this]() { OnPlayerDied(); });
+            }
+            // 演出責任者（SSOT: PlayerDamageVisualizerComponent）のフェーズ完了コールバックを主軸に接続
+            if (auto visualizer = playerObj->GetComponent<PlayerDamageVisualizerComponent>()) {
+                visualizer->SetOnDeathSequenceCompleted([this]() { OnDeathSequenceFinished(); });
+            } else if (auto playerHealth = playerObj->GetComponent<PlayerHealthComponent>()) {
                 playerHealth->SetOnDeathSequenceFinished([this]() { OnDeathSequenceFinished(); });
             }
         }
@@ -147,6 +156,8 @@ void GameLoopManagerComponent::OnPlayerDied() {
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
             am->PlayByFile("resources/audio/SE/se_result_impact.mp3", 0.95f, 1.0f, AudioCategory::SE);
+            // 死亡の瞬間、BGMを急消音（0.20秒フェード）して爆発前の真空の静寂を際立たせる
+            am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.20f);
         }
         engine->SetTimeScale(timeScaleAtResult_);
     }

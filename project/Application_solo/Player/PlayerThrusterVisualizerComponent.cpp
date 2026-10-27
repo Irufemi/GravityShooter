@@ -1,4 +1,5 @@
 #include "Player/PlayerThrusterVisualizerComponent.h"
+#include "Player/PlayerHealthComponent.h"
 #include "RailMechanics/RailShooterPlayerComponent.h"
 #include "Effects/EffectManagerComponent.h"
 #include "Framework/GameObject/GameObject.h"
@@ -19,12 +20,16 @@ void PlayerThrusterVisualizerComponent::Initialize() {
     currentScaleZ_ = minScaleZ_;
     targetScaleZ_ = minScaleZ_;
     isThrusterActive_ = false;
+    healthComp_ = nullptr;
 }
 
 void PlayerThrusterVisualizerComponent::Start() {
     if (!gameObject_) {
         return;
     }
+
+    // 自機ヘルスコンポーネントをキャッシュ（生存状態監視用）
+    healthComp_ = gameObject_->GetComponent<PlayerHealthComponent>();
 
     // 1. EffectManager経由でノズル位置にスラスターエフェクトをアタッチ (SpawnAttached方式)
     if (auto fxMgr = EffectManagerComponent::GetInstance()) {
@@ -49,19 +54,59 @@ void PlayerThrusterVisualizerComponent::Start() {
     }
 }
 
+void PlayerThrusterVisualizerComponent::OnDestroy() {
+    isThrusterActive_ = false;
+    if (auto thruster = thrusterObj_.lock()) {
+        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+        for (auto pe : emitters) {
+            pe->Stop();
+        }
+        thruster->Destroy();
+        thrusterObj_.reset();
+    }
+}
+
 void PlayerThrusterVisualizerComponent::SetThrusterActive(bool active) {
     isThrusterActive_ = active;
     if (auto thruster = thrusterObj_.lock()) {
-        thruster->SetIsActive(active);
-        if (auto t = thruster->GetComponent<TransformComponent>()) {
-            t->CheckAndComputeMatrix();
-        }
-        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
-        for (auto pe : emitters) {
-            if (active) {
-                pe->Restart(false);
-            } else {
+        if (!active) {
+            // 1. 全エミッターを停止（Stop()内で即座にGPUバッファへemit=0をフラッシュ）
+            auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+            for (auto pe : emitters) {
                 pe->Stop();
+            }
+
+            // 2. スラスター本体および全子ノードのスケールを即座にゼロへ潰し、描画を視覚的にも完全遮断
+            if (auto t = thruster->GetComponent<TransformComponent>()) {
+                t->SetScale({0.0f, 0.0f, 0.0f});
+                t->CheckAndComputeMatrix();
+            }
+            auto allTransforms = thruster->GetComponentsInChildren<TransformComponent>();
+            for (auto childT : allTransforms) {
+                if (childT) {
+                    childT->SetScale({0.0f, 0.0f, 0.0f});
+                    childT->CheckAndComputeMatrix();
+                }
+            }
+            currentScaleZ_ = 0.0f;
+            targetScaleZ_ = 0.0f;
+
+            // 3. 自機撃破・死亡時は GameObject 自体を即座にシーンから完全破棄（業界標準のライフサイクル保証）
+            if (healthComp_ && healthComp_->IsDead()) {
+                thruster->Destroy();
+                thrusterObj_.reset();
+            } else {
+                thruster->SetIsActive(false);
+            }
+        } else {
+            thruster->SetIsActive(true);
+            if (auto t = thruster->GetComponent<TransformComponent>()) {
+                t->SetScale({1.0f, 1.0f, (std::max)(currentScaleZ_, minScaleZ_)});
+                t->CheckAndComputeMatrix();
+            }
+            auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+            for (auto pe : emitters) {
+                pe->Restart(false);
             }
         }
     }
@@ -74,17 +119,31 @@ void PlayerThrusterVisualizerComponent::OnThrottleChanged(float throttle) {
 
 void PlayerThrusterVisualizerComponent::OnStateChanged(PlayerFlightState newState, PlayerFlightState oldState) {
     (void)oldState;
-    if (auto thruster = thrusterObj_.lock()) {
-        if (newState == PlayerFlightState::Dying) {
-            // 撃破時はスラスターを即座に停止・非表示化
-            thruster->SetIsActive(false);
-        } else if (newState == PlayerFlightState::Boost) {
-            targetScaleZ_ = maxScaleZ_ * 1.35f; // ブースト時はさらに35%伸長
-        }
+    if (newState == PlayerFlightState::Dying) {
+        // 撃破時はスラスターを即座に停止・完全消火
+        SetThrusterActive(false);
+    } else if (newState == PlayerFlightState::Boost) {
+        targetScaleZ_ = maxScaleZ_ * 1.35f; // ブースト時はさらに35%伸長
     }
 }
 
 void PlayerThrusterVisualizerComponent::Update() {
+    // 自機が存在しない、非アクティブ、または親が休眠している場合は即座に完全停止
+    if (!gameObject_ || !gameObject_->GetIsActive()) {
+        if (isThrusterActive_) {
+            SetThrusterActive(false);
+        }
+        return;
+    }
+
+    // 自機が死亡・撃破状態（PlayerHealthComponent::IsDead）なら自動的に完全消火
+    if (healthComp_ && healthComp_->IsDead()) {
+        if (isThrusterActive_) {
+            SetThrusterActive(false);
+        }
+        return;
+    }
+
     if (!isThrusterActive_) {
         return;
     }

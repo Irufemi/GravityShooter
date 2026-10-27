@@ -13,6 +13,8 @@
 #include "Framework/Component/Renderer/TextRendererComponent.h"
 #include "UI/UISound.h"
 #include "Audio/AudioManager.h"
+#include "Player/PlayerHealthComponent.h"
+#include "Level/StageIntroDirectorComponent.h"
 #include <algorithm>
 #include <cmath>
 
@@ -34,20 +36,22 @@ inline float SmoothStep(float t) {
 void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
-    isKioskLoopMode_ = false; // 通常起動・審査提出版では展示ループを初期無効化（手動プレイ最優先）
-    s_isKioskModeActive_ = false;
-    s_isAttractModeActive_ = false;
-    demoMode_ = DemoMode::TransitionShowcase; // 画面遷移ショーケースデモをデフォルトに設定
+    isKioskLoopMode_ = true; // 今回の演出確認・審査ループのため初期ON
+    s_isKioskModeActive_ = true;
+    s_isAttractModeActive_ = true;
+    demoMode_ = DemoMode::GameOverShowcase; // ゲームオーバー演出実演をデフォルトに設定
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
     hasSubmitted_ = false;
     hasTriggeredReturn_ = false;
     wasF8Down_ = false;
     wasF7Down_ = false;
+    wasF6Down_ = false;
     f8CooldownTimer_ = 0.0f;
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
+    resultTimer_ = 0.0f;
 }
 
 void AttractDemoManager::OnFinalize() {
@@ -122,6 +126,10 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
                     mouse->SetVirtualPosition({0.0f, 0.0f}, false);
                 }
             }
+        } else if (currentScene == "Result") {
+            // Result シーン突入時
+            resultTimer_ = 0.0f;
+            hasTriggeredReturn_ = false;
         }
         previousScene_ = currentScene;
     }
@@ -131,6 +139,7 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
     static const std::unordered_map<std::string, SceneUpdateHandler> kSceneUpdateHandlers = {
         {"Title", &AttractDemoManager::UpdateTitleScene},
         {"InGame", &AttractDemoManager::UpdateInGameScene},
+        {"Result", &AttractDemoManager::UpdateResultScene},
     };
 
     if (auto it = kSceneUpdateHandlers.find(currentScene); it != kSceneUpdateHandlers.end()) {
@@ -161,7 +170,29 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
         isF8Down = true;
     }
 
-    // F7キーでデモモード（TransitionShowcase ⇄ StandardAttract）を瞬時トグル
+    // F6キーで自機を強制撃破（ゲームオーバー演出デバッグ・実演確認用）
+    SHORT asyncStateF6 = GetAsyncKeyState(VK_F6);
+    bool isF6Down = (asyncStateF6 & 0x8000) != 0;
+    if (inputManager->IsKeyPressed(VK_F6) || inputManager->IsKeyDown(VK_F6)) {
+        isF6Down = true;
+    }
+    bool f6Triggered = isF6Down && !wasF6Down_;
+    wasF6Down_ = isF6Down;
+
+    if (f6Triggered) {
+        auto sm = engine_->GetSceneManager();
+        if (sm && sm->GetCurrent() == "InGame") {
+            if (auto baseScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene())) {
+                if (auto player = baseScene->FindGameObject("Player")) {
+                    if (auto health = player->GetComponent<PlayerHealthComponent>()) {
+                        health->TakeDamage(99999);
+                    }
+                }
+            }
+        }
+    }
+
+    // F7キーでデモモードを循環切り替え
     SHORT asyncStateF7 = GetAsyncKeyState(VK_F7);
     bool isF7Down = (asyncStateF7 & 0x8000) != 0;
     if (inputManager->IsKeyPressed(VK_F7) || inputManager->IsKeyDown(VK_F7)) {
@@ -171,8 +202,7 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
     wasF7Down_ = isF7Down;
 
     if (f7Triggered) {
-        demoMode_ =
-            (demoMode_ == DemoMode::TransitionShowcase) ? DemoMode::StandardAttract : DemoMode::TransitionShowcase;
+        CycleNextDemoMode();
         auto sm = engine_->GetSceneManager();
         if (isKioskLoopMode_ && sm && sm->GetCurrent() == "Title") {
             // モード切り替え時にデモタイムラインを即座に再起動
@@ -255,12 +285,12 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
         Irufemi::Vector2 targetCursorPos = posSweepStart_;
 
-        // === 【モード分岐 1】画面遷移ショーケースデモ（TransitionShowcase） ===
-        if (demoMode_ == DemoMode::TransitionShowcase) {
-            // タイトル画面と星雲の美しさをゆったり3.0秒鑑賞してからGAME STARTを自動決定
+        // === 【モード分岐 1 & 3】画面遷移ショーケース / ゲームオーバー実演 ===
+        if (demoMode_ == DemoMode::TransitionShowcase || demoMode_ == DemoMode::GameOverShowcase) {
             targetCursorPos = posStart_;
 
-            if (demoTimeline_ >= 3.00f) {
+            float launchDelay = (demoMode_ == DemoMode::GameOverShowcase) ? 1.50f : 3.00f;
+            if (demoTimeline_ >= launchDelay) {
                 if (!hasSubmitted_) {
                     hasSubmitted_ = true;
                     UISound::PlayDecide();
@@ -422,6 +452,32 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         return;
     }
 
+    // ゲームオーバー演出実演モードの場合：イントロ閃光をスキップし、通常飛行を1.50秒見せた後に自機を撃破
+    if (demoMode_ == DemoMode::GameOverShowcase) {
+        auto currentScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene());
+        if (currentScene) {
+            // ワープイントロ演出（2.8秒）をスキップし、自機とカメラを即座に通常戦闘姿勢にスタンバイ
+            if (auto introObj = currentScene->FindGameObject("StageIntroDirector")) {
+                if (auto intro = introObj->GetComponent<StageIntroDirectorComponent>()) {
+                    intro->SkipIntroSequence();
+                }
+            }
+        }
+
+        if (inGameTimer_ >= 1.50f && !hasTriggeredReturn_) {
+            if (currentScene) {
+                if (auto player = currentScene->FindGameObject("Player")) {
+                    if (auto health = player->GetComponent<PlayerHealthComponent>()) {
+                        if (!health->IsDead()) {
+                            health->TakeDamage(99999);
+                        }
+                    }
+                }
+            }
+        }
+        return; // 自機の死亡シーケンス完了後にResultManager側でResultへ移行するため、通常の時間切れ帰還はスキップ
+    }
+
     // タイムアウト判定（画面が明るくなってから実機映像を魅せて自動フェード帰還）
     if (inGameTimer_ >= kInGameDuration_) {
         hasTriggeredReturn_ = true;
@@ -435,6 +491,48 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         // 単なる黒フェードから、事象の地平線への空間吸い込み・重力色収差遷移へ昇華
         sm->TransitionTo("Title", SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,
                          Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
+    }
+}
+
+void AttractDemoManager::UpdateResultScene(float deltaTime) {
+    if (hasTriggeredReturn_) {
+        return;
+    }
+
+    // デモによる出撃中（またはF8キオスクループ中）でなければ通常プレイなので何もしない
+    if (!isDemoInGame_ && !isKioskLoopMode_) {
+        return;
+    }
+
+    auto sm = engine_->GetSceneManager();
+    if (!sm) {
+        return;
+    }
+
+    if (sm->IsLoading() || sm->IsTransitioning()) {
+        return;
+    }
+
+    resultTimer_ += deltaTime;
+
+    // リザルト文字および暗幕をじっくり視認させた後（1.80秒後）に自動ループ遷移
+    if (resultTimer_ >= 1.80f) {
+        hasTriggeredReturn_ = true;
+
+        // BGMの滑らかなフェードアウト (0.75秒で対数減衰)
+        if (auto am = engine_->GetAudioManager()) {
+            am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.75f);
+        }
+
+        if (demoMode_ == DemoMode::GameOverShowcase) {
+            // ゲームオーバー実演デモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
+            sm->TransitionTo("InGame", SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
+                             Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+        } else {
+            // 通常アトラクトデモなら Title へ帰還
+            sm->TransitionTo("Title", SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
+                             Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+        }
     }
 }
 
@@ -642,9 +740,18 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
 
     // F8ループ展示中なら誰でも直感的にわかる専用文言（黄金色）に切り替え
     if (isKioskLoopMode_) {
-        std::wstring targetText = (demoMode_ == DemoMode::TransitionShowcase)
-                                      ? L"DEMO: TRANSITION SHOWCASE   |   F7: MODE   |   F8: EXIT"
-                                      : L"DEMO: STANDARD ATTRACT   |   F7: MODE   |   F8: EXIT";
+        std::wstring targetText;
+        switch (demoMode_) {
+            case DemoMode::TransitionShowcase:
+                targetText = L"DEMO: TRANSITION SHOWCASE   |   F7: MODE   |   F8: EXIT";
+                break;
+            case DemoMode::StandardAttract:
+                targetText = L"DEMO: STANDARD ATTRACT   |   F7: MODE   |   F8: EXIT";
+                break;
+            case DemoMode::GameOverShowcase:
+                targetText = L"DEMO: GAME OVER SHOWCASE   |   F6: KILL   |   F7: MODE   |   F8: EXIT";
+                break;
+        }
         if (demoHudText_->GetText() != targetText) {
             demoHudText_->SetText(targetText);
         }

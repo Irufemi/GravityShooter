@@ -24,7 +24,8 @@ public:
      */
     enum class DemoMode {
         TransitionShowcase, ///< 【画面遷移ショーケース】起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ
-        StandardAttract ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
+        StandardAttract,    ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
+        GameOverShowcase    ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
     };
 
     AttractDemoManager() = default;
@@ -46,6 +47,24 @@ public:
      */
     void SetDemoMode(DemoMode mode) {
         demoMode_ = mode;
+    }
+
+    /**
+     * @brief デモモードを次のモードへ循環切り替えする
+     */
+    void CycleNextDemoMode() {
+        switch (demoMode_) {
+            case DemoMode::TransitionShowcase:
+                demoMode_ = DemoMode::StandardAttract;
+                break;
+            case DemoMode::StandardAttract:
+                demoMode_ = DemoMode::GameOverShowcase;
+                break;
+            case DemoMode::GameOverShowcase:
+            default:
+                demoMode_ = DemoMode::TransitionShowcase;
+                break;
+        }
     }
 
     /**
@@ -82,6 +101,7 @@ private:
     void UpdateF8Input(float deltaTime);
     void UpdateTitleScene(float deltaTime);
     void UpdateInGameScene(float deltaTime);
+    void UpdateResultScene(float deltaTime);
 
     void StartTitleDemo();
     void StopTitleDemo();
@@ -113,12 +133,14 @@ private:
 
     bool wasF8Down_ = false;       ///< 前フレームのF8キー押下状態（エッジ検知）
     bool wasF7Down_ = false;       ///< 前フレームのF7キー押下状態（エッジ検知）
+    bool wasF6Down_ = false;       ///< 前フレームのF6キー押下状態（デバッグ用即時撃破）
     float f8CooldownTimer_ = 0.0f; ///< 多重発火防止用クールダウンタイマー（秒）
     static constexpr float kF8CooldownDuration_ = 0.30f; ///< クールダウン時間（300ms）
 
     float idleTimer_ = 0.0f;    ///< Titleでの無操作タイマー
     float demoTimeline_ = 0.0f; ///< Titleデモタイムライン（秒）
     float inGameTimer_ = 0.0f;  ///< InGameデモタイマー（秒）
+    float resultTimer_ = 0.0f;  ///< Resultデモタイマー（秒）
 
     static constexpr float kIdleThreshold_ = 8.0f; ///< 自動デモ開始までの無操作秒数
     static constexpr float kInGameDuration_ = 9.00f; ///< 本編デモ映像の表示秒数（じっくり魅せる9.0秒）

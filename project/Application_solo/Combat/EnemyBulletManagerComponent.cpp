@@ -174,3 +174,14 @@ void EnemyBulletManagerComponent::ReturnBullet(GameObject* bullet) {
     }
     ReturnBullet(bullet->GetComponent<EnemyBulletComponent>());
 }
+
+void EnemyBulletManagerComponent::AbsorbAndClearAllBullets() {
+    if (!bulletPool_) {
+        return;
+    }
+    bulletPool_->ForEach([this](const std::shared_ptr<GameObject>& bullet) {
+        if (bullet && bullet->GetIsActive()) {
+            ReturnBullet(bullet.get());
+        }
+    });
+}
