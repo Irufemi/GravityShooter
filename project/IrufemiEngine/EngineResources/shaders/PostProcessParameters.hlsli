@@ -228,6 +228,15 @@ struct PostProcessParams {
     float32_t gravityDistortionChromaticRatio;
     float32_t gravityDistortionTime;
     float32_t pad_gravityDistortion;
+
+    // BlackHoleSupernova
+    float32_t2 blackHoleSupernovaCenter;
+    float32_t blackHoleRadius;
+    float32_t blackHolePullIntensity;
+    float32_t supernovaRadius;
+    float32_t supernovaIntensity;
+    float32_t supernovaChromaticRatio;
+    float32_t supernovaFlashIntensity;
 };
 
 struct VignetteParams {

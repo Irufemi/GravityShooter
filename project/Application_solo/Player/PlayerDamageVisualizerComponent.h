@@ -85,11 +85,13 @@ public:
      */
     enum class DeathSequencePhase {
         None,           ///< 通常時（非死亡）
-        Implosion,      ///< フェーズ1: 周回ガレキ・全敵弾回収 ＆ 特異点への加速度的収縮 (0.0s〜0.65s)
-        VacuumFreeze,   ///< フェーズ2: 極小点での完全静寂・息を呑む真空フリーズ (0.65s〜0.85s)
-        SupernovaBurst, ///< フェーズ3: 臨界突破！Voxel大破砕 ＆ カメラ激震・余韻 (0.85s〜2.10s)
-        WhiteoutFade,   ///< フェーズ4: 破砕拡散を見届けた後、全画面ホワイトアウト侵食 (2.10s〜2.70s)
-        Completed       ///< フェーズ5: 演出完了（ResultSceneへの確定バトンタッチ 2.70s〜）
+        Meltdown,       ///< 第1幕: 装甲破断・Voxel剥離・重力過熱暴走 (0.00s〜0.40s)
+        BlackHole,      ///< 第2幕: 漆黒の事象の地平面出現・求心スワール超吸引 (0.40s〜1.00s)
+        VacuumFreeze,   ///< 幕間: 臨界極小点での完全静寂 (1.00s〜1.06s)
+        SupernovaBurst, ///< 第3幕: ガンマ線バースト閃光 & 超巨大GRAVITY DAZE色収差衝撃波 & Voxel結晶爆散 (1.06s〜1.80s)
+        PlasmaAfterglow,///< 第4幕: 宇宙の冷気と青白いプラズマ余韻を見届ける (1.80s〜2.50s)
+        WhiteoutFade,   ///< リザルト接続フェード (2.50s〜3.00s)
+        Completed       ///< シーケンス完了 (3.00s〜)
     };
 
     /**
@@ -124,6 +126,13 @@ private:
      */
     BaseModel* GetTargetModel();
 
+    /**
+     * @brief ワールド座標を現在のカメラからスクリーンUV座標 (0.0〜1.0) へ動的投影する
+     * @param[in] worldPos 投影対象のワールド座標
+     * @return スクリーンUV座標
+     */
+    Irufemi::Vector2 CalculateWorldScreenUV(const Irufemi::Vector3& worldPos);
+
 private:
     PlayerHealthComponent* healthComp_ = nullptr; ///< 監視対象の体力コンポーネント
 
@@ -152,5 +161,9 @@ private:
     DeathSequencePhase phase_ = DeathSequencePhase::None; ///< 現在の進行フェーズ
     float phaseTimer_ = 0.0f;                             ///< 現在フェーズの経過タイマー（秒）
     Irufemi::Vector3 originalScale_{1.0f, 1.0f, 1.0f};    ///< 収縮前の自機スケール
+    Irufemi::Vector3 originalLocalPos_{0.0f, 0.0f, 0.0f}; ///< 撃墜前の自機ローカル座標
+    Irufemi::Vector2 deathScreenUV_{0.5f, 0.5f};          ///< 自機のスクリーンUV
+    Irufemi::Vector3 deathWorldPos_{0.0f, 0.0f, 0.0f};    ///< 自機の撃墜ワールド座標
+    Irufemi::Vector3 deathWorldRot_{0.0f, 0.0f, 0.0f};    ///< 自機の撃墜ワールド回転
     std::function<void()> onDeathSequenceCompleted_;      ///< 演出完了コールバック
 };

@@ -31,6 +31,7 @@ static const int32_t kPostProcessMode_DirectionalBlur = 25;
 static const int32_t kPostProcessMode_Halftone = 26;
 static const int32_t kPostProcessMode_DepthOfField = 27;
 static const int32_t kPostProcessMode_GravityDistortion = 29;
+static const int32_t kPostProcessMode_BlackHoleSupernova = 30;
 
 // --- ヘルパー関数 ---
 #include "Noise.hlsli"
@@ -659,5 +660,116 @@ float32_t3 ApplyGravityDistortion(float32_t2 uv, float32_t2 center, float32_t ra
     float32_t3 prismGlow = float32_t3(redGlow, greenGlow * 0.5f, blueGlow) * (wave * 0.5f);
 
     return shiftedColor + prismGlow;
+}
+
+// 30. Black Hole & Supernova (事象の地平面＋求心スワール＋スーパーノヴァ過熱火球＆熱波歪み＋GRAVITY DAZE色収差衝撃波＋ガンマ線バースト閃光)
+float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t bhRadius, float32_t pullIntensity,
+                                   float32_t snRadius, float32_t snIntensity, float32_t snChromaticRatio,
+                                   float32_t snFlash, Texture2D<float32_t4> tex, SamplerState smp) {
+    uint32_t texWidth, texHeight;
+    tex.GetDimensions(texWidth, texHeight);
+    float aspect = float(texWidth) / max(float(texHeight), 1.0f);
+    float32_t2 aspectCorrection = float32_t2(aspect, 1.0f);
+
+    // アスペクト比補正により完全な真円距離を算出
+    float32_t2 delta = (uv - center) * aspectCorrection;
+    float32_t dist = length(delta);
+    if (dist <= 0.0001f) {
+        return tex.Sample(smp, uv).rgb;
+    }
+    float32_t2 dir = delta / dist;
+
+    float32_t2 finalUV = uv;
+    float32_t2 chromaticOffset = float32_t2(0, 0);
+    float32_t3 photonGlow = float32_t3(0, 0, 0);
+    float32_t blackHoleAlpha = 0.0f;
+
+    // --- 1. ブラックホール（事象の地平面 ＆ 求心重力レンズ） ---
+    if (bhRadius > 0.001f) {
+        // 事象の地平面: 中心核の完全吸光（光すら脱出できない漆黒）
+        blackHoleAlpha = 1.0f - smoothstep(bhRadius * 0.40f, bhRadius * 0.95f, dist);
+
+        // 求心スワールレンズ: 背景空間と光が中心へ螺旋状に吸い込まれる歪み
+        if (dist >= bhRadius * 0.5f) {
+            float pull = (bhRadius / dist) * pullIntensity;
+            // 螺旋成分 (渦巻き)
+            float32_t2 tangent = float32_t2(-dir.y, dir.x);
+            float32_t2 uvOffset = (dir * pull * 0.7f + tangent * pull * 0.3f) / aspectCorrection;
+            finalUV -= uvOffset;
+        }
+
+        // フォトン球 (Photon Sphere): 事象の地平面の縁に走る GRAVITY DAZE プリズム光子リング
+        float dCore = abs(dist - bhRadius);
+        float coreRing = exp(-pow(dCore / (bhRadius * 0.20f), 2.0f));
+        photonGlow += float32_t3(coreRing * 0.3f, coreRing * 0.9f, coreRing * 1.6f) * 1.5f;
+    }
+
+    // --- 2. スーパーノヴァ（天体規模の火球・熱波歪み ＆ GRAVITY DAZE 色収差衝撃波） ---
+    if (snIntensity > 0.0001f && snRadius > 0.001f) {
+        // A. 衝撃波面リング (外周エッジ)
+        float waveWidth = 0.15f;
+        float dShock = abs(dist - snRadius);
+        if (dShock < waveWidth) {
+            float normD = dShock / waveWidth;
+            float shockWave = (1.0f - normD * normD);
+            shockWave = shockWave * shockWave;
+
+            // 空間を外側に押し出す強力な変位
+            finalUV += (dir * (shockWave * snIntensity)) / aspectCorrection;
+
+            // GRAVITY DAZE 特有の鮮烈な色収差（RGBシフト）
+            chromaticOffset = (dir * (shockWave * snChromaticRatio)) / aspectCorrection;
+
+            // 衝撃波面のエッジプリズム光彩
+            photonGlow += float32_t3(shockWave * 0.9f, shockWave * 1.4f, shockWave * 2.5f) * 1.2f;
+        }
+
+        // B. スーパーノヴァ火球内部（円の中の充填: NASA級の過熱プラズマ火球 ＆ 放射コロナ光芒 ＆ 激震熱波空間歪み）
+        if (dist < snRadius) {
+            float normR = dist / snRadius; // 0(中心) 〜 1(衝撃波面)
+            float innerFalloff = 1.0f - normR;
+
+            // ① 放射状コロナ光芒（Rayleigh Corona Rays）: 天体爆発特有の多条フレア光線＋回転フィラメント
+            float angle = atan2(dir.y, dir.x);
+            float coronaRays = 0.80f + 0.20f * sin(angle * 12.0f + snRadius * 16.0f);
+            float filamentNoise = sin(angle * 24.0f - dist * 40.0f) * 0.15f;
+
+            // ② 多層過熱プラズマ火球（超高温白熱核 ➔ シアンブルー ➔ 外層重力プラズマ）
+            float coreFire = pow(innerFalloff, 1.1f) * snIntensity * (coronaRays + filamentNoise);
+            float32_t3 plasmaColor = lerp(
+                float32_t3(3.5f, 3.8f, 5.0f),  // 中心: 超高輝度ホワイトゴールド＆シアン
+                float32_t3(0.5f, 1.4f, 3.2f),  // 外縁: 深遠な高エネルギー重力プラズマ
+                normR
+            );
+            photonGlow += plasmaColor * (coreFire * 3.8f);
+
+            // ③ 空間の激震熱波歪み（過熱空間が激しく陽炎のように波打つ）
+            float heatWave = sin(dist * 50.0f - snRadius * 20.0f) * innerFalloff * (snIntensity * 0.08f);
+            finalUV += (dir * heatWave) / aspectCorrection;
+
+            // ④ 核融合特異点残光コア（爆心地に灼熱残留する超高密度エネルギー核）
+            float coreRemnant = exp(-pow(dist / 0.10f, 2.0f)) * snIntensity * 6.0f;
+            photonGlow += float32_t3(4.0f, 4.2f, 5.0f) * coreRemnant;
+        }
+    }
+
+    // --- 3. サンプリングと合成 ---
+    float32_t3 sampleColor;
+    if (length(chromaticOffset) > 0.0001f) {
+        sampleColor = SampleWithRGBShift(tex, smp, finalUV, chromaticOffset);
+    } else {
+        sampleColor = tex.Sample(smp, finalUV).rgb;
+    }
+
+    // 事象の地平面による完全黒化
+    sampleColor = lerp(sampleColor, float32_t3(0, 0, 0), blackHoleAlpha);
+
+    // 光子リング・重力波プラズマ火球光彩の加算
+    sampleColor += photonGlow;
+
+    // ガンマ線バースト（瞬間全画面HDRホワイトバースト）の加算
+    sampleColor += float32_t3(1.0f, 1.0f, 1.0f) * snFlash;
+
+    return sampleColor;
 }
 

@@ -364,6 +364,21 @@ PixelShaderOutput main(VertexShaderOutput input) {
             case kPostProcessMode_GravityDistortion:
                 color.rgb = ApplyGravityDistortion(uv, gParams.gravityDistortionCenter, gParams.gravityDistortionRadius, gParams.gravityDistortionIntensity, gParams.gravityDistortionWaveWidth, gParams.gravityDistortionChromaticRatio, gParams.gravityDistortionTime, gTexture, gSampler);
                 break;
+
+            case kPostProcessMode_BlackHoleSupernova:
+                color.rgb = ApplyBlackHoleSupernova(
+                    uv, 
+                    gParams.blackHoleSupernovaCenter, 
+                    gParams.blackHoleRadius, 
+                    gParams.blackHolePullIntensity,
+                    gParams.supernovaRadius, 
+                    gParams.supernovaIntensity, 
+                    gParams.supernovaChromaticRatio, 
+                    gParams.supernovaFlashIntensity, 
+                    gTexture, 
+                    gSampler
+                );
+                break;
         }
     }
 

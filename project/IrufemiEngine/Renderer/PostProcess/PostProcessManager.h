@@ -53,6 +53,7 @@ enum class PostProcessMode {
     DepthOfField,          ///< 被写界深度（DoF）
     LightShafts,           ///< ゴッドレイ（光の筋）
     GravityDistortion,     ///< 重力波・空間歪曲（法線波紋＋色収差）
+    BlackHoleSupernova,    ///< 自機重力特異点崩壊＆超新星爆発（事象の地平面＋GRAVITY DAZE色収差）
 };
 
 class DirectXCommon;
@@ -442,6 +443,20 @@ public:
     };
 
     /**
+     * @struct BlackHoleSupernovaParams
+     * @brief ブラックホール（事象の地平面＆求心スワール）および超新星衝撃波用パラメータ
+     */
+    struct BlackHoleSupernovaParams {
+        Irufemi::Vector2 center = {0.5f, 0.5f}; ///< スクリーン中心UV (0.0〜1.0)
+        float blackHoleRadius = 0.0f;          ///< 事象の地平面半径
+        float blackHolePullIntensity = 0.0f;   ///< 求心スワール吸引強度
+        float supernovaRadius = 0.0f;          ///< スーパーノヴァ衝撃波半径
+        float supernovaIntensity = 0.0f;       ///< 衝撃波変位強度
+        float supernovaChromaticRatio = 0.0f;  ///< GRAVITY DAZE 色収差比率
+        float supernovaFlashIntensity = 0.0f;  ///< 瞬間ガンマ線バースト閃光強度
+    };
+
+    /**
      * @struct LightShaftsParams
      * @brief ゴッドレイ（光の筋）エフェクト用パラメータ
      */
@@ -592,14 +607,23 @@ public:
         float gravityDistortionTime;
         float pad_gravityDistortion;
 
+        // BlackHoleSupernova (32 bytes = 8 float)
+        Irufemi::Vector2 blackHoleSupernovaCenter;
+        float blackHoleRadius;
+        float blackHolePullIntensity;
+        float supernovaRadius;
+        float supernovaIntensity;
+        float supernovaChromaticRatio;
+        float supernovaFlashIntensity;
+
         // [Bindless]
         uint32_t mainTextureIndex;
         uint32_t extraTextureIndex;
         uint32_t maskTextureIndex;
         uint32_t padding_bindless;
 
-        // 256-byte alignment padding (Current size: 656 bytes, padded to 768 bytes)
-        uint32_t alignPadding[28];
+        // 256-byte alignment padding (Current size: 688 bytes, padded to 768 bytes)
+        uint32_t alignPadding[20];
     };
 
     struct alignas(256) BindlessParams {
@@ -1355,6 +1379,20 @@ public:
     }
 
     /**
+     * @brief BlackHoleSupernovaParams を取得する。
+     * @return 取得された BlackHoleSupernovaParams
+     */
+    BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() {
+        return blackHoleSupernovaParams_;
+    }
+    const BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() const {
+        return blackHoleSupernovaParams_;
+    }
+    void SetBlackHoleSupernovaParams(const BlackHoleSupernovaParams& params) {
+        blackHoleSupernovaParams_ = params;
+    }
+
+    /**
      * @brief 重力波ディストーションを発火する
      * @param centerUV 歪み中心スクリーンUV (0.0〜1.0)
      * @param intensity 歪みの最大強度
@@ -1575,6 +1613,7 @@ private:
     DirectionalBlurParams directionalBlurParams_;
     HalftoneParams halftoneParams_;
     GravityDistortionParams gravityDistortionParams_;
+    BlackHoleSupernovaParams blackHoleSupernovaParams_;
 
     bool gravityDistortionActive_ = false;
     float gravityDistortionTimer_ = 0.0f;

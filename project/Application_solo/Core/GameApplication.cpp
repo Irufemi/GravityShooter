@@ -81,7 +81,7 @@ const char kInitialScene[]
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
     = "InGame";
 #else
-    = "Title";
+    = "InGame";
 #endif
 
 // --- シーン登録処理 ---

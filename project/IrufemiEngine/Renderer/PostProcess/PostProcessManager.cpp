@@ -219,6 +219,14 @@ void PostProcessManager::Update(float totalTime) {
     combinedParams_.gravityDistortionWaveWidth = gravityDistortionParams_.waveWidth;
     combinedParams_.gravityDistortionChromaticRatio = gravityDistortionParams_.chromaticRatio;
     combinedParams_.gravityDistortionTime = gravityDistortionParams_.time;
+
+    combinedParams_.blackHoleSupernovaCenter = blackHoleSupernovaParams_.center;
+    combinedParams_.blackHoleRadius = blackHoleSupernovaParams_.blackHoleRadius;
+    combinedParams_.blackHolePullIntensity = blackHoleSupernovaParams_.blackHolePullIntensity;
+    combinedParams_.supernovaRadius = blackHoleSupernovaParams_.supernovaRadius;
+    combinedParams_.supernovaIntensity = blackHoleSupernovaParams_.supernovaIntensity;
+    combinedParams_.supernovaChromaticRatio = blackHoleSupernovaParams_.supernovaChromaticRatio;
+    combinedParams_.supernovaFlashIntensity = blackHoleSupernovaParams_.supernovaFlashIntensity;
 }
 
 void PostProcessManager::BeginFrame() {
