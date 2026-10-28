@@ -685,6 +685,7 @@ float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t b
     float32_t2 chromaticOffset = float32_t2(0, 0);
     float32_t3 photonGlow = float32_t3(0, 0, 0);
     float32_t blackHoleAlpha = 0.0f;
+    float32_t gravityAbsorption = 0.0f;
 
     // --- 1. カイラル・ボイド特異点（絶対吸光コア ＆ ルミナスシアン・フォトンリング ＆ 重力降着スワール） ---
     if (bhRadius > 0.001f) {
@@ -705,76 +706,96 @@ float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t b
     }
 
 
-    // --- 2. 重力崩壊・スーパーノヴァ（スマートプラズマ流体 ＆ スペクトルフリンジ衝撃波 ＆ 重力波シェル） ---
+    // --- 2. 幻想的重力昇華・スーパーノヴァ（大質量重力波面 ＆ 重力スワール時空屈折 ＆ ダークシェード） ---
     if (snIntensity > 0.0001f && snRadius > 0.001f) {
-        // [A] 特異点からの指向性スマートエネルギー放電 (Polar Gravity Flares)
-        float jetDist = abs(delta.x);
-        float flareFalloff = exp(-pow(jetDist / 0.040f, 2.0f)) * smoothstep(snRadius * 2.6f, 0.0f, abs(delta.y));
-        float flareNoise = snoise(float2(delta.y * 14.0f - snRadius * 10.0f, delta.x * 22.0f)) * 0.5f + 0.5f;
-        float32_t3 flareColor = float32_t3(0.5f, 1.8f, 3.8f) * (flareFalloff * flareNoise * snIntensity * 0.95f);
-        photonGlow += flareColor;
-
-        // [B] 多層重力界面シェル (GRAVITY DAZE スペクトルフリンジ重力波リング)
-        // ① メイン重力界面 (Primary Shock Front) - 空間を引き裂く薄膜屈折リング
-        float waveWidth = 0.065f;
+        // [A] 分厚く力強い多層重力界面シェル ＆ 濃密なプリズム分光
+        // ① メイン重力界面 (Primary Shock Front) - 時空を強烈に圧縮・外側へ押し出す質量ある分厚い波面
+        float waveWidth = 0.095f; // 薄膜から質量感ある分厚い重力界面へ
         float dShock = abs(dist - snRadius);
         if (dShock < waveWidth) {
             float normD = dShock / waveWidth;
             float shockWave = (1.0f - normD * normD);
             shockWave = shockWave * shockWave;
 
-            // 空間を外側に押し出す強力な重力波変位
-            finalUV += (dir * (shockWave * snIntensity * 0.80f)) / aspectCorrection;
+            // 時空そのものを外側に力強く圧縮・押し出す大質量重力波歪み
+            finalUV += (dir * (shockWave * snIntensity * 1.25f)) / aspectCorrection;
 
-            // GRAVITY DAZE 特有の鮮烈なスペクトル色収差（RGBプリズム分光）
-            chromaticOffset = (dir * (shockWave * snChromaticRatio)) / aspectCorrection;
+            // 濃密なスペクトル色収差（RGBプリズム分光）
+            chromaticOffset = (dir * (shockWave * snChromaticRatio * 1.35f)) / aspectCorrection;
 
-            // プリズム光彩（波頭の重力分光: シアン〜インディゴ）
-            photonGlow += float32_t3(shockWave * 0.5f, shockWave * 1.6f, shockWave * 3.2f) * 1.3f;
+            // 深みのある七色プリズム逆さ虹（Prismatic Rainbow Halo）
+            float rainbowPhase = (dist - snRadius) / waveWidth;
+            float32_t3 rainbow = 0.5f + 0.5f * cos(TAU * (float32_t3(0.0f, 0.33f, 0.67f) + rainbowPhase * 1.2f));
+            photonGlow += rainbow * (shockWave * snIntensity * 1.8f);
         }
 
         // ② 二重副重力波紋 (Precursor & Trailing Ripples) - 先行・後続する繊細な波頭
-        float dPre = abs(dist - snRadius * 1.06f);
-        if (dPre < 0.022f) {
-            float preWave = 1.0f - (dPre / 0.022f);
-            photonGlow += float32_t3(preWave * 0.3f, preWave * 1.2f, preWave * 2.4f) * (snIntensity * 0.55f);
+        float dPre = abs(dist - snRadius * 1.08f);
+        if (dPre < 0.024f) {
+            float preWave = 1.0f - (dPre / 0.024f);
+            photonGlow += float32_t3(preWave * 0.2f, preWave * 1.1f, preWave * 2.2f) * (snIntensity * 0.45f);
         }
         float dTrail = abs(dist - snRadius * 0.78f);
-        if (dTrail < 0.030f) {
-            float trailWave = 1.0f - (dTrail / 0.030f);
-            photonGlow += float32_t3(trailWave * 1.2f, trailWave * 0.5f, trailWave * 2.4f) * (snIntensity * 0.45f);
+        if (dTrail < 0.032f) {
+            float trailWave = 1.0f - (dTrail / 0.032f);
+            photonGlow += float32_t3(trailWave * 1.0f, trailWave * 0.4f, trailWave * 2.2f) * (snIntensity * 0.40f);
         }
 
-        // [C] 衝撃波内部の「渦巻くスマートプラズマ流体」＆ 重力熱波ディストーション（世界観仕様書準拠）
+        // [B] 衝撃波内部の「重厚な多層重力グラデーション（Deep Gravitational Multilayer）」
         if (dist < snRadius && dist > bhRadius) {
             float normR = dist / snRadius; // 0(中心特異点) 〜 1(衝撃波面)
             float innerEnvelope = sin(normR * 3.14159265f); // 中空の流体殻構造
 
-            // ① 流体的なスマートプラズマ重力渦（螺旋スワール座標系による流動感）
-            float2 swirlCoord = (delta + tangent * (dist * 0.45f)) * 3.6f - dir * (snRadius * 1.2f);
-            float plasmaNoise = sFBm(swirlCoord); // -1.0 ~ 1.0
-            float plasmaDensity = smoothstep(0.06f, 0.55f, plasmaNoise * 0.5f + 0.5f) * innerEnvelope;
+            // ① 背景空間を巻き込む滑らかな重力スワール屈折
+            float swirlPower = pow(1.0f - normR, 1.4f) * snIntensity * 0.065f;
+            float32_t2 gravityDistort = (dir * 0.3f + tangent * 0.7f) * (swirlPower * innerEnvelope);
+            finalUV += gravityDistort / aspectCorrection;
 
-            // ② 放射状重力エネルギー光条（特異点から外側へ吹き抜けるシャープな光線）
-            float rayNoise = snoise(float2(angle * 4.0f, snRadius * 2.2f));
-            float rayDensity = pow(max(0.0f, rayNoise * 0.5f + 0.5f), 2.2f) * (1.0f - normR) * innerEnvelope;
+            // ② 滑らかな重力螺旋流動（有機的な濃淡）
+            float swirlAngle = angle + (1.0f - normR) * 2.0f;
+            float radialFlow = normR * 3.2f - snRadius * 1.4f;
+            float streamNoise = sFBm(float2(swirlAngle * 2.0f, radialFlow)); // -1.0 ~ 1.0
+            float streamVal = streamNoise * 0.5f + 0.5f;
 
-            // 世界観カラーパレット: 白熱ルミナスシアン核 ➔ 重力界面インディゴバイオレット
-            float32_t3 plasmaColor = lerp(
-                float32_t3(0.5f, 2.2f, 4.2f),  // 自機のスマートエネルギー（シアン）
-                float32_t3(1.8f, 0.4f, 3.2f),  // 重力界面（ディープ・インディゴバイオレット）
-                plasmaNoise * 0.5f + 0.5f
-            );
-            float totalPlasma = (plasmaDensity * 1.35f + rayDensity * 1.05f) * snIntensity;
-            photonGlow += plasmaColor * totalPlasma;
+            // ③ 濃密な漆黒インディゴ重力シェード（白と黒の二値化を排し、深い藍色へと沈み込む重厚感）
+            float darkDepth = pow(1.0f - streamVal, 2.0f) * innerEnvelope * snIntensity;
+            gravityAbsorption = darkDepth * 0.85f;
 
-            // ③ 背景空間の有機的な重力レンズ流体歪み（海面が時空の歪みとして滑らかに波打つ）
-            float2 warpNoise = float2(
-                snoise(delta * 6.5f - snRadius * 3.0f),
-                snoise(delta * 6.5f + snRadius * 3.0f + 19.5f)
-            );
-            float32_t2 heatDisplacement = warpNoise * (innerEnvelope * snIntensity * 0.020f);
-            finalUV += heatDisplacement / aspectCorrection;
+            // ④ 息を呑むほど重厚な多層グラデーション（漆黒インディゴ ➔ マゼンタ ➔ アメジスト ➔ ルミナスシアン）
+            // 色が白飛びせず、リッチな彩度と深みを極限まで保つカラーパレット
+            float32_t3 colDeepIndigo = float32_t3(0.08f, 0.05f, 0.45f); // 宇宙の底のディープインディゴ
+            float32_t3 colMagenta    = float32_t3(1.40f, 0.10f, 0.90f); // 濃密なコズミックマゼンタ
+            float32_t3 colViolet     = float32_t3(0.70f, 0.15f, 1.80f); // 高貴なアメジストバイオレット
+            float32_t3 colCyan       = float32_t3(0.20f, 1.60f, 2.80f); // 澄んだスマートシアン
+
+            // 多層エネルギー準位のなめらかなブレンド
+            float32_t3 flowColor;
+            if (normR < 0.33f) {
+                flowColor = lerp(colDeepIndigo, colMagenta, normR / 0.33f);
+            } else if (normR < 0.66f) {
+                flowColor = lerp(colMagenta, colViolet, (normR - 0.33f) / 0.33f);
+            } else {
+                flowColor = lerp(colViolet, colCyan, (normR - 0.66f) / 0.34f);
+            }
+
+            // ★すでに出ている紫の流体そのものに白を混ぜ、その割合を拡大していく
+            // 爆発の拡大（中盤〜後半）に伴い、紫の渦そのものが白熱ホワイトへと変貌！
+            float whiteRatio = smoothstep(1.0f, 3.2f, snRadius); // 0.0(紫) -> 1.0(純白)
+            
+            // 紫の流体色に白を直接ブレンド（余計な光条は出さず、紫の形そのものが白熱化）
+            flowColor = lerp(flowColor, float32_t3(2.5f, 2.5f, 3.0f), whiteRatio);
+
+            // 白の拡大に伴い、重力影も自然に白光へ溶け込む
+            gravityAbsorption *= (1.0f - whiteRatio);
+
+            // 流体のハイライト層（白の割合が増えるにつれて発光面積と密度が拡大）
+            float streamGlow = pow(streamVal, lerp(1.8f, 0.8f, whiteRatio)) * innerEnvelope * snIntensity * lerp(1.4f, 2.2f, whiteRatio);
+            photonGlow += flowColor * streamGlow;
+
+            // ⑤ 澄んだ水面のような静かな重力波紋歪み
+            float ripple = sin(dist * 34.0f - snRadius * 14.0f) * innerEnvelope;
+            float2 rippleDisplacement = dir * (ripple * snIntensity * 0.008f);
+            finalUV += rippleDisplacement / aspectCorrection;
         }
     }
 
@@ -789,7 +810,13 @@ float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t b
     // カイラル・ボイド事象の地平面による中心核の完全黒化（特異点コアは漆黒を堅持！）
     sampleColor = lerp(sampleColor, float32_t3(0, 0, 0), blackHoleAlpha);
 
-    // 光子リング・指向性フレア・スマートプラズマ流体の加算（過度な露出飛びを抑えた高品位HDR合成）
+    // ★重力シェード（ダークエネルギー）による時空の暗転・コントラスト圧縮（重厚感の付与）
+    sampleColor *= (1.0f - gravityAbsorption);
+
+    // ★白飛びを厳格に封殺するフィルム調トーン圧縮（色彩の階調と神秘性を100%保持！）
+    photonGlow = photonGlow / (1.0f + photonGlow * 0.32f);
+
+    // 光子リング・オーロラ・プリズム虹の加算
     sampleColor += photonGlow;
 
     // ガンマ線バースト（瞬間全画面HDRホワイトバースト）の加算

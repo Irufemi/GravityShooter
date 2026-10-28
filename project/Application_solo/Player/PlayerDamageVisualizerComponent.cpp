@@ -586,7 +586,9 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
         // 中心には崩壊せず残存する「漆黒の特異点ボイドコア」とフォトンリングを維持！
         bh.blackHoleRadius = 0.018f * (1.0f - t * 0.2f);
         bh.blackHolePullIntensity = 0.04f;
-        bh.supernovaFlashIntensity = 0.0f;
+
+        // ★大爆発の瞬間に全画面が眩く白光するホワイトフラッシュ（ガンマ線バースト: 最初の0.10秒で急減衰）
+        bh.supernovaFlashIntensity = (t < 0.10f) ? (1.0f - t / 0.10f) : 0.0f;
 
         // 爆発開始の最初の 0.08 秒間に急峻な立ち上がりインパルスを持たせ、テクスチャの唐突なポップを根絶！
         float popInCurve = (t < 0.08f) ? (t / 0.08f) : 1.0f;
@@ -604,27 +606,24 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
     }
 
     case DeathSequencePhase::PlasmaAfterglow: {
-        // 【第4幕】2.05s〜2.95s (0.90秒間): 激震が静まり返り、漂うプラズマとVoxel結晶を見届ける「静寂の余韻」
-        constexpr float kDuration = 0.90f;
+        // 【第4幕】2.05s〜2.85s (0.80秒間): 白熱流体が画面を飲み込みホワイトアウトへ加速！
+        constexpr float kDuration = 0.80f;
         float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
 
-        // ★静止フリーズを完全根絶！衝撃波面は画面外の彼方へ突き抜けさせ、物理的な拡散を継続
-        bh.supernovaRadius = 2.8f + t * 2.7f; // 2.8 -> 5.5（画面外へ完全に抜け去る）
+        // 衝撃波面は画面外の彼方へ突き抜けさせる
+        bh.supernovaRadius = 2.8f + t * 2.7f; // 2.8 -> 5.5
 
-        // 空間歪みとプラズマ残光は「スゥーッ…」と滑らかにゼロへ戻り、元の静かな海面が戻ってくる！
-        float decayCurve = (1.0f - t) * (1.0f - t);
-        bh.supernovaIntensity = 1.44f * decayCurve;
-        bh.supernovaChromaticRatio = 0.072f * decayCurve;
-        bh.blackHoleRadius = 0.014f * (1.0f - t * 0.8f);
+        // ★薄まる息切れを完全根絶！白熱化に合わせてエネルギーを落とさず、画面を白で満たす
+        bh.supernovaIntensity = 1.8f;
+        bh.supernovaChromaticRatio = 0.08f * (1.0f - t * 0.5f);
+        bh.blackHoleRadius = 0.014f * (1.0f - t);
+        bh.supernovaFlashIntensity = 0.0f;
 
-        // 余韻の後半（t >= 0.70）から、GAME OVER接続用のシネマティックフェードが静かに立ち上がる
-        if (t >= 0.70f) {
-            float fadeT = (t - 0.70f) / 0.30f;
-            if (ppm) {
-                ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
-                ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
-                ppm->GetFadeParams().intensity = fadeT * 0.5f; // 0.0 -> 0.5
-            }
+        // 白い流体の拡大と完全に同期して、画面全体を滑らかに純白（ホワイトアウト）へ突入させる！
+        if (ppm) {
+            ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
+            ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
+            ppm->GetFadeParams().intensity = t; // 0.0 -> 1.0 (途切れず一気に白へ！)
         }
 
         if (phaseTimer_ >= kDuration) {
@@ -634,11 +633,17 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
     }
 
     case DeathSequencePhase::WhiteoutFade: {
-        // 【第5幕】2.95s〜3.45s (0.50秒間): 光が穏やかに満ちてリザルト画面（GAME OVER）へシームレス接続
-        constexpr float kDuration = 0.50f;
-        float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
+        // 【第5幕】2.85s〜3.15s (0.30秒間): 眩い純白（白1.0）を維持し、GAME OVER画面へシームレス接続
+        constexpr float kDuration = 0.30f;
         if (ppm) {
-            ppm->GetFadeParams().intensity = 0.5f + t * 0.5f; // 0.5 -> 1.0
+            ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
+            ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
+            ppm->GetFadeParams().intensity = 1.0f; // 完全な純白を100%固定保持
+
+            // 超新星は白の裏で消灯
+            bh.supernovaIntensity = 0.0f;
+            bh.blackHoleRadius = 0.0f;
+            bh.supernovaFlashIntensity = 0.0f;
         }
 
         if (phaseTimer_ >= kDuration) {
