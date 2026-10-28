@@ -662,7 +662,7 @@ float32_t3 ApplyGravityDistortion(float32_t2 uv, float32_t2 center, float32_t ra
     return shiftedColor + prismGlow;
 }
 
-// 30. Black Hole & Supernova (事象の地平面＋求心スワール＋スーパーノヴァ過熱火球＆熱波歪み＋GRAVITY DAZE色収差衝撃波＋ガンマ線バースト閃光)
+// 30. Black Hole & Supernova (カイラルボイド特異点＋スマートプラズマ重力流体＋スペクトルフリンジ衝撃波)
 float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t bhRadius, float32_t pullIntensity,
                                    float32_t snRadius, float32_t snIntensity, float32_t snChromaticRatio,
                                    float32_t snFlash, Texture2D<float32_t4> tex, SamplerState smp) {
@@ -678,78 +678,103 @@ float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t b
         return tex.Sample(smp, uv).rgb;
     }
     float32_t2 dir = delta / dist;
+    float32_t2 tangent = float32_t2(-dir.y, dir.x);
+    float angle = atan2(dir.y, dir.x);
 
     float32_t2 finalUV = uv;
     float32_t2 chromaticOffset = float32_t2(0, 0);
     float32_t3 photonGlow = float32_t3(0, 0, 0);
     float32_t blackHoleAlpha = 0.0f;
 
-    // --- 1. ブラックホール（事象の地平面 ＆ 求心重力レンズ） ---
+    // --- 1. カイラル・ボイド特異点（絶対吸光コア ＆ ルミナスシアン・フォトンリング ＆ 重力降着スワール） ---
     if (bhRadius > 0.001f) {
-        // 事象の地平面: 中心核の完全吸光（光すら脱出できない漆黒）
-        blackHoleAlpha = 1.0f - smoothstep(bhRadius * 0.40f, bhRadius * 0.95f, dist);
+        // 事象の地平面: 中心核の完全吸光（DEATH STRANDING調の絶対ボイド）
+        blackHoleAlpha = 1.0f - smoothstep(bhRadius * 0.45f, bhRadius * 0.98f, dist);
 
         // 求心スワールレンズ: 背景空間と光が中心へ螺旋状に吸い込まれる歪み
         if (dist >= bhRadius * 0.5f) {
             float pull = (bhRadius / dist) * pullIntensity;
-            // 螺旋成分 (渦巻き)
-            float32_t2 tangent = float32_t2(-dir.y, dir.x);
             float32_t2 uvOffset = (dir * pull * 0.7f + tangent * pull * 0.3f) / aspectCorrection;
             finalUV -= uvOffset;
         }
 
-        // フォトン球 (Photon Sphere): 事象の地平面の縁に走る GRAVITY DAZE プリズム光子リング
+        // フォトン球 (Photon Sphere): 事象の地平面の縁に走るシャープな白熱ルミナスシアン光子リング
         float dCore = abs(dist - bhRadius);
         float coreRing = exp(-pow(dCore / (bhRadius * 0.20f), 2.0f));
-        photonGlow += float32_t3(coreRing * 0.3f, coreRing * 0.9f, coreRing * 1.6f) * 1.5f;
+        photonGlow += float32_t3(coreRing * 0.4f, coreRing * 1.5f, coreRing * 3.0f) * 1.6f;
     }
 
-    // --- 2. スーパーノヴァ（天体規模の火球・熱波歪み ＆ GRAVITY DAZE 色収差衝撃波） ---
+
+    // --- 2. 重力崩壊・スーパーノヴァ（スマートプラズマ流体 ＆ スペクトルフリンジ衝撃波 ＆ 重力波シェル） ---
     if (snIntensity > 0.0001f && snRadius > 0.001f) {
-        // A. 衝撃波面リング (外周エッジ)
-        float waveWidth = 0.15f;
+        // [A] 特異点からの指向性スマートエネルギー放電 (Polar Gravity Flares)
+        float jetDist = abs(delta.x);
+        float flareFalloff = exp(-pow(jetDist / 0.040f, 2.0f)) * smoothstep(snRadius * 2.6f, 0.0f, abs(delta.y));
+        float flareNoise = snoise(float2(delta.y * 14.0f - snRadius * 10.0f, delta.x * 22.0f)) * 0.5f + 0.5f;
+        float32_t3 flareColor = float32_t3(0.5f, 1.8f, 3.8f) * (flareFalloff * flareNoise * snIntensity * 0.95f);
+        photonGlow += flareColor;
+
+        // [B] 多層重力界面シェル (GRAVITY DAZE スペクトルフリンジ重力波リング)
+        // ① メイン重力界面 (Primary Shock Front) - 空間を引き裂く薄膜屈折リング
+        float waveWidth = 0.065f;
         float dShock = abs(dist - snRadius);
         if (dShock < waveWidth) {
             float normD = dShock / waveWidth;
             float shockWave = (1.0f - normD * normD);
             shockWave = shockWave * shockWave;
 
-            // 空間を外側に押し出す強力な変位
-            finalUV += (dir * (shockWave * snIntensity)) / aspectCorrection;
+            // 空間を外側に押し出す強力な重力波変位
+            finalUV += (dir * (shockWave * snIntensity * 0.80f)) / aspectCorrection;
 
-            // GRAVITY DAZE 特有の鮮烈な色収差（RGBシフト）
+            // GRAVITY DAZE 特有の鮮烈なスペクトル色収差（RGBプリズム分光）
             chromaticOffset = (dir * (shockWave * snChromaticRatio)) / aspectCorrection;
 
-            // 衝撃波面のエッジプリズム光彩
-            photonGlow += float32_t3(shockWave * 0.9f, shockWave * 1.4f, shockWave * 2.5f) * 1.2f;
+            // プリズム光彩（波頭の重力分光: シアン〜インディゴ）
+            photonGlow += float32_t3(shockWave * 0.5f, shockWave * 1.6f, shockWave * 3.2f) * 1.3f;
         }
 
-        // B. スーパーノヴァ火球内部（円の中の充填: NASA級の過熱プラズマ火球 ＆ 放射コロナ光芒 ＆ 激震熱波空間歪み）
-        if (dist < snRadius) {
-            float normR = dist / snRadius; // 0(中心) 〜 1(衝撃波面)
-            float innerFalloff = 1.0f - normR;
+        // ② 二重副重力波紋 (Precursor & Trailing Ripples) - 先行・後続する繊細な波頭
+        float dPre = abs(dist - snRadius * 1.06f);
+        if (dPre < 0.022f) {
+            float preWave = 1.0f - (dPre / 0.022f);
+            photonGlow += float32_t3(preWave * 0.3f, preWave * 1.2f, preWave * 2.4f) * (snIntensity * 0.55f);
+        }
+        float dTrail = abs(dist - snRadius * 0.78f);
+        if (dTrail < 0.030f) {
+            float trailWave = 1.0f - (dTrail / 0.030f);
+            photonGlow += float32_t3(trailWave * 1.2f, trailWave * 0.5f, trailWave * 2.4f) * (snIntensity * 0.45f);
+        }
 
-            // ① 放射状コロナ光芒（Rayleigh Corona Rays）: 天体爆発特有の多条フレア光線＋回転フィラメント
-            float angle = atan2(dir.y, dir.x);
-            float coronaRays = 0.80f + 0.20f * sin(angle * 12.0f + snRadius * 16.0f);
-            float filamentNoise = sin(angle * 24.0f - dist * 40.0f) * 0.15f;
+        // [C] 衝撃波内部の「渦巻くスマートプラズマ流体」＆ 重力熱波ディストーション（世界観仕様書準拠）
+        if (dist < snRadius && dist > bhRadius) {
+            float normR = dist / snRadius; // 0(中心特異点) 〜 1(衝撃波面)
+            float innerEnvelope = sin(normR * 3.14159265f); // 中空の流体殻構造
 
-            // ② 多層過熱プラズマ火球（超高温白熱核 ➔ シアンブルー ➔ 外層重力プラズマ）
-            float coreFire = pow(innerFalloff, 1.1f) * snIntensity * (coronaRays + filamentNoise);
+            // ① 流体的なスマートプラズマ重力渦（螺旋スワール座標系による流動感）
+            float2 swirlCoord = (delta + tangent * (dist * 0.45f)) * 3.6f - dir * (snRadius * 1.2f);
+            float plasmaNoise = sFBm(swirlCoord); // -1.0 ~ 1.0
+            float plasmaDensity = smoothstep(0.06f, 0.55f, plasmaNoise * 0.5f + 0.5f) * innerEnvelope;
+
+            // ② 放射状重力エネルギー光条（特異点から外側へ吹き抜けるシャープな光線）
+            float rayNoise = snoise(float2(angle * 4.0f, snRadius * 2.2f));
+            float rayDensity = pow(max(0.0f, rayNoise * 0.5f + 0.5f), 2.2f) * (1.0f - normR) * innerEnvelope;
+
+            // 世界観カラーパレット: 白熱ルミナスシアン核 ➔ 重力界面インディゴバイオレット
             float32_t3 plasmaColor = lerp(
-                float32_t3(3.5f, 3.8f, 5.0f),  // 中心: 超高輝度ホワイトゴールド＆シアン
-                float32_t3(0.5f, 1.4f, 3.2f),  // 外縁: 深遠な高エネルギー重力プラズマ
-                normR
+                float32_t3(0.5f, 2.2f, 4.2f),  // 自機のスマートエネルギー（シアン）
+                float32_t3(1.8f, 0.4f, 3.2f),  // 重力界面（ディープ・インディゴバイオレット）
+                plasmaNoise * 0.5f + 0.5f
             );
-            photonGlow += plasmaColor * (coreFire * 3.8f);
+            float totalPlasma = (plasmaDensity * 1.35f + rayDensity * 1.05f) * snIntensity;
+            photonGlow += plasmaColor * totalPlasma;
 
-            // ③ 空間の激震熱波歪み（過熱空間が激しく陽炎のように波打つ）
-            float heatWave = sin(dist * 50.0f - snRadius * 20.0f) * innerFalloff * (snIntensity * 0.08f);
-            finalUV += (dir * heatWave) / aspectCorrection;
-
-            // ④ 核融合特異点残光コア（爆心地に灼熱残留する超高密度エネルギー核）
-            float coreRemnant = exp(-pow(dist / 0.10f, 2.0f)) * snIntensity * 6.0f;
-            photonGlow += float32_t3(4.0f, 4.2f, 5.0f) * coreRemnant;
+            // ③ 背景空間の有機的な重力レンズ流体歪み（海面が時空の歪みとして滑らかに波打つ）
+            float2 warpNoise = float2(
+                snoise(delta * 6.5f - snRadius * 3.0f),
+                snoise(delta * 6.5f + snRadius * 3.0f + 19.5f)
+            );
+            float32_t2 heatDisplacement = warpNoise * (innerEnvelope * snIntensity * 0.020f);
+            finalUV += heatDisplacement / aspectCorrection;
         }
     }
 
@@ -761,10 +786,10 @@ float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t b
         sampleColor = tex.Sample(smp, finalUV).rgb;
     }
 
-    // 事象の地平面による完全黒化
+    // カイラル・ボイド事象の地平面による中心核の完全黒化（特異点コアは漆黒を堅持！）
     sampleColor = lerp(sampleColor, float32_t3(0, 0, 0), blackHoleAlpha);
 
-    // 光子リング・重力波プラズマ火球光彩の加算
+    // 光子リング・指向性フレア・スマートプラズマ流体の加算（過度な露出飛びを抑えた高品位HDR合成）
     sampleColor += photonGlow;
 
     // ガンマ線バースト（瞬間全画面HDRホワイトバースト）の加算

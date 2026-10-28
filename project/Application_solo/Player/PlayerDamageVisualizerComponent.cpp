@@ -398,9 +398,13 @@ void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase)
         break;
     }
 
-    case DeathSequencePhase::PlasmaAfterglow:
+    case DeathSequencePhase::PlasmaAfterglow: {
+        // 激震が静まり返る静寂の余韻へ移行
+        break;
+    }
+
     case DeathSequencePhase::WhiteoutFade: {
-        // 全画面ホワイトアウトを開始（白1.0へ）
+        // 静寂の余韻から、光が静かに画面を満たしてリザルト接続フェードへ移行
         if (ppm) {
             ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
             ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -526,18 +530,34 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
     }
 
     case DeathSequencePhase::BlackHole: {
-        // 【第2幕】0.40s〜1.00s (0.60秒間): 漆黒の事象の地平面が拡大し、周囲を猛烈に吸引
-        constexpr float kDuration = 0.60f;
+        // 【第2幕】0.35s〜1.15s (0.80秒間): 事象の地平面の「拡大」➔ 限界突破の「急速重力収縮（インプロージョン）」！
+        constexpr float kDuration = 0.80f;
         float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
 
-        // 事象の地平面半径: 0.0 -> 0.08 (確固たる漆黒コア)
-        bh.blackHoleRadius = 0.08f * std::sin(t * 3.14159265f * 0.5f);
-        bh.blackHolePullIntensity = 0.25f * t;
+        // 前半（0.00s〜0.50s / t: 0.0〜0.625）: ブラックホールが悠然と最大まで拡大！周囲の時空を猛烈吸引
+        if (t <= 0.625f) {
+            float tExpand = t / 0.625f;
+            bh.blackHoleRadius = 0.09f * std::sin(tExpand * 3.14159265f * 0.5f);
+            bh.blackHolePullIntensity = 0.30f * tExpand;
 
-        // 自機本体はブラックホールの中心へ急速圧縮 (1.0 -> 0.0)
-        if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
-            float scaleFactor = std::pow(1.0f - t, 3.0f);
-            transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.01f));
+            // 自機は特異点中心へ圧縮
+            if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
+                float scaleFactor = std::pow(1.0f - tExpand * 0.8f, 2.0f);
+                transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.01f));
+            }
+        }
+        // 後半（0.50s〜0.80s / t: 0.625〜1.0）: 限界突破！ギュウウッ…と超強烈なイージングで極小特異点へ急激に凝縮（インプロージョン / 縮小）！
+        else {
+            float tImplode = (t - 0.625f) / 0.375f;
+            float implodeCurve = std::pow(1.0f - tImplode, 3.5f);
+            bh.blackHoleRadius = 0.006f + (0.09f - 0.006f) * implodeCurve;
+            bh.blackHolePullIntensity = 0.30f * implodeCurve;
+
+            // 自機本体は完全に特異点へ吸い込まれて消滅
+            if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
+                float scaleFactor = (1.0f - tImplode) * 0.2f;
+                transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.001f));
+            }
         }
 
         if (phaseTimer_ >= kDuration) {
@@ -547,9 +567,9 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
     }
 
     case DeathSequencePhase::VacuumFreeze: {
-        // 【幕間】1.00s〜1.06s (0.06秒間): 臨界極小点での完全静寂フリーズ
-        constexpr float kDuration = 0.06f;
-        bh.blackHoleRadius = 0.015f; // 極小特異点
+        // 【幕間】1.15s〜1.30s (0.15秒間): 極小特異点での完全な静寂・息を呑む一瞬のタメ（Anticipation）！
+        constexpr float kDuration = 0.15f;
+        bh.blackHoleRadius = 0.006f; // 極小特異点
         bh.blackHolePullIntensity = 0.0f;
 
         if (phaseTimer_ >= kDuration) {
@@ -559,20 +579,47 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
     }
 
     case DeathSequencePhase::SupernovaBurst: {
-        // 【第3幕】1.06s〜1.80s (0.74秒間): スーパーノヴァ大爆発！（波紋・火球・Voxel結晶の全方位拡散）
-        constexpr float kDuration = 0.74f;
+        // 【第3幕】1.30s〜2.05s (0.75秒間): 臨界突破！スーパーノヴァ大爆発（拡大！数千のVoxel結晶大拡散 ＆ スマートプラズマ重力波）
+        constexpr float kDuration = 0.75f;
         float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
-        bh.blackHoleRadius = 0.0f; // 特異点崩壊
-        bh.supernovaFlashIntensity = 0.0f; // ★偽の先行ホワイトアウトを廃止！爆発の広がりを明瞭に見せる
 
-        // 超高速重力波衝撃波 ＆ GRAVITY DAZE 色収差の全方位展開（超高密度火球）
-        bh.supernovaRadius = t * 2.5f;
-        bh.supernovaIntensity = 2.5f * (1.0f - t * 0.4f); // 爆炎と過熱プラズマを画面端まで維持
-        bh.supernovaChromaticRatio = 0.16f * (1.0f - t);  // 鮮烈なプリズム分光
+        // 中心には崩壊せず残存する「漆黒の特異点ボイドコア」とフォトンリングを維持！
+        bh.blackHoleRadius = 0.018f * (1.0f - t * 0.2f);
+        bh.blackHolePullIntensity = 0.04f;
+        bh.supernovaFlashIntensity = 0.0f;
 
-        // 爆発が画面端に達する後半（t >= 0.65）から、臨界光のホワイトアウトが立ち上がり始める！
-        if (t >= 0.65f) {
-            float fadeT = (t - 0.65f) / 0.35f;
+        // 爆発開始の最初の 0.08 秒間に急峻な立ち上がりインパルスを持たせ、テクスチャの唐突なポップを根絶！
+        float popInCurve = (t < 0.08f) ? (t / 0.08f) : 1.0f;
+
+        // 多層重力波＆スマートプラズマ流体の全方位展開（超高速・高精細）
+        bh.supernovaRadius = t * 2.8f;
+        bh.supernovaIntensity = 1.8f * popInCurve * (1.0f - t * 0.20f);
+        bh.supernovaChromaticRatio = 0.12f * popInCurve * (1.0f - t * 0.40f);
+
+        // 爆発の広がりとVoxel結晶の飛散を100%美しく魅せるため、ここでは白フェードを入れない！
+        if (phaseTimer_ >= kDuration) {
+            SetDeathPhase(DeathSequencePhase::PlasmaAfterglow);
+        }
+        break;
+    }
+
+    case DeathSequencePhase::PlasmaAfterglow: {
+        // 【第4幕】2.05s〜2.95s (0.90秒間): 激震が静まり返り、漂うプラズマとVoxel結晶を見届ける「静寂の余韻」
+        constexpr float kDuration = 0.90f;
+        float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
+
+        // ★静止フリーズを完全根絶！衝撃波面は画面外の彼方へ突き抜けさせ、物理的な拡散を継続
+        bh.supernovaRadius = 2.8f + t * 2.7f; // 2.8 -> 5.5（画面外へ完全に抜け去る）
+
+        // 空間歪みとプラズマ残光は「スゥーッ…」と滑らかにゼロへ戻り、元の静かな海面が戻ってくる！
+        float decayCurve = (1.0f - t) * (1.0f - t);
+        bh.supernovaIntensity = 1.44f * decayCurve;
+        bh.supernovaChromaticRatio = 0.072f * decayCurve;
+        bh.blackHoleRadius = 0.014f * (1.0f - t * 0.8f);
+
+        // 余韻の後半（t >= 0.70）から、GAME OVER接続用のシネマティックフェードが静かに立ち上がる
+        if (t >= 0.70f) {
+            float fadeT = (t - 0.70f) / 0.30f;
             if (ppm) {
                 ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
                 ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -586,13 +633,12 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
         break;
     }
 
-    case DeathSequencePhase::PlasmaAfterglow:
     case DeathSequencePhase::WhiteoutFade: {
-        // 【第4幕】1.80s〜2.40s (0.60秒間): 爆発エネルギー臨界飽和による完全ホワイトアウト
-        constexpr float kDuration = 0.60f;
+        // 【第5幕】2.95s〜3.45s (0.50秒間): 光が穏やかに満ちてリザルト画面（GAME OVER）へシームレス接続
+        constexpr float kDuration = 0.50f;
         float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
         if (ppm) {
-            ppm->GetFadeParams().intensity = 0.5f + t * 0.5f; // 0.5 -> 1.0 完全ホワイトアウト！
+            ppm->GetFadeParams().intensity = 0.5f + t * 0.5f; // 0.5 -> 1.0
         }
 
         if (phaseTimer_ >= kDuration) {
