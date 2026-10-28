@@ -12,6 +12,7 @@
 #include "Core/Math/MathFunction.h"
 #include "Core/Shape/LinePrimitive.h"
 #include "Framework/Component/Effect/EffectMaskComponent.h"
+#include "RailMechanics/RailShooterPlayerComponent.h"
 #include <algorithm>
 #include <limits>
 #include <cmath>
@@ -29,6 +30,21 @@ void PlayerTargetingComponent::Start() {
     TryFindLockonMarkerUI();
 }
 
+void PlayerTargetingComponent::SetEnabled(bool enabled) {
+    if (isEnabled_ == enabled) {
+        return;
+    }
+    isEnabled_ = enabled;
+    if (!isEnabled_) {
+        ClearTargets();
+        RestoreAllOutlineHighlights();
+        hoverTarget_ = nullptr;
+        if (auto markerUI = lockonMarkerUI_.lock()) {
+            markerUI->SyncTargets({});
+        }
+    }
+}
+
 void PlayerTargetingComponent::TryFindLockonMarkerUI() {
     if (!lockonMarkerUI_.expired() || !gameObject_) {
         return;
@@ -44,6 +60,27 @@ void PlayerTargetingComponent::TryFindLockonMarkerUI() {
 }
 
 void PlayerTargetingComponent::Update() {
+    if (!isEnabled_) {
+        return;
+    }
+
+    // 自機が撃破状態（Dying）または入力無効の場合は自律的に即時シャットダウン（業界標準フェイルセーフ）
+    if (auto ship = gameObject_) {
+        if (auto playerComp = ship->GetComponent<RailShooterPlayerComponent>()) {
+            if (playerComp->GetCurrentFlightState() == PlayerFlightState::Dying || !playerComp->IsInputEnabled()) {
+                if (hoverTarget_ || !queuedTargets_.empty()) {
+                    ClearTargets();
+                    RestoreAllOutlineHighlights();
+                    hoverTarget_ = nullptr;
+                    if (auto markerUI = lockonMarkerUI_.lock()) {
+                        markerUI->SyncTargets({});
+                    }
+                }
+                return;
+            }
+        }
+    }
+
     // 死んだオブジェクトやターゲット不可になったオブジェクトをキューから削除する (C++20 std::erase_if)
     std::erase_if(queuedTargets_, [this](const std::shared_ptr<GameObject>& obj) {
         if (!obj || !obj->GetIsActive() || obj->IsDestroyed()) {

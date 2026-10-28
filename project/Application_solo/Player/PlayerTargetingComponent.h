@@ -107,7 +107,18 @@ public:
         return (targetTypeMask_ & static_cast<uint32_t>(type)) != 0;
     }
 
+    /**
+     * @brief ターゲティング処理の有効/無効を切り替える（死亡演出時やイベント演出用）
+     * @param enabled falseで全ターゲット・アウトラインを即時クリアし、探索を完全停止
+     */
+    void SetEnabled(bool enabled);
+
+    bool IsEnabled() const {
+        return isEnabled_;
+    }
+
 private:
+    bool isEnabled_ = true;
     size_t maxLockonCount_ = 1;
     std::deque<std::shared_ptr<GameObject>> queuedTargets_;
     std::shared_ptr<GameObject> hoverTarget_ = nullptr;

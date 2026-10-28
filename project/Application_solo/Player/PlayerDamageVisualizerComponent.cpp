@@ -23,6 +23,8 @@
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Audio/AudioManager.h"
 #include "RailMechanics/SplineFollowerComponent.h"
+#include "Player/PlayerTargetingComponent.h"
+#include "UI/LockonMarkerUIComponent.h"
 #include "Core/Math/MathFunction.h"
 #include <cmath>
 #include <iostream>
@@ -166,6 +168,14 @@ void PlayerDamageVisualizerComponent::HideInGameHUD() {
     }
     if (auto lockon = scene->FindGameObject("LockonMarkerUI")) {
         lockon->SetIsActive(false);
+        if (auto markerComp = lockon->GetComponent<LockonMarkerUIComponent>()) {
+            markerComp->SyncTargets({});
+        }
+    }
+
+    // 自機のターゲティングコンポーネントを即時完全無効化＆ハイライト消去（業界標準フェイルセーフ）
+    if (auto targeting = gameObject_->GetComponent<PlayerTargetingComponent>()) {
+        targeting->SetEnabled(false);
     }
 }
 

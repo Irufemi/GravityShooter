@@ -434,7 +434,7 @@ void StageIntroDirectorComponent::Update() {
     bool isTransitionActive = false;
     if (engine) {
         if (auto st = engine->GetSceneTransition()) {
-            if (st->IsActive() || !st->IsFinished()) {
+            if (st->IsActive()) {
                 isTransitionActive = true;
             }
         }

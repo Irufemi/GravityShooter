@@ -52,12 +52,12 @@ public:
      */
     void Update(float deltaTime);
 
-    /** @brief 演出（イン/アウト問わず）が完全に終了したか */
+    /** @brief 演出（イン/アウト問わず）が完了しているか（未実行・待機中を含む業界標準セマンティクス） */
     bool IsFinished() const {
-        return !isActive_ && timer_ >= (duration_ + kDwellTime);
+        return !isActive_;
     }
 
-    /** @brief 演出が実行中か */
+    /** @brief 演出が現在実行中（画面遷移中・ブロッキング中）か */
     bool IsActive() const {
         return isActive_;
     }
@@ -107,9 +107,9 @@ private:
     EaseType easeType_ = EaseType::Linear; // イージングタイプを保持
     std::optional<Irufemi::Vector4> customColor_;
     std::unique_ptr<class ITransitionDriver> driver_;
-    float timer_ = 0.0f;
+    float timer_ = 1.04f; // 初期状態を完了状態（duration + kDwellTime）として安全化
     float duration_ = 1.0f;
-    bool isOut_ = true;
+    bool isOut_ = false;
     bool isActive_ = false;
 
     std::function<void()> onFinishedCallback_;
