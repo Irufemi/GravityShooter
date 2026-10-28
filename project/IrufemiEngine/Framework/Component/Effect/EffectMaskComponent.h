@@ -75,9 +75,7 @@ public:
      * @brief EnableEffectMask を設定する。
      * @param[in] enable 設定する EnableEffectMask の値
      */
-    void SetEnableEffectMask(bool enable) {
-        enableEffectMask_ = enable;
-    }
+    void SetEnableEffectMask(bool enable);
     /**
      * @brief EnableEffectMask を取得する。
      * @return 取得された EnableEffectMask

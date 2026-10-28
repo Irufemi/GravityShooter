@@ -133,6 +133,11 @@ private:
      */
     Irufemi::Vector2 CalculateWorldScreenUV(const Irufemi::Vector3& worldPos);
 
+    /**
+     * @brief 画面内の敵オブジェクトのアウトライン（EffectMaskComponent）を消去する
+     */
+    void ClearEnemyOutlines();
+
 private:
     PlayerHealthComponent* healthComp_ = nullptr; ///< 監視対象の体力コンポーネント
 

@@ -25,6 +25,12 @@
 #include "RailMechanics/SplineFollowerComponent.h"
 #include "Player/PlayerTargetingComponent.h"
 #include "UI/LockonMarkerUIComponent.h"
+#include "Framework/Component/Effect/EffectMaskComponent.h"
+#include "Framework/Component/Collider/ColliderComponent.h"
+#include "Physics/CollisionManager.h"
+#include "RailMechanics/RailShooterEnemyComponent.h"
+#include "Combat/Boss/BossComponent.h"
+#include "Player/TargetableComponent.h"
 #include "Core/Math/MathFunction.h"
 #include <cmath>
 #include <iostream>
@@ -177,7 +183,61 @@ void PlayerDamageVisualizerComponent::HideInGameHUD() {
     if (auto targeting = gameObject_->GetComponent<PlayerTargetingComponent>()) {
         targeting->SetEnabled(false);
     }
+
+    // 演出に不要な敵オブジェクトのアウトライン（EffectMaskComponent）をピンポイント消去
+    ClearEnemyOutlines();
 }
+
+void PlayerDamageVisualizerComponent::ClearEnemyOutlines() {
+    if (!gameObject_) {
+        return;
+    }
+    auto scene = gameObject_->GetScene();
+    if (!scene) {
+        return;
+    }
+
+    auto engine = GetEngine();
+    auto cm = engine ? engine->GetCollisionManager() : nullptr;
+    const uint32_t enemyLayerMask = cm ? cm->GetLayerMask("Enemy") : 0;
+
+    for (const auto& obj : scene->GetGameObjects()) {
+        if (!obj) {
+            continue;
+        }
+
+        bool isEnemy = false;
+
+        // 1. 当たり判定レイヤーによる判定（Collision Layer の "Enemy" カテゴライズ）
+        if (enemyLayerMask != 0) {
+            if (auto col = obj->GetComponent<ColliderComponent>()) {
+                if ((col->GetLayer() & enemyLayerMask) != 0) {
+                    isEnemy = true;
+                }
+            }
+        }
+
+        // 2. 敵ロジックコンポーネントによる判定（セーフティガード）
+        if (!isEnemy) {
+            if (obj->GetComponent<RailShooterEnemyComponent>() ||
+                obj->GetComponent<BossComponent>() ||
+                obj->GetComponent<TargetableComponent>()) {
+                isEnemy = true;
+            }
+        }
+
+        if (isEnemy) {
+            // 当該オブジェクトおよびその子階層に付与された EffectMaskComponent をすべて無効化
+            auto maskComps = obj->GetComponentsInChildren<EffectMaskComponent>();
+            for (auto mask : maskComps) {
+                if (mask) {
+                    mask->SetEnableEffectMask(false);
+                }
+            }
+        }
+    }
+}
+
 
 Irufemi::Vector2 PlayerDamageVisualizerComponent::CalculateWorldScreenUV(const Irufemi::Vector3& worldPos) {
     auto engine = GetEngine();

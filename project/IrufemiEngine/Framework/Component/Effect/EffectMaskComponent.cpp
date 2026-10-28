@@ -54,6 +54,22 @@ void EffectMaskComponent::SetCustomParams(const PostProcessManager::CustomEffect
     }
 }
 
+void EffectMaskComponent::SetEnableEffectMask(bool enable) {
+    enableEffectMask_ = enable;
+    if (gameObject_) {
+        if (auto meshRenderer = gameObject_->GetComponent<MeshRendererComponent>()) {
+            meshRenderer->SetEnableEffectMask(enable);
+        }
+        if (auto skinnedRenderer = gameObject_->GetComponent<SkinnedMeshRendererComponent>()) {
+            skinnedRenderer->SetEnableEffectMask(enable);
+        }
+        if (auto primRenderer = gameObject_->GetComponent<PrimitiveRendererComponent>()) {
+            primRenderer->SetEnableEffectMask(enable);
+        }
+    }
+}
+
+
 void EffectMaskComponent::Update() {
     if (enableEffectMask_ && customEffectType_ > 0) {
         if (!cachedPostProcessManager_) {
