@@ -5,37 +5,43 @@
 #include <cstdio>
 
 void GPUParticleManager::Initialize() {
-    systems_.clear();
-    idLookup_.clear();
-    nextSystemId_ = 1;
+    auto state = state_.Write();
+    state->systems.clear();
+    state->idLookup.clear();
+    state->nextSystemId = 1;
 }
 
 void GPUParticleManager::Update() {
-    for (auto& pair : systems_) {
+    auto state = state_.Write();
+    for (auto& pair : state->systems) {
         pair.second.system->Update();
     }
 }
 
 void GPUParticleManager::Draw() {
-    for (auto& pair : systems_) {
+    auto state = state_.Write();
+    for (auto& pair : state->systems) {
         pair.second.system->Draw();
     }
 }
 
 void GPUParticleManager::Finalize() {
-    systems_.clear();
-    idLookup_.clear();
-    nextSystemId_ = 1;
+    auto state = state_.Write();
+    state->systems.clear();
+    state->idLookup.clear();
+    state->nextSystemId = 1;
 }
 
 void GPUParticleManager::ClearAllParticles() {
-    for (auto& pair : systems_) {
+    auto state = state_.Write();
+    for (auto& pair : state->systems) {
         pair.second.system->Clear();
     }
 }
 
 void GPUParticleManager::WarmUp() {
-    for (auto& pair : systems_) {
+    auto state = state_.Write();
+    for (auto& pair : state->systems) {
         if (pair.second.system) {
             pair.second.system->Clear();
         }
@@ -46,20 +52,21 @@ GPUParticleManager::EmitterHandle GPUParticleManager::RegisterEmitter(const std:
                                                                       Irufemi::BlendMode blendMode, bool isUnscaledTime,
                                                                       bool enableLighting,
                                                                       PSOManager::DepthWrite depthWrite) {
+    auto state = state_.Write();
     SystemKey key{texturePath, blendMode, isUnscaledTime, enableLighting, depthWrite};
-    auto& ctx = systems_[key];
+    auto& ctx = state->systems[key];
 
     if (!ctx.system) {
         // Create new system
-        ctx.systemId = nextSystemId_++;
+        ctx.systemId = state->nextSystemId++;
         ctx.system = std::make_unique<GPUParticleSystem>();
         ctx.system->Initialize(texturePath);
         ctx.system->SetBlendMode(blendMode);
         ctx.system->SetUnscaledTime(isUnscaledTime);
         ctx.system->SetEnableLighting(enableLighting);
         ctx.system->SetDepthWrite(depthWrite);
-        ctx.system->SetGlobalFields(&globalFields_);
-        idLookup_[ctx.systemId] = &ctx;
+        ctx.system->SetGlobalFields(&state->globalFields);
+        state->idLookup[ctx.systemId] = &ctx;
     }
 
     uint32_t assignedIndex = 0;
@@ -93,8 +100,9 @@ void GPUParticleManager::UnregisterEmitter(const EmitterHandle& handle) {
         return;
     }
 
-    auto it = idLookup_.find(handle.systemId);
-    if (it != idLookup_.end()) {
+    auto state = state_.Write();
+    auto it = state->idLookup.find(handle.systemId);
+    if (it != state->idLookup.end()) {
         auto* ctx = it->second;
         if (handle.emitterIndex < ctx->slotGenerations.size() &&
             ctx->slotGenerations[handle.emitterIndex] == handle.generation) {
@@ -113,8 +121,9 @@ void GPUParticleManager::UpdateEmitterData(const EmitterHandle& handle, const GP
         return;
     }
 
-    auto it = idLookup_.find(handle.systemId);
-    if (it != idLookup_.end()) {
+    auto state = state_.Write();
+    auto it = state->idLookup.find(handle.systemId);
+    if (it != state->idLookup.end()) {
         auto* ctx = it->second;
         if (handle.emitterIndex < ctx->slotGenerations.size() &&
             ctx->slotGenerations[handle.emitterIndex] == handle.generation &&
@@ -156,8 +165,9 @@ void GPUParticleManager::SetMeshEmitterBuffer(EmitterHandle handle, D3D12_GPU_VI
         return;
     }
 
-    auto it = idLookup_.find(handle.systemId);
-    if (it != idLookup_.end()) {
+    auto state = state_.Write();
+    auto it = state->idLookup.find(handle.systemId);
+    if (it != state->idLookup.end()) {
         auto* ctx = it->second;
         if (handle.emitterIndex < ctx->slotGenerations.size() &&
             ctx->slotGenerations[handle.emitterIndex] == handle.generation &&
@@ -171,19 +181,20 @@ void GPUParticleManager::SetMeshEmitterBuffer(EmitterHandle handle, D3D12_GPU_VI
 }
 
 GPUParticleManager::FieldHandle GPUParticleManager::RegisterField() {
+    auto state = state_.Write();
     uint32_t assignedIndex = 0;
-    if (!freeFieldIndices_.empty()) {
-        assignedIndex = freeFieldIndices_.back();
-        freeFieldIndices_.pop_back();
+    if (!state->freeFieldIndices.empty()) {
+        assignedIndex = state->freeFieldIndices.back();
+        state->freeFieldIndices.pop_back();
     } else {
-        assignedIndex = nextFieldIndex_++;
-        if (assignedIndex >= globalFields_.size()) {
-            globalFields_.resize(assignedIndex + 1);
+        assignedIndex = state->nextFieldIndex++;
+        if (assignedIndex >= state->globalFields.size()) {
+            state->globalFields.resize(assignedIndex + 1);
         }
     }
 
     // Initialize slot with disabled field (strength = 0)
-    globalFields_[assignedIndex] = ParticleField();
+    state->globalFields[assignedIndex] = ParticleField();
 
     FieldHandle handle;
     handle.index = assignedIndex;
@@ -195,15 +206,21 @@ void GPUParticleManager::UnregisterField(const FieldHandle& handle) {
         return;
     }
 
-    if (handle.index < globalFields_.size()) {
-        globalFields_[handle.index].strength = 0.0f; // Disable
-        freeFieldIndices_.push_back(handle.index);
+    auto state = state_.Write();
+    if (handle.index < state->globalFields.size()) {
+        state->globalFields[handle.index].strength = 0.0f; // Disable
+        state->freeFieldIndices.push_back(handle.index);
     }
 }
 
 void GPUParticleManager::UpdateFieldData(const FieldHandle& handle, const ParticleField& data) {
-    if (handle.IsValid() && handle.index < globalFields_.size()) {
-        globalFields_[handle.index] = data;
+    if (!handle.IsValid()) {
+        return;
+    }
+
+    auto state = state_.Write();
+    if (handle.index < state->globalFields.size()) {
+        state->globalFields[handle.index] = data;
     }
 }
 
@@ -212,8 +229,9 @@ void GPUParticleManager::UpdateFieldData(const FieldHandle& handle, const Partic
 #endif
 
 int GPUParticleManager::GetTotalEmittersUsed() const {
+    auto state = state_.Read();
     int totalEmitters = 0;
-    for (const auto& pair : systems_) {
+    for (const auto& pair : state->systems) {
         // nextIndex はこれまで割り当てた最大のインデックス（サイズ）。そこから解放済みの数を引く
         totalEmitters += (int)(pair.second.nextIndex - pair.second.freeIndices.size());
     }
@@ -224,12 +242,13 @@ void GPUParticleManager::Debug() {
 #if defined(USE_IMGUI)
     if (ImGui::BeginTabItem("GPU Particle Manager")) {
         if (ImGui::BeginChild("GPUParticleScroll", ImVec2(0, 0), false)) {
+            auto state = state_.Write();
             ImGui::TextDisabled("(Global system stats moved to TelemetryMonitor)");
             ImGui::Separator();
 
             ImGui::Spacing();
             ImGui::Text("System Details per Texture");
-            for (auto& pair : systems_) {
+            for (auto& pair : state->systems) {
                 const std::string& textureName = pair.first.texturePath;
                 auto& context = pair.second;
 

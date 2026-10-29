@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer/System/ParticleGPU/GPUParticleSystem.h"
+#include "Core/Utility/Synchronized.h"
 #include <unordered_map>
 #include <memory>
 #include <string>
@@ -72,7 +73,7 @@ public:
      * @return アクティブなシステム数
      */
     int GetActiveSystemCount() const {
-        return static_cast<int>(systems_.size());
+        return static_cast<int>(state_.Read()->systems.size());
     }
 
     /**
@@ -168,15 +169,19 @@ private:
         }
     };
 
-    std::unordered_map<SystemKey, SystemContext, SystemKeyHasher> systems_;
-    /**
-     * @brief システムIDからシステムコンテキストへの高速逆引きマップ (O(1) 解除・更新用)
-     */
-    std::unordered_map<uint32_t, SystemContext*> idLookup_;
-    uint32_t nextSystemId_ = 1;
+    struct ManagerState {
+        std::unordered_map<SystemKey, SystemContext, SystemKeyHasher> systems;
+        /**
+         * @brief システムIDからシステムコンテキストへの高速逆引きマップ (O(1) 解除・更新用)
+         */
+        std::unordered_map<uint32_t, SystemContext*> idLookup;
+        uint32_t nextSystemId = 1;
 
-    // グローバルなField管理
-    std::vector<ParticleField> globalFields_;
-    std::vector<uint32_t> freeFieldIndices_;
-    uint32_t nextFieldIndex_ = 0;
+        // グローバルなField管理
+        std::vector<ParticleField> globalFields;
+        std::vector<uint32_t> freeFieldIndices;
+        uint32_t nextFieldIndex = 0;
+    };
+
+    mutable Irufemi::Synchronized<ManagerState> state_;
 };
