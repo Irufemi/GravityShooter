@@ -90,6 +90,16 @@ public:
     void ReservePool(const std::string& modelName, const Irufemi::Vector3Int& resolution, int preAllocateCount = 1000);
 
     /**
+     * @brief 全ての登録済みボクセルシステムがロード・初期化完了しているかを判定する
+     */
+    bool IsAllReady() const;
+
+    /**
+     * @brief 登録済みの全ボクセルシステムの初期化（ボクセル化＋GPUリソース確保）をロード画面中に同期完了させる
+     */
+    void EnsureAllInitialized();
+
+    /**
      * @brief その場での爆発エフェクトを発生させる
      */
     void PlayExplosion(const std::string& modelName, const Irufemi::Vector3& worldPos, const Irufemi::Vector3& velocity,

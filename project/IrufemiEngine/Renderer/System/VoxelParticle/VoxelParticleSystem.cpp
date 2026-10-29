@@ -108,6 +108,30 @@ void VoxelParticleSystem::FinishInitialization() {
     status_.store(LoadingStatus::Loaded);
 }
 
+void VoxelParticleSystem::EnsureInitialized() {
+    if (status_.load() == LoadingStatus::Loaded || status_.load() == LoadingStatus::Failed) {
+        return;
+    }
+    if (initializeFuture_.valid()) {
+        initializeFuture_.wait();
+    }
+    if (asyncData_) {
+        auto s = asyncData_->status.load();
+        if (s == LoadingStatus::ReadyToCreateResources) {
+            voxelModel_ = std::move(asyncData_->voxelModel);
+            voxelCount_ = asyncData_->voxelCount;
+            status_.store(LoadingStatus::ReadyToCreateResources);
+            asyncData_.reset();
+            FinishInitialization();
+        } else if (s == LoadingStatus::Failed) {
+            status_.store(LoadingStatus::Failed);
+            Log::OutPutLog(std::cout,
+                           "[VoxelParticleSystem] Voxelization FAILED for model: " + asyncData_->modelName + "\n");
+            asyncData_.reset();
+        }
+    }
+}
+
 void VoxelParticleSystem::Update(float deltaTime) {
     if (asyncData_) {
         auto s = asyncData_->status.load();

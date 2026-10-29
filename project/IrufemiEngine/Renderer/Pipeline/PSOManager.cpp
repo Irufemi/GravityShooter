@@ -390,6 +390,7 @@ void PSOManager::PreWarmCommonPSOs(ThreadPool* threadPool) {
         prewarm(taskGroup, "Particle", blend, DepthWrite::Disable, CullMode::None);
         prewarm(taskGroup, "GpuParticle", blend, DepthWrite::Disable, CullMode::None);
         prewarm(taskGroup, "VoxelParticle", blend, DepthWrite::Disable, CullMode::None);
+        prewarm(taskGroup, "VoxelParticle", blend, DepthWrite::Enable, CullMode::Back);
         prewarm(taskGroup, "Sprite", blend, DepthWrite::Off, CullMode::None);
         prewarm(taskGroup, "SpriteBatch", blend, DepthWrite::Off, CullMode::None);
         prewarm(taskGroup, "Text", blend, DepthWrite::Off, CullMode::None);
@@ -403,6 +404,18 @@ void PSOManager::PreWarmCommonPSOs(ThreadPool* threadPool) {
         prewarm(taskGroup, "LineBatch", blend, DepthWrite::Disable, CullMode::None);
         prewarm(taskGroup, "DebugPrimitive", blend, DepthWrite::Disable, CullMode::None);
     }
+
+    // Compute PSO の事前ウォームアップ
+    auto prewarmCompute = [this, threadPool](std::shared_ptr<TaskGroup> group, const std::string& name) {
+        if (threadPool && group) {
+            threadPool->Enqueue(group, [this, name]() { GetComputePSO(name); });
+        } else {
+            GetComputePSO(name);
+        }
+    };
+    prewarmCompute(taskGroup, "VoxelParticleInitialize");
+    prewarmCompute(taskGroup, "VoxelParticleEmit");
+    prewarmCompute(taskGroup, "VoxelParticleUpdate");
 
     // 3. シャドウマップ出力用
     prewarm(taskGroup, "Shadow", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);

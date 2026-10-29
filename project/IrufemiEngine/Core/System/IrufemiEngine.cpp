@@ -1222,7 +1222,8 @@ bool IrufemiEngine::IsAssetLoading() const {
     bool modelsLoaded = !modelManager_ || modelManager_->IsAllLoaded();
     bool texturesLoaded = !textureManager_ || textureManager_->IsAllLoaded();
     bool fontsLoaded = !fontManager_ || fontManager_->IsAllLoaded();
-    return !modelsLoaded || !texturesLoaded || !fontsLoaded;
+    bool voxelLoaded = !voxelParticleManager_ || voxelParticleManager_->IsAllReady();
+    return !modelsLoaded || !texturesLoaded || !fontsLoaded || !voxelLoaded;
 }
 
 bool IrufemiEngine::SaveScreenShot(const std::wstring& filePath) {

@@ -37,7 +37,14 @@ void EffectManagerComponent::Initialize() {
 
 void EffectManagerComponent::Start() {
     for (const auto& [key, path] : effectDictionary_) {
-        GetOrCreatePool(key, path);
+        auto* pool = GetOrCreatePool(key, path);
+        if (pool) {
+            // 最低1個生成してボクセルコンポーネント等の事前確保をロード中に完了させる
+            auto handle = pool->Acquire();
+            if (handle.IsValid()) {
+                pool->Release(handle);
+            }
+        }
     }
 }
 
@@ -63,6 +70,14 @@ ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::strin
             // 寿命コンポーネントがあれば、プール運用のためにDestroyではなくDisableに変更する
             if (auto lifetime = obj->GetComponent<LifetimeComponent>()) {
                 lifetime->SetTimeoutAction(TimeoutAction::Disable);
+            }
+
+            // プール内のボクセルパーティクルコンポーネントを事前にウォームアップ（初回の破砕ヒッチを防止）
+            auto voxelEmitters = obj->GetComponentsInChildren<VoxelParticleComponent>();
+            for (auto ve : voxelEmitters) {
+                if (ve) {
+                    ve->Start();
+                }
             }
         }
         return obj;

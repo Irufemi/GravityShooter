@@ -169,7 +169,25 @@ void VoxelParticleManager::ReservePool(const std::string& modelName, const Irufe
     UnregisterEmitter(handle);
 }
 
+bool VoxelParticleManager::IsAllReady() const {
+    for (const auto& pair : systems_) {
+        if (pair.second.system && !pair.second.system->IsReady()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void VoxelParticleManager::EnsureAllInitialized() {
+    for (auto& pair : systems_) {
+        if (pair.second.system) {
+            pair.second.system->EnsureInitialized();
+        }
+    }
+}
+
 void VoxelParticleManager::WarmUp() {
+    EnsureAllInitialized();
     // 登録済みの全システムの状態をリセット・同期（モデル読み込みは各コンポーネント・プレハブのStart()に委任）
     for (auto& pair : systems_) {
         if (pair.second.system) {

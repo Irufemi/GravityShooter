@@ -27,6 +27,7 @@ public:
     ~DebrisManagerComponent() override;
 
     void Initialize() override;
+    void Start() override;
     void Update() override;
     void OnDestroy() override;
     void OnRegisterProperties() override;

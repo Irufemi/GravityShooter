@@ -104,6 +104,11 @@ public:
     void Initialize(const std::string& modelName, const Irufemi::Vector3Int& resolution);
 
     /**
+     * @brief 初期化を完全に完了させ、GPUリソースおよびPSOの生成まで同期的に保証する
+     */
+    void EnsureInitialized();
+
+    /**
      * @brief DispatchCompute を実行する。
      */
     void DispatchCompute() override;
@@ -147,6 +152,10 @@ public:
      */
     bool IsLoaded() const {
         return status_.load() == LoadingStatus::Loaded;
+    }
+    bool IsReady() const {
+        auto s = status_.load();
+        return s == LoadingStatus::Loaded || s == LoadingStatus::Failed;
     }
     /**
      * @brief Status を取得する。

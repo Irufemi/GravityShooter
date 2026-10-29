@@ -247,6 +247,9 @@ public:
     const std::string& GetExplosionModelPath() const {
         return explosionModelPath_;
     }
+    void SetExplosionModelPath(const std::string& path) {
+        explosionModelPath_ = path;
+    }
     const Irufemi::Vector3& GetThrowOrigin() const {
         return throwOrigin_;
     }

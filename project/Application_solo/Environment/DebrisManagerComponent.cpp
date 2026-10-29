@@ -93,13 +93,14 @@ void DebrisManagerComponent::Initialize() {
 
         var.virtualManager = var.poolObject->AddComponent<VirtualEntityManagerComponent>().get();
 
-        auto debrisFactory = [this, varIndex]() -> std::shared_ptr<GameObject> {
+        auto debrisFactory = [this, varIndex, modelPath = var.modelPath]() -> std::shared_ptr<GameObject> {
             auto obj = std::make_shared<GameObject>("Debris");
             auto transform = obj->GetTransform();
             transform->SetScale(debrisBaseScale_);
 
             auto debrisComp = obj->AddComponent<DebrisComponent>();
             debrisComp->SetVariationIndex(varIndex);
+            debrisComp->SetExplosionModelPath(modelPath);
 
             obj->AddComponent<TargetableComponent>();
 
@@ -146,7 +147,11 @@ void DebrisManagerComponent::Initialize() {
     if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
         if (auto engine = scene->GetEngine()) {
             if (auto voxelMgr = engine->GetVoxelParticleManager()) {
-                voxelMgr->ReservePool("resources/model/Debris/Generic/Debris_Generic.obj", {2, 2, 2}, 16);
+                for (const auto& var : variations_) {
+                    if (!var.modelPath.empty()) {
+                        voxelMgr->ReservePool(var.modelPath, {2, 2, 2}, 16);
+                    }
+                }
             }
         }
     }
@@ -166,6 +171,20 @@ void DebrisManagerComponent::Initialize() {
                                                        Log::OutPutLog(std::cout,
                                                                       "[Command] Cleared all virtual debris.\n");
                                                    });
+}
+
+void DebrisManagerComponent::Start() {
+    if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
+        if (auto engine = scene->GetEngine()) {
+            if (auto voxelMgr = engine->GetVoxelParticleManager()) {
+                for (const auto& var : variations_) {
+                    if (!var.modelPath.empty()) {
+                        voxelMgr->ReservePool(var.modelPath, {2, 2, 2}, 16);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void DebrisManagerComponent::ClearAllDebris() {
