@@ -89,9 +89,9 @@ public:
         BlackHole,      ///< 第2幕: 漆黒の事象の地平面出現・求心スワール超吸引 (0.40s〜1.00s)
         VacuumFreeze,   ///< 幕間: 臨界極小点での完全静寂 (1.00s〜1.06s)
         SupernovaBurst, ///< 第3幕: ガンマ線バースト閃光 & 超巨大GRAVITY DAZE色収差衝撃波 & Voxel結晶爆散 (1.06s〜1.80s)
-        PlasmaAfterglow,///< 第4幕: 宇宙の冷気と青白いプラズマ余韻を見届ける (1.80s〜2.50s)
-        WhiteoutFade,   ///< リザルト接続フェード (2.50s〜3.00s)
-        Completed       ///< シーケンス完了 (3.00s〜)
+        PlasmaAfterglow, ///< 第4幕: 宇宙の冷気と青白いプラズマ余韻を見届ける (1.80s〜2.50s)
+        WhiteoutFade,    ///< リザルト接続フェード (2.50s〜3.00s)
+        Completed        ///< シーケンス完了 (3.00s〜)
     };
 
     /**

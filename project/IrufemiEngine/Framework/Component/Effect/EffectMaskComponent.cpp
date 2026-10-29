@@ -69,7 +69,6 @@ void EffectMaskComponent::SetEnableEffectMask(bool enable) {
     }
 }
 
-
 void EffectMaskComponent::Update() {
     if (enableEffectMask_ && customEffectType_ > 0) {
         if (!cachedPostProcessManager_) {

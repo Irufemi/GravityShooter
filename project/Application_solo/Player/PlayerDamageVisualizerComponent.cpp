@@ -219,8 +219,7 @@ void PlayerDamageVisualizerComponent::ClearEnemyOutlines() {
 
         // 2. 敵ロジックコンポーネントによる判定（セーフティガード）
         if (!isEnemy) {
-            if (obj->GetComponent<RailShooterEnemyComponent>() ||
-                obj->GetComponent<BossComponent>() ||
+            if (obj->GetComponent<RailShooterEnemyComponent>() || obj->GetComponent<BossComponent>() ||
                 obj->GetComponent<TargetableComponent>()) {
                 isEnemy = true;
             }
@@ -238,7 +237,6 @@ void PlayerDamageVisualizerComponent::ClearEnemyOutlines() {
     }
 }
 
-
 Irufemi::Vector2 PlayerDamageVisualizerComponent::CalculateWorldScreenUV(const Irufemi::Vector3& worldPos) {
     auto engine = GetEngine();
     if (!engine || !gameObject_) {
@@ -253,7 +251,8 @@ Irufemi::Vector2 PlayerDamageVisualizerComponent::CalculateWorldScreenUV(const I
 
     Irufemi::Matrix4x4 viewProj = camera->GetViewProjectionMatrix3D();
     // カメラ背後（w <= 0）への反転逆投影（海面へのすっ飛び）を数学的に完全ガード
-    float w = worldPos.x * viewProj.m[0][3] + worldPos.y * viewProj.m[1][3] + worldPos.z * viewProj.m[2][3] + viewProj.m[3][3];
+    float w = worldPos.x * viewProj.m[0][3] + worldPos.y * viewProj.m[1][3] + worldPos.z * viewProj.m[2][3] +
+              viewProj.m[3][3];
     if (w <= 0.001f) {
         return deathScreenUV_;
     }
@@ -443,9 +442,9 @@ void PlayerDamageVisualizerComponent::TriggerSupernovaExplosion() {
         p.lifeTime = 2.5f;
         p.gravity = 0.0f;     // 無重力空間を放射状に直進
         p.dispersion = 75.0f; // ★超高速インパルス（爆円の広がりと破片の広がりが完全同期！）
-        p.scale = {0.12f, 0.12f, 0.12f}; // ★巨大ブロック化を防ぎ、繊細なクリスタル結晶
+        p.scale = {0.12f, 0.12f, 0.12f};          // ★巨大ブロック化を防ぎ、繊細なクリスタル結晶
         p.startColor = {6.0f, 7.5f, 10.0f, 1.0f}; // 超高輝度HDRシアンホワイト
-        p.endColor = {0.1f, 0.5f, 1.2f, 0.0f};   // 宇宙に溶ける深青プラズマ煙
+        p.endColor = {0.1f, 0.5f, 1.2f, 0.0f};    // 宇宙に溶ける深青プラズマ煙
         p.dissolveEdgeColor = {1.5f, 2.5f, 4.0f, 1.0f};
 
         // 自機シルエットから完全爆散！
@@ -515,11 +514,9 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
         float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
         if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
             float jitter = (1.0f - t) * 0.08f;
-            Irufemi::Vector3 shake{
-                Irufemi::Random::GeneratorFloat(-jitter, jitter),
-                Irufemi::Random::GeneratorFloat(-jitter, jitter),
-                Irufemi::Random::GeneratorFloat(-jitter, jitter)
-            };
+            Irufemi::Vector3 shake{Irufemi::Random::GeneratorFloat(-jitter, jitter),
+                                   Irufemi::Random::GeneratorFloat(-jitter, jitter),
+                                   Irufemi::Random::GeneratorFloat(-jitter, jitter)};
             transform->SetPosition(originalLocalPos_ + shake); // ローカル座標に加算してワープを完全防止！
         }
 
@@ -546,7 +543,8 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
                 transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.01f));
             }
         }
-        // 後半（0.50s〜0.80s / t: 0.625〜1.0）: 限界突破！ギュウウッ…と超強烈なイージングで極小特異点へ急激に凝縮（インプロージョン / 縮小）！
+        // 後半（0.50s〜0.80s / t: 0.625〜1.0）:
+        // 限界突破！ギュウウッ…と超強烈なイージングで極小特異点へ急激に凝縮（インプロージョン / 縮小）！
         else {
             float tImplode = (t - 0.625f) / 0.375f;
             float implodeCurve = std::pow(1.0f - tImplode, 3.5f);
@@ -579,7 +577,8 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
     }
 
     case DeathSequencePhase::SupernovaBurst: {
-        // 【第3幕】1.30s〜2.05s (0.75秒間): 臨界突破！スーパーノヴァ大爆発（拡大！数千のVoxel結晶大拡散 ＆ スマートプラズマ重力波）
+        // 【第3幕】1.30s〜2.05s (0.75秒間): 臨界突破！スーパーノヴァ大爆発（拡大！数千のVoxel結晶大拡散 ＆
+        // スマートプラズマ重力波）
         constexpr float kDuration = 0.75f;
         float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
 
@@ -697,4 +696,3 @@ void PlayerDamageVisualizerComponent::Update() {
     // 死亡演出ステートマシンの更新（実時間 dtReal 依存）
     UpdateDeathSequence(dtReal);
 }
-

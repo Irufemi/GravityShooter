@@ -24,8 +24,8 @@ public:
      */
     enum class DemoMode {
         TransitionShowcase, ///< 【画面遷移ショーケース】起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ
-        StandardAttract,    ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
-        GameOverShowcase    ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
+        StandardAttract, ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
+        GameOverShowcase ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
     };
 
     AttractDemoManager() = default;
@@ -54,16 +54,16 @@ public:
      */
     void CycleNextDemoMode() {
         switch (demoMode_) {
-            case DemoMode::TransitionShowcase:
-                demoMode_ = DemoMode::StandardAttract;
-                break;
-            case DemoMode::StandardAttract:
-                demoMode_ = DemoMode::GameOverShowcase;
-                break;
-            case DemoMode::GameOverShowcase:
-            default:
-                demoMode_ = DemoMode::TransitionShowcase;
-                break;
+        case DemoMode::TransitionShowcase:
+            demoMode_ = DemoMode::StandardAttract;
+            break;
+        case DemoMode::StandardAttract:
+            demoMode_ = DemoMode::GameOverShowcase;
+            break;
+        case DemoMode::GameOverShowcase:
+        default:
+            demoMode_ = DemoMode::TransitionShowcase;
+            break;
         }
     }
 

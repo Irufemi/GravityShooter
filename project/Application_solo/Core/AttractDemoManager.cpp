@@ -742,15 +742,15 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
     if (isKioskLoopMode_) {
         std::wstring targetText;
         switch (demoMode_) {
-            case DemoMode::TransitionShowcase:
-                targetText = L"DEMO: TRANSITION SHOWCASE   |   F7: MODE   |   F8: EXIT";
-                break;
-            case DemoMode::StandardAttract:
-                targetText = L"DEMO: STANDARD ATTRACT   |   F7: MODE   |   F8: EXIT";
-                break;
-            case DemoMode::GameOverShowcase:
-                targetText = L"DEMO: GAME OVER SHOWCASE   |   F6: KILL   |   F7: MODE   |   F8: EXIT";
-                break;
+        case DemoMode::TransitionShowcase:
+            targetText = L"DEMO: TRANSITION SHOWCASE   |   F7: MODE   |   F8: EXIT";
+            break;
+        case DemoMode::StandardAttract:
+            targetText = L"DEMO: STANDARD ATTRACT   |   F7: MODE   |   F8: EXIT";
+            break;
+        case DemoMode::GameOverShowcase:
+            targetText = L"DEMO: GAME OVER SHOWCASE   |   F6: KILL   |   F7: MODE   |   F8: EXIT";
+            break;
         }
         if (demoHudText_->GetText() != targetText) {
             demoHudText_->SetText(targetText);

@@ -53,7 +53,7 @@ enum class PostProcessMode {
     DepthOfField,          ///< 被写界深度（DoF）
     LightShafts,           ///< ゴッドレイ（光の筋）
     GravityDistortion,     ///< 重力波・空間歪曲（法線波紋＋色収差）
-    BlackHoleSupernova,    ///< 自機重力特異点崩壊＆超新星爆発（事象の地平面＋GRAVITY DAZE色収差）
+    BlackHoleSupernova, ///< 自機重力特異点崩壊＆超新星爆発（事象の地平面＋GRAVITY DAZE色収差）
 };
 
 class DirectXCommon;
@@ -448,12 +448,12 @@ public:
      */
     struct BlackHoleSupernovaParams {
         Irufemi::Vector2 center = {0.5f, 0.5f}; ///< スクリーン中心UV (0.0〜1.0)
-        float blackHoleRadius = 0.0f;          ///< 事象の地平面半径
-        float blackHolePullIntensity = 0.0f;   ///< 求心スワール吸引強度
-        float supernovaRadius = 0.0f;          ///< スーパーノヴァ衝撃波半径
-        float supernovaIntensity = 0.0f;       ///< 衝撃波変位強度
-        float supernovaChromaticRatio = 0.0f;  ///< GRAVITY DAZE 色収差比率
-        float supernovaFlashIntensity = 0.0f;  ///< 瞬間ガンマ線バースト閃光強度
+        float blackHoleRadius = 0.0f;           ///< 事象の地平面半径
+        float blackHolePullIntensity = 0.0f;    ///< 求心スワール吸引強度
+        float supernovaRadius = 0.0f;           ///< スーパーノヴァ衝撃波半径
+        float supernovaIntensity = 0.0f;        ///< 衝撃波変位強度
+        float supernovaChromaticRatio = 0.0f;   ///< GRAVITY DAZE 色収差比率
+        float supernovaFlashIntensity = 0.0f;   ///< 瞬間ガンマ線バースト閃光強度
     };
 
     /**
