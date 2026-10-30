@@ -67,6 +67,7 @@ public:
     }
     void SetColor(const Irufemi::Vector4& color) {
         color_ = color;
+        isDirty_ = true;
     }
 
     float GetIntensity() const {
@@ -74,6 +75,7 @@ public:
     }
     void SetIntensity(float intensity) {
         intensity_ = intensity;
+        isDirty_ = true;
     }
 
     const Irufemi::Vector2& GetUvOffset() const {
@@ -81,6 +83,7 @@ public:
     }
     void SetUvOffset(const Irufemi::Vector2& offset) {
         uvOffset_ = offset;
+        isDirty_ = true;
     }
 
     const Irufemi::Vector2& GetUvTiling() const {
@@ -88,6 +91,7 @@ public:
     }
     void SetUvTiling(const Irufemi::Vector2& tiling) {
         uvTiling_ = tiling;
+        isDirty_ = true;
     }
 
 protected:
@@ -110,4 +114,5 @@ private:
     uint32_t textureIndex_ = 0; ///< [Bindless] テクスチャインデックス
     Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_ = nullptr; ///< マテリアル定数バッファ
     Material* mappedMaterialData_ = nullptr;                            ///< マップポインタ
+    bool isDirty_ = true;                                               ///< マテリアル定数バッファ同期フラグ
 };

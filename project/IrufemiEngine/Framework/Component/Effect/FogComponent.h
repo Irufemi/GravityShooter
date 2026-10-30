@@ -37,6 +37,7 @@ public:
     }
     void SetFogColor(const Irufemi::Vector3& color) {
         fogColor_ = color;
+        isDirty_ = true;
     }
 
     float GetFogStart() const {
@@ -44,6 +45,7 @@ public:
     }
     void SetFogStart(float start) {
         fogStart_ = start;
+        isDirty_ = true;
     }
 
     float GetFogEnd() const {
@@ -51,6 +53,7 @@ public:
     }
     void SetFogEnd(float end) {
         fogEnd_ = end;
+        isDirty_ = true;
     }
 
     float GetFogDensity() const {
@@ -58,6 +61,7 @@ public:
     }
     void SetFogDensity(float density) {
         fogDensity_ = density;
+        isDirty_ = true;
     }
 
     int GetFogType() const {
@@ -65,6 +69,7 @@ public:
     }
     void SetFogType(int type) {
         fogType_ = type;
+        isDirty_ = true;
     }
 
     bool IsFogEnabled() const {
@@ -72,6 +77,7 @@ public:
     }
     void SetFogEnabled(bool enabled) {
         enabled_ = enabled;
+        isDirty_ = true;
     }
 
 private:
@@ -84,4 +90,5 @@ private:
     float fogDensity_ = 1.0f;                           ///< 密度
     int fogType_ = 0;                                   ///< 0: Linear, 1: Exponential
     bool enabled_ = true;                               ///< 有効/無効フラグ
+    bool isDirty_ = true;                               ///< エンジン同期フラグ
 };

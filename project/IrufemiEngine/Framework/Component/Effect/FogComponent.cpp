@@ -4,12 +4,12 @@
 #include "Renderer/Data/FogParams.h"
 
 void FogComponent::OnRegisterProperties() {
-    RegisterProperty("Enabled", &enabled_).OnChanged([this]() { SyncToEngine(); });
-    RegisterProperty("Color", &fogColor_).OnChanged([this]() { SyncToEngine(); });
-    RegisterProperty("Start Distance", &fogStart_).SetMinMax(0.0f, 5000.0f).OnChanged([this]() { SyncToEngine(); });
-    RegisterProperty("End Distance", &fogEnd_).SetMinMax(0.0f, 10000.0f).OnChanged([this]() { SyncToEngine(); });
-    RegisterProperty("Density", &fogDensity_).SetMinMax(0.0f, 5.0f).OnChanged([this]() { SyncToEngine(); });
-    RegisterProperty("Type (0:Lin, 1:Exp)", &fogType_).SetMinMax(0.0f, 1.0f).OnChanged([this]() { SyncToEngine(); });
+    RegisterProperty("Enabled", &enabled_).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("Color", &fogColor_).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("Start Distance", &fogStart_).SetMinMax(0.0f, 5000.0f).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("End Distance", &fogEnd_).SetMinMax(0.0f, 10000.0f).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("Density", &fogDensity_).SetMinMax(0.0f, 5.0f).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("Type (0:Lin, 1:Exp)", &fogType_).SetMinMax(0.0f, 1.0f).OnChanged([this]() { isDirty_ = true; });
 }
 
 void FogComponent::Start() {
@@ -17,6 +17,7 @@ void FogComponent::Start() {
 }
 
 void FogComponent::Update() {
+    if (isDirty_)
     SyncToEngine();
 }
 
@@ -32,6 +33,7 @@ void FogComponent::OnDisable() {
     FogParams params = dm->GetFogParams();
     params.enabled = 0;
     dm->SetFogParams(params);
+    isDirty_ = false;
 }
 
 void FogComponent::OnDestroy() {
@@ -57,6 +59,7 @@ void FogComponent::SyncToEngine() {
     params.enabled = enabled_ ? 1 : 0;
 
     dm->SetFogParams(params);
+    isDirty_ = false;
 }
 
 std::shared_ptr<Component> FogComponent::Clone() {

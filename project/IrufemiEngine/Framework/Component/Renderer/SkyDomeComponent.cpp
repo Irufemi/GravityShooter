@@ -4,6 +4,7 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Renderer/DrawManager.h"
 #include "Core/Math/MathFunction.h"
+#include "Core/Utility/ErrorUtility.h"
 
 SkyDomeComponent::~SkyDomeComponent() {
     if (materialResource_ && mappedMaterialData_) {
@@ -23,7 +24,12 @@ void SkyDomeComponent::OnAwake() {
             size_t size = (sizeof(Material) + 255) & ~255;
             materialResource_ = engine->GetDirectXCommon()->CreateBufferResource(size);
             if (materialResource_) {
-                materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&mappedMaterialData_));
+                HRESULT hr = materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&mappedMaterialData_));
+                if (!IRUFEMI_CHECK_HR(hr, "Failed to map SkyDome material constant buffer.")) {
+                    materialResource_.Reset();
+                    mappedMaterialData_ = nullptr;
+                    return;
+                }
             }
         }
     }
@@ -67,9 +73,11 @@ void SkyDomeComponent::UpdateMaterialBuffer() {
     mat.m[3][0] = uvOffset_.x;
     mat.m[3][1] = uvOffset_.y;
     mappedMaterialData_->uvTransform = mat;
+    isDirty_ = false;
 }
 
 void SkyDomeComponent::Update() {
+    if (isDirty_)
     UpdateMaterialBuffer();
 }
 
@@ -95,10 +103,10 @@ void SkyDomeComponent::OnRegisterProperties() {
         ReloadTexture();
         UpdateMaterialBuffer();
     });
-    RegisterProperty("Color", &color_);
-    RegisterProperty("Intensity", &intensity_);
-    RegisterProperty("UV Offset", &uvOffset_);
-    RegisterProperty("UV Tiling", &uvTiling_);
+    RegisterProperty("Color", &color_).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("Intensity", &intensity_).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("UV Offset", &uvOffset_).OnChanged([this]() { isDirty_ = true; });
+    RegisterProperty("UV Tiling", &uvTiling_).OnChanged([this]() { isDirty_ = true; });
 }
 
 nlohmann::json SkyDomeComponent::Serialize() {

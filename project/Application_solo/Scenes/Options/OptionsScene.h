@@ -13,6 +13,7 @@ class SliderComponent;
 class ButtonComponent;
 class TextRendererComponent;
 class Primitive2DRendererComponent;
+class Component;
 class GameObject;
 
 /**
@@ -127,7 +128,7 @@ private:
     SliderComponent* draggingSlider_ = nullptr;
 
     // ホバー検出＆SE用
-    void* lastHoveredTarget_ = nullptr;
+    Component* lastHoveredTarget_ = nullptr;
 
     // カーソル設定定数
     const float kStickyFriction_ = 0.45f; // ホバー時の減速倍率
@@ -138,7 +139,7 @@ private:
     // UIの初期化が完了したか
     bool uiBound_ = false;
 
-    UIRect rectButtonClose_{640.0f, 530.0f, 130.0f, 30.0f};
+
     UIRect rectSliderBGM_{640.0f, 210.0f, 210.0f, 35.0f};
     UIRect rectSliderSE_{640.0f, 320.0f, 210.0f, 35.0f};
     UIRect rectSliderSensitivity_{640.0f, 430.0f, 210.0f, 35.0f};

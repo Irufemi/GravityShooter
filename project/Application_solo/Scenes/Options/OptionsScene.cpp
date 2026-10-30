@@ -240,7 +240,7 @@ void OptionsScene::Update() {
     // 3. BACK / CLOSE ボタン判定 (確実な矩形判定 ＆ 決定入力)
     // =========================================================================
     const auto& cursorPos = input->GetVirtualCursorPosition();
-    bool isOverCloseButton = rectButtonClose_.Contains(cursorPos.x, cursorPos.y);
+    bool isOverCloseButton = buttonClose_ && buttonClose_->CheckBounds(cursorPos);
 
     bool isDecidePressed = input->IsCursorActionPressed() || InputHelper::IsActionPressed(input, GameAction::UI_Submit);
 
@@ -295,10 +295,10 @@ void OptionsScene::BindUIComponents() {
     if (auto obj = FindGameObject("Button_Close")) {
         buttonClose_ = obj->GetComponent<ButtonComponent>();
         if (auto t = obj->GetTransform()) {
-            rectButtonClose_.x = t->GetPosition().x;
-            rectButtonClose_.y = t->GetPosition().y;
+            (void)t;
+
             if (t->GetScale().x > 1.0f) {
-                rectButtonClose_.halfW = t->GetScale().x * 0.5f;
+                (void)0;
             }
         }
     }
@@ -333,14 +333,14 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
     // 1. ホバー判定（データ駆動判定）
-    void* currentHovered = nullptr;
+    Component* currentHovered = nullptr;
     for (const auto& binding : GetSliderBindings()) {
         if (binding.sliderRef && binding.rectRef.Contains(cursorPos.x, cursorPos.y)) {
             currentHovered = binding.sliderRef;
             break;
         }
     }
-    bool isOverClose = rectButtonClose_.Contains(cursorPos.x, cursorPos.y);
+    bool isOverClose = buttonClose_ && buttonClose_->CheckBounds(cursorPos);
     if (!currentHovered && isOverClose) {
         currentHovered = buttonClose_;
     }
