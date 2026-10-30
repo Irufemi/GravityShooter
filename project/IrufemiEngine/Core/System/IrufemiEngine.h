@@ -685,7 +685,8 @@ public: // ゲッター
     /**
      * @brief 一定時間ゲーム全体を微小停止・減速させるヒットストップを発火する
      * @param[in] duration 停止時間（秒、実時間 GetRealDeltaTime() ベースで減算）
-     * @param[in] slowScale 停止中のゲーム内タイムスケール（完全停止 0.0f によるGPU同期スキップ・フリッカーを防ぐため下限 0.001f を保証）
+     * @param[in] slowScale 停止中のゲーム内タイムスケール（完全停止 0.0f
+     * によるGPU同期スキップ・フリッカーを防ぐため下限 0.001f を保証）
      */
     void TriggerHitStop(float duration, float slowScale = 0.001f) {
         if (duration <= 0.0f) {

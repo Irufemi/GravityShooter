@@ -188,8 +188,7 @@ void BaseBatch::CreateOrResizeInstanceBuffer(uint32_t instanceCount) {
     srv.Buffer.StructureByteStride = stride;
     srv.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-    dx_->GetDevice()->CreateShaderResourceView(instanceBuffer_[frameIndex].Get(), &srv,
-                                               instancingSrvCPU_[frameIndex]);
+    dx_->GetDevice()->CreateShaderResourceView(instanceBuffer_[frameIndex].Get(), &srv, instancingSrvCPU_[frameIndex]);
 }
 
 void BaseBatch::CreateGPUCullingBuffers(uint32_t instanceCount) {
