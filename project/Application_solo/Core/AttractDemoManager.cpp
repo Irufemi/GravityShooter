@@ -33,13 +33,19 @@ inline float SmoothStep(float t) {
 }
 } // namespace
 
+AttractDemoManager::AttractDemoManager(const Config& config)
+    : config_(config)
+    , isKioskLoopMode_(config.enabledOnStart)
+    , demoMode_(config.defaultMode) {
+}
+
 void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
-    isKioskLoopMode_ = true; // 今回の演出確認・審査ループのため初期ON
-    s_isKioskModeActive_ = true;
-    s_isAttractModeActive_ = true;
-    demoMode_ = DemoMode::GameOverShowcase; // ゲームオーバー演出実演をデフォルトに設定
+    isKioskLoopMode_ = config_.enabledOnStart;
+    s_isKioskModeActive_ = config_.enabledOnStart;
+    s_isAttractModeActive_ = config_.enabledOnStart;
+    demoMode_ = config_.defaultMode;
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
     hasSubmitted_ = false;
@@ -154,6 +160,9 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
 }
 
 void AttractDemoManager::UpdateF8Input(float deltaTime) {
+    if (!config_.enableDevHotkeys) {
+        return;
+    }
     if (f8CooldownTimer_ > 0.0f) {
         f8CooldownTimer_ -= deltaTime;
     }

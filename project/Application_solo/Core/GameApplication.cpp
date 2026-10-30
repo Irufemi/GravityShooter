@@ -81,7 +81,7 @@ const char kInitialScene[]
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
     = "InGame";
 #else
-    = "InGame";
+    = "Title";
 #endif
 
 // --- シーン登録処理 ---
@@ -216,8 +216,22 @@ void GameApplication::Run() {
     engine->AddExtension(editorManager);
 #endif
 
+    // アトラクトデモ＆キオスク固定展示の設定（デフォルトOFF: 通常プレイ）
+    AttractDemoConfig demoConfig;
+    demoConfig.enabledOnStart = false; // デモプレイ機能をオフ（起動時はプレイヤー操作）
+    demoConfig.defaultMode = AttractDemoManager::DemoMode::GameOverShowcase;
+    demoConfig.enableDevHotkeys = true; // 開発・審査用のF8トグルは有効
+
+    // コマンドライン引数（-demo または --kiosk）が指定されている場合はデモ起動へ上書き
+    if (const wchar_t* cmdLine = GetCommandLineW()) {
+        if (wcsstr(cmdLine, L"-demo") || wcsstr(cmdLine, L"--demo") || wcsstr(cmdLine, L"-kiosk") ||
+            wcsstr(cmdLine, L"--kiosk")) {
+            demoConfig.enabledOnStart = true;
+        }
+    }
+
     // アトラクトデモ＆キオスク固定展示マネージャを拡張として事前登録
-    engine->AddExtension(std::make_shared<AttractDemoManager>());
+    engine->AddExtension(std::make_shared<AttractDemoManager>(demoConfig));
 
     // エンジンの初期化
     engine->Initialize(kTitle, kClientWidth, kClientHeight, kClearColor);

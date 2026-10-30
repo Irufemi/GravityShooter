@@ -28,12 +28,33 @@ public:
         GameOverShowcase ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
     };
 
-    AttractDemoManager() = default;
+    /**
+     * @struct Config
+     * @brief アトラクトデモおよびキオスク展示の起動構成設定
+     */
+    struct Config {
+        bool enabledOnStart = false; ///< 起動時にデモプレイ（キオスクループ）を開始するか（デフォルト: OFF）
+        DemoMode defaultMode = DemoMode::GameOverShowcase; ///< 初期デモモード
+        bool enableDevHotkeys = true; ///< F8（デモトグル）やF7（モード切替）等の開発キーを有効にするか
+    };
+
+    /**
+     * @brief コンストラクタ
+     * @param config アトラクトデモの初期構成設定
+     */
+    explicit AttractDemoManager(const Config& config = Config{});
     ~AttractDemoManager() override = default;
 
     void OnInitialize(IrufemiEngine* engine) override;
     void OnUpdate(float deltaTime) override;
     void OnFinalize() override;
+
+    /**
+     * @brief 起動構成設定を取得する
+     */
+    const Config& GetConfig() const {
+        return config_;
+    }
 
     /**
      * @brief 現在のデモモードを取得する
@@ -124,7 +145,8 @@ private:
 
     // --- 状態管理 ---
     std::string previousScene_ = "";                   ///< 前フレームのシーン名（遷移検知用）
-    bool isKioskLoopMode_ = true;                      ///< 常時ループ展示フラグ（デフォルトON）
+    Config config_{};                                  ///< 起動時構成設定
+    bool isKioskLoopMode_ = false;                     ///< 常時ループ展示フラグ（デフォルトOFF）
     DemoMode demoMode_ = DemoMode::TransitionShowcase; ///< 現在のデモモード（画面遷移ショーケースがデフォルト）
     bool isDemoPlaying_ = false;      ///< Titleシーンでのデモタイムライン進行中フラグ
     bool isDemoInGame_ = false;       ///< InGameシーンでの3.5秒帰還待ちフラグ
@@ -161,3 +183,6 @@ private:
     class TextRendererComponent* demoHudText_ = nullptr;
     float demoHudBlinkTimer_ = 0.0f;
 };
+
+using AttractDemoConfig = AttractDemoManager::Config;
+
