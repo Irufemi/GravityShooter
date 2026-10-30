@@ -319,6 +319,11 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             }
 
             transitionPhase_ = TransitionPhase::LoadingWait; // ロード待機フェーズへ
+
+            // ロード画面表示中に新シーンの事前ウォームアップを先行実行（Start先行実行・描画ステート・PSO構築）
+            if (!sceneStack_.empty()) {
+                sceneStack_.back().scene->WarmUpRenderState();
+            }
         }
     } else if (transitionPhase_ == TransitionPhase::LoadingWait) {
         // 全てのアセットのロード完了 かつ 最低表示保証時間（1.5秒）を満たすのを待つ

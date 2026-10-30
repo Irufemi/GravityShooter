@@ -148,46 +148,64 @@ void BaseBatch::ClearInstances() {
 }
 
 void BaseBatch::CreateOrResizeInstanceBuffer(uint32_t instanceCount) {
+    // ゼロ・ランタイム・アロケーション: 512件下限 + 2倍幾何学的成長
     const UINT stride = useGPUCulling_ ? sizeof(TransformData) : sizeof(InstanceData);
-    const UINT sizeInBytes = std::max<UINT>(stride * instanceCount, stride);
     uint32_t frameIndex = dx_->GetFrameIndex();
-
-    if (!instanceBuffer_[frameIndex] || instanceBuffer_[frameIndex]->GetDesc().Width < sizeInBytes) {
-        instanceBuffer_[frameIndex] = dx_->CreateBufferResource(sizeInBytes);
-
-        if (instancingSrvIndex_[frameIndex] == UINT32_MAX) {
-            IRUFEMI_ASSERT(srvPool_);
-            uint32_t idx = srvPool_->Allocate();
-            if (idx == DescriptorPool::kInvalid) {
-                /**
-                 * @brief エディタのコンソールパネルにも出力するため、Log::OutPutLog を使用
-                 */
-                Log::OutPutLog(std::cerr, "BaseBatch SRV allocate failed");
-                return;
-            }
-            instancingSrvIndex_[frameIndex] = idx;
-            instancingSrvCPU_[frameIndex] = srvPool_->GetCPUHandle(idx);
-            instancingSrvGPU_[frameIndex] = srvPool_->GetGPUHandle(idx);
+    UINT requiredCount = (std::max)(512u, instanceCount);
+    if (instanceBuffer_[frameIndex]) {
+        UINT currentCapacity = static_cast<UINT>(instanceBuffer_[frameIndex]->GetDesc().Width / stride);
+        if (currentCapacity < instanceCount) {
+            requiredCount = (std::max)(currentCapacity * 2, instanceCount);
+        } else {
+            return;
         }
-
-        D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
-        srv.Format = DXGI_FORMAT_UNKNOWN;
-        srv.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-        srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srv.Buffer.FirstElement = 0;
-        srv.Buffer.NumElements = instanceCount;
-        srv.Buffer.StructureByteStride = stride;
-        srv.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-        dx_->GetDevice()->CreateShaderResourceView(instanceBuffer_[frameIndex].Get(), &srv,
-                                                   instancingSrvCPU_[frameIndex]);
     }
+    const UINT sizeInBytes = stride * requiredCount;
+
+    instanceBuffer_[frameIndex] = dx_->CreateBufferResource(sizeInBytes);
+
+    if (instancingSrvIndex_[frameIndex] == UINT32_MAX) {
+        IRUFEMI_ASSERT(srvPool_);
+        uint32_t idx = srvPool_->Allocate();
+        if (idx == DescriptorPool::kInvalid) {
+            /**
+             * @brief エディタのコンソールパネルにも出力するため、Log::OutPutLog を使用
+             */
+            Log::OutPutLog(std::cerr, "BaseBatch SRV allocate failed");
+            return;
+        }
+        instancingSrvIndex_[frameIndex] = idx;
+        instancingSrvCPU_[frameIndex] = srvPool_->GetCPUHandle(idx);
+        instancingSrvGPU_[frameIndex] = srvPool_->GetGPUHandle(idx);
+    }
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
+    srv.Format = DXGI_FORMAT_UNKNOWN;
+    srv.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srv.Buffer.FirstElement = 0;
+    srv.Buffer.NumElements = requiredCount;
+    srv.Buffer.StructureByteStride = stride;
+    srv.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+    dx_->GetDevice()->CreateShaderResourceView(instanceBuffer_[frameIndex].Get(), &srv,
+                                               instancingSrvCPU_[frameIndex]);
 }
 
 void BaseBatch::CreateGPUCullingBuffers(uint32_t instanceCount) {
     const UINT stride = sizeof(InstanceData);
-    const UINT sizeInBytes = std::max<UINT>(stride * instanceCount, stride);
     uint32_t frameIndex = dx_->GetFrameIndex();
+
+    UINT requiredCount = (std::max)(512u, instanceCount);
+    if (outputInstanceBuffer_[frameIndex]) {
+        UINT currentCapacity = static_cast<UINT>(outputInstanceBuffer_[frameIndex]->GetDesc().Width / stride);
+        if (currentCapacity < instanceCount) {
+            requiredCount = (std::max)(currentCapacity * 2, instanceCount);
+        } else {
+            requiredCount = currentCapacity;
+        }
+    }
+    const UINT sizeInBytes = stride * requiredCount;
 
     // 1. Output Buffer (SRV + UAV)
     if (!outputInstanceBuffer_[frameIndex] || outputInstanceBuffer_[frameIndex]->GetDesc().Width < sizeInBytes) {
@@ -213,7 +231,7 @@ void BaseBatch::CreateGPUCullingBuffers(uint32_t instanceCount) {
         srv.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
         srv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
         srv.Buffer.FirstElement = 0;
-        srv.Buffer.NumElements = instanceCount;
+        srv.Buffer.NumElements = requiredCount;
         srv.Buffer.StructureByteStride = stride;
         srv.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
         dx_->GetDevice()->CreateShaderResourceView(outputInstanceBuffer_[frameIndex].Get(), &srv,
@@ -224,7 +242,7 @@ void BaseBatch::CreateGPUCullingBuffers(uint32_t instanceCount) {
         uav.Format = DXGI_FORMAT_UNKNOWN;
         uav.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
         uav.Buffer.FirstElement = 0;
-        uav.Buffer.NumElements = instanceCount;
+        uav.Buffer.NumElements = requiredCount;
         uav.Buffer.StructureByteStride = stride;
         uav.Buffer.CounterOffsetInBytes = 0;
         uav.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;

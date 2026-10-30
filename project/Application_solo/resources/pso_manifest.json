@@ -1,0 +1,509 @@
+{
+    "version": 1,
+    "graphics": [
+        {
+            "name": "Object3D",
+            "blend": 1,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Object3D",
+            "blend": 1,
+            "depth": 0,
+            "cull": 2
+        },
+        {
+            "name": "Skinning",
+            "blend": 1,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Skinning",
+            "blend": 1,
+            "depth": 0,
+            "cull": 2
+        },
+        {
+            "name": "Batch",
+            "blend": 1,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Batch",
+            "blend": 1,
+            "depth": 0,
+            "cull": 2
+        },
+        {
+            "name": "Particle",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "GpuParticle",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Sprite",
+            "blend": 1,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "SpriteBatch",
+            "blend": 1,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "Text",
+            "blend": 1,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "LightningCrawl",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "ExplosionFlame",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "EnergyCore",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "BombCore",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "StompExplosion",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "AOEWarning",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Line",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "LineBatch",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "DebugPrimitive",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 1,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Particle",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "GpuParticle",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Sprite",
+            "blend": 2,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "SpriteBatch",
+            "blend": 2,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "Text",
+            "blend": 2,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "LightningCrawl",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "ExplosionFlame",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "EnergyCore",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "BombCore",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "StompExplosion",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "AOEWarning",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Line",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "LineBatch",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "DebugPrimitive",
+            "blend": 2,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 2,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Particle",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "GpuParticle",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Sprite",
+            "blend": 3,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "SpriteBatch",
+            "blend": 3,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "Text",
+            "blend": 3,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "LightningCrawl",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "ExplosionFlame",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "EnergyCore",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "BombCore",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "StompExplosion",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "AOEWarning",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Line",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "LineBatch",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "DebugPrimitive",
+            "blend": 3,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 3,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Particle",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "GpuParticle",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Sprite",
+            "blend": 6,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "SpriteBatch",
+            "blend": 6,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "Text",
+            "blend": 6,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "LightningCrawl",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "ExplosionFlame",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "EnergyCore",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "BombCore",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "StompExplosion",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "AOEWarning",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "Line",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "LineBatch",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "DebugPrimitive",
+            "blend": 6,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "VoxelParticle",
+            "blend": 6,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Shadow",
+            "blend": 0,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "Shadow",
+            "blend": 0,
+            "depth": 0,
+            "cull": 1
+        },
+        {
+            "name": "ShadowSkinning",
+            "blend": 0,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "ShadowSkinning",
+            "blend": 0,
+            "depth": 0,
+            "cull": 1
+        },
+        {
+            "name": "ShadowBatch",
+            "blend": 0,
+            "depth": 0,
+            "cull": 0
+        },
+        {
+            "name": "ShadowBatch",
+            "blend": 0,
+            "depth": 0,
+            "cull": 1
+        },
+        {
+            "name": "Skybox",
+            "blend": 0,
+            "depth": 1,
+            "cull": 1
+        },
+        {
+            "name": "Skydome",
+            "blend": 0,
+            "depth": 1,
+            "cull": 1
+        },
+        {
+            "name": "Batch",
+            "blend": 1,
+            "depth": 1,
+            "cull": 2
+        },
+        {
+            "name": "SelectionMask",
+            "blend": 0,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "SelectionMaskText",
+            "blend": 0,
+            "depth": 2,
+            "cull": 2
+        },
+        {
+            "name": "OutlineComposite",
+            "blend": 1,
+            "depth": 2,
+            "cull": 2
+        }
+    ],
+    "compute": [
+        "GPUCulling",
+        "Skinning",
+        "GpuParticleInitialize",
+        "GpuParticleEmit",
+        "GpuParticleUpdate",
+        "GpuParticleInitSort",
+        "GpuParticleBitonicSort",
+        "VoxelParticleInitialize",
+        "VoxelParticleEmit",
+        "VoxelParticleUpdate"
+    ]
+}

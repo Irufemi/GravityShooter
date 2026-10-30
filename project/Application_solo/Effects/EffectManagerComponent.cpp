@@ -42,6 +42,10 @@ void EffectManagerComponent::Start() {
             // 最低1個生成してボクセルコンポーネント等の事前確保をロード中に完了させる
             auto handle = pool->Acquire();
             if (handle.IsValid()) {
+                if (auto obj = pool->Resolve(handle)) {
+                    obj->SetIsActive(true);
+                    obj->SetIsActive(false);
+                }
                 pool->Release(handle);
             }
         }
@@ -70,6 +74,13 @@ ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::strin
             // 寿命コンポーネントがあれば、プール運用のためにDestroyではなくDisableに変更する
             if (auto lifetime = obj->GetComponent<LifetimeComponent>()) {
                 lifetime->SetTimeoutAction(TimeoutAction::Disable);
+            }
+
+            // GPUパーティクルエミッターを先行初期化
+            for (auto pe : obj->GetComponentsInChildren<ParticleEmitterComponent>()) {
+                if (pe) {
+                    pe->OnAwake();
+                }
             }
 
             // プール内のボクセルパーティクルコンポーネントを事前にウォームアップ（初回の破砕ヒッチを防止）

@@ -3,6 +3,8 @@
 #include <dxcapi.h>
 #include <wrl.h>
 #include <unordered_map>
+#include <unordered_set>
+#include <mutex>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -69,6 +71,9 @@ public:
      * @brief 初期化処理
      * @details デバイスや共通フォーマットを保持します。
      */
+    PSOManager() = default;
+    ~PSOManager();
+
     void Initialize(ID3D12Device* device, ID3D12RootSignature* rootSig, const D3D12_INPUT_LAYOUT_DESC& inputLayout,
                     DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat,
                     D3D12_PRIMITIVE_TOPOLOGY_TYPE topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
@@ -119,6 +124,12 @@ public:
     /** @brief ゲームプレイ中によく使われる PSO の組み合わせを事前にコンパイル・キャッシュします */
     void PreWarmCommonPSOs(class ThreadPool* threadPool = nullptr);
 
+    /** @brief 実際に使用された PSO のマニフェスト（設定情報）をディスクに自動保存する */
+    void SaveManifest(const std::string& manifestPath = "") const;
+
+    /** @brief 保存されたマニフェストからすべての PSO を事前ウォームアップする */
+    bool LoadAndPreWarmManifest(class ThreadPool* threadPool = nullptr, const std::string& manifestPath = "");
+
 private:
     using ComPtr = Microsoft::WRL::ComPtr<ID3D12PipelineState>;
 
@@ -166,6 +177,27 @@ private:
 
     /** @brief 設定セット（シェーダ、ブレンド、デプス、カリング）からハッシュ値を計算 */
     static uint64_t Hash(const std::string& name, Irufemi::BlendMode b, DepthWrite d, CullMode c);
+
+    /** @brief 自動ハーベスティング用 PSO 記録データ */
+    struct GraphicsPSORecord {
+        std::string name;
+        Irufemi::BlendMode blend;
+        DepthWrite depth;
+        CullMode cull;
+
+        bool operator==(const GraphicsPSORecord& o) const {
+            return name == o.name && blend == o.blend && depth == o.depth && cull == o.cull;
+        }
+    };
+    struct GraphicsPSORecordHash {
+        size_t operator()(const GraphicsPSORecord& r) const {
+            return static_cast<size_t>(Hash(r.name, r.blend, r.depth, r.cull));
+        }
+    };
+
+    mutable std::mutex manifestMutex_;
+    mutable std::unordered_set<GraphicsPSORecord, GraphicsPSORecordHash> recordedGraphicsPSOs_;
+    mutable std::unordered_set<std::string> recordedComputePSOs_;
 
     /** @name ディスクキャッシュ (PSO Blob) */
     ///@{

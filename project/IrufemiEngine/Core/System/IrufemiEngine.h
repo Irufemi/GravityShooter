@@ -684,15 +684,17 @@ public: // ゲッター
     }
     /**
      * @brief 一定時間ゲーム全体を微小停止・減速させるヒットストップを発火する
-     * @param[in] duration 停止時間（秒、実時間ベース）
-     * @param[in] slowScale 停止中のタイムスケール（0.0f で完全静止、0.1f 等でスロー）
+     * @param[in] duration 停止時間（秒、実時間 GetRealDeltaTime() ベースで減算）
+     * @param[in] slowScale 停止中のゲーム内タイムスケール（完全停止 0.0f によるGPU同期スキップ・フリッカーを防ぐため下限 0.001f を保証）
      */
-    void TriggerHitStop(float duration, float slowScale = 0.0f) {
+    void TriggerHitStop(float duration, float slowScale = 0.001f) {
         if (duration <= 0.0f) {
             return;
         }
         hitStopTimer_ = duration;
-        timeScale_ = slowScale;
+        // 大手エンジン標準設計: 完全停止 0.0f によるゼロ除算や DirectX 12 ダブルバッファの
+        // 同期スキップ（描画抜け）を排除するため、極小値（0.001f）を下限クランプ保証
+        timeScale_ = (std::max)(slowScale, 0.001f);
     }
 
     float GetPureCpuTimeMs() const {

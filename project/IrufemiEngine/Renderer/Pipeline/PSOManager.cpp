@@ -7,6 +7,10 @@
 #include <vector>
 #include "Core/System/ThreadPool.h"
 #include "Core/System/TaskGroup.h"
+#include "Core/Utility/Log.h"
+#include "Core/Utility/JsonUtility.h"
+#include <nlohmann/json.hpp>
+#include <iostream>
 
 static const std::string kCacheDirectory = "generated/cache/pso/";
 
@@ -18,6 +22,10 @@ static uint64_t FNV1a(const void* p, size_t n, uint64_t h = 1469598103934665603u
         h *= 1099511628211ull;
     }
     return h;
+}
+
+PSOManager::~PSOManager() {
+    SaveManifest();
 }
 
 void PSOManager::Initialize(ID3D12Device* device, ID3D12RootSignature* rootSig,
@@ -66,6 +74,11 @@ void PSOManager::RegisterShader(const std::string& name, const PipelineStateDesc
 
 ID3D12PipelineState* PSOManager::GetPSO(const std::string& name, Irufemi::BlendMode blend, DepthWrite depth,
                                         CullMode cull) {
+    {
+        std::lock_guard<std::mutex> lock(manifestMutex_);
+        recordedGraphicsPSOs_.insert({name, blend, depth, cull});
+    }
+
     Key key{Hash(name, blend, depth, cull)};
     PipelineStateDesc psoDesc;
     {
@@ -322,6 +335,10 @@ void PSOManager::RegisterComputeShader(const std::string& name, const Microsoft:
 }
 
 ID3D12PipelineState* PSOManager::GetComputePSO(const std::string& name) {
+    {
+        std::lock_guard<std::mutex> lock(manifestMutex_);
+        recordedComputePSOs_.insert(name);
+    }
     std::shared_lock<std::shared_mutex> lock(psoMutex_);
     auto it = computeCache_.find(name);
     return (it != computeCache_.end()) ? it->second.Get() : nullptr;
@@ -362,86 +379,140 @@ void PSOManager::ClearCache() {
     }
 }
 
-void PSOManager::PreWarmCommonPSOs(ThreadPool* threadPool) {
-    auto prewarm = [this, threadPool](std::shared_ptr<TaskGroup> group, const std::string& name,
-                                      Irufemi::BlendMode blend, DepthWrite depth, CullMode cull) {
-        if (threadPool && group) {
-            threadPool->Enqueue(group, [this, name, blend, depth, cull]() { GetPSO(name, blend, depth, cull); });
-        } else {
-            GetPSO(name, blend, depth, cull);
+void PSOManager::SaveManifest(const std::string& manifestPath) const {
+    std::string path = manifestPath.empty() ? (kCacheDirectory + "pso_manifest.json") : manifestPath;
+
+    std::vector<GraphicsPSORecord> graphicsList;
+    std::vector<std::string> computeList;
+    {
+        std::lock_guard<std::mutex> lock(manifestMutex_);
+        graphicsList.assign(recordedGraphicsPSOs_.begin(), recordedGraphicsPSOs_.end());
+        computeList.assign(recordedComputePSOs_.begin(), recordedComputePSOs_.end());
+    }
+
+    if (graphicsList.empty() && computeList.empty()) {
+        return;
+    }
+
+    nlohmann::json j;
+    j["version"] = 1;
+    nlohmann::json gArray = nlohmann::json::array();
+    for (const auto& item : graphicsList) {
+        nlohmann::json obj;
+        obj["name"] = item.name;
+        obj["blend"] = static_cast<int>(item.blend);
+        obj["depth"] = static_cast<int>(item.depth);
+        obj["cull"] = static_cast<int>(item.cull);
+        gArray.push_back(obj);
+    }
+    j["graphics"] = gArray;
+    j["compute"] = computeList;
+
+    std::error_code ec;
+    std::filesystem::create_directories(kCacheDirectory, ec);
+
+    std::ofstream file(path);
+    if (file.is_open()) {
+        file << j.dump(4);
+        Log::OutPutLog(std::cout, std::format("[PSOManager] Saved PSO manifest (Graphics: {}, Compute: {}) to {}\n",
+                                              graphicsList.size(), computeList.size(), path));
+    }
+}
+
+bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::string& manifestPath) {
+    std::string path;
+    if (!manifestPath.empty()) {
+        path = manifestPath;
+    } else {
+        // ローカルキャッシュ → 配布同梱アセットの順にフォールバック探索
+        const std::vector<std::string> searchPaths = {
+            kCacheDirectory + "pso_manifest.json",
+            "resources/cache/pso_manifest.json",
+            "resources/pso_manifest.json"
+        };
+
+        for (const auto& sp : searchPaths) {
+            if (std::filesystem::exists(sp)) {
+                path = sp;
+                break;
+            }
         }
-    };
+    }
+
+    if (path.empty() || !std::filesystem::exists(path)) {
+        return false;
+    }
+
+    nlohmann::json j;
+    if (!Irufemi::JsonUtility::LoadFromFile(path, j)) {
+        return false;
+    }
+
+    Log::OutPutLog(std::cout, "[PSOManager] Loading and pre-warming PSO manifest from: " + path + "\n");
 
     std::shared_ptr<TaskGroup> taskGroup;
     if (threadPool) {
         taskGroup = std::make_shared<TaskGroup>();
     }
 
-    // 1. 一般的な3Dオブジェクト (Opaque / 標準描画)
-    for (CullMode cull : {CullMode::Back, CullMode::None}) {
-        prewarm(taskGroup, "Object3D", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Enable, cull);
-        prewarm(taskGroup, "Skinning", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Enable, cull);
-    }
+    size_t graphicsCount = 0;
+    if (j.contains("graphics") && j["graphics"].is_array()) {
+        for (const auto& item : j["graphics"]) {
+            std::string name = item.value("name", "");
+            if (name.empty()) {
+                continue;
+            }
+            auto blend = static_cast<Irufemi::BlendMode>(item.value("blend", 0));
+            auto depth = static_cast<DepthWrite>(item.value("depth", 0));
+            auto cull = static_cast<CullMode>(item.value("cull", 0));
 
-    // 2. エフェクト・パーティクル・HUD系 (Translucent, Additive等)
-    for (Irufemi::BlendMode blend :
-         {Irufemi::BlendMode::kBlendModeNormal, Irufemi::BlendMode::kBlendModeAdd,
-          Irufemi::BlendMode::kBlendModeSubtract, Irufemi::BlendMode::kBlendModePremultiplied}) {
-        prewarm(taskGroup, "Particle", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "GpuParticle", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "VoxelParticle", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "VoxelParticle", blend, DepthWrite::Enable, CullMode::Back);
-        prewarm(taskGroup, "Sprite", blend, DepthWrite::Off, CullMode::None);
-        prewarm(taskGroup, "SpriteBatch", blend, DepthWrite::Off, CullMode::None);
-        prewarm(taskGroup, "Text", blend, DepthWrite::Off, CullMode::None);
-        prewarm(taskGroup, "LightningCrawl", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "ExplosionFlame", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "EnergyCore", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "BombCore", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "StompExplosion", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "AOEWarning", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "Line", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "LineBatch", blend, DepthWrite::Disable, CullMode::None);
-        prewarm(taskGroup, "DebugPrimitive", blend, DepthWrite::Disable, CullMode::None);
-    }
-
-    // Compute PSO の事前ウォームアップ
-    auto prewarmCompute = [this, threadPool](std::shared_ptr<TaskGroup> group, const std::string& name) {
-        if (threadPool && group) {
-            threadPool->Enqueue(group, [this, name]() { GetComputePSO(name); });
-        } else {
-            GetComputePSO(name);
+            if (threadPool && taskGroup) {
+                threadPool->Enqueue(taskGroup, [this, name, blend, depth, cull]() {
+                    GetPSO(name, blend, depth, cull);
+                });
+            } else {
+                GetPSO(name, blend, depth, cull);
+            }
+            ++graphicsCount;
         }
-    };
-    prewarmCompute(taskGroup, "VoxelParticleInitialize");
-    prewarmCompute(taskGroup, "VoxelParticleEmit");
-    prewarmCompute(taskGroup, "VoxelParticleUpdate");
+    }
 
-    // 3. シャドウマップ出力用
-    prewarm(taskGroup, "Shadow", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);
-    prewarm(taskGroup, "Shadow", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Front);
-    prewarm(taskGroup, "ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Back);
-    prewarm(taskGroup, "ShadowSkinning", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Enable, CullMode::Front);
+    size_t computeCount = 0;
+    if (j.contains("compute") && j["compute"].is_array()) {
+        for (const auto& item : j["compute"]) {
+            std::string name = item.get<std::string>();
+            if (name.empty()) {
+                continue;
+            }
+            if (threadPool && taskGroup) {
+                threadPool->Enqueue(taskGroup, [this, name]() {
+                    GetComputePSO(name);
+                });
+            } else {
+                GetComputePSO(name);
+            }
+            ++computeCount;
+        }
+    }
 
-    // 4. スカイボックス・スカイドーム
-    prewarm(taskGroup, "Skybox", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
-    prewarm(taskGroup, "Skydome", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Disable, CullMode::Front);
-
-    // 5. デバッグ及びその他
-    prewarm(taskGroup, "Batch", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Disable, CullMode::None);
-    GetCopyImage();
-
-    // 6. エディタ専用パス
-#ifdef EditorMode
-    prewarm(taskGroup, "SelectionMask", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Off, CullMode::None);
-    prewarm(taskGroup, "SelectionMaskText", Irufemi::BlendMode::kBlendModeNone, DepthWrite::Off, CullMode::None);
-    prewarm(taskGroup, "OutlineComposite", Irufemi::BlendMode::kBlendModeNormal, DepthWrite::Off, CullMode::None);
-#endif
-
-    // 全タスクの完了を待機（並列実行完了）
     if (taskGroup) {
         taskGroup->Wait();
     }
+
+    Log::OutPutLog(std::cout, std::format("[PSOManager] Pre-warmed {} Graphics PSOs and {} Compute PSOs from manifest: {}\n",
+                                          graphicsCount, computeCount, path));
+    return (graphicsCount > 0 || computeCount > 0);
+}
+
+void PSOManager::PreWarmCommonPSOs(ThreadPool* threadPool) {
+    // 1. データ駆動: マニフェスト（pso_manifest.json）から全PSOを一括プリウォーム
+    if (LoadAndPreWarmManifest(threadPool)) {
+        GetCopyImage();
+        return;
+    }
+
+    Log::OutPutLog(std::cout, "[PSOManager] Warning: No PSO manifest found to pre-warm.\n");
+    GetCopyImage();
 }
 
 // Multiply : out = src * dst
@@ -573,7 +644,14 @@ void PSOManager::SaveCachedBlob(const std::string& cacheFileName, ID3D12Pipeline
     }
 
     Microsoft::WRL::ComPtr<ID3DBlob> blob;
-    if (FAILED(pso->GetCachedBlob(&blob)) || !blob) {
+    HRESULT hr = pso->GetCachedBlob(&blob);
+    if (FAILED(hr) || !blob) {
+        static bool s_warned = false;
+        if (!s_warned) {
+            s_warned = true;
+            Log::OutPutLog(std::cout, "[PSOManager] Note: GPU driver does not support ID3D12PipelineState::GetCachedBlob (HR: " +
+                                          std::to_string(hr) + "). Manifest-based auto-prewarming is active.\n");
+        }
         return;
     }
 
