@@ -40,7 +40,7 @@ void GravityPlayerComponent::LoadStatusFromJson() {
 
     nlohmann::json j;
     if (!Irufemi::JsonUtility::LoadFromFile(statusDataPath_, j)) {
-        Log::OutPutLog(std::cout, "[GravityPlayer] Failed to load status: " + statusDataPath_ + "\n");
+        Log::OutPutLog(std::cerr, "[GravityPlayer] Failed to load status: " + statusDataPath_ + "\n");
         return;
     }
 

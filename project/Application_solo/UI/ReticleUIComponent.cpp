@@ -61,7 +61,7 @@ void ReticleUIComponent::Update() {
     if (!inputManager || !cameraManager || !cameraManager->GetActiveCamera()) {
         return;
     }
-    auto camera = cameraManager->GetActiveCamera();
+    [[maybe_unused]] auto camera = cameraManager->GetActiveCamera();
     float deltaTime = engine->GetGameDeltaTime();
     if (deltaTime <= 0.0f) {
         deltaTime = engine->GetDeltaTime();
@@ -104,8 +104,8 @@ void ReticleUIComponent::Update() {
 
     // 3. レティクル座標の更新（仮想カーソルと同期）
     const auto& cursorPos = inputManager->GetVirtualCursorPosition();
-    Irufemi::Vector2 uiPos = camera->ScreenToUIPosition(cursorPos);
-    transform->SetPosition(Irufemi::Vector3{uiPos.x, uiPos.y, 0.0f});
+    // 仮想カーソル座標（1280x720 UI論理空間）をそのままTransformに反映
+    transform->SetPosition(Irufemi::Vector3{cursorPos.x, cursorPos.y, 0.0f});
 
     // 4. Game Juice 演出（パルス拡縮と発光カラー）
     float targetScale = 1.0f;

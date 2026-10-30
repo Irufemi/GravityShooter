@@ -72,7 +72,7 @@ void DebrisManagerComponent::Initialize() {
     std::string configPath = "resources/GameData/DebrisPalette.json";
     nlohmann::json j;
     if (!Irufemi::JsonUtility::LoadFromFile(configPath, j)) {
-        Log::OutPutLog(std::cout, "Failed to load DebrisPalette.json\n");
+        Log::OutPutLog(std::cerr, "Failed to load DebrisPalette.json\n");
         return;
     }
 
