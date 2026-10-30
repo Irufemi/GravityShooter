@@ -25,6 +25,7 @@ class RailShooterPlayerComponent : public Component {
 public:
     using StateChangeCallback = std::function<void(PlayerFlightState newState, PlayerFlightState oldState)>;
     using ThrottleChangeCallback = std::function<void(float throttle01)>;
+    using ListenerId = uint32_t;
 
     RailShooterPlayerComponent() = default;
     ~RailShooterPlayerComponent() override = default;
@@ -38,16 +39,37 @@ public:
     /**
      * @brief 飛行ステート変更リスナーを登録する（Observerパターン）
      */
-    void AddOnStateChangeListener(StateChangeCallback callback) {
-        stateChangeListeners_.push_back(std::move(callback));
+    [[nodiscard]] ListenerId AddOnStateChangeListener(StateChangeCallback callback) {
+        ListenerId id = ++nextListenerId_;
+        stateChangeListeners_.push_back({id, std::move(callback)});
+        return id;
     }
 
     /**
      * @brief スロットル（速度比率 0.0〜1.0）変更リスナーを登録する（Observerパターン）
      */
-    void AddOnThrottleChangeListener(ThrottleChangeCallback callback) {
-        throttleChangeListeners_.push_back(std::move(callback));
+    /**
+     * @brief 飛行ステート変更リスナーを解除する
+     * @param[in] id AddOnStateChangeListener が返却したListenerId
+     * @return 正常に解除できた場合 true
+     */
+    bool RemoveOnStateChangeListener(ListenerId id);
+
+    /**
+     * @brief スロットル（速度比率 0.0〜1.0）変更リスナーを登録する（Observerパターン）
+     */
+    [[nodiscard]] ListenerId AddOnThrottleChangeListener(ThrottleChangeCallback callback) {
+        ListenerId id = ++nextListenerId_;
+        throttleChangeListeners_.push_back({id, std::move(callback)});
+        return id;
     }
+
+    /**
+     * @brief スロットル変更リスナーを解除する
+     * @param[in] id AddOnThrottleChangeListener が返却したListenerId
+     * @return 正常に解除できた場合 true
+     */
+    bool RemoveOnThrottleChangeListener(ListenerId id);
 
     /**
      * @brief 現在の飛行ステートを取得する
@@ -84,8 +106,18 @@ private:
     PlayerFlightState currentState_ = PlayerFlightState::WarpEntry; ///< 初期状態はワープ進入
     float entryTimer_ = 0.0f;                                       ///< ワープ進入演出タイマー
     static constexpr float kWarpEntryDuration_ = 0.75f;             ///< ワープ突入滑り込み時間 (秒)
-    std::vector<StateChangeCallback> stateChangeListeners_;
-    std::vector<ThrottleChangeCallback> throttleChangeListeners_;
+    struct StateListenerEntry {
+        ListenerId id = 0;
+        StateChangeCallback callback;
+    };
+    struct ThrottleListenerEntry {
+        ListenerId id = 0;
+        ThrottleChangeCallback callback;
+    };
+
+    ListenerId nextListenerId_ = 0;
+    std::vector<StateListenerEntry> stateChangeListeners_;
+    std::vector<ThrottleListenerEntry> throttleChangeListeners_;
 
     float xySpeed_ = 10.0f;                      ///< 上下左右に避ける（回避運動）スピード
     Irufemi::Vector3 currentOffset_ = {0, 0, 0}; ///< レールの中心からどのくらいずれているか（上下左右のズレ幅）

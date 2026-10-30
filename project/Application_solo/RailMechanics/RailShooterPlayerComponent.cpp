@@ -21,6 +21,26 @@ void RailShooterPlayerComponent::OnRegisterProperties() {
     RegisterProperty("HoverFrequency", &hoverFrequency_);
 }
 
+bool RailShooterPlayerComponent::RemoveOnStateChangeListener(ListenerId id) {
+    auto it = std::remove_if(stateChangeListeners_.begin(), stateChangeListeners_.end(),
+                             [id](const StateListenerEntry& entry) { return entry.id == id; });
+    if (it != stateChangeListeners_.end()) {
+        stateChangeListeners_.erase(it, stateChangeListeners_.end());
+        return true;
+    }
+    return false;
+}
+
+bool RailShooterPlayerComponent::RemoveOnThrottleChangeListener(ListenerId id) {
+    auto it = std::remove_if(throttleChangeListeners_.begin(), throttleChangeListeners_.end(),
+                             [id](const ThrottleListenerEntry& entry) { return entry.id == id; });
+    if (it != throttleChangeListeners_.end()) {
+        throttleChangeListeners_.erase(it, throttleChangeListeners_.end());
+        return true;
+    }
+    return false;
+}
+
 void RailShooterPlayerComponent::SetState(PlayerFlightState newState) {
     if (currentState_ == newState) {
         return;
@@ -29,9 +49,9 @@ void RailShooterPlayerComponent::SetState(PlayerFlightState newState) {
     currentState_ = newState;
 
     // リスナーへの通知（Observerパターン）
-    for (const auto& listener : stateChangeListeners_) {
-        if (listener) {
-            listener(newState, oldState);
+    for (const auto& entry : stateChangeListeners_) {
+        if (entry.callback) {
+            entry.callback(newState, oldState);
         }
     }
 }
@@ -170,9 +190,9 @@ void RailShooterPlayerComponent::Update() {
     UpdateStateTransitions(len, currentSpeed);
 
     // 2. スロットル値のObserver通知（スラスターやカメラ用）
-    for (const auto& listener : throttleChangeListeners_) {
-        if (listener) {
-            listener(throttle);
+    for (const auto& entry : throttleChangeListeners_) {
+        if (entry.callback) {
+            entry.callback(throttle);
         }
     }
 

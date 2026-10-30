@@ -167,6 +167,12 @@ public:
     const std::vector<Irufemi::Vector3>& GetInitialDebrisPositions() const {
         return initialDebrisPositions_;
     }
+    const std::vector<Irufemi::Vector3>& GetLaunchStartDebrisPositions() const {
+        return launchStartDebrisPositions_;
+    }
+    void SetLaunchStartDebrisPositions(std::vector<Irufemi::Vector3> positions) {
+        launchStartDebrisPositions_ = std::move(positions);
+    }
     const std::vector<std::weak_ptr<GameObject>>& GetDebrisObjects() const {
         return debrisObjs_;
     }
@@ -345,6 +351,7 @@ private: // メンバ変数
     Irufemi::Vector3 initialCameraPos_{0.0f, 0.5f, -5.0f};
     float initialCameraFov_{0.785398f}; ///< 初期視野角 (約45度)
     std::vector<Irufemi::Vector3> initialDebrisPositions_;
+    std::vector<Irufemi::Vector3> launchStartDebrisPositions_; ///< 出撃開始瞬間の各ガレキ座標スナップショット
 
     // アイドリング用タイマー
     float idleTimer_ = 0.0f;

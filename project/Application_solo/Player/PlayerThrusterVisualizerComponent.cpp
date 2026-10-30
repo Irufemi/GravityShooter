@@ -48,13 +48,35 @@ void PlayerThrusterVisualizerComponent::Start() {
 
     // 2. RailShooterPlayerComponent のイベントを購読 (Observer パターン)
     if (auto playerComp = gameObject_->GetComponent<RailShooterPlayerComponent>()) {
-        playerComp->AddOnThrottleChangeListener([this](float throttle) { OnThrottleChanged(throttle); });
-        playerComp->AddOnStateChangeListener(
-            [this](PlayerFlightState newState, PlayerFlightState oldState) { OnStateChanged(newState, oldState); });
+        std::weak_ptr<GameObject> weakSelf = gameObject_->shared_from_this();
+        throttleListenerId_ = playerComp->AddOnThrottleChangeListener([this, weakSelf](float throttle) {
+            if (!weakSelf.expired()) {
+                OnThrottleChanged(throttle);
+            }
+        });
+        stateListenerId_ = playerComp->AddOnStateChangeListener(
+            [this, weakSelf](PlayerFlightState newState, PlayerFlightState oldState) {
+                if (!weakSelf.expired()) {
+                    OnStateChanged(newState, oldState);
+                }
+            });
     }
 }
 
 void PlayerThrusterVisualizerComponent::OnDestroy() {
+    // リスナーの明示的な購読解除 (Unsubscribe)
+    if (gameObject_) {
+        if (auto playerComp = gameObject_->GetComponent<RailShooterPlayerComponent>()) {
+            if (throttleListenerId_ != 0) {
+                playerComp->RemoveOnThrottleChangeListener(throttleListenerId_);
+                throttleListenerId_ = 0;
+            }
+            if (stateListenerId_ != 0) {
+                playerComp->RemoveOnStateChangeListener(stateListenerId_);
+                stateListenerId_ = 0;
+            }
+        }
+    }
     isThrusterActive_ = false;
     if (auto thruster = thrusterObj_.lock()) {
         auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();

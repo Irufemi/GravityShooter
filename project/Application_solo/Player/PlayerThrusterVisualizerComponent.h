@@ -71,5 +71,7 @@ private:
     float targetScaleZ_ = 1.0f;                            ///< 目標のスラスターZスケール
     bool isThrusterActive_ = false; ///< スラスターの有効・無効状態（初期状態は待機）
 
+    uint32_t throttleListenerId_ = 0;             ///< スロットル変更リスナーID
+    uint32_t stateListenerId_ = 0;                ///< ステート変更リスナーID
     PlayerHealthComponent* healthComp_ = nullptr; ///< 自機ヘルスコンポーネント（生存監視用）
 };

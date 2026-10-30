@@ -35,6 +35,23 @@ void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
         }
     }
 
+    // シネマティックテイクオーバー: 出撃突入瞬間の全ガレキ現在ワールド座標をスナップショット記録
+    const auto& debrisObjs = director->GetDebrisObjects();
+    std::vector<Irufemi::Vector3> startPositions;
+    startPositions.reserve(debrisObjs.size());
+    for (const auto& weakDebris : debrisObjs) {
+        if (auto debris = weakDebris.lock()) {
+            if (auto dtComp = debris->GetTransform()) {
+                startPositions.push_back(dtComp->GetPosition());
+            } else {
+                startPositions.push_back(Irufemi::Vector3{0.0f, 0.0f, 0.0f});
+            }
+        } else {
+            startPositions.push_back(Irufemi::Vector3{0.0f, 0.0f, 0.0f});
+        }
+    }
+    director->SetLaunchStartDebrisPositions(std::move(startPositions));
+
     // タイトルBGMの音量をキャッシュ（即座に停止せず、Charge進行に合わせて対数フェードアウト）
     if (auto scene = director->GetScene()) {
         if (auto bgmObj = scene->FindGameObject("BGMPlayer")) {
@@ -70,7 +87,7 @@ void TitleLaunchStateCharge::Update(TitleSceneDirectorComponent* director, float
 
     // ガレキが自機中心へ螺旋状に吸い寄せられる（重力降着円盤・Accretion Disk）
     const auto& debrisObjs = director->GetDebrisObjects();
-    const auto& initialDebrisPositions = director->GetInitialDebrisPositions();
+    const auto& startDebrisPositions = director->GetLaunchStartDebrisPositions();
     float swirlAngle = p1 * p1 * 1.8f; // 加速度的な渦巻き回転
     float cosS = std::cos(swirlAngle);
     float sinS = std::sin(swirlAngle);
@@ -78,8 +95,8 @@ void TitleLaunchStateCharge::Update(TitleSceneDirectorComponent* director, float
     for (size_t i = 0; i < debrisObjs.size(); ++i) {
         if (auto debris = debrisObjs[i].lock()) {
             if (auto dtComp = debris->GetTransform()) {
-                if (i < initialDebrisPositions.size()) {
-                    const auto& origPos = initialDebrisPositions[i];
+                if (i < startDebrisPositions.size()) {
+                    const auto& origPos = startDebrisPositions[i];
                     // 螺旋回転
                     float rotX = origPos.x * cosS - origPos.z * sinS;
                     float rotZ = origPos.x * sinS + origPos.z * cosS;

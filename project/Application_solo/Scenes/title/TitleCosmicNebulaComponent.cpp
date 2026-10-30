@@ -8,7 +8,7 @@
 #include "Renderer/Fluid/FluidSimulation2D.h"
 #include "Platform/Input/InputManager.h"
 #include <algorithm>
-#include <cassert>
+#include "Core/Utility/ErrorUtility.h"
 
 TitleCosmicNebulaComponent::~TitleCosmicNebulaComponent() {
     if (constantBuffer_ && mappedParams_) {
@@ -48,7 +48,11 @@ void TitleCosmicNebulaComponent::CreateConstantBuffer() {
     constantBuffer_ = dx->CreateBufferResource(sizeof(CosmicNebulaParams));
     if (constantBuffer_) {
         HRESULT hr = constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedParams_));
-        assert(SUCCEEDED(hr) && "Failed to map CosmicNebula constant buffer.");
+        if (!IRUFEMI_CHECK_HR(hr, "Failed to map CosmicNebula constant buffer.")) {
+            constantBuffer_.Reset();
+            mappedParams_ = nullptr;
+            return;
+        }
         if (SUCCEEDED(hr) && mappedParams_) {
             *mappedParams_ = params_;
         }
@@ -133,7 +137,7 @@ void TitleCosmicNebulaComponent::Update() {
         // ベルカーブ (sin) で滑らかに立ち上がり、パルス終了時に自然にゼロへ収束
         if (isPulseActive_) {
             float pulseWave = std::sin(std::clamp(pulseTimer_, 0.0f, 1.0f) * 3.14159265f);
-            fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 22.0f * pulseWave, 26.0f * pulseWave, 0.42f);
+            fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 22.0f * pulseWave * pulsePower_, 26.0f * pulseWave * pulsePower_, 0.42f);
         }
     }
 
@@ -173,7 +177,7 @@ void TitleCosmicNebulaComponent::Update() {
     }
 
     // パラメータ更新
-    params_.pulseIntensity = isPulseActive_ ? pulseTimer_ : 0.0f;
+    params_.pulseIntensity = isPulseActive_ ? (pulseTimer_ * pulsePower_) : 0.0f;
     params_.time = totalTime_;
     params_.swirlStrength = 0.65f * swirlMultiplier_;
     params_.density = 1.0f;
@@ -188,7 +192,7 @@ void TitleCosmicNebulaComponent::Update() {
 }
 
 void TitleCosmicNebulaComponent::TriggerPulse(float power) {
-    (void)power;
+    pulsePower_ = power;
     isPulseActive_ = true;
     pulseTimer_ = 0.001f;
 }
