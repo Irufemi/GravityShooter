@@ -161,6 +161,7 @@ private:
     std::weak_ptr<GameObject> mainCameraObj_;
     CameraShakeComponent* cameraShakeComp_ = nullptr;
     ScreenEffectComponent* screenEffectComp_ = nullptr;
+    BaseModel* cachedTargetModel_ = nullptr;
 
     // --- 死亡シーケンス・ステートマシン（SSOT） ---
     DeathSequencePhase phase_ = DeathSequencePhase::None; ///< 現在の進行フェーズ

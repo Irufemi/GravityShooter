@@ -29,6 +29,7 @@ void TextRendererComponent::OnAwake() {
     }
     // リフレクション変数との同期を確実に保証
     text_ = ConvertString(textU8_);
+    lastSyncedTextU8_ = textU8_;
     alignment_ = static_cast<TextAlignment>(alignmentInt_);
     verticalAlignment_ = static_cast<TextVerticalAlignment>(verticalAlignmentInt_);
 
@@ -64,10 +65,11 @@ void TextRendererComponent::Update() {
         return;
     }
 
-    // Reflection / Deserialize sync
-    std::wstring newText = ConvertString(textU8_);
-    if (text_ != newText) {
-        SetText(newText);
+#if defined(_DEBUG) || defined(EditorMode) || defined(DEVELOPMENT)
+    // Reflection / Deserialize sync (Editor only)
+    if (textU8_ != lastSyncedTextU8_) {
+        lastSyncedTextU8_ = textU8_;
+        SetText(ConvertString(textU8_));
     }
     if (textObj_->GetFontId() != fontId_) {
         SetFontId(fontId_);
@@ -85,6 +87,7 @@ void TextRendererComponent::Update() {
     if (alignment_ != newAlign) {
         SetAlignment(newAlign);
     }
+#endif
 
     SyncRenderState();
 }
@@ -115,6 +118,7 @@ bool TextRendererComponent::Raycast(const Irufemi::Ray& ray, float& outDistance)
 void TextRendererComponent::SetText(const std::wstring& text) {
     text_ = text;
     textU8_ = ConvertString(text_);
+    lastSyncedTextU8_ = textU8_;
     if (textObj_) {
         textObj_->SetText(text_);
     }
@@ -166,6 +170,7 @@ void TextRendererComponent::SetVerticalAlignment(TextVerticalAlignment vAlign) {
 
 void TextRendererComponent::OnRegisterProperties() {
     textU8_ = ConvertString(text_);
+    lastSyncedTextU8_ = textU8_;
     alignmentInt_ = static_cast<int>(alignment_);
     verticalAlignmentInt_ = static_cast<int>(verticalAlignment_);
 
@@ -183,6 +188,7 @@ void TextRendererComponent::Deserialize(const nlohmann::json& j) {
 
     // デシリアライズ直後に UTF-8文字列およびアライメント数値を型安全に即時同期
     text_ = ConvertString(textU8_);
+    lastSyncedTextU8_ = textU8_;
     alignment_ = static_cast<TextAlignment>(alignmentInt_);
     verticalAlignment_ = static_cast<TextVerticalAlignment>(verticalAlignmentInt_);
 

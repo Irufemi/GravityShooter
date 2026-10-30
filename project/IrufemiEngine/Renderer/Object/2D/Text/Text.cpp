@@ -5,6 +5,7 @@
 #include "Renderer/Camera/CameraManager.h"
 #include "Core/Math/Math.h"
 #include "Framework/UI/DebugUI.h"
+#include "Core/Utility/StringUtility.h"
 #include <algorithm>
 
 FontManager* Text::fontManager_ = nullptr;
@@ -69,11 +70,11 @@ void Text::GenerateVertices() {
 
     bool hasPendingGlyphs = false;
 
-    for (wchar_t c : text_) {
-        if (c == L'\n') {
+    StringUtility::ForEachCodePoint(text_, [&](char32_t c) {
+        if (c == U'\n') {
             lineWidths.push_back(currentLineWidth);
             currentLineWidth = 0.0f;
-            continue;
+            return;
         }
         const auto glyph = fm->GetGlyph(fontId_, c);
         if (glyph) {
@@ -82,7 +83,7 @@ void Text::GenerateVertices() {
             }
             currentLineWidth += glyph->advanceX * scaleFactor;
         }
-    }
+    });
     lineWidths.push_back(currentLineWidth);
 
     auto getStartX = [&](int lIndex) {
@@ -103,28 +104,28 @@ void Text::GenerateVertices() {
     float minY = (std::numeric_limits<float>::max)();
     float maxY = std::numeric_limits<float>::lowest();
 
-    for (wchar_t c : text_) {
-        if (c == L'\n') {
+    StringUtility::ForEachCodePoint(text_, [&](char32_t c) {
+        if (c == U'\n') {
             lineIndex++;
             currentX = getStartX(lineIndex);
             currentY += scaleFactor * 32.0f * 1.2f; // 行間 (Y下方向が正)
-            continue;
+            return;
         }
 
         const auto glyph = fm->GetGlyph(fontId_, c);
         if (!glyph) {
-            continue; // 未知の文字
+            return; // 未知の文字
         }
 
         if (glyph->width < 0.0f) {
             // ダミーキャッシュ(非同期生成中)
             hasPendingGlyphs = true;
             currentX += glyph->advanceX * scaleFactor;
-            continue;
+            return;
         } else if (glyph->width == 0.0f || glyph->height == 0.0f) {
             // スペースなどの空白文字
             currentX += glyph->advanceX * scaleFactor;
-            continue;
+            return;
         }
 
         // MSDFのbitmapはFontManagerで上下反転してAtlasに格納されているため、
@@ -169,7 +170,7 @@ void Text::GenerateVertices() {
         resource_->GetIndexDataList().push_back(startIndex + 2);
 
         currentX += glyph->advanceX * scaleFactor;
-    }
+    });
 
     if (minX <= maxX && minY <= maxY) {
         localBoundsMin_ = {minX, minY};

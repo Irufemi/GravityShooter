@@ -88,9 +88,9 @@ void BaseModel::UpdateMaterials() {
         }
 
         const ObjMaterial* cpuMatPtr = &m->cpuModel->meshes[i].material;
-        if (materialOverrides_) {
-            auto it = materialOverrides_->find(i);
-            if (it != materialOverrides_->end()) {
+        if (!materialOverrides_.empty()) {
+            auto it = materialOverrides_.find(i);
+            if (it != materialOverrides_.end()) {
                 cpuMatPtr = &it->second;
             }
         }

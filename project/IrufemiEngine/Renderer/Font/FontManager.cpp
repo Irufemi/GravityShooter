@@ -23,6 +23,7 @@
 #include "Resource/Texture/TextureManager.h"
 
 #include "Core/Utility/Synchronized.h"
+#include "Core/Utility/StringUtility.h"
 
 #include <unordered_map>
 #include <vector>

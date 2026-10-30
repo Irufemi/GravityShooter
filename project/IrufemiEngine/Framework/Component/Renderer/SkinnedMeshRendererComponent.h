@@ -149,6 +149,7 @@ private:
     bool isVisible_ = true;
 
     std::unordered_map<size_t, ObjMaterial> materialOverrides_;
+    bool materialOverridesDirty_ = false;
 
 public:
     /**
@@ -181,12 +182,14 @@ public:
      */
     void SetMaterialOverride(size_t meshIndex, const ObjMaterial& material) {
         materialOverrides_[meshIndex] = material;
+        materialOverridesDirty_ = true;
     }
     /**
      * @brief RemoveMaterialOverride を実行する。
      */
     void RemoveMaterialOverride(size_t meshIndex) {
         materialOverrides_.erase(meshIndex);
+        materialOverridesDirty_ = true;
     }
     const std::unordered_map<size_t, ObjMaterial>& GetAllMaterialOverrides() const {
         return materialOverrides_;

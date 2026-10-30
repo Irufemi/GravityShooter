@@ -78,6 +78,7 @@ void PlayerDamageVisualizerComponent::Start() {
 
     healthComp_ = gameObject_->GetComponent<PlayerHealthComponent>();
     screenEffectComp_ = gameObject_->GetComponent<ScreenEffectComponent>();
+    cachedTargetModel_ = GetTargetModel();
 
     if (auto scene = gameObject_->GetScene()) {
         if (auto mainCam = scene->FindGameObject("MainCamera")) {
@@ -101,6 +102,9 @@ void PlayerDamageVisualizerComponent::Start() {
 }
 
 BaseModel* PlayerDamageVisualizerComponent::GetTargetModel() {
+    if (cachedTargetModel_) {
+        return cachedTargetModel_;
+    }
     if (!gameObject_) {
         return nullptr;
     }
@@ -108,11 +112,13 @@ BaseModel* PlayerDamageVisualizerComponent::GetTargetModel() {
     // dynamic_cast による型安全なモデルポインタ取得
     if (auto mesh = gameObject_->GetComponent<MeshRendererComponent>()) {
         if (auto renderable = mesh->GetRenderable()) {
-            return dynamic_cast<BaseModel*>(renderable);
+            cachedTargetModel_ = dynamic_cast<BaseModel*>(renderable);
+            return cachedTargetModel_;
         }
     } else if (auto skinned = gameObject_->GetComponent<SkinnedMeshRendererComponent>()) {
         if (auto renderable = skinned->GetRenderable()) {
-            return dynamic_cast<BaseModel*>(renderable);
+            cachedTargetModel_ = dynamic_cast<BaseModel*>(renderable);
+            return cachedTargetModel_;
         }
     }
 
@@ -157,6 +163,7 @@ void PlayerDamageVisualizerComponent::TriggerCameraShake() {
 void PlayerDamageVisualizerComponent::TriggerScreenEffect() {
     if (!screenEffectComp_ && gameObject_) {
         screenEffectComp_ = gameObject_->GetComponent<ScreenEffectComponent>();
+    cachedTargetModel_ = GetTargetModel();
     }
 
     if (screenEffectComp_) {
@@ -534,7 +541,7 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
         // 前半（0.00s〜0.50s / t: 0.0〜0.625）: ブラックホールが悠然と最大まで拡大！周囲の時空を猛烈吸引
         if (t <= 0.625f) {
             float tExpand = t / 0.625f;
-            bh.blackHoleRadius = 0.09f * std::sin(tExpand * 3.14159265f * 0.5f);
+            bh.blackHoleRadius = 0.09f * std::sin(tExpand * Irufemi::Math::PIDiv2);
             bh.blackHolePullIntensity = 0.30f * tExpand;
 
             // 自機は特異点中心へ圧縮

@@ -90,9 +90,9 @@ void LockonMarkerUIComponent::Update() {
     float deltaTime = engine->GetDeltaTime();
 
     auto cameraManager = engine->GetCameraManager();
-    IRUFEMI_ASSERT(cameraManager != nullptr && "cameraManager is null");
+    IRUFEMI_ASSERT_MSG(cameraManager != nullptr, "cameraManager is null");
     auto camera = cameraManager->GetActiveCamera();
-    IRUFEMI_ASSERT(camera != nullptr && "camera is null");
+    IRUFEMI_ASSERT_MSG(camera != nullptr, "camera is null");
 
     int markerIndex = 0;
     drawCountsCache_.clear();
@@ -152,7 +152,7 @@ void LockonMarkerUIComponent::Update() {
 
         // 回転と色の設定
         float maxLocks = (std::max)(1.0f, static_cast<float>(maxLockonCount_));
-        float angleStep = 6.283185f / maxLocks;
+        float angleStep = (2.0f * Irufemi::Math::PI) / maxLocks;
         float rotation = 0.0f;
 
         // ターゲットを重ねるごとに G と B 成分を減らし、赤みを強くする (White -> Orange -> Red)

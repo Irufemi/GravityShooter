@@ -232,6 +232,7 @@ private:
     std::unique_ptr<Text> textObj_;
     std::wstring text_ = L"Text";
     std::string textU8_ = "Text"; // For Reflection
+    std::string lastSyncedTextU8_ = "Text";
     std::string fontId_ = "MainFont";
     float baseScale_ = 64.0f;
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};

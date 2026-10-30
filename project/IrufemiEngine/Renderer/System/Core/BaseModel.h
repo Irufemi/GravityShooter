@@ -82,15 +82,26 @@ public: // ゲッター・セッター
     }
 
     /**
-     * @brief MaterialOverrides を設定する。
-     * @param[in] overrides 設定する
-     * MaterialOverrides（メッシュインデックスごとのマテリアルオーバーライド）のマップポインタ
+     * @brief MaterialOverrides を設定する（安全な実体保持方式）。
+     * @param[in] overrides 設定する MaterialOverrides（メッシュインデックスごとのマテリアルオーバーライド）
      */
-    void SetMaterialOverrides(const std::unordered_map<size_t, ObjMaterial>* overrides) {
+    void SetMaterialOverrides(const std::unordered_map<size_t, ObjMaterial>& overrides) {
         materialOverrides_ = overrides;
         MarkAsDirty();
     }
-    const std::unordered_map<size_t, ObjMaterial>* GetMaterialOverrides() const {
+    void SetMaterialOverrides(std::unordered_map<size_t, ObjMaterial>&& overrides) {
+        materialOverrides_ = std::move(overrides);
+        MarkAsDirty();
+    }
+    void SetMaterialOverride(size_t meshIndex, const ObjMaterial& material) {
+        materialOverrides_[meshIndex] = material;
+        MarkAsDirty();
+    }
+    void ClearMaterialOverrides() {
+        materialOverrides_.clear();
+        MarkAsDirty();
+    }
+    const std::unordered_map<size_t, ObjMaterial>& GetMaterialOverrides() const {
         return materialOverrides_;
     }
 
@@ -365,9 +376,11 @@ public: // ゲッター・セッター
     }
 
     /**
-     * @brief CustomPSO を設定する（生ポインタ指定・下位互換用）。
+     * @brief CustomPSO を設定する（生ポインタ指定・非推奨）。
      * @param[in] pso 設定する CustomPSO の値
+     * @deprecated 名前指定の SetCustomPSO(const std::string&, ...) を使用してください。
      */
+    [[deprecated("Use SetCustomPSO(const std::string&, ...) instead to ensure resource safety.")]]
     void SetCustomPSO(ID3D12PipelineState* pso) {
         for (auto& res : meshResources_) {
             if (res) {
@@ -419,7 +432,7 @@ protected: // メンバ変数
     int32_t enableLightingOverride_ = -1;               // -1:使用しない, 0以上:上書き
 
     // マテリアル個別上書き
-    const std::unordered_map<size_t, ObjMaterial>* materialOverrides_ = nullptr;
+    std::unordered_map<size_t, ObjMaterial> materialOverrides_;
 
     // リソース (メッシュごとの頂点/インデックスなど)
     bool enableEffectMask_ = false;  // エフェクトから保護するかどうか

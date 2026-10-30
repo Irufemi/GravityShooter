@@ -36,6 +36,7 @@ void SkinnedMeshRendererComponent::LoadModel(const std::string& filename) {
     modelFilename_ = filename;
     currentLoadedFilename_ = filename;
     animatedMesh_->Initialize(modelFilename_);
+    materialOverridesDirty_ = true;
 }
 
 void SkinnedMeshRendererComponent::Update() {
@@ -70,7 +71,10 @@ void SkinnedMeshRendererComponent::Draw() {
         return;
     }
     if (animatedMesh_) {
-        animatedMesh_->SetMaterialOverrides(materialOverrides_.empty() ? nullptr : &materialOverrides_);
+        if (materialOverridesDirty_) {
+            animatedMesh_->SetMaterialOverrides(materialOverrides_);
+            materialOverridesDirty_ = false;
+        }
         animatedMesh_->Draw();
     }
 }
@@ -258,6 +262,7 @@ std::shared_ptr<Component> SkinnedMeshRendererComponent::Clone() {
     clone->CopyPropertiesFrom(this);
     clone->isVisible_ = this->isVisible_;
     clone->materialOverrides_ = this->materialOverrides_;
+    clone->materialOverridesDirty_ = true;
     if (!this->modelFilename_.empty()) {
         clone->LoadModel(this->modelFilename_);
     }
