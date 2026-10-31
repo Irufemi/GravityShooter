@@ -240,7 +240,7 @@ graph LR
   暗黙の前提によるバグを防ぐため、メモリ管理やエディタの操作ルールをまとめた **Manual (取扱説明書)** を作成・維持している。
 - **【結果と定量的成果】**
   再コンパイルの待ち時間が減少し、ゲームバランス調整や演出作成のイテレーション速度が向上。2万文字規模（2100行以上）のマニュアルを執筆・整備し、将来の拡張や機能追加にも迷わず取り組める開発基盤を構築できた。
-- 📄 **関連ドキュメント原本**: [`Manual.md`](Manual.md)
+- 📄 **関連ドキュメント原本**: [`Manual.md`](docs/Manual.md)
 
 <p align="center">
   <img src="docs/images/editor_interface.png" alt="Irufemi Engine Custom Editor GUI" width="850px" />
@@ -405,13 +405,13 @@ Unreal EngineのDDC（Derived Data Cache）思想を取り入れ、リポジト�
 
 ## 🛠️ 自動ビルド＆パッケージングパイプライン
 
-ビルドやアセット整理、提出用パッケージ作成を効率化するスクリプト群をリポジトリルートに配備しています。
+ビルドやアセット整理、提出用パッケージ作成を効率化するスクリプト群を配備しています。
 
 | ツール / スクリプト | 役割・特徴 |
 | :--- | :--- |
-| **`CompileShaders.bat`** | 全77種以上のHLSLシェーダーを `/O3` 最適化で先行オフラインコンパイル。審査員環境でのDirectXランタイムDLL依存クラッシュを根本から防止します。 |
-| **`CleanAssets.bat`** | `.gitignore` に準拠し、`generated/cache/` や `logs/` などの一時生成物を安全に一括消去するアセット＆ワークスペース健全化ツール。 |
-| **`scripts/PackageForSubmission.ps1`** | 作品提出規定に準拠したパッケージ自動生成スクリプト。「ゲーム本編（製品版）」「自作エディタ環境（Editor版）」「クリーンソースコード」「提出資料・動画」を1つの審査提出用ZIPへ全自動で集約します。 |
+| **`project/CompileShaders.bat`** | 全77種以上のHLSLシェーダーを `/O3` 最適化で先行オフラインコンパイル。審査員環境でのDirectXランタイムDLL依存クラッシュを根本から防止します。 |
+| **`scripts/maintenance/CleanAssets.bat`** | `.gitignore` に準拠し、`generated/cache/` や `logs/` などの一時生成物を安全に一括消去するアセット＆ワークスペース健全化ツール。 |
+| **`scripts/package/PackageForSubmission.ps1`** | 作品提出規定に準拠したパッケージ自動生成スクリプト。「ゲーム本編（製品版）」「自作エディタ環境（Editor版）」「クリーンソースコード」「提出資料・動画」を1つの審査提出用ZIPへ全自動で集約します。 |
 
 ---
 

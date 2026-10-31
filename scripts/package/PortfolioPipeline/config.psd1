@@ -9,13 +9,13 @@
     works = @(
         @{
             work_folder_name = '01_個人作品'
-            local_source_path = '..\..'
+            local_source_path = '..\..\..'
             repository_url = 'https://github.com/Irufemi/GravityShooter'
             google_drive_file_id = '1Fu8OqSMYNQnXidBePLAkkJAE1afJq4BfktOCr9X-_YU'
             google_drive_zip_id = ''
-            build_script_path = '..\..\PackageForSubmission.bat'
+            build_script_path = '..\PackageForSubmission.bat'
             build_script_args = '-Mode Build'
-            local_executable_path = '..\..\_Submission\GravityShooter_PlayableBuild'
+            local_executable_path = '..\..\..\_Submission\GravityShooter_PlayableBuild'
             test_executable_name = 'GravityShooter.exe'
         }
     )

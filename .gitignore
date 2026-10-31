@@ -185,10 +185,10 @@ backup/
 # ====================================================================
 Intermediate/
 Generated/
-scripts/PortfolioPipeline/Intermediate/
-scripts/PortfolioPipeline/Generated/
-scripts/PortfolioPipeline/TestLocalWork/
+scripts/package/PortfolioPipeline/Intermediate/
+scripts/package/PortfolioPipeline/Generated/
+scripts/package/PortfolioPipeline/TestLocalWork/
 
 # Google Drive API credentials & tokens (Never commit secret keys)
-scripts/PortfolioPipeline/lib/credentials.json
-scripts/PortfolioPipeline/lib/token.json
+scripts/package/PortfolioPipeline/lib/credentials.json
+scripts/package/PortfolioPipeline/lib/token.json

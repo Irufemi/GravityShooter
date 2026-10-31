@@ -14,7 +14,13 @@ $ScriptDir = if ((Test-Path variable:PSScriptRoot) -and $PSScriptRoot) {
 } else {
     Join-Path $PWD.Path "scripts"
 }
-$projectRoot = (Resolve-Path "$ScriptDir\..").Path
+$projectRoot = if (Test-Path (Join-Path $ScriptDir "..\..\project")) {
+    (Resolve-Path "$ScriptDir\..\..").Path
+} elseif (Test-Path (Join-Path $ScriptDir "..\project")) {
+    (Resolve-Path "$ScriptDir\..").Path
+} else {
+    (Resolve-Path "$ScriptDir\..\..").Path
+}
 $slnxPath = Join-Path $projectRoot "project\Irufemi.slnx"
 $solutionPath = if (Test-Path $slnxPath) { $slnxPath } else { Join-Path $projectRoot "project\Irufemi.sln" }
 $outputDir = Join-Path $projectRoot "generated\outputs\$Configuration"

@@ -18,12 +18,14 @@ if (-not $ScriptDir) {
         $ScriptDir = Join-Path $PWD.Path "scripts"
     }
 }
-$RootDir = if (Test-Path (Join-Path $ScriptDir "..\project")) {
-    (Resolve-Path "$ScriptDir\..").Path
+$RootDir = if (Test-Path (Join-Path $ScriptDir "..\..\project")) {
+    (Resolve-Path "$ScriptDir\..\..").Path
+} elseif (Test-Path (Join-Path $ScriptDir "..\project")) {
+    (Resolve-Path "$ScriptDir\..\..").Path
 } elseif (Test-Path (Join-Path $PWD.Path "project")) {
     $PWD.Path
 } else {
-    (Resolve-Path "$ScriptDir\..").Path
+    (Resolve-Path "$ScriptDir\..\..").Path
 }
 $OutputDir = Join-Path $RootDir "_Submission"
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmm"

@@ -1,4 +1,4 @@
-﻿param (
+param (
     [ValidateSet("Audit", "DryRun", "Sanitize", "Restore", "CleanCache", "Menu")]
     [string]$Mode = "Menu",
     [string]$ScriptDir = "",
@@ -18,12 +18,14 @@ if (-not $ScriptDir) {
         $ScriptDir = Join-Path $PWD.Path "scripts"
     }
 }
-$RootDir = if (Test-Path (Join-Path $ScriptDir "..\project")) {
-    (Resolve-Path "$ScriptDir\..").Path
+$RootDir = if (Test-Path (Join-Path $ScriptDir "..\..\project")) {
+    (Resolve-Path "$ScriptDir\..\..").Path
+} elseif (Test-Path (Join-Path $ScriptDir "..\project")) {
+    (Resolve-Path "$ScriptDir\..\..").Path
 } elseif (Test-Path (Join-Path $PWD.Path "project")) {
     $PWD.Path
 } else {
-    (Resolve-Path "$ScriptDir\..").Path
+    (Resolve-Path "$ScriptDir\..\..").Path
 }
 $AppResDir = Join-Path $RootDir "project\Application_solo\resources"
 $AssetSrcDir = Join-Path $RootDir "asset_src"

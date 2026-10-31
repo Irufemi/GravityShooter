@@ -9,7 +9,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}/scripts/build_and_run.ps1",
+                "${workspaceFolder}/scripts/build/build_and_run.ps1",
                 "-Configuration",
                 "Debug"
             ],
@@ -35,7 +35,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}/scripts/build_and_run.ps1",
+                "${workspaceFolder}/scripts/build/build_and_run.ps1",
                 "-Configuration",
                 "Development"
             ],
@@ -58,7 +58,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}/scripts/build_and_run.ps1",
+                "${workspaceFolder}/scripts/build/build_and_run.ps1",
                 "-Configuration",
                 "Release"
             ],
@@ -81,7 +81,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}/scripts/build_and_run.ps1",
+                "${workspaceFolder}/scripts/build/build_and_run.ps1",
                 "-Configuration",
                 "Debug",
                 "-BuildOnly"

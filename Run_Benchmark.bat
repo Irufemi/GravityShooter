@@ -28,7 +28,7 @@ if not exist "%TELEMETRY_EXE%" (
 
 REM --- 2. ゲーム本体 (Release構成 / /O3) のビルド・確認 ---
 echo [2/3] Application_solo (Release) のビルド状態を確認・同期しています...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; [Console]::InputEncoding = [System.Text.Encoding]::UTF8; $scriptPath = '%~dp0scripts\build_and_run.ps1'; $content = [System.IO.File]::ReadAllText($scriptPath, [System.Text.Encoding]::UTF8); & ([scriptblock]::Create($content)) -Configuration Release -BuildOnly"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; [Console]::InputEncoding = [System.Text.Encoding]::UTF8; $scriptPath = '%~dp0scripts\build\build_and_run.ps1'; $content = [System.IO.File]::ReadAllText($scriptPath, [System.Text.Encoding]::UTF8); & ([scriptblock]::Create($content)) -Configuration Release -BuildOnly"
 
 if %ERRORLEVEL% neq 0 (
     echo.

@@ -9,20 +9,27 @@
 大手ゲーム開発スタジオおよび商用エンジンの標準に準拠し、**「人間が触るエントリーポイント（窓口）」をルート直下** に、**「内部スクリプト（ビジネスロジック）」を `scripts/` 配下** に分離しています。
 
 ```text
-WP0/
-├── BuildAndRun.bat              <-- 【窓口】ワンクリックでReleaseビルド ＆ ゲーム起動
-├── PackageForSubmission.bat      <-- 【窓口】ワンクリックで審査提出用パッケージを生成
-├── CleanAssets.bat              <-- 【窓口】ワンクリックでアセット監査 ＆ 健全化クリーンアップ
-├── asset_src/                   <-- 【DCC/原本層】Blender元データ、原本フォント、テクスチャ原本
+WP1/
+├── BuildAndRun.bat              <-- 【審査窓口】ワンクリックでReleaseビルド ＆ ゲーム起動
+├── Run_Benchmark.bat            <-- 【審査窓口】10,000体負荷検証 ＆ テレメトリ連動起動
+├── Launch_Telemetry.bat         <-- 【審査窓口】外部パフォーマンス監視ツール単体起動
+├── PackageForSubmission.bat      <-- 【審査窓口】ワンクリックで審査提出用パッケージを生成
+                   <-- 【DCC/原本層】Blender元データ、原本フォント、テクスチャ原本
 ├── README.md
-├── Manual.md
+├── docs/                        <-- 【ドキュメント層】マニュアル・PDF発表資料原本
+│   └── Manual.md
 ├── project/
 │   ├── Irufemi.slnx             <-- VS2026 XMLソリューション
 │   └── CompileShaders.bat       <-- ソリューション層のオフラインシェーダーコンパイルタスク
 └── scripts/
-    ├── build_and_run.ps1        <-- ビルド＆起動本体スクリプト
-    ├── PackageForSubmission.ps1 <-- 提出用パッケージ生成＆スマートアセットクッカー本体
-    ├── AssetSanitizer.ps1       <-- アセット逆引き監査＆健全化本体スクリプト
+    ├── build/
+    │   └── build_and_run.ps1    <-- ビルド＆起動本体スクリプト
+    ├── package/
+    │   ├── PackageForSubmission.bat / .ps1 <-- パッケージ生成＆スマートアセットクッカー
+    │   └── PortfolioPipeline/   <-- ポートフォリオ提出パイプライン
+    ├── maintenance/
+    │   ├── CleanAssets.bat      <-- アセット監査 ＆ 健全化クリーンアップ窓口
+    │   └── AssetSanitizer.ps1   <-- アセット逆引き監査＆健全化本体スクリプト
     └── README.md                <-- 本仕様書
 ```
 
