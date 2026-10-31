@@ -97,6 +97,9 @@ ResourceHandle ModelManager::LoadModel(const std::string& filename) {
         if (index < managedModels_.size() && managedModels_[index]) {
             managedModels_[index].reset();
         }
+        std::erase_if(nameToHandleMap_, [index](const auto& pair) {
+            return pair.second.index == index;
+        });
     });
 
     // サイズを推定 (仮: 5MB)
