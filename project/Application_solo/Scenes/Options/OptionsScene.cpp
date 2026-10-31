@@ -28,17 +28,16 @@ constexpr float kMaxCursorSpeed = 1250.0f;
 } // namespace
 
 std::vector<OptionsScene::SliderBinding> OptionsScene::GetSliderBindings() {
-    return {{"Slider_BGM", "ValueText_BGM", sliderBGM_, valueTextBGM_, rectSliderBGM_,
+    return {{"Slider_BGM", "ValueText_BGM", sliderBGM_, valueTextBGM_,
              []() { return Irufemi::CVarSystem::GetFloat("a.BGMVolume"); },
              [](float val, InputManager*) {
                  Irufemi::CVarSystem::SetFloat("a.BGMVolume", val);
                  Irufemi::CVarSystem::SetFloat("a.MasterVolume", val);
              }},
-            {"Slider_SE", "ValueText_SE", sliderSE_, valueTextSE_, rectSliderSE_,
+            {"Slider_SE", "ValueText_SE", sliderSE_, valueTextSE_,
              []() { return Irufemi::CVarSystem::GetFloat("a.SEVolume"); },
              [](float val, InputManager*) { Irufemi::CVarSystem::SetFloat("a.SEVolume", val); }},
             {"Slider_Sensitivity", "ValueText_Sensitivity", sliderSensitivity_, valueTextSensitivity_,
-             rectSliderSensitivity_,
              []() {
                  float speed = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
                  if (speed <= 0.0f) {
@@ -275,13 +274,6 @@ void OptionsScene::BindUIComponents() {
     for (auto& binding : GetSliderBindings()) {
         if (auto obj = FindGameObject(binding.objectName)) {
             binding.sliderRef = obj->GetComponent<SliderComponent>();
-            if (auto t = obj->GetTransform()) {
-                binding.rectRef.x = t->GetPosition().x;
-                binding.rectRef.y = t->GetPosition().y;
-                if (t->GetScale().x > 1.0f) {
-                    binding.rectRef.halfW = t->GetScale().x * 0.5f;
-                }
-            }
             if (binding.sliderRef) {
                 binding.sliderRef->SetValue(binding.initialValueGetter());
             }
@@ -335,7 +327,7 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
     // 1. ホバー判定（データ駆動判定）
     Component* currentHovered = nullptr;
     for (const auto& binding : GetSliderBindings()) {
-        if (binding.sliderRef && binding.rectRef.Contains(cursorPos.x, cursorPos.y)) {
+        if (binding.sliderRef && binding.sliderRef->CheckBounds(cursorPos)) {
             currentHovered = binding.sliderRef;
             break;
         }
@@ -418,7 +410,7 @@ void OptionsScene::UpdateSliderDrag() {
 
     if (directAdjust != 0.0f) {
         for (const auto& binding : bindings) {
-            if (binding.sliderRef && binding.rectRef.Contains(cursorPos.x, cursorPos.y)) {
+            if (binding.sliderRef && binding.sliderRef->CheckBounds(cursorPos)) {
                 float val = std::clamp(binding.sliderRef->GetValue() + directAdjust, 0.0f, 1.0f);
                 binding.sliderRef->SetValue(val);
                 binding.applyValue(val, input);
@@ -436,7 +428,7 @@ void OptionsScene::UpdateSliderDrag() {
 
     if (isActionDown && !isDraggingSlider_) {
         for (const auto& binding : bindings) {
-            if (binding.sliderRef && binding.rectRef.Contains(cursorPos.x, cursorPos.y)) {
+            if (binding.sliderRef && binding.sliderRef->CheckBounds(cursorPos)) {
                 isDraggingSlider_ = true;
                 draggingSlider_ = binding.sliderRef;
                 break;
@@ -448,9 +440,7 @@ void OptionsScene::UpdateSliderDrag() {
     if (isActionDown && isDraggingSlider_ && draggingSlider_) {
         for (const auto& binding : bindings) {
             if (binding.sliderRef == draggingSlider_) {
-                float left = binding.rectRef.x - binding.rectRef.halfW;
-                float width = binding.rectRef.halfW * 2.0f;
-                float newValue = std::clamp((cursorPos.x - left) / width, 0.0f, 1.0f);
+                float newValue = draggingSlider_->CalculateValueFromPosition(cursorPos.x);
                 draggingSlider_->SetValue(newValue);
                 binding.applyValue(newValue, input);
                 UpdateValueTexts();

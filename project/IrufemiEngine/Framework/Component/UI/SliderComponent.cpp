@@ -84,6 +84,27 @@ bool SliderComponent::CheckBounds(const Irufemi::Vector2& mousePos) {
     return (mousePos.x >= left && mousePos.x <= right && mousePos.y >= top && mousePos.y <= bottom);
 }
 
+float SliderComponent::CalculateValueFromPosition(float posX) const {
+    if (!GetTransform() || !backgroundSprite_) {
+        return value_;
+    }
+    auto* s = backgroundSprite_->GetSprite();
+    if (!s) {
+        return value_;
+    }
+
+    Irufemi::Vector3 pos = GetTransform()->GetWorldPosition();
+    Irufemi::Vector2 anchor = s->GetAnchor();
+    float width = s->GetSize().x;
+    float left = pos.x - width * anchor.x;
+
+    if (width > 0.0f) {
+        float newValue = (posX - left) / width;
+        return std::clamp(newValue, 0.0f, 1.0f);
+    }
+    return value_;
+}
+
 void SliderComponent::Update() {
     if (!backgroundSprite_ || !gameObject_) {
         return;

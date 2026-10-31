@@ -58,6 +58,13 @@ public:
      */
     bool CheckBounds(const Irufemi::Vector2& mousePos);
 
+    /**
+     * @brief 指定したUI X座標からスライダーの正規化値(0.0〜1.0)を算出します
+     * @param[in] posX UI空間のX座標
+     * @return 0.0〜1.0 にクランプされたスライダー値
+     */
+    float CalculateValueFromPosition(float posX) const;
+
 private:
     void UpdateHandlePosition();
     void ResolveHandleObject();

@@ -4,11 +4,26 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Engine/Irufemi.h"
 
-// 静的メンバ変数の実体定義
-bool ResultScene::isClear_ = false;
+// ライフサイクル管理と状態クリーンアップ
+ResultScene::~ResultScene() {
+    s_isClearPending_ = false;
+    s_currentSessionClear_ = false;
+    isClearResult_ = false;
+}
+
+void ResultScene::OnExit() {
+    BaseScene::OnExit();
+    s_isClearPending_ = false;
+    s_currentSessionClear_ = false;
+}
 
 void ResultScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
+
+    // 静的保留フラグからインスタンス状態へ引き渡し、静的フラグはワンタイム消費して初期化（状態残留防止）
+    isClearResult_ = s_isClearPending_;
+    s_currentSessionClear_ = isClearResult_;
+    s_isClearPending_ = false;
 
     // 本来は "Result.json" などから DataDriven にロードすべきですが、
     // 今回は空のシーンに対して、UI・進行を管理する ResultManagerComponent を持った

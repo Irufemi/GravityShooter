@@ -10,7 +10,9 @@
 class ResultScene : public BaseScene {
 public:
     ResultScene() = default;
-    ~ResultScene() override = default;
+    ~ResultScene() override;
+    void OnExit() override;
+    bool IsClearResult() const { return isClearResult_; }
 
     void Initialize(IrufemiEngine* engine) override;
 
@@ -30,12 +32,14 @@ public:
 
     // --- クリア結果受け渡し用のフラグ ---
     static void SetIsClear(bool isClear) {
-        isClear_ = isClear;
+        s_isClearPending_ = isClear;
     }
     static bool IsClear() {
-        return isClear_;
+        return s_currentSessionClear_;
     }
 
 private:
-    static bool isClear_;
+    inline static bool s_isClearPending_ = false;
+    inline static bool s_currentSessionClear_ = false;
+    bool isClearResult_ = false;
 };

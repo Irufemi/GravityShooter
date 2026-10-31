@@ -37,6 +37,17 @@ void GameScene::OnResume() {
 }
 
 void GameScene::SetHUDActive(bool active) {
+    // 親キャンバスが存在する場合は一括で切り替え（開放閉鎖原則 OCP）
+    if (auto hudCanvas = FindGameObject("HUDCanvas")) {
+        hudCanvas->SetActive(active);
+        return;
+    }
+    if (auto hud = FindGameObject("HUD")) {
+        hud->SetActive(active);
+        return;
+    }
+
+    // フォールバック: 個別HUDオブジェクトの制御
     if (auto reticle = FindGameObject("Reticle")) {
         reticle->SetActive(active);
     }

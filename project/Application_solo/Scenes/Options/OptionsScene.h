@@ -88,7 +88,7 @@ private:
         const char* textName;
         SliderComponent*& sliderRef;
         TextRendererComponent*& textRef;
-        UIRect& rectRef;
+
         std::function<float()> initialValueGetter;
         std::function<void(float, InputManager*)> applyValue;
     };
@@ -140,7 +140,7 @@ private:
     bool uiBound_ = false;
 
 
-    UIRect rectSliderBGM_{640.0f, 210.0f, 210.0f, 35.0f};
-    UIRect rectSliderSE_{640.0f, 320.0f, 210.0f, 35.0f};
-    UIRect rectSliderSensitivity_{640.0f, 430.0f, 210.0f, 35.0f};
+
+
+
 };
