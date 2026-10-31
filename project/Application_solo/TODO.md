@@ -1,4 +1,8 @@
-# Gravity Shooter (仮) 実装TODOリスト
+# Gravity Shooter 実装TODOリスト (個人制作)
+
+> **【ドキュメントの位置づけ】**  
+> 本書は個人制作ゲーム（`Application_solo`）における最新の実装進捗管理チェックリストです。  
+> 開発全体のマイルストーンは [`docs/Roadmap.md`](docs/Roadmap.md) を、初期DoD付きバックログは [`docs/TaskList.md`](docs/TaskList.md) を、基盤エンジンのタスクは [`../IrufemiEngine/TODO.md`](../IrufemiEngine/TODO.md) を参照してください。
 
 以下のタスクは仕様書（GameDesignDocument.md）の要件に基づき、エンジン側（IrufemiEngine）とゲーム側（Application_solo）での実装項目を整理したものです。
 

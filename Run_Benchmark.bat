@@ -14,8 +14,8 @@ set "TELEMETRY_EXE=%~dp0project\Binaries\TelemetryMonitor\TelemetryMonitor.exe"
 REM --- 1. TelemetryMonitor の準備 ---
 if not exist "%TELEMETRY_EXE%" (
     echo [1/3] TelemetryMonitor.exe をビルドしています...
-    pushd "%~dp0project\Tools\TelemetryMonitor"
-    dotnet publish TelemetryMonitor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ../../Binaries/TelemetryMonitor > nul
+    pushd "%~dp0tools\TelemetryMonitor"
+    dotnet publish TelemetryMonitor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ../../project/Binaries/TelemetryMonitor > nul
     popd
     if not exist "%TELEMETRY_EXE%" (
         echo [ERROR] TelemetryMonitor のビルドに失敗しました。

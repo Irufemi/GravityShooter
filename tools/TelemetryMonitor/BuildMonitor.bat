@@ -3,7 +3,7 @@ echo =======================================================
 echo Building TelemetryMonitor (Release Build)...
 echo =======================================================
 
-dotnet publish TelemetryMonitor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ../../Binaries/TelemetryMonitor
+dotnet publish TelemetryMonitor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ../../project/Binaries/TelemetryMonitor
 
 echo.
 echo =======================================================

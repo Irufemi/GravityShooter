@@ -93,8 +93,8 @@ bool MagicBrushClient::StartPythonServer() {
     GetModuleFileNameA(NULL, exePathBuf, MAX_PATH);
     std::filesystem::path exePath(exePathBuf);
 
-    // exeは WP0/generated/outputs/Editor/ にあるため、3階層上がって project/Tools/ShaderGenerator へ
-    std::filesystem::path toolsDir = exePath.parent_path() / "../../../project/Tools/ShaderGenerator";
+    // exeは WP0/generated/outputs/Editor/ にあるため、3階層上がって tools/ShaderGenerator へ
+    std::filesystem::path toolsDir = exePath.parent_path() / "../../../tools/ShaderGenerator";
     std::string currentDir = std::filesystem::absolute(toolsDir).string();
 
     std::string command = "cmd.exe /c py main.py";

@@ -8,7 +8,7 @@ echo ========================================================
 echo.
 
 set "EXE_PATH=%~dp0project\Binaries\TelemetryMonitor\TelemetryMonitor.exe"
-set "CSPROJ_DIR=%~dp0project\Tools\TelemetryMonitor"
+set "CSPROJ_DIR=%~dp0tools\TelemetryMonitor"
 
 if exist "%EXE_PATH%" (
     echo [INFO] 既存の TelemetryMonitor.exe を起動します...
@@ -27,7 +27,7 @@ if %ERRORLEVEL% neq 0 (
 )
 
 pushd "%CSPROJ_DIR%"
-dotnet publish TelemetryMonitor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ../../Binaries/TelemetryMonitor
+dotnet publish TelemetryMonitor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o ../../project/Binaries/TelemetryMonitor
 popd
 
 if exist "%EXE_PATH%" (

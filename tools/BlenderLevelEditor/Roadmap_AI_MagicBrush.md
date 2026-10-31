@@ -18,7 +18,7 @@ PythonとGemini APIを用いて、入力画像とプロンプトからHLSLシェ
 ## Phase 1: ローカルAPIサーバー環境の構築 (Python側) [完了]
 - **目標**: Pythonツールを都度起動ではなく、FastAPI等を用いた常駐型のローカルサーバーとして構築する。
 - **タスク**:
-  - `project/Tools/ShaderGenerator` に FastAPI を用いたサーバー基盤を実装
+  - `tools/ShaderGenerator` に FastAPI を用いたサーバー基盤を実装
   - エディタからの「画像 + プロンプト」をHTTP/WebSocketで受け取るエンドポイントの作成
   - 状態（チャット履歴や修復のコンテキスト）を保持しながらGeminiと通信する仕組みの構築
 

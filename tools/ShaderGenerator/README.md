@@ -14,7 +14,7 @@ Gemini API (Google) を用いて、エディタ（C++）から送られてきた
    - インストール時に `Add python.exe to PATH` を有効にしてください。
 
 2. **依存ライブラリのインストール**
-   コマンドプロンプトでこのディレクトリ（`project/Tools/ShaderGenerator`）を開き、以下のコマンドを実行します。
+   コマンドプロンプトでこのディレクトリ（`tools/ShaderGenerator`）を開き、以下のコマンドを実行します。
    ```cmd
    python -m pip install -r requirements.txt
    ```

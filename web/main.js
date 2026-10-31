@@ -172,7 +172,7 @@ std::vector<int> sparse_;             // 疎配列: 仮想IDから密配列イ�
     'telemetry-monitor': {
       title: 'C# WPF リアルタイム・テレメトリ監視ツール (UDP:8888)',
       subtitle: 'Tools/TelemetryMonitor/MainWindow.xaml.cs',
-      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/project/Tools/TelemetryMonitor/MainWindow.xaml.cs',
+      githubUrl: 'https://github.com/Irufemi/GravityShooter/blob/master/tools/TelemetryMonitor/MainWindow.xaml.cs',
       content: `
         <p>C# / WPF (.NET 10) で開発された外部プロファイリングGUIツール。ゲームエンジン側のGPUパーティクル数、CPUディスパッチ時間、FPSをリアルタイムにグラフ監視します。</p>
         <h4>なぜTCPではなく「UDP」なのか？</h4>
