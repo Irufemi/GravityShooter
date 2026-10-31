@@ -103,6 +103,9 @@ void EnemyBulletManagerComponent::WarmupPool() {
         auto bulletComp = bullet->AddComponent<EnemyBulletComponent>();
         bulletComp->Initialize();
         bulletComp->SetManager(this);
+        if (auto effectGo = scene->FindGameObject("EffectManager")) {
+            bulletComp->SetEffectManagerObj(effectGo);
+        }
 
         // マネージャーの子オブジェクトとして登録し、非アクティブにして待機（ルート直置きを解消）
         gameObject_->AddChild(bullet);

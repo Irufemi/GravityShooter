@@ -63,6 +63,14 @@ public:
     /**
      * @brief 弾を非アクティブ化し、マネージャーへ返却（または破棄）する
      */
+    /**
+     * @brief 着弾エフェクトマネージャーのGameObject参照を事前に設定する
+     * @param effectManagerObj エフェクトマネージャーGameObjectの弱参照
+     */
+    void SetEffectManagerObj(std::weak_ptr<GameObject> effectManagerObj) {
+        effectManagerObj_ = effectManagerObj;
+    }
+
     void Deactivate();
 
 private:

@@ -129,5 +129,10 @@ private:
     float baseColliderRadius_ = 2.0f;
 
     std::unordered_map<std::string, std::unique_ptr<PrefabPoolData>> prefabPools_;
-    std::unordered_map<GameObject*, std::pair<std::string, ObjectPool<GameObject>::Handle>> activeEnemyHandles_;
+    struct ActiveEnemyInfo {
+        GameObject* enemyObj = nullptr;
+        std::string prefabPath;
+        ObjectPool<GameObject>::Handle handle;
+    };
+    std::unordered_map<uint64_t, ActiveEnemyInfo> activeEnemyHandles_;
 };

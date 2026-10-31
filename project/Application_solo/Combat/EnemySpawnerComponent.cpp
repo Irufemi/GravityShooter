@@ -220,12 +220,12 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                 deadObj->SetIsActive(false);
                 if (auto spawnerObj = weakObj.lock()) {
                     if (auto spawner = spawnerObj->GetComponent<EnemySpawnerComponent>()) {
-                        auto it = spawner->activeEnemyHandles_.find(deadObj);
+                        auto it = spawner->activeEnemyHandles_.find(deadObj->GetInstanceID());
                         if (it != spawner->activeEnemyHandles_.end()) {
-                            const std::string& pPath = it->second.first;
+                            const std::string& pPath = it->second.prefabPath;
                             auto pPoolIt = spawner->prefabPools_.find(pPath);
                             if (pPoolIt != spawner->prefabPools_.end() && pPoolIt->second && pPoolIt->second->pool) {
-                                pPoolIt->second->pool->Release(it->second.second);
+                                pPoolIt->second->pool->Release(it->second.handle);
                             }
                             spawner->activeEnemyHandles_.erase(it);
                         }
@@ -253,9 +253,9 @@ void EnemySpawnerComponent::Update() {
 
     // 2. アクティブなすべての敵のワールド行列を、該当プレハブのバッチレンダラーへ一括登録
     for (const auto& pair : activeEnemyHandles_) {
-        GameObject* enemyObj = pair.first;
+        GameObject* enemyObj = pair.second.enemyObj;
         if (enemyObj && enemyObj->GetIsActive()) {
-            const std::string& prefabPath = pair.second.first;
+            const std::string& prefabPath = pair.second.prefabPath;
             auto poolIt = prefabPools_.find(prefabPath);
             if (poolIt != prefabPools_.end() && poolIt->second && poolIt->second->batchRenderer) {
                 if (auto transform = enemyObj->GetTransform()) {
@@ -341,7 +341,7 @@ GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabP
 
     auto enemy = poolData->pool->Resolve(handle);
     if (enemy) {
-        activeEnemyHandles_[enemy.get()] = {prefabPath, handle};
+        activeEnemyHandles_[enemy->GetInstanceID()] = {enemy.get(), prefabPath, handle};
 
         if (auto transform = enemy->GetComponent<TransformComponent>()) {
             transform->SetWorldPosition(position);
