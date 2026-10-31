@@ -13,12 +13,16 @@
 #include <string>
 
 EffectMaskComponent* BossStateCoreExposed::GetCoreEffectMask(BossComponent* boss) {
+    if (cachedCoreMask_) {
+        return cachedCoreMask_;
+    }
     if (!boss || !boss->GetGameObject()) {
         return nullptr;
     }
     if (auto scene = boss->GetGameObject()->GetScene()) {
         if (auto coreObj = scene->FindGameObject("BossCore")) {
-            return coreObj->GetComponent<EffectMaskComponent>();
+            cachedCoreMask_ = coreObj->GetComponent<EffectMaskComponent>();
+            return cachedCoreMask_;
         }
     }
     return nullptr;
@@ -27,7 +31,8 @@ EffectMaskComponent* BossStateCoreExposed::GetCoreEffectMask(BossComponent* boss
 void BossStateCoreExposed::Enter(BossComponent* boss) {
     Log::OutPutLog(std::cout, "Boss entered CoreExposed State (Vulnerable)\n");
 
-    // コア露出（弱点露出）演出：超高輝度ゴールド [1.5, 1.2, 0.2, 1.0] ＆ 太線 (3.0) で強調
+    // ボスコアのEffectMaskComponentを解決・キャッシュ（毎フレーム線形探索を完全排除）
+    cachedCoreMask_ = nullptr;
     if (auto coreMask = GetCoreEffectMask(boss)) {
         if (!hasCachedOriginal_) {
             originalCoreColor_ = coreMask->GetCustomParams().color1;

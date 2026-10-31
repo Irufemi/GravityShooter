@@ -13,7 +13,7 @@ class CameraShakeComponent;
 class BossDamageVisualizerComponent : public Component {
 public:
     BossDamageVisualizerComponent() = default;
-    ~BossDamageVisualizerComponent() override = default;
+    ~BossDamageVisualizerComponent() override;
 
     void Initialize() override;
     void Start() override;
@@ -155,9 +155,17 @@ private:
      */
     CameraShakeComponent* GetCameraShake() const;
 
+    /**
+     * @brief 登録済みのイベントリスナーを解除する
+     */
+    void UnregisterListeners();
+
 private:
     BossComponent* bossComp_ = nullptr;
     mutable std::weak_ptr<GameObject> mainCameraObj_;
+
+    uint32_t damageListenerId_ = 0;
+    uint32_t deathListenerId_ = 0;
 
     // 被弾シェイク
     float damageShakeIntensity_ = 0.4f;

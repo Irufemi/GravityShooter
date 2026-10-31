@@ -15,6 +15,23 @@ void BossDamageVisualizerComponent::OnRegisterProperties() {
     RegisterProperty("Death Shake Frequency", &deathShakeFrequency_);
 }
 
+BossDamageVisualizerComponent::~BossDamageVisualizerComponent() {
+    UnregisterListeners();
+}
+
+void BossDamageVisualizerComponent::UnregisterListeners() {
+    if (bossComp_) {
+        if (damageListenerId_ != 0) {
+            bossComp_->RemoveOnDamageTakenListener(damageListenerId_);
+            damageListenerId_ = 0;
+        }
+        if (deathListenerId_ != 0) {
+            bossComp_->RemoveOnBossDiedListener(deathListenerId_);
+            deathListenerId_ = 0;
+        }
+    }
+}
+
 void BossDamageVisualizerComponent::Initialize() {
     mainCameraObj_.reset();
 }
@@ -24,12 +41,14 @@ void BossDamageVisualizerComponent::Start() {
         return;
     }
 
+    UnregisterListeners();
+
     bossComp_ = gameObject_->GetComponent<BossComponent>();
     if (bossComp_) {
         std::weak_ptr<GameObject> weakObj = gameObject_->shared_from_this();
 
         // 被弾イベントリスナーを登録
-        bossComp_->AddOnDamageTakenListener([weakObj](float damage) {
+        damageListenerId_ = bossComp_->AddOnDamageTakenListener([weakObj](float damage) {
             if (auto obj = weakObj.lock()) {
                 if (auto visualizer = obj->GetComponent<BossDamageVisualizerComponent>()) {
                     visualizer->TriggerDamageShake(damage);
@@ -38,7 +57,7 @@ void BossDamageVisualizerComponent::Start() {
         });
 
         // 撃破イベントリスナーを登録
-        bossComp_->AddOnBossDiedListener([weakObj]() {
+        deathListenerId_ = bossComp_->AddOnBossDiedListener([weakObj]() {
             if (auto obj = weakObj.lock()) {
                 if (auto visualizer = obj->GetComponent<BossDamageVisualizerComponent>()) {
                     visualizer->TriggerDeathShake();

@@ -95,6 +95,20 @@ void DroneManagerComponent::Update() {
 
     float deltaTime = GetEngine() ? GetEngine()->GetGameDeltaTime() : (1.0f / 60.0f);
 
+    // エフェクトマスク情報の事前キャッシュ（ループ内での重複コンポーネント走査を排除）
+    int32_t effectType = 0;
+    float effectParam = 0.0f;
+    bool enableMask = false;
+    if (auto effectMask = gameObject_->GetComponent<EffectMaskComponent>()) {
+        enableMask = effectMask->GetEnableEffectMask();
+        effectType = effectMask->GetCustomEffectType();
+        effectParam = effectMask->GetCachedEffectParam();
+        if (enableMask && effectParam == 0.0f) {
+            effectMask->Update();
+            effectParam = effectMask->GetCachedEffectParam();
+        }
+    }
+
     // Data-Oriented Update Loop (CPUキャッシュ効率化)
     for (size_t i = 0; i < activeDrones_.size();) {
         auto& drone = activeDrones_[i];
@@ -169,18 +183,6 @@ void DroneManagerComponent::Update() {
         batchT.scale = {1.0f, 1.0f, 1.0f}; // Prefabのスケーリングを適用する場合は変更
         if (t) {
             batchT.scale = t->GetScale();
-        }
-        int32_t effectType = 0;
-        float effectParam = 0.0f;
-        bool enableMask = false;
-        if (auto effectMask = gameObject_->GetComponent<EffectMaskComponent>()) {
-            enableMask = effectMask->GetEnableEffectMask();
-            effectType = effectMask->GetCustomEffectType();
-            effectParam = effectMask->GetCachedEffectParam();
-            if (enableMask && effectParam == 0.0f) {
-                effectMask->Update();
-                effectParam = effectMask->GetCachedEffectParam();
-            }
         }
         batchRenderer_->AddInstance(batchT, effectType, effectParam, enableMask);
 

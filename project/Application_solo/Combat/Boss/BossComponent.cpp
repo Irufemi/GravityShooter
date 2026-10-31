@@ -192,6 +192,23 @@ void BossComponent::RemoveShield(std::shared_ptr<GameObject> shield) {
     shields_.erase(it, shields_.end());
 }
 
+void BossComponent::CleanupSubEntities() {
+    if (droneManager_) {
+        droneManager_->RecallAllDrones();
+    }
+    for (auto& w : shields_) {
+        if (auto debris = w.lock()) {
+            if (auto debrisComp = debris->GetComponent<DebrisComponent>()) {
+                debrisComp->SetState(DebrisState::Idle);
+            }
+        }
+    }
+    shields_.clear();
+    if (bulletManager_) {
+        bulletManager_->ClearAllBullets();
+    }
+}
+
 void BossComponent::TakeDamage(float damage) {
     if (currentState_) {
         currentState_->OnTakeDamage(this, damage);
@@ -209,11 +226,22 @@ void BossComponent::ChangeState(std::unique_ptr<IBossState> newState) {
 }
 
 void BossComponent::NotifyDamageTaken(float damage) {
-    for (auto& listener : onDamageTakenListeners_) {
-        if (listener) {
-            listener(damage);
+    auto listenersCopy = onDamageTakenListeners_;
+    for (const auto& entry : listenersCopy) {
+        if (entry.callback) {
+            entry.callback(damage);
         }
     }
+}
+
+bool BossComponent::RemoveOnDamageTakenListener(ListenerId id) {
+    auto it = std::remove_if(onDamageTakenListeners_.begin(), onDamageTakenListeners_.end(),
+                             [id](const DamageTakenListenerEntry& entry) { return entry.id == id; });
+    if (it != onDamageTakenListeners_.end()) {
+        onDamageTakenListeners_.erase(it, onDamageTakenListeners_.end());
+        return true;
+    }
+    return false;
 }
 
 void BossComponent::NotifyBossDied() {

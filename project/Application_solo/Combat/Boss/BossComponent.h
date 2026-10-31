@@ -35,10 +35,28 @@ public:
     }
 
     /**
-     * @brief 被弾時のイベントリスナーを追加する
+     * @brief 被弾時のイベントリスナーを追加する（マルチキャスト）
+     * @param[in] callback 呼び出される関数オブジェクト
+     * @return 登録解除用のリスナーID (ListenerId)
      */
-    void AddOnDamageTakenListener(std::function<void(float damage)> callback) {
-        onDamageTakenListeners_.push_back(std::move(callback));
+    ListenerId AddOnDamageTakenListener(std::function<void(float damage)> callback) {
+        ListenerId id = ++nextDamageTakenListenerId_;
+        onDamageTakenListeners_.push_back({id, std::move(callback)});
+        return id;
+    }
+
+    /**
+     * @brief 登録済みの被弾リスナーをIDで解除する
+     * @param[in] id AddOnDamageTakenListener が返却したListenerId
+     * @return 正常に解除できた場合 true
+     */
+    bool RemoveOnDamageTakenListener(ListenerId id);
+
+    /**
+     * @brief すべての被弾リスナーを一括解除する
+     */
+    void ClearOnDamageTakenListeners() {
+        onDamageTakenListeners_.clear();
     }
 
     /**
@@ -104,6 +122,11 @@ public:
      * @brief 特定のシールドをリストから除外する（破壊時など）
      */
     void RemoveShield(std::shared_ptr<GameObject> shield);
+
+    /**
+     * @brief ボス撃破時、付随するドローン群・周回シールド・弾幕を一括回収・停止する
+     */
+    void CleanupSubEntities();
 
     /**
      * @brief ボスにダメージを与える
@@ -186,12 +209,17 @@ private:
 
     std::weak_ptr<GameObject> bossContainer_;
     std::vector<std::weak_ptr<GameObject>> shields_;
+    struct DamageTakenListenerEntry {
+        ListenerId id;
+        std::function<void(float damage)> callback;
+    };
     struct BossDiedListenerEntry {
         ListenerId id;
         std::function<void()> callback;
     };
 
-    std::vector<std::function<void(float damage)>> onDamageTakenListeners_;
+    std::vector<DamageTakenListenerEntry> onDamageTakenListeners_;
+    ListenerId nextDamageTakenListenerId_ = 0;
     std::vector<BossDiedListenerEntry> onBossDiedListeners_;
     ListenerId nextBossDiedListenerId_ = 0;
     std::function<void()> onDeathSequenceFinished_;
