@@ -426,10 +426,7 @@ bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::strin
     } else {
         // ローカルキャッシュ → 配布同梱アセットの順にフォールバック探索
         const std::vector<std::string> searchPaths = {
-            kCacheDirectory + "pso_manifest.json",
-            "resources/cache/pso_manifest.json",
-            "resources/pso_manifest.json"
-        };
+            kCacheDirectory + "pso_manifest.json", "resources/cache/pso_manifest.json", "resources/pso_manifest.json"};
 
         for (const auto& sp : searchPaths) {
             if (std::filesystem::exists(sp)) {
@@ -467,9 +464,8 @@ bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::strin
             auto cull = static_cast<CullMode>(item.value("cull", 0));
 
             if (threadPool && taskGroup) {
-                threadPool->Enqueue(taskGroup, [this, name, blend, depth, cull]() {
-                    GetPSO(name, blend, depth, cull);
-                });
+                threadPool->Enqueue(taskGroup,
+                                    [this, name, blend, depth, cull]() { GetPSO(name, blend, depth, cull); });
             } else {
                 GetPSO(name, blend, depth, cull);
             }
@@ -485,9 +481,7 @@ bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::strin
                 continue;
             }
             if (threadPool && taskGroup) {
-                threadPool->Enqueue(taskGroup, [this, name]() {
-                    GetComputePSO(name);
-                });
+                threadPool->Enqueue(taskGroup, [this, name]() { GetComputePSO(name); });
             } else {
                 GetComputePSO(name);
             }
@@ -499,8 +493,9 @@ bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::strin
         taskGroup->Wait();
     }
 
-    Log::OutPutLog(std::cout, std::format("[PSOManager] Pre-warmed {} Graphics PSOs and {} Compute PSOs from manifest: {}\n",
-                                          graphicsCount, computeCount, path));
+    Log::OutPutLog(std::cout,
+                   std::format("[PSOManager] Pre-warmed {} Graphics PSOs and {} Compute PSOs from manifest: {}\n",
+                               graphicsCount, computeCount, path));
     return (graphicsCount > 0 || computeCount > 0);
 }
 
@@ -649,8 +644,9 @@ void PSOManager::SaveCachedBlob(const std::string& cacheFileName, ID3D12Pipeline
         static bool s_warned = false;
         if (!s_warned) {
             s_warned = true;
-            Log::OutPutLog(std::cout, "[PSOManager] Note: GPU driver does not support ID3D12PipelineState::GetCachedBlob (HR: " +
-                                          std::to_string(hr) + "). Manifest-based auto-prewarming is active.\n");
+            Log::OutPutLog(std::cout,
+                           "[PSOManager] Note: GPU driver does not support ID3D12PipelineState::GetCachedBlob (HR: " +
+                               std::to_string(hr) + "). Manifest-based auto-prewarming is active.\n");
         }
         return;
     }
