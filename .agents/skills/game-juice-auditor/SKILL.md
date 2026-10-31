@@ -21,16 +21,17 @@ description: "Audits the codebase for missing game feel, micro-interactions, com
    - `project/Application_solo/GameDesignDocument.md`（浮遊感、慣性、Voxel破砕演出の仕様）
 2. **戦闘 & 被弾ロジック**:
    - `project/Application_solo/Combat/IDamageable.h`
-   - `project/Application_solo/Combat/PlayerBulletManagerComponent.cpp`
+   - `project/Application_solo/Combat/EnemyBulletManagerComponent.cpp`
    - `project/Application_solo/Combat/BossBulletManagerComponent.cpp`
    - `project/Application_solo/Combat/BossComponent.cpp`
-   - `project/Application_solo/Combat/EnemyComponent.cpp`
+   - `project/Application_solo/RailMechanics/RailShooterEnemyComponent.cpp`
 3. **演出 & 視覚効果**:
    - `project/Application_solo/Effects/EffectManagerComponent.h/.cpp`
-   - `project/Application_solo/Effects/BossDamageVisualizerComponent.h/.cpp`
+   - `project/Application_solo/Combat/Boss/BossDamageVisualizerComponent.h/.cpp`
    - `project/Application_solo/resources/prefabs/`（各種エフェクトプレハブ）
 4. **カメラ & プレイヤー挙動**:
-   - `project/Application_solo/Player/PlayerComponent.h/.cpp`
+   - `project/Application_solo/Player/GravityPlayerComponent.h/.cpp`
+   - `project/Application_solo/RailMechanics/RailShooterPlayerComponent.h/.cpp`
 
 ---
 

@@ -48,7 +48,7 @@ description: "Evaluates the overall appeal, core hook, pacing, and technical sho
 3. **戦闘・敵制御コード（実態精査対象）**:
    - `project/Application_solo/RailMechanics/RailShooterEnemyComponent.cpp`
    - `project/Application_solo/Combat/Boss/BossComponent.cpp`
-   - `project/Application_solo/Combat/DebugEnemySpawnerComponent.cpp`
+   - `project/Application_solo/Combat/EnemySpawnerComponent.cpp`
    - `project/Application_solo/Combat/EnemyBeamComponent.cpp`
 4. **プレイヤー・ガレキ・当たり判定コード（実態精査対象）**:
    - `project/Application_solo/Player/GravityPlayerComponent.cpp`
