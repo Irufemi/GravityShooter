@@ -137,7 +137,8 @@ void TitleCosmicNebulaComponent::Update() {
         // ベルカーブ (sin) で滑らかに立ち上がり、パルス終了時に自然にゼロへ収束
         if (isPulseActive_) {
             float pulseWave = std::sin(std::clamp(pulseTimer_, 0.0f, 1.0f) * 3.14159265f);
-            fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 22.0f * pulseWave * pulsePower_, 26.0f * pulseWave * pulsePower_, 0.42f);
+            fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 22.0f * pulseWave * pulsePower_,
+                                    26.0f * pulseWave * pulsePower_, 0.42f);
         }
     }
 

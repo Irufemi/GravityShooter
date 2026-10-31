@@ -37,8 +37,7 @@ std::string GetCacheFilePath(const std::string& fullPath, const std::string& cac
  * @param[in] str 走査する UTF-16 ワイド文字列
  * @param[in] func コードポイントごとに実行するコールバック関数
  */
-template <typename Func>
-void ForEachCodePoint(const std::wstring& str, Func&& func) {
+template <typename Func> void ForEachCodePoint(const std::wstring& str, Func&& func) {
     for (size_t i = 0; i < str.size(); ++i) {
         wchar_t c1 = str[i];
         char32_t char32 = 0;

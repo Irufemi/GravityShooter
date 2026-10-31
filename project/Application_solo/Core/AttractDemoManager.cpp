@@ -34,10 +34,7 @@ inline float SmoothStep(float t) {
 } // namespace
 
 AttractDemoManager::AttractDemoManager(const Config& config)
-    : config_(config)
-    , isKioskLoopMode_(config.enabledOnStart)
-    , demoMode_(config.defaultMode) {
-}
+    : config_(config), isKioskLoopMode_(config.enabledOnStart), demoMode_(config.defaultMode) {}
 
 void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;

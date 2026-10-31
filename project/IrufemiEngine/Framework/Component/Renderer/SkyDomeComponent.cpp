@@ -77,8 +77,9 @@ void SkyDomeComponent::UpdateMaterialBuffer() {
 }
 
 void SkyDomeComponent::Update() {
-    if (isDirty_)
-    UpdateMaterialBuffer();
+    if (isDirty_) {
+        UpdateMaterialBuffer();
+    }
 }
 
 void SkyDomeComponent::Draw() {

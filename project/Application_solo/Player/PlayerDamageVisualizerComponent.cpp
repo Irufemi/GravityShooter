@@ -163,7 +163,7 @@ void PlayerDamageVisualizerComponent::TriggerCameraShake() {
 void PlayerDamageVisualizerComponent::TriggerScreenEffect() {
     if (!screenEffectComp_ && gameObject_) {
         screenEffectComp_ = gameObject_->GetComponent<ScreenEffectComponent>();
-    cachedTargetModel_ = GetTargetModel();
+        cachedTargetModel_ = GetTargetModel();
     }
 
     if (screenEffectComp_) {

@@ -185,4 +185,3 @@ private:
 };
 
 using AttractDemoConfig = AttractDemoManager::Config;
-

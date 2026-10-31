@@ -12,7 +12,9 @@ public:
     ResultScene() = default;
     ~ResultScene() override;
     void OnExit() override;
-    bool IsClearResult() const { return isClearResult_; }
+    bool IsClearResult() const {
+        return isClearResult_;
+    }
 
     void Initialize(IrufemiEngine* engine) override;
 

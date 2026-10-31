@@ -17,8 +17,9 @@ void FogComponent::Start() {
 }
 
 void FogComponent::Update() {
-    if (isDirty_)
-    SyncToEngine();
+    if (isDirty_) {
+        SyncToEngine();
+    }
 }
 
 void FogComponent::OnDisable() {

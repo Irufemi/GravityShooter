@@ -138,9 +138,4 @@ private:
 
     // UIの初期化が完了したか
     bool uiBound_ = false;
-
-
-
-
-
 };
