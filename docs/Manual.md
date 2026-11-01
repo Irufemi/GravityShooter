@@ -61,6 +61,12 @@
   - [9.5 ビルド・提出パッケージングパイプライン](#95-ビルド提出パッケージングパイプライン)
   - [9.6 統合テスト環境 (DebugScene) の利用ルール](#96-統合テスト環境-debugscene-の利用ルール)
   - [9.7 トラブルシューティングと既知の不具合対応履歴](#97-トラブルシューティングと既知の不具合対応履歴)
+- [10. Application アーキテクチャとゲームプレイシステム (Game Mechanics & Architecture)](#10-application-アーキテクチャとゲームプレイシステム-game-mechanics--architecture)
+  - [10.1 レール移動＆相対オフセット制御 (SplineFollowerComponent, RailRelativeFollowerComponent)](#101-レール移動相対オフセット制御-splinefollowercomponent-railrelativefollowercomponent)
+  - [10.2 マルチロックオン＆ターゲティング (PlayerTargetingComponent, TargetableComponent)](#102-マルチロックオンターゲティング-playertargetingcomponent-targetablecomponent)
+  - [10.3 重力アクション＆ステートマシン (GravityPlayerComponent, DebrisManagerComponent)](#103-重力アクションステートマシン-gravityplayercomponent-debrismanagercomponent)
+  - [10.4 ボス戦＆エネミーAIシステム (BossComponent, EnemySpawnerComponent)](#104-ボス戦エネミーaiシステム-bosscomponent-enemyspawnercomponent)
+  - [10.5 ゲームループと演出連携 (GameLoopManagerComponent, StageIntroDirectorComponent)](#105-ゲームループと演出連携-gameloopmanagercomponent-stageintrodirectorcomponent)
 
 ---
 
@@ -742,6 +748,9 @@ private:
 ```cpp
 // "Title" (Title.json) を読み込んで遷移。トランジション効果は Fade で 1.0秒かける
 engine_->GetSceneManager()->LoadScene("Title", SceneTransition::Type::Fade, 1.0f);
+
+// ホワイトアウト遷移（白フェード）を行う場合: customColor に Vector4(1,1,1,1) を指定
+engine_->GetSceneManager()->LoadScene("Result", SceneTransition::Type::Fade, 1.5f, EaseType::OutQuad, Irufemi::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 ```
 
 **2. C++クラスによる手動遷移**
@@ -753,24 +762,33 @@ if (isClear) {
 }
 
 // 現在のシーンの上に一時的なシーン（ポーズ画面など）を重ねる場合
-// engine_->GetSceneManager()->PushScene("PauseScene");
+engine_->GetSceneManager()->PushScene("PauseScene");
 
 // 重ねたシーンを終了し、元のシーンに戻る場合（PauseScene側で呼ぶ）
-// engine_->GetSceneManager()->PopScene();
+engine_->GetSceneManager()->PopScene();
 ```
 
-#### シーンのロード状態と一つ前のシーンの取得
-ロード画面の描画や、ポーズ画面から元のシーンへ戻る際の判定に便利なAPIが用意されています。
+#### 非同期遷移フェーズとロード画面の制御
+`SceneManager` は重いシーンの生成・破棄時にメインスレッドのフレームレートを落とさないよう、以下のフェーズ遷移を非同期で制御します。
+- **`TransitionPhase::Closing`**: 前のシーンのフェードアウト中（現在のシーンの `Update()` は継続）
+- **`TransitionPhase::Initializing`**: ワーカースレッドで新シーンのメモリ割り当て・初期化を実行中
+- **`TransitionPhase::LoadingWait`**: 初期化完了後、最小暗転時間待機中（`LoadingScreen` を描画）
+- **`TransitionPhase::Opening`**: 新しいシーンのフェードイン中
+
 ```cpp
-// チラつき防止機能付きで、現在ローディング画面を描画すべきか判定
+// 1. チラつき防止機能付きで、現在ローディング画面を描画すべきか判定
 if (engine_->GetSceneManager()->ShouldDrawLoadingScreen()) {
     // ローディング画面の描画処理
 }
 
-// PauseScene などの上に重なるシーンから、呼び出し元のシーン名を取得する
+// 2. インゲームプレイ中の誤ロード画面割り込み防止
+// SceneManager::IsLoading() は非同期遷移待機フェーズ中のみ true を返すよう安全化されています。
+// インゲーム中のアセット非同期読み込み等で誤って LoadingScreen が割り込むことはありません。
+
+// 3. PauseScene などのスタックシーンから呼び出し元のシーン名を取得
 std::string prevScene = engine_->GetSceneManager()->GetPreviousSceneName();
 if (prevScene == "GameScene") {
-    // GameScene から呼ばれた場合の特別な処理
+    // GameScene からポーズされた場合の処理
 }
 ```
 
@@ -1723,8 +1741,8 @@ myEffect.Draw();
 
 #### 推奨される描画順序（スタックに追加する順）
 1. **色調補正系**: ToneMapping, Grayscale, Sepia, HSV など
-2. **空間・ぼかし系**: Smoothing, GaussianFilter, RadialBlur など
-3. **画面演出系**: Vignette, Noise, Glitch, Dissolve など
+2. **空間・ぼかし系**: Smoothing, GaussianFilter, RadialBlur, DualKawaseBlur など
+3. **画面演出系**: Vignette, Noise, Glitch, Dissolve, GravityDistortion, BlackHoleSupernova など
 4. **画面遷移系**: Fade, Slide など
 
 **なぜこの順番なのか？**
@@ -1735,19 +1753,86 @@ myEffect.Draw();
 - **`EffectLayer::PreUI`**: 3Dシーンや背景にのみ適用され、UI（ImGuiやCanvas等）には影響を与えません（デフォルト）。
 - **`EffectLayer::PostUI`**: 最終的なUI描画もすべて完了した後に、画面全体に対して適用されます。
 
-#### 多彩なエフェクト・新機能
-VignetteやNoise等の基本機能に加え、AAAタイトル級の様々なエフェクトが実装されています。
-- **DualKawaseBlur**: 従来のGaussianよりも広範囲かつ低負荷にぼかしをかけることが可能です。
-- **DepthOfField**: ピントの距離(FocusDistance)を指定し、前後の風景をぼかす被写界深度エフェクトです。
-- **LightShafts**: 光源のスクリーン座標を指定し、オブジェクトの隙間から漏れる光の筋（ゴッドレイ）を描画します。
-- **その他**: `ChromaticAberration` (色収差)、`DisplacementMap` (陽炎・歪み)、`Pointillism` (点描画)、`NightVision` (暗視ゴーグル) など多数のモードが利用可能です。
+#### 多彩なエフェクトモード一覧 (全31種)
+`PostProcessMode` 列挙体として以下の31種類のエフェクトが提供されています。
+- **色調・階調**: `Grayscale`, `Sepia`, `HSV`, `ToneMapping`(ACES), `Posterization`
+- **空間・光学ブラー**: `Smoothing`, `GaussianFilter`, `RadialBlur`, `DirectionalBlur`, `DualKawaseBlur`, `DepthOfField`(DoF), `LightShafts`(ゴッドレイ)
+- **演出・ディストーション**: `Vignette`, `Noise`, `Glitch`, `Dissolve`, `ChromaticAberration`, `DisplacementMap`, `Pixelation`, `Pointillism`, `NightVision`, `Kaleidoscope`, `Halftone`
+- **輪郭・境界検出**: `DepthBasedOutline`(深度+法線), `LuminanceBasedOutline`(2Dトゥーン調)
+- **画面遷移**: `Fade`(単色フェード), `Slide`(ワイプ演出)
+- **特殊演出**: `Bloom`(高輝度抽出発光), `GravityDistortion`(重力歪曲波紋), `BlackHoleSupernova`(重力特異点崩壊・超新星爆発)
 
-#### Vignetteのパラメータ変更について
-Vignetteエフェクトがより自然な減衰（Smooth Falloff）になるようパラメータがアップグレードされました。
-- **`radius` (旧: scale)**: 減衰が始まる半径 (デフォルト 0.8)
-- **`softness` (旧: power)**: 減衰の柔らかさ (デフォルト 0.5)
+#### 重力演出専用ポストプロセス
+##### 1. GravityDistortion (重力波・空間歪み)
+自機の重力ダイブ、ガレキ引き寄せ、ボスの重力攻撃、水界面膜突破時に発生する放射状の同心円時空歪み＋色収差エフェクトです。
+- **ワンショット発火 API (推奨・自動減衰)**:
+  ```cpp
+  auto* ppm = engine->GetPostProcessManager();
+  // 中心スクリーンUV, 最大歪み強度, 持続時間(秒), 最大半径, 色収差比率
+  ppm->TriggerGravityDistortion(Irufemi::Vector2(0.5f, 0.5f), 0.10f, 0.5f, 1.3f, 0.035f);
+  ```
+- **パラメータ構造体による手動制御**:
+  ```cpp
+  PostProcessManager::GravityDistortionParams params{};
+  params.center = Irufemi::Vector2(0.5f, 0.5f);
+  params.radius = 0.35f;
+  params.intensity = 0.06f;
+  params.waveWidth = 0.08f;
+  params.chromaticRatio = 0.04f;
+  ppm->SetGravityDistortionParams(params);
+  ```
 
-これにより、画面端が完全に黒く潰れるのを防ぎ、滑らかなグラデーション表現が可能になっています。シーン初期化時などでパラメータを調整する際はご留意ください。
+##### 2. BlackHoleSupernova (ブラックホール・重力特異点＆超新星爆発)
+自機撃墜時や大ボス撃破時のクライマックス演出に用いられる専用フルスクリーン・ポストプロセスです。事象の地平面（漆黒吸光）、求心スワール重力レンズ、過熱プラズマ火球、およびGRAVITY DAZE風の重力色収差衝撃波を一体描画します。
+```cpp
+#include "Renderer/PostProcess/PostProcessManager.h"
+
+auto* ppm = engine->GetPostProcessManager();
+ppm->SetModeEnabled(PostProcessMode::BlackHoleSupernova, true);
+
+PostProcessManager::BlackHoleSupernovaParams params{};
+params.center = Irufemi::Vector2(0.5f, 0.5f); // 撃墜瞬間のスクリーンUV
+params.blackHoleRadius = 0.15f;              // 事象の地平面の半径
+params.blackHolePullIntensity = 0.08f;       // 求心スワール吸引強度
+params.supernovaRadius = 0.45f;              // 超新星プラズマ火球半径
+params.supernovaIntensity = 0.12f;           // 衝撃波変位強度
+params.supernovaChromaticRatio = 0.05f;      // 重力色収差比率
+params.supernovaFlashIntensity = 0.30f;      // ガンマバースト白熱光強度
+ppm->SetBlackHoleSupernovaParams(params);
+```
+
+#### オブジェクト個別のカスタムエフェクト適用 (CustomEffectParams)
+画面全体ではなく、特定のキャラクターがダメージを受けたときの点滅や、敵が倒れたときのディゾルブ（消失）など、**特定のオブジェクトに対してのみエフェクトを適用**するための機能です。
+
+##### 1. カスタムパラメータの登録方法
+```cpp
+auto* ppm = engine->GetPostProcessManager();
+PostProcessManager::CustomEffectParams params;
+params.param1 = 0.5f; // 例: ディゾルブのしきい値など
+uint32_t id = ppm->RegisterCustomEffectParams(params);
+float effectParam = static_cast<float>(id) / 255.0f;
+```
+
+##### 2. 動的オブジェクトへの適用 (EffectMaskComponent)
+```cpp
+gameObject->AddComponent<EffectMaskComponent>();
+// 発動時: (effectType, effectParam, duration(秒))
+gameObject->GetComponent<EffectMaskComponent>()->ApplyEffect(8, effectParam, 1.0f);
+```
+
+##### 【仕様】アウター・シルエット方式アウトライン (Outer Silhouette)
+本エンジンの個別輪郭線（`LuminanceBasedOutline`）は、**モデル表面のテクスチャやライティングを100%保護し、外側の背景ピクセルのみに輪郭線を描画する「アウター・シルエット方式」**（Overwatch等の商用AAAタイトル標準）を採用しています。
+- モデル表面のデザインが塗り潰されず、0.5px単位のシャープな輪郭線を付与可能。
+- ロックオン時の敵ハイライト表示等に最適です。
+
+##### 3. バッチ描画（環境物）への適用 (ModelBatchRendererComponent)
+```cpp
+// 1個目は通常描画（エフェクトなし）
+batchComponent->AddInstance(transform1);
+
+// 2個目には個別のエフェクト（例: Type 8 = Dissolve）を適用
+batchComponent->AddInstance(transform2, 8, effectParam, true);
+```
 
 ---
 
@@ -1773,31 +1858,6 @@ struct PixelShaderOutput {
 これにより、深度差がほとんどない平面上の折り目（ハードエッジ）にも美しい輪郭線が描画される AAA 品質のアウトライン表現が可能となっています。
 
 ---
-
-#### オブジェクト個別のカスタムエフェクト適用
-
-画面全体にかける通常のポストプロセスとは異なり、特定のキャラクターがダメージを受けたときの点滅や、敵が倒れたときのディゾルブ（消失）など、**特定のオブジェクトに対してのみエフェクトを適用**するための機能です。
-
-#### 1. カスタムパラメータの登録方法
-エフェクトのパラメータ（しきい値や色など）は、GPUに送る前に `PostProcessManager` に登録してID（`effectParam`）を取得する設計になっています。
-
-```cpp
-auto* ppm = engine->GetPostProcessManager();
-PostProcessManager::CustomEffectParams params;
-params.param1 = 0.5f; // 例: ディゾルブのしきい値など
-uint32_t id = ppm->RegisterCustomEffectParams(params);
-float effectParam = static_cast<float>(id) / 255.0f;
-```
-
-#### 2. 個別適用可能なエフェクトの種類 (PostProcessMode)
-用意されている各種エフェクト（PostProcessMode列挙体）のうち、個別適用に使いやすい代表的なものを紹介します。
-- **Dissolve (8)**: ノイズテクスチャによる消失演出。敵を倒した際などに。
-- **Glitch (15)**: ノイズ・色収差による映像の乱れ。ダメージ時の点滅や異常状態に。
-- **LuminanceBasedOutline (17)**: 輝度ベースのアウトライン。キャラクターがダメージを受けたときの縁取り発光などに。
-- **Pixelation (18)**: ドット絵化（モザイク）。
-- **Halftone (26)**: 網点・コミック調。
-- **Fade (12) / Slide (13)**: ワイプや指定色へのフェード。
-（※その他の全エフェクトの一覧も `PostProcessManager.h` に記載されています）
 
 #### 3. 動的オブジェクトへの適用 (EffectMaskComponent)
 キャラクターやボスなど、個別の `GameObject` にアタッチしてエフェクトを管理する方法です。
@@ -1935,53 +1995,6 @@ C++側の基盤構築およびHLSL側の対応がすべて完了しており、�
 
 ---
 
-#### 30. GravityDistortion (重力波・空間歪み)
-自機の重力ダイブやボスの重力攻撃時に発生する放射状の時空歪みエフェクトです。
-- **構造体**: `PostProcessManager::GravityDistortionParams`
-  - `center`: 歪み中心 UV (0.0 ~ 1.0)
-  - `radius`: 現在の波面半径
-  - `intensity`: 空間歪みの強さ
-  - `waveWidth`: 波面の太さ
-  - `chromaticRatio`: 色収差の強さ
-```cpp
-PostProcessManager::GravityDistortionParams params{};
-params.center = Irufemi::Vector2(0.5f, 0.5f);
-params.radius = 0.35f;
-params.intensity = 0.06f;
-params.waveWidth = 0.08f;
-params.chromaticRatio = 0.04f;
-ppm.SetGravityDistortionParams(params);
-```
-
-#### 31. BlackHoleSupernova (ブラックホール・重力特異点＆超新星爆発)
-自機撃墜時や大ボス撃破時のクライマックス演出に用いられる専用フルスクリーン・ポストプロセスです。
-- **構造体**: `PostProcessManager::BlackHoleSupernovaParams`
-  - `center`: スクリーンUV中心 (0.0 ~ 1.0)
-  - `blackHoleRadius`: 事象の地平面（漆黒吸光）の半径
-  - `blackHolePullIntensity`: 求心スワール重力レンズの吸引強度
-  - `supernovaRadius`: 超新星過熱プラズマ火球の爆発半径
-  - `supernovaIntensity`: 衝撃波歪みの変位強度
-  - `supernovaChromaticRatio`: GRAVITY DAZE風の重力色収差比率
-  - `supernovaFlashIntensity`: 瞬間ガンマバースト白熱光強度
-```cpp
-#include "Renderer/PostProcess/PostProcessManager.h"
-
-auto& ppm = *engine->GetPostProcessManager();
-ppm.SetModeEnabled(PostProcessMode::BlackHoleSupernova, true);
-
-PostProcessManager::BlackHoleSupernovaParams params{};
-params.center = Irufemi::Vector2(0.5f, 0.5f);
-params.blackHoleRadius = 0.15f;
-params.blackHolePullIntensity = 0.08f;
-params.supernovaRadius = 0.45f;
-params.supernovaIntensity = 0.12f;
-params.supernovaChromaticRatio = 0.05f;
-params.supernovaFlashIntensity = 0.30f;
-ppm.SetBlackHoleSupernovaParams(params);
-```
-
----
-
 ### 6.8 シェーダーの追加・変更・コンパイル構成
 
 本エンジンでは、パフォーマンスと開発効率の両立のため、ビルド構成（Configuration）によってシェーダーのコンパイル方式が完全に切り替わる「ハイブリッド構成」を採用しています。
@@ -2115,6 +2128,7 @@ if (collisionManager->Raycast(ray, hitInfo, 1000.0f, 0xFFFFFFFF, GetGameObject()
 // 2. 非同期レイキャスト (ThreadPool によるバックグラウンド並行クエリ)
 auto future = collisionManager->RaycastAsync(engine_->GetThreadPool(), ray, 1000.0f);
 // ... 次フレームや必要になったタイミングで future.get() により結果を取得
+```
 
 ---
 
@@ -2433,8 +2447,18 @@ slider->SetValue(0.8f);
 slider->SetOnValueChangedCallback([](float val) {
     // スライダー値変更時の処理 (0.0f 〜 1.0f)
 });
+
+// シーン側でのマウス操作判定の実装例（ハードコード矩形を撤廃したモダン設計）
+auto* input = engine_->GetInputManager();
+Irufemi::Vector2 mousePos = input->GetMousePosition();
+
+// マウス左クリック・ドラッグ中にスライダー範囲内であれば値を自動更新
+if (input->IsMousePressed(0) && slider->CheckBounds(mousePos)) {
+    float newValue = slider->CalculateValueFromPosition(mousePos.x);
+    slider->SetValue(newValue);
+}
 ```
-*(※操作矩形判定の `CheckBounds` やUI座標からの値逆算 `CalculateValueFromPosition` など、詳細仕様は [5.7 UI系コンポーネント](#57-ui系コンポーネント-ui-system) を参照してください)*
+*(※詳細なAPI仕様は [5.7 UI系コンポーネント](#57-ui系コンポーネント-ui-system) を参照してください)*
 
 ---
 
@@ -2474,7 +2498,7 @@ engine_->GetTextureManager()->LoadAllFromFolder("resources/ui");
 
 ```cpp
 // モデルの事前ロード（インゲーム開始前などに呼ぶとカクつきを防げます）
-ResourceHandle handle = engine_->GetModelManager()->LoadModel("enemy/enemy.obj");
+ResourceHandle handle = engine_->GetObjModelManager()->LoadModel("enemy/enemy.obj");
 
 // ※ コンポーネント等に文字列で "enemy/enemy.obj" を渡せば、内部で自動ロードされます。
 ```
@@ -2659,6 +2683,17 @@ if (auto* sender = engine->GetTelemetrySender()) {
 
 #### 1. 起動構成とコマンドライン引数
 - **初期設定（デフォルトOFF）**: 通常起動時は `enabledOnStart = false` となっており、自動デモは開始されずプレイヤーの通常操作が最優先されます。
+- **型安全な初期化設定構造体 (`AttractDemoConfig`)**:
+  生ブール値引数を排除し、明示的なパラメータ構造体によって初期化されます。
+  ```cpp
+  #include "Core/AttractDemoManager.h"
+
+  AttractDemoConfig config{};
+  config.enabledOnStart = false; // 通常プレイをデフォルト優先
+  config.initialMode = AttractDemoManager::DemoMode::GameOverShowcase;
+  config.enableHotkeys = true;   // 審査・開発用ホットキー (F7/F8) を有効化
+  attractDemoManager_->Initialize(config);
+  ```
 - **コマンドライン引数による展示モード起動**:
   - `-demo` / `--demo` / `-kiosk` / `--kiosk`: これらを引数に指定して起動した場合、`enabledOnStart = true` となり、起動直後からキオスク展示ループ（自動デモプレイ）が有効化されます。展示用PCのスタートアップ登録などに最適です。
 
@@ -2786,5 +2821,108 @@ if (auto* sender = engine->GetTelemetrySender()) {
   - キャッシュフォーマットのバージョン (`kVersion`) をインクリメントし、古いキャッシュを無効化した。
   - `AnimatedMeshObject` の `Update` および `Draw` メソッドの冒頭に、`m->status.load() != Loaded` および `!m->cpuModel` の場合は即座にリターンする「強力なフェイルセーフ（早期リターン）」を追加した。さらにモデル切り替え時に `meshResources_.clear()` を行うようにした。
 - **教訓**: バイナリシリアライゼーションを行う際は、STL コンテナの内部実装（SSOなど）に依存する直接的なメモリ書き込みを避け、安全なバッファを経由すること。また、非同期ロード時のステート管理（排他制御や状態チェック）は、描画ループ側でも徹底すること。
+
+---
+
+---
+
+## 10. Application アーキテクチャとゲームプレイシステム (Game Mechanics & Architecture)
+
+本章では、個人制作（`project/Application_solo/`）におけるレールシューターおよび重力アクションゲームのアーキテクチャ、自機・敵・ボスの連携設計、および主要ゲームプレイコンポーネントの仕様を解説します。
+
+---
+
+### 10.1 レール移動＆相対オフセット制御 (SplineFollowerComponent, RailRelativeFollowerComponent)
+
+本ゲームは、古典的な名作レールシューター（『スターフォックス』『パンツァードラグーン』等）の操作感を最新の Direct3D 12 基盤で実現するため、**「レール前進」と「画面内相対移動」の完全な階層分離** を採用しています。
+
+#### 1. 親子階層アーキテクチャ (`PlayerCart` -> `Player`)
+- **`PlayerCart` (親オブジェクト)**:
+  - `SplineFollowerComponent` をアタッチ。ステージ空間に敷かれたスプライン曲線に沿って前進・旋回し、自機全体の基準ワールド座標系を提供します。
+- **`Player` (子オブジェクト)**:
+  - `RailRelativeFollowerComponent` および `GravityPlayerComponent` をアタッチ。カートのローカル空間において、左スティック/WASD入力によるXYオフセット移動を行います。
+
+```
+[World Root]
+  └── PlayerCart (SplineFollowerComponent: レール自動前進・旋回)
+        └── Player (RailRelativeFollowerComponent: XY相対移動・バンク・浮遊)
+```
+
+#### 2. 物理ベース疑似挙動と姿勢制御
+- **加速度と摩擦**: 入力ベクトルに対する即時代入ではなく、`Acceleration` と `Friction` による滑らかな速度補間を行い、宇宙船特有の慣性を表現します。
+- **バンキング（ロール回転）**: 水平移動速度に応じて機体が最大35度ロール回転し、重力旋回のダイナミクスを強調します。
+- **常時ホバー演出**: 静止時でもサイン波を用いた微小な上下浮遊を行い、生きている機体感を演出します。
+- **移動範囲クランプ**: 画面外への突き抜けを防ぐため、カメラ画角に収まる楕円/矩形境界で座標を安全にクランプします。
+
+---
+
+### 10.2 マルチロックオン＆ターゲティング (PlayerTargetingComponent, TargetableComponent)
+
+プレイヤーが照準を合わせ、所持するガレキを一斉掃射するための手動マーキング式マルチロックオンシステムです。
+
+#### 1. データ指向なターゲット管理 (`TargetableComponent`)
+毎フレーム全 `GameObject` を再帰探索する重い処理を廃止し、ターゲット可能な全エネミーやボスコアに `TargetableComponent` をアタッチします。
+- コンポーネントの `OnEnable()` / `OnDisable()` に連動して共有レジストリへ自己登録・離脱するため、定数時間 $O(1)$ でのアクティブターゲット走査が可能です。
+
+#### 2. 手動マーキングと重複ロック
+- **手動マーキング**: 右クリック（またはパッド専用ボタン）を押下している間、レティクル近傍のターゲットを順次キューへ固定登録します。
+- **重複ロックオン**: 同一の敵・コアに対して、所持しているガレキ数を上限として複数個のロックオンを重ね掛けできます。
+- **2D+3D深度スコアリング**: スクリーン中心距離と3D深度距離を重み付け評価し、プレイヤーが狙いたい敵を直感的に選出します。
+- **遮蔽物レイキャスト判定**: 壁や建造物の裏に隠れている敵に対しては、`CollisionManager::Raycast` により視線が通っているか判定し、壁裏ロックを自動除外します。
+- **サテライトUIアニメーション (`LockonMarkerUIComponent`)**: 重複ロック数に応じて、ターゲット枠の周囲を衛星のように旋回・公転展開するUIアニメーションを描画します。
+
+---
+
+### 10.3 重力アクション＆ステートマシン (GravityPlayerComponent, DebrisManagerComponent)
+
+周囲のガレキを重力で引き寄せ、保持し、ロックオン対象へ投擲する本作のコアアクションです。
+
+#### 1. 自機アクションステートマシン
+- **State 1: [引き寄せ (Pull)]**:
+  - ボタン押下をトリガーに、有効射程内の浮遊ガレキを検知して自機周囲へ求心移動させます。
+  - ロックオン中またはエイム中のボスのシールド破片を優先して引き剥がす「シールド強奪」機能を備えています。
+- **State 2: [自機周囲で保持 (Hold)]**:
+  - 自機ローカル座標系において、`sin/cos` による軽量な浮遊旋回アニメーションを行いながらガレキを追従保持します（物理演算不使用による完全な位置同期）。
+- **State 3: [一斉掃射 (Throw)]**:
+  - ロックオンキューに積まれた対象へ向けて、所持ガレキをホーミング軌道で高速発射します。
+  - キューが空（ノーロック）の場合は、レティクル奥の照準空間へ向けて直進弾として射出します。
+
+#### 2. キル＆リサイクル循環 (AAA基準ライフサイクル管理)
+- **`DespawnReason` 列挙体による退場制御**:
+  - 敵の退場理由を `Killed`（撃破）, `OutOfScreen`（画面外離脱）, `Suicide`（体当たり）に厳格にディスパッチします。
+  - 画面外離脱時の誤ったガレキドロップを根絶し、静かにオブジェクトプールへ返却します。
+  - プレイヤーによる撃破時は、物理バースト散乱（`SpawnDebrisBurst`）を発火し、次弾のガレキを自機の引き寄せ有効射程へ自動誘導します。
+- **ボクセルメッシュ破砕 (`VoxelParticleManager`)**:
+  - 撃破時は敵モデルをボクセル粒子にリアルタイム分解し、衝撃波とともに周囲へ飛散させます。
+
+---
+
+### 10.4 ボス戦＆エネミーAIシステム (BossComponent, EnemySpawnerComponent)
+
+#### 1. ボス戦ステートマシン (`BossComponent`)
+- **多層シールド**: ボス本体を守る複数枚の浮遊シールド。自機の重力アクションで1枚ずつ剥ぎ取ることが可能。
+- **ドローン編隊展開 (`DroneManagerComponent`)**: 自機を包囲する小型特攻ドローンの生成・一斉突撃。
+- **弱点コア露出と重力特異点攻撃**: シールド全損時の弱点露出、およびステージ全域を巻き込む重力ディストーション攻撃。
+- **破砕撃破演出**: ボスHPゼロ時、パーツごとの順次大爆発、スローモーション、およびボクセル大破砕。
+
+#### 2. プレイ中ヒッチを根絶する事前ウォームアップ
+- `EnemySpawnerComponent::Start()` において、ステージに登場する全敵種別（ゴーレム、特攻ドローン、スナイパー砲台等）のGPUバッチ描画とプレハブプールをシーン開始前に事前確保（Prewarm）します。
+- `VoxelParticleManager::ReservePool()` により、ボクセル化タスク・GPUコンピュートバッファをローディング画面中に先行確定し、戦闘中のDirectX12フレームドロップを根絶します。
+
+---
+
+### 10.5 ゲームループと演出連携 (GameLoopManagerComponent, StageIntroDirectorComponent)
+
+#### 1. ステージ開始演出 (`StageIntroDirectorComponent`)
+- ステージ開始直後、自機が宇宙空間の「水界面膜（重力の壁）」を突破する映画的イントロを自律進行します。
+- 界面突破の瞬間に `PostProcessManager::TriggerGravityDistortion` を自動発火し、空間全体の強烈な波紋歪みと色収差で突入の衝撃を演出します。
+
+#### 2. プレイヤー撃墜シークエンス (`PlayerDamageVisualizerComponent`)
+- **被弾演出**: 残りHPに応じた赤色ヴィネットの明滅とノイズグリッチ（`PostProcessMode::Glitch`）。
+- **重力スーパーノヴァ撃墜シークエンス**:
+  1. 自機HPがゼロになった瞬間、自機のスクリーンUV座標をロック。
+  2. `PostProcessMode::BlackHoleSupernova` を起動し、漆黒の事象の地平面と求心スワール重力レンズによる吸引を展開。
+  3. クライマックスで超新星プラズマ火球と重力色収差衝撃波が画面端まで大拡散。
+  4. 爆発が全画面を覆った瞬間に全画面ホワイトアウト（白1.0固定）へ移行し、そのままシームレスに `ResultScene` へ遷移します。
 
 ---
