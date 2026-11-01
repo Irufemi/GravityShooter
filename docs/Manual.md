@@ -267,6 +267,62 @@ for (auto* col : toAdd) {
 4. **スレッドセーフでない外部 C-API の直列化**:
    - ライブラリ全体をグローバルに排他制御する場合（例: `AssimpMutex`）。
 
+#### 4. 他の GameObject への参照とダングリングポインタ対策 (`std::weak_ptr`)
+マルチスレッド環境下では、参照していた他の `GameObject`（例：敵がプレイヤーを追いかける際のプレイヤー情報）が、別のスレッドで同時に破壊（GCによってメモリ解放）される可能性があります。
+**生ポインタ (`GameObject*`) をメンバ変数として長期間保持することは厳禁です（Use-After-Free の原因になります）。**
+
+必ず `std::weak_ptr<GameObject>` を使用し、アクセスする瞬間だけ `lock()` を取得して生存確認を行ってください。
+
+```cpp
+// ❌ 悪い例（生ポインタ保持はクラッシュの原因）
+// GameObject* targetObject_ = nullptr; 
+
+// ⭕ 良い例（weak_ptr で保持）
+std::weak_ptr<GameObject> targetObject_;
+
+// --- 使い方 ---
+// 1. 他のオブジェクトを設定する時 (shared_from_this() を渡す)
+debrisComp->SetTarget(playerObj->shared_from_this());
+
+// 2. 毎フレーム Update でアクセスする時
+if (auto target = targetObject_.lock()) { // lock()で生存確認
+    if (target->GetIsActive()) {
+        auto transform = target->GetComponent<TransformComponent>();
+        // targetの座標へ移動する処理など...
+    }
+} else {
+    // ターゲットは既に破壊された場合の処理
+}
+```
+
+#### 5. コンポーネント実行中の構造変更 (AddChild / AddComponent) について
+`GameObject::Update` は並列実行されていますが、「自分自身」の子リスト（`children_`）やコンポーネントリストを変更するような操作（例えば、Update 中に自身へ `AddComponent` したり `AddChild` すること）は、内部配列の再確保（Reallocation）を引き起こす可能性があるため、十分に注意してください。
+
+- **新規オブジェクトの生成**: 新しいオブジェクトをシーンにスポーンさせる場合、`scene->AddGameObject(obj)` は内部でスレッドセーフなキュー(`pendingAdds_`)に積まれるため、Update 中に呼んでも安全です。
+- **オブジェクトの破棄**: `gameObject_->Destroy()` も破棄フラグ (`isDestroyed_`) を立てるだけなので、Update 中に呼んでも安全です（次フレームの開始前に一括削除されます）。
+
+#### 6. ThreadPool と TaskGroup による並列タスク実行と待機
+重いアセットのデコードや大量の計算をマルチスレッドで並列実行し、すべてのタスクが完了するまで安全にブロック待機したい場合は、`ThreadPool` と `TaskGroup` を組み合わせて使用します。
+
+```cpp
+#include "Core/System/ThreadPool.h"
+#include "Core/System/TaskGroup.h"
+
+auto threadPool = engine_->GetThreadPool();
+auto taskGroup = std::make_shared<TaskGroup>();
+
+// 1. タスクグループを指定してワーカースレッドへタスクを並列投入
+for (int i = 0; i < 100; ++i) {
+    threadPool->Enqueue(taskGroup, [i]() {
+        // 重い計算やファイルデコードなど...
+    });
+}
+
+// 2. 全タスクが完了するまで低レイテンシで高効率にブロック待機
+// （std::condition_variable により、CPU 100%スピンせず全完了の瞬間に起床します）
+taskGroup->Wait();
+```
+
 ---
 
 ---
@@ -369,13 +425,13 @@ void DXCommandManager::CreateRenderTargetViews() {
 - **プールへの返却は必ず `Release(handle)` を使用する**
   プーリング対象のオブジェクトが死ぬとき（非アクティブ化されるとき）は、自身が生成時に受け取った `Handle` を用いてプールへ返却してください。`Destroy()` を呼ぶとメモリから消去されプールが崩壊します。
   ```cpp
-  // 敵の生成時に Handle をマップなどに記憶しておく
-  activeEnemyHandles_[enemy.get()] = handle;
+  // 敵の生成時に Handle をマップなどに記憶しておく（InstanceID をキーにしてABA問題やダングリング参照を防止）
+  activeEnemyHandles_[enemy->GetInstanceID()] = handle;
 
   enemyComp->SetOnDeathCallback([this](GameObject* deadObj) {
       deadObj->SetIsActive(false);
       if (enemyPool_) {
-          auto it = activeEnemyHandles_.find(deadObj);
+          auto it = activeEnemyHandles_.find(deadObj->GetInstanceID());
           if (it != activeEnemyHandles_.end()) {
               enemyPool_->Release(it->second); // Handle を使って最速で返却
               activeEnemyHandles_.erase(it);
@@ -407,6 +463,35 @@ void DXCommandManager::CreateRenderTargetViews() {
 - **パフォーマンスと Data-Oriented な設計 (自己登録型コンポーネント)**:
   シーン内の特定のオブジェクト（敵やボスなど）を毎フレーム再帰的に検索する処理は、オブジェクト数が増えるにつれて急激なCPU負荷（$O(N)$ 問題）を引き起こします。
   これを防ぐため、ロックオン対象などの特定の性質を持つオブジェクトの管理には、**自己登録型コンポーネント（例: `TargetableComponent`）** を使用してください。生成時（`OnEnable`）に対象がグローバルな静的リストへ自動登録され、検索側はリストを直接イテレートするだけで定数時間かつキャッシュ効率の良いアクセスが可能になります。
+
+- **プール対応コンポーネントの作り方 (`IsPooledComponent`)**:
+  特定のコンポーネントを `ComponentPool` の管理下に置くには、対象のコンポーネントクラスの宣言の下で `IsPooledComponent` のテンプレート特化を行います。
+  ```cpp
+  #pragma once
+  #include "Framework/Component/Component.h"
+  #include "Core/System/ComponentPool.h"
+
+  class TransformComponent : public Component {
+      // ... 通常のコンポーネント実装 ...
+  };
+
+  // ComponentPool 対応を宣言（ファイルの末尾に記述）
+  template<> struct IsPooledComponent<TransformComponent> : std::true_type {};
+  ```
+  この一行を追加するだけで、`GameObject::AddComponent<TransformComponent>()` や、エディタ・JSONからの自動ロード（`ComponentFactory`）が**すべて自動的にプール経由での生成**に切り替わります。
+
+- **DODの恩恵を最大限に受ける一括更新処理 (`UpdateAll`)**:
+  プール化されたコンポーネントは、`ComponentPool::ForEach` を使って全インスタンスを一気にバッチ処理することができます。
+  現在、`TransformComponent` の座標行列計算はこの機能を用いて `BaseScene::Update` 内で毎フレーム最初に一括計算 (`TransformComponent::UpdateAll()`) されています。これにより、何万ものオブジェクトの Transform 行列計算がキャッシュミスなしで高速に行われます。
+  ```cpp
+  void TransformComponent::UpdateAll() {
+      currentFrame_++;
+      ComponentPool<TransformComponent>::GetInstance().ForEach([](TransformComponent& transform) {
+          transform.ComputeMatrix();
+      });
+  }
+  ```
+  ※プール対応コンポーネントはゲーム終了時にプールから安全にメモリ解放されるため、手動の解放処理は不要です。
 
 ---
 
@@ -496,11 +581,11 @@ IrufemiEngine のエディタは、モダンなゲームエンジン（Unity等�
      - シーンとプレハブ間でのUndoデータの混ざりを防ぐため、突入時および離脱時にUndo履歴が自動でクリアされます。
      - Prefabのルートオブジェクト（Root）に対する誤った削除や複製操作は保護されます。
 
-5. **コンポーネント開発向け共通UIウィジェット (`ComponentUIHelpers`)**:
-   - 独自のコンポーネント内でプレハブパスを扱う際、[`ComponentUIHelpers.h`](project/IrufemiEditor/UI/ComponentUIHelpers.h) の共通関数を利用できます。
+5. **カスタムInspector（エディタ拡張）開発向け共通UIウィジェット (`ComponentUIHelpers`)**:
+   - `IrufemiEditor` 内で独自のコンポーネントインスペクター（`IComponentEditor`）を実装する際、[`ComponentUIHelpers.h`](project/IrufemiEditor/UI/ComponentUIHelpers.h) の共通関数を利用できます。
    ```cpp
-   // IrufemiEditor プロジェクト内ヘッダー
-   #include "../../IrufemiEditor/UI/ComponentUIHelpers.h"
+   // IrufemiEditor 内でのインクルード
+   #include "UI/ComponentUIHelpers.h"
 
    // プレハブパスの横にワンクリックで編集モードを開くボタンを描画
    IrufemiEditor::ComponentUIHelpers::DrawOpenPrefabButton(dronePrefabPath_);
@@ -974,9 +1059,9 @@ public:
 
     void Update() override {
         // 例: 左クリックされたら弾を生成する
-        if (engine_->GetInputManager()->IsMouseButtonPressed(Mouse::Button::Left)) {
-            // 現在の座標を取得
-            Vector3 pos = GetGameObject()->GetComponent<TransformComponent>()->position_;
+        if (GetEngine()->GetInputManager()->IsMouseButtonPressed(Mouse::Button::Left)) {
+            // 現在のワールド座標を取得（TransformComponent のカプセル化 API）
+            Vector3 pos = GetTransform()->GetWorldPosition();
             
             // "resources/scenes/Bullet.json" をもとに、指定した座標へオブジェクトを生成
             auto bullet = GetGameObject()->Instantiate("Bullet", pos);
@@ -1158,11 +1243,11 @@ IrufemiEngine は用途と計算負荷に合わせて3種類の3Dコライダー
 
   class BulletBehavior : public Component {
   public:
-      void OnCollisionEnter(ColliderComponent* other) override {
+      void OnCollisionEnter(GameObject* hitObject) override {
           // 相手のタグや属性をチェック
-          if (other->GetOwner()->GetTag() == "Enemy") {
+          if (hitObject->GetTag() == "Enemy") {
               // ダメージ処理...
-              GetOwner()->Destroy();
+              GetGameObject()->Destroy();
           }
       }
   };
@@ -1185,7 +1270,7 @@ IrufemiEngine は用途と計算負荷に合わせて3種類の3Dコライダー
   ```
 
 #### 2. LifetimeComponent (自動自己消滅)
-一定時間（秒数）経過後に自動的に `GetOwner()->Destroy()` を呼び出すタイマーコンポーネントです。弾薬や一時的なパーティクル発生オブジェクトにアタッチします。
+一定時間（秒数）経過後に自動的に `GetGameObject()->Destroy()` を呼び出すタイマーコンポーネントです。弾薬や一時的なパーティクル発生オブジェクトにアタッチします。
 
 #### 3. SplineComponent / SplineNodeComponent (レール移動・カメラパス)
 スプライン曲線を定義し、レールシューターの進行軌道や敵の編隊飛行ルートを構築します。
@@ -1294,101 +1379,6 @@ virtualManager->Demote(id);
 ```
 
 このシステムと前述の「GPU Culling」を組み合わせることで、数万個のオブジェクトがあっても 60FPS を余裕で維持できるパフォーマンスを実現できます。
-
----
-
----
-
-#### マルチスレッド・DOD・プール設計指針
-##### 他の GameObject への参照とダングリングポインタ対策
-マルチスレッド環境下では、参照していた他の `GameObject`（例：敵がプレイヤーを追いかける際のプレイヤー情報）が、別のスレッドで同時に破壊（GCによってメモリ解放）される可能性があります。
-**生ポインタ (`GameObject*`) をメンバ変数として長期間保持することは厳禁です（Use-After-Free の原因になります）。**
-
-必ず `std::weak_ptr<GameObject>` を使用し、アクセスする瞬間だけ `lock()` を取得して生存確認を行ってください。
-
-```cpp
-// ❌ 悪い例（生ポインタ保持はクラッシュの原因）
-// GameObject* targetObject_ = nullptr; 
-
-// ⭕ 良い例（weak_ptr で保持）
-std::weak_ptr<GameObject> targetObject_;
-
-// --- 使い方 ---
-// 1. 他のオブジェクトを設定する時 (shared_from_this() を渡す)
-debrisComp->SetTarget(playerObj->shared_from_this());
-
-// 2. 毎フレーム Update でアクセスする時
-if (auto target = targetObject_.lock()) { // lock()で生存確認
-    if (target->GetIsActive()) {
-        auto transform = target->GetComponent<TransformComponent>();
-        // targetの座標へ移動する処理など...
-    }
-} else {
-    // ターゲットは既に破壊された場合の処理
-}
-```
-
-#### 2.3.2 コンポーネント実行中の構造変更 (AddChild / AddComponent) について
-`GameObject::Update` は並列実行されていますが、「自分自身」の子リスト（`children_`）やコンポーネントリストを変更するような操作（例えば、Update 中に自身へ `AddComponent` したり `AddChild` すること）は、内部配列の再確保（Reallocation）を引き起こす可能性があるため、十分に注意してください。
-
-- **新規オブジェクトの生成**: 新しいオブジェクトをシーンにスポーンさせる場合、`scene->AddGameObject(obj)` は内部でスレッドセーフなキュー(`pendingAdds_`)に積まれるため、Update 中に呼んでも安全です。
-- **オブジェクトの破棄**: `gameObject_->Destroy()` も破棄フラグ (`isDestroyed_`) を立てるだけなので、Update 中に呼んでも安全です（次フレームの開始前に一括削除されます）。
-
-#### 2.3.3 ThreadPool と TaskGroup による並列タスク実行と待機
-重いアセットのデコードや大量の計算をマルチスレッドで並列実行し、すべてのタスクが完了するまで安全にブロック待機したい場合は、`ThreadPool` と `TaskGroup` を組み合わせて使用します。
-
-```cpp
-#include "Core/System/ThreadPool.h"
-#include "Core/System/TaskGroup.h"
-
-auto threadPool = engine_->GetThreadPool();
-auto taskGroup = std::make_shared<TaskGroup>();
-
-// 1. タスクグループを指定してワーカースレッドへタスクを並列投入
-for (int i = 0; i < 100; ++i) {
-    threadPool->Enqueue(taskGroup, [i]() {
-        // 重い計算やファイルデコードなど...
-    });
-}
-
-// 2. 全タスクが完了するまで低レイテンシで高効率にブロック待機
-// （std::condition_variable により、CPU 100%スピンせず全完了の瞬間に起床します）
-taskGroup->Wait();
-```
-
-#### プール対応コンポーネントの作り方
-特定のコンポーネントを `ComponentPool` の管理下に置くには、対象のコンポーネントクラスの宣言の下で `IsPooledComponent` のテンプレート特化を行います。
-
-**例: `TransformComponent.h` の場合**
-```cpp
-#pragma once
-#include "Framework/Component/Component.h"
-#include "Core/System/ComponentPool.h"
-
-class TransformComponent : public Component {
-    // ... 通常のコンポーネント実装 ...
-};
-
-// ComponentPool 対応を宣言（ファイルの末尾に記述）
-template<> struct IsPooledComponent<TransformComponent> : std::true_type {};
-```
-
-この一行を追加するだけで、`GameObject::AddComponent<TransformComponent>()` や、エディタ・JSONからの自動ロード（`ComponentFactory`）が**すべて自動的にプール経由での生成**に切り替わります。
-
-#### DODの恩恵を最大限に受ける一括更新処理
-プール化されたコンポーネントは、`ComponentPool::ForEach` を使って全インスタンスを一気に処理（バッチ処理）することができます。
-現在、`TransformComponent` の座標行列計算はこの機能を用いて `BaseScene::Update` 内で毎フレーム最初に一括で計算 (`TransformComponent::UpdateAll()`) されています。
-これにより、何万ものオブジェクトの Transform 行列計算がキャッシュミスなしで爆速で行われるようになっています。
-
-```cpp
-void TransformComponent::UpdateAll() {
-    currentFrame_++;
-    ComponentPool<TransformComponent>::GetInstance().ForEach([](TransformComponent& transform) {
-        transform.ComputeMatrix();
-    });
-}
-```
-※注意: プール対応にしたコンポーネントは、ゲーム終了時にプールから安全にメモリ解放されます。ユーザー側で特別なメモリ管理コード（`delete`など）を書く必要はありません。
 
 ---
 
@@ -2069,16 +2059,16 @@ float4 main(VertexShaderOutput input) : SV_TARGET {
 
 #### 7.1.1 物理・当たり判定 (Colliders & Raycast)
 3D空間での衝突判定には、以下のコライダーコンポーネントを使用します。
-- **`AABBColliderComponent` / `OBBColliderComponent`**: ボックス形状での当たり判定（軸平行 または 有向境界箱）。
-- **`SphereColliderComponent`**: 球体形状での当たり判定。
-- **`RaycastComponent`**: 指定した方向へレイ（光線）を飛ばし、オブジェクトとの交差判定を行います。
+- **`SphereColliderComponent`**: 球体形状での当たり判定（最速・弾やアイテム回収判定に最適）。
+- **`AABBColliderComponent`**: 軸平行境界箱による当たり判定（回転しない静的障害物向け）。
+- **`OBBColliderComponent`**: 有向境界箱による当たり判定（自機・ボス機体・回転する障害物向け）。
 
 ```cpp
 auto obj = std::make_shared<GameObject>("PlayerCollider");
 auto* collider = obj->AddComponent<OBBColliderComponent>();
 collider->SetSize({ 1.0f, 2.0f, 1.0f });
 ```
-*(※衝突時に処理を行いたい場合は、後述の `OnCollisionEnter` コールバックを利用します)*
+*(※衝突時に処理を行いたい場合は、各コンポーネントの `OnCollisionEnter(GameObject* hitObject)` コールバックをオーバーライドします)*
 
 #### 7.1.2 幾何形状の直接交差判定 (Collision)
 `OBB` (有向境界箱) や `Sphere` などの定義と交差判定を行います。
@@ -2103,14 +2093,28 @@ if (IsCollision(playerOBB, enemySphere)) {
 - **自分で `DrawDebug` を呼ばない**:
   各コンポーネント内に独自の `DrawDebug` 等の描画命令（PrimitiveManager等の呼び出し）を記述すると、描画が重複したり描画ステートが壊れる原因となるため、当たり判定の描画は完全にマネージャに委譲してください。
 
-#### センサーとしての利用 (RaycastComponent)
-`CollisionManager::RaycastAsync` などの非同期レイキャストの他に、`GameObject` の向いている方向（ローカルのZ軸前方など）に毎フレーム自動的にレイキャストを行い、障害物やターゲットを検知し続けるセンサーとして `RaycastComponent` が用意されています。
+#### 7.1.4 レイキャストによる空間クエリ (`Raycast` / `RaycastAsync`)
+シーン内のオブジェクトやコライダーに対する視線判定・着弾判定を行うには、`CollisionManager` のレイキャスト機能を利用します。同期版とThreadPoolを活用した非同期版が提供されています。
 
 ```cpp
-auto raycast = gameObject_->AddComponent<RaycastComponent>();
-// エディタ上で maxDistance (最大距離) や mask (対象レイヤー) を設定可能
-```
-このコンポーネントを使用すると、敵の視界判定や、銃口からの即着弾判定などをインスペクター上で視覚的に調整しながら実装できます。
+#include "Physics/CollisionManager.h"
+#include "Core/Math/Geometry/Ray.h"
+
+// 1. 同期レイキャスト
+Irufemi::Ray ray;
+ray.start = GetTransform()->GetWorldPosition();
+ray.diff = GetTransform()->GetWorldForward();
+
+RaycastHit hitInfo;
+if (collisionManager->Raycast(ray, hitInfo, 1000.0f, 0xFFFFFFFF, GetGameObject())) {
+    // hitInfo.hitObject : 当たったGameObject
+    // hitInfo.hitPoint  : 衝突したワールド座標
+    // hitInfo.distance  : 衝突点までの距離
+}
+
+// 2. 非同期レイキャスト (ThreadPool によるバックグラウンド並行クエリ)
+auto future = collisionManager->RaycastAsync(engine_->GetThreadPool(), ray, 1000.0f);
+// ... 次フレームや必要になったタイミングで future.get() により結果を取得
 
 ---
 
@@ -2420,6 +2424,17 @@ button->SetOnClickCallback([]() {
     Log::OutPutLog(std::cout, "Button Clicked!\n");
 });
 ```
+5. **SliderComponent (数値スライダーUI)**: BGM/SE音量調整やマウス感度設定など、マウスドラッグ操作による値変更を提供するスライダーUIです。
+```cpp
+#include "Framework/Component/UI/SliderComponent.h"
+
+auto slider = sliderObj->AddComponent<SliderComponent>();
+slider->SetValue(0.8f);
+slider->SetOnValueChangedCallback([](float val) {
+    // スライダー値変更時の処理 (0.0f 〜 1.0f)
+});
+```
+*(※操作矩形判定の `CheckBounds` やUI座標からの値逆算 `CalculateValueFromPosition` など、詳細仕様は [5.7 UI系コンポーネント](#57-ui系コンポーネント-ui-system) を参照してください)*
 
 ---
 
