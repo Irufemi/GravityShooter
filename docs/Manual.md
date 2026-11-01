@@ -88,6 +88,9 @@
 ---
 
 ### 1.2 ビルド環境と外部ライブラリのセットアップ (VS 2026)
+本プロジェクトは **Visual Studio 2026 (MSVC)** を標準開発環境としています。
+ソリューションファイルには、最新のXMLベース高速ソリューション形式 `project/Irufemi.slnx`（VS 2026推奨）および従来の `project/Irufemi.sln` が用意されています。
+
 ### 1.1.1 外部ライブラリの手動セットアップ（クローン直後の手順）
 
 現在、GitHubのファイル容量制限により、`curl` や `assimp` などの実体バイナリ（`.lib`）はリポジトリから除外（手動管理）されています。
@@ -115,13 +118,13 @@
 プロジェクトルート直下および `scripts/` 配下には、用途に応じた3大ドメイン（`build/`, `package/`, `maintenance/`）の自動化スクリプトが整備されています。
 
 - **`BuildAndRun.bat` (ルート)**:
-  - `scripts/build/build_and_run.ps1` を呼び出し、VS 2026 環境での即時ビルド・実行を行います。
+  - `scripts/build/build_and_run.ps1` を呼び出し、VS 2026 環境での即時ビルド・実行を行います（引数: `-Configuration Release|Development|Debug|Editor`, `-Rebuild`, `-BuildOnly`）。
 - **`PackageForSubmission.bat` (ルート)**:
   - `scripts/package/PackageForSubmission.ps1` を呼び出し、就活・コンテスト提出用の配布アーカイブを一発生成します。
 - **`scripts/maintenance/CleanAssets.bat`**:
   - `scripts/maintenance/AssetSanitizer.ps1` を呼び出し、アセットの監査とクリーンアップを実行します。
   ### 1.1.0 ワークスペース健全化ツール (CleanAssets.bat)
-リポジトリを常にクリーンで健全な状態に保つため、ルートディレクトリに `CleanAssets.bat` を配備しています。
+リポジトリを常にクリーンで健全な状態に保つため、`scripts/maintenance/CleanAssets.bat` を配備しています。
 - **`[1] Audit Mode`**: ソースコード・シーン定義から逆引き走査し、未参照アセットのレポートを表示（ファイル変更なし）。
 - **`[2] Dry-Run Mode`**: クリーンアップ実行時の移動・削除プレビューを表示。
 - **`[3] Sanitize Mode`**: 未参照ファイルを `backup/` に安全に退避しつつ、ランタイムアセットを浄化。
@@ -1272,7 +1275,7 @@ IrufemiEngine は用途と計算負荷に合わせて3種類の3Dコライダー
   auto* slider = sliderObj->GetComponent<SliderComponent>();
   slider->SetValue(0.75f);
   slider->SetOnValueChangedCallback([](float newValue) {
-      AudioManager::GetInstance()->SetBGMVolume(newValue);
+      // コールバックによる即時反映
   });
   ```
 
@@ -2027,28 +2030,50 @@ C++側の基盤構築およびHLSL側の対応がすべて完了しており、�
 
 ---
 
+#### 30. GravityDistortion (重力波・空間歪み)
+自機の重力ダイブやボスの重力攻撃時に発生する放射状の時空歪みエフェクトです。
+- **構造体**: `PostProcessManager::GravityDistortionParams`
+  - `center`: 歪み中心 UV (0.0 ~ 1.0)
+  - `radius`: 現在の波面半径
+  - `intensity`: 空間歪みの強さ
+  - `waveWidth`: 波面の太さ
+  - `chromaticRatio`: 色収差の強さ
+```cpp
+PostProcessManager::GravityDistortionParams params{};
+params.center = Irufemi::Vector2(0.5f, 0.5f);
+params.radius = 0.35f;
+params.intensity = 0.06f;
+params.waveWidth = 0.08f;
+params.chromaticRatio = 0.04f;
+ppm.SetGravityDistortionParams(params);
+```
+
 #### 31. BlackHoleSupernova (ブラックホール・重力特異点＆超新星爆発)
 自機撃墜時や大ボス撃破時のクライマックス演出に用いられる専用フルスクリーン・ポストプロセスです。
-- **構成要素**:
-  1. **事象の地平面 (Event Horizon)**: 特異点中心の漆黒吸光と求心スワール重力レンズ歪み
-  2. **フォトン光子リング (Photon Ring)**: ブラックホール外周を周回する高輝度プラズマリング
-  3. **超新星過熱プラズマ火球 (Supernova Fireball)**: 白熱核と多条コロナ光芒、激震熱波歪み
-  4. **GRAVITY DAZE重力色収差衝撃波**: 画面全体へ放射状に波及する重力歪みとRGB色分解
-- **パラメータ設定**:
-  ```cpp
-  #include "Renderer/PostProcess/PostProcessManager.h"
+- **構造体**: `PostProcessManager::BlackHoleSupernovaParams`
+  - `center`: スクリーンUV中心 (0.0 ~ 1.0)
+  - `blackHoleRadius`: 事象の地平面（漆黒吸光）の半径
+  - `blackHolePullIntensity`: 求心スワール重力レンズの吸引強度
+  - `supernovaRadius`: 超新星過熱プラズマ火球の爆発半径
+  - `supernovaIntensity`: 衝撃波歪みの変位強度
+  - `supernovaChromaticRatio`: GRAVITY DAZE風の重力色収差比率
+  - `supernovaFlashIntensity`: 瞬間ガンマバースト白熱光強度
+```cpp
+#include "Renderer/PostProcess/PostProcessManager.h"
 
-  auto& ppm = *engine->GetPostProcessManager();
-  ppm.SetModeEnabled(PostProcessMode::BlackHoleSupernova, true);
+auto& ppm = *engine->GetPostProcessManager();
+ppm.SetModeEnabled(PostProcessMode::BlackHoleSupernova, true);
 
-  PostProcessManager::BlackHoleSupernovaParams params{};
-  params.centerUV = Irufemi::Vector2(0.5f, 0.5f); // 特異点中心 (画面UV)
-  params.blackHoleProgress = 1.0f;               // 吸着進行度 (0.0 ~ 1.0)
-  params.supernovaProgress = 0.5f;               // 爆散進行度 (0.0 ~ 1.0)
-  params.distortionStrength = 0.08f;             // 重力レンズ強度
-  params.whiteoutAlpha = 0.0f;                   // 全画面ホワイトアウト遷移
-  ppm.SetBlackHoleSupernovaParams(params);
-  ```
+PostProcessManager::BlackHoleSupernovaParams params{};
+params.center = Irufemi::Vector2(0.5f, 0.5f);
+params.blackHoleRadius = 0.15f;
+params.blackHolePullIntensity = 0.08f;
+params.supernovaRadius = 0.45f;
+params.supernovaIntensity = 0.12f;
+params.supernovaChromaticRatio = 0.05f;
+params.supernovaFlashIntensity = 0.30f;
+ppm.SetBlackHoleSupernovaParams(params);
+```
 
 ---
 
@@ -2824,16 +2849,19 @@ input->SetIsUsingGamepadCursor(true);
   5. 作業ディレクトリを自動解決して `Application_solo.exe` を直接起動。
 
 ### 2. 就活・技術審査用パッケージの一発生成 (`PackageForSubmission.bat`)
-リポジトリのルート直下にある `PackageForSubmission.bat` をダブルクリックすると対話メニューが立ち上がり、用途に応じたパッケージが `_Submission/` フォルダに出力されます。
+リポジトリのルートにある `PackageForSubmission.bat` をダブルクリックすると対話メニューが立ち上がり、用途に応じたパッケージが `_Submission/` フォルダに出力されます。
 
 - **`[1] プレイ用パッケージ (GravityShooter_PlayableBuild)`**
-  - **スマートアセットクッカー（手法B）** により、Release本編C++コード・シーンJSON・マテリアル（`.mtl`）の依存関係のみを自動抽出し、不要なテスト用アセット（`bunny.obj` 等）やスクショ、Blender元データを完全排除（**約 228MB → 約 62MB に約73%軽量化**）。
-  - 遊べる実行ファイル、必要なテクスチャ/モデル/シェーダー、`README.md`、ポートフォリオPDF、プログラム説明書PDFがすべて同梱され、審査員が解凍して即プレイできる状態を出力。
+  - **スマートアセットクッカー（独自設計）** により、Releaseバイナリと C++コード・シーンJSON・マテリアル（`.mtl`）の依存関係のみを逆引き走査。不要なテスト用アセット（`bunny.obj` 等）や未参照テクスチャ、Blender制作原本を完全除外（**約 228MB ➔ 約 62MB に約73%軽量化**）。
+  - ワンクリックで解凍・即座にプレイ可能な完成品を出力。
+- **`[2] プレイ用パッケージ (既存 Exe 使用 + スマートクック)`**
+  - 直近でビルド済みの実行ファイルを用いて高速にパッケージング。
 - **`[3] ソースコード提出用パッケージ (GravityShooter_SourceCode)`**
-  - 動的スキャン方式により、新設フォルダ（`docs/` 等）も含めて自動同梱。
-  - `.vs`, `generated/`, `logs/` や大容量スクショ・Blender元データのみを除外し、**審査員が Visual Studio の Debug/Release で開いて 100% ビルド・デバッグできる完全性** を保証。
-- **`[4] 両方一括生成`**
-  - 審査提出時に推奨。最新コードを Release ビルドした上で、両方のパッケージを同時に一括生成。
+  - Visual Studio 2026 / 2022 で開いて 100% ビルド・デバッグ可能な完全ソースアーカイブ。`.vs` や派生キャッシュなどの一時ファイルを除外。
+- **`[4] 一括生成`**
+  - `[1]` と `[3]` を同時にワンステップでビルド・生成。
+- **`[5] SEGAチャレンジ提出用 一式パッケージ (Playable + Source + 概要書ZIP)`**
+  - SEGAコンテスト等の応募規定に完全準拠し、プレイ可能ビルド、ソースコード一式、および提出ドキュメントを規定フォルダ構成で一括生成・ZIP化。
 
 ### 3. アセット監査 ＆ 健全化クリーンアップ (`CleanAssets.bat`)
 大手ゲームスタジオ準拠の「3層アセット分離アーキテクチャ（DCC層 / ランタイム層 / 製品層）」に基づき、開発環境内のアセット健全性を自動監査・クリーンアップするツールです。
