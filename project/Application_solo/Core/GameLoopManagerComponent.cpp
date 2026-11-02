@@ -108,7 +108,13 @@ void GameLoopManagerComponent::OnRegisterProperties() {
 void GameLoopManagerComponent::Update() {
     if (state_ == State::Playing) {
         if (playerObj_.expired() || bossObj_.expired()) {
-            BindTargets();
+            auto engine = GetEngine();
+            float dt = engine ? engine->GetDeltaTime() : (1.0f / 60.0f);
+            bindRetryTimer_ += dt;
+            if (bindRetryTimer_ >= kBindRetryInterval_) {
+                bindRetryTimer_ = 0.0f;
+                BindTargets();
+            }
         }
 
         // ポーズ画面呼び出しトリガー（ESCキー または ゲームパッド STARTボタン）

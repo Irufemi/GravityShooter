@@ -2,6 +2,7 @@
 #include "Framework/Scene/SceneObjectRegistry.h"
 #include "Renderer/DrawManager.h"
 #include "Core/System/IrufemiEngine.h"
+#include "Audio/AudioManager.h"
 #include "Platform/Input/InputManager.h"
 #include "Renderer/Camera/CameraManager.h"
 #include "Renderer/Camera/Camera.h"
@@ -747,5 +748,21 @@ const std::vector<std::unique_ptr<AreaLight>>& BaseScene::GetAreaLights() const 
 void BaseScene::AddAreaLight(std::unique_ptr<AreaLight> light) {
     if (light) {
         areaLights_.push_back(std::move(light));
+    }
+}
+
+void BaseScene::OnSuspendAudio(IrufemiEngine* engine) {
+    if (IsAudioBlocking() && engine) {
+        if (auto am = engine->GetAudioManager()) {
+            am->PauseCategory(AudioCategory::SE);
+        }
+    }
+}
+
+void BaseScene::OnResumeAudio(IrufemiEngine* engine) {
+    if (IsAudioBlocking() && engine) {
+        if (auto am = engine->GetAudioManager()) {
+            am->ResumeCategory(AudioCategory::SE);
+        }
     }
 }

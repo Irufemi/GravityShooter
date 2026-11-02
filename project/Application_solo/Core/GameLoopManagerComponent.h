@@ -86,4 +86,7 @@ private:
 
     uint32_t playerDiedListenerId_ = 0;
     uint32_t bossDiedListenerId_ = 0;
+
+    float bindRetryTimer_ = 0.0f;
+    static constexpr float kBindRetryInterval_ = 0.5f; ///< ターゲット未解決時の再検索インターバル (秒)
 };

@@ -146,6 +146,18 @@ public:
     }
 
     /**
+     * @brief 上に別シーンが重なった時（PushScene時）のオーディオ一時停止処理
+     * @param engine エンジンポインタ
+     */
+    virtual void OnSuspendAudio(IrufemiEngine* engine) {}
+
+    /**
+     * @brief 上のシーンがPopされて最前面に復帰した時のオーディオ再開処理
+     * @param engine エンジンポインタ
+     */
+    virtual void OnResumeAudio(IrufemiEngine* engine) {}
+
+    /**
      * @brief シーンがPopされた際に、エンジン内のパーティクル（Voxel / GPU）を破棄するか
      * @return true の場合のみパーティクルをクリアする（デフォルトは背景維持のため false）
      */

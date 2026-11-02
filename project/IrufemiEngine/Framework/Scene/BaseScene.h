@@ -165,6 +165,9 @@ public:
      */
     virtual void OnResume() override {}
 
+    void OnSuspendAudio(IrufemiEngine* engine) override;
+    void OnResumeAudio(IrufemiEngine* engine) override;
+
     /**
      * @brief IrufemiEngine のインスタンスを取得する
      */

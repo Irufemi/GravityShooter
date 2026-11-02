@@ -4,29 +4,14 @@
 #include <unordered_map>
 #include <functional>
 
-namespace {
-std::unique_ptr<ITransitionDriver> CreateDriver(SceneTransition::Type type,
-                                                const std::optional<Irufemi::Vector4>& customColor) {
-    switch (type) {
-    case SceneTransition::Type::Fade:
-        return std::make_unique<FadeTransitionDriver>();
-    case SceneTransition::Type::Dissolve:
-        return std::make_unique<DissolveTransitionDriver>();
-    case SceneTransition::Type::Slide:
-        return std::make_unique<SlideTransitionDriver>();
-    case SceneTransition::Type::RadialBlur:
-        return std::make_unique<RadialBlurTransitionDriver>(false, customColor);
-    case SceneTransition::Type::RadialBlurWhite:
-        return std::make_unique<RadialBlurTransitionDriver>(true, customColor);
-    case SceneTransition::Type::GravitySingularity:
-        return std::make_unique<GravitySingularityTransitionDriver>(customColor);
-    default:
-        return std::make_unique<FadeTransitionDriver>();
-    }
-}
-} // namespace
+SceneTransition::SceneTransition()
+    : fadeDriver_(std::make_unique<FadeTransitionDriver>()),
+      dissolveDriver_(std::make_unique<DissolveTransitionDriver>()),
+      slideDriver_(std::make_unique<SlideTransitionDriver>()),
+      radialBlurDriver_(std::make_unique<RadialBlurTransitionDriver>(false)),
+      radialBlurWhiteDriver_(std::make_unique<RadialBlurTransitionDriver>(true)),
+      gravitySingularityDriver_(std::make_unique<GravitySingularityTransitionDriver>()) {}
 
-SceneTransition::SceneTransition() = default;
 SceneTransition::~SceneTransition() = default;
 
 void SceneTransition::Initialize(PostProcessManager* ppManager) {
@@ -61,9 +46,35 @@ void SceneTransition::Start(Type type, float duration, bool isOut, EaseType ease
     // 基本は黒フェードにリセットしておく（白フェード等で上書きされた色が残るのを防ぐため）
     ppManager_->GetFadeParams().color = {0.0f, 0.0f, 0.0f, 1.0f};
 
-    driver_ = CreateDriver(currentType_, customColor_);
-    if (driver_) {
-        driver_->OnStart(ppManager_, activeTransitionModes_);
+    switch (currentType_) {
+    case Type::Fade:
+        activeDriver_ = fadeDriver_.get();
+        break;
+    case Type::Dissolve:
+        activeDriver_ = dissolveDriver_.get();
+        break;
+    case Type::Slide:
+        activeDriver_ = slideDriver_.get();
+        break;
+    case Type::RadialBlur:
+        radialBlurDriver_->SetCustomColor(customColor_);
+        activeDriver_ = radialBlurDriver_.get();
+        break;
+    case Type::RadialBlurWhite:
+        radialBlurWhiteDriver_->SetCustomColor(customColor_);
+        activeDriver_ = radialBlurWhiteDriver_.get();
+        break;
+    case Type::GravitySingularity:
+        gravitySingularityDriver_->SetCustomColor(customColor_);
+        activeDriver_ = gravitySingularityDriver_.get();
+        break;
+    default:
+        activeDriver_ = fadeDriver_.get();
+        break;
+    }
+
+    if (activeDriver_) {
+        activeDriver_->OnStart(ppManager_, activeTransitionModes_);
     }
 
     if (onStartCallback_) {
@@ -112,7 +123,7 @@ void SceneTransition::Update(float deltaTime) {
     float factor = isOut_ ? easedProgress : (1.0f - easedProgress);
 
     // 各モードのパラメータ更新をDriverへ委譲
-    if (driver_) {
-        driver_->OnUpdate(ppManager_, factor);
+    if (activeDriver_) {
+        activeDriver_->OnUpdate(ppManager_, factor);
     }
 }

@@ -106,7 +106,16 @@ private:
     Type currentType_ = Type::Fade;
     EaseType easeType_ = EaseType::Linear; // イージングタイプを保持
     std::optional<Irufemi::Vector4> customColor_;
-    std::unique_ptr<class ITransitionDriver> driver_;
+
+    // 事前生成トランジションドライバーキャッシュ（ゼロアロケーション）
+    std::unique_ptr<class FadeTransitionDriver> fadeDriver_;
+    std::unique_ptr<class DissolveTransitionDriver> dissolveDriver_;
+    std::unique_ptr<class SlideTransitionDriver> slideDriver_;
+    std::unique_ptr<class RadialBlurTransitionDriver> radialBlurDriver_;
+    std::unique_ptr<class RadialBlurTransitionDriver> radialBlurWhiteDriver_;
+    std::unique_ptr<class GravitySingularityTransitionDriver> gravitySingularityDriver_;
+    class ITransitionDriver* activeDriver_ = nullptr;
+
     float timer_ = 1.04f; // 初期状態を完了状態（duration + kDwellTime）として安全化
     float duration_ = 1.0f;
     bool isOut_ = false;

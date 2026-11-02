@@ -148,9 +148,9 @@ void SceneManager::PushScene(const Key& name) {
     item.name = name;
     item.scene = it->second();
 
-    // 重複シーンがAudioをブロックする場合、SEカテゴリのみポーズする（BGMとUI音は継続）
-    if (!sceneStack_.empty() && item.scene->IsAudioBlocking()) {
-        engine_->GetAudioManager()->PauseCategory(AudioCategory::SE);
+    // 重複シーンのオーディオ一時停止処理へ委譲（SE等の個別カテゴリ制御はシーン側にカプセル化）
+    if (!sceneStack_.empty()) {
+        item.scene->OnSuspendAudio(engine_);
     }
 
     // シーンにエンジンコンテキストを確実に先行バインド
@@ -201,8 +201,7 @@ void SceneManager::PopScene() {
     if (!sceneStack_.empty()) {
         // 次のシーンが最前面に復帰するためレジューム処理を行う
         sceneStack_.back().scene->OnResume();
-        // ポーズしていたSEカテゴリを再開する
-        engine_->GetAudioManager()->ResumeCategory(AudioCategory::SE);
+        sceneStack_.back().scene->OnResumeAudio(engine_);
         engine_->SetCursorLocked(!sceneStack_.back().scene->IsCursorVisible());
     } else {
         engine_->SetCursorLocked(false);
