@@ -37,13 +37,13 @@ DebrisManagerComponent* DestructibleEnvironmentComponent::GetDebrisManager() {
 }
 
 EffectManagerComponent* DestructibleEnvironmentComponent::GetEffectManager() {
-    if (effectManager_) {
-        return effectManager_;
-    }
-    if (gameObject_) {
-        if (auto scene = gameObject_->GetScene()) {
-            if (auto effectObj = scene->FindGameObject("EffectManager")) {
-                effectManager_ = effectObj->GetComponent<EffectManagerComponent>();
+    if (!effectManager_) {
+        effectManager_ = EffectManagerComponent::GetInstance();
+        if (!effectManager_ && gameObject_) {
+            if (auto scene = gameObject_->GetScene()) {
+                if (auto effectObj = scene->FindGameObject("EffectManager")) {
+                    effectManager_ = effectObj->GetComponent<EffectManagerComponent>();
+                }
             }
         }
     }

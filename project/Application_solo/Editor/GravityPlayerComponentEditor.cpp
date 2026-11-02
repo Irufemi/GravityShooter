@@ -5,7 +5,7 @@
 #include <imgui/imgui.h>
 #include <string>
 
-void GravityPlayerComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
+void GravityPlayerComponentEditor::Draw(Component* component, EditorActionManager* /*actionManager*/) {
     auto comp = dynamic_cast<GravityPlayerComponent*>(component);
     if (!comp) {
         return;

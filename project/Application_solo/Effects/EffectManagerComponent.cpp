@@ -10,7 +10,6 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Core/Utility/Log.h"
-#include <iostream>
 
 EffectManagerComponent::EffectManagerComponent() {
     s_instance_ = this;

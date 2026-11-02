@@ -5,8 +5,7 @@
 #include <imgui/imgui.h>
 #include <string>
 
-void BossComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
-    (void)actionManager;
+void BossComponentEditor::Draw(Component* component, EditorActionManager* /*actionManager*/) {
     auto comp = dynamic_cast<BossComponent*>(component);
     if (!comp) {
         return;
