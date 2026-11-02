@@ -371,8 +371,7 @@ const StageIntroDirectorComponent::PhaseConfig& StageIntroDirectorComponent::Get
         {StageIntroState::Bootup,
          {&StageIntroDirectorComponent::bootupDuration_, 0.8f, 0.8f, false, true, true, false,
           [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
-        {StageIntroState::Active,
-         {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
+        {StageIntroState::Active, {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
     };
     static const PhaseConfig kDefaultConfig{};
     auto it = s_phaseConfigs.find(state);
