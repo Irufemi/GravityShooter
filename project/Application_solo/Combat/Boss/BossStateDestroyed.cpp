@@ -23,25 +23,27 @@ public:
             // 撃破イベントの通知（BossDamageVisualizerComponent が特大カメラシェイクを発火）
             boss->NotifyBossDied();
 
-            // 演出エフェクトが始まったタイミングでボスのモデル描画およびアウトラインをすべて切る
-            auto renderers = boss->GetGameObject()->GetComponentsInChildren<MeshRendererComponent>();
-            for (auto* r : renderers) {
-                if (r) {
+            // 演出エフェクトが始まったタイミングでボスのモデル描画およびアウトラインを1回の走査ですべて切る
+            auto hideRecursive = [](auto self, GameObject* obj) -> void {
+                if (!obj) {
+                    return;
+                }
+                if (auto* r = obj->GetComponent<MeshRendererComponent>()) {
                     r->SetVisible(false);
                 }
-            }
-            auto skinnedRenderers = boss->GetGameObject()->GetComponentsInChildren<SkinnedMeshRendererComponent>();
-            for (auto* r : skinnedRenderers) {
-                if (r) {
+                if (auto* r = obj->GetComponent<SkinnedMeshRendererComponent>()) {
                     r->SetVisible(false);
                 }
-            }
-            auto effectMasks = boss->GetGameObject()->GetComponentsInChildren<EffectMaskComponent>();
-            for (auto* em : effectMasks) {
-                if (em) {
+                if (auto* em = obj->GetComponent<EffectMaskComponent>()) {
                     em->SetEnableEffectMask(false);
                 }
-            }
+                for (const auto& child : obj->GetChildren()) {
+                    if (child) {
+                        self(self, child.get());
+                    }
+                }
+            };
+            hideRecursive(hideRecursive, boss->GetGameObject());
         }
     }
 

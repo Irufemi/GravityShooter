@@ -144,6 +144,7 @@ private:
     std::function<void()> onDeathSequenceFinished_;
 
     class ColliderComponent* collider_ = nullptr;
+    class EffectMaskComponent* effectMask_ = nullptr;
 
     // 無敵ブリンク演出 (Juice)
     Irufemi::Vector4 normalOutlineColor_ = {0.15f, 0.9f, 1.0f, 1.0f}; //!< 通常時の自機ネオンシアン色

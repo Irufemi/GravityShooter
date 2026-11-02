@@ -19,6 +19,7 @@
 #include "Core/Math/Vector2.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
 #include "Core/Math/MathFunction.h"
+#include <filesystem>
 #include <iostream>
 
 std::vector<Irufemi::Vector3> SpawnEnemyHandler::CalculateSpawnPositions(WaveManagerComponent* manager,
@@ -266,12 +267,45 @@ void PlayBGMHandler::Execute(WaveManagerComponent* manager, const WaveEventData&
     if (engine) {
         auto audioManager = engine->GetAudioManager();
         if (audioManager) {
-            // トラック名（例："Stage1_Theme"）からサウンドデータを取得してループ再生
-            auto soundData = audioManager->GetOrLoadSoundByFile("resources/audio/" + track + ".wav", track);
+            namespace fs = std::filesystem;
+            std::string resolvedPath;
+            const std::string searchDirs[] = {"resources/audio/BGM/", "resources/audio/"};
+            const std::string extensions[] = {".mp3", ".wav", ".wma"};
+
+            // トラック名自体にパスまたは拡張子が含まれている場合の直接チェック
+            for (const auto& dir : searchDirs) {
+                std::string p = dir + track;
+                if (fs::exists(p)) {
+                    resolvedPath = p;
+                    break;
+                }
+            }
+
+            // 拡張子補完探索
+            if (resolvedPath.empty()) {
+                for (const auto& dir : searchDirs) {
+                    for (const auto& ext : extensions) {
+                        std::string p = dir + track + ext;
+                        if (fs::exists(p)) {
+                            resolvedPath = p;
+                            break;
+                        }
+                    }
+                    if (!resolvedPath.empty()) {
+                        break;
+                    }
+                }
+            }
+
+            if (resolvedPath.empty()) {
+                resolvedPath = "resources/audio/BGM/" + track + ".mp3";
+            }
+
+            auto soundData = audioManager->GetOrLoadSoundByFile(resolvedPath, track);
             if (soundData) {
                 audioManager->Play(soundData, true, 1.0f, AudioCategory::BGM);
             } else {
-                Log::OutPutLog(std::cout, "[WaveManager] BGM file not found: resources/audio/" + track + ".wav\n");
+                Log::OutPutLog(std::cout, "[WaveManager] BGM file not found: " + resolvedPath + "\n");
             }
         }
     }

@@ -52,6 +52,11 @@ void PlayerHealthComponent::Start() {
             collider_->SetDebugCategory(DebugCategory::Combat);
             collider_->SetDebugCustomColor(Irufemi::Vector4{0.0f, 1.0f, 1.0f, 1.0f});
         }
+        effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+        if (effectMask_) {
+            normalOutlineColor_ = effectMask_->GetCustomParams().color1;
+            hasCachedNormalOutline_ = true;
+        }
     }
 }
 
@@ -96,25 +101,29 @@ void PlayerHealthComponent::Update() {
     if (invincibilityTimer_ > 0.0f) {
         invincibilityTimer_ -= dt;
 
-        if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
+        if (!effectMask_ && gameObject_) {
+            effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+        }
+
+        if (effectMask_) {
             if (!hasCachedNormalOutline_) {
-                normalOutlineColor_ = maskComp->GetCustomParams().color1;
+                normalOutlineColor_ = effectMask_->GetCustomParams().color1;
                 hasCachedNormalOutline_ = true;
             }
             // 0.1秒周期で警告レッドと通常シアンを交互に切り替え
             bool blinkState = static_cast<int>(invincibilityTimer_ * 10.0f) % 2 == 0;
-            auto params = maskComp->GetCustomParams();
+            auto params = effectMask_->GetCustomParams();
             params.color1 = blinkState ? warningOutlineColor_ : normalOutlineColor_;
-            maskComp->SetCustomParams(params);
+            effectMask_->SetCustomParams(params);
         }
 
         if (invincibilityTimer_ <= 0.0f) {
             invincibilityTimer_ = 0.0f;
             // 無敵終了時に通常カラーへ完全復帰
-            if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
-                auto params = maskComp->GetCustomParams();
+            if (effectMask_) {
+                auto params = effectMask_->GetCustomParams();
                 params.color1 = normalOutlineColor_;
-                maskComp->SetCustomParams(params);
+                effectMask_->SetCustomParams(params);
             }
         }
     }

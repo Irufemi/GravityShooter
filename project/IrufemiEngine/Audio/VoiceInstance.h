@@ -12,6 +12,10 @@ enum class AudioCategory {
 
 class VoiceInstance {
 public:
+    // コピーの明示的禁止 (ハードウェアボイスハンドルの多重解放防止)
+    VoiceInstance(const VoiceInstance&) = delete;
+    VoiceInstance& operator=(const VoiceInstance&) = delete;
+
     VoiceInstance(IXAudio2SourceVoice* voice, std::unique_ptr<VoiceCallback> callback,
                   AudioCategory category = AudioCategory::SE)
         : voice_(voice), callback_(std::move(callback)), category_(category) {}
