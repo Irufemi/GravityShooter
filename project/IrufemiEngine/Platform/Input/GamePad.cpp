@@ -1,5 +1,6 @@
 #define NOMINMAX
 #include "Platform/Input/GamePad.h"
+#include "Core/Math/MathFunction.h"
 #include <cmath>
 
 void GamePad::Initialize() {
@@ -60,7 +61,7 @@ Stick8 GamePad::Stick8From(short x, short y, int dz, bool invertY, float thresho
         return Stick8::Neutral;
     }
     float ang = std::atan2(ny, nx); // -π..π
-    const float pi = 3.14159265358979323846f;
+    const float pi = Irufemi::Math::PI;
     int oct = static_cast<int>(std::floor((ang + pi / 8.0f) / (pi / 4.0f))) & 7;
     static const Stick8 table[8] = {Stick8::Right, Stick8::UpRight,  Stick8::Up,   Stick8::UpLeft,
                                     Stick8::Left,  Stick8::DownLeft, Stick8::Down, Stick8::DownRight};

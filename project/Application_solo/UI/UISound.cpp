@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
+#include <shared_mutex>
 #include <string>
+#include <unordered_map>
 
 namespace {
 // UIサウンドの論理キーとデフォルト音量定義
@@ -17,32 +19,55 @@ constexpr const char* kNameCancel = "se_menu_cancel";
 constexpr float kBaseVolCancel = 0.6f;
 
 AudioManager* s_audioManager = nullptr;
+std::unordered_map<std::string, std::string> s_pathCache;
+std::shared_mutex s_pathCacheMutex;
 
-// 拡張子に依存しないスマートパス解決（.mp3, .wav, .wma等を自動検出）
+// 拡張子に依存しないスマートパス解決（.mp3, .wav, .wma等を自動検出 & キャッシュ）
 std::string ResolveAudioPath(const std::string& baseName) {
+    {
+        std::shared_lock<std::shared_mutex> lock(s_pathCacheMutex);
+        auto it = s_pathCache.find(baseName);
+        if (it != s_pathCache.end()) {
+            return it->second;
+        }
+    }
+
     namespace fs = std::filesystem;
     const std::string primaryDir = "resources/audio/SE/";
     const std::string legacyDir = "resources/audio/";
     const std::string extensions[] = {".mp3", ".wav", ".wma"};
 
+    std::string resolved;
     // 1. 新規推奨ディレクトリ (resources/audio/SE/) 配下を探索
     for (const auto& ext : extensions) {
         std::string p = primaryDir + baseName + ext;
         if (fs::exists(p)) {
-            return p;
+            resolved = p;
+            break;
         }
     }
 
     // 2. 旧ディレクトリ (resources/audio/) 配下をフォールバック探索
-    for (const auto& ext : extensions) {
-        std::string p = legacyDir + baseName + ext;
-        if (fs::exists(p)) {
-            return p;
+    if (resolved.empty()) {
+        for (const auto& ext : extensions) {
+            std::string p = legacyDir + baseName + ext;
+            if (fs::exists(p)) {
+                resolved = p;
+                break;
+            }
         }
     }
 
     // 見つからない場合は新規パスのデフォルト
-    return primaryDir + baseName + ".mp3";
+    if (resolved.empty()) {
+        resolved = primaryDir + baseName + ".mp3";
+    }
+
+    {
+        std::unique_lock<std::shared_mutex> lock(s_pathCacheMutex);
+        s_pathCache[baseName] = resolved;
+    }
+    return resolved;
 }
 
 // スティック高速操作時のマシンガン鳴り（音割れ・連続再生）防止用リミッター

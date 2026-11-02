@@ -20,8 +20,10 @@
 #include "Platform/Input/InputManager.h"
 #include "UI/UISound.h"
 #include "UI/ReticleUIComponent.h"
+#include "Core/Math/MathFunction.h"
 #include <algorithm>
 #include <cmath>
+#include <unordered_map>
 
 StageIntroDirectorComponent::~StageIntroDirectorComponent() {
     CleanupWarpVisuals();
@@ -347,23 +349,20 @@ void StageIntroDirectorComponent::DestroyMembraneObject() {
     membraneObj_.reset();
 }
 
-void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
-    introState_ = newState;
-    stateTimer_ = 0.0f;
+struct StageIntroDirectorComponent::PhaseConfig {
+    float StageIntroDirectorComponent::*durationMember;
+    float initialThrusterScale;
+    float targetThrusterScale;
+    bool isPositionInterpolated;
+    bool isSnapPositionOnEnter;
+    bool isHudActive;
+    bool isInputEnabled;
+    void (*onEnterHook)(StageIntroDirectorComponent*);
+    void (*onUpdateHook)(StageIntroDirectorComponent*, float progress);
+};
 
-    struct PhaseConfig {
-        float StageIntroDirectorComponent::*durationMember;
-        float initialThrusterScale;
-        float targetThrusterScale;
-        bool isPositionInterpolated;
-        bool isSnapPositionOnEnter;
-        bool isHudActive;
-        bool isInputEnabled;
-        void (*onEnterHook)(StageIntroDirectorComponent*);
-        void (*onUpdateHook)(StageIntroDirectorComponent*, float progress);
-    };
-
-    static const std::unordered_map<StageIntroState, PhaseConfig> kPhaseConfigs = {
+const StageIntroDirectorComponent::PhaseConfig& StageIntroDirectorComponent::GetPhaseConfig(StageIntroState state) {
+    static const std::unordered_map<StageIntroState, PhaseConfig> s_phaseConfigs = {
         {StageIntroState::WarpIn,
          {&StageIntroDirectorComponent::warpInDuration_, 3.8f, 3.8f, true, false, false, false, nullptr, nullptr}},
         {StageIntroState::Arrival,
@@ -372,14 +371,22 @@ void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
         {StageIntroState::Bootup,
          {&StageIntroDirectorComponent::bootupDuration_, 0.8f, 0.8f, false, true, true, false,
           [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
-        {StageIntroState::Active, {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
+        {StageIntroState::Active,
+         {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
     };
-
-    auto it = kPhaseConfigs.find(introState_);
-    if (it == kPhaseConfigs.end()) {
-        return;
+    static const PhaseConfig kDefaultConfig{};
+    auto it = s_phaseConfigs.find(state);
+    if (it != s_phaseConfigs.end()) {
+        return it->second;
     }
-    const auto& config = it->second;
+    return kDefaultConfig;
+}
+
+void StageIntroDirectorComponent::SetIntroState(StageIntroState newState) {
+    introState_ = newState;
+    stateTimer_ = 0.0f;
+
+    const auto& config = GetPhaseConfig(introState_);
 
     SetHUDActive(config.isHudActive);
     SetShipThrusterActive(true);
@@ -502,35 +509,7 @@ void StageIntroDirectorComponent::Update() {
     float safeDeltaTime = (std::min)(deltaTime, 1.0f / 30.0f);
     stateTimer_ += safeDeltaTime;
 
-    struct PhaseConfig {
-        float StageIntroDirectorComponent::*durationMember;
-        float initialThrusterScale;
-        float targetThrusterScale;
-        bool isPositionInterpolated;
-        bool isSnapPositionOnEnter;
-        bool isHudActive;
-        bool isInputEnabled;
-        void (*onEnterHook)(StageIntroDirectorComponent*);
-        void (*onUpdateHook)(StageIntroDirectorComponent*, float progress);
-    };
-
-    static const std::unordered_map<StageIntroState, PhaseConfig> kPhaseConfigs = {
-        {StageIntroState::WarpIn,
-         {&StageIntroDirectorComponent::warpInDuration_, 2.5f, 2.5f, true, false, false, false, nullptr, nullptr}},
-        {StageIntroState::Arrival,
-         {&StageIntroDirectorComponent::arrivalDuration_, 2.5f, 0.8f, false, true, false, false, nullptr,
-          [](StageIntroDirectorComponent* self, float progress) { self->ApplyArrivalInertia(progress); }}},
-        {StageIntroState::Bootup,
-         {&StageIntroDirectorComponent::bootupDuration_, 0.8f, 0.8f, false, true, true, false,
-          [](StageIntroDirectorComponent* self) { self->TriggerFCSBootupSequence(); }, nullptr}},
-        {StageIntroState::Active, {nullptr, 0.8f, 0.8f, false, false, true, true, nullptr, nullptr}},
-    };
-
-    auto it = kPhaseConfigs.find(introState_);
-    if (it == kPhaseConfigs.end()) {
-        return;
-    }
-    const auto& config = it->second;
+    const auto& config = GetPhaseConfig(introState_);
 
     // インスペクターのプロパティから所要時間を取得（WarpInフェーズは最低1.40秒を保証して確実に水面膜の揺らぎと突破を魅せる）
     float duration = 1.0f;
@@ -681,7 +660,7 @@ void StageIntroDirectorComponent::TriggerBreachImpulse() {
             constexpr float kRadialForceMagnitude = 18.0f;
             constexpr float kRadialRadius = 0.22f;
             for (int i = 0; i < kRadialDirections; ++i) {
-                float angle = static_cast<float>(i) * (2.0f * 3.14159265f / kRadialDirections);
+                float angle = static_cast<float>(i) * (Irufemi::Math::TwoPI / kRadialDirections);
                 Irufemi::Vector2 dir{std::cos(angle), std::sin(angle)};
                 Irufemi::Vector2 injectPos = centerUV + dir * 0.05f;
                 fluid->AddForce(injectPos, dir * kRadialForceMagnitude, kRadialRadius);
@@ -816,7 +795,7 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
 
     // 1. カメラFOV動的ブレンド (最大広角から等倍へ滑らかに復帰)
     if (auto cam = GetCameraComponent()) {
-        float fovBoostRad = curve * (warpInFovBoostDeg_ * 3.14159265f / 180.0f);
+        float fovBoostRad = curve * Irufemi::Math::ToRadian(warpInFovBoostDeg_);
         cam->SetFovAngleY(baseCameraFov_ + fovBoostRad);
     }
 

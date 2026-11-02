@@ -30,6 +30,19 @@ namespace Math {
 constexpr float PI = 3.1415926535f;
 constexpr float PIDiv2 = PI / 2.0f;
 constexpr float PIDiv4 = PI / 4.0f;
+constexpr float TwoPI = PI * 2.0f;
+constexpr float DegToRad = PI / 180.0f;
+constexpr float RadToDeg = 180.0f / PI;
+/** @} */
+
+/** @name 角度変換ユーティリティ */
+/** @{ */
+constexpr float ToRadian(float degree) {
+    return degree * DegToRad;
+}
+constexpr float ToDegree(float radian) {
+    return radian * RadToDeg;
+}
 /** @} */
 
 #pragma region 2次元ベクトル関数

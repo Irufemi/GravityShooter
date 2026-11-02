@@ -8,6 +8,7 @@
 #include "Renderer/Fluid/FluidSimulation2D.h"
 #include "Platform/Input/InputManager.h"
 #include <algorithm>
+#include "Core/Math/MathFunction.h"
 #include "Core/Utility/ErrorUtility.h"
 
 TitleCosmicNebulaComponent::~TitleCosmicNebulaComponent() {
@@ -136,7 +137,7 @@ void TitleCosmicNebulaComponent::Update() {
         // 出撃シーケンス突入時の重力特異点渦の注入（※通常クリックでは発火しない）
         // ベルカーブ (sin) で滑らかに立ち上がり、パルス終了時に自然にゼロへ収束
         if (isPulseActive_) {
-            float pulseWave = std::sin(std::clamp(pulseTimer_, 0.0f, 1.0f) * 3.14159265f);
+            float pulseWave = std::sin(std::clamp(pulseTimer_, 0.0f, 1.0f) * Irufemi::Math::PI);
             fluid->AddGravityVortex(Irufemi::Vector2{0.5f, 0.42f}, 22.0f * pulseWave * pulsePower_,
                                     26.0f * pulseWave * pulsePower_, 0.42f);
         }

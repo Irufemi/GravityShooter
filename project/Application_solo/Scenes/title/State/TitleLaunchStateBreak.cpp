@@ -7,6 +7,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Core/System/IrufemiEngine.h"
+#include "Core/Math/MathFunction.h"
 #include "Audio/AudioManager.h"
 
 void TitleLaunchStateBreak::Enter(TitleSceneDirectorComponent* director) {
@@ -70,7 +71,7 @@ void TitleLaunchStateBreak::Update(TitleSceneDirectorComponent* director, float 
     // 3. ハイパースペース動的FOV
     if (camComp) {
         float initialFov = director->GetInitialCameraFov();
-        float warpFov = initialFov + (18.0f * 3.14159265f / 180.0f) + (6.0f * 3.14159265f / 180.0f) * p3;
+        float warpFov = initialFov + Irufemi::Math::ToRadian(18.0f) + Irufemi::Math::ToRadian(6.0f) * p3;
         camComp->SetFovAngleY(warpFov);
     }
 

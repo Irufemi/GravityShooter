@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include "Core/Math/MathFunction.h"
 
 #ifdef USE_IMGUI
 #include "imgui/imgui.h"
@@ -305,10 +306,9 @@ void Primitive2DObject::BuildCircle(uint32_t subdiv) {
     // 中心点
     resource_->GetVertexDataList().push_back({{offsetX, offsetY, 0.0f, 1.0f}, {0.5f, 0.5f}, {0.0f, 0.0f, -1.0f}});
 
-    float pi = 3.141592654f;
     for (uint32_t i = 0; i <= subdiv; ++i) {
         float rate = static_cast<float>(i) / subdiv;
-        float angle = rate * pi * 2.0f;
+        float angle = rate * Irufemi::Math::TwoPI;
         float cosA = std::cos(angle);
         float sinA = std::sin(angle);
 
@@ -342,10 +342,9 @@ void Primitive2DObject::BuildRing(uint32_t subdiv) {
     float offsetX = (0.5f - pivot_.x) * size_.x;
     float offsetY = (0.5f - pivot_.y) * size_.y;
 
-    float pi = 3.141592654f;
     for (uint32_t i = 0; i <= subdiv; ++i) {
         float rate = static_cast<float>(i) / subdiv;
-        float angle = rate * pi * 2.0f;
+        float angle = rate * Irufemi::Math::TwoPI;
         float cosA = std::cos(angle);
         float sinA = std::sin(angle);
 

@@ -12,6 +12,7 @@
 #include "Framework/Component/Renderer/TextRendererComponent.h"
 #include "Framework/Component/Renderer/Primitive2DRendererComponent.h"
 #include "Framework/Scene/SceneTransition.h"
+#include "Core/Math/MathFunction.h"
 #include "Irufemi.h"
 #include "Platform/Input/InputManager.h"
 #include "Audio/AudioManager.h"
@@ -210,7 +211,7 @@ void TitleMenuControllerComponent::UpdateOpeningModalAnimation(float deltaTime) 
                 s = std::lerp(1.15f, 0.88f, progress / 0.25f);
             } else {
                 float popT = (progress - 0.25f) / 0.75f;
-                float ease = std::sin(popT * 3.14159265f * 0.5f);
+                float ease = std::sin(popT * Irufemi::Math::PIDiv2);
                 s = std::lerp(0.88f, 1.15f, ease);
             }
 
@@ -682,7 +683,7 @@ void TitleMenuControllerComponent::UpdateTitleTextVisual(float deltaTime) {
         float pulsePhase = std::fmod(titleBreatheTimer_, 3.5f);
         float glow = 0.0f;
         if (pulsePhase < 0.25f) {
-            glow = std::sin((pulsePhase / 0.25f) * 3.14159265f) * 0.35f;
+            glow = std::sin((pulsePhase / 0.25f) * Irufemi::Math::PI) * 0.35f;
         }
 
         if (auto text = titleObj->GetComponent<TextRendererComponent>()) {

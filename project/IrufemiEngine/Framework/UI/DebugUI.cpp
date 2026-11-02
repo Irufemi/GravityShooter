@@ -977,9 +977,9 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                         auto& params = ppManager->GetHalftoneParams();
                         ImGui::DragFloat("Scale", &params.scale, 1.0f, 10.0f, 500.0f);
                         // ImGui::SliderAngle handles radians automatically
-                        float angleDeg = params.angle * (180.0f / 3.14159265f);
+                        float angleDeg = Irufemi::Math::ToDegree(params.angle);
                         if (ImGui::SliderFloat("Angle", &angleDeg, -180.0f, 180.0f)) {
-                            params.angle = angleDeg * (3.14159265f / 180.0f);
+                            params.angle = Irufemi::Math::ToRadian(angleDeg);
                         }
                         ImGui::DragFloat("Blend", &params.blend, 0.01f, 0.0f, 1.0f);
                     } else if (mode == PostProcessMode::DepthOfField) {

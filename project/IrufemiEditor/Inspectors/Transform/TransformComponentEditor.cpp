@@ -2,6 +2,7 @@
 
 #ifdef EditorMode
 #include <imgui/imgui.h>
+#include "Core/Math/MathFunction.h"
 #include "UI/ComponentUIHelpers.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
@@ -62,16 +63,16 @@ void TransformComponentEditor::Draw(Component* component, EditorActionManager* a
 
             // Rotation
             Irufemi::Vector3 rot = comp->GetRotation();
-            Irufemi::Vector3 rotDegrees = {rot.x * (180.0f / 3.14159265f), rot.y * (180.0f / 3.14159265f),
-                                           rot.z * (180.0f / 3.14159265f)};
+            Irufemi::Vector3 rotDegrees = {Irufemi::Math::ToDegree(rot.x), Irufemi::Math::ToDegree(rot.y),
+                                           Irufemi::Math::ToDegree(rot.z)};
             ImGui::TableNextRow();
             ComponentUIHelpers::DrawPropertyLabel("Rotation");
             ImGui::TableSetColumnIndex(1);
             ImGui::PushItemWidth(-1);
             if (ImGui::DragFloat3("##Rotation", &rotDegrees.x, 1.0f)) {
-                rot.x = rotDegrees.x * (3.14159265f / 180.0f);
-                rot.y = rotDegrees.y * (3.14159265f / 180.0f);
-                rot.z = rotDegrees.z * (3.14159265f / 180.0f);
+                rot.x = Irufemi::Math::ToRadian(rotDegrees.x);
+                rot.y = Irufemi::Math::ToRadian(rotDegrees.y);
+                rot.z = Irufemi::Math::ToRadian(rotDegrees.z);
                 comp->SetRotation(rot);
             }
             ImGui::PopItemWidth();

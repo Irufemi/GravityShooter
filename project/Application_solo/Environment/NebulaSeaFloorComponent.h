@@ -39,6 +39,9 @@ public: // 定数バッファ構造体 (HLSL: register b6 / RootSlot::Special)
         Irufemi::Vector4 cameraSnapXZ{0.0f, 0.0f, 0.0f, 0.0f}; //!< カメラXZ追従スナップ座標 (xy: XZ位置, zw: 予備)
     };
 
+    static_assert(sizeof(NebulaSeaParams) % 256 == 0,
+                  "NebulaSeaParams must be 256-byte aligned for D3D12 Constant Buffer.");
+
 public: // 頂点構造体
     struct Vertex {
         Irufemi::Vector3 position;

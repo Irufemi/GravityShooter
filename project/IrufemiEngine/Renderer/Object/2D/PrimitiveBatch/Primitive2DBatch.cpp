@@ -1,6 +1,7 @@
 #include "Renderer/Object/2D/PrimitiveBatch/Primitive2DBatch.h"
 #include "Renderer/DrawManager.h"
 #include "Resource/Texture/TextureManager.h"
+#include "Core/Math/MathFunction.h"
 #include <cmath>
 #include <algorithm>
 
@@ -178,12 +179,11 @@ void Primitive2DBatch::BuildCircle(uint32_t subdiv) {
         subdiv = 3;
     }
     float radius = 0.5f;
-    float pi = 3.141592654f;
 
     vertexDataList_.push_back({{0.0f, 0.0f, 0.0f, 1.0f}, {0.5f, 0.5f}, {0.0f, 0.0f, -1.0f}}); // Center
 
     for (uint32_t i = 0; i <= subdiv; ++i) {
-        float angle = (static_cast<float>(i) / subdiv) * pi * 2.0f;
+        float angle = (static_cast<float>(i) / subdiv) * Irufemi::Math::TwoPI;
         float cosA = std::cos(angle);
         float sinA = std::sin(angle);
 
@@ -209,10 +209,9 @@ void Primitive2DBatch::BuildRing(uint32_t subdiv) {
     // Ring の thickness は 0.0 ~ 1.0 の割合（0.5 = 半分が穴）として扱うか、
     // ここで固定値にするか。スケーリング時に太さもスケーリングされる仕様にする。
     float innerRadius = (std::max)(0.0f, outerRadius - thickness_ * 0.5f);
-    float pi = 3.141592654f;
 
     for (uint32_t i = 0; i <= subdiv; ++i) {
-        float angle = (static_cast<float>(i) / subdiv) * pi * 2.0f;
+        float angle = (static_cast<float>(i) / subdiv) * Irufemi::Math::TwoPI;
         float cosA = std::cos(angle);
         float sinA = std::sin(angle);
 

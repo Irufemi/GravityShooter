@@ -62,7 +62,7 @@ void DebugPrimitiveRenderer::CreateSphereResource() {
     const int segments = 32;
     for (int ring = 0; ring < 3; ++ring) {
         for (int i = 0; i < segments; ++i) {
-            float angle = static_cast<float>(i) / segments * 2.0f * 3.14159265359f;
+            float angle = static_cast<float>(i) / segments * Irufemi::Math::TwoPI;
             float c = std::cos(angle);
             float s = std::sin(angle);
 

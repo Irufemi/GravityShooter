@@ -11,7 +11,7 @@
 #include "Framework/Component/Camera/CameraComponent.h"
 #include "RailMechanics/RailShooterPlayerComponent.h"
 #include <algorithm>
-#include <cassert>
+#include "Core/Utility/ErrorUtility.h"
 #include <cmath>
 #include <vector>
 
@@ -59,8 +59,10 @@ void NebulaSeaFloorComponent::CreateConstantBuffer() {
     constantBuffer_ = dx->CreateBufferResource(sizeof(NebulaSeaParams));
     if (constantBuffer_) {
         HRESULT hr = constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedParams_));
-        assert(SUCCEEDED(hr) && "Failed to map NebulaSea constant buffer.");
-        if (SUCCEEDED(hr) && mappedParams_) {
+        if (!IRUFEMI_CHECK_HR(hr, "Failed to map NebulaSea constant buffer.")) {
+            return;
+        }
+        if (mappedParams_) {
             *mappedParams_ = params_;
         }
     }

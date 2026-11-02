@@ -66,6 +66,8 @@ private:
     void SetShipThrusterActive(bool active);
     void SetShipThrusterScale(float targetScaleZ, bool snap = false);
     void SetIntroState(StageIntroState newState);
+    struct PhaseConfig;
+    static const PhaseConfig& GetPhaseConfig(StageIntroState state);
 
     void ApplyArrivalInertia(float progress);
     void TriggerFCSBootupSequence();

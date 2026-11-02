@@ -887,7 +887,7 @@ void GPUParticleSystem::DrawCircle(const Irufemi::Vector3& center, float radius,
     const int segments = 32;
     Irufemi::Vector3 prevPos = center + right * radius;
     for (int i = 1; i <= segments; ++i) {
-        float angle = (float)i / segments * 3.141592f * 2.0f;
+        float angle = static_cast<float>(i) / segments * Irufemi::Math::TwoPI;
         Irufemi::Vector3 pos = center + (right * std::cos(angle) + forward * std::sin(angle)) * radius;
         debugLineRegion_->AddInstance(prevPos, pos, color);
         prevPos = pos;
@@ -917,7 +917,7 @@ void GPUParticleSystem::DrawCylinderWireframe(const Irufemi::Vector3& center, co
     Irufemi::Vector3 forward = Irufemi::Math::Cross(right, dir);
 
     for (int i = 0; i < 4; ++i) {
-        float angle = (float)i / 4.0f * 3.141592f * 2.0f;
+        float angle = static_cast<float>(i) / 4.0f * Irufemi::Math::TwoPI;
         Irufemi::Vector3 offset = (right * std::cos(angle) + forward * std::sin(angle)) * radius;
         debugLineRegion_->AddInstance(center + offset, top + offset, color);
     }

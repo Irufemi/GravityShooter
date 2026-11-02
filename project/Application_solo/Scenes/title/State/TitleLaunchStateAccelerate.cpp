@@ -9,6 +9,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Audio/AudioManager.h"
+#include "Core/Math/MathFunction.h"
 #include <algorithm>
 #include <cmath>
 
@@ -97,7 +98,7 @@ void TitleLaunchStateAccelerate::Update(TitleSceneDirectorComponent* director, f
 
     // 動的FOV（ワープスピード効果）: 加速に合わせて自然にワイドに広がる
     if (camComp) {
-        float extraFov = (18.0f * 3.14159265f / 180.0f) * (p2 * p2);
+        float extraFov = Irufemi::Math::ToRadian(18.0f) * (p2 * p2);
         camComp->SetFovAngleY(director->GetInitialCameraFov() + extraFov);
     }
 
