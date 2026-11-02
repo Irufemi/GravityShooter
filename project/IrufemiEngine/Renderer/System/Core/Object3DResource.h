@@ -60,31 +60,28 @@ public:
         customCull_ = cull;
 
         // 設定時に即座に解決してキャッシュ
-        ID3D12PipelineState* resolved = nullptr;
+        ResolveCustomPSO();
+    }
+    /**
+     * @brief CustomPSO を解決・キャッシュする（設定時またはリソース生成時に呼出）。
+     */
+    void ResolveCustomPSO() {
         if (!customPSOName_.empty()) {
             if (auto* dxCommon = GetDxCommon()) {
                 if (auto* pm = dxCommon->GetPSOManager()) {
-                    resolved = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    ID3D12PipelineState* resolved =
+                        pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    customPSO_.store(resolved, std::memory_order_release);
                 }
             }
         }
-        customPSO_.store(resolved, std::memory_order_release);
     }
     /**
      * @brief CustomPSO を取得する（事前解決済みキャッシュを O(1) で返却）。
      * @return 取得された CustomPSO
      */
     ID3D12PipelineState* GetCustomPSO() const {
-        ID3D12PipelineState* pso = customPSO_.load(std::memory_order_acquire);
-        if (!pso && !customPSOName_.empty()) {
-            if (auto* dxCommon = GetDxCommon()) {
-                if (auto* pm = dxCommon->GetPSOManager()) {
-                    pso = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
-                    customPSO_.store(pso, std::memory_order_release);
-                }
-            }
-        }
-        return pso;
+        return customPSO_.load(std::memory_order_acquire);
     }
 
     /**

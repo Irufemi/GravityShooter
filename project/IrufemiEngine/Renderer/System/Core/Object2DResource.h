@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer/System/Core/BaseResource.h"
+#include <atomic>
 #include <vector>
 #include <wrl.h>
 #include <d3d12.h>
@@ -164,7 +165,7 @@ public:
      */
     void SetCustomPSO(ID3D12PipelineState* pso) {
         customPSOName_.clear();
-        customPSO_ = pso;
+        customPSO_.store(pso, std::memory_order_release);
     }
     /**
      * @brief CustomPSO を設定する（名前指定・推奨）。
@@ -180,20 +181,30 @@ public:
         customBlend_ = blend;
         customDepth_ = depth;
         customCull_ = cull;
+
+        // 設定時に即座に解決してキャッシュ
+        ResolveCustomPSO();
     }
     /**
-     * @brief CustomPSO を取得する。名前指定がある場合は PSOManager から動的解決する。
-     * @return 取得された CustomPSO
+     * @brief CustomPSO を解決・キャッシュする（設定時またはリソース生成時に呼出）。
      */
-    ID3D12PipelineState* GetCustomPSO() const {
+    void ResolveCustomPSO() {
         if (!customPSOName_.empty()) {
             if (auto* dxCommon = GetDxCommon()) {
                 if (auto* pm = dxCommon->GetPSOManager()) {
-                    return pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    ID3D12PipelineState* resolved =
+                        pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    customPSO_.store(resolved, std::memory_order_release);
                 }
             }
         }
-        return customPSO_;
+    }
+    /**
+     * @brief CustomPSO を取得する（事前解決済みキャッシュを O(1) で返却）。
+     * @return 取得された CustomPSO
+     */
+    ID3D12PipelineState* GetCustomPSO() const {
+        return customPSO_.load(std::memory_order_acquire);
     }
     /**
      * @brief CustomCBVAddress を設定する。
@@ -244,7 +255,7 @@ protected:
     class TextureManager* textureManager_ = nullptr;
 
     // --- カスタム描画設定 ---
-    ID3D12PipelineState* customPSO_ = nullptr;
+    mutable std::atomic<ID3D12PipelineState*> customPSO_{nullptr};
     std::string customPSOName_ = "";
     Irufemi::BlendMode customBlend_ = Irufemi::BlendMode::kBlendModeNormal;
     PSOManager::DepthWrite customDepth_ = PSOManager::DepthWrite::Off;

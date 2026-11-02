@@ -81,6 +81,8 @@ void Object3DResource::CreateResource() {
 
         transformCbIndex_ = engine->GetTransformBufferManager()->Allocate();
     }
+
+    ResolveCustomPSO();
 }
 
 void Object3DResource::Map() {

@@ -85,6 +85,8 @@ void Object2DResource::CreateResource() {
             transformCbIndex_ = engine->GetTransformBufferManager()->Allocate();
         }
     }
+
+    ResolveCustomPSO();
 }
 
 void Object2DResource::Map() {
