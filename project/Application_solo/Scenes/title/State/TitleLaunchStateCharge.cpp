@@ -35,23 +35,6 @@ void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
         }
     }
 
-    // シネマティックテイクオーバー: 出撃突入瞬間の全ガレキ現在ワールド座標をスナップショット記録
-    const auto& debrisObjs = director->GetDebrisObjects();
-    std::vector<Irufemi::Vector3> startPositions;
-    startPositions.reserve(debrisObjs.size());
-    for (const auto& weakDebris : debrisObjs) {
-        if (auto debris = weakDebris.lock()) {
-            if (auto dtComp = debris->GetTransform()) {
-                startPositions.push_back(dtComp->GetPosition());
-            } else {
-                startPositions.push_back(Irufemi::Vector3{0.0f, 0.0f, 0.0f});
-            }
-        } else {
-            startPositions.push_back(Irufemi::Vector3{0.0f, 0.0f, 0.0f});
-        }
-    }
-    director->SetLaunchStartDebrisPositions(std::move(startPositions));
-
     // タイトルBGMの音量をキャッシュ（即座に停止せず、Charge進行に合わせて対数フェードアウト）
     if (auto scene = director->GetScene()) {
         if (auto bgmObj = scene->FindGameObject("BGMPlayer")) {
@@ -85,26 +68,20 @@ void TitleLaunchStateCharge::Update(TitleSceneDirectorComponent* director, float
                                     std::lerp(launchStartRot.z, 0.0f, alignT)});
     }
 
-    // ガレキが自機中心へ螺旋状に吸い寄せられる（重力降着円盤・Accretion Disk）
-    const auto& debrisObjs = director->GetDebrisObjects();
-    const auto& startDebrisPositions = director->GetLaunchStartDebrisPositions();
+    // 小惑星（スペースデブリ）が自機中心へ螺旋状に吸い寄せられる（重力降着円盤・Accretion Disk）
+    auto& asteroids = director->GetAsteroidInstances();
     float swirlAngle = p1 * p1 * 1.8f; // 加速度的な渦巻き回転
     float cosS = std::cos(swirlAngle);
     float sinS = std::sin(swirlAngle);
 
-    for (size_t i = 0; i < debrisObjs.size(); ++i) {
-        if (auto debris = debrisObjs[i].lock()) {
-            if (auto dtComp = debris->GetTransform()) {
-                if (i < startDebrisPositions.size()) {
-                    const auto& origPos = startDebrisPositions[i];
-                    // 螺旋回転
-                    float rotX = origPos.x * cosS - origPos.z * sinS;
-                    float rotZ = origPos.x * sinS + origPos.z * cosS;
-                    // 半径収束（至近ほど強く自機重力コアへ吸引）
-                    float pull = 1.0f - p1 * 0.58f;
-                    dtComp->SetPosition({rotX * pull, origPos.y * pull, rotZ * pull - p1 * 0.20f});
-                }
-            }
+    for (auto& ast : asteroids) {
+        if (ast.basePos.z < 60.0f) { // 手前〜中景の小惑星を自機コアへ螺旋吸引
+            float rotX = ast.basePos.x * cosS - ast.basePos.z * sinS;
+            float rotZ = ast.basePos.x * sinS + ast.basePos.z * cosS;
+            float pull = 1.0f - p1 * 0.45f;
+            ast.currentPos.x = rotX * pull;
+            ast.currentPos.y = std::lerp(ast.basePos.y, 0.52f, p1 * 0.3f);
+            ast.currentPos.z = rotZ * pull;
         }
     }
 

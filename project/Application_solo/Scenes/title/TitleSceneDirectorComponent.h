@@ -164,21 +164,6 @@ public:
     float GetInitialCameraFov() const {
         return initialCameraFov_;
     }
-    const std::vector<Irufemi::Vector3>& GetInitialDebrisPositions() const {
-        return initialDebrisPositions_;
-    }
-    const std::vector<Irufemi::Vector3>& GetLaunchStartDebrisPositions() const {
-        return launchStartDebrisPositions_;
-    }
-    void SetLaunchStartDebrisPositions(std::vector<Irufemi::Vector3> positions) {
-        launchStartDebrisPositions_ = std::move(positions);
-    }
-    const std::vector<std::weak_ptr<GameObject>>& GetDebrisObjects() const {
-        return debrisObjs_;
-    }
-    std::vector<Irufemi::Vector3>& GetDebrisBlastVelocities() {
-        return debrisBlastVelocities_;
-    }
 
     // アステロイドベルト（GPUインスタンシング）データ構造体
     struct AsteroidInstanceData {
@@ -322,7 +307,6 @@ private: // メンバ変数
     // 対象エンティティの安全な弱参照（Dangling Pointer防止）
     std::weak_ptr<GameObject> shipObj_;
     std::weak_ptr<GameObject> cameraObj_;
-    std::vector<std::weak_ptr<GameObject>> debrisObjs_;
     class ModelBatchRendererComponent* asteroidBatchRenderer_ =
         nullptr; ///< 42基の小惑星を一括描画するGPUインスタンシングレンダラー
     std::vector<AsteroidInstanceData> asteroidInstances_; ///< プロシージャル生成した42基のアステロイド群
@@ -350,24 +334,10 @@ private: // メンバ変数
     Irufemi::Vector3 launchStartRot_{0.08f, -0.25f, 0.05f};
     Irufemi::Vector3 initialCameraPos_{0.0f, 0.5f, -5.0f};
     float initialCameraFov_{0.785398f}; ///< 初期視野角 (約45度)
-    std::vector<Irufemi::Vector3> initialDebrisPositions_;
-    std::vector<Irufemi::Vector3> launchStartDebrisPositions_; ///< 出撃開始瞬間の各ガレキ座標スナップショット
 
     // アイドリング用タイマー
     float idleTimer_ = 0.0f;
-
-    // ガレキ深宇宙浮遊・タンブリング設定 (基準位置, 浮遊振幅, 浮遊周波数, 自転角速度, 初期位相)
-    struct DebrisDriftConfig {
-        Irufemi::Vector3 basePos;
-        Irufemi::Vector3 driftAmp;
-        Irufemi::Vector3 driftFreq;
-        Irufemi::Vector3 tumbleSpeed;
-        float phase;
-    };
-    std::vector<DebrisDriftConfig> debrisDrifts_;
-    std::vector<Irufemi::Vector3> debrisRepelOffsets_; ///< マウス・カーソルによるガレキ反発変位オフセット
-    std::vector<Irufemi::Vector3> debrisBlastVelocities_; ///< スラスター噴射によるガレキ吹き飛び速度
-    float shockwaveIntensity_ = 0.0f; ///< 重力波衝撃波の現在強度（全ガレキ外周押し出し・減衰）
+    float shockwaveIntensity_ = 0.0f; ///< 重力波衝撃波の現在強度（小惑星外周押し出し・減衰）
     float initialBgmVolume_ = 0.70f;  ///< BGM初期音量キャッシュ
 
     // 出撃シーケンス用状態 (State パターン)

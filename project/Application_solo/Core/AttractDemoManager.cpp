@@ -169,19 +169,11 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
         return;
     }
 
-    // InputManager の状態と Win32 GetAsyncKeyState の両面でF8キー押下を確実に検知
-    SHORT asyncState = GetAsyncKeyState(VK_F8);
-    bool isF8Down = (asyncState & 0x8000) != 0;
-    if (inputManager->IsKeyPressed(VK_F8) || inputManager->IsKeyDown(VK_F8)) {
-        isF8Down = true;
-    }
+    // InputManager によるF8キー押下の検知
+    bool isF8Down = inputManager->IsKeyPressed(VK_F8) || inputManager->IsKeyDown(VK_F8);
 
     // F6キーで自機を強制撃破（ゲームオーバー演出デバッグ・実演確認用）
-    SHORT asyncStateF6 = GetAsyncKeyState(VK_F6);
-    bool isF6Down = (asyncStateF6 & 0x8000) != 0;
-    if (inputManager->IsKeyPressed(VK_F6) || inputManager->IsKeyDown(VK_F6)) {
-        isF6Down = true;
-    }
+    bool isF6Down = inputManager->IsKeyPressed(VK_F6) || inputManager->IsKeyDown(VK_F6);
     bool f6Triggered = isF6Down && !wasF6Down_;
     wasF6Down_ = isF6Down;
 
@@ -199,11 +191,7 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
     }
 
     // F7キーでデモモードを循環切り替え
-    SHORT asyncStateF7 = GetAsyncKeyState(VK_F7);
-    bool isF7Down = (asyncStateF7 & 0x8000) != 0;
-    if (inputManager->IsKeyPressed(VK_F7) || inputManager->IsKeyDown(VK_F7)) {
-        isF7Down = true;
-    }
+    bool isF7Down = inputManager->IsKeyPressed(VK_F7) || inputManager->IsKeyDown(VK_F7);
     bool f7Triggered = isF7Down && !wasF7Down_;
     wasF7Down_ = isF7Down;
 

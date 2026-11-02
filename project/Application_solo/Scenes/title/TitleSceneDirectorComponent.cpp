@@ -52,10 +52,7 @@ void TitleSceneDirectorComponent::Initialize() {
     currentLaunchStateType_ = LaunchState::Idle;
     stateTimer_ = 0.0f;
     idleTimer_ = 0.0f;
-    debrisRepelOffsets_.clear();
-    debrisBlastVelocities_.clear();
-    debrisDrifts_.clear();
-    initialDebrisPositions_.clear();
+    shockwaveIntensity_ = 0.0f;
     asteroidInstances_.clear();
     asteroidBatchRenderer_ = nullptr;
     initialBgmVolume_ = 0.70f;
@@ -265,11 +262,6 @@ void TitleSceneDirectorComponent::CleanupAsteroidBelt() {
         asteroidBatchRenderer_->ClearInstances();
     }
     asteroidInstances_.clear();
-    debrisObjs_.clear();
-    debrisDrifts_.clear();
-    debrisRepelOffsets_.clear();
-    debrisBlastVelocities_.clear();
-    initialDebrisPositions_.clear();
 }
 
 void TitleSceneDirectorComponent::RenderAsteroidBelt() {
@@ -428,8 +420,8 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
     for (auto& ast : asteroidInstances_) {
         // 差動公転角の更新（星雲の反時計回り渦流に同期して緩やかに公転）
         ast.orbitAngle += ast.orbitSpeed * deltaTime;
-        if (ast.orbitAngle > 6.2831853f * 100.0f) {
-            ast.orbitAngle -= 6.2831853f * 100.0f;
+        if (ast.orbitAngle > Irufemi::Math::TwoPI * 100.0f) {
+            ast.orbitAngle -= Irufemi::Math::TwoPI * 100.0f;
         }
 
         // 楕円軌道（シネマティックスコープ比: X=1.55, Y=0.75, 星雲重力特異点中心 Y=0.52m）
@@ -446,10 +438,27 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
 
         ast.currentPos = Irufemi::Vector3{orbitX + driftX, orbitY + driftY, ast.basePos.z + driftZ};
 
+        // 重力パルス衝撃波による外向きラジアル押し出し変位
+        if (shockwaveIntensity_ > 0.0f) {
+            float push = shockwaveIntensity_ * 2.2f;
+            Irufemi::Vector3 dir = {ast.currentPos.x, ast.currentPos.y - 0.52f, 0.0f};
+            float lenSq = dir.LengthSquared();
+            if (lenSq > 0.01f) {
+                float invLen = 1.0f / std::sqrt(lenSq);
+                ast.currentPos.x += dir.x * invLen * push;
+                ast.currentPos.y += dir.y * invLen * push * 0.5f;
+            }
+        }
+
         // 斜め3軸の重厚な自転（タンブリング）
         ast.rotation.x += deltaTime * ast.tumbleSpeed.x;
         ast.rotation.y += deltaTime * ast.tumbleSpeed.y;
         ast.rotation.z += deltaTime * ast.tumbleSpeed.z;
+    }
+
+    // 衝撃波強度の毎フレーム指数的減衰
+    if (shockwaveIntensity_ > 0.0f) {
+        shockwaveIntensity_ = (std::max)(0.0f, shockwaveIntensity_ - deltaTime * 2.5f);
     }
 
     // 4. 自機スラスターの呼吸脈動（GameSceneアイドル時と完全準拠）

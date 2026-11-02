@@ -31,16 +31,10 @@ void TitleLaunchStateAfterglow::Update(TitleSceneDirectorComponent* director, fl
         return;
     }
 
-    const auto& debrisObjs = director->GetDebrisObjects();
+    auto& asteroids = director->GetAsteroidInstances();
 
-    // 暗転完了（シーン切り替え）までの短い余韻中、ガレキの自転を滑らかに維持
-    for (size_t i = 0; i < debrisObjs.size(); ++i) {
-        if (auto debris = debrisObjs[i].lock()) {
-            if (auto dtComp = debris->GetTransform()) {
-                auto rot = dtComp->GetRotation();
-                rot.y += dt * 0.2f * (i + 1);
-                dtComp->SetRotation(rot);
-            }
-        }
+    // 暗転完了（シーン切り替え）までの短い余韻中、小惑星の自転を滑らかに維持
+    for (size_t i = 0; i < asteroids.size(); ++i) {
+        asteroids[i].rotation.y += dt * 0.2f * static_cast<float>(i + 1);
     }
 }
