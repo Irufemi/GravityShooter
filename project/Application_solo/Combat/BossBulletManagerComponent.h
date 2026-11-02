@@ -28,6 +28,10 @@ public:
         return "BossBulletManagerComponent";
     }
 
+    static constexpr int kDefaultMaxBullets = 2000;
+    static constexpr float kDefaultLifeTime = 5.0f;
+    static constexpr float kDefaultHitRadius = 0.5f;
+
     void SetTargetPlayerID(uint64_t id) {
         targetPlayerID_ = id;
     }
@@ -59,10 +63,10 @@ private:
         float lifeTimer = 0.0f;
     };
 
-    int maxBullets_ = 2000;
-    float defaultLifeTime_ = 5.0f;
+    int maxBullets_ = kDefaultMaxBullets;
+    float defaultLifeTime_ = kDefaultLifeTime;
     Irufemi::Vector3 bulletScale_ = {0.5f, 0.5f, 0.5f};
-    float hitRadius_ = 0.5f;
+    float hitRadius_ = kDefaultHitRadius;
     std::string hitEffectKey_ = "Dust";
     std::string bulletPrefabPath_ = "resources/prefabs/BossBullet.json";
     Irufemi::Vector4 bulletColor_ = {0.85f, 0.15f, 1.0f, 1.0f}; ///< ボス弾のカラー（鮮やかな紫色）

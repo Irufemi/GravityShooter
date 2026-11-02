@@ -7,6 +7,7 @@
 
 class GameObject;
 class BossBulletManagerComponent;
+class EffectMaskComponent;
 #include "Renderer/Object/Batch/ModelBatch.h"
 
 class DroneManagerComponent : public Component {
@@ -51,6 +52,7 @@ private:
     std::vector<DroneAnimData> animDataList_;
 
     class ModelBatchRendererComponent* batchRenderer_ = nullptr;
+    EffectMaskComponent* effectMask_ = nullptr;
     int activeDroneCount_ = 0;
 
     // 定数パラメーター（インスペクターで調整可能にすることも可）

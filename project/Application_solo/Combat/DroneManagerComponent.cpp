@@ -25,6 +25,9 @@ void DroneManagerComponent::Initialize() {
 }
 
 void DroneManagerComponent::Start() {
+    if (gameObject_) {
+        effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+    }
     if (auto scene = gameObject_->GetScene()) {
         player_ = scene->FindGameObject("Player");
     }
@@ -99,13 +102,16 @@ void DroneManagerComponent::Update() {
     int32_t effectType = 0;
     float effectParam = 0.0f;
     bool enableMask = false;
-    if (auto effectMask = gameObject_->GetComponent<EffectMaskComponent>()) {
-        enableMask = effectMask->GetEnableEffectMask();
-        effectType = effectMask->GetCustomEffectType();
-        effectParam = effectMask->GetCachedEffectParam();
+    if (!effectMask_ && gameObject_) {
+        effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+    }
+    if (effectMask_) {
+        enableMask = effectMask_->GetEnableEffectMask();
+        effectType = effectMask_->GetCustomEffectType();
+        effectParam = effectMask_->GetCachedEffectParam();
         if (enableMask && effectParam == 0.0f) {
-            effectMask->Update();
-            effectParam = effectMask->GetCachedEffectParam();
+            effectMask_->Update();
+            effectParam = effectMask_->GetCachedEffectParam();
         }
     }
 

@@ -256,9 +256,11 @@ void BossBulletManagerComponent::Update() {
 }
 
 void BossBulletManagerComponent::OnRegisterProperties() {
+    Component::OnRegisterProperties();
     RegisterProperty("Bullet Prefab Path", &bulletPrefabPath_);
     RegisterProperty("Max Bullets", &maxBullets_);
     RegisterProperty("Default Life Time", &defaultLifeTime_);
+    RegisterProperty("Bullet Scale", &bulletScale_);
     RegisterPropertyRange("Hit Radius", &hitRadius_, 0.1f, 10.0f);
     RegisterProperty("Bullet Color", &bulletColor_).SetTooltip("Bullet material color multiplier (RGBA)");
     RegisterProperty("Hit Effect Key", &hitEffectKey_);
