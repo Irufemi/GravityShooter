@@ -50,6 +50,14 @@ void TitleMenuControllerComponent::Initialize() {
     flashTimer_ = 0.0f;
     titleBreatheTimer_ = 0.0f;
 
+    // キャッシュの初期化
+    buttonObjs_.assign(buttonNames_.size(), {});
+    titleTextObj_.reset();
+    for (size_t i = 0; i < buttonNames_.size(); ++i) {
+        GetButtonObject(i);
+    }
+    GetTitleTextObject();
+
     // シーン開始時にポストプロセスのFadeモードが残留しないよう安全にクリア
     if (auto engine = GetEngine()) {
         if (auto pp = engine->GetPostProcessManager()) {
@@ -57,6 +65,38 @@ void TitleMenuControllerComponent::Initialize() {
             pp->RemoveActiveMode(PostProcessMode::Fade);
         }
     }
+}
+
+std::shared_ptr<GameObject> TitleMenuControllerComponent::GetButtonObject(size_t index) {
+    if (index >= buttonNames_.size()) {
+        return nullptr;
+    }
+    if (buttonObjs_.size() != buttonNames_.size()) {
+        buttonObjs_.resize(buttonNames_.size());
+    }
+    auto obj = buttonObjs_[index].lock();
+    if (!obj) {
+        if (auto scene = GetScene()) {
+            obj = scene->FindGameObject(buttonNames_[index]);
+            if (obj) {
+                buttonObjs_[index] = obj;
+            }
+        }
+    }
+    return obj;
+}
+
+std::shared_ptr<GameObject> TitleMenuControllerComponent::GetTitleTextObject() {
+    auto obj = titleTextObj_.lock();
+    if (!obj) {
+        if (auto scene = GetScene()) {
+            obj = scene->FindGameObject("TitleText");
+            if (obj) {
+                titleTextObj_ = obj;
+            }
+        }
+    }
+    return obj;
 }
 
 void TitleMenuControllerComponent::OnRegisterProperties() {
@@ -105,19 +145,19 @@ void TitleMenuControllerComponent::ChangeState(std::unique_ptr<ITitleMenuState> 
 }
 
 void TitleMenuControllerComponent::ChangeState(MenuState newState) {
-    using StateFactory = std::unique_ptr<ITitleMenuState> (*)();
-    static const std::unordered_map<MenuState, StateFactory> kStateFactories = {
-        {MenuState::Idle, []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateIdle>(); }},
-        {MenuState::OpeningModal,
-         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateOpeningModal>(); }},
-        {MenuState::Suspended,
-         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateSuspended>(); }},
-        {MenuState::Launching,
-         []() -> std::unique_ptr<ITitleMenuState> { return std::make_unique<TitleMenuStateLaunching>(); }},
-    };
-
-    if (auto it = kStateFactories.find(newState); it != kStateFactories.end()) {
-        ChangeState(it->second());
+    switch (newState) {
+    case MenuState::Idle:
+        ChangeState(std::make_unique<TitleMenuStateIdle>());
+        break;
+    case MenuState::OpeningModal:
+        ChangeState(std::make_unique<TitleMenuStateOpeningModal>());
+        break;
+    case MenuState::Suspended:
+        ChangeState(std::make_unique<TitleMenuStateSuspended>());
+        break;
+    case MenuState::Launching:
+        ChangeState(std::make_unique<TitleMenuStateLaunching>());
+        break;
     }
 }
 
@@ -195,7 +235,7 @@ void TitleMenuControllerComponent::UpdateOpeningModalAnimation(float deltaTime) 
 
     // 1. 各ボタンのアニメーション
     for (size_t i = 0; i < buttonNames_.size(); ++i) {
-        auto obj = scene->FindGameObject(buttonNames_[i]);
+        auto obj = GetButtonObject(i);
         if (!obj) {
             continue;
         }
@@ -266,12 +306,10 @@ void TitleMenuControllerComponent::HandleNavigationInput() {
             UISound::PlayCursor();
 
             // 選択されたボタンの位置へ仮想カーソルをスナップ同期（星雲トレイルおよびUI整合性の両立）
-            if (auto scene = GetScene()) {
-                if (auto btn = scene->FindGameObject(buttonNames_[currentIndex_])) {
-                    if (auto t = btn->GetTransform()) {
-                        const auto& btnPos = t->GetPosition();
-                        inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
-                    }
+            if (auto btn = GetButtonObject(currentIndex_)) {
+                if (auto t = btn->GetTransform()) {
+                    const auto& btnPos = t->GetPosition();
+                    inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
                 }
             }
 
@@ -399,8 +437,8 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
     // 初回実行時にエディタ設定の初期スケールを自動キャッシュ（遅延取得）
     if (initialScales_.size() < buttonNames_.size()) {
         initialScales_.clear();
-        for (const auto& name : buttonNames_) {
-            if (auto btnObj = scene->FindGameObject(name)) {
+        for (size_t i = 0; i < buttonNames_.size(); ++i) {
+            if (auto btnObj = GetButtonObject(i)) {
                 if (auto transform = btnObj->GetComponent<TransformComponent>()) {
                     initialScales_.push_back(transform->GetScale());
                     continue;
@@ -417,7 +455,7 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
         currentScales_[i] =
             std::lerp(currentScales_[i], targetScales_[i], std::clamp(deltaTime * kLerpSpeed, 0.0f, 1.0f));
 
-        auto btnObj = scene->FindGameObject(buttonNames_[i]);
+        auto btnObj = GetButtonObject(i);
         if (!btnObj) {
             continue;
         }
@@ -464,8 +502,8 @@ void TitleMenuControllerComponent::StartDismissAnimation() {
 
     // 各ボタンの初期座標をキャッシュ
     dismissStartPositions_.clear();
-    for (const auto& name : buttonNames_) {
-        if (auto obj = scene->FindGameObject(name)) {
+    for (size_t i = 0; i < buttonNames_.size(); ++i) {
+        if (auto obj = GetButtonObject(i)) {
             if (auto t = obj->GetTransform()) {
                 dismissStartPositions_.push_back(t->GetPosition());
                 continue;
@@ -475,7 +513,7 @@ void TitleMenuControllerComponent::StartDismissAnimation() {
     }
 
     // タイトルロゴの初期座標をキャッシュ
-    if (auto titleObj = scene->FindGameObject("TitleText")) {
+    if (auto titleObj = GetTitleTextObject()) {
         if (auto t = titleObj->GetTransform()) {
             titleTextStartPos_ = t->GetPosition();
         }
@@ -499,7 +537,7 @@ void TitleMenuControllerComponent::UpdateDismissAnimation(float deltaTime) {
 
     // 1. 各ボタンのディゾルブ（GAME STARTは白発光、他は外側へ拡散透過）
     for (size_t i = 0; i < buttonNames_.size(); ++i) {
-        auto obj = scene->FindGameObject(buttonNames_[i]);
+        auto obj = GetButtonObject(i);
         if (!obj) {
             continue;
         }
@@ -538,7 +576,7 @@ void TitleMenuControllerComponent::UpdateDismissAnimation(float deltaTime) {
     }
 
     // 2. タイトルロゴのディゾルブ（上方へフワッと透過消退）
-    if (auto titleObj = scene->FindGameObject("TitleText")) {
+    if (auto titleObj = GetTitleTextObject()) {
         if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
             text->SetColor({0.2f, 0.92f, 1.0f, alpha});
         }
@@ -560,7 +598,7 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
     }
 
     // タイトルロゴの表示/非表示＆リセット
-    if (auto titleObj = scene->FindGameObject("TitleText")) {
+    if (auto titleObj = GetTitleTextObject()) {
         titleObj->SetActive(visible);
         if (visible) {
             if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
@@ -574,7 +612,7 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
 
     // 各ボタン項目の表示/非表示＆リセット
     for (size_t i = 0; i < buttonNames_.size(); ++i) {
-        if (auto btnObj = scene->FindGameObject(buttonNames_[i])) {
+        if (auto btnObj = GetButtonObject(i)) {
             btnObj->SetActive(visible);
             if (visible && i < dismissStartPositions_.size()) {
                 if (auto t = btnObj->GetTransform()) {
@@ -610,13 +648,11 @@ void TitleMenuControllerComponent::RestoreFocusOnResume() {
     }
 
     // 選択中ボタンの座標へ仮想カーソルをピタッと同期復帰
-    if (auto scene = GetScene()) {
-        if (currentIndex_ >= 0 && currentIndex_ < static_cast<int>(buttonNames_.size())) {
-            if (auto btn = scene->FindGameObject(buttonNames_[currentIndex_])) {
-                if (auto t = btn->GetTransform()) {
-                    const auto& btnPos = t->GetPosition();
-                    inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
-                }
+    if (currentIndex_ >= 0 && currentIndex_ < static_cast<int>(buttonNames_.size())) {
+        if (auto btn = GetButtonObject(currentIndex_)) {
+            if (auto t = btn->GetTransform()) {
+                const auto& btnPos = t->GetPosition();
+                inputManager->SetVirtualCursorPosition({btnPos.x, btnPos.y});
             }
         }
     }
@@ -667,12 +703,7 @@ void TitleMenuControllerComponent::UpdateTitleTextVisual(float deltaTime) {
 
     titleBreatheTimer_ += deltaTime;
 
-    auto scene = GetScene();
-    if (!scene) {
-        return;
-    }
-
-    if (auto titleObj = scene->FindGameObject("TitleText")) {
+    if (auto titleObj = GetTitleTextObject()) {
         // 1. 呼吸スケール (周期約2.4秒、1.00〜1.025倍の穏やかな浮遊呼吸)
         float breathe = 1.0f + std::sin(titleBreatheTimer_ * 2.4f) * 0.015f;
         if (auto t = titleObj->GetTransform()) {
@@ -774,17 +805,12 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
     }
 }
 
-bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const {
+bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) {
     if (index < 0 || index >= static_cast<int>(buttonNames_.size())) {
         return false;
     }
 
-    auto scene = GetScene();
-    if (!scene) {
-        return false;
-    }
-
-    auto btnObj = scene->FindGameObject(buttonNames_[index]);
+    auto btnObj = GetButtonObject(index);
     if (!btnObj) {
         return false;
     }

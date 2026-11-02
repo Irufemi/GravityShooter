@@ -154,6 +154,8 @@ struct GPUParticleEmitter {
     /// @brief メモリ整列用パディング
     float pad10 = 0;
 };
+static_assert(sizeof(GPUParticleEmitter) % 16 == 0, "GPUParticleEmitter must be 16-byte aligned.");
+static_assert(sizeof(GPUParticleEmitter) == 368, "GPUParticleEmitter size mismatch with HLSL cbuffer.");
 
 /**
  * @struct ParticleField
@@ -670,17 +672,17 @@ private:
     std::vector<D3D12_GPU_VIRTUAL_ADDRESS> meshVertexBuffers_;
 
     // CPU-GPU共有用バッファ（kMaxFramesInFlight個）
-    Microsoft::WRL::ComPtr<ID3D12Resource> emittersResource_[3]; // 3 = kMaxFramesInFlight
-    GPUParticleEmitter* emittersMappedData_[3] = {nullptr, nullptr, nullptr};
-    uint32_t emittersSrvIndex_[3] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
-    D3D12_GPU_DESCRIPTOR_HANDLE emittersSrvHandleGPU_[3]{};
+    Microsoft::WRL::ComPtr<ID3D12Resource> emittersResource_[kMaxFramesInFlight];
+    GPUParticleEmitter* emittersMappedData_[kMaxFramesInFlight] = {};
+    uint32_t emittersSrvIndex_[kMaxFramesInFlight] = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE emittersSrvHandleGPU_[kMaxFramesInFlight]{};
 
     /** @name Fieldリソース */
     const std::vector<ParticleField>* globalFields_ = nullptr;
-    Microsoft::WRL::ComPtr<ID3D12Resource> fieldsResource_[3];
-    ParticleField* fieldsMappedData_[3] = {nullptr, nullptr, nullptr};
-    uint32_t fieldsSrvIndex_[3] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
-    D3D12_GPU_DESCRIPTOR_HANDLE fieldsSrvHandleGPU_[3]{};
+    Microsoft::WRL::ComPtr<ID3D12Resource> fieldsResource_[kMaxFramesInFlight];
+    ParticleField* fieldsMappedData_[kMaxFramesInFlight] = {};
+    uint32_t fieldsSrvIndex_[kMaxFramesInFlight] = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE fieldsSrvHandleGPU_[kMaxFramesInFlight]{};
     ///@}
 
     /** @name 各種リソース */

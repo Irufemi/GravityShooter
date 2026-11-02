@@ -195,9 +195,9 @@ void TitleSceneDirectorComponent::SpawnAsteroidBelt() {
     // シード固定の疑似乱数生成器（毎回の起動で映画的配置を確定的に再現）
     std::mt19937 rng(1337);
     std::uniform_real_distribution<float> distZ(28.0f, 215.0f);
-    std::uniform_real_distribution<float> distAngle(0.0f, 6.2831853f);
+    std::uniform_real_distribution<float> distAngle(0.0f, Irufemi::Math::TwoPI);
     std::uniform_real_distribution<float> distScale(0.85f, 4.2f);
-    std::uniform_real_distribution<float> distRot(0.0f, 6.2831853f);
+    std::uniform_real_distribution<float> distRot(0.0f, Irufemi::Math::TwoPI);
     std::uniform_real_distribution<float> distTumble(-0.16f, 0.16f);
     std::uniform_real_distribution<float> distAmp(0.04f, 0.12f);
     std::uniform_real_distribution<float> distFreq(0.18f, 0.40f);
@@ -293,13 +293,17 @@ void TitleSceneDirectorComponent::SetupThrusterEffect() {
     if (thrusterObj_.lock()) {
         return;
     }
-    auto scene = GetScene();
-    if (!scene) {
-        return;
-    }
-    auto shipObj = scene->FindGameObject("HeroShip");
+    auto shipObj = shipObj_.lock();
     if (!shipObj) {
-        return;
+        auto scene = GetScene();
+        if (!scene) {
+            return;
+        }
+        shipObj = scene->FindGameObject("HeroShip");
+        if (!shipObj) {
+            return;
+        }
+        shipObj_ = shipObj;
     }
 
     // GameSceneと全く同じ player_thruster_effect.json をノズル位置にアタッチ生成
@@ -333,7 +337,7 @@ void TitleSceneDirectorComponent::TriggerDebrisExplosion() {
     for (size_t i = 0; i < asteroidInstances_.size(); ++i) {
         auto& ast = asteroidInstances_[i];
         if (ast.currentPos.z < 45.0f) {
-            float angle = static_cast<float>(i) * 0.785398f;
+            float angle = static_cast<float>(i) * Irufemi::Math::PIDiv4;
             float outwardSpeed = 3.5f + static_cast<float>(i % 3) * 1.5f;
             ast.blastVelocity =
                 Irufemi::Vector3{std::cos(angle) * outwardSpeed, std::sin(angle) * outwardSpeed * 0.6f, -2.0f};
@@ -508,21 +512,22 @@ void TitleSceneDirectorComponent::ChangeState(std::unique_ptr<ITitleLaunchState>
 }
 
 void TitleSceneDirectorComponent::ChangeState(LaunchState newState) {
-    using LaunchStateFactory = std::unique_ptr<ITitleLaunchState> (*)();
-    static const std::unordered_map<LaunchState, LaunchStateFactory> kLaunchStateFactories = {
-        {LaunchState::Idle, []() -> std::unique_ptr<ITitleLaunchState> { return nullptr; }},
-        {LaunchState::Charge,
-         []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateCharge>(); }},
-        {LaunchState::Accelerate,
-         []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateAccelerate>(); }},
-        {LaunchState::Break,
-         []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateBreak>(); }},
-        {LaunchState::Afterglow,
-         []() -> std::unique_ptr<ITitleLaunchState> { return std::make_unique<TitleLaunchStateAfterglow>(); }},
-    };
-
-    if (auto it = kLaunchStateFactories.find(newState); it != kLaunchStateFactories.end()) {
-        ChangeState(it->second());
+    switch (newState) {
+    case LaunchState::Idle:
+        ChangeState(nullptr);
+        break;
+    case LaunchState::Charge:
+        ChangeState(std::make_unique<TitleLaunchStateCharge>());
+        break;
+    case LaunchState::Accelerate:
+        ChangeState(std::make_unique<TitleLaunchStateAccelerate>());
+        break;
+    case LaunchState::Break:
+        ChangeState(std::make_unique<TitleLaunchStateBreak>());
+        break;
+    case LaunchState::Afterglow:
+        ChangeState(std::make_unique<TitleLaunchStateAfterglow>());
+        break;
     }
 }
 

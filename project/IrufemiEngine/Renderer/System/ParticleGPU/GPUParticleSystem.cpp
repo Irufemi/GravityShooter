@@ -53,7 +53,7 @@ GPUParticleSystem::~GPUParticleSystem() {
             srvPool->FreeAfterFence(sortIndex_, fv);
             srvPool->FreeAfterFence(sortSrvIndex_, fv);
         }
-        for (int i = 0; i < 3; ++i) {
+        for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
             dxCommon_->ReleaseAfterFence(emittersResource_[i]);
             dxCommon_->ReleaseAfterFence(fieldsResource_[i]);
         }
@@ -1047,7 +1047,7 @@ void GPUParticleSystem::CreateBuffersAndViews() {
     auto* srvPool = dxCommon_->GetSrvPool();
 
     /*Emitter と Irufemi::PerFrame の定数バッファ初期化*/
-    for (uint32_t i = 0; i < 3; ++i) { // 3 = kMaxFramesInFlight
+    for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
         emittersResource_[i] = dxCommon_->CreateBufferResource(sizeof(GPUParticleEmitter) * kMaxEmitters);
         emittersResource_[i]->Map(0, nullptr, reinterpret_cast<void**>(&emittersMappedData_[i]));
 

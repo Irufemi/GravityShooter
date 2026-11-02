@@ -133,13 +133,23 @@ private: // 内部処理
     void ExecuteSelection();
 
     /**
+     * @brief 指定インデックスのボタンGameObjectを取得する（キャッシュ付き）
+     */
+    std::shared_ptr<GameObject> GetButtonObject(size_t index);
+
+    /**
+     * @brief タイトルロゴGameObjectを取得する（キャッシュ付き）
+     */
+    std::shared_ptr<GameObject> GetTitleTextObject();
+
+    /**
      * @brief
      * カーソル座標が指定インデックスのボタン幾何領域内（動的スケール・バウンディングボックス反映）にあるか判定する
      * @param[in] index ボタンインデックス
      * @param[in] cursorPos 判定するカーソル座標
      * @return 領域内にある場合は true
      */
-    bool IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos) const;
+    bool IsCursorOverButton(int index, const Irufemi::Vector2& cursorPos);
 
 private:                                                      // メンバ変数
     std::unique_ptr<ITitleMenuState> currentState_ = nullptr; //!< 現在のメニュー状態（State Pattern）
@@ -172,6 +182,10 @@ private:                                                      // メンバ変数
     std::shared_ptr<GameObject> virtualCursorObj_;
     class Primitive2DRendererComponent* virtualCursorRenderer_ = nullptr;
     const float kStickyFriction_ = 0.45f; //!< ボタンホバー時の減速倍率
+
+    // キャッシュされた GameObject 参照
+    std::weak_ptr<GameObject> titleTextObj_;
+    std::vector<std::weak_ptr<GameObject>> buttonObjs_;
 
     // ボタンのスケール補間制御用
     std::vector<float> currentScales_ = {1.0f, 1.0f, 1.0f, 1.0f};
