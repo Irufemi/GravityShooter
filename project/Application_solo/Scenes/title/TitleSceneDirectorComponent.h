@@ -303,12 +303,15 @@ private:
      */
     void OnImpactRelease();
 
+    /**
+     * @brief 42基の小惑星を一括描画するGPUインスタンシングレンダラーを取得する（ライフサイクル安全）
+     */
+    class ModelBatchRendererComponent* GetAsteroidBatchRenderer() const;
+
 private: // メンバ変数
     // 対象エンティティの安全な弱参照（Dangling Pointer防止）
     std::weak_ptr<GameObject> shipObj_;
     std::weak_ptr<GameObject> cameraObj_;
-    class ModelBatchRendererComponent* asteroidBatchRenderer_ =
-        nullptr; ///< 42基の小惑星を一括描画するGPUインスタンシングレンダラー
     std::vector<AsteroidInstanceData> asteroidInstances_; ///< プロシージャル生成した42基のアステロイド群
     std::weak_ptr<GameObject> nebulaObj_;
 

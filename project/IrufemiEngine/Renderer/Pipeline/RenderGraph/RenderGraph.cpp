@@ -110,6 +110,7 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
     }
 
     for (const auto& usage : transientUsages) {
+        IRUFEMI_ASSERT_MSG(usage.handle < lifetimes.size(), "RenderGraph: TransientResource handle is out of range.");
         auto& lf = lifetimes[usage.handle];
         if (lf.firstPass == static_cast<size_t>(-1)) {
             lf.firstPass = usage.passIndex;
@@ -164,11 +165,15 @@ void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
 
         // PlacedResource の生成
         if (transientResourceManager_) {
+            IRUFEMI_ASSERT_MSG(bestOffset + requiredSize <= transientResourceManager_->GetHeapSize(),
+                               "RenderGraph: TransientResource heap size exceeded!");
             const auto& tDesc = transientDescs[i];
             D3D12_RESOURCE_STATES actualState = D3D12_RESOURCE_STATE_COMMON;
             lifetimes[i].physicalResource = transientResourceManager_->AcquirePlacedResource(
                 tDesc.desc, bestOffset, D3D12_RESOURCE_STATE_COMMON, tDesc.hasClearValue ? &tDesc.clearValue : nullptr,
                 &actualState);
+            IRUFEMI_ASSERT_MSG(lifetimes[i].physicalResource != nullptr,
+                               "RenderGraph: Failed to acquire placed resource from TransientResourceManager.");
             if (lifetimes[i].physicalResource) {
                 // キャッシュ再利用時の実ステートを正確に登録（不正なCOMMON仮定バリアを防止）
                 resourceStates_[lifetimes[i].physicalResource] = actualState;

@@ -7,7 +7,6 @@
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "Core/Utility/ErrorUtility.h"
 #include "Core/Utility/Log.h"
-#include <cassert>
 #include <algorithm>
 
 namespace {
@@ -33,7 +32,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> CreateUAVTexture(ID3D12Device* device, ui
     HRESULT hr =
         device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                                         nullptr, IID_PPV_ARGS(resource.GetAddressOf()));
-    ASSERT_IF_FAILED(hr);
+    ASSERT_IF_FAILED_MSG(hr, "Failed to create Fluid UAV Texture.");
     return resource;
 }
 } // namespace
@@ -116,7 +115,7 @@ void FluidSimulation2D::CreateTextures() {
         globalParamsCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedGlobalParams_));
     }
 
-    injectParamsCB_ = dxCommon_->CreateBufferResource(sizeof(InjectionParamsCB));
+    injectParamsCB_ = dxCommon_->CreateBufferResource(sizeof(InjectionParamsCB) * kMaxInjectionsPerFrame);
     if (injectParamsCB_) {
         injectParamsCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedInjectParams_));
     }
@@ -187,7 +186,7 @@ void FluidSimulation2D::CreatePipelines() {
             psoDesc.pRootSignature = rootSig;
             psoDesc.CS = {blob->GetBufferPointer(), blob->GetBufferSize()};
             HRESULT psoHr = device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&outPSO));
-            ASSERT_IF_FAILED(psoHr);
+            ASSERT_IF_FAILED_MSG(psoHr, "Failed to create Fluid Compute Pipeline State.");
         }
     };
 
@@ -291,7 +290,7 @@ void FluidSimulation2D::DispatchCompute() {
         injectionQueue_.clear();
         if (psoInject_ && mappedInjectParams_) {
             commandList->SetPipelineState(psoInject_.Get());
-            mappedInjectParams_->injectType = 3.0f; // Clear mode
+            mappedInjectParams_[0].injectType = 3.0f; // Clear mode
             commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1,
                                                           injectParamsCB_->GetGPUVirtualAddress());
 
@@ -346,18 +345,26 @@ void FluidSimulation2D::DispatchCompute() {
     if (psoInject_ && !injectionQueue_.empty()) {
         commandList->SetPipelineState(psoInject_.Get());
 
+        uint32_t injectIndex = 0;
         for (const auto& req : injectionQueue_) {
-            if (mappedInjectParams_) {
-                mappedInjectParams_->injectPosUV = req.posUV;
-                mappedInjectParams_->injectVelocity = req.velocity;
-                mappedInjectParams_->injectColor = req.color;
-                mappedInjectParams_->injectRadius = req.radius;
-                mappedInjectParams_->vortexStrength = req.vortexStrength;
-                mappedInjectParams_->pullStrength = req.pullStrength;
-                mappedInjectParams_->injectType = req.type;
+            if (injectIndex >= kMaxInjectionsPerFrame) {
+                IRUFEMI_ASSERT_MSG(false, "FluidSimulation2D: Max injections per frame exceeded (limit: 64).");
+                break;
             }
-            commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1,
-                                                          injectParamsCB_->GetGPUVirtualAddress());
+
+            if (mappedInjectParams_) {
+                mappedInjectParams_[injectIndex].injectPosUV = req.posUV;
+                mappedInjectParams_[injectIndex].injectVelocity = req.velocity;
+                mappedInjectParams_[injectIndex].injectColor = req.color;
+                mappedInjectParams_[injectIndex].injectRadius = req.radius;
+                mappedInjectParams_[injectIndex].vortexStrength = req.vortexStrength;
+                mappedInjectParams_[injectIndex].pullStrength = req.pullStrength;
+                mappedInjectParams_[injectIndex].injectType = req.type;
+            }
+
+            D3D12_GPU_VIRTUAL_ADDRESS cbvAddress =
+                injectParamsCB_->GetGPUVirtualAddress() + injectIndex * sizeof(InjectionParamsCB);
+            commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b1, cbvAddress);
 
             readVel = velocityPingPong_;
             writeVel = 1 - velocityPingPong_;
@@ -379,6 +386,8 @@ void FluidSimulation2D::DispatchCompute() {
 
             DirectXUtils::UAVBarrier(commandList, velocityTex_[velocityPingPong_].Get());
             DirectXUtils::UAVBarrier(commandList, densityTex_[densityPingPong_].Get());
+
+            ++injectIndex;
         }
         injectionQueue_.clear();
     }

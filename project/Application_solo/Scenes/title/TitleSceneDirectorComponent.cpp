@@ -54,7 +54,6 @@ void TitleSceneDirectorComponent::Initialize() {
     idleTimer_ = 0.0f;
     shockwaveIntensity_ = 0.0f;
     asteroidInstances_.clear();
-    asteroidBatchRenderer_ = nullptr;
     initialBgmVolume_ = 0.70f;
 
     // シーン初期化時点で出撃シークエンスSEを完全先行プリロード（ディスクI/O根絶）
@@ -177,16 +176,16 @@ void TitleSceneDirectorComponent::SpawnAsteroidBelt() {
     }
 
     // GPUインスタンシング用 ModelBatchRendererComponent を取得またはアタッチ
-    if (auto myObj = GetGameObject()) {
-        asteroidBatchRenderer_ = myObj->GetComponent<ModelBatchRendererComponent>();
-        if (!asteroidBatchRenderer_) {
-            auto comp = myObj->AddComponent<ModelBatchRendererComponent>();
-            asteroidBatchRenderer_ = comp.get();
+    auto* renderer = GetAsteroidBatchRenderer();
+    if (!renderer) {
+        if (auto myObj = GetGameObject()) {
+            myObj->AddComponent<ModelBatchRendererComponent>();
+            renderer = myObj->GetComponent<ModelBatchRendererComponent>();
         }
     }
-    if (asteroidBatchRenderer_) {
+    if (renderer) {
         // モデルを 1 回だけ安全にロード
-        asteroidBatchRenderer_->LoadModel("resources/model/Debris/Generic/Debris_Generic.obj");
+        renderer->LoadModel("resources/model/Debris/Generic/Debris_Generic.obj");
     }
 
     // シード固定の疑似乱数生成器（毎回の起動で映画的配置を確定的に再現）
@@ -258,27 +257,30 @@ void TitleSceneDirectorComponent::SpawnAsteroidBelt() {
 }
 
 void TitleSceneDirectorComponent::CleanupAsteroidBelt() {
-    if (asteroidBatchRenderer_) {
-        asteroidBatchRenderer_->ClearInstances();
+    if (auto* renderer = GetAsteroidBatchRenderer()) {
+        renderer->ClearInstances();
     }
     asteroidInstances_.clear();
 }
 
 void TitleSceneDirectorComponent::RenderAsteroidBelt() {
-    if (!asteroidBatchRenderer_) {
-        if (auto myObj = GetGameObject()) {
-            asteroidBatchRenderer_ = myObj->GetComponent<ModelBatchRendererComponent>();
-        }
-    }
-    if (!asteroidBatchRenderer_) {
+    auto* renderer = GetAsteroidBatchRenderer();
+    if (!renderer) {
         return;
     }
 
-    asteroidBatchRenderer_->ClearInstances();
+    renderer->ClearInstances();
     for (const auto& ast : asteroidInstances_) {
         Irufemi::Transform t{ast.currentScale, ast.rotation, ast.currentPos};
-        asteroidBatchRenderer_->AddInstance(t);
+        renderer->AddInstance(t);
     }
+}
+
+ModelBatchRendererComponent* TitleSceneDirectorComponent::GetAsteroidBatchRenderer() const {
+    if (auto myObj = GetGameObject()) {
+        return myObj->GetComponent<ModelBatchRendererComponent>();
+    }
+    return nullptr;
 }
 
 void TitleSceneDirectorComponent::SetupThrusterEffect() {

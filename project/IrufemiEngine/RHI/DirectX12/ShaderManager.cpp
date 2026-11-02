@@ -1,6 +1,7 @@
 #include "RHI/DirectX12/ShaderManager.h"
 #include "Core/Utility/ErrorUtility.h"
 #include "Core/Utility/Log.h"
+#include <atomic>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -15,7 +16,7 @@
 // IDxcBlob を自作して dxcompiler.dll への依存を無くす
 class CustomBlob : public IDxcBlob {
     std::vector<uint8_t> data_;
-    ULONG refCount_ = 1;
+    std::atomic<ULONG> refCount_{1};
 
 public:
     CustomBlob(std::vector<uint8_t>&& data) : data_(std::move(data)) {}
@@ -108,9 +109,16 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::GetOrCompile(const std::wstring&
     }
 #endif
 
-    // 4. キャッシュに登録（排他ロック）
+    // 4. キャッシュに登録（排他ロック、ダブルチェック）
     if (blob) {
-        cache_.WithWrite([&](ShaderCacheMap& c) { c[key] = blob; });
+        return cache_.WithWrite([&](ShaderCacheMap& c) -> Microsoft::WRL::ComPtr<IDxcBlob> {
+            auto it = c.find(key);
+            if (it != c.end()) {
+                return it->second;
+            }
+            c[key] = blob;
+            return blob;
+        });
     }
 
     return blob;

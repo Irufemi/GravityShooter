@@ -47,6 +47,7 @@ public: // 内部定数・構造体
         float vorticityScale = 2.5f;
         float pad[2]{};
     };
+    static_assert(sizeof(SimulationParams) % 256 == 0, "SimulationParams size must be a multiple of 256 bytes.");
 
     /**
      * @struct InjectionParamsCB
@@ -61,6 +62,9 @@ public: // 内部定数・構造体
         float pullStrength = 0.0f;
         float injectType = 0.0f;
     };
+    static_assert(sizeof(InjectionParamsCB) % 256 == 0, "InjectionParamsCB size must be a multiple of 256 bytes.");
+
+    static constexpr uint32_t kMaxInjectionsPerFrame = 64; ///< 1フレームあたりの最大外力・染料注入スロット数
 
 public: // メンバ関数
     FluidSimulation2D() = default;

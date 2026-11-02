@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -43,7 +44,7 @@ private:
     std::shared_ptr<Camera> camera_;
     std::unique_ptr<Sprite> bgSprite_;
     std::unique_ptr<Text> nowLoadingText_;
-    std::vector<std::unique_ptr<Primitive2DObject>> dots_;
+    std::array<std::unique_ptr<Primitive2DObject>, 3> dots_;
 
     // アトラクトデモ中のシステムオーバーレイHUD
     std::unique_ptr<Text> demoText_;

@@ -18,7 +18,9 @@ LoadingScreen::~LoadingScreen() = default;
 
 void LoadingScreen::Finalize() {
     veilResource_.reset();
-    dots_.clear();
+    for (auto& dot : dots_) {
+        dot.reset();
+    }
     nowLoadingText_.reset();
     bgSprite_.reset();
     demoText_.reset();
@@ -108,18 +110,16 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     nowLoadingText_->SetColor({0.30f, 0.92f, 1.0f, 0.95f});
     nowLoadingText_->SetTopMost(true);
 
-    dots_.clear();
-    for (int i = 0; i < 3; ++i) {
-        auto dot = std::make_unique<Primitive2DObject>();
-        dot->Initialize(Irufemi::Primitive2DType::Circle, "resources/whiteTexture.png");
-        dot->SetColor({0.30f, 0.90f, 1.0f, 1.0f});
-        dot->SetPivot({0.5f, 0.5f});
+    for (size_t i = 0; i < dots_.size(); ++i) {
+        dots_[i] = std::make_unique<Primitive2DObject>();
+        dots_[i]->Initialize(Irufemi::Primitive2DType::Circle, "resources/whiteTexture.png");
+        dots_[i]->SetColor({0.30f, 0.90f, 1.0f, 1.0f});
+        dots_[i]->SetPivot({0.5f, 0.5f});
         float baseX = screenW - 65.0f;
         float baseY = screenH - 45.0f;
-        dot->SetPosition(Irufemi::Vector3{baseX + i * 20.0f, baseY, 0.0f});
-        dot->SetSize({8.0f, 8.0f});
-        dot->SetTopMost(true);
-        dots_.push_back(std::move(dot));
+        dots_[i]->SetPosition(Irufemi::Vector3{baseX + static_cast<float>(i) * 20.0f, baseY, 0.0f});
+        dots_[i]->SetSize({8.0f, 8.0f});
+        dots_[i]->SetTopMost(true);
     }
 }
 
@@ -138,11 +138,13 @@ void LoadingScreen::Update(float deltaTime) {
     }
 
     // ドットの波打つアルファウェーブ
-    for (int i = 0; i < dots_.size(); ++i) {
-        float wave = std::sin(animationTimer_ * 4.2f - static_cast<float>(i) * 0.85f) * 0.5f + 0.5f;
-        float dAlpha = (0.20f + wave * 0.80f) * masterAlpha_;
-        dots_[i]->SetColor({0.30f, 0.92f, 1.0f, dAlpha});
-        dots_[i]->Update();
+    for (size_t i = 0; i < dots_.size(); ++i) {
+        if (dots_[i]) {
+            float wave = std::sin(animationTimer_ * 4.2f - static_cast<float>(i) * 0.85f) * 0.5f + 0.5f;
+            float dAlpha = (0.20f + wave * 0.80f) * masterAlpha_;
+            dots_[i]->SetColor({0.30f, 0.92f, 1.0f, dAlpha});
+            dots_[i]->Update();
+        }
     }
 
     // アトラクトデモHUD
@@ -226,10 +228,12 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
         nowLoadingText_->Draw();
     }
 
-    for (int i = 0; i < dots_.size(); ++i) {
-        dots_[i]->SetSize({7.0f * uiScale, 7.0f * uiScale});
-        dots_[i]->SetPosition(Irufemi::Vector3{dotBaseX + i * 18.0f * uiScale, dotBaseY, 0.0f});
-        dots_[i]->Draw();
+    for (size_t i = 0; i < dots_.size(); ++i) {
+        if (dots_[i]) {
+            dots_[i]->SetSize({7.0f * uiScale, 7.0f * uiScale});
+            dots_[i]->SetPosition(Irufemi::Vector3{dotBaseX + static_cast<float>(i) * 18.0f * uiScale, dotBaseY, 0.0f});
+            dots_[i]->Draw();
+        }
     }
 
     // 4. アトラクトデモHUD（右上）
