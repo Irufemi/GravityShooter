@@ -38,6 +38,35 @@ EnemySpawnerComponent::~EnemySpawnerComponent() {
 
 void EnemySpawnerComponent::Initialize() {}
 
+std::shared_ptr<GameObject> EnemySpawnerComponent::GetPlayerCartObject() {
+    auto obj = playerCartObj_.lock();
+    if (!obj) {
+        if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
+            obj = scene->FindGameObject("PlayerCart");
+            if (!obj) {
+                obj = scene->FindGameObject("Player");
+            }
+            if (obj) {
+                playerCartObj_ = obj;
+            }
+        }
+    }
+    return obj;
+}
+
+std::shared_ptr<GameObject> EnemySpawnerComponent::GetDebrisManagerObject() {
+    auto obj = debrisManagerObj_.lock();
+    if (!obj) {
+        if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
+            obj = scene->FindGameObject("DebrisManager");
+            if (obj) {
+                debrisManagerObj_ = obj;
+            }
+        }
+    }
+    return obj;
+}
+
 void EnemySpawnerComponent::OnRegisterProperties() {
     // プレハブ内にモデル・スケール・コライダー・パラメータ等の全情報が一元化されているため、
     // インスペクターにはプレハブ選択・編集プロパティのみを公開
@@ -47,6 +76,10 @@ void EnemySpawnerComponent::OnRegisterProperties() {
 }
 
 void EnemySpawnerComponent::Start() {
+    // 依存 GameObject の事前キャッシュ
+    GetPlayerCartObject();
+    GetDebrisManagerObject();
+
     // 1. ステージで使用される全プレハブの事前プール生成（GPU Instancing & オブジェクトプール事前確保）
     const std::vector<std::pair<std::string, uint32_t>> preloadConfigs = {
         {enemyPrefabPath_, 20},
@@ -169,11 +202,21 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
                     auto scene = deadObj->GetScene();
                     if (scene) {
-                        // 1. プレイヤー位置の取得
+                        // 1. プレイヤー位置の取得（キャッシュ優先）
                         Irufemi::Vector3 playerPos = deadPos;
-                        auto playerObj = scene->FindGameObject("PlayerCart");
+                        std::shared_ptr<GameObject> playerObj = nullptr;
+                        std::shared_ptr<GameObject> debrisMgrObj = nullptr;
+                        if (auto spawnerObj = weakObj.lock()) {
+                            if (auto spawner = spawnerObj->GetComponent<EnemySpawnerComponent>()) {
+                                playerObj = spawner->GetPlayerCartObject();
+                                debrisMgrObj = spawner->GetDebrisManagerObject();
+                            }
+                        }
                         if (!playerObj) {
-                            playerObj = scene->FindGameObject("Player");
+                            playerObj = scene->FindGameObject("PlayerCart");
+                            if (!playerObj) {
+                                playerObj = scene->FindGameObject("Player");
+                            }
                         }
                         if (playerObj && playerObj->GetTransform()) {
                             playerPos = playerObj->GetTransform()->GetWorldPosition();
@@ -186,8 +229,11 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                         }
                         int dropCount = (scaleMult >= 1.3f) ? 4 : 2;
 
-                        // 3. 自機手前方向への物理バーストドロップ
-                        if (auto debrisMgrObj = scene->FindGameObject("DebrisManager")) {
+                        // 3. 自機手前方向への物理バーストドロップ（キャッシュ優先）
+                        if (!debrisMgrObj) {
+                            debrisMgrObj = scene->FindGameObject("DebrisManager");
+                        }
+                        if (debrisMgrObj) {
                             if (auto debrisMgr = debrisMgrObj->GetComponent<DebrisManagerComponent>()) {
                                 debrisMgr->SpawnDebrisBurst(deadPos, playerPos, dropCount, 3.5f, 12.0f);
                             }

@@ -10,9 +10,10 @@
 #include <array>
 
 void SceneTransitionButtonComponent::OnRegisterProperties() {
+    Component::OnRegisterProperties();
     RegisterProperty("Load Scene Name", &onClickLoadScene_);
     // 0:Fade, 1:Dissolve, 2:Slide, 3:RadialBlur
-    RegisterProperty("Transition Type(0-3)", &transitionType_);
+    RegisterPropertyRange("Transition Type(0-3)", reinterpret_cast<int*>(&transitionType_), 0, 3);
     RegisterProperty("Transition Duration", &transitionDuration_);
     RegisterProperty("Transition Delay", &transitionDelay_);
     RegisterProperty("Click Anim Duration", &clickAnimDuration_);
@@ -75,15 +76,20 @@ void SceneTransitionButtonComponent::Update() {
             isTransitionPending_ = false;
 
             if (!onClickLoadScene_.empty()) {
-                static constexpr std::array<SceneTransition::Type, 4> kTransitionTypes = {
-                    SceneTransition::Type::Fade,      // 0
-                    SceneTransition::Type::Dissolve,  // 1
-                    SceneTransition::Type::Slide,     // 2
-                    SceneTransition::Type::RadialBlur // 3
-                };
                 SceneTransition::Type type = SceneTransition::Type::Fade;
-                if (transitionType_ >= 0 && static_cast<size_t>(transitionType_) < kTransitionTypes.size()) {
-                    type = kTransitionTypes[static_cast<size_t>(transitionType_)];
+                switch (transitionType_) {
+                case TransitionType::Fade:
+                    type = SceneTransition::Type::Fade;
+                    break;
+                case TransitionType::Dissolve:
+                    type = SceneTransition::Type::Dissolve;
+                    break;
+                case TransitionType::Slide:
+                    type = SceneTransition::Type::Slide;
+                    break;
+                case TransitionType::RadialBlur:
+                    type = SceneTransition::Type::RadialBlur;
+                    break;
                 }
                 engine->GetSceneManager()->LoadScene(onClickLoadScene_, type, transitionDuration_);
             }

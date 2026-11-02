@@ -107,6 +107,16 @@ public:
         baseColliderRadius_ = radius;
     }
 
+    /**
+     * @brief プレイヤー（自機カート）GameObjectを取得する（キャッシュ付き）
+     */
+    std::shared_ptr<GameObject> GetPlayerCartObject();
+
+    /**
+     * @brief ガレキマネージャーGameObjectを取得する（キャッシュ付き）
+     */
+    std::shared_ptr<GameObject> GetDebrisManagerObject();
+
 private:
     struct PrefabPoolData {
         std::string prefabPath;
@@ -129,6 +139,8 @@ private:
     float baseColliderRadius_ = 2.0f;
 
     std::unordered_map<std::string, std::unique_ptr<PrefabPoolData>> prefabPools_;
+    std::weak_ptr<GameObject> playerCartObj_;
+    std::weak_ptr<GameObject> debrisManagerObj_;
     struct ActiveEnemyInfo {
         GameObject* enemyObj = nullptr;
         std::string prefabPath;

@@ -6,6 +6,7 @@
 #include <string>
 
 void BossComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
+    (void)actionManager;
     auto comp = dynamic_cast<BossComponent*>(component);
     if (!comp) {
         return;
