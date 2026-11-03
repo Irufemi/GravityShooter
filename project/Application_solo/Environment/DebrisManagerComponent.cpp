@@ -25,6 +25,7 @@
 #include "Core/Utility/Log.h"
 #include "Core/Utility/ContainerUtility.h"
 #include "Core/Utility/JsonUtility.h"
+#include "Core/Utility/ErrorUtility.h"
 #include <iostream>
 #include <algorithm>
 #include "Effects/EffectManagerComponent.h"
@@ -71,7 +72,9 @@ void DebrisManagerComponent::OnRegisterProperties() {
 void DebrisManagerComponent::Initialize() {
     std::string configPath = "resources/GameData/DebrisPalette.json";
     nlohmann::json j;
-    if (!Irufemi::JsonUtility::LoadFromFile(configPath, j)) {
+    bool loaded = Irufemi::JsonUtility::LoadFromFile(configPath, j);
+    IRUFEMI_ASSERT_MSG(loaded, "Failed to load DebrisPalette.json: Configuration file is missing or corrupted!");
+    if (!loaded) {
         Log::OutPutLog(std::cerr, "Failed to load DebrisPalette.json\n");
         return;
     }

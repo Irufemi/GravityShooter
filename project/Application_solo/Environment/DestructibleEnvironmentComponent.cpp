@@ -5,10 +5,9 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Effect/EffectMaskComponent.h"
 #include "Core/Math/Random/Random.h"
-#include "Core/Utility/Log.h"
+
 #include "Effects/EffectManagerComponent.h"
 #include "Environment/DebrisComponent.h"
-#include <iostream>
 
 void DestructibleEnvironmentComponent::Initialize() {
     debrisManager_ = nullptr;
@@ -59,8 +58,6 @@ void DestructibleEnvironmentComponent::TakeDamage(int damage) {
 
     if (hp_ <= 0) {
         // 破壊イベント発火
-        Log::OutPutLog(std::cout, "[DestructibleEnv] Environment Destroyed: " + gameObject_->GetName() + "\n");
-
         auto transform = gameObject_->GetTransform();
         auto debrisMgr = GetDebrisManager();
         if (transform && debrisMgr) {

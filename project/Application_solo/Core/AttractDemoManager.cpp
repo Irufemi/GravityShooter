@@ -40,8 +40,8 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     engine_ = engine;
     previousScene_ = "";
     isKioskLoopMode_ = config_.enabledOnStart;
-    s_isKioskModeActive_ = config_.enabledOnStart;
-    s_isAttractModeActive_ = config_.enabledOnStart;
+    isKioskModeActive_ = config_.enabledOnStart;
+    isAttractModeActive_ = config_.enabledOnStart;
     demoMode_ = config_.defaultMode;
     isDemoPlaying_ = false;
     isDemoInGame_ = false;
@@ -60,8 +60,8 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
 void AttractDemoManager::OnFinalize() {
     StopAllDemo(false);
     CleanupDemoHud();
-    s_isKioskModeActive_ = false;
-    s_isAttractModeActive_ = false;
+    isKioskModeActive_ = false;
+    isAttractModeActive_ = false;
     engine_ = nullptr;
 }
 
@@ -73,8 +73,8 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
 #ifdef EditorMode
     // エディタ非Play（Edit）状態では、ゲームデモのタイマー更新や自動遷移を完全停止
     if (!engine_->IsPlayMode()) {
-        s_isKioskModeActive_ = false;
-        s_isAttractModeActive_ = false;
+        isKioskModeActive_ = false;
+        isAttractModeActive_ = false;
         isDemoPlaying_ = false;
         isDemoInGame_ = false;
         return;
@@ -89,8 +89,8 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
     UpdateF8Input(deltaTime);
 
     // 静的フラグの同期更新（ゲームコンポーネントからの入力遮断判定用）
-    s_isKioskModeActive_ = isKioskLoopMode_;
-    s_isAttractModeActive_ = (isKioskLoopMode_ || isDemoPlaying_ || isDemoInGame_);
+    isKioskModeActive_ = isKioskLoopMode_;
+    isAttractModeActive_ = (isKioskLoopMode_ || isDemoPlaying_ || isDemoInGame_);
 
     auto sm = engine_->GetSceneManager();
     if (!sm) {
@@ -535,7 +535,7 @@ void AttractDemoManager::StartTitleDemo() {
     demoTimeline_ = 0.0f;
     hasSubmitted_ = false;
     hasTriggeredDemoPulse_ = false;
-    s_isAttractModeActive_ = true;
+    isAttractModeActive_ = true;
 
     // 各ボタンの最新スクリーン座標を取得・キャッシュ
     posStart_ = GetButtonCenter("Btn_Start", {640.0f, 420.0f});
@@ -582,8 +582,8 @@ void AttractDemoManager::StopTitleDemo() {
     demoTimeline_ = 0.0f;
     hasSubmitted_ = false;
     hasTriggeredDemoPulse_ = false;
-    s_isAttractModeActive_ = (isKioskLoopMode_ || isDemoInGame_);
-    if (demoHudObj_ && !s_isAttractModeActive_) {
+    isAttractModeActive_ = (isKioskLoopMode_ || isDemoInGame_);
+    if (demoHudObj_ && !isAttractModeActive_) {
         demoHudObj_->SetActive(false);
     }
 
@@ -604,8 +604,8 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
-    s_isKioskModeActive_ = false;
-    s_isAttractModeActive_ = false;
+    isKioskModeActive_ = false;
+    isAttractModeActive_ = false;
     if (demoHudObj_) {
         demoHudObj_->SetActive(false);
     }
@@ -680,7 +680,7 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
         return;
     }
 
-    bool isDemoActive = s_isAttractModeActive_;
+    bool isDemoActive = isAttractModeActive_;
 
     if (!isDemoActive) {
         if (demoHudObj_) {

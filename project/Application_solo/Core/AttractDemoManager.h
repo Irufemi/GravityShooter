@@ -106,19 +106,19 @@ public:
      * @brief キオスク固定展示モード（操作入力完全遮断）が有効かどうか
      */
     static bool IsKioskModeActive() {
-        return s_isKioskModeActive_;
+        return isKioskModeActive_;
     }
 
     /**
      * @brief デモ実演中（放置デモまたはキオスク展示中）かどうか
      */
     static bool IsAttractModeActive() {
-        return s_isAttractModeActive_;
+        return isAttractModeActive_;
     }
 
 private:
-    static inline bool s_isKioskModeActive_ = false;
-    static inline bool s_isAttractModeActive_ = false;
+    static inline bool isKioskModeActive_ = false;
+    static inline bool isAttractModeActive_ = false;
     void UpdateF8Input(float deltaTime);
     void UpdateTitleScene(float deltaTime);
     void UpdateInGameScene(float deltaTime);
