@@ -299,25 +299,25 @@ void EnemySpawnerComponent::Update() {
 
     // 2. アクティブなすべての敵のワールド行列を、該当プレハブのバッチレンダラーへ一括登録
     for (const auto& pair : activeEnemyHandles_) {
-        GameObject* enemyObj = pair.second.enemyObj;
-        if (enemyObj && enemyObj->GetIsActive()) {
-            const std::string& prefabPath = pair.second.prefabPath;
+        const auto& info = pair.second;
+        if (info.enemyObj && info.enemyObj->GetIsActive()) {
+            const std::string& prefabPath = info.prefabPath;
             auto poolIt = prefabPools_.find(prefabPath);
             if (poolIt != prefabPools_.end() && poolIt->second && poolIt->second->batchRenderer) {
-                if (auto transform = enemyObj->GetTransform()) {
+                if (info.transform) {
                     int32_t effectType = 0;
                     float effectParam = 0.0f;
                     bool enableMask = false;
-                    if (auto effectMask = enemyObj->GetComponent<EffectMaskComponent>()) {
-                        enableMask = effectMask->GetEnableEffectMask();
-                        effectType = effectMask->GetCustomEffectType();
-                        effectParam = effectMask->GetCachedEffectParam();
+                    if (info.effectMask) {
+                        enableMask = info.effectMask->GetEnableEffectMask();
+                        effectType = info.effectMask->GetCustomEffectType();
+                        effectParam = info.effectMask->GetCachedEffectParam();
                         if (enableMask && effectParam == 0.0f) {
-                            effectMask->Update();
-                            effectParam = effectMask->GetCachedEffectParam();
+                            info.effectMask->Update();
+                            effectParam = info.effectMask->GetCachedEffectParam();
                         }
                     }
-                    poolIt->second->batchRenderer->AddInstanceWorld(transform->GetWorldMatrix(), effectType,
+                    poolIt->second->batchRenderer->AddInstanceWorld(info.transform->GetWorldMatrix(), effectType,
                                                                     effectParam, enableMask);
                 }
             }
@@ -387,9 +387,11 @@ GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabP
 
     auto enemy = poolData->pool->Resolve(handle);
     if (enemy) {
-        activeEnemyHandles_[enemy->GetInstanceID()] = {enemy.get(), prefabPath, handle};
+        auto transform = enemy->GetComponent<TransformComponent>();
+        auto effectMask = enemy->GetComponent<EffectMaskComponent>();
+        activeEnemyHandles_[enemy->GetInstanceID()] = {enemy.get(), transform, effectMask, prefabPath, handle};
 
-        if (auto transform = enemy->GetComponent<TransformComponent>()) {
+        if (transform) {
             transform->SetWorldPosition(position);
             transform->SetWorldRotation(rotation);
             transform->SetScale(poolData->baseScale * scaleMultiplier);

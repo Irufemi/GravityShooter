@@ -236,8 +236,8 @@ bool Sprite::SetTextureRectPixels(int x, int y, int w, int h, bool autoResize) {
 
     int sx = std::clamp(x, 0, texW);
     int sy = std::clamp(y, 0, texH);
-    int ex = std::clamp(sx + std::max(w, 0), 0, texW);
-    int ey = std::clamp(sy + std::max(h, 0), 0, texH);
+    int ex = std::clamp(sx + (std::max)(w, 0), 0, texW);
+    int ey = std::clamp(sy + (std::max)(h, 0), 0, texH);
     if (ex <= sx || ey <= sy) {
         return false;
     }
@@ -371,7 +371,7 @@ void Sprite::Debug([[maybe_unused]] const char* spriteName) {
             changed |= ImGui::DragInt2("LeftTop", lt, 1);
             changed |= ImGui::DragInt2("Size", szpx, 1);
             if (changed && enabled) {
-                SetTextureRectPixels(lt[0], lt[1], std::max(1, szpx[0]), std::max(1, szpx[1]), false);
+                SetTextureRectPixels(lt[0], lt[1], (std::max)(1, szpx[0]), (std::max)(1, szpx[1]), false);
             }
             if (ImGui::SmallButton("Reset Full")) {
                 ClearTextureRect();

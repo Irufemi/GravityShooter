@@ -32,7 +32,7 @@ public:
      * @return EnemyBulletManagerComponent のポインタ（未登録時は nullptr）
      */
     static EnemyBulletManagerComponent* GetInstance() {
-        return s_instance_;
+        return instance_;
     }
 
     /**
@@ -74,7 +74,7 @@ public:
 private:
     void WarmupPool();
 
-    static inline EnemyBulletManagerComponent* s_instance_ = nullptr; //!< 静的サービスロケータインスタンス
+    static inline EnemyBulletManagerComponent* instance_ = nullptr; //!< 静的サービスロケータインスタンス
 
     int maxBullets_ = 64;                                                         //!< プール最大容量
     std::string bulletModelPath_ = "resources/model/EnemyBullet/EnemyBullet.obj"; //!< 弾の3Dモデルパス

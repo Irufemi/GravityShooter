@@ -50,11 +50,10 @@ ModelManager::~ModelManager() {
 }
 
 void ModelManager::Finalize() {
-    if (threadPool_) {
-        threadPool_->WaitForAll();
-    }
-    modelPool_.Clear();
-    voxelizedModelPool_.Clear();
+    threadPool_.reset();
+    directoryWatcher_.reset();
+    managedModels_.clear();
+    nameToHandleMap_.clear();
     GpuMesh::dxCommon_ = nullptr;
     dxCommon_ = nullptr;
     textureManager_ = nullptr;

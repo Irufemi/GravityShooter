@@ -6,6 +6,9 @@
 #include <memory>
 #include <unordered_map>
 
+class TransformComponent;
+class EffectMaskComponent;
+
 /**
  * @class EnemySpawnerComponent
  * @brief 敵キャラクターのオブジェクトプール管理およびインスタンシング一括描画制御を行うスポナー
@@ -143,6 +146,8 @@ private:
     std::weak_ptr<GameObject> debrisManagerObj_;
     struct ActiveEnemyInfo {
         GameObject* enemyObj = nullptr;
+        TransformComponent* transform = nullptr;
+        EffectMaskComponent* effectMask = nullptr;
         std::string prefabPath;
         ObjectPool<GameObject>::Handle handle;
     };

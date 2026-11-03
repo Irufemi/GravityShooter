@@ -9,7 +9,7 @@
 #include "Core/System/IrufemiEngine.h"
 
 EnemyBulletManagerComponent::EnemyBulletManagerComponent() {
-    s_instance_ = this;
+    instance_ = this;
 }
 
 void EnemyBulletManagerComponent::OnRegisterProperties() {
@@ -27,15 +27,15 @@ void EnemyBulletManagerComponent::Start() {
 }
 
 void EnemyBulletManagerComponent::OnDestroy() {
-    if (s_instance_ == this) {
-        s_instance_ = nullptr;
+    if (instance_ == this) {
+        instance_ = nullptr;
     }
     bulletPool_.reset();
 }
 
 EnemyBulletManagerComponent* EnemyBulletManagerComponent::GetOrCreate(BaseScene* scene) {
-    if (s_instance_) {
-        return s_instance_;
+    if (instance_) {
+        return instance_;
     }
     if (!scene) {
         return nullptr;
