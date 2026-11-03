@@ -138,12 +138,13 @@ private:
         std::function<void()> callback;
     };
 
+    class ColliderComponent* GetCollider() const;
+
     std::vector<std::function<void(int damage)>> onDamageTakenListeners_;
     std::vector<PlayerDiedListenerEntry> onPlayerDiedListeners_;
     ListenerId nextPlayerDiedListenerId_ = 0;
     std::function<void()> onDeathSequenceFinished_;
 
-    class ColliderComponent* collider_ = nullptr;
     class EffectMaskComponent* effectMask_ = nullptr;
 
     // 無敵ブリンク演出 (Juice)

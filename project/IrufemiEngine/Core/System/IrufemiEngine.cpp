@@ -746,6 +746,17 @@ void IrufemiEngine::Finalize() {
     Text::SetDrawManager(nullptr);
     Text::SetCameraManager(nullptr);
 
+    Sprite::SetTextureManager(nullptr);
+    Sprite::SetDrawManager(nullptr);
+    Sprite::SetCameraManager(nullptr);
+
+    Line3DBatch::SetDirectXCommon(nullptr);
+    Line3DBatch::SetDrawManager(nullptr);
+
+    if (modelManager_) {
+        modelManager_->Finalize();
+    }
+
     SceneSerializer::SetPrefabManager(nullptr);
     if (prefabManager_) {
         prefabManager_->ClearCache();

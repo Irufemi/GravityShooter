@@ -45,7 +45,20 @@ GpuMaterial::~GpuMaterial() {
 }
 
 ModelManager::ModelManager() = default;
-ModelManager::~ModelManager() = default;
+ModelManager::~ModelManager() {
+    Finalize();
+}
+
+void ModelManager::Finalize() {
+    if (threadPool_) {
+        threadPool_->WaitForAll();
+    }
+    modelPool_.Clear();
+    voxelizedModelPool_.Clear();
+    GpuMesh::dxCommon_ = nullptr;
+    dxCommon_ = nullptr;
+    textureManager_ = nullptr;
+}
 
 void ModelManager::Initialize(DirectXCommon* dxCommon, TextureManager* textureManager) {
     dxCommon_ = dxCommon;

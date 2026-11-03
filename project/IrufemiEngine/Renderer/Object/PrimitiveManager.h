@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <unordered_map>
+#include <mutex>
 #include <string>
 #include <memory>
 #include <d3d12.h>
@@ -300,6 +301,7 @@ private:
     static void GenerateTorusIndices(PrimitiveData& data, uint32_t majorSegments, uint32_t minorSegments);
 
 private:
+    mutable std::recursive_mutex mutex_;
     std::unordered_map<Irufemi::PrimitiveType, PrimitiveData> cpuCache_;
     std::unordered_map<Irufemi::PrimitiveType, PrimitiveResource> gpuCache_;
     std::unordered_map<uint32_t, PrimitiveResource> cylinderGpuCache_;

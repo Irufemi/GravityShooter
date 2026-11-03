@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 const PrimitiveData& PrimitiveManager::GetPrimitiveData(Irufemi::PrimitiveType type) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = cpuCache_.find(type);
     if (it != cpuCache_.end()) {
         return it->second;
@@ -72,6 +73,7 @@ const std::vector<VertexData>& PrimitiveManager::GetVertices(Irufemi::PrimitiveT
 }
 
 const PrimitiveResource& PrimitiveManager::GetStandardResource(Irufemi::PrimitiveType type) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = gpuCache_.find(type);
     if (it != gpuCache_.end()) {
         return it->second;
@@ -85,6 +87,7 @@ const PrimitiveResource& PrimitiveManager::GetStandardResource(Irufemi::Primitiv
 }
 
 const PrimitiveResource& PrimitiveManager::GetCylinderResource(bool hasTop, bool hasBottom) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     uint32_t key = (hasTop ? 2 : 0) | (hasBottom ? 1 : 0);
     auto it = cylinderGpuCache_.find(key);
     if (it != cylinderGpuCache_.end()) {

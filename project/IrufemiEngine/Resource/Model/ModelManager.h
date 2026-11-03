@@ -8,7 +8,6 @@
 #include <map>
 #include <fstream>
 #include <sstream>
-#include <cassert>
 #include <wrl.h>
 #include <future>
 #include <type_traits>
@@ -107,6 +106,11 @@ class ModelManager {
 public:
     ModelManager();
     ~ModelManager();
+
+    /**
+     * @brief マネージャの解放・シャットダウン
+     */
+    void Finalize();
 
     /**
      * @brief マネージャの初期化

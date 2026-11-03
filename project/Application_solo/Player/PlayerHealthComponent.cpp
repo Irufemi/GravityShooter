@@ -47,10 +47,9 @@ void PlayerHealthComponent::Initialize() {
 
 void PlayerHealthComponent::Start() {
     if (gameObject_) {
-        collider_ = gameObject_->GetComponentByInterface<ColliderComponent>();
-        if (collider_) {
-            collider_->SetDebugCategory(DebugCategory::Combat);
-            collider_->SetDebugCustomColor(Irufemi::Vector4{0.0f, 1.0f, 1.0f, 1.0f});
+        if (auto col = GetCollider()) {
+            col->SetDebugCategory(DebugCategory::Combat);
+            col->SetDebugCustomColor(Irufemi::Vector4{0.0f, 1.0f, 1.0f, 1.0f});
         }
         effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
         if (effectMask_) {
@@ -73,11 +72,11 @@ void PlayerHealthComponent::Update() {
     }
 #endif
 
-    if (collider_) {
+    if (auto col = GetCollider()) {
         if (IsInvincible()) {
-            collider_->SetDebugCustomColor(Irufemi::Vector4{1.0f, 1.0f, 1.0f, 1.0f});
+            col->SetDebugCustomColor(Irufemi::Vector4{1.0f, 1.0f, 1.0f, 1.0f});
         } else {
-            collider_->SetDebugCustomColor(Irufemi::Vector4{0.0f, 1.0f, 1.0f, 1.0f});
+            col->SetDebugCustomColor(Irufemi::Vector4{0.0f, 1.0f, 1.0f, 1.0f});
         }
     }
 
@@ -190,4 +189,11 @@ void PlayerHealthComponent::NotifyDeathSequenceFinished() {
     if (onDeathSequenceFinished_) {
         onDeathSequenceFinished_();
     }
+}
+
+ColliderComponent* PlayerHealthComponent::GetCollider() const {
+    if (gameObject_) {
+        return gameObject_->GetComponentByInterface<ColliderComponent>();
+    }
+    return nullptr;
 }
