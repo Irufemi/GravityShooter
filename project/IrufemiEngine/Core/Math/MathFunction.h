@@ -345,12 +345,12 @@ LetterboxInfo CalculateLetterbox(float clientW, float clientH, float gameW, floa
 /**
  * @brief 任意軸回転行列の作成
  */
-Matrix4x4 MakeRotateAxisAngle(Vector3 axis, float angle);
+Matrix4x4 MakeRotateAxisAngle(const Vector3& axis, float angle);
 
 /**
  * @brief 方向ベクトル間の回転行列を作成
  */
-Matrix4x4 DirectionToDirection(Vector3 from, Vector3 to);
+Matrix4x4 DirectionToDirection(const Vector3& from, const Vector3& to);
 
 /**
  * @brief 回転行列からオイラー角を抽出
@@ -362,7 +362,7 @@ Vector3 ExtractEulerFromMatrix(const Matrix4x4& matrix);
  * @param forward 向きたい方向のベクトル
  * @param up 上方向のベクトル（デフォルトはY軸）
  */
-Vector3 LookRotation(Vector3 forward, Vector3 up = {0.0f, 1.0f, 0.0f});
+Vector3 LookRotation(const Vector3& forward, const Vector3& up = {0.0f, 1.0f, 0.0f});
 
 /** @} */
 #pragma endregion
@@ -404,7 +404,7 @@ Quaternion Inverse(const Quaternion& quaternion);
 /**
  * @brief 任意軸回転クォータニオンの作成
  */
-Quaternion MakeRotateAxisAngleQuaternion(Vector3 axis, float angle);
+Quaternion MakeRotateAxisAngleQuaternion(const Vector3& axis, float angle);
 
 /**
  * @brief クォータニオンによるベクトル回転
@@ -429,7 +429,7 @@ Vector3 ToEuler(const Quaternion& q);
 /**
  * @brief オイラー角からクォータニオンへ変換 (XYZ順)
  */
-Quaternion ToQuaternionFromEuler(Vector3 euler);
+Quaternion ToQuaternionFromEuler(const Vector3& euler);
 
 /**
  * @brief 回転行列からクォータニオンへ変換

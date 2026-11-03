@@ -5,8 +5,15 @@
 #include "Framework/Component/Renderer/SkinnedMeshRendererComponent.h"
 #include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
 #include "Core/System/IrufemiEngine.h"
+#include <atomic>
 
-EffectMaskComponent::EffectMaskComponent() {}
+namespace {
+// GameObject 未紐付け時に使用する一意なフォールバックID生成器（ポインタキャストによる衝突防止）
+uint64_t GenerateFallbackOwnerId() {
+    static std::atomic<uint64_t> sNextFallbackId{0x8000000000000000ULL};
+    return sNextFallbackId.fetch_add(1, std::memory_order_relaxed);
+}
+} // namespace
 
 EffectMaskComponent::~EffectMaskComponent() {
     OnDestroy();
@@ -44,7 +51,7 @@ void EffectMaskComponent::SetCustomParams(const PostProcessManager::CustomEffect
         }
         if (cachedPostProcessManager_) {
             if (ownerId_ == 0) {
-                ownerId_ = gameObject_ ? gameObject_->GetInstanceID() : reinterpret_cast<uint64_t>(this);
+                ownerId_ = gameObject_ ? gameObject_->GetInstanceID() : GenerateFallbackOwnerId();
             }
             assignedSlot_ = cachedPostProcessManager_->RegisterCustomEffectParams(ownerId_, customParams_);
             cachedEffectParam_ = static_cast<float>(assignedSlot_) / 255.0f;
@@ -81,7 +88,9 @@ void EffectMaskComponent::Update() {
         const bool needRegister = isParamsDirty_ || (lastCustomParams_ != customParams_) ||
                                   (lastEnable_ != enableEffectMask_) || (lastType_ != customEffectType_);
         if (needRegister && cachedPostProcessManager_) {
-            ownerId_ = gameObject_ ? gameObject_->GetInstanceID() : reinterpret_cast<uint64_t>(this);
+            if (ownerId_ == 0) {
+                ownerId_ = gameObject_ ? gameObject_->GetInstanceID() : GenerateFallbackOwnerId();
+            }
             assignedSlot_ = cachedPostProcessManager_->RegisterCustomEffectParams(ownerId_, customParams_);
             cachedEffectParam_ = static_cast<float>(assignedSlot_) / 255.0f;
             lastCustomParams_ = customParams_;

@@ -50,8 +50,10 @@ void InputManager::Update() {
     gamepad_->Update();
     mouse_->Update();
 
-    // アクション値の更新
-    previousActionValues_ = currentActionValues_;
+    // アクション値の更新（既存ノードを再利用してゼロアロケーション化）
+    for (const auto& [action, val] : currentActionValues_) {
+        previousActionValues_[action] = val;
+    }
 
     // 現在のフレームの値をリセットして再計算
     for (auto& pair : currentActionValues_) {

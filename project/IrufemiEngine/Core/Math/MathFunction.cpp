@@ -449,7 +449,7 @@ Ray ScreenPointToRay(Vector2 mousePos, float screenWidth, float screenHeight, co
     return ray;
 }
 
-Matrix4x4 MakeRotateAxisAngle(Vector3 axis, float angle) {
+Matrix4x4 MakeRotateAxisAngle(const Vector3& axis, float angle) {
     float c = std::cos(angle);
     float s = std::sin(angle);
     Vector3 n = Normalize(axis);
@@ -463,7 +463,7 @@ Matrix4x4 MakeRotateAxisAngle(Vector3 axis, float angle) {
     // clang-format on
 }
 
-Matrix4x4 DirectionToDirection(Vector3 from, Vector3 to) {
+Matrix4x4 DirectionToDirection(const Vector3& from, const Vector3& to) {
     Vector3 f = Normalize(from);
     Vector3 t = Normalize(to);
     float cosTheta = Dot(f, t);
@@ -505,33 +505,33 @@ Vector3 ExtractEulerFromMatrix(const Matrix4x4& matrix) {
     return euler;
 }
 
-Vector3 LookRotation(Vector3 forward, Vector3 up) {
+Vector3 LookRotation(const Vector3& forward, const Vector3& up) {
     if (forward.LengthSquared() < 0.0001f) {
         return {0.0f, 0.0f, 0.0f};
     }
-    forward.Normalize();
+    Vector3 f = forward.GetNormalized();
 
-    Vector3 right = Cross(up, forward);
+    Vector3 right = Cross(up, f);
     if (right.LengthSquared() < 0.0001f) {
         // 前方と上が平行な場合へのフォールバック
-        right = Cross(Vector3{1.0f, 0.0f, 0.0f}, forward);
+        right = Cross(Vector3{1.0f, 0.0f, 0.0f}, f);
         if (right.LengthSquared() < 0.0001f) {
-            right = Cross(Vector3{0.0f, 1.0f, 0.0f}, forward);
+            right = Cross(Vector3{0.0f, 1.0f, 0.0f}, f);
         }
     }
     right.Normalize();
-    up = Cross(forward, right).GetNormalized();
+    Vector3 u = Cross(f, right).GetNormalized();
 
     Matrix4x4 rotMat = MakeIdentity4x4();
     rotMat.m[0][0] = right.x;
     rotMat.m[0][1] = right.y;
     rotMat.m[0][2] = right.z;
-    rotMat.m[1][0] = up.x;
-    rotMat.m[1][1] = up.y;
-    rotMat.m[1][2] = up.z;
-    rotMat.m[2][0] = forward.x;
-    rotMat.m[2][1] = forward.y;
-    rotMat.m[2][2] = forward.z;
+    rotMat.m[1][0] = u.x;
+    rotMat.m[1][1] = u.y;
+    rotMat.m[1][2] = u.z;
+    rotMat.m[2][0] = f.x;
+    rotMat.m[2][1] = f.y;
+    rotMat.m[2][2] = f.z;
 
     return ExtractEulerFromMatrix(rotMat);
 }
@@ -573,7 +573,7 @@ Quaternion Inverse(const Quaternion& q) {
     return {conj.x / normSq, conj.y / normSq, conj.z / normSq, conj.w / normSq};
 }
 
-Quaternion MakeRotateAxisAngleQuaternion(Vector3 axis, float angle) {
+Quaternion MakeRotateAxisAngleQuaternion(const Vector3& axis, float angle) {
     Vector3 n = Math::Normalize(axis);
     float half = angle * 0.5f;
     float s = std::sin(half);
@@ -666,7 +666,7 @@ Vector3 ToEuler(const Quaternion& q) {
     return euler;
 }
 
-Quaternion ToQuaternionFromEuler(Vector3 euler) {
+Quaternion ToQuaternionFromEuler(const Vector3& euler) {
     float cx = std::cos(euler.x * 0.5f);
     float sx = std::sin(euler.x * 0.5f);
     float cy = std::cos(euler.y * 0.5f);

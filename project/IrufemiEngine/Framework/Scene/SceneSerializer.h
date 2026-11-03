@@ -52,9 +52,10 @@ public:
     /**
      * @brief プレハブファイルから GameObject を復元・生成する
      * @param filepath 読み込むファイルのパス
+     * @param scene 展開先のシーン（任意。指定時はシーンからPrefabManagerを取得）
      * @return 生成された GameObject の共有ポインタ
      */
-    static std::shared_ptr<GameObject> LoadPrefab(const std::string& filepath);
+    static std::shared_ptr<GameObject> LoadPrefab(const std::string& filepath, IScene* scene = nullptr);
 
     /**
      * @brief キャッシュされているプレハブのJSONデータをクリアする
@@ -63,10 +64,17 @@ public:
 
     /**
      * @brief プレハブのJSONデータを取得する（キャッシュ対応）
+     * @param filepath 読み込むファイルのパス
+     * @param scene 展開先のシーン（任意。指定時はシーンからPrefabManagerを取得）
      */
-    static nlohmann::json GetPrefabJson(const std::string& filepath);
+    static nlohmann::json GetPrefabJson(const std::string& filepath, IScene* scene = nullptr);
 
 private:
+    /**
+     * @brief 有効な PrefabManager を取得する（シーン経由優先、フォールバックで静的ポインタ）
+     */
+    static PrefabManager* GetEffectivePrefabManager(IScene* scene = nullptr);
+
     /**
      * @brief シーン名からファイルパスを生成する(設定されたパス/[Name].json)
      */

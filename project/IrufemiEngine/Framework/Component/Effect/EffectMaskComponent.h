@@ -13,7 +13,7 @@ class SkinnedMeshRendererComponent;
  */
 class EffectMaskComponent : public Component {
 public:
-    EffectMaskComponent();
+    EffectMaskComponent() = default;
     ~EffectMaskComponent() override;
 
     /**

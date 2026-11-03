@@ -55,21 +55,32 @@ bool SceneSerializer::SavePrefab(const std::shared_ptr<GameObject>& obj, const s
     return Irufemi::JsonUtility::SaveToFile(filepath, root, 2);
 }
 
-nlohmann::json SceneSerializer::GetPrefabJson(const std::string& filepath) {
-    if (!prefabManager_) {
+PrefabManager* SceneSerializer::GetEffectivePrefabManager(IScene* scene) {
+    if (scene && scene->GetEngine()) {
+        if (auto* pm = scene->GetEngine()->GetPrefabManager()) {
+            return pm;
+        }
+    }
+    return prefabManager_;
+}
+
+nlohmann::json SceneSerializer::GetPrefabJson(const std::string& filepath, IScene* scene) {
+    auto* pm = GetEffectivePrefabManager(scene);
+    if (!pm) {
         Log::OutPutLog(std::cerr, "[SceneSerializer] PrefabManager is null! Cannot get prefab JSON: " + filepath);
         return nlohmann::json::object();
     }
-    auto jsonPtr = prefabManager_->GetPrefabJson(filepath);
+    auto jsonPtr = pm->GetPrefabJson(filepath);
     return jsonPtr ? *jsonPtr : nlohmann::json::object();
 }
 
-std::shared_ptr<GameObject> SceneSerializer::LoadPrefab(const std::string& filepath) {
-    if (!prefabManager_) {
+std::shared_ptr<GameObject> SceneSerializer::LoadPrefab(const std::string& filepath, IScene* scene) {
+    auto* pm = GetEffectivePrefabManager(scene);
+    if (!pm) {
         Log::OutPutLog(std::cerr, "[SceneSerializer] PrefabManager is null! Cannot load prefab: " + filepath);
         return nullptr;
     }
-    return prefabManager_->Instantiate(filepath);
+    return pm->Instantiate(filepath);
 }
 
 void SceneSerializer::ClearCache() {
