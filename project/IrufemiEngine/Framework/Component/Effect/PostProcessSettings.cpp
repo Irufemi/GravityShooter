@@ -1,5 +1,6 @@
 #include "PostProcessSettings.h"
 #include "Renderer/PostProcess/Effects/BloomEffect.h"
+#include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
 
 // ---------------------------------------------------------
 // Bloom Settings
@@ -18,9 +19,6 @@ void BloomSettings::ApplyToManager(PostProcessManager* manager) {
             bloom->GetParams().sigma = sigma;
             bloom->SetParams(bloom->GetParams());
         }
-
-
-
     } else {
         manager->RemoveActiveMode(PostProcessMode::Bloom);
     }
@@ -68,13 +66,12 @@ void ColorGradingSettings::ApplyToManager(PostProcessManager* manager) {
             manager->AddActiveMode(PostProcessMode::HSV);
         }
 
-        auto& tm = manager->GetToneMappingParams();
-        tm.exposure = exposure;
-
-        auto& h = manager->GetHSVParams();
-        h.hue = hue;
-        h.saturation = saturation;
-        h.value = value;
+        if (auto* combined = manager->GetEffect<Irufemi::CombinedPostEffect>()) {
+            combined->GetToneMappingParams().exposure = exposure;
+            combined->GetHSVParams().hue = hue;
+            combined->GetHSVParams().saturation = saturation;
+            combined->GetHSVParams().value = value;
+        }
     } else {
         manager->RemoveActiveMode(PostProcessMode::ToneMapping);
         manager->RemoveActiveMode(PostProcessMode::HSV);
@@ -123,9 +120,10 @@ void VignetteSettings::ApplyToManager(PostProcessManager* manager) {
         if (!manager->HasActiveMode(PostProcessMode::Vignette)) {
             manager->AddActiveMode(PostProcessMode::Vignette);
         }
-        auto& p = manager->GetVignetteParams();
-        p.radius = radius;
-        p.softness = softness;
+        if (auto* combined = manager->GetEffect<Irufemi::CombinedPostEffect>()) {
+            combined->GetVignetteParams().radius = radius;
+            combined->GetVignetteParams().softness = softness;
+        }
     } else {
         manager->RemoveActiveMode(PostProcessMode::Vignette);
     }
@@ -165,9 +163,10 @@ void OutlineSettings::ApplyToManager(PostProcessManager* manager) {
         if (!manager->HasActiveMode(PostProcessMode::DepthBasedOutline)) {
             manager->AddActiveMode(PostProcessMode::DepthBasedOutline);
         }
-        auto& p = manager->GetOutlineParams();
-
-        p.maskMaxRadius = maskMaxRadius;
+        if (auto* combined = manager->GetEffect<Irufemi::CombinedPostEffect>()) {
+            combined->GetOutlineParams().intensity = intensity;
+            combined->GetOutlineParams().maskMaxRadius = maskMaxRadius;
+        }
     } else {
         manager->RemoveActiveMode(PostProcessMode::DepthBasedOutline);
     }

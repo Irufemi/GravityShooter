@@ -843,6 +843,62 @@ PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParamsD
     return lightShaftsParams_;
 }
 
+PostProcessManager::VignetteParams& PostProcessManager::GetVignetteParamsDelegated() {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetVignetteParams();
+    }
+    return vignetteParams_;
+}
+
+const PostProcessManager::VignetteParams& PostProcessManager::GetVignetteParamsDelegated() const {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetVignetteParams();
+    }
+    return vignetteParams_;
+}
+
+PostProcessManager::OutlineParams& PostProcessManager::GetOutlineParamsDelegated() {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetOutlineParams();
+    }
+    return outlineParams_;
+}
+
+const PostProcessManager::OutlineParams& PostProcessManager::GetOutlineParamsDelegated() const {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetOutlineParams();
+    }
+    return outlineParams_;
+}
+
+PostProcessManager::HSVParams& PostProcessManager::GetHSVParamsDelegated() {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetHSVParams();
+    }
+    return hsvParams_;
+}
+
+const PostProcessManager::HSVParams& PostProcessManager::GetHSVParamsDelegated() const {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetHSVParams();
+    }
+    return hsvParams_;
+}
+
+PostProcessManager::ToneMappingParams& PostProcessManager::GetToneMappingParamsDelegated() {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetToneMappingParams();
+    }
+    return toneMappingParams_;
+}
+
+const PostProcessManager::ToneMappingParams& PostProcessManager::GetToneMappingParamsDelegated() const {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        return combined->GetToneMappingParams();
+    }
+    return toneMappingParams_;
+}
+
 const PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParamsDelegated() const {
     if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) {
         return ls->GetParams();

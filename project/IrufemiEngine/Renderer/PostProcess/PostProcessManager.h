@@ -190,6 +190,14 @@ public:
     const BloomParams& GetBloomParamsDelegated() const;
     LightShaftsParams& GetLightShaftsParamsDelegated();
     const LightShaftsParams& GetLightShaftsParamsDelegated() const;
+    VignetteParams& GetVignetteParamsDelegated();
+    const VignetteParams& GetVignetteParamsDelegated() const;
+    OutlineParams& GetOutlineParamsDelegated();
+    const OutlineParams& GetOutlineParamsDelegated() const;
+    HSVParams& GetHSVParamsDelegated();
+    const HSVParams& GetHSVParamsDelegated() const;
+    ToneMappingParams& GetToneMappingParamsDelegated();
+    const ToneMappingParams& GetToneMappingParamsDelegated() const;
 
     /**
      * @brief フレーム描画開始処理（リングバッファオフセットのリセットおよびカスタムパラメータの同期）
@@ -570,14 +578,14 @@ public:
      * @return 取得された VignetteParams
      */
     VignetteParams& GetVignetteParams() {
-        return vignetteParams_;
+        return GetVignetteParamsDelegated();
     }
     /**
      * @brief VignetteParams を取得する（読み取り専用）。
      * @return 取得された VignetteParams
      */
     const VignetteParams& GetVignetteParams() const {
-        return vignetteParams_;
+        return GetVignetteParamsDelegated();
     }
     /**
      * @brief SmoothingParams を設定する。
@@ -654,14 +662,14 @@ public:
      * @return 取得された OutlineParams
      */
     OutlineParams& GetOutlineParams() {
-        return outlineParams_;
+        return GetOutlineParamsDelegated();
     }
     /**
      * @brief OutlineParams を取得する（読み取り専用）。
      * @return 取得された OutlineParams
      */
     const OutlineParams& GetOutlineParams() const {
-        return outlineParams_;
+        return GetOutlineParamsDelegated();
     }
     /**
      * @brief DissolveParams を設定する。
@@ -696,14 +704,14 @@ public:
      * @return 取得された HSVParams
      */
     HSVParams& GetHSVParams() {
-        return hsvParams_;
+        return GetHSVParamsDelegated();
     }
     /**
      * @brief HSVParams を取得する（読み取り専用）。
      * @return 取得された HSVParams
      */
     const HSVParams& GetHSVParams() const {
-        return hsvParams_;
+        return GetHSVParamsDelegated();
     }
     /**
      * @brief ToneMappingParams を設定する。
@@ -717,14 +725,14 @@ public:
      * @return 取得された ToneMappingParams
      */
     ToneMappingParams& GetToneMappingParams() {
-        return toneMappingParams_;
+        return GetToneMappingParamsDelegated();
     }
     /**
      * @brief ToneMappingParams を取得する（読み取り専用）。
      * @return 取得された ToneMappingParams
      */
     const ToneMappingParams& GetToneMappingParams() const {
-        return toneMappingParams_;
+        return GetToneMappingParamsDelegated();
     }
     /**
      * @brief FadeParams を設定する。

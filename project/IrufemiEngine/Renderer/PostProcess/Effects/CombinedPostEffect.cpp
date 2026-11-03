@@ -9,6 +9,19 @@
 
 namespace Irufemi {
 
+void CombinedPostEffect::SyncParamsToCombined(CombinedParams& combined) const {
+    combined.toneMappingExposure = toneMappingParams_.exposure;
+    combined.hsvHue = hsvParams_.hue;
+    combined.hsvSaturation = hsvParams_.saturation;
+    combined.hsvValue = hsvParams_.value;
+    combined.vignetteColor = vignetteParams_.color;
+    combined.vignetteRadius = vignetteParams_.radius;
+    combined.vignetteSoftness = vignetteParams_.softness;
+    combined.projectionInverse = outlineParams_.projectionInverse;
+    combined.outlineIntensity = outlineParams_.intensity;
+    combined.maskOutlineMaxRadius = outlineParams_.maskMaxRadius;
+}
+
 void CombinedPostEffect::Render(const PostProcessRenderContext& context) {
     RenderWithBatch(context, batch_);
 }
@@ -22,6 +35,7 @@ void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context
     bool writeToScreen = context.writeToScreen;
 
     // 1. パラメータの詰め替えとGPU同期
+    SyncParamsToCombined(manager->combinedParams_);
     manager->combinedParams_.effectCount = static_cast<int32_t>(batch.size());
     for (size_t i = 0; i < batch.size(); ++i) {
         manager->combinedParams_.effects[i] = static_cast<int32_t>(batch[i]);
