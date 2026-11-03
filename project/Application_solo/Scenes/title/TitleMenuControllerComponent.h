@@ -158,7 +158,7 @@ private:                                                      // メンバ変数
         0.22f;                          //!< モーダル決定演出所要時間 (Click In 0.055s + Click Pop 0.165s)
     std::string pendingModalSceneName_; //!< 遷移待機中のモーダルシーン名
 
-    int currentIndex_ = 0; //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
+    int currentIndex_ = 0;        //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
     int pressedButtonIndex_ = -1; //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
     UINavigationController nav_;
 

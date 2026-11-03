@@ -692,12 +692,12 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXCommon::CreateTextureResource(cons
 
     // metadataを基にResourceの設定
     D3D12_RESOURCE_DESC resourceDesc{};
-    resourceDesc.Width = UINT(metadata.width);                // Textureの幅
-    resourceDesc.Height = UINT(metadata.height);              // Textureの高さ
-    resourceDesc.MipLevels = UINT(metadata.mipLevels);        // mipmapの数
-    resourceDesc.DepthOrArraySize = UINT(metadata.arraySize); // 奥行きor 配列Textureの配列数
-    resourceDesc.Format = metadata.format;                    // TextureのFormat
-    resourceDesc.SampleDesc.Count = 1;                        // サンプリングカウント。1固定。
+    resourceDesc.Width = UINT(metadata.width);                             // Textureの幅
+    resourceDesc.Height = UINT(metadata.height);                           // Textureの高さ
+    resourceDesc.MipLevels = UINT(metadata.mipLevels);                     // mipmapの数
+    resourceDesc.DepthOrArraySize = UINT(metadata.arraySize);              // 奥行きor 配列Textureの配列数
+    resourceDesc.Format = metadata.format;                                 // TextureのFormat
+    resourceDesc.SampleDesc.Count = 1;                                     // サンプリングカウント。1固定。
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION(metadata.dimension); // Textureの次元数。普段使っているのは2次元。
 
     // 利用するHeapの設定。非常に特殊な運用。02_04exで一般的なケース版がある
@@ -862,12 +862,12 @@ DirectXCommon::CreateDepthStencilTextureResource(const Microsoft::WRL::ComPtr<ID
 
     // 生成するResourceの設定
     D3D12_RESOURCE_DESC resourceDesc{};
-    resourceDesc.Width = width;        // Textureの幅
-    resourceDesc.Height = height;      // Textureの高さ
-    resourceDesc.MipLevels = 1;        // mipmapの数
-    resourceDesc.DepthOrArraySize = 1; // 奥行き or 配列Textureの配列数
+    resourceDesc.Width = width;                       // Textureの幅
+    resourceDesc.Height = height;                     // Textureの高さ
+    resourceDesc.MipLevels = 1;                       // mipmapの数
+    resourceDesc.DepthOrArraySize = 1;                // 奥行き or 配列Textureの配列数
     resourceDesc.Format = DXGI_FORMAT_R24G8_TYPELESS; // 深度バッファとして使いつつ、SRVで読み込むためにTYPELESSにする
-    resourceDesc.SampleDesc.Count = 1;                            // サンプリングカウント。1固定
+    resourceDesc.SampleDesc.Count = 1;                // サンプリングカウント。1固定
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;  // 2次元
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL; // DepthStencilとして使う通知
 
@@ -887,11 +887,11 @@ DirectXCommon::CreateDepthStencilTextureResource(const Microsoft::WRL::ComPtr<ID
     // Resourceの生成
     Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
     HRESULT hr =
-        device->CreateCommittedResource(&heapProperties,                  // Heapの設定
-                                        D3D12_HEAP_FLAG_NONE,             // Heapの特殊な設定。特になし。
-                                        &resourceDesc,                    // Resourceの設定
-                                        D3D12_RESOURCE_STATE_DEPTH_WRITE, // 深度値を書き込む状態にしておく
-                                        &depthClearValue,                 // Clear最適値
+        device->CreateCommittedResource(&heapProperties,                      // Heapの設定
+                                        D3D12_HEAP_FLAG_NONE,                 // Heapの特殊な設定。特になし。
+                                        &resourceDesc,                        // Resourceの設定
+                                        D3D12_RESOURCE_STATE_DEPTH_WRITE,     // 深度値を書き込む状態にしておく
+                                        &depthClearValue,                     // Clear最適値
                                         IID_PPV_ARGS(resource.GetAddressOf()) // 作成するResourceポインタへのポインタ
         );
     ASSERT_IF_FAILED(hr);

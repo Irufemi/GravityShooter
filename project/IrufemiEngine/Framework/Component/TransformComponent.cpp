@@ -280,7 +280,7 @@ void TransformComponent::ComputeMatrix(bool force) const {
         }
         isWorldDirty_ = false;
         isWorldTransformExtracted_ = false; // ワールド座標が変化したので抽出フラグを下ろす
-        transformVersion_++; // ワールド行列が更新されたので自身のバージョンを上げる
+        transformVersion_++;                // ワールド行列が更新されたので自身のバージョンを上げる
     }
 }
 

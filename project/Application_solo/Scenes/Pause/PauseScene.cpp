@@ -509,8 +509,7 @@ void PauseScene::RemovePausePostProcess() {
 void PauseScene::ApplyTransition(float progress) {
     // 1. 暗幕オーバーレイのアルファ補間
     if (auto sprite = darkOverlaySprite_.lock()) {
-        sprite->SetColor(
-            {kColorDarkMask.x, kColorDarkMask.y, kColorDarkMask.z, kColorDarkMask.w * progress});
+        sprite->SetColor({kColorDarkMask.x, kColorDarkMask.y, kColorDarkMask.z, kColorDarkMask.w * progress});
     }
 
     // 2. カワセブラー & ビネットの動的強度補間 (PreUIレイヤー)

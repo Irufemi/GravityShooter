@@ -21,7 +21,7 @@ struct Frustum {
      * @details Gribb-Hartmann メソッドを使用して、抽出した平面の法線を内側（カメラ側）に向けます。
      */
     void SetFromViewProjection(const Matrix4x4& viewProjection) {
-        const float(*m)[4] = viewProjection.m;
+        const float (*m)[4] = viewProjection.m;
 
         // Left
         planes[kLeft].normal.x = m[0][3] + m[0][0];

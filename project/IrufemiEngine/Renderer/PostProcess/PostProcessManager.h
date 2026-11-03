@@ -54,7 +54,7 @@ enum class PostProcessMode {
     DepthOfField,          ///< 被写界深度（DoF）
     LightShafts,           ///< ゴッドレイ（光の筋）
     GravityDistortion,     ///< 重力波・空間歪曲（法線波紋＋色収差）
-    BlackHoleSupernova, ///< 自機重力特異点崩壊＆超新星爆発（事象の地平面＋GRAVITY DAZE色収差）
+    BlackHoleSupernova,    ///< 自機重力特異点崩壊＆超新星爆発（事象の地平面＋GRAVITY DAZE色収差）
 };
 
 class DirectXCommon;

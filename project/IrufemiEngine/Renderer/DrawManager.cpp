@@ -1018,7 +1018,7 @@ void DrawManager::DrawSkydome(const RenderPackets::SkydomePacket& packet) {
     commandList_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList_->IASetVertexBuffers(0, 0, nullptr); // 頂点バッファ不要（SV_VertexID）
     commandList_->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, packet.materialAddress); // b0
-    commandList_->DrawInstanced(3, 1, 0, 0); // 全画面三角形
+    commandList_->DrawInstanced(3, 1, 0, 0);                                                           // 全画面三角形
 }
 
 void DrawManager::SubmitStandard3D(const Object3DResource* resource,

@@ -473,13 +473,12 @@ private:
     bool isFolder_ = false;
     bool isLocked_ = false;
     bool hideInHierarchy_ = false; ///< エディタのヒエラルキーパネル非表示フラグ（プール・内部管理用）
-    bool isSerializable_ = false; // デフォルトはfalse（動的生成とみなす）
+    bool isSerializable_ = false;  // デフォルトはfalse（動的生成とみなす）
     std::string sourcePrefabPath_ = "";
     BaseScene* scene_ = nullptr;
 
     std::weak_ptr<GameObject> parent_;
     std::vector<std::shared_ptr<GameObject>> children_;
-
 
     std::unordered_map<std::type_index, std::vector<Component*>> componentMap_;
     class TransformComponent* transformCache_ = nullptr;
@@ -487,7 +486,6 @@ private:
     // が発生するため、通常の排他ロックではなく std::recursive_mutex を意図して使用しています。
     mutable std::recursive_mutex structureMutex_; ///< 構造変更（子オブジェクト・コンポーネント着脱）用ミューテックス
     std::vector<std::shared_ptr<Component>> components_;
-
 
 private:
     template <typename T>

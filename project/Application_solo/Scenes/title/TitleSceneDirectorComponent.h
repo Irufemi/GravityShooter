@@ -67,9 +67,9 @@ public:
     // 出撃シーケンスのステージ分割定数（スラスター遠ざかり音3.55秒のドップラー減衰に完全同期）
     static constexpr float kDurationCharge_ = 0.50f;     ///< [Phase 1: 蓄勢] タメ・重力収束
     static constexpr float kDurationAccelerate_ = 1.80f; ///< [Phase 2: 咆哮] アフターバーナー急加速
-    static constexpr float kDurationBreak_ = 1.30f; ///< [Phase 3: 重力の壁突入] 正面壁激突・深層潜行
-    static constexpr float kDurationAfterglow_ = 0.45f; ///< [Phase 4: 余韻] 事象の地平線突破・暗転完了
-    static constexpr float kDurationFreeze_ = 0.15f; ///< 臨界蓄圧（マイクロフリーズ・真空の静寂）時間 (約9フレーム)
+    static constexpr float kDurationBreak_ = 1.30f;      ///< [Phase 3: 重力の壁突入] 正面壁激突・深層潜行
+    static constexpr float kDurationAfterglow_ = 0.45f;  ///< [Phase 4: 余韻] 事象の地平線突破・暗転完了
+    static constexpr float kDurationFreeze_ = 0.15f;     ///< 臨界蓄圧（マイクロフリーズ・真空の静寂）時間 (約9フレーム)
     static constexpr float kTotalLaunchDuration_ = 4.05f; ///< 全体演出長 (秒: ドップラー音響と完全同期)
 
     /**
@@ -77,11 +77,11 @@ public:
      * @brief 出撃シーケンスの有限状態機械（FSM）
      */
     enum class LaunchState {
-        Idle,   ///< 待機中（自機ホバリング・ガレキ公転・カメラ呼吸）
-        Charge, ///< [Phase 1: 蓄勢] 0.00s〜0.50s (タメ・重力収束・整流)
+        Idle,       ///< 待機中（自機ホバリング・ガレキ公転・カメラ呼吸）
+        Charge,     ///< [Phase 1: 蓄勢] 0.00s〜0.50s (タメ・重力収束・整流)
         Accelerate, ///< [Phase 2: 咆哮] 0.50s〜2.30s (アフターバーナー点火・急加速・動的FOV・微細振動)
-        Break,    ///< [Phase 3: 重力の壁突入] 2.30s〜3.60s (正面壁激突・流体大波紋・深層潜行)
-        Afterglow ///< [Phase 4: 余韻] 3.60s〜4.05s (自機消失後の静寂・残光・風の抜け・暗転完了)
+        Break,      ///< [Phase 3: 重力の壁突入] 2.30s〜3.60s (正面壁激突・流体大波紋・深層潜行)
+        Afterglow   ///< [Phase 4: 余韻] 3.60s〜4.05s (自機消失後の静寂・残光・風の抜け・暗転完了)
     };
 
     /**

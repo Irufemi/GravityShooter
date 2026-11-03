@@ -11,7 +11,7 @@ enum class TitleLaunchStateType {
     Charge,     //!< [Phase 1: 蓄勢] 0.00s〜0.50s (タメ・重力収束・整流)
     Accelerate, //!< [Phase 2: 咆哮] 0.50s〜2.30s (アフターバーナー点火・急加速・動的FOV・微細振動)
     Break,      //!< [Phase 3: 重力の壁突入] 2.30s〜3.60s (正面壁激突・流体大波紋・深層潜行)
-    Afterglow //!< [Phase 4: 余韻] 3.60s〜4.05s (自機消失後の静寂・残光・風の抜け・暗転完了)
+    Afterglow   //!< [Phase 4: 余韻] 3.60s〜4.05s (自機消失後の静寂・残光・風の抜け・暗転完了)
 };
 
 /**

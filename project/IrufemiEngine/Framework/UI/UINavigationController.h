@@ -11,7 +11,7 @@ class InputManager;
  */
 enum class NavigationInputMode {
     GamepadOrKeyboard, //!< ゲームパッド（十字キー/スティック）またはキーボードによるフォーカス操作中
-    Mouse //!< マウス（物理移動・クリック）による操作中
+    Mouse              //!< マウス（物理移動・クリック）による操作中
 };
 
 /**

@@ -448,7 +448,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
 
     // --- CVar (Console Variables) のロードとコールバック設定 ---
     Irufemi::ReferenceEngineCVars();
-    Irufemi::CVarSystem::Load("resources/settings.json"); // プロジェクトのプリセット設定
+    Irufemi::CVarSystem::Load("resources/settings.json");       // プロジェクトのプリセット設定
     Irufemi::CVarSystem::Load("resources/settings_local.json"); // ユーザーの変更済みローカル設定（上書き）
 
     Irufemi::CVarSystem::SetOnChangeCallback("r.DisplayMode", [this]() {

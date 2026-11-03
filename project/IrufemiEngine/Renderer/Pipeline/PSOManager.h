@@ -62,7 +62,7 @@ public:
         DXGI_FORMAT rtvFormat4 = DXGI_FORMAT_UNKNOWN; ///< MRT対応: SV_TARGET4 (Velocity)
         DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN;  // UNKNOWNの場合、Managerのデフォルトを使用
         bool isDepthOnly = false;                     // シャドウマップなど、RTVを持たないパス用
-        bool disableDepthTest = false; // バックバッファ書き込みなど、深度テストを無効化する用
+        bool disableDepthTest = false;                // バックバッファ書き込みなど、深度テストを無効化する用
         bool noDSV = false; // バックバッファなど、DSVを一切バインドしないパス用 (DSVFormat = UNKNOWN を強制する)
         bool useNullInputLayout = false; // CopyImageなど、頂点バッファを入力としないパス用
     };
@@ -165,7 +165,7 @@ private:
     std::unordered_map<std::string, std::vector<Key>>
         cacheKeysByName_; ///< ホットリロードのためのキートラッキング (名前ごとの生成済みキャッシュキー)
     std::unordered_map<std::string, ComPtr> computeCache_; ///< Compute PSO キャッシュ
-    std::vector<ComPtr> retiredPSOs_; ///< ホットリロード時等に一時退避させて安全に寿命を延ばすための遅延解放リスト
+    std::vector<ComPtr> retiredPSOs_;    ///< ホットリロード時等に一時退避させて安全に寿命を延ばすための遅延解放リスト
     mutable std::shared_mutex psoMutex_; ///< マルチスレッド並列アクセス保護用ミューテックス
 
     /** @name 内部生成ヘルパー */

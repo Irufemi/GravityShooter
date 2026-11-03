@@ -69,7 +69,7 @@ private:
     float maxScaleZ_ = 1.8f;                               ///< 全力ブースト時のスケール
     float currentScaleZ_ = 1.0f;                           ///< 現在のスラスターZスケール
     float targetScaleZ_ = 1.0f;                            ///< 目標のスラスターZスケール
-    bool isThrusterActive_ = false; ///< スラスターの有効・無効状態（初期状態は待機）
+    bool isThrusterActive_ = false;                        ///< スラスターの有効・無効状態（初期状態は待機）
 
     uint32_t throttleListenerId_ = 0;             ///< スロットル変更リスナーID
     uint32_t stateListenerId_ = 0;                ///< ステート変更リスナーID
