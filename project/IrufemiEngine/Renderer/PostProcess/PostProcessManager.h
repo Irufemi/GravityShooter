@@ -184,6 +184,12 @@ public:
      * @param rtvFormat 最終的な出力先のRTVフォーマット
      */
     void Initialize(IrufemiEngine* engine, DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat);
+    template <typename T>
+    T* GetEffect() const;
+    BloomParams& GetBloomParamsDelegated();
+    const BloomParams& GetBloomParamsDelegated() const;
+    LightShaftsParams& GetLightShaftsParamsDelegated();
+    const LightShaftsParams& GetLightShaftsParamsDelegated() const;
 
     /**
      * @brief フレーム描画開始処理（リングバッファオフセットのリセットおよびカスタムパラメータの同期）
@@ -774,14 +780,14 @@ public:
      * @return 取得された BloomParams
      */
     BloomParams& GetBloomParams() {
-        return bloomParams_;
+        return GetBloomParamsDelegated();
     }
     /**
      * @brief BloomParams を取得する（読み取り専用）。
      * @return 取得された BloomParams
      */
     const BloomParams& GetBloomParams() const {
-        return bloomParams_;
+        return GetBloomParamsDelegated();
     }
     /**
      * @brief GlitchParams を設定する。
@@ -906,7 +912,7 @@ public:
      * @return 取得された LightShaftsParams
      */
     LightShaftsParams& GetLightShaftsParams() {
-        return lightShaftsParams_;
+        return GetLightShaftsParamsDelegated();
     }
     /**
      * @brief GravityDistortionParams を取得する。

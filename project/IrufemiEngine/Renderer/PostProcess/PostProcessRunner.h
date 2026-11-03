@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <typeindex>
 
 class RenderGraph;
 
@@ -42,17 +43,6 @@ public:
 
     /**
      * @brief Ping-Pong方式で指定されたエフェクト配列を順次ディスパッチする
-     * @param manager PostProcessManagerのポインタ (パラメータやPSO取得用)
-     * @param commandList コマンドリスト
-     * @param modes 実行するエフェクトのリスト
-     * @param srcTexture 最初の入力テクスチャ
-     * @param rtvHandle 最終出力先のレンダーターゲットビュー (isFinalOutput=trueの場合に使用)
-     * @param layer 実行レイヤー (PreUI / PostUI)
-     * @param isFinalOutput このランナーの最後がバックバッファへの出力かどうか
-     * @param isBackBufferTarget バックバッファ描画フラグ
-     * @param targetViewport 明示的ビューポート
-     * @param targetScissor 明示的シザー矩形
-     * @return 最後の出力結果が書き込まれた RenderTexture のポインタ（スワップチェーン出力なら nullptr）
      */
     class RenderTexture* Run(PostProcessManager* manager, ID3D12GraphicsCommandList* commandList,
                              const std::vector<PostProcessManager::Mode>& modes, class RenderTexture* srcTexture,
@@ -77,6 +67,18 @@ public:
 
     Irufemi::KawaseBlurEffect* GetKawaseBlurEffect() const { return kawaseBlurEffect_.get(); }
 
+    /**
+     * @brief 型指定による自己完結エフェクトの高速安全取得（レジストリパターン）
+     */
+    template <typename T>
+    T* GetEffect() const {
+        auto it = effectRegistry_.find(std::type_index(typeid(T)));
+        if (it != effectRegistry_.end()) {
+            return static_cast<T*>(it->second);
+        }
+        return nullptr;
+    }
+
 private:
     bool RequiresSeparatePass(PostProcessManager::Mode mode) const;
 
@@ -84,6 +86,7 @@ private:
                             D3D12_RESOURCE_STATES targetState);
 
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> localResourceStates_;
+    std::unordered_map<std::type_index, Irufemi::IPostProcessEffect*> effectRegistry_;
 
     TransientResourceHandle workHandles_[2][2] = {{kInvalidHandle, kInvalidHandle}, {kInvalidHandle, kInvalidHandle}};
     class RenderTexture* workTextures_[2][2] = {{nullptr, nullptr}, {nullptr, nullptr}};

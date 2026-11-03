@@ -17,7 +17,12 @@ PostProcessRunner::PostProcessRunner()
       smoothingEffect_(std::make_unique<Irufemi::SeparableBlurEffect>(Mode::Smoothing)),
       gaussianEffect_(std::make_unique<Irufemi::SeparableBlurEffect>(Mode::GaussianFilter)),
       kawaseBlurEffect_(std::make_unique<Irufemi::KawaseBlurEffect>()),
-      combinedEffect_(std::make_unique<Irufemi::CombinedPostEffect>()) {}
+      combinedEffect_(std::make_unique<Irufemi::CombinedPostEffect>()) {
+    effectRegistry_[std::type_index(typeid(Irufemi::BloomEffect))] = bloomEffect_.get();
+    effectRegistry_[std::type_index(typeid(Irufemi::LightShaftsEffect))] = lightShaftsEffect_.get();
+    effectRegistry_[std::type_index(typeid(Irufemi::KawaseBlurEffect))] = kawaseBlurEffect_.get();
+    effectRegistry_[std::type_index(typeid(Irufemi::CombinedPostEffect))] = combinedEffect_.get();
+}
 
 PostProcessRunner::~PostProcessRunner() = default;
 
@@ -25,6 +30,12 @@ void PostProcessRunner::InitializeEffects(ID3D12Device* device, DirectXCommon* d
                                           D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat) {
     if (kawaseBlurEffect_) {
         kawaseBlurEffect_->Initialize(device, dxCommon, rootSig, vsBytecode, rtvFormat);
+    }
+    if (bloomEffect_) {
+        bloomEffect_->Initialize(device, dxCommon, rootSig, vsBytecode, rtvFormat);
+    }
+    if (lightShaftsEffect_) {
+        lightShaftsEffect_->Initialize(device, dxCommon, rootSig, vsBytecode, rtvFormat);
     }
 }
 

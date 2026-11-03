@@ -1,6 +1,9 @@
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Renderer/PostProcess/PostProcessRunner.h"
 #include "Renderer/PostProcess/Effects/KawaseBlurEffect.h"
+#include "Renderer/PostProcess/Effects/BloomEffect.h"
+#include "Renderer/PostProcess/Effects/LightShaftsEffect.h"
+#include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "Core/System/IrufemiEngine.h"
@@ -807,6 +810,44 @@ PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurP
         return runner_->GetKawaseBlurEffect()->GetParams();
     }
     return dualKawaseParams_;
+}
+
+PostProcessManager::BloomParams& PostProcessManager::GetBloomParamsDelegated() {
+    if (auto* bloom = GetEffect<Irufemi::BloomEffect>()) {
+        return bloom->GetParams();
+    }
+    return bloomParams_;
+}
+
+const PostProcessManager::BloomParams& PostProcessManager::GetBloomParamsDelegated() const {
+    if (auto* bloom = GetEffect<Irufemi::BloomEffect>()) {
+        return bloom->GetParams();
+    }
+    return bloomParams_;
+}
+
+template <typename T>
+T* PostProcessManager::GetEffect() const {
+    return runner_ ? runner_->GetEffect<T>() : nullptr;
+}
+
+template Irufemi::BloomEffect* PostProcessManager::GetEffect<Irufemi::BloomEffect>() const;
+template Irufemi::KawaseBlurEffect* PostProcessManager::GetEffect<Irufemi::KawaseBlurEffect>() const;
+template Irufemi::LightShaftsEffect* PostProcessManager::GetEffect<Irufemi::LightShaftsEffect>() const;
+template Irufemi::CombinedPostEffect* PostProcessManager::GetEffect<Irufemi::CombinedPostEffect>() const;
+
+PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParamsDelegated() {
+    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) {
+        return ls->GetParams();
+    }
+    return lightShaftsParams_;
+}
+
+const PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParamsDelegated() const {
+    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) {
+        return ls->GetParams();
+    }
+    return lightShaftsParams_;
 }
 
 const PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() const {

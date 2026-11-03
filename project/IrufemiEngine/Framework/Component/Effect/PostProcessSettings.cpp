@@ -1,4 +1,5 @@
 #include "PostProcessSettings.h"
+#include "Renderer/PostProcess/Effects/BloomEffect.h"
 
 // ---------------------------------------------------------
 // Bloom Settings
@@ -11,10 +12,15 @@ void BloomSettings::ApplyToManager(PostProcessManager* manager) {
         if (!manager->HasActiveMode(PostProcessMode::Bloom)) {
             manager->AddActiveMode(PostProcessMode::Bloom);
         }
-        auto& p = manager->GetBloomParams();
-        p.intensity = intensity;
-        p.threshold = threshold;
-        p.sigma = sigma;
+        if (auto* bloom = manager->GetEffect<Irufemi::BloomEffect>()) {
+            bloom->GetParams().intensity = intensity;
+            bloom->GetParams().threshold = threshold;
+            bloom->GetParams().sigma = sigma;
+            bloom->SetParams(bloom->GetParams());
+        }
+
+
+
     } else {
         manager->RemoveActiveMode(PostProcessMode::Bloom);
     }
@@ -160,7 +166,7 @@ void OutlineSettings::ApplyToManager(PostProcessManager* manager) {
             manager->AddActiveMode(PostProcessMode::DepthBasedOutline);
         }
         auto& p = manager->GetOutlineParams();
-        p.intensity = intensity;
+
         p.maskMaxRadius = maskMaxRadius;
     } else {
         manager->RemoveActiveMode(PostProcessMode::DepthBasedOutline);
