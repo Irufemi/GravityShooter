@@ -53,6 +53,9 @@ void VirtualEntityManagerComponent::Initialize() {
 }
 
 void VirtualEntityManagerComponent::OnAwake() {
+    if (!gameObject_) {
+        return;
+    }
     batchRenderer_ = gameObject_->GetComponent<ModelBatchRendererComponent>();
     if (!batchRenderer_) {
         batchRenderer_ = gameObject_->AddComponent<ModelBatchRendererComponent>().get();

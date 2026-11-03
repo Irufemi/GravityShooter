@@ -21,6 +21,9 @@
 BossBulletManagerComponent::BossBulletManagerComponent() {}
 
 void BossBulletManagerComponent::Initialize() {
+    if (!gameObject_) {
+        return;
+    }
     virtualManager_ = gameObject_->GetComponent<VirtualEntityManagerComponent>();
     if (!virtualManager_) {
         virtualManager_ = gameObject_->AddComponent<VirtualEntityManagerComponent>().get();

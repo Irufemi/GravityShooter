@@ -21,7 +21,9 @@ DroneManagerComponent::~DroneManagerComponent() {
 }
 
 void DroneManagerComponent::Initialize() {
-    batchRenderer_ = gameObject_->GetComponent<ModelBatchRendererComponent>();
+    if (gameObject_) {
+        batchRenderer_ = gameObject_->GetComponent<ModelBatchRendererComponent>();
+    }
 }
 
 void DroneManagerComponent::Start() {

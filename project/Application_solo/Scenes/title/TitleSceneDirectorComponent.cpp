@@ -30,8 +30,8 @@
 #include <random>
 
 TitleSceneDirectorComponent::~TitleSceneDirectorComponent() {
-    CleanupLaunchPostProcess();
-    CleanupAsteroidBelt();
+    // デストラクタ内ではローカルメモリ解放のみを行い、他コンポーネント探索（GetComponent等）は行わない
+    asteroidInstances_.clear();
 }
 
 void TitleSceneDirectorComponent::OnDestroy() {
@@ -277,10 +277,11 @@ void TitleSceneDirectorComponent::RenderAsteroidBelt() {
 }
 
 ModelBatchRendererComponent* TitleSceneDirectorComponent::GetAsteroidBatchRenderer() const {
-    if (auto myObj = GetGameObject()) {
-        return myObj->GetComponent<ModelBatchRendererComponent>();
+    auto myObj = GetGameObject();
+    if (!myObj || myObj->IsDestroyed()) {
+        return nullptr;
     }
-    return nullptr;
+    return myObj->GetComponent<ModelBatchRendererComponent>();
 }
 
 void TitleSceneDirectorComponent::SetupThrusterEffect() {

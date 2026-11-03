@@ -176,6 +176,9 @@ public:
      * @return 見つかった場合はそのポインタ、無ければnullptr
      */
     template <typename T> T* GetComponent() const {
+        if (!this || lifeState_ == GameObjectLifeState::Destroyed) {
+            return nullptr;
+        }
         std::lock_guard<std::recursive_mutex> lock(structureMutex_);
         auto it = componentMap_.find(typeid(T));
         if (it != componentMap_.end() && !it->second.empty()) {
@@ -189,6 +192,9 @@ public:
      * @return 見つかった場合はそのポインタ、無ければnullptr
      */
     template <typename T> T* GetComponentByInterface() const {
+        if (!this || lifeState_ == GameObjectLifeState::Destroyed) {
+            return nullptr;
+        }
         std::lock_guard<std::recursive_mutex> lock(structureMutex_);
         for (const auto& comp : components_) {
             if (auto target = dynamic_cast<T*>(comp.get())) {
@@ -203,6 +209,9 @@ public:
      * @return TransformComponent* (GameObjectは必ずTransformを持つため、基本的にはnullptrにならない)
      */
     class TransformComponent* GetTransform() const {
+        if (!this) {
+            return nullptr;
+        }
         return transformCache_;
     }
 
@@ -471,12 +480,14 @@ private:
     std::weak_ptr<GameObject> parent_;
     std::vector<std::shared_ptr<GameObject>> children_;
 
-    std::vector<std::shared_ptr<Component>> components_;
+
     std::unordered_map<std::type_index, std::vector<Component*>> componentMap_;
     class TransformComponent* transformCache_ = nullptr;
     // NOTE: オブジェクト階層の再帰トラバースやイベント伝播で同一スレッドから再入（往復呼び出し）
     // が発生するため、通常の排他ロックではなく std::recursive_mutex を意図して使用しています。
     mutable std::recursive_mutex structureMutex_; ///< 構造変更（子オブジェクト・コンポーネント着脱）用ミューテックス
+    std::vector<std::shared_ptr<Component>> components_;
+
 
 private:
     template <typename T>
