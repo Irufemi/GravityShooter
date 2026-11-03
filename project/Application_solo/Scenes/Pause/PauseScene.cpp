@@ -112,43 +112,45 @@ void PauseScene::OnResume() {
 }
 
 void PauseScene::SetUIVisible(bool visible) {
-    if (darkOverlayObj_) {
-        darkOverlayObj_->SetActive(visible);
+    if (auto obj = darkOverlayObj_.lock()) {
+        obj->SetActive(visible);
     }
-    if (titleObj_) {
-        titleObj_->SetActive(visible);
+    if (auto obj = titleObj_.lock()) {
+        obj->SetActive(visible);
     }
     for (auto& item : menuItems_) {
-        if (item.gameObject) {
-            item.gameObject->SetActive(visible);
+        if (auto obj = item.gameObject.lock()) {
+            obj->SetActive(visible);
         }
     }
 }
 
 void PauseScene::CreateUIElements() {
     // 1. 半透明暗幕オーバーレイ (画面全域 1280x720)
-    darkOverlayObj_ = std::make_shared<GameObject>("Pause_DarkOverlay");
-    AddGameObject(darkOverlayObj_);
-    if (auto t = darkOverlayObj_->GetTransform()) {
+    auto darkOverlayObj = std::make_shared<GameObject>("Pause_DarkOverlay");
+    AddGameObject(darkOverlayObj);
+    darkOverlayObj_ = darkOverlayObj;
+    if (auto t = darkOverlayObj->GetTransform()) {
         t->SetPosition({640.0f, 360.0f, 5.0f});
     }
-    auto sprite = darkOverlayObj_->AddComponent<SpriteRendererComponent>();
+    auto sprite = darkOverlayObj->AddComponent<SpriteRendererComponent>();
     if (sprite) {
         sprite->SetTexture("resources/whiteTexture.png");
         sprite->SetBaseSize({1280.0f, 720.0f});
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor(kColorDarkMask);
-        darkOverlaySprite_ = sprite.get();
+        darkOverlaySprite_ = sprite;
     }
-    darkOverlayObj_->Initialize();
+    darkOverlayObj->Initialize();
 
     // 2. ヘッダータイトル "- PAUSE -"
-    titleObj_ = std::make_shared<GameObject>("Pause_HeaderTitle");
-    AddGameObject(titleObj_);
-    if (auto t = titleObj_->GetTransform()) {
+    auto titleObj = std::make_shared<GameObject>("Pause_HeaderTitle");
+    AddGameObject(titleObj);
+    titleObj_ = titleObj;
+    if (auto t = titleObj->GetTransform()) {
         t->SetPosition({640.0f, 150.0f, 0.0f});
     }
-    auto titleText = titleObj_->AddComponent<TextRendererComponent>();
+    auto titleText = titleObj->AddComponent<TextRendererComponent>();
     if (titleText) {
         titleText->SetFontId("toro_glitch");
         titleText->SetText(L"- PAUSE -");
@@ -156,9 +158,9 @@ void PauseScene::CreateUIElements() {
         titleText->SetAlignment(TextAlignment::Center);
         titleText->SetColor(kColorTitle);
         titleText->SetTopMost(true);
-        titleTextComp_ = titleText.get();
+        titleTextComp_ = titleText;
     }
-    titleObj_->Initialize();
+    titleObj->Initialize();
 
     // 3. メニュー項目リスト（データドリブン設計: 表示テキスト・種別・実行アクションを一元定義）
     struct MenuEntry {
@@ -233,7 +235,7 @@ void PauseScene::CreateUIElements() {
         data.action = entries[i].action;
         data.yPos = y;
         data.gameObject = itemObj;
-        data.textComp = textComp.get();
+        data.textComp = textComp;
         data.currentScale = 1.0f;
         menuItems_.push_back(std::move(data));
     }
@@ -330,7 +332,7 @@ void PauseScene::UpdateInput(float deltaTime) {
         selectedIndex_ = nav_.GetSelectedIndex();
         // 仮想カーソルを選択項目位置へスナップ同期
         if (selectedIndex_ >= 0 && selectedIndex_ < static_cast<int>(menuItems_.size())) {
-            if (auto obj = menuItems_[selectedIndex_].gameObject) {
+            if (auto obj = menuItems_[selectedIndex_].gameObject.lock()) {
                 if (auto t = obj->GetTransform()) {
                     input->SetVirtualCursorPosition({t->GetPosition().x, t->GetPosition().y});
                 }
@@ -387,7 +389,8 @@ void PauseScene::UpdateInput(float deltaTime) {
 void PauseScene::UpdateSelectionVisuals(float deltaTime) {
     for (size_t i = 0; i < menuItems_.size(); ++i) {
         auto& item = menuItems_[i];
-        if (!item.textComp) {
+        auto textComp = item.textComp.lock();
+        if (!textComp) {
             continue;
         }
 
@@ -396,8 +399,8 @@ void PauseScene::UpdateSelectionVisuals(float deltaTime) {
         // スムーズなイージング補間
         item.currentScale += (targetScale - item.currentScale) * std::clamp(deltaTime * 15.0f, 0.0f, 1.0f);
 
-        item.textComp->SetBaseScale(34.0f * item.currentScale);
-        item.textComp->SetColor(isSelected ? kColorSelected : kColorUnselected);
+        textComp->SetBaseScale(34.0f * item.currentScale);
+        textComp->SetColor(isSelected ? kColorSelected : kColorUnselected);
     }
 }
 
@@ -426,19 +429,21 @@ bool PauseScene::IsCursorOverItem(int index, const Irufemi::Vector2& cursorPos) 
     }
 
     const auto& item = menuItems_[index];
-    if (!item.gameObject || !item.textComp) {
+    auto gameObj = item.gameObject.lock();
+    auto textComp = item.textComp.lock();
+    if (!gameObj || !textComp) {
         return false;
     }
 
-    auto transform = item.gameObject->GetTransform();
+    auto transform = gameObj->GetTransform();
     if (!transform) {
         return false;
     }
 
     const auto& pos = transform->GetPosition();
     const auto& scale = transform->GetScale();
-    const auto& minB = item.textComp->GetLocalBoundsMin();
-    const auto& maxB = item.textComp->GetLocalBoundsMax();
+    const auto& minB = textComp->GetLocalBoundsMin();
+    const auto& maxB = textComp->GetLocalBoundsMax();
 
     // テキスト幾何バウンディングボックスが有効な場合
     if (minB.x != maxB.x && minB.y != maxB.y) {
@@ -503,8 +508,8 @@ void PauseScene::RemovePausePostProcess() {
 
 void PauseScene::ApplyTransition(float progress) {
     // 1. 暗幕オーバーレイのアルファ補間
-    if (darkOverlaySprite_) {
-        darkOverlaySprite_->SetColor(
+    if (auto sprite = darkOverlaySprite_.lock()) {
+        sprite->SetColor(
             {kColorDarkMask.x, kColorDarkMask.y, kColorDarkMask.z, kColorDarkMask.w * progress});
     }
 
@@ -526,22 +531,26 @@ void PauseScene::ApplyTransition(float progress) {
     const Irufemi::Vector3 center{640.0f, 360.0f, 0.0f};
     float scaleMul = std::lerp(0.92f, 1.0f, progress);
 
-    if (titleObj_ && titleTextComp_) {
-        if (auto t = titleObj_->GetTransform()) {
+    auto titleObj = titleObj_.lock();
+    auto titleTextComp = titleTextComp_.lock();
+    if (titleObj && titleTextComp) {
+        if (auto t = titleObj->GetTransform()) {
             Irufemi::Vector3 basePos{640.0f, 150.0f, 0.0f};
             Irufemi::Vector3 offset = basePos - center;
             t->SetPosition(center + offset * scaleMul);
         }
-        titleTextComp_->SetColor({kColorTitle.x, kColorTitle.y, kColorTitle.z, kColorTitle.w * progress});
-        titleTextComp_->SetBaseScale(56.0f * scaleMul);
+        titleTextComp->SetColor({kColorTitle.x, kColorTitle.y, kColorTitle.z, kColorTitle.w * progress});
+        titleTextComp->SetBaseScale(56.0f * scaleMul);
     }
 
     for (size_t i = 0; i < menuItems_.size(); ++i) {
         auto& item = menuItems_[i];
-        if (!item.gameObject || !item.textComp) {
+        auto gameObj = item.gameObject.lock();
+        auto textComp = item.textComp.lock();
+        if (!gameObj || !textComp) {
             continue;
         }
-        if (auto t = item.gameObject->GetTransform()) {
+        if (auto t = gameObj->GetTransform()) {
             Irufemi::Vector3 basePos{640.0f, item.yPos, 0.0f};
             Irufemi::Vector3 offset = basePos - center;
             t->SetPosition(center + offset * scaleMul);
@@ -549,7 +558,7 @@ void PauseScene::ApplyTransition(float progress) {
 
         bool isSelected = (static_cast<int>(i) == selectedIndex_);
         const auto& baseColor = isSelected ? kColorSelected : kColorUnselected;
-        item.textComp->SetColor({baseColor.x, baseColor.y, baseColor.z, baseColor.w * progress});
-        item.textComp->SetBaseScale(34.0f * item.currentScale * scaleMul);
+        textComp->SetColor({baseColor.x, baseColor.y, baseColor.z, baseColor.w * progress});
+        textComp->SetBaseScale(34.0f * item.currentScale * scaleMul);
     }
 }

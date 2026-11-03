@@ -4,8 +4,6 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Audio/AudioManager.h"
 
-AudioSourceComponent::AudioSourceComponent() {}
-
 AudioSourceComponent::~AudioSourceComponent() {
     OnDestroy();
 }

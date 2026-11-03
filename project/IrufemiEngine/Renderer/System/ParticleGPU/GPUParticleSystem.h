@@ -175,6 +175,8 @@ struct ParticleField {
 
     Irufemi::Vector3 axis = {0.0f, 1.0f, 0.0f}; // Vortex用の回転軸
     float pad2 = 0.0f;
+
+    bool operator==(const ParticleField& other) const = default;
 };
 
 /**

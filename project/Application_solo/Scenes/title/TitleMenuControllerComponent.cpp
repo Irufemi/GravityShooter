@@ -38,8 +38,7 @@ void TitleMenuControllerComponent::Initialize() {
     dismissTimer_ = 0.0f;
     stickCooldownTimer_ = 0.0f;
 
-    virtualCursorObj_ = nullptr;
-    virtualCursorRenderer_ = nullptr;
+    virtualCursorObj_.reset();
 
     currentScales_ = {1.15f, 1.0f, 1.0f, 1.0f};
     targetScales_ = {1.15f, 0.95f, 0.95f, 0.95f};
@@ -203,8 +202,10 @@ void TitleMenuControllerComponent::PushPendingModalScene() {
 }
 
 void TitleMenuControllerComponent::HideVirtualCursor() {
-    if (virtualCursorRenderer_) {
-        virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+    if (auto obj = virtualCursorObj_.lock()) {
+        if (auto renderer = obj->GetComponent<Primitive2DRendererComponent>()) {
+            renderer->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+        }
     }
 }
 
@@ -520,9 +521,7 @@ void TitleMenuControllerComponent::StartDismissAnimation() {
     }
 
     // 仮想カーソルを即座に非表示
-    if (virtualCursorRenderer_) {
-        virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
-    }
+    HideVirtualCursor();
 }
 
 void TitleMenuControllerComponent::UpdateDismissAnimation(float deltaTime) {
@@ -623,8 +622,8 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
     }
 
     // 仮想カーソルの表示/非表示
-    if (virtualCursorObj_) {
-        virtualCursorObj_->SetActive(visible);
+    if (auto cursorObj = virtualCursorObj_.lock()) {
+        cursorObj->SetActive(visible);
     }
 }
 
@@ -735,20 +734,23 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
         return;
     }
 
-    // 仮想カーソルGameObjectの取得（キャッシュ）
-    if (!virtualCursorObj_) {
+    // 仮想カーソルGameObjectの取得（弱参照キャッシュ）
+    auto cursorObj = virtualCursorObj_.lock();
+    if (!cursorObj) {
         if (auto scene = GetScene()) {
-            virtualCursorObj_ = scene->FindGameObject("VirtualCursor");
-            if (virtualCursorObj_) {
-                virtualCursorRenderer_ = virtualCursorObj_->GetComponent<Primitive2DRendererComponent>();
+            cursorObj = scene->FindGameObject("VirtualCursor");
+            if (cursorObj) {
+                virtualCursorObj_ = cursorObj;
             }
         }
     }
 
     // 通常待機(Idle)時以外はカーソルを隠す
     if (GetState() != MenuState::Idle) {
-        if (virtualCursorRenderer_) {
-            virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+        if (cursorObj) {
+            if (auto r = cursorObj->GetComponent<Primitive2DRendererComponent>()) {
+                r->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+            }
         }
         return;
     }
@@ -771,11 +773,11 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
 
     // 3. 仮想カーソルオブジェクトの座標・表示状態を同期
     const auto& newPos = inputManager->GetVirtualCursorPosition();
-    if (virtualCursorObj_) {
+    if (cursorObj) {
         bool isAttractDemo = AttractDemoManager::IsAttractModeActive();
         bool showCursor = inputManager->IsUsingGamepadCursor() || isAttractDemo;
 
-        if (auto trans = virtualCursorObj_->GetTransform()) {
+        if (auto trans = cursorObj->GetTransform()) {
             trans->SetPosition({newPos.x, newPos.y, 0.0f});
 
             float baseTargetScale = isHoveringAnyButton ? 1.30f : 1.0f;
@@ -789,17 +791,17 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
             trans->SetScale({smoothScale, smoothScale, 1.0f});
         }
 
-        if (virtualCursorRenderer_) {
+        if (auto renderer = cursorObj->GetComponent<Primitive2DRendererComponent>()) {
             if (showCursor) {
                 // ゲームパッド操作中またはデモ実演中はリングカーソルを明瞭に表示
                 if (isHoveringAnyButton) {
-                    virtualCursorRenderer_->SetColor({0.30f, 1.0f, 0.98f, 1.0f});
+                    renderer->SetColor({0.30f, 1.0f, 0.98f, 1.0f});
                 } else {
-                    virtualCursorRenderer_->SetColor({0.10f, 0.92f, 1.0f, 0.85f});
+                    renderer->SetColor({0.10f, 0.92f, 1.0f, 0.85f});
                 }
             } else {
                 // 通常のマウス操作時はOSカーソルに委ねるため非表示
-                virtualCursorRenderer_->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
+                renderer->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
             }
         }
     }

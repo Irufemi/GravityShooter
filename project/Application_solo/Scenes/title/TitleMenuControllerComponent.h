@@ -179,8 +179,7 @@ private:                                                      // メンバ変数
     const float kStickCooldown_ = 0.22f;
 
     // 仮想カーソル用
-    std::shared_ptr<GameObject> virtualCursorObj_;
-    class Primitive2DRendererComponent* virtualCursorRenderer_ = nullptr;
+    std::weak_ptr<GameObject> virtualCursorObj_;
     const float kStickyFriction_ = 0.45f; //!< ボタンホバー時の減速倍率
 
     // キャッシュされた GameObject 参照

@@ -74,8 +74,8 @@ private:
         std::wstring text;
         MenuItem itemType;
         float yPos = 0.0f;
-        std::shared_ptr<GameObject> gameObject;
-        TextRendererComponent* textComp = nullptr;
+        std::weak_ptr<GameObject> gameObject;
+        std::weak_ptr<TextRendererComponent> textComp;
         float currentScale = 1.0f;
         std::function<void()> action;
     };
@@ -100,8 +100,8 @@ private:
     static constexpr float kCloseDuration_ = 0.09f;
 
     bool isPostProcessActive_ = false;
-    std::shared_ptr<GameObject> darkOverlayObj_;
-    std::shared_ptr<GameObject> titleObj_;
-    SpriteRendererComponent* darkOverlaySprite_ = nullptr;
-    TextRendererComponent* titleTextComp_ = nullptr;
+    std::weak_ptr<GameObject> darkOverlayObj_;
+    std::weak_ptr<GameObject> titleObj_;
+    std::weak_ptr<SpriteRendererComponent> darkOverlaySprite_;
+    std::weak_ptr<TextRendererComponent> titleTextComp_;
 };

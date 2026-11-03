@@ -742,6 +742,10 @@ void IrufemiEngine::Finalize() {
 
     Irufemi::CVarSystem::Save("resources/settings_local.json");
 
+    Text::SetFontManager(nullptr);
+    Text::SetDrawManager(nullptr);
+    Text::SetCameraManager(nullptr);
+
     SceneSerializer::SetPrefabManager(nullptr);
     if (prefabManager_) {
         prefabManager_->ClearCache();

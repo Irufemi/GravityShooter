@@ -11,7 +11,7 @@
  */
 class AudioSourceComponent : public Component {
 public:
-    AudioSourceComponent();
+    AudioSourceComponent() = default;
     ~AudioSourceComponent() override;
 
     /**
