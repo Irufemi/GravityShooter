@@ -69,6 +69,14 @@ public:
                         TransientResourceHandle dstHandle,
                         PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI, bool isFinalOutput = true);
 
+    /**
+     * @brief 各分離エフェクトの専用PSOおよび定数バッファを初期化する
+     */
+    void InitializeEffects(ID3D12Device* device, class DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
+                           D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat);
+
+    Irufemi::KawaseBlurEffect* GetKawaseBlurEffect() const { return kawaseBlurEffect_.get(); }
+
 private:
     bool RequiresSeparatePass(PostProcessManager::Mode mode) const;
 

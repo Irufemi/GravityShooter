@@ -1,7 +1,9 @@
 #include "Renderer/PostProcess/Effects/KawaseBlurEffect.h"
 #include "Renderer/PostProcess/Effects/PostProcessEffectUtils.h"
 #include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
+#include "RHI/DirectX12/ShaderManager.h"
 #include "Renderer/Data/RenderContext.h"
+#include "RHI/DirectX12/DirectXCommon.h"
 #include "Renderer/DrawManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "RHI/DirectX12/RenderTexture.h"
@@ -10,6 +12,72 @@
 #include <string>
 
 namespace Irufemi {
+
+void KawaseBlurEffect::Initialize(ID3D12Device* device, DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
+                                  D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat) {
+    if (!device || !rootSig || !vsBytecode.pShaderBytecode) {
+        return;
+    }
+
+    // 1. 専用定数バッファの生成 (256バイトアライメント)
+    D3D12_HEAP_PROPERTIES heapProps{};
+    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+    D3D12_RESOURCE_DESC cbDesc{};
+    cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    cbDesc.Width = (sizeof(DualKawaseBlurParams) + 255) & ~255;
+    cbDesc.Height = 1;
+    cbDesc.DepthOrArraySize = 1;
+    cbDesc.MipLevels = 1;
+    cbDesc.SampleDesc.Count = 1;
+    cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+    device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &cbDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
+                                    nullptr, IID_PPV_ARGS(&constantBuffer_));
+    if (constantBuffer_) {
+        constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedParams_));
+        if (mappedParams_) {
+            *mappedParams_ = params_;
+        }
+    }
+
+    // 2. 専用PSOの生成
+    auto* shaderManager = dxCommon ? dxCommon->GetShaderManager() : nullptr;
+    if (!shaderManager) {
+        return;
+    }
+
+    ShaderCompileOptions options;
+#if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
+    options.isDebug = true;
+#endif
+    auto kawaseDownPS = shaderManager->GetOrCompile(L"DualKawaseDownsample.PS.hlsl", options);
+    auto kawaseUpPS = shaderManager->GetOrCompile(L"DualKawaseUpsample.PS.hlsl", options);
+
+    if (kawaseDownPS && kawaseUpPS) {
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC kwDesc{};
+        kwDesc.pRootSignature = rootSig;
+        kwDesc.VS = vsBytecode;
+        kwDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+        kwDesc.SampleMask = UINT_MAX;
+        kwDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+        kwDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        kwDesc.RasterizerState.DepthClipEnable = TRUE;
+        kwDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        kwDesc.NumRenderTargets = 1;
+        kwDesc.SampleDesc.Count = 1;
+
+        kwDesc.RTVFormats[0] = rtvFormat;
+        kwDesc.PS = {kawaseDownPS->GetBufferPointer(), kawaseDownPS->GetBufferSize()};
+        device->CreateGraphicsPipelineState(&kwDesc, IID_PPV_ARGS(&downsamplePSO_));
+
+        kwDesc.PS = {kawaseUpPS->GetBufferPointer(), kawaseUpPS->GetBufferSize()};
+        device->CreateGraphicsPipelineState(&kwDesc, IID_PPV_ARGS(&upsamplePSO_));
+
+        kwDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        device->CreateGraphicsPipelineState(&kwDesc, IID_PPV_ARGS(&finalUpsamplePSO_));
+    }
+}
 
 void KawaseBlurEffect::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) {
     D3D12_RESOURCE_DESC kwDesc = baseDesc;
@@ -40,8 +108,15 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
     bool writeToScreen = context.writeToScreen;
 
     int32_t iterations =
-        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, manager->dualKawaseParams_.iterationCount));
+        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, params_.iterationCount));
     RenderTexture* prevSource = currentSource;
+
+    // パラメータを自身の定数バッファへコピー
+    if (mappedParams_) {
+        *mappedParams_ = params_;
+    }
+
+    D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress = constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
 
     // 1. Downsample Pass Loop
     for (int i = 0; i < iterations; ++i) {
@@ -65,11 +140,8 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
         DirectXUtils::TransitionBarrier(commandList, kwTex->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                         D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-        if (manager->mappedDualKawase_) {
-            *(manager->mappedDualKawase_) = manager->dualKawaseParams_;
-        }
         manager->DrawSinglePass(commandList, PostProcessManager::Mode::DualKawaseBlur, prevSource,
-                                kwTex->GetRtvHandle(), false, manager->dualKawaseDownsamplePSO_.Get());
+                                kwTex->GetRtvHandle(), false, downsamplePSO_.Get(), cbvGpuAddress);
 
         DirectXUtils::TransitionBarrier(commandList, kwTex->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
                                         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -107,12 +179,12 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
                                             D3D12_RESOURCE_STATE_RENDER_TARGET);
         }
 
-        ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? manager->finalDualKawaseUpsamplePSO_.Get()
-                                                                  : manager->dualKawaseUpsamplePSO_.Get();
+        ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? finalUpsamplePSO_.Get()
+                                                                  : upsamplePSO_.Get();
 
         // フルスクリーン上書き描画を行うため、直前のClearRenderTargetViewは不要（GPU帯域節約）
         manager->DrawSinglePass(commandList, PostProcessManager::Mode::DualKawaseBlur, prevSource, upHandle,
-                                (isFinalUp && writeToScreen), upPso);
+                                (isFinalUp && writeToScreen), upPso, cbvGpuAddress);
 
         if (!isFinalUp) {
             DirectXUtils::TransitionBarrier(commandList, kwTex->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -152,7 +224,7 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
     }
 
     int32_t iterations =
-        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, manager->dualKawaseParams_.iterationCount));
+        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, params_.iterationCount));
 
     // 1. Downsample Passes
     TransientResourceHandle prevHandle = inputHandle;
@@ -184,11 +256,13 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 scissorRect.bottom = kwTex->GetHeight();
                 cmdList->RSSetScissorRects(1, &scissorRect);
 
-                if (manager->mappedDualKawase_) {
-                    *(manager->mappedDualKawase_) = manager->dualKawaseParams_;
+                if (mappedParams_) {
+                    *mappedParams_ = params_;
                 }
+                D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress =
+                    constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
                 manager->DrawSinglePass(cmdList, PostProcessManager::Mode::DualKawaseBlur, prevTex,
-                                        kwTex->GetRtvHandle(), false, manager->dualKawaseDownsamplePSO_.Get());
+                                        kwTex->GetRtvHandle(), false, downsamplePSO_.Get(), cbvGpuAddress);
             });
         prevHandle = currentTargetHandle;
     }
@@ -259,10 +333,15 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 scissorRect.bottom = th;
                 cmdList->RSSetScissorRects(1, &scissorRect);
 
-                ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? manager->finalDualKawaseUpsamplePSO_.Get()
-                                                                          : manager->dualKawaseUpsamplePSO_.Get();
+                if (mappedParams_) {
+                    *mappedParams_ = params_;
+                }
+                D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress =
+                    constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
+                ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? finalUpsamplePSO_.Get()
+                                                                          : upsamplePSO_.Get();
                 manager->DrawSinglePass(cmdList, PostProcessManager::Mode::DualKawaseBlur, prevTex, targetRtv,
-                                        (isFinalUp && writeToScreen), upPso);
+                                        (isFinalUp && writeToScreen), upPso, cbvGpuAddress);
             });
         prevHandle = upTargetHandle;
     }

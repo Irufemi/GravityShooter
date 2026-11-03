@@ -21,6 +21,13 @@ PostProcessRunner::PostProcessRunner()
 
 PostProcessRunner::~PostProcessRunner() = default;
 
+void PostProcessRunner::InitializeEffects(ID3D12Device* device, DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
+                                          D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat) {
+    if (kawaseBlurEffect_) {
+        kawaseBlurEffect_->Initialize(device, dxCommon, rootSig, vsBytecode, rtvFormat);
+    }
+}
+
 bool PostProcessRunner::RequiresSeparatePass(Mode mode) const {
     return (mode == Mode::GaussianFilter || mode == Mode::DepthBasedOutline || mode == Mode::RadialBlur ||
             mode == Mode::Glitch || mode == Mode::DualKawaseBlur || mode == Mode::Pointillism ||

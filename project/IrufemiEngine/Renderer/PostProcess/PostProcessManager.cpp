@@ -1,5 +1,6 @@
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Renderer/PostProcess/PostProcessRunner.h"
+#include "Renderer/PostProcess/Effects/KawaseBlurEffect.h"
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "Core/System/IrufemiEngine.h"
@@ -259,7 +260,8 @@ void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderText
 
 void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,
                                         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalPass,
-                                        ID3D12PipelineState* psoOverride) {
+                                        ID3D12PipelineState* psoOverride,
+                                        D3D12_GPU_VIRTUAL_ADDRESS cbvOverride) {
     uint32_t modeIdx = static_cast<uint32_t>(mode);
     if (!psoOverride && (modeIdx >= psos_.size() || !psos_[modeIdx])) {
         return;
@@ -324,7 +326,8 @@ void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, 
     // -------------------------------------------------------------
 
     // 定数バッファのバインド (Root0 -> b0)
-    D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = cbvOverride;
+    if (cbvAddress == 0) {
     switch (mode) {
     case Mode::Vignette:
         cbvAddress = vignetteCB_->GetGPUVirtualAddress();
@@ -370,6 +373,7 @@ void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, 
         break;
     default:
         break;
+    }
     }
     if (cbvAddress != 0) {
         commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, cbvAddress);
@@ -608,6 +612,11 @@ void PostProcessManager::CreatePSOs() {
         lsDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
         device_->CreateGraphicsPipelineState(&lsDesc, IID_PPV_ARGS(&finalLsCombinePSO_));
     }
+
+    if (runner_) {
+        runner_->InitializeEffects(device_, dxCommon_, rootSig_,
+                                   {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()}, rtvFormat_);
+    }
 }
 
 void PostProcessManager::CreateConstantBuffers() {
@@ -791,4 +800,18 @@ void PostProcessManager::TriggerGravityDistortion(const Irufemi::Vector2& center
     gravityDistortionParams_.intensity = intensity;
 
     AddActiveMode(Mode::GravityDistortion, Layer::PreUI, 1250);
+}
+
+PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() {
+    if (runner_ && runner_->GetKawaseBlurEffect()) {
+        return runner_->GetKawaseBlurEffect()->GetParams();
+    }
+    return dualKawaseParams_;
+}
+
+const PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() const {
+    if (runner_ && runner_->GetKawaseBlurEffect()) {
+        return runner_->GetKawaseBlurEffect()->GetParams();
+    }
+    return dualKawaseParams_;
 }
