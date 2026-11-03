@@ -69,8 +69,7 @@ public:
         if (!customPSOName_.empty()) {
             if (auto* dxCommon = GetDxCommon()) {
                 if (auto* pm = dxCommon->GetPSOManager()) {
-                    ID3D12PipelineState* resolved =
-                        pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
+                    ID3D12PipelineState* resolved = pm->GetPSO(customPSOName_, customBlend_, customDepth_, customCull_);
                     customPSO_.store(resolved, std::memory_order_release);
                 }
             }
