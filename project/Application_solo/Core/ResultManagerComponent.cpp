@@ -27,6 +27,7 @@ void ResultManagerComponent::OnRegisterProperties() {
     RegisterProperty("Time Scale Recovery Duration", &timeScaleRecoveryDuration_);
     RegisterProperty("Base Title Scale", &baseTitleScale_);
     RegisterProperty("Next Scene Name", &nextSceneName_);
+    RegisterProperty("Font ID", &fontId_);
 }
 
 void ResultManagerComponent::Initialize() {
@@ -49,7 +50,7 @@ void ResultManagerComponent::Initialize() {
         }
         auto sprite = bgObj->AddComponent<SpriteRendererComponent>();
         if (sprite) {
-            sprite->SetTexture("resources/whiteTexture.png");
+
             sprite->SetBaseSize({1280.0f, 720.0f});
             sprite->SetAnchor({0.5f, 0.5f});
             sprite->SetColor({0.02f, 0.03f, 0.05f, 0.0f}); // 初期アルファ0
@@ -65,7 +66,7 @@ void ResultManagerComponent::Initialize() {
     }
 
     // ResultScene に渡された静的フラグを使って表示文字を決定
-    text->SetFontId("toro_glitch");
+    text->SetFontId(fontId_);
     text->SetText(ResultScene::IsClear() ? L"STAGE CLEAR" : L"GAME OVER");
     text->SetBaseScale(baseTitleScale_ * 1.35f); // 出現時は拡大から開始
     text->SetTopMost(true);
@@ -83,7 +84,7 @@ void ResultManagerComponent::Initialize() {
         }
 
         auto returnText = uiObj->AddComponent<TextRendererComponent>().get();
-        returnText->SetFontId("toro_glitch");
+        returnText->SetFontId(fontId_);
         returnText->SetText(L"Press SPACE / A to Return");
         returnText->SetBaseScale(20.0f);
         returnText->SetTopMost(true);

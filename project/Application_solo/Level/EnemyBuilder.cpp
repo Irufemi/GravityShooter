@@ -80,7 +80,7 @@ GameObject* EnemyBuilder::Build(const Irufemi::Vector3& position, const Irufemi:
             enemyComp->SetBehaviorType(behaviorType_.value());
         }
 
-        if (hasTrackingParams_) {
+        if (hasTrackingParams_ && spline_ && playerFollower_) {
             enemyComp->SetRailTrackingParams(spline_, playerFollower_, initialDistOffset_, trackingTargetDistance_,
                                              formationOffset_);
         }

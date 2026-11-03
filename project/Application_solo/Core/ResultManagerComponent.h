@@ -33,6 +33,7 @@ private:
     // プロパティ化してエディタで設定可能にする
     std::string nextSceneName_ = "Title";
     float baseTitleScale_ = 64.0f;
+    std::string fontId_ = "toro_glitch";
 
     void ApplyEntryPostProcess();
     void UpdateEntryPostProcess(float progress);
