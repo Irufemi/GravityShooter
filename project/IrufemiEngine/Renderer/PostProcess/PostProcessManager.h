@@ -626,6 +626,8 @@ public:
         uint32_t alignPadding[20];
     };
 
+    static_assert(sizeof(CombinedParams) % 256 == 0, "CombinedParams must be 256-byte aligned for D3D12 CBV.");
+
     struct alignas(256) BindlessParams {
         uint32_t mainTextureIndex;
         uint32_t extraTextureIndex;

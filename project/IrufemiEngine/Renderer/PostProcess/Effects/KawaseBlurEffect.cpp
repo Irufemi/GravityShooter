@@ -76,8 +76,8 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
         prevSource = kwTex;
     }
 
-    // 2. Upsample Pass Loop
-    for (int i = iterations - 2; i >= 0; --i) {
+    // 2. Upsample Pass Loop (iterations == 1 の場合も最終アップサンプルを実行して出力先へ確実に書き込む)
+    for (int i = (iterations > 1) ? (iterations - 2) : 0; i >= 0; --i) {
         RenderTexture* kwTex = textures_[i];
         if (!kwTex && i != 0) {
             continue;
@@ -110,12 +110,7 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
         ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? manager->finalDualKawaseUpsamplePSO_.Get()
                                                                   : manager->dualKawaseUpsamplePSO_.Get();
 
-        if (isFinalUp) {
-            commandList->OMSetRenderTargets(1, &upHandle, false, nullptr);
-            float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
-            commandList->ClearRenderTargetView(upHandle, clearColor, 0, nullptr);
-        }
-
+        // フルスクリーン上書き描画を行うため、直前のClearRenderTargetViewは不要（GPU帯域節約）
         manager->DrawSinglePass(commandList, PostProcessManager::Mode::DualKawaseBlur, prevSource, upHandle,
                                 (isFinalUp && writeToScreen), upPso);
 
@@ -198,8 +193,8 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
         prevHandle = currentTargetHandle;
     }
 
-    // 2. Upsample Passes
-    for (int i = iterations - 2; i >= 0; --i) {
+    // 2. Upsample Passes (iterations == 1 の場合も最終アップサンプルを実行して出力先へ確実に書き込む)
+    for (int i = (iterations > 1) ? (iterations - 2) : 0; i >= 0; --i) {
         bool isFinalUp = (i == 0);
         TransientResourceHandle upTargetHandle = isFinalUp ? outputHandle : handles_[i];
 
@@ -243,8 +238,6 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                         th = rc.engine->GetGameResolutionHeight();
                     }
                     cmdList->OMSetRenderTargets(1, &targetRtv, false, nullptr);
-                    float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
-                    cmdList->ClearRenderTargetView(targetRtv, clearColor, 0, nullptr);
                 } else {
                     if (!kwTex) {
                         return;
