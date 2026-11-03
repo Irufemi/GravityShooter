@@ -212,11 +212,14 @@ void DroneManagerComponent::OnRegisterProperties() {
 
 void DroneManagerComponent::DeployDrones(std::weak_ptr<GameObject> boss, int count,
                                          BossBulletManagerComponent* bulletMgr) {
+    if (count <= 0) {
+        return;
+    }
     boss_ = boss;
     bulletManager_ = bulletMgr;
 
     if (!dronePool_) {
-        auto factory = [this, boss]() {
+        auto factory = [this]() {
             auto obj = GetGameObject()->Instantiate(dronePrefabPath_);
             if (obj) {
                 obj->SetIsActive(false);

@@ -69,6 +69,7 @@ private:
     float hitRadius_ = kDefaultHitRadius;
     std::string hitEffectKey_ = "Dust";
     std::string bulletPrefabPath_ = "resources/prefabs/BossBullet.json";
+    std::string bulletModelPath_ = "resources/model/BossDroneBullet/BossDroneBullet.obj";
     Irufemi::Vector4 bulletColor_ = {0.85f, 0.15f, 1.0f, 1.0f}; ///< ボス弾のカラー（鮮やかな紫色）
     /// @brief 攻撃対象となるプレイヤーのGameObject ID
     uint64_t targetPlayerID_ = 0;

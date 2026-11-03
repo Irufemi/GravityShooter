@@ -15,6 +15,7 @@
 #include "Framework/Component/Collider/SphereColliderComponent.h"
 #include "Core/Utility/Log.h"
 #include "Effects/EffectManagerComponent.h"
+#include "Framework/Prefab/PrefabManager.h"
 #include <iostream>
 #include <algorithm>
 #include <limits>
@@ -29,13 +30,48 @@ void BossBulletManagerComponent::Initialize() {
         virtualManager_ = gameObject_->AddComponent<VirtualEntityManagerComponent>().get();
     }
 
-    // バッチレンダラに球モデルを設定し、弾色（紫色等）を反映
+    std::string modelToLoad = bulletModelPath_;
+
+    // プレハブパス指定がある場合、プレハブ定義からモデルパスやパラメータを解決
+    if (!bulletPrefabPath_.empty()) {
+        if (auto engine = GetEngine()) {
+            if (auto pm = engine->GetPrefabManager()) {
+                if (auto jsonPtr = pm->GetPrefabJson(bulletPrefabPath_)) {
+                    const auto& j = *jsonPtr;
+                    if (j.contains("components") && j["components"].is_array()) {
+                        for (const auto& compJson : j["components"]) {
+                            std::string type = compJson.value("type", "");
+                            if (type == "MeshRendererComponent" && compJson.contains("data")) {
+                                std::string modelPath = compJson["data"].value("modelPath", "");
+                                if (!modelPath.empty()) {
+                                    modelToLoad = modelPath;
+                                }
+                            } else if (type == "SphereColliderComponent" && compJson.contains("data")) {
+                                hitRadius_ = compJson["data"].value("radius", hitRadius_);
+                            } else if (type == "TransformComponent" && compJson.contains("data")) {
+                                if (compJson["data"].contains("scale") && compJson["data"]["scale"].is_array() &&
+                                    compJson["data"]["scale"].size() >= 3) {
+                                    bulletScale_.x = compJson["data"]["scale"][0].get<float>();
+                                    bulletScale_.y = compJson["data"]["scale"][1].get<float>();
+                                    bulletScale_.z = compJson["data"]["scale"][2].get<float>();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // バッチレンダラに弾モデルを設定し、弾色（紫色等）を反映
     if (auto batchRenderer = gameObject_->GetComponent<ModelBatchRendererComponent>()) {
-        batchRenderer->LoadModel("resources/model/BossDroneBullet/BossDroneBullet.obj");
+        batchRenderer->LoadModel(modelToLoad);
         batchRenderer->SetColor(bulletColor_);
     }
 
-    auto factory = []() -> std::shared_ptr<GameObject> { return nullptr; };
+    auto factory = [this]() -> std::shared_ptr<GameObject> {
+        return GetGameObject() ? GetGameObject()->Instantiate(bulletPrefabPath_) : nullptr;
+    };
     virtualManager_->Setup(0, maxBullets_, factory);
 
     bulletDataList_.resize(maxBullets_);
@@ -260,7 +296,8 @@ void BossBulletManagerComponent::Update() {
 
 void BossBulletManagerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
-    RegisterProperty("Bullet Prefab Path", &bulletPrefabPath_);
+    RegisterProperty("Bullet Prefab Path", &bulletPrefabPath_).SetPrefabFilter("SphereColliderComponent");
+    RegisterProperty("Bullet Model Path", &bulletModelPath_);
     RegisterProperty("Max Bullets", &maxBullets_);
     RegisterProperty("Default Life Time", &defaultLifeTime_);
     RegisterProperty("Bullet Scale", &bulletScale_);

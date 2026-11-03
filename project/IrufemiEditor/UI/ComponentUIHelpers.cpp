@@ -627,7 +627,22 @@ bool IsValidPrefabPath(const std::string& path) {
     if (ext != ".json" && ext != ".prefab") {
         return false;
     }
-    return std::filesystem::exists(p) && std::filesystem::is_regular_file(p);
+    // 毎フレームの同期ディスクアクセス（exists / is_regular_file）を排除するためのキャッシュ
+    static std::unordered_map<std::string, bool> s_pathCache;
+    static uint32_t s_frameCounter = 0;
+    if (++s_frameCounter >= 60) {
+        s_frameCounter = 0;
+        s_pathCache.clear();
+    }
+
+    auto it = s_pathCache.find(path);
+    if (it != s_pathCache.end()) {
+        return it->second;
+    }
+
+    bool exists = std::filesystem::exists(p) && std::filesystem::is_regular_file(p);
+    s_pathCache[path] = exists;
+    return exists;
 }
 
 bool DrawOpenPrefabButton(const std::string& prefabPath, const char* label, ImVec2 buttonSize) {
