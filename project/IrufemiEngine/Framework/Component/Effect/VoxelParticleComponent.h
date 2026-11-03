@@ -132,7 +132,7 @@ private:
     // システム設定
     Irufemi::Vector3Int resolution_ = {32, 32, 32}; ///< ボクセルの分割数
     int preAllocateCount_ = 1;                      ///< シーン開始時に確保・事前計算しておく数
-    std::string overrideModelName_; ///< 空欄ならMeshRenderer等を利用、指定があればプロキシモデルを利用
+    std::string overrideModelName_;                 ///< 空欄ならMeshRenderer等を利用、指定があればプロキシモデルを利用
 
     // キャッシュ用
     std::string cachedModelName_;

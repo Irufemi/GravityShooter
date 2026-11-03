@@ -111,8 +111,8 @@ private:
     Irufemi::Vector2 uvOffset_ = {0.0f, 0.0f};                      ///< UVオフセット
     Irufemi::Vector2 uvTiling_ = {1.0f, 1.0f};                      ///< UVタイリング
 
-    uint32_t textureIndex_ = 0; ///< [Bindless] テクスチャインデックス
+    uint32_t textureIndex_ = 0;                                         ///< [Bindless] テクスチャインデックス
     Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_ = nullptr; ///< マテリアル定数バッファ
     Material* mappedMaterialData_ = nullptr;                            ///< マップポインタ
-    bool isDirty_ = true; ///< マテリアル定数バッファ同期フラグ
+    bool isDirty_ = true;                                               ///< マテリアル定数バッファ同期フラグ
 };

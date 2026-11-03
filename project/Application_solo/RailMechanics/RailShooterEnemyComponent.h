@@ -328,13 +328,13 @@ private:
     SplineFollowerComponent* playerFollower_ = nullptr;    //!< プレイヤーのスプライン追従情報
     float currentDistanceOffset_ = 85.0f;                  //!< レール上の自機からの現在相対距離 (m)
     Irufemi::Vector2 baseFormationOffset_ = {0.0f, 0.0f};  //!< フォーメーションによる基本XYオフセット
-    Irufemi::Vector2 currentLocalOffset_ = {0.0f, 0.0f}; //!< 浮遊サイン波が付加された現在XYオフセット
+    Irufemi::Vector2 currentLocalOffset_ = {0.0f, 0.0f};   //!< 浮遊サイン波が付加された現在XYオフセット
 
     // スナイパー用AOE予兆（Telegraphing）パラメータ
-    float sniperTelegraphDuration_ = 1.0f; //!< 射撃前の予兆レーザー照射時間（秒）
-    float sniperLockLeadTime_ = 0.25f;     //!< 射撃前の射線固定（ロック）時間（秒）
-    float sniperLaserRadius_ = 0.12f;      //!< 予兆レーザーの半径（細いレーザーサイト）
-    float sniperLaserLength_ = 200.0f;     //!< 予兆レーザーの最大到達長
+    float sniperTelegraphDuration_ = 1.0f;                            //!< 射撃前の予兆レーザー照射時間（秒）
+    float sniperLockLeadTime_ = 0.25f;                                //!< 射撃前の射線固定（ロック）時間（秒）
+    float sniperLaserRadius_ = 0.12f;                                 //!< 予兆レーザーの半径（細いレーザーサイト）
+    float sniperLaserLength_ = 200.0f;                                //!< 予兆レーザーの最大到達長
     Irufemi::Vector4 sniperLaserColor_ = {1.0f, 0.15f, 0.15f, 0.85f}; //!< レーザー基本色
 
     // 内部予兆ステート
@@ -373,7 +373,7 @@ private:
     float scaleMultiplier_ = 1.0f;           //!< 敵のサイズ倍率（Lootドロップ量等の算出基準）
 
     // 被弾ヒットフラッシュ演出 (Juice)
-    float hitFlashTimer_ = 0.0f; //!< ヒットフラッシュの残り時間（秒）
+    float hitFlashTimer_ = 0.0f;                                       //!< ヒットフラッシュの残り時間（秒）
     Irufemi::Vector4 originalOutlineColor_ = {1.0f, 0.2f, 0.1f, 1.0f}; //!< 通常時のアウトライン色
-    bool hasCachedOriginalOutline_ = false; //!< 初期アウトライン色のキャッシュ完了フラグ
+    bool hasCachedOriginalOutline_ = false;                            //!< 初期アウトライン色のキャッシュ完了フラグ
 };

@@ -160,14 +160,14 @@ public:
 
     struct SwingConfig {
         Irufemi::PrimitiveType shape = Irufemi::PrimitiveType::Ring; //!< 使用するプリミティブ形状（デフォルト: Ring）
-        std::string texture = "resources/gradationLine.png"; //!< 使用するテクスチャパス
-        Irufemi::Vector4 color = {1.0f, 0.65f, 0.1f, 1.0f};  //!< スイングエフェクトのデフォルトカラー
-        Irufemi::Vector3 startScale = {1.0f, 1.0f, 1.0f}; //!< 開始スケール（半径は呼び出し元で直接指定）
-        Irufemi::Vector3 endScale = {1.0f, 1.0f, 1.0f}; //!< 終了スケール
+        std::string texture = "resources/gradationLine.png";         //!< 使用するテクスチャパス
+        Irufemi::Vector4 color = {1.0f, 0.65f, 0.1f, 1.0f};          //!< スイングエフェクトのデフォルトカラー
+        Irufemi::Vector3 startScale = {1.0f, 1.0f, 1.0f};            //!< 開始スケール（半径は呼び出し元で直接指定）
+        Irufemi::Vector3 endScale = {1.0f, 1.0f, 1.0f};              //!< 終了スケール
         Irufemi::Vector2 uvScrollSpeed = {0.0f, 0.0f}; //!< 動的メッシュ生成で軌跡が伸びるためスクロールは不要
-        Irufemi::Vector2 uvScale = {1.0f, 1.0f}; //!< UVタイリングスケール
-        float lifeTime = 0.33f;                  //!< エフェクトの生存時間（約20フレーム = 0.33秒）
-        bool useClamp = true;                    //!< 白丸回避用クランプサンプラー使用フラグ
+        Irufemi::Vector2 uvScale = {1.0f, 1.0f};       //!< UVタイリングスケール
+        float lifeTime = 0.33f;                        //!< エフェクトの生存時間（約20フレーム = 0.33秒）
+        bool useClamp = true;                          //!< 白丸回避用クランプサンプラー使用フラグ
 
         // リング形状調整用のパラメータ
         float innerRadius = 0.2f;        //!< リングの内径
@@ -183,14 +183,14 @@ public:
      */
     struct ExplosionConfig {
         Irufemi::PrimitiveType coreShape =
-            Irufemi::PrimitiveType::Sphere;               //!< 3D爆風コアの形状（SphereまたはIcoSphere）
-        std::string coreTexture = "resources/noise0.png"; //!< 爆風テクスチャ（既存のノイズを使用）
+            Irufemi::PrimitiveType::Sphere;                              //!< 3D爆風コアの形状（SphereまたはIcoSphere）
+        std::string coreTexture = "resources/noise0.png";                //!< 爆風テクスチャ（既存のノイズを使用）
         Irufemi::PrimitiveType waveShape = Irufemi::PrimitiveType::Ring; //!< 衝撃波の形状
         std::string waveTexture = "resources/gradationLine.png";         //!< 衝撃波のテクスチャ
 
         Irufemi::Vector4 color = {1.0f, 0.4f, 0.05f, 1.0f};   //!< 燃え上がる高輝度オレンジ
         Irufemi::Vector3 coreStartScale = {0.1f, 0.1f, 0.1f}; //!< 爆風の開始サイズ
-        Irufemi::Vector3 coreEndScale = {2.5f, 2.5f, 2.5f}; //!< 爆風の終了サイズ（小さく高密度に修正）
+        Irufemi::Vector3 coreEndScale = {2.5f, 2.5f, 2.5f};   //!< 爆風の終了サイズ（小さく高密度に修正）
         Irufemi::Vector3 waveStartScale = {0.5f, 0.5f, 0.5f}; //!< 衝撃波の開始サイズ
         Irufemi::Vector3 waveEndScale = {7.0f, 7.0f, 7.0f}; //!< 衝撃波の終了サイズ（スパークの飛散範囲に合わせて調整）
 

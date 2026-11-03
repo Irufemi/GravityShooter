@@ -209,7 +209,7 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
 
     SetHUDActive(false);
     SetShipThrusterScale(3.8f, true); // 超光速突入用の超高出力オーバードライブブースト炎（3.8倍）を展開
-    SetShipThrusterActive(true); // 突入開始位置（後方）でスラスター点火
+    SetShipThrusterActive(true);      // 突入開始位置（後方）でスラスター点火
 
     // シーン突入開始の瞬間（フェードイン中・第1フレーム）から最大広角とラジアルブラーを先行点火！
     UpdateWarpVisuals(0.0f);
@@ -350,7 +350,7 @@ void StageIntroDirectorComponent::DestroyMembraneObject() {
 }
 
 struct StageIntroDirectorComponent::PhaseConfig {
-    float StageIntroDirectorComponent::*durationMember;
+    float StageIntroDirectorComponent::* durationMember;
     float initialThrusterScale;
     float targetThrusterScale;
     bool isPositionInterpolated;

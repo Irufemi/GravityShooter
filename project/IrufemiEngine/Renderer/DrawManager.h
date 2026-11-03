@@ -142,9 +142,9 @@ private:
     std::vector<RenderPackets::SpritePacket> topMostTextQueue_;
 
     // --- スレッドローカルキュー管理 ---
-    std::mutex registryMutex_; ///< スレッドローカルキュー登録用ミューテックス
+    std::mutex registryMutex_;                         ///< スレッドローカルキュー登録用ミューテックス
     std::vector<LocalRenderQueues*> registeredQueues_; ///< 登録された全スレッドローカルキューのポインタ一覧
-    std::shared_ptr<std::atomic<bool>> isAlive_; ///< DrawManager生存フラグ（スレッド終了時の安全判定）
+    std::shared_ptr<std::atomic<bool>> isAlive_;       ///< DrawManager生存フラグ（スレッド終了時の安全判定）
 
     // レンダーグラフ
     std::unique_ptr<class RenderGraph> renderGraph_;

@@ -447,8 +447,8 @@ void PlayerDamageVisualizerComponent::TriggerSupernovaExplosion() {
         VoxelEmitter p{};
         p.particleType = 5; // Explosive
         p.lifeTime = 2.5f;
-        p.gravity = 0.0f;     // 無重力空間を放射状に直進
-        p.dispersion = 75.0f; // ★超高速インパルス（爆円の広がりと破片の広がりが完全同期！）
+        p.gravity = 0.0f;                         // 無重力空間を放射状に直進
+        p.dispersion = 75.0f;                     // ★超高速インパルス（爆円の広がりと破片の広がりが完全同期！）
         p.scale = {0.12f, 0.12f, 0.12f};          // ★巨大ブロック化を防ぎ、繊細なクリスタル結晶
         p.startColor = {6.0f, 7.5f, 10.0f, 1.0f}; // 超高輝度HDRシアンホワイト
         p.endColor = {0.1f, 0.5f, 1.2f, 0.0f};    // 宇宙に溶ける深青プラズマ煙

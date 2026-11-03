@@ -189,7 +189,7 @@ void DebugUI::Initialize([[maybe_unused]] HWND hwnd, [[maybe_unused]] DirectXCom
     IRUFEMI_ASSERT(srvIndex_ != DescriptorPool::kInvalid);
 
     ImGui_ImplDX12_Init(dxCommon->GetDevice(),
-                        kMaxFramesInFlight, // エンジンの最大フレーム実行数に合わせる
+                        kMaxFramesInFlight,                  // エンジンの最大フレーム実行数に合わせる
                         dxCommon->GetSwapChainDesc().Format, // スワップチェーン作成用にUNORMフォーマットを使用
                         srvHeap, srvPool->GetCPUHandle(srvIndex_), srvPool->GetGPUHandle(srvIndex_));
 

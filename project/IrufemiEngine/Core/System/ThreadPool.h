@@ -43,8 +43,8 @@ public:
      * @brief タスクを特定の TaskGroup に紐付けてキューに追加し、future を返す
      */
     template <class F, class... Args>
-    auto Enqueue(std::shared_ptr<TaskGroup> group, F&& f,
-                 Args&&... args) -> std::future<typename std::invoke_result_t<F, Args...>>;
+    auto Enqueue(std::shared_ptr<TaskGroup> group, F&& f, Args&&... args)
+        -> std::future<typename std::invoke_result_t<F, Args...>>;
 
     /**
      * @brief 現在処理中のスレッド数を取得
@@ -148,8 +148,8 @@ auto ThreadPool::Enqueue(F&& f, Args&&... args) -> std::future<typename std::inv
 }
 
 template <class F, class... Args>
-auto ThreadPool::Enqueue(std::shared_ptr<TaskGroup> group, F&& f,
-                         Args&&... args) -> std::future<typename std::invoke_result_t<F, Args...>> {
+auto ThreadPool::Enqueue(std::shared_ptr<TaskGroup> group, F&& f, Args&&... args)
+    -> std::future<typename std::invoke_result_t<F, Args...>> {
     if (group) {
         group->NotifyTaskStarted();
     }
