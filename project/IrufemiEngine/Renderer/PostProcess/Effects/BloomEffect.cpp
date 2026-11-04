@@ -14,8 +14,20 @@ namespace Irufemi {
 
 void BloomEffect::SetParams(const BloomParams& params) {
     params_ = params;
-    if (mappedParams_) {
-        *mappedParams_ = params_;
+    if (mappedData_) {
+        // スロット 0: Extract / Combine 用
+        auto* pSlot0 = reinterpret_cast<BloomParams*>(mappedData_ + 0);
+        *pSlot0 = params_;
+
+        // スロット 1: BlurH (水平) 用
+        auto* pSlot1 = reinterpret_cast<BloomParams*>(mappedData_ + 256);
+        *pSlot1 = params_;
+        pSlot1->direction = {1.0f, 0.0f};
+
+        // スロット 2: BlurV (垂直) 用
+        auto* pSlot2 = reinterpret_cast<BloomParams*>(mappedData_ + 512);
+        *pSlot2 = params_;
+        pSlot2->direction = {0.0f, 1.0f};
     }
 }
 
@@ -25,13 +37,13 @@ void BloomEffect::Initialize(ID3D12Device* device, DirectXCommon* dxCommon, ID3D
         return;
     }
 
-    // 1. 専用定数バッファの生成 (256バイトアライメント)
+    // 1. 専用定数バッファの生成 (256バイト × 3スロット: Extract/Combine, BlurH, BlurV)
     D3D12_HEAP_PROPERTIES heapProps{};
     heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 
     D3D12_RESOURCE_DESC cbDesc{};
     cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    cbDesc.Width = (sizeof(BloomParams) + 255) & ~255;
+    cbDesc.Width = 256 * 3;
     cbDesc.Height = 1;
     cbDesc.DepthOrArraySize = 1;
     cbDesc.MipLevels = 1;
@@ -41,10 +53,8 @@ void BloomEffect::Initialize(ID3D12Device* device, DirectXCommon* dxCommon, ID3D
     device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &cbDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
                                     nullptr, IID_PPV_ARGS(&constantBuffer_));
     if (constantBuffer_) {
-        constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedParams_));
-        if (mappedParams_) {
-            *mappedParams_ = params_;
-        }
+        constantBuffer_->Map(0, nullptr, reinterpret_cast<void**>(&mappedData_));
+        SetParams(params_);
     }
 
     // 2. 専用PSOの生成
@@ -125,37 +135,31 @@ void BloomEffect::Render(const PostProcessRenderContext& context) {
         return;
     }
 
-    const D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = GetConstantBufferAddress();
+    const D3D12_GPU_VIRTUAL_ADDRESS cbvExtract = GetConstantBufferAddress(0);
+    const D3D12_GPU_VIRTUAL_ADDRESS cbvBlurH = GetConstantBufferAddress(1);
+    const D3D12_GPU_VIRTUAL_ADDRESS cbvBlurV = GetConstantBufferAddress(2);
 
     // 1. High Luminance Extract Pass
     DirectXUtils::TransitionBarrier(commandList, bloomExtract->GetResource(),
                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
     manager->DrawSinglePass(commandList, PostProcessManager::Mode::Bloom, currentSource, bloomExtract->GetRtvHandle(),
-                            false, extractPSO_.Get(), cbvAddress);
+                            false, extractPSO_.Get(), cbvExtract);
     DirectXUtils::TransitionBarrier(commandList, bloomExtract->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     // 2. Horizontal Blur Pass
-    params_.direction = {1.0f, 0.0f};
-    if (mappedParams_) {
-        *mappedParams_ = params_;
-    }
     DirectXUtils::TransitionBarrier(commandList, blurH->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                     D3D12_RESOURCE_STATE_RENDER_TARGET);
     manager->DrawSinglePass(commandList, PostProcessManager::Mode::Bloom, bloomExtract, blurH->GetRtvHandle(), false,
-                            blurHPSO_.Get(), cbvAddress);
+                            blurHPSO_.Get(), cbvBlurH);
     DirectXUtils::TransitionBarrier(commandList, blurH->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     // 3. Vertical Blur Pass
-    params_.direction = {0.0f, 1.0f};
-    if (mappedParams_) {
-        *mappedParams_ = params_;
-    }
     DirectXUtils::TransitionBarrier(commandList, blurV->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                     D3D12_RESOURCE_STATE_RENDER_TARGET);
     manager->DrawSinglePass(commandList, PostProcessManager::Mode::Bloom, blurH, blurV->GetRtvHandle(), false,
-                            blurVPSO_.Get(), cbvAddress);
+                            blurVPSO_.Get(), cbvBlurV);
     DirectXUtils::TransitionBarrier(commandList, blurV->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
@@ -175,8 +179,8 @@ void BloomEffect::Render(const PostProcessRenderContext& context) {
                                          manager->bindlessBufferOffset_ * sizeof(PostProcessManager::BindlessParams));
     manager->TryIncrementBindlessOffset();
 
-    if (cbvAddress != 0) {
-        commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, cbvAddress);
+    if (cbvExtract != 0) {
+        commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, cbvExtract);
     }
     commandList->DrawInstanced(3, 1, 0, 0);
 }
@@ -196,7 +200,9 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
     extractHandle_ = renderGraph->GetOrCreateTransientResource("Bloom_Extract", desc);
     blurHandle_ = renderGraph->GetOrCreateTransientResource("Bloom_Blur", desc);
 
-    const D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = GetConstantBufferAddress();
+    const D3D12_GPU_VIRTUAL_ADDRESS cbvExtract = GetConstantBufferAddress(0);
+    const D3D12_GPU_VIRTUAL_ADDRESS cbvBlurH = GetConstantBufferAddress(1);
+    const D3D12_GPU_VIRTUAL_ADDRESS cbvBlurV = GetConstantBufferAddress(2);
 
     // 1. High Luminance Extract Pass
     renderGraph->AddPass(
@@ -205,7 +211,7 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
             builder.RequireTransientState(inputHandle, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             builder.RequireTransientState(extractHandle_, D3D12_RESOURCE_STATE_RENDER_TARGET);
         },
-        [this, manager, inputHandle, cbvAddress](const Irufemi::RenderContext& rc) {
+        [this, manager, inputHandle, cbvExtract](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
             auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
@@ -213,7 +219,7 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
                 return;
             }
             manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, inputTex, extractTex->GetRtvHandle(),
-                                    false, extractPSO_.Get(), cbvAddress);
+                                    false, extractPSO_.Get(), cbvExtract);
         });
 
     // 2. Horizontal Blur Pass
@@ -223,19 +229,15 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
             builder.RequireTransientState(extractHandle_, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             builder.RequireTransientState(blurHandle_, D3D12_RESOURCE_STATE_RENDER_TARGET);
         },
-        [this, manager, cbvAddress](const Irufemi::RenderContext& rc) {
+        [this, manager, cbvBlurH](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
             auto* blurTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(blurHandle_);
             if (!extractTex || !blurTex) {
                 return;
             }
-            params_.direction = {1.0f, 0.0f};
-            if (mappedParams_) {
-                *mappedParams_ = params_;
-            }
             manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, extractTex, blurTex->GetRtvHandle(),
-                                    false, blurHPSO_.Get(), cbvAddress);
+                                    false, blurHPSO_.Get(), cbvBlurH);
         });
 
     // 3. Vertical Blur Pass
@@ -245,19 +247,15 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
             builder.RequireTransientState(blurHandle_, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             builder.RequireTransientState(extractHandle_, D3D12_RESOURCE_STATE_RENDER_TARGET);
         },
-        [this, manager, cbvAddress](const Irufemi::RenderContext& rc) {
+        [this, manager, cbvBlurV](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
             auto* blurTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(blurHandle_);
             if (!extractTex || !blurTex) {
                 return;
             }
-            params_.direction = {0.0f, 1.0f};
-            if (mappedParams_) {
-                *mappedParams_ = params_;
-            }
             manager->DrawSinglePass(cmdList, PostProcessManager::Mode::Bloom, blurTex, extractTex->GetRtvHandle(),
-                                    false, blurVPSO_.Get(), cbvAddress);
+                                    false, blurVPSO_.Get(), cbvBlurV);
         });
 
     // 4. Combine Pass
@@ -274,7 +272,7 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
                                      D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
         },
-        [this, manager, inputHandle, outputHandle, writeToScreen, cbvAddress](const Irufemi::RenderContext& rc) {
+        [this, manager, inputHandle, outputHandle, writeToScreen, cbvExtract](const Irufemi::RenderContext& rc) {
             auto* cmdList = rc.drawManager->GetDxCommon()->GetCommandList();
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
             auto* extractTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(extractHandle_);
@@ -306,8 +304,8 @@ void BloomEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* m
                                                                sizeof(PostProcessManager::BindlessParams));
             manager->TryIncrementBindlessOffset();
 
-            if (cbvAddress != 0) {
-                cmdList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, cbvAddress);
+            if (cbvExtract != 0) {
+                cmdList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, cbvExtract);
             }
             cmdList->DrawInstanced(3, 1, 0, 0);
         });

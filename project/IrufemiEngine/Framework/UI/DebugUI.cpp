@@ -46,12 +46,25 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include "Renderer/Data/LightningParams.h"
 #include "Framework/Utility/CVar.h"
 #include "Framework/Scene/IScene.h"
-#include "Renderer/ScreenCaptureManager.h"
+
+
+
+
+
 #include "Renderer/System/ParticleGPU/GPUParticleManager.h"
 #include "Renderer/DrawManager.h"
 #include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "Core/System/ThreadPool.h"
 #include "Renderer/ScreenCaptureManager.h"
+#include "Renderer/PostProcess/Effects/BloomEffect.h"
+#include "Renderer/PostProcess/Effects/LightShaftsEffect.h"
+#include "Renderer/PostProcess/Effects/KawaseBlurEffect.h"
+#include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
+
+
+
+
+
 #include <chrono>
 #include <iomanip>
 
@@ -916,7 +929,11 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                                        "DirectionalBlur",
                                        "Halftone",
                                        "DepthOfField",
-                                       "LightShafts"};
+                                       "LightShafts",
+                                       "GravityDistortion",
+                                       "BlackHoleSupernova"};
+            static_assert(IM_ARRAYSIZE(modeNames) == static_cast<size_t>(PostProcessMode::Count),
+                          "modeNames count must match PostProcessMode::Count");
             auto activeModes = ppManager->GetActiveModes();
 
             if (ImGui::Button("Clear All Effects")) {
@@ -959,22 +976,26 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
 
             // 有効な全てのエフェクトのパラメータを表示
             ImGui::PushID("Parameters");
+            auto* combinedEffect = ppManager->GetEffect<Irufemi::CombinedPostEffect>();
+            auto* bloomEffect = ppManager->GetEffect<Irufemi::BloomEffect>();
+            auto* lsEffect = ppManager->GetEffect<Irufemi::LightShaftsEffect>();
+            auto* kawaseEffect = ppManager->GetEffect<Irufemi::KawaseBlurEffect>();
             for (auto mode : activeModes) {
                 if (ImGui::TreeNode(modeNames[static_cast<int>(mode)])) {
                     if (mode == PostProcessMode::ChromaticAberration) {
-                        auto& params = ppManager->GetChromaticAberrationParams();
+                        auto& params = combinedEffect->GetChromaticAberrationParams();
                         ImGui::DragFloat("Intensity", &params.intensity, 0.001f, 0.0f, 1.0f);
                     } else if (mode == PostProcessMode::DisplacementMap) {
-                        auto& params = ppManager->GetDisplacementMapParams();
+                        auto& params = combinedEffect->GetDisplacementMapParams();
                         ImGui::DragFloat("Intensity", &params.intensity, 0.001f, 0.0f, 1.0f);
                         ImGui::DragFloat("Time Scale", &params.timeScale, 0.01f, 0.0f, 10.0f);
                     } else if (mode == PostProcessMode::DirectionalBlur) {
-                        auto& params = ppManager->GetDirectionalBlurParams();
+                        auto& params = combinedEffect->GetDirectionalBlurParams();
                         ImGui::DragFloat2("Direction", &params.direction.x, 0.01f, -1.0f, 1.0f);
                         ImGui::DragFloat("Strength", &params.strength, 0.001f, 0.0f, 1.0f);
                         ImGui::SliderInt("Samples", &params.samples, 2, 32);
                     } else if (mode == PostProcessMode::Halftone) {
-                        auto& params = ppManager->GetHalftoneParams();
+                        auto& params = combinedEffect->GetHalftoneParams();
                         ImGui::DragFloat("Scale", &params.scale, 1.0f, 10.0f, 500.0f);
                         // ImGui::SliderAngle handles radians automatically
                         float angleDeg = Irufemi::Math::ToDegree(params.angle);
@@ -983,13 +1004,13 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                         }
                         ImGui::DragFloat("Blend", &params.blend, 0.01f, 0.0f, 1.0f);
                     } else if (mode == PostProcessMode::DepthOfField) {
-                        auto& params = ppManager->GetDepthOfFieldParams();
+                        auto& params = combinedEffect->GetDepthOfFieldParams();
                         ImGui::DragFloat("Focus Distance", &params.focusDistance, 0.1f, 0.0f, 1000.0f);
                         ImGui::DragFloat("Focus Range", &params.focusRange, 0.1f, 0.1f, 500.0f);
                         ImGui::DragFloat("Blur Size", &params.blurSize, 0.1f, 0.0f, 50.0f);
                         ImGui::SliderInt("Samples", &params.samples, 4, 64);
                     } else if (mode == PostProcessMode::LightShafts) {
-                        auto& params = ppManager->GetLightShaftsParams();
+                        auto& params = lsEffect->GetParams();
                         ImGui::DragFloat2("Light Screen Pos", &params.lightScreenPos.x, 0.01f, -1.0f, 2.0f);
                         ImGui::DragFloat("Density", &params.density, 0.01f, 0.0f, 5.0f);
                         ImGui::DragFloat("Decay", &params.decay, 0.001f, 0.8f, 1.0f);
@@ -997,17 +1018,17 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                         ImGui::DragFloat("Exposure", &params.exposure, 0.01f, 0.0f, 5.0f);
                         ImGui::SliderInt("Samples", &params.samples, 8, 128);
                     } else if (mode == PostProcessMode::Kaleidoscope) {
-                        auto& params = ppManager->GetKaleidoscopeParams();
+                        auto& params = combinedEffect->GetKaleidoscopeParams();
                         ImGui::DragFloat("Segments", &params.segments, 0.1f, 1.0f, 32.0f);
                     } else if (mode == PostProcessMode::NightVision) {
-                        auto& params = ppManager->GetNightVisionParams();
+                        auto& params = combinedEffect->GetNightVisionParams();
                         ImGui::DragFloat("Intensity", &params.intensity, 0.01f, 0.0f, 2.0f);
                     } else if (mode == PostProcessMode::Vignette) {
-                        auto& params = ppManager->GetVignetteParams();
+                        auto& params = combinedEffect->GetVignetteParams();
                         ImGui::DragFloat("Vignette Radius", &params.radius, 0.01f, 0.0f, 2.0f);
                         ImGui::DragFloat("Vignette Softness", &params.softness, 0.01f, 0.0f, 2.0f);
                     } else if (mode == PostProcessMode::Smoothing) {
-                        auto& params = ppManager->GetSmoothingParams();
+                        auto& params = combinedEffect->GetSmoothingParams();
                         if (ImGui::SliderInt("Kernel Size", reinterpret_cast<int*>(&params.kernelSize), 1, 31)) {
                             if (params.kernelSize < 1) {
                                 params.kernelSize = 1;
@@ -1017,7 +1038,7 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                             }
                         }
                     } else if (mode == PostProcessMode::GaussianFilter) {
-                        auto& params = ppManager->GetGaussianParams();
+                        auto& params = combinedEffect->GetGaussianParams();
                         ImGui::DragFloat("Sigma", &params.sigma, 0.01f, 0.01f, 10.0f);
                         if (ImGui::SliderInt("Kernel Size", reinterpret_cast<int*>(&params.kernelSize), 1, 31)) {
                             if (params.kernelSize < 1) {
@@ -1028,15 +1049,15 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                             }
                         }
                     } else if (mode == PostProcessMode::DepthBasedOutline) {
-                        auto& params = ppManager->GetOutlineParams();
+                        auto& params = combinedEffect->GetOutlineParams();
                         ImGui::DragFloat("Outline Intensity", &params.intensity, 0.1f, 0.0f, 20.0f);
                     } else if (mode == PostProcessMode::RadialBlur) {
-                        auto& params = ppManager->GetRadialBlurParams();
+                        auto& params = combinedEffect->GetRadialBlurParams();
                         ImGui::DragFloat2("Center", &params.center.x, 0.01f, 0.0f, 1.0f);
                         ImGui::DragFloat("Blur Width", &params.blurWidth, 0.001f, 0.0f, 0.1f);
                         ImGui::SliderInt("Samples", reinterpret_cast<int*>(&params.numSamples), 1, 100);
                     } else if (mode == PostProcessMode::Dissolve) {
-                        auto& params = ppManager->GetDissolveParams();
+                        auto& params = combinedEffect->GetDissolveParams();
                         ImGui::SliderFloat("Threshold", &params.threshold, 0.0f, 1.0f);
                         ImGui::SliderFloat("Edge Range", &params.edgeRange, 0.0f, 0.2f);
                         ImGui::ColorEdit4("Edge Color", &params.edgeColor.x);
@@ -1045,18 +1066,18 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                         ImGui::Combo("Noise Type", reinterpret_cast<int*>(&params.noiseType), noiseTypes,
                                      IM_ARRAYSIZE(noiseTypes));
                     } else if (mode == PostProcessMode::Noise) {
-                        auto& params = ppManager->GetNoiseParams();
+                        auto& params = combinedEffect->GetNoiseParams();
                         ImGui::SliderFloat("Noise Intensity", &params.intensity, 0.0f, 1.0f);
                     } else if (mode == PostProcessMode::HSV) {
-                        auto& params = ppManager->GetHSVParams();
+                        auto& params = combinedEffect->GetHSVParams();
                         ImGui::DragFloat("HueOffset", &params.hue, 0.001f, -1.0f, 1.0f);
                         ImGui::DragFloat("SaturationOffset", &params.saturation, 0.001f, -1.0f, 1.0f);
                         ImGui::DragFloat("ValueOffset", &params.value, 0.001f, -1.0f, 1.0f);
                     } else if (mode == PostProcessMode::ToneMapping) {
-                        auto& params = ppManager->GetToneMappingParams();
+                        auto& params = combinedEffect->GetToneMappingParams();
                         ImGui::DragFloat("Exposure", &params.exposure, 0.01f, 0.0f, 10.0f);
                     } else if (mode == PostProcessMode::Bloom) {
-                        auto& params = ppManager->GetBloomParams();
+                        auto& params = bloomEffect->GetParams();
                         ImGui::DragFloat("Threshold", &params.threshold, 0.01f, 0.0f, 5.0f);
                         ImGui::DragFloat("Sigma", &params.sigma, 0.01f, 0.01f, 10.0f);
                         ImGui::DragFloat("Intensity", &params.intensity, 0.01f, 0.0f, 10.0f);
@@ -1069,28 +1090,44 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                             }
                         }
                     } else if (mode == PostProcessMode::Glitch) {
-                        auto& params = ppManager->GetGlitchParams();
+                        auto& params = combinedEffect->GetGlitchParams();
                         ImGui::SliderFloat("Glitch Intensity", &params.intensity, 0.0f, 5.0f);
                     } else if (mode == PostProcessMode::DualKawaseBlur) {
-                        auto& params = ppManager->GetDualKawaseBlurParams();
+                        auto& params = kawaseEffect->GetParams();
                         ImGui::DragFloat("Blur Radius Offset", &params.blurRadius, 0.01f, 0.0f, 5.0f);
                         ImGui::SliderInt("Iteration Count", &params.iterationCount, 1,
                                          PostProcessManager::kMaxKawaseIterations);
                         ImGui::DragFloat("Intensity", &params.intensity, 0.01f, 0.0f, 10.0f);
                     } else if (mode == PostProcessMode::LuminanceBasedOutline) {
-                        auto& params = ppManager->GetLuminanceOutlineParams();
+                        auto& params = combinedEffect->GetLuminanceOutlineParams();
                         ImGui::DragFloat("Threshold", &params.threshold, 0.01f, 0.0f, 1.0f);
                         ImGui::ColorEdit4("Outline Color", &params.outlineColor.x);
                     } else if (mode == PostProcessMode::Pixelation) {
-                        auto& params = ppManager->GetPixelationParams();
+                        auto& params = combinedEffect->GetPixelationParams();
                         ImGui::DragFloat("Pixel Size", &params.pixelSize, 0.1f, 1.0f, 64.0f);
                     } else if (mode == PostProcessMode::Pointillism) {
-                        auto& params = ppManager->GetPointillismParams();
+                        auto& params = combinedEffect->GetPointillismParams();
                         ImGui::DragFloat("Stroke Size", &params.strokeSize, 0.1f, 1.0f, 50.0f);
                         ImGui::DragFloat("Color Steps", &params.colorSteps, 0.1f, 2.0f, 32.0f);
                     } else if (mode == PostProcessMode::Posterization) {
-                        auto& params = ppManager->GetPosterizationParams();
+                        auto& params = combinedEffect->GetPosterizationParams();
                         ImGui::DragFloat("Color Steps", &params.colorSteps, 0.1f, 2.0f, 32.0f);
+                    } else if (mode == PostProcessMode::GravityDistortion) {
+                        auto& params = combinedEffect->GetGravityDistortionParams();
+                        ImGui::DragFloat2("Center UV", &params.center.x, 0.01f, 0.0f, 1.0f);
+                        ImGui::DragFloat("Radius", &params.radius, 0.01f, 0.0f, 2.0f);
+                        ImGui::DragFloat("Intensity", &params.intensity, 0.01f, -1.0f, 1.0f);
+                        ImGui::DragFloat("Wave Width", &params.waveWidth, 0.005f, 0.01f, 0.5f);
+                        ImGui::DragFloat("Chromatic Ratio", &params.chromaticRatio, 0.005f, 0.0f, 0.2f);
+                    } else if (mode == PostProcessMode::BlackHoleSupernova) {
+                        auto& params = combinedEffect->GetBlackHoleSupernovaParams();
+                        ImGui::DragFloat2("Center UV", &params.center.x, 0.01f, 0.0f, 1.0f);
+                        ImGui::DragFloat("Black Hole Radius", &params.blackHoleRadius, 0.01f, 0.0f, 1.0f);
+                        ImGui::DragFloat("Pull Intensity", &params.blackHolePullIntensity, 0.01f, 0.0f, 2.0f);
+                        ImGui::DragFloat("Supernova Radius", &params.supernovaRadius, 0.01f, 0.0f, 3.0f);
+                        ImGui::DragFloat("Supernova Intensity", &params.supernovaIntensity, 0.01f, -2.0f, 2.0f);
+                        ImGui::DragFloat("Chromatic Ratio", &params.supernovaChromaticRatio, 0.005f, 0.0f, 0.5f);
+                        ImGui::DragFloat("Flash Intensity", &params.supernovaFlashIntensity, 0.01f, 0.0f, 5.0f);
                     }
                     ImGui::TreePop();
                 }

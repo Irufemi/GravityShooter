@@ -9,17 +9,155 @@
 
 namespace Irufemi {
 
+void CombinedPostEffect::Reset(bool clearPostUI) {
+    toneMappingParams_ = ToneMappingParams();
+    hsvParams_ = HSVParams();
+    vignetteParams_ = VignetteParams();
+    outlineParams_ = OutlineParams();
+    noiseParams_ = NoiseParams();
+    glitchParams_ = GlitchParams();
+    luminanceOutlineParams_ = LuminanceOutlineParams();
+    pixelationParams_ = PixelationParams();
+    pointillismParams_ = PointillismParams();
+    posterizationParams_ = PosterizationParams();
+    nightVisionParams_ = NightVisionParams();
+    kaleidoscopeParams_ = KaleidoscopeParams();
+    chromaticAberrationParams_ = ChromaticAberrationParams();
+    displacementMapParams_ = DisplacementMapParams();
+    directionalBlurParams_ = DirectionalBlurParams();
+    halftoneParams_ = HalftoneParams();
+    dofParams_ = DepthOfFieldParams();
+    smoothingParams_ = SmoothingParams();
+    gaussianParams_ = GaussianParams();
+    gravityDistortionParams_ = GravityDistortionParams();
+    blackHoleSupernovaParams_ = BlackHoleSupernovaParams();
+
+    if (clearPostUI) {
+        radialBlurParams_ = RadialBlurParams();
+        dissolveParams_ = DissolveParams();
+        fadeParams_ = FadeParams();
+        slideParams_ = SlideParams();
+    }
+}
+
 void CombinedPostEffect::SyncParamsToCombined(CombinedParams& combined) const {
+    // ToneMapping
     combined.toneMappingExposure = toneMappingParams_.exposure;
+
+    // HSV
     combined.hsvHue = hsvParams_.hue;
     combined.hsvSaturation = hsvParams_.saturation;
     combined.hsvValue = hsvParams_.value;
+
+    // Vignette
     combined.vignetteColor = vignetteParams_.color;
     combined.vignetteRadius = vignetteParams_.radius;
     combined.vignetteSoftness = vignetteParams_.softness;
+
+    // Outline
     combined.projectionInverse = outlineParams_.projectionInverse;
     combined.outlineIntensity = outlineParams_.intensity;
     combined.maskOutlineMaxRadius = outlineParams_.maskMaxRadius;
+
+    // Noise
+    combined.noiseIntensity = noiseParams_.intensity;
+    combined.noiseTime = noiseParams_.time;
+
+    // Dissolve
+    combined.dissolveEdgeColor = dissolveParams_.edgeColor;
+    combined.dissolveBackgroundColor = dissolveParams_.backgroundColor;
+    combined.dissolveThreshold = dissolveParams_.threshold;
+    combined.dissolveEdgeRange = dissolveParams_.edgeRange;
+
+    // RadialBlur
+    combined.radialBlurCenter = radialBlurParams_.center;
+    combined.radialBlurWidth = radialBlurParams_.blurWidth;
+    combined.radialBlurSamples = radialBlurParams_.numSamples;
+
+    // Fade
+    combined.fadeColor = fadeParams_.color;
+    combined.fadeIntensity = fadeParams_.intensity;
+
+    // Slide
+    combined.slideColor = slideParams_.color;
+    combined.slideThreshold = slideParams_.threshold;
+
+    // Glitch
+    combined.glitchIntensity = glitchParams_.intensity;
+    combined.glitchTime = glitchParams_.time;
+    combined.glitchEdgeMaskStrength = glitchParams_.edgeMaskStrength;
+    combined.glitchProbability = glitchParams_.probability;
+    combined.glitchBlockSizeX = glitchParams_.blockSizeX;
+    combined.glitchBlockSizeY = glitchParams_.blockSizeY;
+    combined.glitchOffsetBase = glitchParams_.offsetBase;
+    combined.glitchOffsetMax = glitchParams_.offsetMax;
+    combined.glitchRgbShiftBase = glitchParams_.rgbShiftBase;
+    combined.glitchRgbShiftMax = glitchParams_.rgbShiftMax;
+    combined.glitchScanlineFreq = glitchParams_.scanlineFreq;
+    combined.glitchScanlineIntensity = glitchParams_.scanlineIntensity;
+    combined.glitchColor = glitchParams_.color;
+
+    // LuminanceOutline
+    combined.luminanceOutlineColor = luminanceOutlineParams_.outlineColor;
+    combined.luminanceOutlineThreshold = luminanceOutlineParams_.threshold;
+
+    // Pixelation
+    combined.pixelationSize = pixelationParams_.pixelSize;
+
+    // Pointillism
+    combined.pointillismStrokeSize = pointillismParams_.strokeSize;
+    combined.pointillismColorSteps = pointillismParams_.colorSteps;
+
+    // Posterization
+    combined.posterizationSteps = posterizationParams_.colorSteps;
+
+    // NightVision
+    combined.nightVisionIntensity = nightVisionParams_.intensity;
+    combined.nightVisionTime = nightVisionParams_.time;
+
+    // Kaleidoscope
+    combined.kaleidoscopeSegments = kaleidoscopeParams_.segments;
+
+    // ChromaticAberration
+    combined.chromaticAberrationIntensity = chromaticAberrationParams_.intensity;
+
+    // DisplacementMap
+    combined.displacementMapIntensity = displacementMapParams_.intensity;
+    combined.displacementMapTime = displacementMapParams_.time;
+    combined.displacementMapTimeScale = displacementMapParams_.timeScale;
+
+    // DirectionalBlur
+    combined.directionalBlurDirection = directionalBlurParams_.direction;
+    combined.directionalBlurStrength = directionalBlurParams_.strength;
+    combined.directionalBlurSamples = directionalBlurParams_.samples;
+
+    // Halftone
+    combined.halftoneScale = halftoneParams_.scale;
+    combined.halftoneAngle = halftoneParams_.angle;
+    combined.halftoneBlend = halftoneParams_.blend;
+
+    // DepthOfField
+    combined.dofFocusDistance = dofParams_.focusDistance;
+    combined.dofFocusRange = dofParams_.focusRange;
+    combined.dofBlurSize = dofParams_.blurSize;
+    combined.dofSamples = dofParams_.samples;
+
+    // GravityDistortion
+    combined.gravityDistortionCenter = gravityDistortionParams_.center;
+    combined.gravityDistortionRadius = gravityDistortionParams_.radius;
+    combined.gravityDistortionIntensity = gravityDistortionParams_.intensity;
+    combined.gravityDistortionWaveWidth = gravityDistortionParams_.waveWidth;
+    combined.gravityDistortionChromaticRatio = gravityDistortionParams_.chromaticRatio;
+    combined.gravityDistortionTime = gravityDistortionParams_.time;
+
+    // BlackHoleSupernova
+    combined.blackHoleSupernovaCenter = blackHoleSupernovaParams_.center;
+    combined.blackHoleRadius = blackHoleSupernovaParams_.blackHoleRadius;
+    combined.blackHolePullIntensity = blackHoleSupernovaParams_.blackHolePullIntensity;
+    combined.supernovaRadius = blackHoleSupernovaParams_.supernovaRadius;
+    combined.supernovaIntensity = blackHoleSupernovaParams_.supernovaIntensity;
+    combined.supernovaChromaticRatio = blackHoleSupernovaParams_.supernovaChromaticRatio;
+    combined.supernovaFlashIntensity = blackHoleSupernovaParams_.supernovaFlashIntensity;
 }
 
 void CombinedPostEffect::Render(const PostProcessRenderContext& context) {
@@ -72,7 +210,7 @@ void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context
         if (PostProcessManager::UsesDepthBuffer(batch[i])) {
             extraIdx = manager->depthSrvIndex_;
         } else if (batch[i] == PostProcessManager::Mode::Dissolve) {
-            int noiseIdx = (manager->dissolveParams_.noiseType <= 0) ? 0 : 1;
+            int noiseIdx = (dissolveParams_.noiseType <= 0) ? 0 : 1;
             extraIdx = manager->dissolveNoiseIndex_[noiseIdx];
         }
     }
@@ -105,6 +243,7 @@ void CombinedPostEffect::RenderFinalCopyPass(const PostProcessRenderContext& con
     D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = context.targetRtv;
 
     manager->combinedParams_.effectCount = 0;
+    manager->combinedParams_.useMask = 0;
     if (manager->mappedCombined_) {
         manager->mappedCombined_[manager->combinedBufferOffset_] = manager->combinedParams_;
     }
@@ -202,7 +341,7 @@ void CombinedPostEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessMan
             auto* inputTex = rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(inputHandle);
 
             if (rc.drawManager && rc.drawManager->GetPerFrameData()) {
-                manager->GetOutlineParams().projectionInverse =
+                outlineParams_.projectionInverse =
                     Irufemi::Math::Inverse(rc.drawManager->GetPerFrameData()->camera.projection);
             }
 

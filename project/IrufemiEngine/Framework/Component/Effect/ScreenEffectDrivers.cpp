@@ -1,5 +1,6 @@
 #include "Framework/Component/Effect/ScreenEffectDrivers.h"
 #include "Core/Utility/Ease.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 
 // ============================================================================
 // GlitchEffectDriver
@@ -31,7 +32,7 @@ void GlitchEffectDriver::ApplyInterpolation(PostProcessManager* ppm, float t) {
 
 void GlitchEffectDriver::RestoreBaseParams(PostProcessManager* ppm) {
     if (ppm) {
-        ppm->SetGlitchParams(baseParams_);
+        ppm->GetGlitchParams() = baseParams_;
     }
 }
 
@@ -48,8 +49,8 @@ nlohmann::json GlitchEffectDriver::Serialize() const {
     j["targetGlitchParams"]["rgbShiftMax"] = targetParams_.rgbShiftMax;
     j["targetGlitchParams"]["scanlineFreq"] = targetParams_.scanlineFreq;
     j["targetGlitchParams"]["scanlineIntensity"] = targetParams_.scanlineIntensity;
-    j["targetGlitchParams"]["glitchColor"] = {targetParams_.color.x, targetParams_.color.y, targetParams_.color.z,
-                                              targetParams_.color.w};
+    j["targetGlitchParams"]["color"] = {targetParams_.color.x, targetParams_.color.y, targetParams_.color.z,
+                                        targetParams_.color.w};
     return j;
 }
 
@@ -89,9 +90,16 @@ void GlitchEffectDriver::Deserialize(const nlohmann::json& j) {
         if (gj.contains("scanlineIntensity")) {
             targetParams_.scanlineIntensity = gj["scanlineIntensity"];
         }
-        if (gj.contains("glitchColor")) {
-            const auto& c = gj["glitchColor"];
-            targetParams_.color = {c[0], c[1], c[2], c[3]};
+        if (gj.contains("color") && gj["color"].is_array() && gj["color"].size() == 4) {
+            targetParams_.color.x = gj["color"][0];
+            targetParams_.color.y = gj["color"][1];
+            targetParams_.color.z = gj["color"][2];
+            targetParams_.color.w = gj["color"][3];
+        } else if (gj.contains("glitchColor") && gj["glitchColor"].is_array() && gj["glitchColor"].size() == 4) {
+            targetParams_.color.x = gj["glitchColor"][0];
+            targetParams_.color.y = gj["glitchColor"][1];
+            targetParams_.color.z = gj["glitchColor"][2];
+            targetParams_.color.w = gj["glitchColor"][3];
         }
     }
 }
@@ -124,7 +132,7 @@ void VignetteEffectDriver::ApplyInterpolation(PostProcessManager* ppm, float t) 
 
 void VignetteEffectDriver::RestoreBaseParams(PostProcessManager* ppm) {
     if (ppm) {
-        ppm->SetVignetteParams(baseParams_);
+        ppm->GetVignetteParams() = baseParams_;
     }
 }
 
@@ -181,7 +189,7 @@ void ChromaticAberrationEffectDriver::ApplyInterpolation(PostProcessManager* ppm
 
 void ChromaticAberrationEffectDriver::RestoreBaseParams(PostProcessManager* ppm) {
     if (ppm) {
-        ppm->SetChromaticAberrationParams(baseParams_);
+        ppm->GetChromaticAberrationParams() = baseParams_;
     }
 }
 
@@ -228,7 +236,7 @@ void RadialBlurEffectDriver::ApplyInterpolation(PostProcessManager* ppm, float t
 
 void RadialBlurEffectDriver::RestoreBaseParams(PostProcessManager* ppm) {
     if (ppm) {
-        ppm->SetRadialBlurParams(baseParams_);
+        ppm->GetRadialBlurParams() = baseParams_;
     }
 }
 
@@ -267,16 +275,12 @@ std::unique_ptr<IScreenEffectDriver> RadialBlurEffectDriver::Clone() const {
 // ScreenEffectDriverFactory (Registration-based Factory)
 // ============================================================================
 std::unique_ptr<IScreenEffectDriver> ScreenEffectDriverFactory::CreateDriver(PostProcessMode mode) {
-    using DriverCreator = std::unique_ptr<IScreenEffectDriver> (*)();
+    using DriverCreator = std::unique_ptr<IScreenEffectDriver>(*)();
     static const std::unordered_map<PostProcessMode, DriverCreator> kFactoryRegistry = {
-        {PostProcessMode::Glitch,
-         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<GlitchEffectDriver>(); }},
-        {PostProcessMode::Vignette,
-         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<VignetteEffectDriver>(); }},
-        {PostProcessMode::ChromaticAberration,
-         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<ChromaticAberrationEffectDriver>(); }},
-        {PostProcessMode::RadialBlur,
-         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<RadialBlurEffectDriver>(); }},
+        { PostProcessMode::Glitch,              []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<GlitchEffectDriver>(); } },
+        { PostProcessMode::Vignette,            []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<VignetteEffectDriver>(); } },
+        { PostProcessMode::ChromaticAberration, []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<ChromaticAberrationEffectDriver>(); } },
+        { PostProcessMode::RadialBlur,          []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<RadialBlurEffectDriver>(); } },
     };
 
     if (auto it = kFactoryRegistry.find(mode); it != kFactoryRegistry.end()) {

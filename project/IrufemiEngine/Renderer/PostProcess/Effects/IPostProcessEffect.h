@@ -53,6 +53,11 @@ public:
     virtual void ResolveResources(RenderGraph* renderGraph) {}
 
     /**
+     * @brief このエフェクトの内部パラメータを初期状態にリセットする
+     */
+    virtual void Reset() {}
+
+    /**
      * @brief エフェクトの描画コマンドを発行する
      * @param context 描画コンテキスト
      */

@@ -39,6 +39,21 @@ void PostProcessRunner::InitializeEffects(ID3D12Device* device, DirectXCommon* d
     }
 }
 
+void PostProcessRunner::ResetAllEffects(bool clearPostUI) {
+    if (bloomEffect_) {
+        bloomEffect_->Reset();
+    }
+    if (lightShaftsEffect_) {
+        lightShaftsEffect_->Reset();
+    }
+    if (kawaseBlurEffect_) {
+        kawaseBlurEffect_->Reset();
+    }
+    if (combinedEffect_) {
+        combinedEffect_->Reset(clearPostUI);
+    }
+}
+
 bool PostProcessRunner::RequiresSeparatePass(Mode mode) const {
     return (mode == Mode::GaussianFilter || mode == Mode::DepthBasedOutline || mode == Mode::RadialBlur ||
             mode == Mode::Glitch || mode == Mode::DualKawaseBlur || mode == Mode::Pointillism ||

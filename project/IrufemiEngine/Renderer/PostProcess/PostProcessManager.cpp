@@ -9,6 +9,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Core/Utility/ErrorUtility.h"
 #include <algorithm>
+#include <cmath>
 #include <d3d12.h>
 #include <dxcapi.h>
 #include <iostream>
@@ -30,207 +31,60 @@ void PostProcessManager::Initialize(IrufemiEngine* engine, DirectXCommon* dxComm
     ResetCustomEffectSlots();
 }
 
-void PostProcessManager::ResetAllParams(bool clearPostUI) {
-    noiseParams_ = NoiseParams();
-    vignetteParams_ = VignetteParams();
-    smoothingParams_ = SmoothingParams();
-    gaussianParams_ = GaussianParams();
+void PostProcessManager::Reset(bool clearPostUI) {
+    ClearActiveModes(Layer::PreUI);
     if (clearPostUI) {
-        radialBlurParams_ = RadialBlurParams();
-        dissolveParams_ = DissolveParams();
-        fadeParams_ = FadeParams();
-        slideParams_ = SlideParams();
+        ClearActiveModes(Layer::PostUI);
     }
-    outlineParams_ = OutlineParams();
-    hsvParams_ = HSVParams();
-    toneMappingParams_ = ToneMappingParams();
-    bloomParams_ = BloomParams();
-    glitchParams_ = GlitchParams();
-    dualKawaseParams_ = DualKawaseBlurParams();
-    luminanceOutlineParams_ = LuminanceOutlineParams();
-    pixelationParams_ = PixelationParams();
-    pointillismParams_ = PointillismParams();
-    posterizationParams_ = PosterizationParams();
-    nightVisionParams_ = NightVisionParams();
-    kaleidoscopeParams_ = KaleidoscopeParams();
-    chromaticAberrationParams_ = ChromaticAberrationParams();
-    displacementMapParams_ = DisplacementMapParams();
-    directionalBlurParams_ = DirectionalBlurParams();
-    halftoneParams_ = HalftoneParams();
-    dofParams_ = DepthOfFieldParams();
-    gravityDistortionParams_ = GravityDistortionParams();
+    CommitPendingModes();
+
+    if (runner_) {
+        runner_->ResetAllEffects(clearPostUI);
+    }
+    gravityDistortionActive_ = false;
+    gravityDistortionTimer_ = 0.0f;
 }
 
 void PostProcessManager::Update(float totalTime) {
     CommitPendingModes();
 
-    // アクティブなエフェクトのみ時間更新および定数バッファ同期を実施（GPU転送帯域の最適化）
-    if (HasActiveMode(Mode::Noise)) {
-        noiseParams_.time = totalTime;
-        if (mappedNoise_) {
-            *mappedNoise_ = noiseParams_;
+    auto* combined = GetEffect<Irufemi::CombinedPostEffect>();
+    if (combined) {
+        if (HasActiveMode(Mode::Noise)) {
+            combined->GetNoiseParams().time = totalTime;
         }
-    }
-    if (HasActiveMode(Mode::NightVision)) {
-        nightVisionParams_.time = totalTime;
-    }
-    if (HasActiveMode(Mode::Glitch)) {
-        glitchParams_.time = totalTime;
-        if (mappedGlitch_) {
-            *mappedGlitch_ = glitchParams_;
+        if (HasActiveMode(Mode::NightVision)) {
+            combined->GetNightVisionParams().time = totalTime;
         }
+        if (HasActiveMode(Mode::Glitch)) {
+            combined->GetGlitchParams().time = totalTime;
+        }
+        auto& dm = combined->GetDisplacementMapParams();
+        dm.time = totalTime * dm.timeScale;
     }
-    if (HasActiveMode(Mode::DisplacementMap)) {
-        displacementMapParams_.time = totalTime * displacementMapParams_.timeScale;
-    }
+
     if (gravityDistortionActive_) {
-        // 固定ステップまたは経過時間から進捗を計算 (エンジンのデルタタイム)
         float dt = engine_ ? engine_->GetGameDeltaTime() : 0.016f;
         gravityDistortionTimer_ += dt;
         float progress =
             gravityDistortionTimer_ / (gravityDistortionDuration_ > 0.0001f ? gravityDistortionDuration_ : 0.5f);
         if (progress >= 1.0f) {
             gravityDistortionActive_ = false;
-            gravityDistortionParams_.intensity = 0.0f;
+            if (combined) {
+                combined->GetGravityDistortionParams().intensity = 0.0f;
+            }
             RemoveActiveMode(Mode::GravityDistortion);
         } else {
-            // 半径をスムーズに拡大
-            gravityDistortionParams_.radius = progress * gravityDistortionMaxRadius_;
-            // 強度は 画面外まで力強い波を維持するサイン波フェードアウト（終盤まで波の形を保つ）
             float fade = 1.0f - progress;
             float fadeCurve = std::sin(fade * 1.5707963f);
-            gravityDistortionParams_.intensity = gravityDistortionBaseIntensity_ * fadeCurve;
-            gravityDistortionParams_.time = totalTime;
+            if (combined) {
+                auto& p = combined->GetGravityDistortionParams();
+                p.radius = progress * gravityDistortionMaxRadius_;
+                p.intensity = gravityDistortionBaseIntensity_ * fadeCurve;
+                p.time = totalTime;
+            }
         }
     }
-
-    if (mappedVignette_ && HasActiveMode(Mode::Vignette)) {
-        *mappedVignette_ = vignetteParams_;
-    }
-    if (mappedSmoothing_ && HasActiveMode(Mode::Smoothing)) {
-        *mappedSmoothing_ = smoothingParams_;
-    }
-    if (mappedGaussian_ && HasActiveMode(Mode::GaussianFilter)) {
-        *mappedGaussian_ = gaussianParams_;
-    }
-    if (mappedRadialBlur_ && HasActiveMode(Mode::RadialBlur)) {
-        *mappedRadialBlur_ = radialBlurParams_;
-    }
-    if (mappedOutline_ && HasActiveMode(Mode::DepthBasedOutline)) {
-        *mappedOutline_ = outlineParams_;
-    }
-    if (mappedDissolve_ && HasActiveMode(Mode::Dissolve)) {
-        *mappedDissolve_ = dissolveParams_;
-    }
-    if (mappedHsv_ && HasActiveMode(Mode::HSV)) {
-        *mappedHsv_ = hsvParams_;
-    }
-    if (mappedToneMapping_ && HasActiveMode(Mode::ToneMapping)) {
-        *mappedToneMapping_ = toneMappingParams_;
-    }
-    if (mappedFade_ && HasActiveMode(Mode::Fade)) {
-        *mappedFade_ = fadeParams_;
-    }
-    if (mappedSlide_ && HasActiveMode(Mode::Slide)) {
-        *mappedSlide_ = slideParams_;
-    }
-    if (mappedBloom_ && HasActiveMode(Mode::Bloom)) {
-        *mappedBloom_ = bloomParams_;
-    }
-    if (mappedLightShafts_ && HasActiveMode(Mode::LightShafts)) {
-        *mappedLightShafts_ = lightShaftsParams_;
-    }
-    if (mappedDualKawase_ && HasActiveMode(Mode::DualKawaseBlur)) {
-        *mappedDualKawase_ = dualKawaseParams_;
-    }
-
-    // 統合パラメータの同期
-    combinedParams_.vignetteColor = vignetteParams_.color;
-    combinedParams_.vignetteRadius = vignetteParams_.radius;
-    combinedParams_.vignetteSoftness = vignetteParams_.softness;
-    combinedParams_.noiseIntensity = noiseParams_.intensity;
-    combinedParams_.noiseTime = noiseParams_.time;
-    combinedParams_.dissolveEdgeColor = dissolveParams_.edgeColor;
-    combinedParams_.dissolveBackgroundColor = dissolveParams_.backgroundColor;
-    combinedParams_.dissolveThreshold = dissolveParams_.threshold;
-    combinedParams_.dissolveEdgeRange = dissolveParams_.edgeRange;
-    combinedParams_.hsvHue = hsvParams_.hue;
-    combinedParams_.hsvSaturation = hsvParams_.saturation;
-    combinedParams_.hsvValue = hsvParams_.value;
-    combinedParams_.toneMappingExposure = toneMappingParams_.exposure;
-    combinedParams_.fadeColor = fadeParams_.color;
-    combinedParams_.fadeIntensity = fadeParams_.intensity;
-    combinedParams_.slideColor = slideParams_.color;
-    combinedParams_.slideThreshold = slideParams_.threshold;
-    combinedParams_.projectionInverse = outlineParams_.projectionInverse;
-    combinedParams_.outlineIntensity = outlineParams_.intensity;
-    combinedParams_.maskOutlineMaxRadius = outlineParams_.maskMaxRadius;
-    combinedParams_.radialBlurCenter = radialBlurParams_.center;
-    combinedParams_.radialBlurWidth = radialBlurParams_.blurWidth;
-    combinedParams_.radialBlurSamples = radialBlurParams_.numSamples;
-    combinedParams_.glitchIntensity = glitchParams_.intensity;
-    combinedParams_.glitchTime = glitchParams_.time;
-    combinedParams_.glitchEdgeMaskStrength = glitchParams_.edgeMaskStrength;
-    combinedParams_.glitchProbability = glitchParams_.probability;
-    combinedParams_.glitchBlockSizeX = glitchParams_.blockSizeX;
-    combinedParams_.glitchBlockSizeY = glitchParams_.blockSizeY;
-    combinedParams_.glitchOffsetBase = glitchParams_.offsetBase;
-    combinedParams_.glitchOffsetMax = glitchParams_.offsetMax;
-    combinedParams_.glitchRgbShiftBase = glitchParams_.rgbShiftBase;
-    combinedParams_.glitchRgbShiftMax = glitchParams_.rgbShiftMax;
-    combinedParams_.glitchScanlineFreq = glitchParams_.scanlineFreq;
-    combinedParams_.glitchScanlineIntensity = glitchParams_.scanlineIntensity;
-    combinedParams_.glitchColor = glitchParams_.color;
-
-    combinedParams_.luminanceOutlineThreshold = luminanceOutlineParams_.threshold;
-    combinedParams_.luminanceOutlineColor = luminanceOutlineParams_.outlineColor;
-
-    combinedParams_.pixelationSize = pixelationParams_.pixelSize;
-
-    combinedParams_.pointillismStrokeSize = pointillismParams_.strokeSize;
-    combinedParams_.pointillismColorSteps = pointillismParams_.colorSteps;
-
-    combinedParams_.posterizationSteps = posterizationParams_.colorSteps;
-
-    combinedParams_.nightVisionIntensity = nightVisionParams_.intensity;
-    combinedParams_.nightVisionTime = nightVisionParams_.time;
-
-    combinedParams_.kaleidoscopeSegments = kaleidoscopeParams_.segments;
-
-    combinedParams_.chromaticAberrationIntensity = chromaticAberrationParams_.intensity;
-
-    displacementMapParams_.time = totalTime * displacementMapParams_.timeScale;
-    combinedParams_.displacementMapIntensity = displacementMapParams_.intensity;
-    combinedParams_.displacementMapTime = displacementMapParams_.time;
-    combinedParams_.displacementMapTimeScale = displacementMapParams_.timeScale;
-
-    combinedParams_.directionalBlurDirection = directionalBlurParams_.direction;
-    combinedParams_.directionalBlurStrength = directionalBlurParams_.strength;
-    combinedParams_.directionalBlurSamples = directionalBlurParams_.samples;
-
-    combinedParams_.halftoneScale = halftoneParams_.scale;
-    combinedParams_.halftoneAngle = halftoneParams_.angle;
-    combinedParams_.halftoneBlend = halftoneParams_.blend;
-
-    combinedParams_.dofFocusDistance = dofParams_.focusDistance;
-    combinedParams_.dofFocusRange = dofParams_.focusRange;
-    combinedParams_.dofBlurSize = dofParams_.blurSize;
-    combinedParams_.dofSamples = dofParams_.samples;
-
-    combinedParams_.gravityDistortionCenter = gravityDistortionParams_.center;
-    combinedParams_.gravityDistortionRadius = gravityDistortionParams_.radius;
-    combinedParams_.gravityDistortionIntensity = gravityDistortionParams_.intensity;
-    combinedParams_.gravityDistortionWaveWidth = gravityDistortionParams_.waveWidth;
-    combinedParams_.gravityDistortionChromaticRatio = gravityDistortionParams_.chromaticRatio;
-    combinedParams_.gravityDistortionTime = gravityDistortionParams_.time;
-
-    combinedParams_.blackHoleSupernovaCenter = blackHoleSupernovaParams_.center;
-    combinedParams_.blackHoleRadius = blackHoleSupernovaParams_.blackHoleRadius;
-    combinedParams_.blackHolePullIntensity = blackHoleSupernovaParams_.blackHolePullIntensity;
-    combinedParams_.supernovaRadius = blackHoleSupernovaParams_.supernovaRadius;
-    combinedParams_.supernovaIntensity = blackHoleSupernovaParams_.supernovaIntensity;
-    combinedParams_.supernovaChromaticRatio = blackHoleSupernovaParams_.supernovaChromaticRatio;
-    combinedParams_.supernovaFlashIntensity = blackHoleSupernovaParams_.supernovaFlashIntensity;
 }
 
 void PostProcessManager::BeginFrame() {
@@ -239,163 +93,216 @@ void PostProcessManager::BeginFrame() {
 
     std::lock_guard<std::mutex> lock(customParamsMutex_);
     if (mappedCustomEffectParams_) {
-        std::memcpy(mappedCustomEffectParams_ + 1, persistentCustomParams_.data() + 1,
-                    (kMaxCustomEffectParams - 1) * sizeof(CustomEffectParams));
+        std::memcpy(mappedCustomEffectParams_, persistentCustomParams_.data(),
+                    sizeof(CustomEffectParams) * kMaxCustomEffectParams);
     }
 }
 
-void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderTexture* srcTexture,
-                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer, bool isBackBufferTarget,
-                              const D3D12_VIEWPORT* targetViewport, const D3D12_RECT* targetScissor) {
+std::vector<PostProcessManager::Mode> PostProcessManager::GetActiveModes(Layer layer) const {
+    std::lock_guard<std::mutex> lock(modesMutex_);
+    return (layer == Layer::PreUI) ? activePreUI_ : activePostUI_;
+}
+
+bool PostProcessManager::HasActiveMode(Mode mode, Layer layer) const {
+    std::lock_guard<std::mutex> lock(modesMutex_);
+    auto checkFunc = [mode](const std::vector<PostProcessModeInfo>& list) {
+        return std::any_of(list.begin(), list.end(), [mode](const PostProcessModeInfo& info) {
+            return info.mode == mode;
+        });
+    };
+
     if (layer == Layer::PreUI) {
-        BeginFrame();
+        return checkFunc(pendingPreUI_);
+    }
+    if (layer == Layer::PostUI) {
+        return checkFunc(pendingPostUI_);
+    }
+    return checkFunc(pendingPreUI_) || checkFunc(pendingPostUI_);
+}
+
+void PostProcessManager::AddActiveMode(Mode mode, Layer layer, int priority) {
+    std::lock_guard<std::mutex> lock(modesMutex_);
+    auto& list = (layer == Layer::PreUI) ? pendingPreUI_ : pendingPostUI_;
+
+    for (const auto& info : list) {
+        if (info.mode == mode) {
+            return;
+        }
     }
 
-    const std::vector<Mode>& modesToDraw = (layer == Layer::PreUI) ? activePreUI_ : activePostUI_;
+    list.push_back({mode, priority});
+    std::stable_sort(list.begin(), list.end());
+}
 
-    combinedParams_.useMask = (layer == Layer::PreUI) ? 1 : 0;
+void PostProcessManager::RemoveActiveMode(Mode mode, Layer layer) {
+    std::lock_guard<std::mutex> lock(modesMutex_);
+    auto removeFunc = [mode](std::vector<PostProcessModeInfo>& list) {
+        auto it = std::remove_if(list.begin(), list.end(), [mode](const PostProcessModeInfo& info) {
+            return info.mode == mode;
+        });
+        list.erase(it, list.end());
+    };
 
-    if (runner_) {
-        runner_->Run(this, commandList, modesToDraw, srcTexture, rtvHandle, layer, true, isBackBufferTarget,
-                     targetViewport, targetScissor);
+    if (layer == Layer::PreUI || layer == Layer::All) {
+        removeFunc(pendingPreUI_);
+    }
+    if (layer == Layer::PostUI || layer == Layer::All) {
+        removeFunc(pendingPostUI_);
     }
 }
 
-void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,
-                                        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalPass,
-                                        ID3D12PipelineState* psoOverride,
-                                        D3D12_GPU_VIRTUAL_ADDRESS cbvOverride) {
-    uint32_t modeIdx = static_cast<uint32_t>(mode);
-    if (!psoOverride && (modeIdx >= psos_.size() || !psos_[modeIdx])) {
-        return;
+void PostProcessManager::ClearActiveModes(Layer layer) {
+    std::lock_guard<std::mutex> lock(modesMutex_);
+    if (layer == Layer::PreUI || layer == Layer::All) {
+        pendingPreUI_.clear();
+    }
+    if (layer == Layer::PostUI || layer == Layer::All) {
+        pendingPostUI_.clear();
+    }
+}
+
+void PostProcessManager::SetActiveModes(const std::vector<Mode>& modes, Layer layer) {
+    std::lock_guard<std::mutex> lock(modesMutex_);
+    auto& list = (layer == Layer::PreUI) ? pendingPreUI_ : pendingPostUI_;
+    list.clear();
+    for (size_t i = 0; i < modes.size(); ++i) {
+        list.push_back({modes[i], static_cast<int>(i)});
+    }
+    std::stable_sort(list.begin(), list.end());
+}
+
+void PostProcessManager::CommitPendingModes() {
+    std::lock_guard<std::mutex> lock(modesMutex_);
+    activePreUI_.clear();
+    for (const auto& info : pendingPreUI_) {
+        activePreUI_.push_back(info.mode);
+    }
+    activePostUI_.clear();
+    for (const auto& info : pendingPostUI_) {
+        activePostUI_.push_back(info.mode);
+    }
+}
+
+uint32_t PostProcessManager::AllocateCustomEffectSlot(uint64_t objectId) {
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+    auto it = objectToSlotMap_.find(objectId);
+    if (it != objectToSlotMap_.end()) {
+        return it->second;
     }
 
-    // レンダーターゲットの設定
-    commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
-
-    // 描画前にターゲットをクリアする（Shaderで discard された箇所が背景色として残るように）
-    float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    if (mode == Mode::Dissolve) {
-        clearColor[0] = dissolveParams_.backgroundColor.x;
-        clearColor[1] = dissolveParams_.backgroundColor.y;
-        clearColor[2] = dissolveParams_.backgroundColor.z;
-        clearColor[3] = dissolveParams_.backgroundColor.w;
-    }
-    commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
-    // PSOとルートシグネチャの設定
-    ID3D12PipelineState* pso = psoOverride;
-    if (!pso) {
-        pso = isFinalPass ? finalPsos_[modeIdx].Get() : psos_[modeIdx].Get();
-    }
-    if (!pso) {
-        return;
+    if (freeSlots_.empty()) {
+        return 0; // スロット枯渇時のフォールバック
     }
 
-    commandList->SetPipelineState(pso);
-    commandList->SetGraphicsRootSignature(rootSig_);
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    uint32_t slot = freeSlots_.back();
+    freeSlots_.pop_back();
+    objectToSlotMap_[objectId] = slot;
+    persistentCustomParams_[slot] = CustomEffectParams();
+    return slot;
+}
 
-    // ソーステクスチャのバインド (Root2 -> t0)
-
-    // -------------------------------------------------------------
-    // Bindless パラメータの更新
-    mappedBindless_[bindlessBufferOffset_].mainTextureIndex = srcTexture ? srcTexture->GetSrvIndex() : 0;
-
-    uint32_t extraIdx = 0;
-    if (mode == Mode::DepthBasedOutline) {
-        extraIdx = depthSrvIndex_;
-    } else if (mode == Mode::Dissolve) {
-        int noiseIdx = (dissolveParams_.noiseType <= 0) ? 0 : 1;
-        extraIdx = dissolveNoiseIndex_[noiseIdx];
+void PostProcessManager::FreeCustomEffectSlot(uint64_t objectId) {
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+    auto it = objectToSlotMap_.find(objectId);
+    if (it != objectToSlotMap_.end()) {
+        uint32_t slot = it->second;
+        if (slot > 0 && slot < kMaxCustomEffectParams) {
+            persistentCustomParams_[slot] = CustomEffectParams();
+            freeSlots_.push_back(slot);
+        }
+        objectToSlotMap_.erase(it);
     }
-    mappedBindless_[bindlessBufferOffset_].extraTextureIndex = extraIdx;
+}
 
-    // マスク等のG-Bufferテクスチャのインデックスを渡す
-    auto* engine = dxCommon_->GetEngine();
-    mappedBindless_[bindlessBufferOffset_].maskTextureIndex =
-        engine->GetEffectMaskTexture() ? engine->GetEffectMaskTexture()->GetSrvIndex() : 0;
-    mappedBindless_[bindlessBufferOffset_].normalTextureIndex =
-        engine->GetNormalTexture() ? engine->GetNormalTexture()->GetSrvIndex() : 0;
-    mappedBindless_[bindlessBufferOffset_].materialTextureIndex =
-        engine->GetMaterialTexture() ? engine->GetMaterialTexture()->GetSrvIndex() : 0;
-    mappedBindless_[bindlessBufferOffset_].velocityTextureIndex =
-        engine->GetVelocityTexture() ? engine->GetVelocityTexture()->GetSrvIndex() : 0;
-
-    commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon,
-                                                   bindlessCB_->GetGPUVirtualAddress() +
-                                                       bindlessBufferOffset_ * sizeof(BindlessParams));
-    TryIncrementBindlessOffset();
-    // -------------------------------------------------------------
-
-    // 定数バッファのバインド (Root0 -> b0)
-    D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = cbvOverride;
-    if (cbvAddress == 0) {
-    switch (mode) {
-    case Mode::Vignette:
-        cbvAddress = vignetteCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::Smoothing:
-        cbvAddress = smoothingCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::GaussianFilter:
-        cbvAddress = gaussianCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::RadialBlur:
-        cbvAddress = radialBlurCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::DepthBasedOutline:
-        cbvAddress = outlineCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::Dissolve:
-        cbvAddress = dissolveCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::Noise:
-        cbvAddress = noiseCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::HSV:
-        cbvAddress = hsvCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::ToneMapping:
-        cbvAddress = toneMappingCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::Fade:
-        cbvAddress = fadeCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::Slide:
-        cbvAddress = slideCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::Bloom:
-        cbvAddress = bloomCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::Glitch:
-        cbvAddress = glitchCB_->GetGPUVirtualAddress();
-        break;
-    case Mode::DualKawaseBlur:
-        cbvAddress = dualKawaseCB_->GetGPUVirtualAddress();
-        break;
-    default:
-        break;
+void PostProcessManager::SetCustomEffectParams(uint32_t slot, const CustomEffectParams& params) {
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+    if (slot < kMaxCustomEffectParams) {
+        persistentCustomParams_[slot] = params;
     }
-    }
-    if (cbvAddress != 0) {
-        commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::Material, cbvAddress);
-    }
+}
 
-    // 追加のリソース（深度、ノイズテクスチャ）のバインド (Root12 -> t1)
-    if (mode == Mode::DepthBasedOutline) {
-    } else if (mode == Mode::Dissolve) {
-        int32_t noiseIdx = (std::max)(int32_t(0), (std::min)(int32_t(1), dissolveParams_.noiseType));
+const PostProcessManager::CustomEffectParams& PostProcessManager::GetCustomEffectParams(uint32_t slot) const {
+    static const CustomEffectParams defaultParams{};
+    if (slot < kMaxCustomEffectParams) {
+        return persistentCustomParams_[slot];
     }
+    return defaultParams;
+}
 
-    // 描画実行 (3頂点インデックスなし)
-    commandList->DrawInstanced(3, 1, 0, 0);
+void PostProcessManager::ResetCustomEffectSlots() {
+    std::lock_guard<std::mutex> lock(customParamsMutex_);
+    objectToSlotMap_.clear();
+    freeSlots_.clear();
+    for (uint32_t i = 1; i < kMaxCustomEffectParams; ++i) {
+        freeSlots_.push_back(i);
+    }
+    persistentCustomParams_.fill(CustomEffectParams());
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS PostProcessManager::GetCustomEffectParamsGpuAddress(uint32_t slot) const {
+    if (!customEffectParamsCB_ || slot >= kMaxCustomEffectParams) {
+        return 0;
+    }
+    return customEffectParamsCB_->GetGPUVirtualAddress() + (slot * sizeof(CustomEffectParams));
+}
+
+void PostProcessManager::TriggerGravityDistortion(const Irufemi::Vector2& centerUV, float intensity, float duration,
+                                                  float maxRadius, float chromaticRatio, float waveWidth) {
+    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
+        auto& p = combined->GetGravityDistortionParams();
+        p.center = centerUV;
+        p.radius = 0.0f;
+        p.waveWidth = waveWidth;
+        p.chromaticRatio = chromaticRatio;
+        p.intensity = intensity;
+    }
+    gravityDistortionBaseIntensity_ = intensity;
+    gravityDistortionDuration_ = (duration > 0.0f) ? duration : 0.5f;
+    gravityDistortionMaxRadius_ = maxRadius;
+    gravityDistortionTimer_ = 0.0f;
+    gravityDistortionActive_ = true;
+
+    AddActiveMode(Mode::GravityDistortion, Layer::PreUI, 1250);
+}
+
+void PostProcessManager::CreateConstantBuffers() {
+    combinedCB_ = CreateBuffer(sizeof(CombinedParams) * kMaxPostProcessBufferEntries);
+    bindlessCB_ = CreateBuffer(sizeof(BindlessParams) * kMaxPostProcessBufferEntries);
+    customEffectParamsCB_ = CreateBuffer(sizeof(CustomEffectParams) * kMaxCustomEffectParams);
+
+    bindlessCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedBindless_));
+    combinedCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedCombined_));
+    customEffectParamsCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedCustomEffectParams_));
+
+    smoothingCB_ = CreateBuffer(sizeof(SmoothingParams));
+    smoothingCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedSmoothing_));
+
+    gaussianCB_ = CreateBuffer(sizeof(GaussianParams));
+    gaussianCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedGaussian_));
+}
+
+Microsoft::WRL::ComPtr<ID3D12Resource> PostProcessManager::CreateBuffer(size_t size) {
+    D3D12_HEAP_PROPERTIES heapProps{};
+    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+    D3D12_RESOURCE_DESC desc{};
+    desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Width = (size + 255) & ~255;
+    desc.Height = 1;
+    desc.DepthOrArraySize = 1;
+    desc.MipLevels = 1;
+    desc.SampleDesc.Count = 1;
+    desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
+    device_->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+                                     nullptr, IID_PPV_ARGS(&buffer));
+    return buffer;
 }
 
 void PostProcessManager::CreatePSOs() {
     auto* shaderManager = dxCommon_->GetShaderManager();
 
-    // --- シェーダコンパイル設定 ---
     ShaderCompileOptions options;
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
     options.isDebug = true;
@@ -411,19 +318,6 @@ void PostProcessManager::CreatePSOs() {
         {Mode::None, L"CopyImage.PS.hlsl"},
         {Mode::Grayscale, L"Grayscale.PS.hlsl"},
         {Mode::Sepia, L"Sepia.PS.hlsl"},
-        {Mode::Vignette, L"Vignette.PS.hlsl"},
-        {Mode::Smoothing, L"Smoothing.PS.hlsl"},
-        {Mode::GaussianFilter, L"GaussianFilter.PS.hlsl"},
-        {Mode::DepthBasedOutline, L"DepthBasedOutline.PS.hlsl"},
-        {Mode::RadialBlur, L"RadialBlur.PS.hlsl"},
-        {Mode::Dissolve, L"Dissolve.PS.hlsl"},
-        {Mode::Noise, L"Noise.PS.hlsl"},
-        {Mode::HSV, L"HSV.PS.hlsl"},
-        {Mode::ToneMapping, L"ToneMapping.PS.hlsl"},
-        {Mode::Fade, L"Fade.PS.hlsl"},
-        {Mode::Slide, L"Slide.PS.hlsl"},
-        {Mode::Bloom, L"CopyImage.PS.hlsl"},
-        {Mode::Glitch, L"Glitch.PS.hlsl"},
     };
 
     for (const auto& s : shaders) {
@@ -436,7 +330,6 @@ void PostProcessManager::CreatePSOs() {
         desc.pRootSignature = rootSig_;
         desc.VS = {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()};
         desc.PS = {psBlob->GetBufferPointer(), psBlob->GetBufferSize()};
-
         desc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
         desc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
         desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
@@ -457,46 +350,10 @@ void PostProcessManager::CreatePSOs() {
         device_->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&finalPsos_[static_cast<uint32_t>(s.mode)]));
     }
 
-    // --- ブルーム用個別 PSO ---
-    auto extractPS = shaderManager->GetOrCompile(L"HighLuminanceExtract.PS.hlsl", options);
-    auto blurPS = shaderManager->GetOrCompile(L"GaussianBlur.PS.hlsl", options);
-    auto combinePS = shaderManager->GetOrCompile(L"BloomCombine.PS.hlsl", options);
-
-    if (extractPS && blurPS && combinePS) {
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC bloomDesc{};
-        bloomDesc.pRootSignature = rootSig_;
-        bloomDesc.VS = {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()};
-        bloomDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-        bloomDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
-        bloomDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        bloomDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-        bloomDesc.DepthStencilState.DepthEnable = FALSE;
-        bloomDesc.DepthStencilState.StencilEnable = FALSE;
-        bloomDesc.InputLayout = {nullptr, 0};
-        bloomDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        bloomDesc.NumRenderTargets = 1;
-        bloomDesc.RTVFormats[0] = rtvFormat_;
-        bloomDesc.SampleDesc.Count = 1;
-
-        bloomDesc.PS = {extractPS->GetBufferPointer(), extractPS->GetBufferSize()};
-        device_->CreateGraphicsPipelineState(&bloomDesc, IID_PPV_ARGS(&bloomExtractPSO_));
-
-        bloomDesc.PS = {blurPS->GetBufferPointer(), blurPS->GetBufferSize()};
-        device_->CreateGraphicsPipelineState(&bloomDesc, IID_PPV_ARGS(&bloomBlurHPSO_));
-        device_->CreateGraphicsPipelineState(&bloomDesc, IID_PPV_ARGS(&bloomBlurVPSO_));
-
-        bloomDesc.PS = {combinePS->GetBufferPointer(), combinePS->GetBufferSize()};
-        bloomDesc.RTVFormats[0] = rtvFormat_; // 中間パス用 (_UNORM)
-        device_->CreateGraphicsPipelineState(&bloomDesc, IID_PPV_ARGS(&bloomCombinePSO_));
-
-        bloomDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 最終パス用 (_SRGB)
-        device_->CreateGraphicsPipelineState(&bloomDesc, IID_PPV_ARGS(&finalBloomCombinePSO_));
-    }
-
-    // --- 統合ポストプロセス用 PSO ---
+    // --- 統合ポストプロセス (Uber-Shader) 用 PSO ---
     auto combinedPS = shaderManager->GetOrCompile(L"PostProcess.PS.hlsl", options);
     if (combinedPS) {
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC combinedDesc{}; // ベースを流用
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC combinedDesc{};
         combinedDesc.pRootSignature = rootSig_;
         combinedDesc.VS = {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()};
         combinedDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -553,192 +410,31 @@ void PostProcessManager::CreatePSOs() {
         device_->CreateGraphicsPipelineState(&sepDesc, IID_PPV_ARGS(&finalGaussianBlurPSO_));
     }
 
-    // --- Dual Kawase Blur 用 PSO ---
-    auto kawaseDownPS = shaderManager->GetOrCompile(L"DualKawaseDownsample.PS.hlsl", options);
-    auto kawaseUpPS = shaderManager->GetOrCompile(L"DualKawaseUpsample.PS.hlsl", options);
-    if (kawaseDownPS && kawaseUpPS) {
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC kwDesc{};
-        kwDesc.pRootSignature = rootSig_;
-        kwDesc.VS = {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()};
-        kwDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-        kwDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
-        kwDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        kwDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-        kwDesc.DepthStencilState.DepthEnable = FALSE;
-        kwDesc.DepthStencilState.StencilEnable = FALSE;
-        kwDesc.InputLayout = {nullptr, 0};
-        kwDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        kwDesc.NumRenderTargets = 1;
-        kwDesc.SampleDesc.Count = 1;
-
-        kwDesc.RTVFormats[0] = rtvFormat_;
-        kwDesc.PS = {kawaseDownPS->GetBufferPointer(), kawaseDownPS->GetBufferSize()};
-        device_->CreateGraphicsPipelineState(&kwDesc, IID_PPV_ARGS(&dualKawaseDownsamplePSO_));
-
-        kwDesc.PS = {kawaseUpPS->GetBufferPointer(), kawaseUpPS->GetBufferSize()};
-        device_->CreateGraphicsPipelineState(&kwDesc, IID_PPV_ARGS(&dualKawaseUpsamplePSO_));
-
-        kwDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        device_->CreateGraphicsPipelineState(&kwDesc, IID_PPV_ARGS(&finalDualKawaseUpsamplePSO_));
-    }
-
-    // --- Light Shafts 用 PSO ---
-    auto lsExtractPS = shaderManager->GetOrCompile(L"LightShaftsExtract.PS.hlsl", options);
-    auto lsRadialBlurPS = shaderManager->GetOrCompile(L"LightShaftsRadialBlur.PS.hlsl", options);
-    auto lsCombinePS = shaderManager->GetOrCompile(L"LightShaftsCombine.PS.hlsl", options);
-
-    if (lsExtractPS && lsRadialBlurPS && lsCombinePS) {
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC lsDesc{};
-        lsDesc.pRootSignature = rootSig_;
-        lsDesc.VS = {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()};
-        lsDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-        lsDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
-        lsDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-        lsDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-        lsDesc.DepthStencilState.DepthEnable = FALSE;
-        lsDesc.DepthStencilState.StencilEnable = FALSE;
-        lsDesc.InputLayout = {nullptr, 0};
-        lsDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        lsDesc.NumRenderTargets = 1;
-        lsDesc.RTVFormats[0] = rtvFormat_;
-        lsDesc.SampleDesc.Count = 1;
-
-        lsDesc.PS = {lsExtractPS->GetBufferPointer(), lsExtractPS->GetBufferSize()};
-        device_->CreateGraphicsPipelineState(&lsDesc, IID_PPV_ARGS(&lsExtractPSO_));
-
-        lsDesc.PS = {lsRadialBlurPS->GetBufferPointer(), lsRadialBlurPS->GetBufferSize()};
-        device_->CreateGraphicsPipelineState(&lsDesc, IID_PPV_ARGS(&lsRadialBlurPSO_));
-
-        lsDesc.PS = {lsCombinePS->GetBufferPointer(), lsCombinePS->GetBufferSize()};
-        device_->CreateGraphicsPipelineState(&lsDesc, IID_PPV_ARGS(&lsCombinePSO_));
-
-        lsDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        device_->CreateGraphicsPipelineState(&lsDesc, IID_PPV_ARGS(&finalLsCombinePSO_));
-    }
-
+    // 各自律エフェクトの初期化（自己完結 PSO / CBV の作成）
     if (runner_) {
         runner_->InitializeEffects(device_, dxCommon_, rootSig_,
                                    {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()}, rtvFormat_);
     }
 }
 
-void PostProcessManager::CreateConstantBuffers() {
-    combinedCB_ = CreateBuffer(sizeof(CombinedParams) * kMaxPostProcessBufferEntries);
-    bindlessCB_ = CreateBuffer(sizeof(BindlessParams) * kMaxPostProcessBufferEntries);
-    customEffectParamsCB_ = CreateBuffer(sizeof(CustomEffectParams) * kMaxCustomEffectParams);
-
-    bindlessCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedBindless_));
-    combinedCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedCombined_));
-    customEffectParamsCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedCustomEffectParams_));
-
-    noiseCB_ = CreateBuffer(sizeof(NoiseParams));
-    noiseCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedNoise_));
-
-    vignetteCB_ = CreateBuffer(sizeof(VignetteParams));
-    vignetteCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedVignette_));
-
-    smoothingCB_ = CreateBuffer(sizeof(SmoothingParams));
-    smoothingCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedSmoothing_));
-
-    gaussianCB_ = CreateBuffer(sizeof(GaussianParams));
-    gaussianCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedGaussian_));
-
-    radialBlurCB_ = CreateBuffer(sizeof(RadialBlurParams));
-    radialBlurCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedRadialBlur_));
-
-    outlineCB_ = CreateBuffer(sizeof(OutlineParams));
-    outlineCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedOutline_));
-
-    dissolveCB_ = CreateBuffer(sizeof(DissolveParams));
-    dissolveCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedDissolve_));
-
-    hsvCB_ = CreateBuffer(sizeof(HSVParams));
-    hsvCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedHsv_));
-
-    toneMappingCB_ = CreateBuffer(sizeof(ToneMappingParams));
-    toneMappingCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedToneMapping_));
-
-    fadeCB_ = CreateBuffer(sizeof(FadeParams));
-    fadeCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedFade_));
-
-    slideCB_ = CreateBuffer(sizeof(SlideParams));
-    slideCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedSlide_));
-
-    bloomCB_ = CreateBuffer(sizeof(BloomParams));
-    bloomCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedBloom_));
-
-    glitchCB_ = CreateBuffer(sizeof(GlitchParams));
-    glitchCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedGlitch_));
-
-    dualKawaseCB_ = CreateBuffer(sizeof(DualKawaseBlurParams));
-    dualKawaseCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedDualKawase_));
-
-    lightShaftsCB_ = CreateBuffer(sizeof(LightShaftsParams));
-    lightShaftsCB_->Map(0, nullptr, reinterpret_cast<void**>(&mappedLightShafts_));
-}
-
-Microsoft::WRL::ComPtr<ID3D12Resource> PostProcessManager::CreateBuffer(size_t size) {
-    D3D12_HEAP_PROPERTIES heapProps{};
-    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-    D3D12_RESOURCE_DESC desc{};
-    desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    desc.Width = (size + 255) & ~255;
-    desc.Height = 1;
-    desc.DepthOrArraySize = 1;
-    desc.MipLevels = 1;
-    desc.SampleDesc.Count = 1;
-    desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> resource;
-    device_->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
-                                     nullptr, IID_PPV_ARGS(&resource));
-    return resource;
-}
-
-bool PostProcessManager::TryIncrementBindlessOffset() {
-    if (bindlessBufferOffset_ + 1 < kMaxPostProcessBufferEntries) {
-        bindlessBufferOffset_++;
-        return true;
+void PostProcessManager::Draw(ID3D12GraphicsCommandList* commandList, RenderTexture* srcTexture,
+                              D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer, bool isBackBufferTarget,
+                              const D3D12_VIEWPORT* targetViewport, const D3D12_RECT* targetScissor) {
+    if (layer == Layer::PreUI) {
+        BeginFrame();
     }
-    IRUFEMI_WARNING(false,
-                    "PostProcess bindless constant buffer overflow! Consider increasing kMaxPostProcessBufferEntries.");
-    return false;
-}
 
-bool PostProcessManager::TryIncrementCombinedOffset() {
-    if (combinedBufferOffset_ + 1 < kMaxPostProcessBufferEntries) {
-        combinedBufferOffset_++;
-        return true;
+    const std::vector<Mode>& modesToDraw = (layer == Layer::PreUI) ? activePreUI_ : activePostUI_;
+    combinedParams_.useMask = (layer == Layer::PreUI) ? 1 : 0;
+
+    if (runner_) {
+        runner_->Run(this, commandList, modesToDraw, srcTexture, rtvHandle, layer, true, isBackBufferTarget,
+                     targetViewport, targetScissor);
     }
-    IRUFEMI_WARNING(false,
-                    "PostProcess combined constant buffer overflow! Consider increasing kMaxPostProcessBufferEntries.");
-    return false;
-}
-
-D3D12_GPU_VIRTUAL_ADDRESS PostProcessManager::AllocateBindlessParams(uint32_t mainTextureIndex,
-                                                                     uint32_t extraTextureIndex,
-                                                                     uint32_t maskTextureIndex) {
-    if (!mappedBindless_ || !bindlessCB_) {
-        return 0;
-    }
-    mappedBindless_[bindlessBufferOffset_].mainTextureIndex = mainTextureIndex;
-    mappedBindless_[bindlessBufferOffset_].extraTextureIndex = extraTextureIndex;
-    mappedBindless_[bindlessBufferOffset_].maskTextureIndex = maskTextureIndex;
-    mappedBindless_[bindlessBufferOffset_].normalTextureIndex = 0;
-    mappedBindless_[bindlessBufferOffset_].materialTextureIndex = 0;
-    mappedBindless_[bindlessBufferOffset_].velocityTextureIndex = 0;
-
-    D3D12_GPU_VIRTUAL_ADDRESS gpuAddress =
-        bindlessCB_->GetGPUVirtualAddress() + bindlessBufferOffset_ * sizeof(BindlessParams);
-    TryIncrementBindlessOffset();
-    return gpuAddress;
 }
 
 uint32_t PostProcessManager::RegisterCustomEffectParams(uint64_t objectId, const CustomEffectParams& params) {
     std::lock_guard<std::mutex> lock(customParamsMutex_);
-
-    // 既にスロットが割り当てられている場合はパラメータのみ更新 (スロット番号は完全維持)
     if (objectId != 0) {
         auto it = objectToSlotMap_.find(objectId);
         if (it != objectToSlotMap_.end()) {
@@ -748,13 +444,12 @@ uint32_t PostProcessManager::RegisterCustomEffectParams(uint64_t objectId, const
         }
     }
 
-    // 新規スロットの割り当て
     uint32_t slot = 1;
     if (!freeSlots_.empty()) {
         slot = freeSlots_.back();
         freeSlots_.pop_back();
     } else {
-        slot = kMaxCustomEffectParams - 1; // 上限超過時は最終スロット
+        slot = kMaxCustomEffectParams - 1;
     }
 
     if (objectId != 0) {
@@ -772,58 +467,79 @@ void PostProcessManager::UnregisterCustomEffectParams(uint64_t objectId) {
     auto it = objectToSlotMap_.find(objectId);
     if (it != objectToSlotMap_.end()) {
         uint32_t slot = it->second;
-        persistentCustomParams_[slot] = CustomEffectParams{}; // ゼロクリア
+        persistentCustomParams_[slot] = CustomEffectParams{};
         freeSlots_.push_back(slot);
         objectToSlotMap_.erase(it);
     }
 }
 
-void PostProcessManager::ResetCustomEffectSlots() {
-    std::lock_guard<std::mutex> lock(customParamsMutex_);
-    persistentCustomParams_.fill(CustomEffectParams{});
-    objectToSlotMap_.clear();
-    freeSlots_.clear();
-    freeSlots_.reserve(kMaxCustomEffectParams - 1);
-    for (int i = static_cast<int>(kMaxCustomEffectParams - 1); i >= 1; --i) {
-        freeSlots_.push_back(static_cast<uint32_t>(i));
+D3D12_GPU_VIRTUAL_ADDRESS PostProcessManager::AllocateBindlessParams(uint32_t mainTextureIndex,
+                                                                       uint32_t extraTextureIndex,
+                                                                       uint32_t maskTextureIndex) {
+    if (!mappedBindless_ || !bindlessCB_) {
+        return 0;
     }
+    mappedBindless_[bindlessBufferOffset_].mainTextureIndex = mainTextureIndex;
+    mappedBindless_[bindlessBufferOffset_].extraTextureIndex = extraTextureIndex;
+    mappedBindless_[bindlessBufferOffset_].maskTextureIndex = maskTextureIndex;
+    mappedBindless_[bindlessBufferOffset_].normalTextureIndex = 0;
+    mappedBindless_[bindlessBufferOffset_].materialTextureIndex = 0;
+    mappedBindless_[bindlessBufferOffset_].velocityTextureIndex = 0;
+
+    D3D12_GPU_VIRTUAL_ADDRESS gpuAddress =
+        bindlessCB_->GetGPUVirtualAddress() + bindlessBufferOffset_ * sizeof(BindlessParams);
+    TryIncrementBindlessOffset();
+    return gpuAddress;
 }
 
-void PostProcessManager::TriggerGravityDistortion(const Irufemi::Vector2& centerUV, float intensity, float duration,
-                                                  float maxRadius, float chromaticRatio, float waveWidth) {
-    gravityDistortionParams_.center = centerUV;
-    gravityDistortionParams_.radius = 0.0f;
-    gravityDistortionParams_.waveWidth = waveWidth;
-    gravityDistortionParams_.chromaticRatio = chromaticRatio;
-    gravityDistortionBaseIntensity_ = intensity;
-    gravityDistortionDuration_ = (duration > 0.0f) ? duration : 0.5f;
-    gravityDistortionMaxRadius_ = maxRadius;
-    gravityDistortionTimer_ = 0.0f;
-    gravityDistortionActive_ = true;
-    gravityDistortionParams_.intensity = intensity;
-
-    AddActiveMode(Mode::GravityDistortion, Layer::PreUI, 1250);
-}
-
-PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() {
-    if (runner_ && runner_->GetKawaseBlurEffect()) {
-        return runner_->GetKawaseBlurEffect()->GetParams();
+void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,
+                                        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalPass,
+                                        ID3D12PipelineState* psoOverride,
+                                        D3D12_GPU_VIRTUAL_ADDRESS cbvOverride) {
+    uint32_t modeIdx = static_cast<uint32_t>(mode);
+    if (!psoOverride && (modeIdx >= psos_.size() || !psos_[modeIdx])) {
+        return;
     }
-    return dualKawaseParams_;
-}
 
-PostProcessManager::BloomParams& PostProcessManager::GetBloomParamsDelegated() {
-    if (auto* bloom = GetEffect<Irufemi::BloomEffect>()) {
-        return bloom->GetParams();
-    }
-    return bloomParams_;
-}
+    commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+    float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
-const PostProcessManager::BloomParams& PostProcessManager::GetBloomParamsDelegated() const {
-    if (auto* bloom = GetEffect<Irufemi::BloomEffect>()) {
-        return bloom->GetParams();
+    ID3D12PipelineState* pso = psoOverride;
+    if (!pso) {
+        pso = isFinalPass ? finalPsos_[modeIdx].Get() : psos_[modeIdx].Get();
     }
-    return bloomParams_;
+    if (!pso) {
+        return;
+    }
+
+    commandList->SetPipelineState(pso);
+    commandList->SetGraphicsRootSignature(rootSig_);
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    mappedBindless_[bindlessBufferOffset_].mainTextureIndex = srcTexture ? srcTexture->GetSrvIndex() : 0;
+    mappedBindless_[bindlessBufferOffset_].extraTextureIndex = 0;
+
+    auto* engine = dxCommon_->GetEngine();
+    mappedBindless_[bindlessBufferOffset_].maskTextureIndex =
+        engine->GetEffectMaskTexture() ? engine->GetEffectMaskTexture()->GetSrvIndex() : 0;
+    mappedBindless_[bindlessBufferOffset_].normalTextureIndex =
+        engine->GetNormalTexture() ? engine->GetNormalTexture()->GetSrvIndex() : 0;
+    mappedBindless_[bindlessBufferOffset_].materialTextureIndex =
+        engine->GetMaterialTexture() ? engine->GetMaterialTexture()->GetSrvIndex() : 0;
+    mappedBindless_[bindlessBufferOffset_].velocityTextureIndex =
+        engine->GetVelocityTexture() ? engine->GetVelocityTexture()->GetSrvIndex() : 0;
+
+    commandList->SetGraphicsRootConstantBufferView((UINT)RootSlot::LightCommon,
+                                                   bindlessCB_->GetGPUVirtualAddress() +
+                                                       bindlessBufferOffset_ * sizeof(BindlessParams));
+
+    if (cbvOverride != 0) {
+        commandList->SetGraphicsRootConstantBufferView(0, cbvOverride);
+    }
+
+    commandList->DrawInstanced(3, 1, 0, 0);
+    TryIncrementBindlessOffset();
 }
 
 template <typename T>
@@ -836,79 +552,67 @@ template Irufemi::KawaseBlurEffect* PostProcessManager::GetEffect<Irufemi::Kawas
 template Irufemi::LightShaftsEffect* PostProcessManager::GetEffect<Irufemi::LightShaftsEffect>() const;
 template Irufemi::CombinedPostEffect* PostProcessManager::GetEffect<Irufemi::CombinedPostEffect>() const;
 
-PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParamsDelegated() {
-    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) {
-        return ls->GetParams();
+// ============================================================================
+// 各ポストプロセスパラメータへの安全な委譲アクセサ（Facade API）
+// ============================================================================
+
+#define IRUFEMI_PP_ACCESSOR_COMBINED(Type, Getter) \
+    PostProcessManager::Type& PostProcessManager::Get##Type() { \
+        if (auto* c = GetEffect<Irufemi::CombinedPostEffect>()) { return c->Getter(); } \
+        static Type dummy{}; return dummy; \
+    } \
+    const PostProcessManager::Type& PostProcessManager::Get##Type() const { \
+        if (auto* c = GetEffect<Irufemi::CombinedPostEffect>()) { return c->Getter(); } \
+        static Type dummy{}; return dummy; \
     }
-    return lightShaftsParams_;
+
+IRUFEMI_PP_ACCESSOR_COMBINED(FadeParams, GetFadeParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(RadialBlurParams, GetRadialBlurParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(ChromaticAberrationParams, GetChromaticAberrationParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(DisplacementMapParams, GetDisplacementMapParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(GravityDistortionParams, GetGravityDistortionParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(BlackHoleSupernovaParams, GetBlackHoleSupernovaParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(DissolveParams, GetDissolveParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(SlideParams, GetSlideParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(NoiseParams, GetNoiseParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(GlitchParams, GetGlitchParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(VignetteParams, GetVignetteParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(OutlineParams, GetOutlineParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(HSVParams, GetHSVParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(ToneMappingParams, GetToneMappingParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(DepthOfFieldParams, GetDepthOfFieldParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(DirectionalBlurParams, GetDirectionalBlurParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(HalftoneParams, GetHalftoneParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(LuminanceOutlineParams, GetLuminanceOutlineParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(PixelationParams, GetPixelationParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(PointillismParams, GetPointillismParams)
+IRUFEMI_PP_ACCESSOR_COMBINED(PosterizationParams, GetPosterizationParams)
+
+#undef IRUFEMI_PP_ACCESSOR_COMBINED
+
+PostProcessManager::BloomParams& PostProcessManager::GetBloomParams() {
+    if (auto* b = GetEffect<Irufemi::BloomEffect>()) { return b->GetParams(); }
+    static BloomParams dummy{}; return dummy;
+}
+const PostProcessManager::BloomParams& PostProcessManager::GetBloomParams() const {
+    if (auto* b = GetEffect<Irufemi::BloomEffect>()) { return b->GetParams(); }
+    static BloomParams dummy{}; return dummy;
 }
 
-PostProcessManager::VignetteParams& PostProcessManager::GetVignetteParamsDelegated() {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetVignetteParams();
-    }
-    return vignetteParams_;
+PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParams() {
+    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) { return ls->GetParams(); }
+    static LightShaftsParams dummy{}; return dummy;
+}
+const PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParams() const {
+    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) { return ls->GetParams(); }
+    static LightShaftsParams dummy{}; return dummy;
 }
 
-const PostProcessManager::VignetteParams& PostProcessManager::GetVignetteParamsDelegated() const {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetVignetteParams();
-    }
-    return vignetteParams_;
+PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() {
+    if (auto* k = GetEffect<Irufemi::KawaseBlurEffect>()) { return k->GetParams(); }
+    static DualKawaseBlurParams dummy{}; return dummy;
 }
-
-PostProcessManager::OutlineParams& PostProcessManager::GetOutlineParamsDelegated() {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetOutlineParams();
-    }
-    return outlineParams_;
-}
-
-const PostProcessManager::OutlineParams& PostProcessManager::GetOutlineParamsDelegated() const {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetOutlineParams();
-    }
-    return outlineParams_;
-}
-
-PostProcessManager::HSVParams& PostProcessManager::GetHSVParamsDelegated() {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetHSVParams();
-    }
-    return hsvParams_;
-}
-
-const PostProcessManager::HSVParams& PostProcessManager::GetHSVParamsDelegated() const {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetHSVParams();
-    }
-    return hsvParams_;
-}
-
-PostProcessManager::ToneMappingParams& PostProcessManager::GetToneMappingParamsDelegated() {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetToneMappingParams();
-    }
-    return toneMappingParams_;
-}
-
-const PostProcessManager::ToneMappingParams& PostProcessManager::GetToneMappingParamsDelegated() const {
-    if (auto* combined = GetEffect<Irufemi::CombinedPostEffect>()) {
-        return combined->GetToneMappingParams();
-    }
-    return toneMappingParams_;
-}
-
-const PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParamsDelegated() const {
-    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) {
-        return ls->GetParams();
-    }
-    return lightShaftsParams_;
-}
-
 const PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() const {
-    if (runner_ && runner_->GetKawaseBlurEffect()) {
-        return runner_->GetKawaseBlurEffect()->GetParams();
-    }
-    return dualKawaseParams_;
+    if (auto* k = GetEffect<Irufemi::KawaseBlurEffect>()) { return k->GetParams(); }
+    static DualKawaseBlurParams dummy{}; return dummy;
 }

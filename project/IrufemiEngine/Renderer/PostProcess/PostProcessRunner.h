@@ -65,6 +65,12 @@ public:
     void InitializeEffects(ID3D12Device* device, class DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
                            D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat);
 
+    /**
+     * @brief 全ポストプロセスエフェクトを初期状態にリセットする
+     * @param clearPostUI PostUI（画面遷移等）パラメータもリセットするかどうか
+     */
+    void ResetAllEffects(bool clearPostUI = true);
+
     Irufemi::KawaseBlurEffect* GetKawaseBlurEffect() const { return kawaseBlurEffect_.get(); }
 
     /**

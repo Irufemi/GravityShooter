@@ -31,6 +31,7 @@ public:
     }
     void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) override;
     void ResolveResources(RenderGraph* renderGraph) override;
+    void Reset() override { params_ = DualKawaseBlurParams{}; }
     void Render(const PostProcessRenderContext& context) override;
     void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager, TransientResourceHandle inputHandle,
                         TransientResourceHandle outputHandle, bool writeToScreen) override;

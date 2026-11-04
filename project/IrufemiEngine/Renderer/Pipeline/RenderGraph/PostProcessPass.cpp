@@ -4,6 +4,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Renderer/PostProcess/PostProcessRunner.h"
+#include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "Renderer/Data/RenderContext.h"
@@ -89,7 +90,9 @@ void PostProcessPass::Execute(const Irufemi::RenderContext& rc) {
     }
     if (needsProjectionInverse) {
         if (auto* perFrameData = drawManager->GetPerFrameData()) {
-            ppMgr->GetOutlineParams().projectionInverse = Irufemi::Math::Inverse(perFrameData->camera.projection);
+            if (auto* combined = ppMgr->GetEffect<Irufemi::CombinedPostEffect>()) {
+                combined->GetOutlineParams().projectionInverse = Irufemi::Math::Inverse(perFrameData->camera.projection);
+            }
         }
     }
 
