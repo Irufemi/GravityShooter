@@ -1,3 +1,4 @@
+#include "Renderer/PostProcess/PostProcessDefinitions.h"
 #include "PostProcessSettings.h"
 #include "Renderer/PostProcess/Effects/BloomEffect.h"
 #include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
@@ -212,4 +213,29 @@ std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(PostPro
     default:
         return nullptr;
     }
+}
+
+std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(const std::string& typeName) {
+    if (typeName == "Bloom") {
+        return Create(PostProcessMode::Bloom);
+    }
+    if (typeName == "ColorGrading" || typeName == "ToneMapping") {
+        return Create(PostProcessMode::ToneMapping);
+    }
+    if (typeName == "Vignette") {
+        return Create(PostProcessMode::Vignette);
+    }
+    if (typeName == "Outline" || typeName == "DepthBasedOutline") {
+        return Create(PostProcessMode::DepthBasedOutline);
+    }
+
+    // SSOT マクロによるエフェクト名・DisplayName からの動的逆引き
+#define IRUFEMI_MATCH_SETTINGS_MODE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
+    if (typeName == #ModeName || typeName == DisplayName) { \
+        return Create(PostProcessMode::ModeName); \
+    }
+    IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_MATCH_SETTINGS_MODE)
+#undef IRUFEMI_MATCH_SETTINGS_MODE
+
+    return nullptr;
 }

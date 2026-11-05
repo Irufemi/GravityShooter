@@ -119,4 +119,5 @@ struct OutlineSettings : public IPostProcessSettings {
 class PostProcessSettingsFactory {
 public:
     static std::shared_ptr<IPostProcessSettings> Create(PostProcessMode mode);
+    static std::shared_ptr<IPostProcessSettings> Create(const std::string& typeName);
 };

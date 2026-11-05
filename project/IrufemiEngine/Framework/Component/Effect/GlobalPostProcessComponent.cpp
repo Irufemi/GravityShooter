@@ -78,16 +78,7 @@ void GlobalPostProcessComponent::Deserialize(const nlohmann::json& j) {
         for (const auto& jOverride : j["overrides"]) {
             if (jOverride.contains("type")) {
                 std::string type = jOverride["type"].get<std::string>();
-                std::shared_ptr<IPostProcessSettings> setting = nullptr;
-
-                if (type == "Bloom") {
-                    setting = PostProcessSettingsFactory::Create(PostProcessMode::Bloom);
-                } else if (type == "ColorGrading") {
-                    setting = PostProcessSettingsFactory::Create(PostProcessMode::ToneMapping);
-                } else if (type == "Vignette") {
-                    setting = PostProcessSettingsFactory::Create(PostProcessMode::Vignette);
-                }
-                // 新しいエフェクトはここに追記していく
+                std::shared_ptr<IPostProcessSettings> setting = PostProcessSettingsFactory::Create(type);
 
                 if (setting) {
                     setting->Deserialize(jOverride);
