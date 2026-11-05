@@ -5,6 +5,7 @@
 #include "Core/Math/Vector3.h"
 #include "Core/Math/Vector4.h"
 #include "Renderer/PostProcess/PostProcessParams.h"
+#include "Renderer/PostProcess/PostProcessDefinitions.h"
 #include <array>
 #include <cstdint>
 #include <d3d12.h>
@@ -31,42 +32,14 @@ class CombinedPostEffect;
 
 /**
  * @enum PostProcessMode
- * @brief ポストプロセスエフェクトの描画モード
+ * @brief ポストプロセスエフェクトの描画モード (Single Source of Truth から自動展開)
  */
+#define IRUFEMI_GEN_ENUM_ENTRY(ModeName, StructType, PassType, DefaultLayer, DisplayName) ModeName,
 enum class PostProcessMode {
-    None,
-    Grayscale,
-    Sepia,
-    Vignette,
-    Smoothing,
-    GaussianFilter,
-    DepthBasedOutline,
-    RadialBlur,
-    Dissolve,
-    Noise,
-    HSV,
-    ToneMapping,
-    Fade,
-    Slide,
-    Bloom,
-    Glitch,
-    DualKawaseBlur,
-    LuminanceBasedOutline,
-    Pixelation,
-    Pointillism,
-    Posterization,
-    NightVision,
-    Kaleidoscope,
-    ChromaticAberration,
-    DisplacementMap,
-    DirectionalBlur,
-    Halftone,
-    DepthOfField,
-    LightShafts,
-    GravityDistortion,
-    BlackHoleSupernova,
+    IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_ENUM_ENTRY)
     Count
 };
+#undef IRUFEMI_GEN_ENUM_ENTRY
 
 /**
  * @struct PostProcessModeInfo
@@ -266,6 +239,45 @@ public:
      */
     static bool UsesDepthBuffer(Mode mode) {
         return mode == Mode::DepthBasedOutline || mode == Mode::DepthOfField || mode == Mode::LightShafts;
+    }
+
+    /**
+     * @brief 指定したモードのパス実行形態（Inline / Separate / MultiPass）を取得する (SSOT)
+     */
+    static constexpr Irufemi::PostProcessPassType GetPassType(Mode mode) {
+        switch (mode) {
+#define IRUFEMI_GEN_PASSTYPE_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
+        case Mode::ModeName: return Irufemi::PostProcessPassType::PassType;
+            IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_PASSTYPE_CASE)
+#undef IRUFEMI_GEN_PASSTYPE_CASE
+        default: return Irufemi::PostProcessPassType::Inline;
+        }
+    }
+
+    /**
+     * @brief 指定したモードのデフォルトレイヤーを取得する (SSOT)
+     */
+    static constexpr Layer GetDefaultLayer(Mode mode) {
+        switch (mode) {
+#define IRUFEMI_GEN_LAYER_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
+        case Mode::ModeName: return Layer::DefaultLayer;
+            IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_LAYER_CASE)
+#undef IRUFEMI_GEN_LAYER_CASE
+        default: return Layer::PreUI;
+        }
+    }
+
+    /**
+     * @brief 指定したモードの表示名文字列を取得する (SSOT)
+     */
+    static const char* GetDisplayName(Mode mode) {
+        switch (mode) {
+#define IRUFEMI_GEN_NAME_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
+        case Mode::ModeName: return DisplayName;
+            IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_NAME_CASE)
+#undef IRUFEMI_GEN_NAME_CASE
+        default: return "Unknown";
+        }
     }
 
     /**

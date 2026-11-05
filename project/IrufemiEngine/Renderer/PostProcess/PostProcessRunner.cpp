@@ -55,11 +55,8 @@ void PostProcessRunner::ResetAllEffects(bool clearPostUI) {
 }
 
 bool PostProcessRunner::RequiresSeparatePass(Mode mode) const {
-    return (mode == Mode::GaussianFilter || mode == Mode::DepthBasedOutline || mode == Mode::RadialBlur ||
-            mode == Mode::Glitch || mode == Mode::DualKawaseBlur || mode == Mode::Pointillism ||
-            mode == Mode::Kaleidoscope || mode == Mode::ChromaticAberration || mode == Mode::DisplacementMap ||
-            mode == Mode::DirectionalBlur || mode == Mode::DepthOfField || mode == Mode::GravityDistortion ||
-            mode == Mode::BlackHoleSupernova);
+    return PostProcessManager::GetPassType(mode) == Irufemi::PostProcessPassType::Separate ||
+           mode == Mode::GaussianFilter || mode == Mode::DualKawaseBlur;
 }
 
 void PostProcessRunner::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,

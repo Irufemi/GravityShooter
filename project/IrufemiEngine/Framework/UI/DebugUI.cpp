@@ -901,37 +901,11 @@ void DebugUI::PostProcessTab([[maybe_unused]] IrufemiEngine* engine) {
                 return;
             }
 
-            const char* modeNames[] = {"None",
-                                       "Grayscale",
-                                       "Sepia",
-                                       "Vignette",
-                                       "Smoothing",
-                                       "GaussianFilter",
-                                       "DepthBasedOutline",
-                                       "RadialBlur",
-                                       "Dissolve",
-                                       "Noise",
-                                       "HSV",
-                                       "ToneMapping",
-                                       "Fade",
-                                       "Slide",
-                                       "Bloom",
-                                       "Glitch",
-                                       "DualKawaseBlur",
-                                       "LuminanceBasedOutline",
-                                       "Pixelation",
-                                       "Pointillism",
-                                       "Posterization",
-                                       "NightVision",
-                                       "Kaleidoscope",
-                                       "ChromaticAberration",
-                                       "DisplacementMap",
-                                       "DirectionalBlur",
-                                       "Halftone",
-                                       "DepthOfField",
-                                       "LightShafts",
-                                       "GravityDistortion",
-                                       "BlackHoleSupernova"};
+            const char* modeNames[] = {
+#define IRUFEMI_GEN_NAME_ARRAY(ModeName, StructType, PassType, DefaultLayer, DisplayName) DisplayName,
+                IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_NAME_ARRAY)
+#undef IRUFEMI_GEN_NAME_ARRAY
+            };
             static_assert(IM_ARRAYSIZE(modeNames) == static_cast<size_t>(PostProcessMode::Count),
                           "modeNames count must match PostProcessMode::Count");
             auto activeModes = ppManager->GetActiveModes();
