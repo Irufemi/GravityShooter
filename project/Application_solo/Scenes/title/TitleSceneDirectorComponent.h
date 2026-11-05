@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/GameApplication.h"
 
 #include "Framework/Component/Component.h"
 #include "Core/Math/Vector3.h"
@@ -355,5 +356,5 @@ private: // メンバ変数
     float freezeTimer_ = 0.0f;               ///< マイクロフリーズ経過タイマー
     bool hasTriggeredRelease_ = false;       ///< 臨界解放マイルストーン発火済みフラグ
     bool isLaunchPostProcessActive_ = false; ///< 出撃ポストプロセス（多層エフェクト）稼働中フラグ
-    std::string nextSceneName_ = "InGame";   ///< 出撃完了時の遷移先シーン名
+    std::string nextSceneName_ = std::string(GameScenes::InGame);   ///< 出撃完了時の遷移先シーン名
 };

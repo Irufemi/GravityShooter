@@ -105,7 +105,7 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
         demoHudObj_.reset();
         demoHudText_ = nullptr;
 
-        if (currentScene == "InGame") {
+        if (currentScene == GameScenes::InGame) {
             // Title から本編 InGame に突入した瞬間
             inGameTimer_ = 0.0f;
             hasTriggeredReturn_ = false;
@@ -117,7 +117,7 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
                     mouse->SetVirtualPosition({0.0f, 0.0f}, false);
                 }
             }
-        } else if (currentScene == "Title") {
+        } else if (currentScene == GameScenes::Title) {
             // InGame から Title に帰還した瞬間
             isDemoInGame_ = false;
             hasTriggeredReturn_ = false;
@@ -129,7 +129,7 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
                     mouse->SetVirtualPosition({0.0f, 0.0f}, false);
                 }
             }
-        } else if (currentScene == "Result") {
+        } else if (currentScene == GameScenes::Result) {
             // Result シーン突入時
             resultTimer_ = 0.0f;
             hasTriggeredReturn_ = false;
@@ -140,9 +140,9 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
     // 3. 現在のシーンに応じた個別処理
     using SceneUpdateHandler = void (AttractDemoManager::*)(float);
     static const std::unordered_map<std::string, SceneUpdateHandler> kSceneUpdateHandlers = {
-        {"Title", &AttractDemoManager::UpdateTitleScene},
-        {"InGame", &AttractDemoManager::UpdateInGameScene},
-        {"Result", &AttractDemoManager::UpdateResultScene},
+        {std::string(GameScenes::Title), &AttractDemoManager::UpdateTitleScene},
+        {std::string(GameScenes::InGame), &AttractDemoManager::UpdateInGameScene},
+        {std::string(GameScenes::Result), &AttractDemoManager::UpdateResultScene},
     };
 
     if (auto it = kSceneUpdateHandlers.find(currentScene); it != kSceneUpdateHandlers.end()) {
@@ -179,7 +179,7 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
 
     if (f6Triggered) {
         auto sm = engine_->GetSceneManager();
-        if (sm && sm->GetCurrent() == "InGame") {
+        if (sm && sm->GetCurrent() == GameScenes::InGame) {
             if (auto baseScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene())) {
                 if (auto player = baseScene->FindGameObject("Player")) {
                     if (auto health = player->GetComponent<PlayerHealthComponent>()) {
@@ -198,7 +198,7 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
     if (f7Triggered) {
         CycleNextDemoMode();
         auto sm = engine_->GetSceneManager();
-        if (isKioskLoopMode_ && sm && sm->GetCurrent() == "Title") {
+        if (isKioskLoopMode_ && sm && sm->GetCurrent() == GameScenes::Title) {
             // モード切り替え時にデモタイムラインを即座に再起動
             StartTitleDemo();
         }
@@ -223,10 +223,10 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
         // 通常待機中の場合は【キオスク固定デモ開始】
         isKioskLoopMode_ = true;
         auto sm = engine_->GetSceneManager();
-        if (sm && sm->GetCurrent() == "Title") {
+        if (sm && sm->GetCurrent() == GameScenes::Title) {
             StartTitleDemo();
         } else if (sm) {
-            sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.3f);
+            sm->TransitionTo(GameScenes::Title, SceneTransition::Type::Fade, 0.3f);
         }
     }
 }
@@ -298,7 +298,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                             }
                             if (dirComp) {
                                 isDemoInGame_ = true;
-                                dirComp->SetNextSceneName("InGame");
+                                dirComp->SetNextSceneName(std::string(GameScenes::InGame));
                                 dirComp->StartLaunchSequence();
                             }
                         }
@@ -373,7 +373,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                             }
                             if (dirComp) {
                                 isDemoInGame_ = true;                // InGame側での帰還を待機
-                                dirComp->SetNextSceneName("InGame"); // 本編 InGame シーンへ直接出撃！
+                                dirComp->SetNextSceneName(std::string(GameScenes::InGame)); // 本編 InGame シーンへ直接出撃！
                                 dirComp->StartLaunchSequence();
                             }
                         }
@@ -483,7 +483,7 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         }
 
         // 単なる黒フェードから、事象の地平線への空間吸い込み・重力色収差遷移へ昇華
-        sm->TransitionTo("Title", SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,
+        sm->TransitionTo(GameScenes::Title, SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,
                          Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     }
 }
@@ -520,11 +520,11 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
 
         if (demoMode_ == DemoMode::GameOverShowcase) {
             // ゲームオーバー実演デモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
-            sm->TransitionTo("InGame", SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
+            sm->TransitionTo(GameScenes::InGame, SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
                              Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         } else {
             // 通常アトラクトデモなら Title へ帰還
-            sm->TransitionTo("Title", SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
+            sm->TransitionTo(GameScenes::Title, SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
                              Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
@@ -629,10 +629,10 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     }
 
     const std::string& currentScene = sm->GetCurrent();
-    if (currentScene != "Title") {
+    if (currentScene != GameScenes::Title) {
         hasTriggeredReturn_ = true;
         // 即時スキップ時も空間収束でテンポよく（0.35秒）Titleへ帰還
-        sm->TransitionTo("Title", SceneTransition::Type::GravitySingularity, 0.35f, EaseType::EaseInQuad,
+        sm->TransitionTo(GameScenes::Title, SceneTransition::Type::GravitySingularity, 0.35f, EaseType::EaseInQuad,
                          Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     } else {
         // タイトル画面で出撃中にデモ停止された場合、タイトルを再初期化して通常待機に戻す
@@ -643,7 +643,7 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
                 dirComp = menuMgr->GetComponent<TitleSceneDirectorComponent>();
             }
             if (dirComp && dirComp->IsLaunching()) {
-                sm->TransitionTo("Title", SceneTransition::Type::Fade, 0.2f);
+                sm->TransitionTo(GameScenes::Title, SceneTransition::Type::Fade, 0.2f);
             }
         }
     }

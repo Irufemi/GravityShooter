@@ -1,3 +1,4 @@
+#include "Core/GameApplication.h"
 #include "Scenes/Pause/PauseScene.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/GameObject/GameObject.h"
@@ -180,7 +181,7 @@ void PauseScene::CreateUIElements() {
          [this]() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->LoadScene("InGame", SceneTransition::Type::RadialBlur, 0.45f, EaseType::EaseInOutQuad,
+                 sm->LoadScene(std::string(GameScenes::InGame), SceneTransition::Type::RadialBlur, 0.45f, EaseType::EaseInOutQuad,
                                Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},
@@ -188,14 +189,14 @@ void PauseScene::CreateUIElements() {
          [this]() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->PushScene("OptionsScene");
+                 sm->PushScene(GameScenes::Options);
              }
          }},
         {L"TITLE", MenuItem::Title,
          [this]() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->TransitionTo("Title", SceneTransition::Type::RadialBlur, 0.6f, EaseType::EaseInCubic,
+                 sm->TransitionTo(GameScenes::Title, SceneTransition::Type::RadialBlur, 0.6f, EaseType::EaseInCubic,
                                   Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},

@@ -161,7 +161,7 @@ void TitleMenuControllerComponent::ChangeState(MenuState newState) {
 }
 
 bool TitleMenuControllerComponent::IsHowToPlayOpen() const {
-    return GetState() == MenuState::Suspended && pendingModalSceneName_ == "HowToPlayScene";
+    return GetState() == MenuState::Suspended && pendingModalSceneName_ == GameScenes::HowToPlay;
 }
 
 bool TitleMenuControllerComponent::IsLaunching() const {
@@ -220,7 +220,7 @@ void TitleMenuControllerComponent::TriggerLaunchSequence() {
     }
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            sm->TransitionTo("InGame", SceneTransition::Type::Fade, 0.9f);
+            sm->TransitionTo(GameScenes::InGame, SceneTransition::Type::Fade, 0.9f);
         }
     }
 }
@@ -408,11 +408,11 @@ void TitleMenuControllerComponent::ExecuteSelection() {
     static const std::array<MenuAction, 4> kMenuActions = {
         [](TitleMenuControllerComponent* self) { self->ChangeState(MenuState::Launching); },
         [](TitleMenuControllerComponent* self) {
-            self->pendingModalSceneName_ = "HowToPlayScene";
+            self->pendingModalSceneName_ = GameScenes::HowToPlay;
             self->ChangeState(MenuState::OpeningModal);
         },
         [](TitleMenuControllerComponent* self) {
-            self->pendingModalSceneName_ = "OptionsScene";
+            self->pendingModalSceneName_ = GameScenes::Options;
             self->ChangeState(MenuState::OpeningModal);
         },
         [](TitleMenuControllerComponent* self) {

@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 #include <future>
@@ -52,20 +53,20 @@ public:
      * @param[in] name シーンの識別名
      * @param[in] f シーンインスタンスを作成するラムダ式等の関数
      */
-    void Register(const Key& name, Factory f);
+    void Register(std::string_view name, Factory f);
 
     /**
      * @brief シーンの切替を要求する（次の Update 冒頭で反映）
      * @param[in] next 切り替え先のシーン名
      */
-    void Request(const Key& next);
+    void Request(std::string_view next);
 
     /**
      * @brief 即時シーンを切り替える（初期化時などに使用）
      * @param[in] next 切り替え先のシーン名
      * @return 切り替えに成功したら true
      */
-    bool ChangeTo(const Key& next);
+    bool ChangeTo(std::string_view next);
 
     /**
      * @brief 演出を伴うシーン切替を開始する（スタックはクリアされます）
@@ -74,9 +75,8 @@ public:
      * @param[in] duration 演出時間（秒）
      * @param[in] easeType 演出のイージングタイプ（デフォルトは線形）
      */
-    void TransitionTo(const Key& next, SceneTransition::Type type, float duration, EaseType easeType = EaseType::Linear,
+    void TransitionTo(std::string_view next, SceneTransition::Type type, float duration, EaseType easeType = EaseType::Linear,
                       const std::optional<Irufemi::Vector4>& customColor = std::nullopt);
-
     /**
      * @brief データ駆動シーン(JSON)への遷移を開始する
      * @param[in] sceneJsonName 読み込むJSON名 (拡張子なし)
@@ -89,7 +89,7 @@ public:
      * @brief 現在のシーンの上に新しいシーンを重ねる（同期）
      * @param[in] name 重ねるシーン名
      */
-    void PushScene(const Key& name);
+    void PushScene(std::string_view name);
 
     /**
      * @brief 一番上のシーンを破棄し、下のシーンに戻る

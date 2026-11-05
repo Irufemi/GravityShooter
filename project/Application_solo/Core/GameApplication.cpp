@@ -77,27 +77,26 @@ const int32_t kClientWidth = 1280;
 const int32_t kClientHeight = 720;
 const std::wstring kTitle = L"Application_solo";
 const Irufemi::Vector4 kClearColor = {0.08f, 0.03f, 0.02f, 1.0f}; // 退廃的な荒野（ダーク・ラスト）
-const char kInitialScene[]
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-    = "InGame";
+constexpr std::string_view kInitialScene = GameScenes::InGame;
 #else
-    = "Title";
+constexpr std::string_view kInitialScene = GameScenes::Title;
 #endif
 
 // --- シーン登録処理 ---
 void RegisterScenes(SceneManager& sm) {
-    sm.Register("Title", [] { return std::make_unique<TitleScene>(); });
-    sm.Register("Select", [] { return std::make_unique<SelectScene>(); });
-    sm.Register("InGame", [] { return std::make_unique<GameScene>(); });
-    sm.Register("Pause", [] { return std::make_unique<PauseScene>(); });
-    sm.Register("TL1", [] { return std::make_unique<TL1Scene>(); });
-    sm.Register("Result", [] { return std::make_unique<ResultScene>(); });
+    sm.Register(GameScenes::Title, [] { return std::make_unique<TitleScene>(); });
+    sm.Register(GameScenes::Select, [] { return std::make_unique<SelectScene>(); });
+    sm.Register(GameScenes::InGame, [] { return std::make_unique<GameScene>(); });
+    sm.Register(GameScenes::Pause, [] { return std::make_unique<PauseScene>(); });
+    sm.Register(GameScenes::TL1, [] { return std::make_unique<TL1Scene>(); });
+    sm.Register(GameScenes::Result, [] { return std::make_unique<ResultScene>(); });
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-    sm.Register("Debug", [] { return std::make_unique<DebugScene>(); });
+    sm.Register(GameScenes::Debug, [] { return std::make_unique<DebugScene>(); });
 #endif
-    sm.Register("OptionsScene", [] { return std::make_unique<OptionsScene>(); });
-    sm.Register("HowToPlayScene", [] { return std::make_unique<HowToPlayScene>(); });
+    sm.Register(GameScenes::Options, [] { return std::make_unique<OptionsScene>(); });
+    sm.Register(GameScenes::HowToPlay, [] { return std::make_unique<HowToPlayScene>(); });
 }
 
 // --- シェーダー登録処理 ---
@@ -270,7 +269,7 @@ void GameApplication::Run() {
     engine->SetSceneRegistrar(RegisterScenes);
 
     // 初期シーンの設定
-    engine->SetInitialSceneName(kInitialScene);
+    engine->SetInitialSceneName(std::string(kInitialScene));
 
     // ゲームループの実行
     engine->Execute();

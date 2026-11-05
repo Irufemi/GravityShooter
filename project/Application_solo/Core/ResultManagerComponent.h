@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/GameApplication.h"
 #include "Framework/Component/Component.h"
 #include <string>
 #include <memory>
@@ -31,7 +32,7 @@ private:
     float startTimeScale_ = 0.0f;
 
     // プロパティ化してエディタで設定可能にする
-    std::string nextSceneName_ = "Title";
+    std::string nextSceneName_ = std::string(GameScenes::Title);
     float baseTitleScale_ = 64.0f;
     std::string fontId_ = "toro_glitch";
 

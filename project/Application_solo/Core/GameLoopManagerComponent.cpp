@@ -1,3 +1,4 @@
+#include "Core/GameApplication.h"
 #include "Core/GameLoopManagerComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/SceneManager.h"
@@ -125,7 +126,7 @@ void GameLoopManagerComponent::Update() {
                     bool triggerPause = InputHelper::IsActionPressed(input, GameAction::Pause);
                     if (triggerPause) {
                         if (auto sm = engine->GetSceneManager()) {
-                            sm->PushScene("Pause");
+                            sm->PushScene(GameScenes::Pause);
                         }
                     }
                 }
@@ -173,7 +174,7 @@ void GameLoopManagerComponent::OnDeathSequenceFinished() {
     ResultScene::SetIsClear(isClear_);
     if (auto engine = GetEngine()) {
         if (auto sceneManager = engine->GetSceneManager()) {
-            sceneManager->PushScene("Result");
+            sceneManager->PushScene(GameScenes::Result);
         }
     }
 }

@@ -45,24 +45,25 @@ SceneManager::~SceneManager() {
 }
 
 // 登録順を保持しつつ登録
-void SceneManager::Register(const Key& name, Factory f) {
-    auto it = factories_.find(name);
+void SceneManager::Register(std::string_view name, Factory f) {
+    std::string key(name);
+    auto it = factories_.find(key);
     if (it == factories_.end()) {
-        order_.push_back(name); // 新規登録時のみ順序リストに追加
-        factories_.emplace(name, std::move(f));
+        order_.push_back(key); // 新規登録時のみ順序リストに追加
+        factories_.emplace(key, std::move(f));
     } else {
         it->second = std::move(f); // 既存は上書きのみ(順序は変えない)
     }
 }
 
 // シーン切替要求(次の Update 冒頭で反映)
-void SceneManager::Request(const Key& next) {
-    pending_ = next;
+void SceneManager::Request(std::string_view next) {
+    pending_ = std::string(next);
 }
 
 // 即時切替(初期化時など)
-bool SceneManager::ChangeTo(const Key& next) {
-    auto it = factories_.find(next);
+bool SceneManager::ChangeTo(std::string_view next) {
+    auto it = factories_.find(std::string(next));
     if (it == factories_.end()) {
         return false;
     }
@@ -101,7 +102,7 @@ bool SceneManager::ChangeTo(const Key& next) {
     SceneSerializer::ClearCache();
 
     SceneStackItem item;
-    item.name = next;
+    item.name = std::string(next);
     item.scene = it->second();
 
     // シーンにエンジンコンテキストを確実に先行バインド
@@ -110,12 +111,12 @@ bool SceneManager::ChangeTo(const Key& next) {
     isInitializing_ = false;
 
     // データがあればロード
-    bool hasData = SceneSerializer::Load(item.scene.get(), next);
+    bool hasData = SceneSerializer::Load(item.scene.get(), std::string(next));
 
     // データがなくてエディタモードなら、初期状態を自動生成
 #ifdef EditorMode
     if (!hasData) {
-        SceneSerializer::Save(item.scene.get(), next);
+        SceneSerializer::Save(item.scene.get(), std::string(next));
     }
 #endif
 
@@ -130,8 +131,9 @@ bool SceneManager::ChangeTo(const Key& next) {
     return true;
 }
 
-void SceneManager::PushScene(const Key& name) {
-    auto it = factories_.find(name);
+void SceneManager::PushScene(std::string_view name) {
+    std::string key(name);
+    auto it = factories_.find(key);
     if (it == factories_.end()) {
         return;
     }
@@ -145,7 +147,7 @@ void SceneManager::PushScene(const Key& name) {
     }
 
     SceneStackItem item;
-    item.name = name;
+    item.name = std::string(name);
     item.scene = it->second();
 
     // 重複シーンのオーディオ一時停止処理へ委譲（SE等の個別カテゴリ制御はシーン側にカプセル化）
@@ -157,12 +159,12 @@ void SceneManager::PushScene(const Key& name) {
     item.scene->Initialize(engine_);
 
     // データがあればロード
-    bool hasData = SceneSerializer::Load(item.scene.get(), name);
+    bool hasData = SceneSerializer::Load(item.scene.get(), std::string(name));
 
     // データがなくてエディタモードなら、初期状態を自動生成
 #ifdef EditorMode
     if (!hasData) {
-        SceneSerializer::Save(item.scene.get(), name);
+        SceneSerializer::Save(item.scene.get(), std::string(name));
     }
 #endif
 
@@ -208,13 +210,13 @@ void SceneManager::PopScene() {
     }
 }
 
-void SceneManager::TransitionTo(const Key& next, SceneTransition::Type type, float duration, EaseType easeType,
+void SceneManager::TransitionTo(std::string_view next, SceneTransition::Type type, float duration, EaseType easeType,
                                 const std::optional<Irufemi::Vector4>& customColor) {
     if (transitionPhase_ != TransitionPhase::None) {
         return; // 二重遷移防止
     }
 
-    pendingTransition_ = next;
+    pendingTransition_ = std::string(next);
     pendingType_ = type;
     pendingDuration_ = duration;
     pendingEaseType_ = easeType;
@@ -483,7 +485,7 @@ bool SceneManager::ShouldDrawLoadingScreen() const {
 }
 
 void SceneManager::StartAsyncInitialize(const Key& next) {
-    auto it = factories_.find(next);
+    auto it = factories_.find(std::string(next));
     if (it == factories_.end()) {
         return;
     }
