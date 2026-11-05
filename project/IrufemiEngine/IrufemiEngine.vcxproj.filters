@@ -1106,6 +1106,12 @@
     <ClInclude Include="Renderer\Pipeline\RenderGraph\PostUIPass.h">
       <Filter>Renderer\Pipeline\RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\PostProcess\PostProcessDefinitions.h">
+      <Filter>Renderer\PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\PostProcess\PostProcessHandle.h">
+      <Filter>Renderer\PostProcess</Filter>
+    </ClInclude>
     <ClInclude Include="Renderer\PostProcess\PostProcessManager.h">
       <Filter>Renderer\PostProcess</Filter>
     </ClInclude>

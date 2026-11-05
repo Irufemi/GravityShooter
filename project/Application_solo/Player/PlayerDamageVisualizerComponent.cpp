@@ -367,9 +367,9 @@ void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase)
             }
         }
 
-        // 専用ポストプロセスモード BlackHoleSupernova を PreUI レイヤーに登録
+        // 専用ポストプロセスモード BlackHoleSupernova を PreUI レイヤーに登録 (RAII管理)
         if (ppm) {
-            ppm->AddActiveMode(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI);
+            blackHoleHandle_ = ppm->ActivateScoped(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI);
             auto& bh = ppm->GetBlackHoleSupernovaParams();
             bh.center = deathScreenUV_;
             bh.blackHoleRadius = 0.0f;
@@ -410,9 +410,9 @@ void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase)
     }
 
     case DeathSequencePhase::WhiteoutFade: {
-        // 静寂の余韻から、光が静かに画面を満たしてリザルト接続フェードへ移行
+        // 静寂の余韻から、光が静かに画面を満たしてリザルト接続フェードへ移行 (RAII管理)
         if (ppm) {
-            ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
+            deathFadeHandle_ = ppm->ActivateScoped(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
             ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
         }
         break;
@@ -422,7 +422,7 @@ void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase)
         // 全画面白1.0を完全に担保し、リザルト画面へコールバック通知（白抜け戻りを完全防止）
         if (ppm) {
             ppm->GetFadeParams().intensity = 1.0f;
-            ppm->RemoveActiveMode(PostProcessMode::BlackHoleSupernova);
+            blackHoleHandle_.Release();
         }
         if (onDeathSequenceCompleted_) {
             onDeathSequenceCompleted_();

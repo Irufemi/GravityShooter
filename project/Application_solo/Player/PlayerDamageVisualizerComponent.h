@@ -1,5 +1,6 @@
 #pragma once
 #include "Framework/Component/Component.h"
+#include "Renderer/PostProcess/PostProcessHandle.h"
 #include "Core/Math/Vector3.h"
 #include "Core/Math/Vector4.h"
 #include <memory>
@@ -172,4 +173,8 @@ private:
     Irufemi::Vector3 deathWorldPos_{0.0f, 0.0f, 0.0f};    ///< 自機の撃墜ワールド座標
     Irufemi::Vector3 deathWorldRot_{0.0f, 0.0f, 0.0f};    ///< 自機の撃墜ワールド回転
     std::function<void()> onDeathSequenceCompleted_;      ///< 演出完了コールバック
+
+    // --- 死亡シーケンス・RAIIエフェクト寿命管理 ---
+    Irufemi::ScopedEffectHandle blackHoleHandle_;
+    Irufemi::ScopedEffectHandle deathFadeHandle_;
 };

@@ -506,6 +506,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Renderer\Pipeline\RenderGraph\PostProcessCopyPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\LambdaRenderPass.h" />
     <ClInclude Include="Renderer\Pipeline\RenderGraph\PostUIPass.h" />
+    <ClInclude Include="Renderer\PostProcess\PostProcessDefinitions.h" />
+    <ClInclude Include="Renderer\PostProcess\PostProcessHandle.h" />
     <ClInclude Include="Renderer\PostProcess\PostProcessManager.h" />
     <ClInclude Include="Renderer\PostProcess\PostProcessRunner.h" />
     <ClInclude Include="Physics\CollisionManager.h" />

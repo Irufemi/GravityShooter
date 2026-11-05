@@ -28,6 +28,7 @@ class LightShaftsEffect;
 class SeparableBlurEffect;
 class KawaseBlurEffect;
 class CombinedPostEffect;
+class ScopedEffectHandle;
 } // namespace Irufemi
 
 /**
@@ -221,6 +222,15 @@ public:
      * @param layer 解除対象のレイヤー（Layer::All で全レイヤーをクリア）
      */
     void ClearActiveModes(Layer layer = Layer::All);
+
+    /**
+     * @brief スコープまたはハンドルの寿命に合わせて自動解除されるRAIIエフェクトを発行する
+     * @param mode 有効化するモード
+     * @param layer 適用レイヤー（Layer::All 指定時は SSOT の DefaultLayer を自動適用）
+     * @param priority 描画優先度
+     * @return Irufemi::ScopedEffectHandle 所有権を持つRAIIハンドル
+     */
+    Irufemi::ScopedEffectHandle ActivateScoped(Mode mode, Layer layer = Layer::All, int priority = 0);
 
     /**
      * @brief ポストプロセスモードの一覧を一括設定する

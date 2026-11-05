@@ -1,4 +1,5 @@
 #include "Renderer/PostProcess/PostProcessManager.h"
+#include "Renderer/PostProcess/PostProcessHandle.h"
 #include "Renderer/PostProcess/PostProcessRunner.h"
 #include "Renderer/PostProcess/Effects/KawaseBlurEffect.h"
 #include "Renderer/PostProcess/Effects/BloomEffect.h"
@@ -159,6 +160,12 @@ void PostProcessManager::ClearActiveModes(Layer layer) {
     if (layer == Layer::PostUI || layer == Layer::All) {
         pendingPostUI_.clear();
     }
+}
+
+Irufemi::ScopedEffectHandle PostProcessManager::ActivateScoped(Mode mode, Layer layer, int priority) {
+    Layer actualLayer = (layer == Layer::All) ? GetDefaultLayer(mode) : layer;
+    AddActiveMode(mode, actualLayer, priority);
+    return Irufemi::ScopedEffectHandle(this, mode, actualLayer);
 }
 
 void PostProcessManager::SetActiveModes(const std::vector<Mode>& modes, Layer layer) {
