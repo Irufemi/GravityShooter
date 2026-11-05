@@ -2,36 +2,8 @@
 #include "Bindless.hlsli"
 #include "PostProcessBindlessParams.hlsli"
 
-// --- ポストプロセス モード定義 (C++の PostProcessMode と一致させる) ---
-static const int32_t kPostProcessMode_None = 0;
-static const int32_t kPostProcessMode_Grayscale = 1;
-static const int32_t kPostProcessMode_Sepia = 2;
-static const int32_t kPostProcessMode_Vignette = 3;
-static const int32_t kPostProcessMode_Smoothing = 4;
-static const int32_t kPostProcessMode_GaussianFilter = 5;
-static const int32_t kPostProcessMode_DepthBasedOutline = 6;
-static const int32_t kPostProcessMode_RadialBlur = 7;
-static const int32_t kPostProcessMode_Dissolve = 8;
-static const int32_t kPostProcessMode_Noise = 9;
-static const int32_t kPostProcessMode_HSV = 10;
-static const int32_t kPostProcessMode_ToneMapping = 11;
-static const int32_t kPostProcessMode_Fade = 12;
-static const int32_t kPostProcessMode_Slide = 13;
-static const int32_t kPostProcessMode_Glitch = 15;
-static const int32_t kPostProcessMode_DualKawaseBlur = 16;
-static const int32_t kPostProcessMode_LuminanceBasedOutline = 17;
-static const int32_t kPostProcessMode_Pixelation = 18;
-static const int32_t kPostProcessMode_Pointillism = 19;
-static const int32_t kPostProcessMode_Posterization = 20;
-static const int32_t kPostProcessMode_NightVision = 21;
-static const int32_t kPostProcessMode_Kaleidoscope = 22;
-static const int32_t kPostProcessMode_ChromaticAberration = 23;
-static const int32_t kPostProcessMode_DisplacementMap = 24;
-static const int32_t kPostProcessMode_DirectionalBlur = 25;
-static const int32_t kPostProcessMode_Halftone = 26;
-static const int32_t kPostProcessMode_DepthOfField = 27;
-static const int32_t kPostProcessMode_GravityDistortion = 29;
-static const int32_t kPostProcessMode_BlackHoleSupernova = 30;
+// --- ポストプロセス モード定義 (PostProcessDefinitions.h より CodeGen で自動生成) ---
+#include "PostProcessModes.generated.hlsli"
 
 // --- ヘルパー関数 ---
 #include "Noise.hlsli"
