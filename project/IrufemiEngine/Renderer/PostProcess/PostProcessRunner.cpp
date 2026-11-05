@@ -55,8 +55,7 @@ void PostProcessRunner::ResetAllEffects(bool clearPostUI) {
 }
 
 bool PostProcessRunner::RequiresSeparatePass(Mode mode) const {
-    return PostProcessManager::GetPassType(mode) == Irufemi::PostProcessPassType::Separate ||
-           mode == Mode::GaussianFilter || mode == Mode::DualKawaseBlur;
+    return PostProcessManager::GetPassType(mode) == Irufemi::PostProcessPassType::Separate;
 }
 
 void PostProcessRunner::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,
@@ -287,9 +286,8 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
         else {
             std::vector<Mode> batch;
             size_t lookAhead = modeIdx;
-            while (lookAhead < modes.size() && modes[lookAhead] != Mode::Bloom &&
-                   modes[lookAhead] != Mode::LightShafts && modes[lookAhead] != Mode::Smoothing &&
-                   modes[lookAhead] != Mode::GaussianFilter && modes[lookAhead] != Mode::DualKawaseBlur &&
+            while (lookAhead < modes.size() &&
+                   PostProcessManager::GetPassType(modes[lookAhead]) != Irufemi::PostProcessPassType::MultiPass &&
                    batch.size() < 16) {
 
                 bool needsSeparate = RequiresSeparatePass(modes[lookAhead]);
@@ -421,9 +419,8 @@ void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessMana
             // 統合バッチ
             std::vector<Mode> batch;
             size_t lookAhead = modeIdx;
-            while (lookAhead < modes.size() && modes[lookAhead] != Mode::Bloom &&
-                   modes[lookAhead] != Mode::LightShafts && modes[lookAhead] != Mode::Smoothing &&
-                   modes[lookAhead] != Mode::GaussianFilter && modes[lookAhead] != Mode::DualKawaseBlur &&
+            while (lookAhead < modes.size() &&
+                   PostProcessManager::GetPassType(modes[lookAhead]) != Irufemi::PostProcessPassType::MultiPass &&
                    batch.size() < 16) {
 
                 bool needsSeparate = RequiresSeparatePass(modes[lookAhead]);
