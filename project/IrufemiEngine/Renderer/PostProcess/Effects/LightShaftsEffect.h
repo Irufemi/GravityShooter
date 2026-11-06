@@ -36,19 +36,33 @@ public:
 
     void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) override;
     void ResolveResources(RenderGraph* renderGraph) override;
-    void Reset() override { params_ = LightShaftsParams{}; }
+    void Reset() override {
+        params_ = LightShaftsParams{};
+    }
     void Render(const PostProcessRenderContext& context) override;
     void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager, TransientResourceHandle inputHandle,
                         TransientResourceHandle outputHandle, bool writeToScreen) override;
 
-    LightShaftsParams& GetParams() { return params_; }
-    const LightShaftsParams& GetParams() const { return params_; }
+    LightShaftsParams& GetParams() {
+        return params_;
+    }
+    const LightShaftsParams& GetParams() const {
+        return params_;
+    }
     void SetParams(const LightShaftsParams& params);
 
-    ID3D12PipelineState* GetExtractPSO() const { return extractPSO_.Get(); }
-    ID3D12PipelineState* GetRadialBlurPSO() const { return radialBlurPSO_.Get(); }
-    ID3D12PipelineState* GetCombinePSO() const { return combinePSO_.Get(); }
-    ID3D12PipelineState* GetFinalCombinePSO() const { return finalCombinePSO_.Get(); }
+    ID3D12PipelineState* GetExtractPSO() const {
+        return extractPSO_.Get();
+    }
+    ID3D12PipelineState* GetRadialBlurPSO() const {
+        return radialBlurPSO_.Get();
+    }
+    ID3D12PipelineState* GetCombinePSO() const {
+        return combinePSO_.Get();
+    }
+    ID3D12PipelineState* GetFinalCombinePSO() const {
+        return finalCombinePSO_.Get();
+    }
     D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferAddress() const {
         return constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
     }

@@ -107,8 +107,7 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
     D3D12_CPU_DESCRIPTOR_HANDLE targetHandle = context.targetRtv;
     bool writeToScreen = context.writeToScreen;
 
-    int32_t iterations =
-        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, params_.iterationCount));
+    int32_t iterations = (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, params_.iterationCount));
     RenderTexture* prevSource = currentSource;
 
     // パラメータを自身の定数バッファへコピー
@@ -179,8 +178,7 @@ void KawaseBlurEffect::Render(const PostProcessRenderContext& context) {
                                             D3D12_RESOURCE_STATE_RENDER_TARGET);
         }
 
-        ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? finalUpsamplePSO_.Get()
-                                                                  : upsamplePSO_.Get();
+        ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? finalUpsamplePSO_.Get() : upsamplePSO_.Get();
 
         // フルスクリーン上書き描画を行うため、直前のClearRenderTargetViewは不要（GPU帯域節約）
         manager->DrawSinglePass(commandList, PostProcessManager::Mode::DualKawaseBlur, prevSource, upHandle,
@@ -223,8 +221,7 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
         handles_[i] = renderGraph->GetOrCreateTransientResource(name, kwDesc);
     }
 
-    int32_t iterations =
-        (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, params_.iterationCount));
+    int32_t iterations = (std::min)(PostProcessManager::kMaxKawaseIterations, (std::max)(1, params_.iterationCount));
 
     // 1. Downsample Passes
     TransientResourceHandle prevHandle = inputHandle;
@@ -259,8 +256,7 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 if (mappedParams_) {
                     *mappedParams_ = params_;
                 }
-                D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress =
-                    constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
+                D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress = constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
                 manager->DrawSinglePass(cmdList, PostProcessManager::Mode::DualKawaseBlur, prevTex,
                                         kwTex->GetRtvHandle(), false, downsamplePSO_.Get(), cbvGpuAddress);
             });
@@ -336,10 +332,9 @@ void KawaseBlurEffect::PopulatePasses(RenderGraph* renderGraph, PostProcessManag
                 if (mappedParams_) {
                     *mappedParams_ = params_;
                 }
-                D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress =
-                    constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
-                ID3D12PipelineState* upPso = (isFinalUp && writeToScreen) ? finalUpsamplePSO_.Get()
-                                                                          : upsamplePSO_.Get();
+                D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress = constantBuffer_ ? constantBuffer_->GetGPUVirtualAddress() : 0;
+                ID3D12PipelineState* upPso =
+                    (isFinalUp && writeToScreen) ? finalUpsamplePSO_.Get() : upsamplePSO_.Get();
                 manager->DrawSinglePass(cmdList, PostProcessManager::Mode::DualKawaseBlur, prevTex, targetRtv,
                                         (isFinalUp && writeToScreen), upPso, cbvGpuAddress);
             });

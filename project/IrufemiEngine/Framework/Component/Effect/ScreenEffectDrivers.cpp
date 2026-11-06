@@ -275,12 +275,16 @@ std::unique_ptr<IScreenEffectDriver> RadialBlurEffectDriver::Clone() const {
 // ScreenEffectDriverFactory (Registration-based Factory)
 // ============================================================================
 std::unique_ptr<IScreenEffectDriver> ScreenEffectDriverFactory::CreateDriver(PostProcessMode mode) {
-    using DriverCreator = std::unique_ptr<IScreenEffectDriver>(*)();
+    using DriverCreator = std::unique_ptr<IScreenEffectDriver> (*)();
     static const std::unordered_map<PostProcessMode, DriverCreator> kFactoryRegistry = {
-        { PostProcessMode::Glitch,              []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<GlitchEffectDriver>(); } },
-        { PostProcessMode::Vignette,            []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<VignetteEffectDriver>(); } },
-        { PostProcessMode::ChromaticAberration, []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<ChromaticAberrationEffectDriver>(); } },
-        { PostProcessMode::RadialBlur,          []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<RadialBlurEffectDriver>(); } },
+        {PostProcessMode::Glitch,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<GlitchEffectDriver>(); }},
+        {PostProcessMode::Vignette,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<VignetteEffectDriver>(); }},
+        {PostProcessMode::ChromaticAberration,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<ChromaticAberrationEffectDriver>(); }},
+        {PostProcessMode::RadialBlur,
+         []() -> std::unique_ptr<IScreenEffectDriver> { return std::make_unique<RadialBlurEffectDriver>(); }},
     };
 
     if (auto it = kFactoryRegistry.find(mode); it != kFactoryRegistry.end()) {

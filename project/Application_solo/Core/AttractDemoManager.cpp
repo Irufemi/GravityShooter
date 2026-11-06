@@ -373,8 +373,9 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                                 menuCtrl->SetLaunching(true);
                             }
                             if (dirComp) {
-                                isDemoInGame_ = true;                // InGame側での帰還を待機
-                                dirComp->SetNextSceneName(std::string(GameScenes::InGame)); // 本編 InGame シーンへ直接出撃！
+                                isDemoInGame_ = true; // InGame側での帰還を待機
+                                dirComp->SetNextSceneName(
+                                    std::string(GameScenes::InGame)); // 本編 InGame シーンへ直接出撃！
                                 dirComp->StartLaunchSequence();
                             }
                         }

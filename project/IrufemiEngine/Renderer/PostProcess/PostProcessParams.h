@@ -21,15 +21,14 @@ struct CustomEffectParams {
     float param4 = 0.0f;                                // Time, Angle, etc.
 
     bool operator==(const CustomEffectParams& other) const {
-        return color1 == other.color1 && color2 == other.color2 && param1 == other.param1 &&
-               param2 == other.param2 && param3 == other.param3 && param4 == other.param4;
+        return color1 == other.color1 && color2 == other.color2 && param1 == other.param1 && param2 == other.param2 &&
+               param3 == other.param3 && param4 == other.param4;
     }
     bool operator!=(const CustomEffectParams& other) const {
         return !(*this == other);
     }
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.ColorEdit4("Color 1", color1);
         v.ColorEdit4("Color 2", color2);
         v.DragFloat("Param 1", param1);
@@ -50,8 +49,7 @@ struct NoiseParams {
     float intensity = 0.5f; ///< ノイズの強度 (0.0 ~ 1.0)
     float time = 0.0f;      ///< 時間経過（内部で更新される）
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.SliderFloat("Noise Intensity", intensity, 0.0f, 1.0f);
     }
 };
@@ -66,8 +64,7 @@ struct VignetteParams {
     float softness = 0.5f;                             ///< 減衰の柔らかさ (0.0~1.0)
     float pad[2];                                      // 16バイトアライメント用パディング
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.ColorEdit4("Vignette Color", color);
         v.DragFloat("Vignette Radius", radius, 0.01f, 0.0f, 2.0f);
         v.DragFloat("Vignette Softness", softness, 0.01f, 0.0f, 2.0f);
@@ -83,8 +80,7 @@ struct SmoothingParams {
     int32_t kernelSize = 3;                    ///< カーネルサイズ (奇数推奨)
     float pad;
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.SliderKernelSize("Kernel Size", kernelSize, 1, 31);
     }
 };
@@ -98,8 +94,7 @@ struct GaussianParams {
     float sigma = 2.0f;                        ///< 標準偏差（ぼけ具合）
     int32_t kernelSize = 3;                    ///< カーネルサイズ (奇数推奨)
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Sigma", sigma, 0.01f, 0.01f, 10.0f);
         v.SliderKernelSize("Kernel Size", kernelSize, 1, 31);
     }
@@ -114,8 +109,7 @@ struct RadialBlurParams {
     float blurWidth = 0.01f;                ///< ぼかしの幅
     int32_t numSamples = 10;                ///< サンプル数
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat2("Center", center, 0.01f, 0.0f, 1.0f);
         v.DragFloat("Blur Width", blurWidth, 0.001f, 0.0f, 0.1f);
         v.SliderInt("Samples", numSamples, 1, 100);
@@ -132,8 +126,7 @@ struct OutlineParams {
     float pad[2];
     Irufemi::Matrix4x4 projectionInverse; ///< 逆投影行列 (自動でセットされる)
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Outline Intensity", intensity, 0.1f, 0.0f, 20.0f);
         v.SliderInt("Mask Max Radius", maskMaxRadius, 1, 20);
     }
@@ -148,8 +141,7 @@ struct LuminanceOutlineParams {
     float pad[3];                                             // 16バイトアライメント
     Irufemi::Vector4 outlineColor = {0.0f, 0.0f, 0.0f, 1.0f}; ///< アウトラインの色
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Threshold", threshold, 0.01f, 0.0f, 1.0f);
         v.ColorEdit4("Outline Color", outlineColor);
     }
@@ -163,8 +155,7 @@ struct PixelationParams {
     float pixelSize = 4.0f; ///< 1ドットを構成するピクセル数（解像度ダウン係数）
     float pad[3];
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Pixel Size", pixelSize, 0.1f, 1.0f, 64.0f);
     }
 };
@@ -178,8 +169,7 @@ struct PointillismParams {
     float colorSteps = 8.0f;  ///< 色の階調数
     float pad[2];
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Stroke Size", strokeSize, 0.1f, 1.0f, 50.0f);
         v.DragFloat("Color Steps", colorSteps, 0.1f, 2.0f, 32.0f);
     }
@@ -194,10 +184,9 @@ struct DissolveParams {
     Irufemi::Vector4 backgroundColor = {0.0f, 0.0f, 0.0f, 1.0f}; ///< 背景色 (追加)
     float threshold = 0.0f;                                      ///< 消失しきい値 (0.0 ~ 1.0)
     float edgeRange = 0.03f;                                     ///< 境界線の幅
-    int32_t noiseType = 0; ///< 使用するノイズテクスチャのインデックス (0 or 1)
+    int32_t noiseType = 0;                                       ///< 使用するノイズテクスチャのインデックス (0 or 1)
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.SliderFloat("Threshold", threshold, 0.0f, 1.0f);
         v.SliderFloat("Edge Range", edgeRange, 0.0f, 0.2f);
         v.ColorEdit4("Edge Color", edgeColor);
@@ -216,8 +205,7 @@ struct HSVParams {
     float saturation = 0.0f; ///< 彩度オフセット (-1.0 ~ 1.0)
     float value = 0.0f;      ///< 明度オフセット (-1.0 ~ 1.0)
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("HueOffset", hue, 0.001f, -1.0f, 1.0f);
         v.DragFloat("SaturationOffset", saturation, 0.001f, -1.0f, 1.0f);
         v.DragFloat("ValueOffset", value, 0.001f, -1.0f, 1.0f);
@@ -231,8 +219,7 @@ struct HSVParams {
 struct ToneMappingParams {
     float exposure = 1.0f; ///< 露出補正 (0.0 ~ )
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Exposure", exposure, 0.01f, 0.0f, 10.0f);
     }
 };
@@ -245,8 +232,7 @@ struct FadeParams {
     Irufemi::Vector4 color = {0.0f, 0.0f, 0.0f, 1.0f}; ///< フェード色
     float intensity = 0.0f;                            ///< 強度 (0.0 ~ 1.0)
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.ColorEdit4("Fade Color", color);
         v.SliderFloat("Fade Intensity", intensity, 0.0f, 1.0f);
     }
@@ -260,8 +246,7 @@ struct SlideParams {
     Irufemi::Vector4 color = {0.0f, 0.0f, 0.0f, 1.0f}; ///< スライドの色
     float threshold = 0.0f;                            ///< 進行度 (0.0 ~ 1.0)
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.ColorEdit4("Slide Color", color);
         v.SliderFloat("Slide Threshold", threshold, 0.0f, 1.0f);
     }
@@ -278,8 +263,7 @@ struct BloomParams {
     float intensity = 1.0f;                    ///< ブルームの強度
     int32_t kernelSize = 21;                   ///< ぼかしのカーネルサイズ
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Threshold", threshold, 0.01f, 0.0f, 5.0f);
         v.DragFloat("Sigma", sigma, 0.01f, 0.01f, 10.0f);
         v.DragFloat("Intensity", intensity, 0.01f, 0.0f, 10.0f);
@@ -309,8 +293,7 @@ struct GlitchParams {
 
     Irufemi::Vector4 color = {1.0f, 1.0f, 1.0f, 0.0f}; ///< rgb = 色, a = ブレンド強度
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.SliderFloat("Glitch Intensity", intensity, 0.0f, 5.0f);
         v.SliderFloat("Edge Mask Strength", edgeMaskStrength, 0.0f, 1.0f);
         v.SliderFloat("Probability", probability, 0.0f, 1.0f);
@@ -328,8 +311,7 @@ struct DualKawaseBlurParams {
     int32_t iterationCount = 4; ///< ダウン/アップサンプルの繰り返し回数（最大8等）
     float pad = 0.0f;           // 16バイトアライメント用
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Blur Radius Offset", blurRadius, 0.01f, 0.0f, 5.0f);
         v.SliderInt("Iteration Count", iterationCount, 1, 8);
         v.DragFloat("Intensity", intensity, 0.01f, 0.0f, 10.0f);
@@ -343,8 +325,7 @@ struct DualKawaseBlurParams {
 struct PosterizationParams {
     float colorSteps = 8.0f; ///< 階調の段数（少ないほどベタ塗りになる）
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Color Steps", colorSteps, 0.1f, 2.0f, 32.0f);
     }
 };
@@ -358,8 +339,7 @@ struct NightVisionParams {
     float time = 0.0f;      ///< 時間経過（内部で更新される）
     float pad[2];
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Intensity", intensity, 0.01f, 0.0f, 2.0f);
     }
 };
@@ -372,8 +352,7 @@ struct KaleidoscopeParams {
     float segments = 6.0f; ///< 分割数
     float pad[3];
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Segments", segments, 0.1f, 1.0f, 32.0f);
     }
 };
@@ -386,8 +365,7 @@ struct ChromaticAberrationParams {
     float intensity = 0.05f; ///< 色ズレの幅
     float pad[3];
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Intensity", intensity, 0.001f, 0.0f, 1.0f);
     }
 };
@@ -402,8 +380,7 @@ struct DisplacementMapParams {
     float time = 0.0f;       ///< 時間
     float pad;
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Intensity", intensity, 0.001f, 0.0f, 1.0f);
         v.DragFloat("Time Scale", timeScale, 0.01f, 0.0f, 10.0f);
     }
@@ -418,8 +395,7 @@ struct DirectionalBlurParams {
     float strength = 0.05f;                    ///< ブラーの強さ
     int samples = 10;                          ///< サンプル数
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat2("Direction", direction, 0.01f, -1.0f, 1.0f);
         v.DragFloat("Strength", strength, 0.001f, 0.0f, 1.0f);
         v.SliderInt("Samples", samples, 2, 32);
@@ -436,8 +412,7 @@ struct HalftoneParams {
     float blend = 1.0f;      ///< 適用強度
     float pad;
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Scale", scale, 1.0f, 10.0f, 500.0f);
         v.SliderAngle("Angle", angle, -180.0f, 180.0f);
         v.DragFloat("Blend", blend, 0.01f, 0.0f, 1.0f);
@@ -454,8 +429,7 @@ struct DepthOfFieldParams {
     float blurSize = 10.0f;      ///< 最大ブラーサイズ (ピクセル半径)
     int samples = 16;            ///< ブラーのサンプリング数
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat("Focus Distance", focusDistance, 0.1f, 0.0f, 1000.0f);
         v.DragFloat("Focus Range", focusRange, 0.1f, 0.1f, 500.0f);
         v.DragFloat("Blur Size", blurSize, 0.1f, 0.0f, 50.0f);
@@ -476,8 +450,7 @@ struct GravityDistortionParams {
     float time = 0.0f;                      ///< 経過時間
     float pad = 0.0f;
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat2("Center UV", center, 0.01f, 0.0f, 1.0f);
         v.DragFloat("Radius", radius, 0.01f, 0.0f, 2.0f);
         v.DragFloat("Intensity", intensity, 0.01f, -1.0f, 1.0f);
@@ -499,8 +472,7 @@ struct BlackHoleSupernovaParams {
     float supernovaChromaticRatio = 0.0f;   ///< GRAVITY DAZE 色収差比率
     float supernovaFlashIntensity = 0.0f;   ///< 瞬間ガンマ線バースト閃光強度
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat2("Center UV", center, 0.01f, 0.0f, 1.0f);
         v.DragFloat("Black Hole Radius", blackHoleRadius, 0.01f, 0.0f, 1.0f);
         v.DragFloat("Pull Intensity", blackHolePullIntensity, 0.01f, 0.0f, 2.0f);
@@ -524,8 +496,7 @@ struct LightShaftsParams {
     int32_t samples = 64;                           ///< サンプリング数
     float pad;                                      ///< パディング
 
-    template <typename Visitor>
-    void Visit(Visitor&& v) {
+    template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat2("Light Screen Pos", lightScreenPos, 0.01f, -1.0f, 2.0f);
         v.DragFloat("Density", density, 0.01f, 0.0f, 5.0f);
         v.DragFloat("Decay", decay, 0.001f, 0.8f, 1.0f);

@@ -43,13 +43,19 @@ void StageIntroDirectorComponent::OnDestroy() {
 
 void StageIntroDirectorComponent::Initialize() {
     if (warpSePath_.empty()) {
-        if (const auto* d = SoundHelper::GetDescriptor(GameSE::GravityWarp)) warpSePath_ = d->path;
+        if (const auto* d = SoundHelper::GetDescriptor(GameSE::GravityWarp)) {
+            warpSePath_ = d->path;
+        }
     }
     if (fcsBootSePath_.empty()) {
-        if (const auto* d = SoundHelper::GetDescriptor(GameSE::FcsOnline)) fcsBootSePath_ = d->path;
+        if (const auto* d = SoundHelper::GetDescriptor(GameSE::FcsOnline)) {
+            fcsBootSePath_ = d->path;
+        }
     }
     if (breachSePath_.empty()) {
-        if (const auto* d = SoundHelper::GetDescriptor(GameSE::WaterBreach)) breachSePath_ = d->path;
+        if (const auto* d = SoundHelper::GetDescriptor(GameSE::WaterBreach)) {
+            breachSePath_ = d->path;
+        }
     }
     introState_ = StageIntroState::WarpIn;
     stateTimer_ = 0.0f;

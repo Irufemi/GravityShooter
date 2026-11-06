@@ -352,9 +352,9 @@ private: // メンバ変数
     float launchTimer_ = 0.0f;
     bool hasTriggeredSceneTransition_ = false;
     bool hasExplodedDebris_ = false;
-    bool isMicroFreezing_ = false;           ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
-    float freezeTimer_ = 0.0f;               ///< マイクロフリーズ経過タイマー
-    bool hasTriggeredRelease_ = false;       ///< 臨界解放マイルストーン発火済みフラグ
-    bool isLaunchPostProcessActive_ = false; ///< 出撃ポストプロセス（多層エフェクト）稼働中フラグ
-    std::string nextSceneName_ = std::string(GameScenes::InGame);   ///< 出撃完了時の遷移先シーン名
+    bool isMicroFreezing_ = false;                                ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
+    float freezeTimer_ = 0.0f;                                    ///< マイクロフリーズ経過タイマー
+    bool hasTriggeredRelease_ = false;                            ///< 臨界解放マイルストーン発火済みフラグ
+    bool isLaunchPostProcessActive_ = false;                      ///< 出撃ポストプロセス（多層エフェクト）稼働中フラグ
+    std::string nextSceneName_ = std::string(GameScenes::InGame); ///< 出撃完了時の遷移先シーン名
 };

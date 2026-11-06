@@ -365,7 +365,8 @@ void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase)
 
         // 専用ポストプロセスモード BlackHoleSupernova を PreUI レイヤーに登録 (RAII管理)
         if (ppm) {
-            blackHoleHandle_ = ppm->ActivateScoped(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI);
+            blackHoleHandle_ =
+                ppm->ActivateScoped(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI);
             auto& bh = ppm->GetBlackHoleSupernovaParams();
             bh.center = deathScreenUV_;
             bh.blackHoleRadius = 0.0f;

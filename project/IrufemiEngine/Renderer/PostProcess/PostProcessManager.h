@@ -36,10 +36,7 @@ class ScopedEffectHandle;
  * @brief ポストプロセスエフェクトの描画モード (Single Source of Truth から自動展開)
  */
 #define IRUFEMI_GEN_ENUM_ENTRY(ModeName, StructType, PassType, DefaultLayer, DisplayName) ModeName,
-enum class PostProcessMode {
-    IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_ENUM_ENTRY)
-    Count
-};
+enum class PostProcessMode { IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_ENUM_ENTRY) Count };
 #undef IRUFEMI_GEN_ENUM_ENTRY
 
 /**
@@ -68,7 +65,8 @@ enum class EffectLayer {
 /**
  * @class PostProcessManager
  * @brief ポストプロセスのスケジューリングとレンダーグラフ連携を統括するマネージャークラス
- * @details 一線級ゲームエンジンのステートレス・パイプライン設計に基づき、個別エフェクトの実装は IPostProcessEffect 群へ完全委譲
+ * @details 一線級ゲームエンジンのステートレス・パイプライン設計に基づき、個別エフェクトの実装は IPostProcessEffect
+ * 群へ完全委譲
  */
 class PostProcessManager {
     friend class PostProcessRunner;
@@ -142,8 +140,7 @@ public:
     /**
      * @brief 型安全なエフェクト取得インターフェース（エフェクトレジストリ）
      */
-    template <typename T>
-    T* GetEffect() const;
+    template <typename T> T* GetEffect() const;
 
     /**
      * @brief フレーム描画開始処理（リングバッファオフセットのリセットおよびカスタムパラメータの同期）
@@ -159,7 +156,9 @@ public:
     /**
      * @brief 画面遷移演出（PostUIレイヤー）のエフェクトとパラメータのみを完全にリセットする
      */
-    void ResetPostUI() { Reset(Layer::PostUI); }
+    void ResetPostUI() {
+        Reset(Layer::PostUI);
+    }
 
     /**
      * @brief 時間経過に伴うアニメーション・演出の更新
@@ -261,11 +260,13 @@ public:
      */
     static constexpr Irufemi::PostProcessPassType GetPassType(Mode mode) {
         switch (mode) {
-#define IRUFEMI_GEN_PASSTYPE_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
-        case Mode::ModeName: return Irufemi::PostProcessPassType::PassType;
+#define IRUFEMI_GEN_PASSTYPE_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName)                           \
+    case Mode::ModeName:                                                                                               \
+        return Irufemi::PostProcessPassType::PassType;
             IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_PASSTYPE_CASE)
 #undef IRUFEMI_GEN_PASSTYPE_CASE
-        default: return Irufemi::PostProcessPassType::Inline;
+        default:
+            return Irufemi::PostProcessPassType::Inline;
         }
     }
 
@@ -274,11 +275,13 @@ public:
      */
     static constexpr Layer GetDefaultLayer(Mode mode) {
         switch (mode) {
-#define IRUFEMI_GEN_LAYER_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
-        case Mode::ModeName: return Layer::DefaultLayer;
+#define IRUFEMI_GEN_LAYER_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName)                              \
+    case Mode::ModeName:                                                                                               \
+        return Layer::DefaultLayer;
             IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_LAYER_CASE)
 #undef IRUFEMI_GEN_LAYER_CASE
-        default: return Layer::PreUI;
+        default:
+            return Layer::PreUI;
         }
     }
 
@@ -287,11 +290,13 @@ public:
      */
     static const char* GetDisplayName(Mode mode) {
         switch (mode) {
-#define IRUFEMI_GEN_NAME_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
-        case Mode::ModeName: return DisplayName;
+#define IRUFEMI_GEN_NAME_CASE(ModeName, StructType, PassType, DefaultLayer, DisplayName)                               \
+    case Mode::ModeName:                                                                                               \
+        return DisplayName;
             IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_GEN_NAME_CASE)
 #undef IRUFEMI_GEN_NAME_CASE
-        default: return "Unknown";
+        default:
+            return "Unknown";
         }
     }
 
@@ -303,7 +308,7 @@ public:
               const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
 
     D3D12_GPU_VIRTUAL_ADDRESS AllocateBindlessParams(uint32_t mainTextureIndex, uint32_t extraTextureIndex = 0,
-                                                   uint32_t maskTextureIndex = 0);
+                                                     uint32_t maskTextureIndex = 0);
 
     uint32_t RegisterCustomEffectParams(uint64_t objectId, const CustomEffectParams& params);
     uint32_t RegisterCustomEffectParams(const CustomEffectParams& params) {
@@ -440,17 +445,33 @@ public:
         return 0;
     }
 
-    void SetDepthSrvIndex(uint32_t srvIndex) { depthSrvIndex_ = srvIndex; }
-    uint32_t GetDepthSrvIndex() const { return depthSrvIndex_; }
+    void SetDepthSrvIndex(uint32_t srvIndex) {
+        depthSrvIndex_ = srvIndex;
+    }
+    uint32_t GetDepthSrvIndex() const {
+        return depthSrvIndex_;
+    }
 
-    void SetNormalSrvIndex(uint32_t srvIndex) { normalSrvIndex_ = srvIndex; }
-    uint32_t GetNormalSrvIndex() const { return normalSrvIndex_; }
+    void SetNormalSrvIndex(uint32_t srvIndex) {
+        normalSrvIndex_ = srvIndex;
+    }
+    uint32_t GetNormalSrvIndex() const {
+        return normalSrvIndex_;
+    }
 
-    void SetMaterialSrvIndex(uint32_t srvIndex) { materialSrvIndex_ = srvIndex; }
-    uint32_t GetMaterialSrvIndex() const { return materialSrvIndex_; }
+    void SetMaterialSrvIndex(uint32_t srvIndex) {
+        materialSrvIndex_ = srvIndex;
+    }
+    uint32_t GetMaterialSrvIndex() const {
+        return materialSrvIndex_;
+    }
 
-    void SetVelocitySrvIndex(uint32_t srvIndex) { velocitySrvIndex_ = srvIndex; }
-    uint32_t GetVelocitySrvIndex() const { return velocitySrvIndex_; }
+    void SetVelocitySrvIndex(uint32_t srvIndex) {
+        velocitySrvIndex_ = srvIndex;
+    }
+    uint32_t GetVelocitySrvIndex() const {
+        return velocitySrvIndex_;
+    }
 
     /**
      * @brief 各ポストプロセスエフェクト用パイプラインステート（PSO）を生成する
@@ -467,8 +488,7 @@ public:
      */
     void DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,
                         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalPass = false,
-                        ID3D12PipelineState* psoOverride = nullptr,
-                        D3D12_GPU_VIRTUAL_ADDRESS cbvOverride = 0);
+                        ID3D12PipelineState* psoOverride = nullptr, D3D12_GPU_VIRTUAL_ADDRESS cbvOverride = 0);
 
     /**
      * @brief アップロードヒープ上に定数バッファ用リソースを作成する
