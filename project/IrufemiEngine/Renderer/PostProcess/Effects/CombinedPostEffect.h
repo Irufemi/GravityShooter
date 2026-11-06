@@ -141,6 +141,16 @@ public:
     BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() { return blackHoleSupernovaParams_; }
     const BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() const { return blackHoleSupernovaParams_; }
 
+    // MultiPass/voidエフェクト用ダミースタブ（SSOTマクロ自動展開時の完全な構文合法性を保証）
+    struct DummyParam {
+        template <typename T>
+        DummyParam& operator=(const T&) { return *this; }
+    };
+    DummyParam& Getvoid() { static DummyParam s; return s; }
+    DummyParam& GetBloomParams() { static DummyParam s; return s; }
+    DummyParam& GetDualKawaseBlurParams() { static DummyParam s; return s; }
+    DummyParam& GetLightShaftsParams() { static DummyParam s; return s; }
+
     /**
      * @brief 自身が保持するシングルパスパラメータをマネージャーの CombinedParams に流し込む
      */

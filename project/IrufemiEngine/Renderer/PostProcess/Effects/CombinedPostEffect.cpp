@@ -10,11 +10,14 @@
 namespace Irufemi {
 
 void CombinedPostEffect::Reset(PostProcessManager::Layer targetLayer) {
-#define IRUFEMI_RESET_EFFECT_PARAM(ModeName, StructType, PassType, DefaultLayer, DisplayName)                          \
-    if constexpr (!std::is_same_v<StructType, void>) {                                                                 \
-        if (targetLayer == PostProcessManager::Layer::All || targetLayer == PostProcessManager::Layer::DefaultLayer) { \
-            Get##StructType() = StructType{};                                                                          \
-        }                                                                                                              \
+#define IRUFEMI_RESET_EFFECT_PARAM(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
+    if constexpr (PostProcessPassType::PassType != PostProcessPassType::MultiPass && \
+                  !std::is_same_v<StructType, void>) { \
+        if (targetLayer == PostProcessManager::Layer::All || \
+            targetLayer == PostProcessManager::Layer::DefaultLayer) { \
+            using ParamType = std::conditional_t<std::is_same_v<StructType, void>, DummyParam, StructType>; \
+            Get##StructType() = ParamType{}; \
+        } \
     }
     IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_RESET_EFFECT_PARAM)
 #undef IRUFEMI_RESET_EFFECT_PARAM

@@ -1,0 +1,74 @@
+{
+  "SE": {
+    "DebrisShatter": {
+      "Path": "resources/audio/SE/se_debris_shatter.mp3",
+      "Volume": 1.0,
+      "Pitch": 1.0
+    },
+    "FcsOnline": {
+      "Path": "resources/audio/SE/se_fcs_online.mp3",
+      "Volume": 1.0,
+      "Pitch": 1.0
+    },
+    "GravityWarp": {
+      "Path": "resources/audio/SE/se_gravity_warp.mp3",
+      "Volume": 0.85,
+      "Pitch": 1.05
+    },
+    "HudSnap": {
+      "Path": "resources/audio/SE/se_hud_snap.mp3",
+      "Volume": 0.9,
+      "Pitch": 1.0
+    },
+    "LaunchCharge": {
+      "Path": "resources/audio/SE/se_launch_charge.mp3",
+      "Volume": 0.95,
+      "Pitch": 0.85
+    },
+    "MenuCancel": {
+      "Path": "resources/audio/SE/se_menu_cancel.mp3",
+      "Volume": 0.6,
+      "Pitch": 1.0
+    },
+    "MenuCursor": {
+      "Path": "resources/audio/SE/se_menu_cursor.mp3",
+      "Volume": 0.6,
+      "Pitch": 1.0
+    },
+    "MenuDecide": {
+      "Path": "resources/audio/SE/se_menu_decide.mp3",
+      "Volume": 0.9,
+      "Pitch": 1.0
+    },
+    "PlayerBoost": {
+      "Path": "resources/audio/SE/se_player_boost.mp3",
+      "Volume": 1.0,
+      "Pitch": 1.0
+    },
+    "ResultImpact": {
+      "Path": "resources/audio/SE/se_result_impact.mp3",
+      "Volume": 1.0,
+      "Pitch": 1.0
+    },
+    "WaterBreach": {
+      "Path": "resources/audio/SE/se_water_breach.mp3",
+      "Volume": 1.0,
+      "Pitch": 1.0
+    }
+  },
+  "BGM": {
+    "Title": {
+      "Path": "resources/audio/BGM/title_bgm.mp3",
+      "Volume": 1.0,
+      "Pitch": 1.0,
+      "Loop": true
+    },
+    "Stage1": {
+      "Path": "",
+      "Volume": 1.0,
+      "Pitch": 1.0,
+      "Loop": true
+    }
+  }
+}
+

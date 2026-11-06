@@ -15,6 +15,7 @@
 #include "Framework/Scene/SceneManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Audio/AudioManager.h"
+#include "Audio/SoundHelper.h"
 #include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Renderer/Object/Particle/ParticleObject.h"
 #include "Renderer/Camera/Camera.h"
@@ -40,6 +41,18 @@ void TitleSceneDirectorComponent::OnDestroy() {
 }
 
 void TitleSceneDirectorComponent::Initialize() {
+    if (chargeSePath_.empty()) {
+        if (const auto* d = SoundHelper::GetDescriptor(GameSE::LaunchCharge)) chargeSePath_ = d->path;
+    }
+    if (debrisShatterSePath_.empty()) {
+        if (const auto* d = SoundHelper::GetDescriptor(GameSE::DebrisShatter)) debrisShatterSePath_ = d->path;
+    }
+    if (playerBoostSePath_.empty()) {
+        if (const auto* d = SoundHelper::GetDescriptor(GameSE::PlayerBoost)) playerBoostSePath_ = d->path;
+    }
+    if (gravityWarpSePath_.empty()) {
+        if (const auto* d = SoundHelper::GetDescriptor(GameSE::GravityWarp)) gravityWarpSePath_ = d->path;
+    }
     isLaunching_ = false;
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
@@ -355,8 +368,9 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
         if (auto am = engine->GetAudioManager()) {
             // A: 爆砕重低音
             if (!debrisShatterSePath_.empty()) {
-                am->PlayByFile(debrisShatterSePath_, 0.95f, 1.0f, AudioCategory::SE,
-                               "resources/audio/SE/se_menu_decide.mp3");
+                const auto* fb = SoundHelper::GetDescriptor(GameSE::MenuDecide);
+                std::string fallback = fb ? fb->path : "";
+                am->PlayByFile(debrisShatterSePath_, 0.95f, 1.0f, AudioCategory::SE, fallback);
             }
             // B: 推進点火・ドップラー遠ざかり音
             if (!playerBoostSePath_.empty()) {

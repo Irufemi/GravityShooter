@@ -43,6 +43,7 @@
 // UI
 #include "UI/LoadingScreen.h"
 #include "UI/UISound.h"
+#include "Audio/SoundHelper.h"
 
 // シーンのインクルード
 #include "Scenes/title/TitleScene.h"
@@ -264,6 +265,10 @@ void GameApplication::Run() {
     // UIサウンドシステムの初期化・アセット事前ロード
     UISound::Initialize(engine->GetAudioManager());
     UISound::Preload();
+
+    // ゲームサウンドシステム（データドリブン定義）の初期化・事前ロード
+    SoundHelper::Initialize(engine->GetAudioManager());
+    SoundHelper::PreloadAll();
 
     // シーンの登録
     engine->SetSceneRegistrar(RegisterScenes);

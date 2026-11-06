@@ -6,6 +6,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Audio/AudioManager.h"
+#include "Audio/SoundHelper.h"
 #include "Core/Utility/Log.h"
 #include "Level/WaveManagerComponent.h"
 #include "Framework/Component/Logic/SpawnPointComponent.h"
@@ -278,6 +279,17 @@ void PlayBGMHandler::Execute(WaveManagerComponent* manager, const WaveEventData&
                 if (fs::exists(p)) {
                     resolvedPath = p;
                     break;
+                }
+            }
+
+            // SoundHelper / sound_actions.json に有効な実在ファイルパスが設定されていれば優先
+            if (resolvedPath.empty()) {
+                if (track == "Stage1_Theme" || track == "Stage1") {
+                    if (const auto* d = SoundHelper::GetDescriptor(GameBGM::Stage1)) {
+                        if (!d->path.empty() && fs::exists(d->path)) {
+                            resolvedPath = d->path;
+                        }
+                    }
                 }
             }
 

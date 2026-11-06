@@ -22,6 +22,7 @@
 #include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Audio/AudioManager.h"
+#include "Audio/SoundHelper.h"
 #include "RailMechanics/SplineFollowerComponent.h"
 #include "Player/PlayerTargetingComponent.h"
 #include "UI/LockonMarkerUIComponent.h"
@@ -61,13 +62,8 @@ void PlayerDamageVisualizerComponent::Initialize() {
             voxelManager->ReservePool("resources/model/PlayerCraft/PlayerCraft.obj", {8, 8, 8}, 2000);
         }
 
-        // 2. 死亡シーケンスで使用する全オーディオSEのメモリ常駐化（音量0でキャッシュ）
-        if (auto audioManager = engine->GetAudioManager()) {
-            audioManager->PlayByFile("resources/audio/SE/se_launch_charge.mp3", 0.0f);
-            audioManager->PlayByFile("resources/audio/SE/se_result_impact.mp3", 0.0f);
-            audioManager->PlayByFile("resources/audio/SE/se_debris_shatter.mp3", 0.0f);
-            audioManager->PlayByFile("resources/audio/SE/se_hud_snap.mp3", 0.0f);
-        }
+        // 2. 死亡シーケンスで使用する全オーディオSEのメモリ常駐化（SoundHelper経由で事前ロード保証）
+        SoundHelper::PreloadAll();
     }
 }
 
@@ -363,7 +359,7 @@ void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase)
             if (auto am = engine->GetAudioManager()) {
                 am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.25f);
                 // 重力エネルギー凝縮チャージ音
-                am->PlayByFile("resources/audio/SE/se_launch_charge.mp3", 0.95f, 0.85f, AudioCategory::SE);
+                SoundHelper::Play(GameSE::LaunchCharge);
             }
         }
 
@@ -460,12 +456,8 @@ void PlayerDamageVisualizerComponent::TriggerSupernovaExplosion() {
     }
 
     // ② 音響レイヤリング: 空間破壊重低音 + ボクセル結晶大破砕音
-    if (engine) {
-        if (auto am = engine->GetAudioManager()) {
-            am->PlayByFile("resources/audio/SE/se_result_impact.mp3", 1.0f, 0.75f, AudioCategory::SE);
-            am->PlayByFile("resources/audio/SE/se_debris_shatter.mp3", 1.0f, 0.95f, AudioCategory::SE);
-        }
-    }
+    SoundHelper::Play(GameSE::ResultImpact, 1.0f, 0.75f);
+    SoundHelper::Play(GameSE::DebrisShatter, 1.0f, 0.95f);
 
     // ④ 大インパルス・カメラ激震 (2.0秒)
     if (cameraShakeComp_) {

@@ -13,6 +13,7 @@
 #include "Framework/Component/Renderer/TextRendererComponent.h"
 #include "UI/UISound.h"
 #include "Audio/AudioManager.h"
+#include "Audio/SoundHelper.h"
 #include "Player/PlayerHealthComponent.h"
 #include "Level/StageIntroDirectorComponent.h"
 #include <algorithm>
@@ -478,9 +479,7 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         isDemoInGame_ = false;
 
         // 空間歪曲・重力跳躍音を発声
-        if (auto am = engine_->GetAudioManager()) {
-            am->PlayByFile("resources/audio/SE/se_gravity_warp.mp3", 0.85f, 1.05f, AudioCategory::SE);
-        }
+        SoundHelper::Play(GameSE::GravityWarp);
 
         // 単なる黒フェードから、事象の地平線への空間吸い込み・重力色収差遷移へ昇華
         sm->TransitionTo(GameScenes::Title, SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,

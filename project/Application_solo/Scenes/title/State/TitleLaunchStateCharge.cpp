@@ -7,6 +7,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Audio/AudioManager.h"
+#include "Audio/SoundHelper.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/GameObject/GameObject.h"
 #include <algorithm>
@@ -28,8 +29,9 @@ void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
     if (auto engine = director->GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
             if (!director->GetChargeSePath().empty()) {
-                auto voice = am->PlayByFile(director->GetChargeSePath(), 0.95f, 1.0f, AudioCategory::SE,
-                                            "resources/audio/SE/se_player_boost.mp3");
+                const auto* fbDesc = SoundHelper::GetDescriptor(GameSE::PlayerBoost);
+                std::string fallbackPath = fbDesc ? fbDesc->path : "";
+                auto voice = am->PlayByFile(director->GetChargeSePath(), 0.95f, 1.0f, AudioCategory::SE, fallbackPath);
                 director->SetChargeVoiceInstance(voice);
             }
         }

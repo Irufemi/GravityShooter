@@ -8,6 +8,7 @@
 #include "Engine/Irufemi.h"
 #include "Audio/AudioManager.h"
 #include "UI/UISound.h"
+#include "Audio/SoundHelper.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include <algorithm>
 #include <cmath>
@@ -133,9 +134,7 @@ void ResultManagerComponent::Update() {
         // スナップ完了の瞬間 (0.40秒) に se_hud_snap.mp3 (メカニカルラッチ音) を発火！
         if (!hasPlayedSnapSE_ && scaleProgress >= 0.98f) {
             hasPlayedSnapSE_ = true;
-            if (auto am = engine->GetAudioManager()) {
-                am->PlayByFile("resources/audio/SE/se_hud_snap.mp3", 0.90f, 1.0f, AudioCategory::SE);
-            }
+            SoundHelper::Play(GameSE::HudSnap);
         }
     }
 

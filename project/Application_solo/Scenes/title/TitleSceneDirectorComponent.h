@@ -324,10 +324,10 @@ private: // メンバ変数
     float targetThrusterScaleZ_ = 0.85f;
 
     // 出撃シークエンス演出用SEプロパティ（完全データ駆動化・ハードコード排除）
-    std::string chargeSePath_ = "resources/audio/SE/se_launch_charge.mp3";
-    std::string debrisShatterSePath_ = "resources/audio/SE/se_debris_shatter.mp3";
-    std::string playerBoostSePath_ = "resources/audio/SE/se_player_boost.mp3";
-    std::string gravityWarpSePath_ = "resources/audio/SE/se_gravity_warp.mp3";
+    std::string chargeSePath_;
+    std::string debrisShatterSePath_;
+    std::string playerBoostSePath_;
+    std::string gravityWarpSePath_;
     std::weak_ptr<VoiceInstance> chargeVoiceInstance_; ///< チャージ音のボイス弱参照（真空の静寂制御用）
     float transitionDuration_ =
         0.22f; ///< シーン遷移（暗転・明転）にかける時間（秒: 0.22sの鋭い暗転・明転でインゲーム演出との重複を排除）

@@ -15,6 +15,7 @@
 #include "Platform/Input/InputManager.h"
 #include "Input/GameAction.h"
 #include "Audio/AudioManager.h"
+#include "Audio/SoundHelper.h"
 #include "Core/AttractDemoManager.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
@@ -147,9 +148,7 @@ void GameLoopManagerComponent::OnBossDied() {
         }
     }
     if (auto engine = GetEngine()) {
-        if (auto am = engine->GetAudioManager()) {
-            am->PlayByFile("resources/audio/SE/se_result_impact.mp3", 0.95f, 1.0f, AudioCategory::SE);
-        }
+        SoundHelper::Play(GameSE::ResultImpact);
         engine->SetTimeScale(timeScaleAtResult_);
     }
 }
@@ -162,7 +161,7 @@ void GameLoopManagerComponent::OnPlayerDied() {
     isClear_ = false;
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            am->PlayByFile("resources/audio/SE/se_result_impact.mp3", 0.95f, 1.0f, AudioCategory::SE);
+            SoundHelper::Play(GameSE::ResultImpact);
             // 死亡の瞬間、BGMを急消音（0.20秒フェード）して爆発前の真空の静寂を際立たせる
             am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.20f);
         }
