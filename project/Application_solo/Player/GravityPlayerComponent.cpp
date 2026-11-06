@@ -30,7 +30,6 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 #include "Framework/Component/Effect/ScreenEffectComponent.h"
-#include <nlohmann/json.hpp>
 #include "Core/Utility/JsonUtility.h"
 
 void GravityPlayerComponent::LoadStatusFromJson() {

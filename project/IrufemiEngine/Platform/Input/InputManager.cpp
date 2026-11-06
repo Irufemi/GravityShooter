@@ -1,9 +1,8 @@
 #include "Platform/Input/InputManager.h"
 #include "Framework/Utility/CVar.h"
+#include "Core/Utility/JsonUtility.h"
 #include <algorithm>
 #include <cmath>
-#include <fstream>
-#include <nlohmann/json.hpp>
 
 void InputManager::Initialize(HWND hwnd) {
     hwnd_ = hwnd;
@@ -301,14 +300,8 @@ const char* InputIdToString(InputId id) {
 }
 
 bool InputManager::LoadBindingsFromJson(const std::string& filepath) {
-    std::ifstream file(filepath);
-    if (!file.is_open()) {
-        return false;
-    }
     nlohmann::json root;
-    try {
-        file >> root;
-    } catch (...) {
+    if (!Irufemi::JsonUtility::LoadFromFile(filepath, root)) {
         return false;
     }
 

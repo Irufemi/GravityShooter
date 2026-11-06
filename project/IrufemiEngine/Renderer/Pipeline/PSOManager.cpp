@@ -9,7 +9,6 @@
 #include "Core/System/TaskGroup.h"
 #include "Core/Utility/Log.h"
 #include "Core/Utility/JsonUtility.h"
-#include <nlohmann/json.hpp>
 #include <iostream>
 
 static const std::string kCacheDirectory = "generated/cache/pso/";

@@ -15,7 +15,6 @@
 #include "Player/TargetableComponent.h"
 #include <algorithm>
 #include <iostream>
-#include <nlohmann/json.hpp>
 #include "Core/Utility/JsonUtility.h"
 #include "Core/Utility/Log.h"
 #include "Core/Utility/ContainerUtility.h"

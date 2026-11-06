@@ -12,6 +12,11 @@
 
 namespace Irufemi {
 /**
+ * @brief プロジェクト全体で一元管理される JSON 型エイリアス
+ */
+using Json = nlohmann::json;
+
+/**
  * @namespace Irufemi::JsonUtility
  * @brief nlohmann/json を用いた数学型（Vector/Matrix等）のシリアライズ・ファイル保存・読込支援名前空間
  */

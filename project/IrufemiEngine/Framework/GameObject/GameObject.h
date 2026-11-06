@@ -5,7 +5,7 @@
 #include <typeindex>
 #include <unordered_map>
 #include <mutex>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 #include "Framework/Component/Component.h"
 #include "Core/System/ComponentPool.h"
 

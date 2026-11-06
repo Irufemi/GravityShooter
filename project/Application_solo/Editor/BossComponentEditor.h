@@ -2,7 +2,7 @@
 #ifdef EditorMode
 #include "IrufemiEditor/Core/IComponentEditor.h"
 
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 #include <string>
 
 class BossComponentEditor : public IComponentEditor {

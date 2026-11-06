@@ -4,7 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <mutex>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 
 #include "Core/Utility/Synchronized.h"
 

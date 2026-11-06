@@ -1,6 +1,5 @@
 #include "Framework/Prefab/PrefabUtility.h"
 #include "Core/Utility/JsonUtility.h"
-#include <nlohmann/json.hpp>
 
 PrefabMetrics PrefabUtility::ExtractMetrics(const std::string& prefabPath) {
     PrefabMetrics metrics;

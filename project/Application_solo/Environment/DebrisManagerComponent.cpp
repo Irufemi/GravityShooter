@@ -21,7 +21,6 @@
 #include "Player/TargetableComponent.h"
 #include <cmath>
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include "Core/Utility/Log.h"
 #include "Core/Utility/ContainerUtility.h"
 #include "Core/Utility/JsonUtility.h"

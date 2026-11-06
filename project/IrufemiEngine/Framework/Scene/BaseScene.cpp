@@ -26,7 +26,7 @@
 #include "Core/Utility/Log.h"
 #include <fstream>
 #include <iostream>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 #include <algorithm>
 #include <regex>
 #include <limits>

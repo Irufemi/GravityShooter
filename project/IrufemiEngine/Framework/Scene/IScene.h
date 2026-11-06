@@ -7,7 +7,7 @@ class IrufemiEngine;
 class GameObject;
 #include <memory>
 #include <vector>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 
 /// <summary>
 /// Scene系クラスに継承する基底クラス

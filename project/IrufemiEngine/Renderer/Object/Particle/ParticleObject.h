@@ -6,7 +6,7 @@
 #include "Resource/Model/ModelManager.h"
 
 #include "Core/Type/BlendMode.h"
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 
 class TextureManager;
 

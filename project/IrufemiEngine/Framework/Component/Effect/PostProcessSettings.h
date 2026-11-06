@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 
 struct IPostProcessSettings {

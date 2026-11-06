@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 #include "Core/Math/Vector3.h"
 
 class BaseScene;

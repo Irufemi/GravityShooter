@@ -4,7 +4,7 @@
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include <string>
 #include <memory>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 
 /**
  * @class ScreenEffectComponent

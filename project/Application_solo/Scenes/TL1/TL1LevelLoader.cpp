@@ -3,7 +3,7 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Core/Utility/Log.h"
 #include "Core/Math/MathFunction.h"
-#include <fstream>
+#include "Core/Utility/JsonUtility.h"
 #include <iostream>
 
 using json = nlohmann::json;
@@ -16,17 +16,9 @@ LevelData TL1LevelLoader::Load(const std::string& filepath, BaseScene* scene) {
         return levelData;
     }
 
-    std::ifstream file(filepath);
-    if (!file.is_open()) {
-        Log::OutPutLog(std::cerr, "[TL1LevelLoader] Failed to open file: " + filepath + "\n");
-        return levelData;
-    }
-
     json rootJson;
-    try {
-        file >> rootJson;
-    } catch (json::parse_error& e) {
-        Log::OutPutLog(std::cerr, "[TL1LevelLoader] JSON Parse Error: " + std::string(e.what()) + "\n");
+    if (!Irufemi::JsonUtility::LoadFromFile(filepath, rootJson)) {
+        Log::OutPutLog(std::cerr, "[TL1LevelLoader] Failed to load JSON file via JsonUtility: " + filepath + "\n");
         return levelData;
     }
 

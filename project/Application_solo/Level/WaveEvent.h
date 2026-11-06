@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 #include "Core/Math/Vector3.h"
 
 class WaveManagerComponent;

@@ -1,6 +1,5 @@
 #include "CVar.h"
-#include <nlohmann/json.hpp>
-#include <fstream>
+#include "Core/Utility/JsonUtility.h"
 #include <iostream>
 
 namespace Irufemi {
@@ -200,16 +199,9 @@ void CVarSystem::SetOnChangeCallback(const std::string& name, std::function<void
 // File I/O
 // ---------------------------------------------------------
 void CVarSystem::Load(const std::string& filepath) {
-    std::ifstream file(filepath);
-    if (!file.is_open()) {
-        return; // File doesn't exist yet, that's fine
-    }
-
     nlohmann::json j;
-    try {
-        file >> j;
-    } catch (...) {
-        return; // Parse error
+    if (!Irufemi::JsonUtility::LoadFromFile(filepath, j)) {
+        return; // File doesn't exist yet or parse error, that's fine
     }
 
     std::vector<std::function<void()>> callbacksToInvoke;
@@ -260,10 +252,7 @@ void CVarSystem::Save(const std::string& filepath) {
         }
     });
 
-    std::ofstream file(filepath);
-    if (file.is_open()) {
-        file << j.dump(4);
-    }
+    Irufemi::JsonUtility::SaveToFile(filepath, j, 4);
 }
 
 // ---------------------------------------------------------

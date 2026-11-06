@@ -2,7 +2,7 @@
 
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include <memory>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 
 /**
  * @class IScreenEffectDriver

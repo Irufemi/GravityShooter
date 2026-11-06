@@ -6,7 +6,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <vector>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 #include <memory>
 
 /**

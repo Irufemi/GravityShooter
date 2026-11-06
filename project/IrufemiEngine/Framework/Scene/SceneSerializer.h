@@ -2,7 +2,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
+#include "Core/Utility/JsonUtility.h"
 
 class IScene;
 class GameObject;
