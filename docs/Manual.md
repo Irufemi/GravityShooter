@@ -58,7 +58,7 @@
   - [9.1 リソース管理システム (ResourceHandle & 各種Manager)](#91-リソース管理システム-resourcehandle--各種manager)
   - [9.2 外部パフォーマンス監視 (TelemetryMonitor)](#92-外部パフォーマンス監視-telemetrymonitor)
   - [9.3 フレームレート制御・タイマー精度 (AAA Frame Pacing)](#93-フレームレート制御タイマー精度-aaa-frame-pacing)
-  - [9.4 展示会・審査向けキオスクモード＆アトラクトデモ (Kiosk Mode & Attract Demo)](#94-展示会審査向けキオスクモードアトラクトデモ-kiosk-mode--attract-demo)
+  - [9.4 エンジン拡張プラグイン機構 (IEngineExtension) とアトラクトデモ](#94-エンジン拡張プラグイン機構-iengineextension-とアトラクトデモ)
   - [9.5 ビルド・提出パッケージングパイプライン](#95-ビルド提出パッケージングパイプライン)
   - [9.6 統合テスト環境 (DebugScene) の利用ルール](#96-統合テスト環境-debugscene-の利用ルール)
   - [9.7 トラブルシューティングと既知の不具合対応履歴](#97-トラブルシューティングと既知の不具合対応履歴)
@@ -535,6 +535,10 @@ if (!Irufemi::JsonUtility::LoadFromFile(fullPath, rootJson)) {
 Irufemi::JsonUtility::SaveToFile(fullPath, rootJson, 4);
 ```
 
+#### 3. 画面解像度・アスペクト比のマジックナンバー禁止
+- コード内で `1280.0f` や `720.0f` 等の解像度数値をハードコードすることは禁止されています。
+- ウィンドウや描画解像度を参照する際は、必ずエンジンの共通設定（`WinApp::kClientWidth` / `WinApp::kClientHeight`）や `Camera::GetAspectRatio()` を利用して一元管理してください。
+
 ---
 
 ## 3. エディタの使い方とレベル制作 (IrufemiEditor & Level Design)
@@ -725,8 +729,11 @@ IrufemiEngine のエディタは、モダンなゲームエンジン（Unity等�
 ## 4. コアシステムとシーン管理 (Engine Architecture, Scene & GameObject)
 
 ### 4.1 エンジンアーキテクチャ概要 (IrufemiEngine)
+- **コアヘッダー**: `#include "Core/System/IrufemiEngine.h"`
+- **拡張インターフェース**: `#include "Core/System/IEngineExtension.h"`
+
 エンジン全体を統括するコアクラスです。`WinApp`（ウィンドウ管理）や `DirectXCommon`（DirectX12初期化）を保持し、メインループ（`Update` と `Draw`）を回します。ゲームアプリケーション全体で1つのインスタンスのみが存在します。
-`IEngineExtension` による拡張機構を備えており、`AttractDemoManager` や `EditorManager` などの独立システムをプラグイン感覚で安全に追加・管理できます。
+`IEngineExtension` によるプラグイン拡張機構を備えており、エディタツールや展示用システムなどの独立機能をエンジン本体を改変することなく安全に追加・管理できます。
 
 ---
 
@@ -780,11 +787,12 @@ engine_->GetSceneManager()->LoadScene("Title", SceneTransition::Type::Fade, 1.0f
 engine_->GetSceneManager()->LoadScene("Result", SceneTransition::Type::Fade, 1.5f, EaseType::OutQuad, Irufemi::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 ```
 
-**2. C++クラスによる手動遷移**
-`BaseScene` を継承した専用クラスへ遷移します。
+**2. C++クラスによる手動遷移 (std::string_view によるゼロコピー呼び出し)**
+`BaseScene` を継承した専用クラスへ遷移します。引数はすべて `std::string_view` に統一されており、一時オブジェクトを生成せず高速に処理されます。
+また、シーン名文字列をハードコードせず、アプリケーション層で定義された定数（SSOT）を渡すことが推奨されます。
 ```cpp
 if (isClear) {
-    // 登録済みの "ClearScene" クラスに遷移する
+    // 登録済みの "ClearScene" クラスに遷移する (string_view 渡し)
     engine_->GetSceneManager()->TransitionTo("ClearScene", SceneTransition::Type::Fade, 1.0f);
 }
 
@@ -1780,6 +1788,10 @@ myEffect.Draw();
 - **`EffectLayer::PreUI`**: 3Dシーンや背景にのみ適用され、UI（ImGuiやCanvas等）には影響を与えません（デフォルト）。
 - **`EffectLayer::PostUI`**: 最終的なUI描画もすべて完了した後に、画面全体に対して適用されます。
 
+#### エフェクトパラメータの自動リセット機構 (SSOT自動展開)
+`CombinedPostEffect` 内部では、`IRUFEMI_POSTPROCESS_EFFECT_LIST` マクロによって各エフェクトのパラメータ構造体（`TonemapParameters`, `VignetteParameters` 等）が一元定義されています。
+シーン切り替えやリセット時には、このマクロから全構造体のデフォルト初期化代入コードが自動展開されるため、**手動の分岐コードやボイラープレートを追加することなく、パラメータが完全自動で初期値へ安全にリセット** されます。
+
 #### 多彩なエフェクトモード一覧 (全31種)
 `PostProcessMode` 列挙体として以下の31種類のエフェクトが提供されています。
 - **色調・階調**: `Grayscale`, `Sepia`, `HSV`, `ToneMapping`(ACES), `Posterization`
@@ -1843,8 +1855,9 @@ float effectParam = static_cast<float>(id) / 255.0f;
 ##### 2. 動的オブジェクトへの適用 (EffectMaskComponent)
 ```cpp
 gameObject->AddComponent<EffectMaskComponent>();
-// 発動時: (effectType, effectParam, duration(秒))
-gameObject->GetComponent<EffectMaskComponent>()->ApplyEffect(8, effectParam, 1.0f);
+// 型安全な指定: PostProcessMode::Dissolve を指定 (effectType, effectParam, duration(秒))
+uint32_t effectType = static_cast<uint32_t>(PostProcessMode::Dissolve);
+gameObject->GetComponent<EffectMaskComponent>()->ApplyEffect(effectType, effectParam, 1.0f);
 ```
 
 ##### 【仕様】アウター・シルエット方式アウトライン (Outer Silhouette)
@@ -2702,36 +2715,54 @@ if (auto* sender = engine->GetTelemetrySender()) {
 
 ---
 
-### 9.4 展示会・審査向けキオスクモード＆アトラクトデモ (Kiosk Mode & Attract Demo)
+### 9.4 エンジン拡張プラグイン機構 (IEngineExtension) とアトラクトデモ
 
-就職作品の展示会やイベント会場における無人運用・審査員プレイを快適にするため、`AttractDemoManager`（`IEngineExtension`）によるキオスク展示ループおよびアトラクトデモ自動巡回システムを搭載しています。
+IrufemiEngine は、エンジンのコアループ（`Update`, `DrawUI`, `Draw` 等）を改変することなく、独立したシステムを追加するための拡張プラグインインターフェース **`IEngineExtension`**（`#include "Core/System/IEngineExtension.h"`）を提供しています。
 
-#### 1. 起動構成とコマンドライン引数
-- **初期設定（デフォルトOFF）**: 通常起動時は `enabledOnStart = false` となっており、自動デモは開始されずプレイヤーの通常操作が最優先されます。
-- **型安全な初期化設定構造体 (`AttractDemoConfig`)**:
-  生ブール値引数を排除し、明示的なパラメータ構造体によって初期化されます。
+#### 1. IEngineExtension のインターフェース仕様
+エンジン初期化時や各フレームの描画パイプラインから安全にフックされます。
+```cpp
+#pragma once
+#include "Core/System/IEngineExtension.h"
+
+class CustomExtension : public IEngineExtension {
+public:
+    void OnInitialize(IrufemiEngine* engine) override {
+        // エンジン初期化時に呼び出されます
+    }
+    void OnUpdate(float deltaTime) override {
+        // 毎フレームのゲームロジック更新後に呼び出されます
+    }
+    void OnDrawUI() override {
+        // ImGui やデバッグUI描画フェーズで呼び出されます
+    }
+    void OnFinalize() override {
+        // エンジン終了時に安全にクリーンアップされます
+    }
+};
+```
+
+登録はゲーム初期化時に `engine->AddExtension(std::make_shared<CustomExtension>());` を呼び出すだけで完了します。
+
+#### 2. 実装事例: 展示用キオスクモード＆アトラクトデモ
+この拡張機構の実装例として、作品展示やコンテスト審査における無人運用・自動ループ機能を提供する **`AttractDemoManager`**（`project/Application_solo/Core/AttractDemoManager.h`）が実装されています。
+
+- **プラグイン登録と設定構造体 (`AttractDemoConfig`)**:
   ```cpp
-  #include "Core/AttractDemoManager.h"
+  #include "Core/System/IrufemiEngine.h"
+  #include "Core/AttractDemoManager.h" // Application層の拡張クラス
 
+  auto attractDemo = std::make_shared<AttractDemoManager>();
   AttractDemoConfig config{};
-  config.enabledOnStart = false; // 通常プレイをデフォルト優先
-  config.initialMode = AttractDemoManager::DemoMode::GameOverShowcase;
-  config.enableHotkeys = true;   // 審査・開発用ホットキー (F7/F8) を有効化
-  attractDemoManager_->Initialize(config);
+  config.enabledOnStart = false; // 通常プレイ優先（コマンドライン -demo 指定時のみ true）
+  config.enableHotkeys = true;   // F7/F8 ホットキー有効化
+  attractDemo->Initialize(config);
+
+  // エンジンへプラグインとして安全に登録
+  engine->AddExtension(attractDemo);
   ```
-- **コマンドライン引数による展示モード起動**:
-  - `-demo` / `--demo` / `-kiosk` / `--kiosk`: これらを引数に指定して起動した場合、`enabledOnStart = true` となり、起動直後からキオスク展示ループ（自動デモプレイ）が有効化されます。展示用PCのスタートアップ登録などに最適です。
-
-#### 2. デモモードの種類 (DemoMode)
-`AttractDemoManager::DemoMode` により、以下の3種類の実演パターンをサポートしています。
-1. **GameOverShowcase（デフォルト）**: 出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ。
-2. **TransitionShowcase**: 起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ。
-3. **StandardAttract**: ガレキスイープ・メニューホバーを経てから出撃する通常アトラクト。
-
-#### 3. 開発・審査用ホットキー
-- **`F8` キー**: キオスク展示ループのトグル切り替え。Title / InGame どこからでも即座にデモを停止し、通常プレイへ復帰できます。
-- **`F7` キー**: デモモード（実演パターン）のリアルタイム巡回切り替え。
-- **自動巡回と即時復帰**: Titleシーンで無操作（Idle）状態が8秒継続すると自律デモが開始されます。プレイヤーがキーボードやゲームパッドの任意のボタンに触れた瞬間、即座に通常操作へシームレス復帰します。
+- **コマンドライン自動判定**:
+  `-demo` や `-kiosk` が渡された場合は自動的に展示ループを起動し、無操作8秒でアトラクトデモを開始、ボタン操作検知で即座にプレイヤー入力へシームレス復帰する運用が実現されています。
 
 ---
 
