@@ -14,6 +14,7 @@
   - [2.5 メモリ管理と安全性 (C++ / DirectX)](#25-メモリ管理と安全性-c--directx)
   - [2.6 オブジェクトのライフサイクル管理とプールの安全な運用](#26-オブジェクトのライフサイクル管理とプールの安全な運用)
   - [2.7 命名規則・コードスタイル](#27-命名規則コードスタイル)
+  - [2.8 外部ライブラリ利用規約と I/O 共通ユーティリティ (JsonUtility / FileSystem)](#28-外部ライブラリ利用規約と-io-共通ユーティリティ-jsonutility--filesystem)
 - [3. エディタの使い方とレベル制作 (IrufemiEditor & Level Design)](#3-エディタの使い方とレベル制作-irufemieditor--level-design)
   - [3.1 エディタ画面の基本レイアウト](#31-エディタ画面の基本レイアウト)
   - [3.2 Project Browser の操作（2ペイン表示とアセットD&D配置）](#32-project-browser-の操作2ペイン表示とアセットdd配置)
@@ -52,6 +53,7 @@
 - [8. 入力・音響・UIシステム (Input, Audio & UI Framework)](#8-入力音響uiシステム-input-audio--ui-framework)
   - [8.1 入力システム (Input Action System & InputManager)](#81-入力システム-input-action-system--inputmanager)
   - [8.2 音響システム (AudioManager / AudioPlayer)](#82-音響システム-audiomanager--audioplayer)
+    - [データ駆動サウンド再生と一括事前ロード (SoundHelper & sound_actions.json)](#データ駆動サウンド再生と一括事前ロード-soundhelper--sound_actionsjson)
   - [8.3 UIフレームワーク (Canvas, UISelectionGroup, UIAnimator, Slider)](#83-uiフレームワーク-canvas-uiselectiongroup-uianimator-slider)
 - [9. リソース管理・最適化・運用 (Resource, Profiling & Troubleshooting)](#9-リソース管理最適化運用-resource-profiling--troubleshooting)
   - [9.1 リソース管理システム (ResourceHandle & 各種Manager)](#91-リソース管理システム-resourcehandle--各種manager)
@@ -507,6 +509,38 @@ void DXCommandManager::CreateRenderTargetViews() {
 - **インクルードガード**: `#pragma once` を使用してください。
 - **既存への適応**: 新しくクラスや関数を追加する際は、必ず周囲の「既存のコードベースの命名規則」に合わせ、自己流のスタイルを混入させないでください。
 - **文字コードとフォーマット**: ファイルはすべて `UTF-8 (署名なし)` で保存し、`.clang-format` による自動整形を活用してください。
+
+---
+
+### 2.8 外部ライブラリ利用規約と I/O 共通ユーティリティ (JsonUtility / FileSystem)
+
+外部ライブラリの肥大化やコンパイル速度低下、二重インクルードを防ぐため、プロジェクト全体で以下のルールを徹底しています。
+
+#### 1. 外部ヘッダーの直接インクルード禁止
+- `<nlohmann/json.hpp>` や `<assimp/*>` などの生ヘッダーを各 `.h` / `.cpp` で直接インクルードすることは禁止されています。
+- JSON を扱う場合は必ず `#include "Core/Utility/JsonUtility.h"` を使用し、`Irufemi::Json` 型エイリアスを使用してください。
+
+#### 2. ファイル読み書き・パス解決の公式パターン
+- `std::ifstream` や `std::ofstream` を直にオープンしてパースするボイラープレートは記述せず、`Irufemi::JsonUtility` のユーティリティ関数を使用してください。
+- 実行環境（実行時カレントディレクトリの違い）を吸収するため、パス解決には必ず `Irufemi::FileSystem::GetResourcePath(...)` を使用してください。
+
+```cpp
+#include "Core/Utility/JsonUtility.h"
+#include "Core/Utility/FileSystem.h"
+
+// 1. パスの安全な解決
+std::string fullPath = Irufemi::FileSystem::GetResourcePath("resources/config/example.json");
+
+// 2. 読み込み (ファイルのオープンと例外処理を内包・成否を bool で返却)
+Irufemi::Json rootJson;
+if (!Irufemi::JsonUtility::LoadFromFile(fullPath, rootJson)) {
+    // 読み込み失敗ログは内部で出力されるため、安全に早期リターン可能
+    return;
+}
+
+// 3. 書き出し (インデント付き整形保存)
+Irufemi::JsonUtility::SaveToFile(fullPath, rootJson, 4);
+```
 
 ---
 
@@ -2355,6 +2389,39 @@ clickSe.Play(); // 1回再生
 // 再生中のサウンドを明示的に止めたい場合は Stop() を呼びます
 // clickSe.Stop();
 ```
+
+#### データ駆動サウンド再生と一括事前ロード (SoundHelper & sound_actions.json)
+- **SoundHelper**: `#include "Audio/SoundHelper.h"`
+- **GameSoundAction**: `#include "Audio/GameSoundAction.h"`
+- **設定ファイル**: `resources/config/sound_actions.json`
+
+各コンポーネントやシーン内で音声ファイルのパス文字列（例: `"resources/audio/se/shot.wav"`）をハードコードすることは禁止されています。
+キーバインド設計（`input_actions.json`）と同様に、サウンドもデータドリブンな一元管理基盤（`SoundHelper`）を使用してください。
+
+1. **サウンドの登録 (`sound_actions.json`)**:
+   `GameSoundAction.h` の `enum class GameSE`, `GameBGM` と対になるキー（文字列）で設定を記述します。
+   ```json
+   {
+     "se": {
+       "PlayerShoot": { "path": "resources/audio/se/shot.wav", "volume": 0.8, "pitch": 1.0 },
+       "Explosion": { "path": "resources/audio/se/explosion.wav", "volume": 1.0 }
+     }
+   }
+   ```
+
+2. **再生コード (C++)**:
+   ```cpp
+   #include "Audio/SoundHelper.h"
+
+   // ワンショット再生 (音量・ピッチ・実在ファイルは自動解決)
+   SoundHelper::Play(GameSE::PlayerShoot);
+
+   // 音量を一時的にオーバーライドして再生
+   SoundHelper::Play(GameSE::Explosion, 0.5f);
+   ```
+
+3. **事前ロード (ヒッチ防止)**:
+   ゲーム起動時やシーン初期化時に `SoundHelper::PreloadAll()` を呼び出すことで、全サウンドファイルがメモリキャッシュされ、初弾発射時などのフレームレート低下（ヒッチ）を完全に防ぎます。
 
 ---
 
