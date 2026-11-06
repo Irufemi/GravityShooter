@@ -1,4 +1,5 @@
 #include "Framework/Scene/SceneManager.h"
+#include "Renderer/PostProcess/PostProcessManager.h"
 #include "Audio/AudioManager.h"
 #include "Renderer/DrawManager.h"
 #include "Framework/Scene/IScene.h"
@@ -360,6 +361,11 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             transitionPhase_ = TransitionPhase::None;
             loadingFadeAlpha_ = 0.0f;
             loadingTimer_ = 0.0f;
+
+            // 遷移完了マイルストーン：トランジション演出（PostUI）の完全終了保証
+            if (auto ppm = engine_->GetPostProcessManager()) {
+                ppm->ResetPostUI();
+            }
         }
     }
 
@@ -519,9 +525,9 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
         engine_->GetGPUParticleManager()->ClearAllParticles();
     }
 
-    // シーン切り替え時にポストプロセスの状態とパラメータを自動リセット
+    // シーン切り替え時にポストプロセスの環境状態（PreUI）とパラメータを自動リセット（暗幕等のPostUI演出は維持）
     if (engine_->GetPostProcessManager()) {
-        engine_->GetPostProcessManager()->Reset(false);
+        engine_->GetPostProcessManager()->Reset(PostProcessManager::Layer::PreUI);
     }
 
     // シーン切り替え時にコリジョンマネージャーの残留コライダーと衝突履歴を安全にクリア

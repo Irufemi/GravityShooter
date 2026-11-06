@@ -31,11 +31,11 @@ public:
     }
 
     /**
-     * @brief 全シングルパスパラメータを初期値にリセットする
-     * @param clearPostUI PostUI（画面遷移系）パラメータもリセットするかどうか
+     * @brief 指定レイヤーのエフェクトパラメータを初期値にリセットする
+     * @param targetLayer リセット対象のレイヤー (PreUI / PostUI / All)
      */
-    void Reset(bool clearPostUI);
-    void Reset() override { Reset(true); }
+    void Reset(PostProcessManager::Layer targetLayer);
+    void Reset() override { Reset(PostProcessManager::Layer::All); }
 
     bool RequiresSeparatePass() const override {
         return false;

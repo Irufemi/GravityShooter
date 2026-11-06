@@ -13,7 +13,7 @@ void GlobalPostProcessComponent::Start() {
     auto engine = GetEngine();
     if (engine) {
         if (auto pp = engine->GetPostProcessManager()) {
-            pp->Reset(false); // 遷移フェード(PostUI)を維持しつつ環境エフェクトスタックをリセット
+            pp->Reset(PostProcessManager::Layer::PreUI); // 遷移フェード(PostUI)を維持しつつ環境エフェクトスタックをリセット
         }
     }
     Update();
@@ -38,7 +38,7 @@ void GlobalPostProcessComponent::OnDisable() {
     auto engine = GetEngine();
     if (engine) {
         if (auto pp = engine->GetPostProcessManager()) {
-            pp->Reset(false);
+            pp->Reset(PostProcessManager::Layer::PreUI);
         }
     }
 }

@@ -32,18 +32,23 @@ void PostProcessManager::Initialize(IrufemiEngine* engine, DirectXCommon* dxComm
     ResetCustomEffectSlots();
 }
 
-void PostProcessManager::Reset(bool clearPostUI) {
-    ClearActiveModes(Layer::PreUI);
-    if (clearPostUI) {
+void PostProcessManager::Reset(Layer layer) {
+    if (layer == Layer::All) {
+        ClearActiveModes(Layer::PreUI);
         ClearActiveModes(Layer::PostUI);
+    } else {
+        ClearActiveModes(layer);
     }
     CommitPendingModes();
 
     if (runner_) {
-        runner_->ResetAllEffects(clearPostUI);
+        runner_->ResetAllEffects(layer);
     }
-    gravityDistortionActive_ = false;
-    gravityDistortionTimer_ = 0.0f;
+
+    if (layer == Layer::All || layer == Layer::PreUI) {
+        gravityDistortionActive_ = false;
+        gravityDistortionTimer_ = 0.0f;
+    }
 }
 
 void PostProcessManager::Update(float totalTime) {

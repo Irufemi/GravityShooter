@@ -100,6 +100,7 @@ void SceneTransition::Update(float deltaTime) {
                 ppManager_->RemoveActiveMode(mode);
             }
             activeTransitionModes_.clear();
+            ppManager_->ResetPostUI();
         }
 
         if (isOut_ && onOutFinishedCallback_) {

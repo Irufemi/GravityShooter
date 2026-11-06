@@ -584,6 +584,14 @@ public: // ゲッター
     }
 
     /**
+     * @brief 内部レンダリング解像度（幅・高さ）を取得する
+     * @return 内部解像度 Vector2
+     */
+    Irufemi::Vector2 GetGameResolution() const {
+        return {static_cast<float>(gameResWidth_), static_cast<float>(gameResHeight_)};
+    }
+
+    /**
      * @brief 内部レンダリング解像度を設定する
      */
     void SetGameResolution(uint32_t width, uint32_t height) {

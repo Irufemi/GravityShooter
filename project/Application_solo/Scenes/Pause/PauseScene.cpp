@@ -127,17 +127,18 @@ void PauseScene::SetUIVisible(bool visible) {
 }
 
 void PauseScene::CreateUIElements() {
-    // 1. 半透明暗幕オーバーレイ (画面全域 1280x720)
+    // 1. 半透明暗幕オーバーレイ (画面全域)
     auto darkOverlayObj = std::make_shared<GameObject>("Pause_DarkOverlay");
     AddGameObject(darkOverlayObj);
     darkOverlayObj_ = darkOverlayObj;
+    Irufemi::Vector2 gameRes = engine_ ? engine_->GetGameResolution() : Irufemi::Vector2{1280.0f, 720.0f};
     if (auto t = darkOverlayObj->GetTransform()) {
-        t->SetPosition({640.0f, 360.0f, 5.0f});
+        t->SetPosition({gameRes.x * 0.5f, gameRes.y * 0.5f, 5.0f});
     }
     auto sprite = darkOverlayObj->AddComponent<SpriteRendererComponent>();
     if (sprite) {
         sprite->SetTexture("resources/whiteTexture.png");
-        sprite->SetBaseSize({1280.0f, 720.0f});
+        sprite->SetBaseSize(gameRes);
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor(kColorDarkMask);
         darkOverlaySprite_ = sprite;

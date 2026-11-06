@@ -151,10 +151,15 @@ public:
     void BeginFrame();
 
     /**
-     * @brief ポストプロセスの状態をリセットする
-     * @param clearPostUI PostUIレイヤーもクリアするかどうか
+     * @brief ポストプロセスの状態とパラメータをリセットする
+     * @param layer リセット対象のレイヤー (PreUI / PostUI / All)
      */
-    void Reset(bool clearPostUI = true);
+    void Reset(Layer layer = Layer::All);
+
+    /**
+     * @brief 画面遷移演出（PostUIレイヤー）のエフェクトとパラメータのみを完全にリセットする
+     */
+    void ResetPostUI() { Reset(Layer::PostUI); }
 
     /**
      * @brief 時間経過に伴うアニメーション・演出の更新

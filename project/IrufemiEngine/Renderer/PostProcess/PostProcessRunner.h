@@ -67,9 +67,9 @@ public:
 
     /**
      * @brief 全ポストプロセスエフェクトを初期状態にリセットする
-     * @param clearPostUI PostUI（画面遷移等）パラメータもリセットするかどうか
+     * @param layer リセット対象のレイヤー (PreUI / PostUI / All)
      */
-    void ResetAllEffects(bool clearPostUI = true);
+    void ResetAllEffects(PostProcessManager::Layer layer = PostProcessManager::Layer::All);
 
     Irufemi::KawaseBlurEffect* GetKawaseBlurEffect() const { return kawaseBlurEffect_.get(); }
 

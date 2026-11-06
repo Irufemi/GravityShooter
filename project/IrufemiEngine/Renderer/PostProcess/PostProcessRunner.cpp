@@ -39,18 +39,20 @@ void PostProcessRunner::InitializeEffects(ID3D12Device* device, DirectXCommon* d
     }
 }
 
-void PostProcessRunner::ResetAllEffects(bool clearPostUI) {
-    if (bloomEffect_) {
-        bloomEffect_->Reset();
-    }
-    if (lightShaftsEffect_) {
-        lightShaftsEffect_->Reset();
-    }
-    if (kawaseBlurEffect_) {
-        kawaseBlurEffect_->Reset();
+void PostProcessRunner::ResetAllEffects(PostProcessManager::Layer layer) {
+    if (layer == PostProcessManager::Layer::All || layer == PostProcessManager::Layer::PreUI) {
+        if (bloomEffect_) {
+            bloomEffect_->Reset();
+        }
+        if (lightShaftsEffect_) {
+            lightShaftsEffect_->Reset();
+        }
+        if (kawaseBlurEffect_) {
+            kawaseBlurEffect_->Reset();
+        }
     }
     if (combinedEffect_) {
-        combinedEffect_->Reset(clearPostUI);
+        combinedEffect_->Reset(layer);
     }
 }
 

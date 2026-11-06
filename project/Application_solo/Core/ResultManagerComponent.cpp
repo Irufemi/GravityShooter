@@ -45,13 +45,16 @@ void ResultManagerComponent::Initialize() {
     if (gameObject_ && gameObject_->GetScene()) {
         auto bgObj = std::make_shared<GameObject>("Result_DarkBackdrop");
         gameObject_->GetScene()->AddGameObject(bgObj);
+        Irufemi::Vector2 gameRes = {1280.0f, 720.0f};
+        if (auto engine = GetEngine()) {
+            gameRes = engine->GetGameResolution();
+        }
         if (auto t = bgObj->GetTransform()) {
-            t->SetPosition({640.0f, 360.0f, 5.0f});
+            t->SetPosition({gameRes.x * 0.5f, gameRes.y * 0.5f, 5.0f});
         }
         auto sprite = bgObj->AddComponent<SpriteRendererComponent>();
         if (sprite) {
-
-            sprite->SetBaseSize({1280.0f, 720.0f});
+            sprite->SetBaseSize(gameRes);
             sprite->SetAnchor({0.5f, 0.5f});
             sprite->SetColor({0.02f, 0.03f, 0.05f, 0.0f}); // 初期アルファ0
         }

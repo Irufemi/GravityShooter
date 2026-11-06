@@ -9,35 +9,15 @@
 
 namespace Irufemi {
 
-void CombinedPostEffect::Reset(bool clearPostUI) {
-    toneMappingParams_ = ToneMappingParams();
-    hsvParams_ = HSVParams();
-    vignetteParams_ = VignetteParams();
-    outlineParams_ = OutlineParams();
-    noiseParams_ = NoiseParams();
-    glitchParams_ = GlitchParams();
-    luminanceOutlineParams_ = LuminanceOutlineParams();
-    pixelationParams_ = PixelationParams();
-    pointillismParams_ = PointillismParams();
-    posterizationParams_ = PosterizationParams();
-    nightVisionParams_ = NightVisionParams();
-    kaleidoscopeParams_ = KaleidoscopeParams();
-    chromaticAberrationParams_ = ChromaticAberrationParams();
-    displacementMapParams_ = DisplacementMapParams();
-    directionalBlurParams_ = DirectionalBlurParams();
-    halftoneParams_ = HalftoneParams();
-    dofParams_ = DepthOfFieldParams();
-    smoothingParams_ = SmoothingParams();
-    gaussianParams_ = GaussianParams();
-    gravityDistortionParams_ = GravityDistortionParams();
-    blackHoleSupernovaParams_ = BlackHoleSupernovaParams();
-
-    if (clearPostUI) {
-        radialBlurParams_ = RadialBlurParams();
-        dissolveParams_ = DissolveParams();
-        fadeParams_ = FadeParams();
-        slideParams_ = SlideParams();
+void CombinedPostEffect::Reset(PostProcessManager::Layer targetLayer) {
+#define IRUFEMI_RESET_EFFECT_PARAM(ModeName, StructType, PassType, DefaultLayer, DisplayName)                          \
+    if constexpr (!std::is_same_v<StructType, void>) {                                                                 \
+        if (targetLayer == PostProcessManager::Layer::All || targetLayer == PostProcessManager::Layer::DefaultLayer) { \
+            Get##StructType() = StructType{};                                                                          \
+        }                                                                                                              \
     }
+    IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_RESET_EFFECT_PARAM)
+#undef IRUFEMI_RESET_EFFECT_PARAM
 }
 
 void CombinedPostEffect::SyncParamsToCombined(CombinedParams& combined) const {

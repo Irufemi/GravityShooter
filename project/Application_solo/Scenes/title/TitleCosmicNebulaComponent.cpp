@@ -100,8 +100,8 @@ void TitleCosmicNebulaComponent::Update() {
     }
 
     // ゲーム画面の解像度（SceneViewPanel の仮想マウス座標系と一致）
-    constexpr float kGameWidth = 1280.0f;
-    constexpr float kGameHeight = 720.0f;
+    float gameWidth = static_cast<float>(engine ? engine->GetGameResolutionWidth() : 1280);
+    float gameHeight = static_cast<float>(engine ? engine->GetGameResolutionHeight() : 720);
 
     // 滑らかな追従補間 (Smooth Damp)
     float lerpFactor = std::clamp(deltaTime * 14.0f, 0.0f, 1.0f);
@@ -109,8 +109,8 @@ void TitleCosmicNebulaComponent::Update() {
     smoothedMousePos_.y += (targetMousePos.y - smoothedMousePos_.y) * lerpFactor;
 
     // ゲーム画面に対する正確な正規化 UV (0.0 - 1.0)
-    smoothedMouseUV_.x = std::clamp(smoothedMousePos_.x / kGameWidth, 0.0f, 1.0f);
-    smoothedMouseUV_.y = std::clamp(smoothedMousePos_.y / kGameHeight, 0.0f, 1.0f);
+    smoothedMouseUV_.x = std::clamp(smoothedMousePos_.x / gameWidth, 0.0f, 1.0f);
+    smoothedMouseUV_.y = std::clamp(smoothedMousePos_.y / gameHeight, 0.0f, 1.0f);
 
     // --- 速度ベクトルの算出と平滑化（Velocity-Aligned Wake Field） ---
     float safeDeltaTime = (deltaTime > 0.0001f) ? deltaTime : (1.0f / 60.0f);

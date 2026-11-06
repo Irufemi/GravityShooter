@@ -183,7 +183,8 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
 
     float screenW = static_cast<float>(engine->GetGameResolutionWidth());
     float screenH = static_cast<float>(engine->GetGameResolutionHeight());
-    float uiScale = screenH / 720.0f;
+    constexpr float kBaseVirtualHeight = 720.0f; // UIオーサリング基準高
+    float uiScale = screenH / kBaseVirtualHeight;
 
     // 1. 深遠な宇宙空間背景（漆黒ダークスペース）
     engine->SetBlend(Irufemi::BlendMode::kBlendModeNormal);
