@@ -146,6 +146,7 @@
 - **`tools/BlenderLevelEditor/`**: Blenderアドオンによるステージ作成・コライダー配置・敵スポーン配置ツール。
 - **`tools/ShaderGenerator/`**: シェーダー自動生成支援ツール。
 - **`tools/TelemetryMonitor/`**: C#/WPFによるリアルタイム外部パフォーマンス監視ツール（ルートの `Launch_Telemetry.bat` よりワンクリック起動可能）。
+- **`tools/GeneratePostProcessHlsl.py`**: C++ SSOT (`PostProcessDefinitions.h`) から HLSL用定数ヘッダー (`PostProcessModes.generated.hlsli`) を自動同期生成する CodeGen スクリプト（Visual Studio の Pre-Build Event に統合）。
 
 ---
 
@@ -543,7 +544,7 @@ Irufemi::JsonUtility::SaveToFile(fullPath, rootJson, 4);
 
 #### 3. 画面解像度・アスペクト比のマジックナンバー禁止
 - コード内で `1280.0f` や `720.0f` 等の解像度数値をハードコードすることは禁止されています。
-- ウィンドウや描画解像度を参照する際は、必ずエンジンの共通設定（`WinApp::kClientWidth` / `WinApp::kClientHeight`）や `Camera::GetAspectRatio()` を利用して一元管理してください。
+- ウィンドウや描画解像度を参照する際は、必ずエンジンの正規アクセサ（`engine->GetClientWidth()` / `engine->GetClientHeight()`、または内部解像度 `engine->GetGameResolutionWidth()` / `engine->GetGameResolutionHeight()`）を利用して一元管理してください。アスペクト比が必要な場合も、これらのアクセサから動的に算出し、`16.0f / 9.0f` 等の決め打ちを避けてください。
 
 ---
 
@@ -1863,6 +1864,44 @@ myEffect.Draw();
 - **`EffectLayer::PreUI`**: 3Dシーンや背景にのみ適用され、UI（ImGuiやCanvas等）には影響を与えません（デフォルト）。
 - **`EffectLayer::PostUI`**: 最終的なUI描画もすべて完了した後に、画面全体に対して適用されます。
 
+#### RAIIによるエフェクト寿命管理 (ScopedEffectHandle)
+被弾時のノイズグリッチや危険状態の赤色ヴィネットなど、一時的に適用する画面エフェクトを手動で `RemoveActiveMode` すると、オブジェクト破棄時や例外発生時に解除が漏れ、画面にエフェクトが残り続ける不具合が発生します。
+これを根本から防止するため、スコープ脱出時やデストラクタで自動的にエフェクトを安全解除する **`Irufemi::ScopedEffectHandle`**（`#include "Renderer/PostProcess/PostProcessHandle.h"`）が提供されています。
+
+```cpp
+#include "Renderer/PostProcess/PostProcessHandle.h"
+
+class PlayerDamageVisualizerComponent : public Component {
+private:
+    // メンバ変数としてハンドルを保持
+    Irufemi::ScopedEffectHandle glitchHandle_;
+
+public:
+    void PlayDamageEffect() {
+        auto* ppm = GetEngine()->GetPostProcessManager();
+        ppm->SetModeEnabled(PostProcessMode::Glitch, true);
+        // ハンドルを生成して保持（所有権管理）
+        glitchHandle_ = Irufemi::ScopedEffectHandle(ppm, PostProcessMode::Glitch, PostProcessManager::Layer::PreUI);
+    }
+    // コンポーネント破棄時やオブジェクト削除時、glitchHandle_ のデストラクタにより
+    // 自動的に RemoveActiveMode が呼ばれ、エフェクト残留バグを100%防止
+};
+```
+
+#### マルチパスエフェクトの型安全な操作 (GetEffect<T>)
+`Bloom` や `LightShafts`、`Smoothing` などの中間バッファを消費するマルチパスエフェクトは、`PostProcessManager::GetEffect<T>()` を用いてインスタンスを直接取得し、自己完結したパラメータ制御を行えます。
+
+```cpp
+#include "Renderer/PostProcess/PostProcessManager.h"
+#include "Renderer/PostProcess/Effects/BloomEffect.h"
+
+// Bloomエフェクトの型安全な取得と設定変更
+if (auto* bloom = engine->GetPostProcessManager()->GetEffect<BloomEffect>()) {
+    bloom->SetThreshold(0.85f);
+    bloom->SetIntensity(1.4f);
+}
+```
+
 #### エフェクトパラメータの自動リセット機構 (SSOT自動展開)
 `CombinedPostEffect` 内部では、`IRUFEMI_POSTPROCESS_EFFECT_LIST` マクロによって各エフェクトのパラメータ構造体（`TonemapParameters`, `VignetteParameters` 等）が一元定義されています。
 シーン切り替えやリセット時には、このマクロから全構造体のデフォルト初期化代入コードが自動展開されるため、**手動の分岐コードやボイラープレートを追加することなく、パラメータが完全自動で初期値へ安全にリセット** されます。
@@ -1882,10 +1921,13 @@ IrufemiEngine は、色調補正から光学ブラー、重力演出に至るま
 > 本エンジンでは、エフェクトの増減に伴うドキュメントの陳腐化を防ぎ、型安全性を100%保証するため、全エフェクトの識別子・パラメータ構造体・レンダーパス種別を [`PostProcessDefinitions.h`](file:///f:/school/3_5/WP1/WP1/project/IrufemiEngine/Renderer/PostProcess/PostProcessDefinitions.h) の `IRUFEMI_POSTPROCESS_EFFECT_LIST` にて一元管理（SSOT）しています。最新の対応状況やパラメータ詳細は該当ヘッダーを参照してください。
 
 #### 【開発者向け】新しいポストプロセスの追加手順 (How to Add New Effect)
-新しいエフェクトを追加する際は、以下のステップのみで自動的にパイプライン・エディタUI・パラメータリセット機構へ統合されます：
-1. [`PostProcessDefinitions.h`](file:///f:/school/3_5/WP1/WP1/project/IrufemiEngine/Renderer/PostProcess/PostProcessDefinitions.h) の `IRUFEMI_POSTPROCESS_EFFECT_LIST` に1行追加する（形式: `V(ModeName, StructType, PassType, DefaultLayer, DisplayName)`）。
-2. **Inlineパスの場合**: `CombinedPostEffect.PS.hlsl` にシェーディング計算を追記する。
-3. **Separate / MultiPassの場合**: `Renderer/PostProcess/Effects/` に `IPostProcessEffect` を継承した専用エフェクトクラスを作成し、`PostProcessManager` に登録する。
+新しいエフェクトを追加する際は、以下の自動化パイプラインによって手動ボイラープレートを最小限に抑えて追加できます：
+1. **SSOT定義の追加**: [`PostProcessDefinitions.h`](file:///f:/school/3_5/WP1/WP1/project/IrufemiEngine/Renderer/PostProcess/PostProcessDefinitions.h) の `IRUFEMI_POSTPROCESS_EFFECT_LIST` に1行追加する（形式: `V(ModeName, StructType, PassType, DefaultLayer, DisplayName)`）。
+2. **HLSL定数の自動同期 (CodeGen)**: Visual Studio の Pre-Build Event により `tools/GeneratePostProcessHlsl.py` が自動実行され、`PostProcessModes.generated.hlsli` に HLSL 定数が自動出力されます（手動編集不要）。
+3. **パラメータ構造体の定義と PropertyVisitor**: `Renderer/PostProcess/PostProcessParams.h` に専用構造体を作成し、`template <typename TVisitor> void Visit(TVisitor& visitor)` メソッドを記述して各メンバを `visitor.Visit(...)` で公開します。これにより、DebugUI（ImGui）描画コードを手書きすることなく、エディタ上でパラメータ調整スライダーが完全自動展開されます。
+4. **シェーダー・レンダーパスの実装**:
+   - **Inlineパスの場合**: `CombinedPostEffect.PS.hlsl` にシェーディング計算を追記する。
+   - **Separate / MultiPassの場合**: `Renderer/PostProcess/Effects/` に `IPostProcessEffect` を継承した専用エフェクトクラスを作成し、`PostProcessManager` に登録する。
 
 #### 重力演出専用ポストプロセス
 ##### 1. GravityDistortion (重力波・空間歪み)
@@ -1982,45 +2024,7 @@ struct PixelShaderOutput {
 #### 法線ベースの高品質アウトライン (DepthBasedOutline)
 ポストプロセスのモードとして `DepthBasedOutline` を適用すると、**深度（Depth）の差分**に加えて、G-Bufferに出力された**法線（Normal）の差分**も組み合わせてエッジ検出が行われます。
 これにより、深度差がほとんどない平面上の折り目（ハードエッジ）にも美しい輪郭線が描画される AAA 品質のアウトライン表現が可能となっています。
-
----
-
-#### 3. 動的オブジェクトへの適用 (EffectMaskComponent)
-キャラクターやボスなど、個別の `GameObject` にアタッチしてエフェクト（ディゾルブやシルエット発光など）を管理する方法です。
-
-```cpp
-// 使い方
-auto* mask = gameObject->AddComponent<EffectMaskComponent>();
-mask->SetEnableEffectMask(true);
-mask->SetCustomEffectType(8); // 例: Type 8 = Dissolve
-mask->SetCustomParams(params);
-```
-
-##### 【仕様】アウター・シルエット方式アウトライン (Outer Silhouette)
-本エンジンの個別輪郭線（`LuminanceBasedOutline`）は、**モデル表面のテクスチャやライティングを100%保護し、外側の背景ピクセルのみに輪郭線を描画する「アウター・シルエット方式」**（AAAタイトル・Overwatch等と同様の方式）を採用しています。
-
-- モデルのスリットやモールドなどの細かなテクスチャデザインが塗り潰されることがなく、クオリティの高い輪郭強調が可能です。
-- 線幅の下限は `0.5px` に対応しており、極細でシャープなハイライトから太いアニメ調ラインまで自由に調整できます。
-- ロックオンシステム等で敵を強調する際は、モデル表面を汚さずに外周だけを高輝度イエロー等で際立たせることができます。
-
-
-#### 4. バッチ描画（環境物）への適用 (ModelBatchRendererComponent)
-大量に配置された静的・環境オブジェクトの、**特定のインスタンスにのみ** エフェクトを指定する方法です。
-ドローコールを1回に抑えたまま（Instancing）、インスタンス個別にエフェクトを描画できるため、**パフォーマンスに非常に優れたアプローチ**です。
-
-```cpp
-// 1個目は通常描画（エフェクトなし）
-batchComponent->AddInstance(transform1);
-
-// 2個目には個別のエフェクト（例: Type 8 = Dissolve）を適用
-batchComponent->AddInstance(transform2, 8, effectParam, true);
-
-// バッチ全体のベースカラー（RGBA）を設定（敵弾の属性色やマテリアルカラー乗算）
-batchComponent->SetColor({0.85f, 0.15f, 1.0f, 1.0f});
-
-// インスタンスごとに固有カラーを指定して登録することも可能
-batchComponent->AddInstanceWorld(worldMatrix, {1.0f, 0.5f, 0.2f, 1.0f});
-```
+※個別オブジェクトへのマスク適用（`EffectMaskComponent`）やアウターシルエットの仕様は、前述の [6.4節 オブジェクト個別のカスタムエフェクト適用](#オブジェクト個別のカスタムエフェクト適用-customeffectparams) を参照してください。
 
 ---
 
@@ -2276,28 +2280,6 @@ drawManager->SetFrameData(camera, time, deltaTime, sunLight, pointLights, spotLi
 #### 3. PBR / Blinn-Phong シェーダーへの統合
 GPU上の定数バッファおよび構造化バッファ（StructuredBuffer）に転送され、すべての不透明・半透明シェーダーにおいて、Lambert拡散反射、Blinn-Phong鏡面反射、および減衰逆二乗則が自動適用されます。
 ※陰影計算を完全にバイパスしたいモデルは、前述の `renderer->SetEnableLighting(false)` により Unlit 化が可能です。
-
----
-> **ドキュメント更新履歴**
-> - 2026/05: RenderGraph / パケット分離対応を反映、Phase 1~3 および 便利機能（カメラ、ディレクトリ構造、UISelectionGroup）を追記
-> - 2026/05: エディタ機能（Project Browserの2ペイン化、FontAwesome対応、ドラッグ＆ドロップ機能）の解説を追記
-> - 2026/05: コンポーネントシステム（GameObject/Component）の導入と、UIロジックの分離（Registry方式）を追記
-> - 2026/05: 高品質テキスト描画システム (`TextRendererComponent` / `FontManager`) と、Play時の自動保存機能を追記
-> - 2026/05: 終了時のリソースリーク（LIVE_DEVICE）対策とトラブルシューティングを追記
-> - 2026/05: 3D爆発エフェクト (Effect::kExplosion) 仕様とスニペットの追加
-> - 2026/06: カスタムエディタUI構築時の Undo/Redo (Ctrl+Z) 対応用ヘルパー関数の解説を追記
-> - 2026/06: プリミティブ描画の `Primitive3DObject` への統合、および `MeshDesc` / `MaterialDesc` へのデータ構造リファクタリングを反映
-> - 2026/06: 描画リソースのマルチバッファ同期処理を `MultiBufferSyncState` 基底クラスへ集約し、`Manual.md` に使い方を追加
-> - 2026/06: シェーダーのハイブリッドコンパイル（Releaseの完全CSO化）およびEditor/Debug向けのホットリロード機能の解説を追加
-> - 2026/06: マルチスレッド化による GameObject::Update の並列処理と、ダングリングポインタ対策としての `std::weak_ptr` の利用ルールを追記
-> - 2026/06: エディタ操作性向上（インスペクターのRemove/Reset機能、D&D割り当て）の解説を追記
-> - 2026/06: Hierarchyでのオブジェクト管理機能（フォルダ化・ロック・保護機能）の解説を追加
-> - 2026/06: メニューバーの刷新（モダンダークテーマ化）、Play/Pause機能による時間管理（DeltaTime/RealDeltaTime）、およびレイアウト初期化（Reset Layout）の解説を追加
-> - 2026/07: エディタ機能にスクリーンショット（Screen Capture）機能を追加。マルチスレッドでの非同期保存および各描画パスごとの保存機能の解説を追記
-> - 2026/11: ポストプロセス記述をSSOT（`PostProcessDefinitions.h`）誘導および新規追加ワークフローへ刷新。音響システム（`SoundHelper` / `GameSE` / `GameBGM`）のAPIスニペット整合、`Run_Benchmark.bat` 負荷検証手順、`GameArchitecture.md` への相互参照誘導を追記
-> - 2026/11: 総合精査を実施。VS2026ソリューション構成（Irufemi.slnx）一本化、面光源（`AreaLight`）および `DrawManager::SetFrameData` 最新シグネチャ追記、`PostProcessManager` / `EffectMaskComponent` / `AttractDemoManager` のAPIスニペット修正、`UINavigationController` / `input_actions.json` / `CollisionLayers.json` / `ConsoleCommandSystem` の仕様を追記
-
----
 
 ---
 
@@ -3174,4 +3156,23 @@ public:
 
 ---
 
----
+> **ドキュメント更新履歴**
+> - 2026/05: RenderGraph / パケット分離対応を反映、Phase 1~3 および 便利機能（カメラ、ディレクトリ構造、UISelectionGroup）を追記
+> - 2026/05: エディタ機能（Project Browserの2ペイン化、FontAwesome対応、ドラッグ＆ドロップ機能）の解説を追記
+> - 2026/05: コンポーネントシステム（GameObject/Component）の導入と、UIロジックの分離（Registry方式）を追記
+> - 2026/05: 高品質テキスト描画システム (`TextRendererComponent` / `FontManager`) と、Play時の自動保存機能を追記
+> - 2026/05: 終了時のリソースリーク（LIVE_DEVICE）対策とトラブルシューティングを追記
+> - 2026/05: 3D爆発エフェクト (Effect::kExplosion) 仕様とスニペットの追加
+> - 2026/06: カスタムエディタUI構築時の Undo/Redo (Ctrl+Z) 対応用ヘルパー関数の解説を追記
+> - 2026/06: プリミティブ描画の `Primitive3DObject` への統合、および `MeshDesc` / `MaterialDesc` へのデータ構造リファクタリングを反映
+> - 2026/06: 描画リソースのマルチバッファ同期処理を `MultiBufferSyncState` 基底クラスへ集約し、`Manual.md` に使い方を追加
+> - 2026/06: シェーダーのハイブリッドコンパイル（Releaseの完全CSO化）およびEditor/Debug向けのホットリロード機能の解説を追加
+> - 2026/06: マルチスレッド化による GameObject::Update の並列処理と、ダングリングポインタ対策としての `std::weak_ptr` の利用ルールを追記
+> - 2026/06: エディタ操作性向上（インスペクターのRemove/Reset機能、D&D割り当て）の解説を追記
+> - 2026/06: Hierarchyでのオブジェクト管理機能（フォルダ化・ロック・保護機能）の解説を追加
+> - 2026/06: メニューバーの刷新（モダンダークテーマ化）、Play/Pause機能による時間管理（DeltaTime/RealDeltaTime）、およびレイアウト初期化（Reset Layout）の解説を追加
+> - 2026/07: エディタ機能にスクリーンショット（Screen Capture）機能を追加。マルチスレッドでの非同期保存および各描画パスごとの保存機能の解説を追記
+> - 2026/11: ポストプロセス記述をSSOT（`PostProcessDefinitions.h`）誘導および新規追加ワークフローへ刷新。音響システム（`SoundHelper` / `GameSE` / `GameBGM`）のAPIスニペット整合、`Run_Benchmark.bat` 負荷検証手順、`GameArchitecture.md` への相互参照誘導を追記
+> - 2026/11: 総合精査を実施。VS2026ソリューション構成（Irufemi.slnx）一本化、面光源（`AreaLight`）および `DrawManager::SetFrameData` 最新シグネチャ追記、`PostProcessManager` / `EffectMaskComponent` / `AttractDemoManager` のAPIスニペット修正、`UINavigationController` / `input_actions.json` / `CollisionLayers.json` / `ConsoleCommandSystem` の仕様を追記
+> - 2026/11: Manual.mdの総合精査および実コード乖離修正。解像度正規アクセサ（`GetClientWidth()` 等）への整合、`ScopedEffectHandle`（RAII寿命管理）および `GetEffect<T>()` 追記、CodeGen（`GeneratePostProcessHlsl.py`）および `PropertyVisitor` によるDebugUI自動展開ワークフローの明文化、6.5節の重複記述（マジックナンバー残存部）の整理と更新履歴配置の適正化
+
