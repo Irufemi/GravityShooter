@@ -1,11 +1,14 @@
 #pragma once
 #include "Core/Utility/ErrorUtility.h"
+#include "Core/Utility/Log.h"
 #include <d3d12.h>
 #include <wrl.h>
 #include <array>
 #include <vector>
 #include <cstdint>
 #include <cassert>
+#include <iostream>
+#include <string>
 #include "RHI/DirectX12/DirectXCommon.h"
 
 /**
@@ -81,9 +84,25 @@ public:
             inUse_[index] = true;
             return index;
         }
-        IRUFEMI_ASSERT(nextIndex_ < capacity_ && "DynamicConstantBuffer capacity exceeded!");
+
+        // 上限超過チェック (Graceful Degradation)
+        if (nextIndex_ >= capacity_) {
+            IRUFEMI_ASSERT(false && "DynamicConstantBuffer capacity exceeded!");
+            Log::OutPutLog(std::cerr, "[DynamicConstantBuffer] Error: Capacity exceeded! capacity = " +
+                                          std::to_string(capacity_) + "\n");
+            return 0; // クラッシュ防止の安全フォールバック
+        }
+
         uint32_t index = nextIndex_++;
         inUse_[index] = true;
+
+        // 使用率80%警告 (一度だけ通知)
+        if (!warnedHighUsage_ && capacity_ > 0 && nextIndex_ >= (capacity_ * 8 / 10)) {
+            warnedHighUsage_ = true;
+            Log::OutPutLog(std::cerr, "[DynamicConstantBuffer] Warning: High buffer utilization detected (>80%): " +
+                                          std::to_string(nextIndex_) + " / " + std::to_string(capacity_) + "\n");
+        }
+
         return index;
     }
 
@@ -135,6 +154,22 @@ public:
         return resources_[frameIndex]->GetGPUVirtualAddress() + index * elementAlignedSize_;
     }
 
+    /** @name 診断・監視API */
+    ///@{
+    /** @brief バッファの最大収容要素数を取得する */
+    uint32_t GetCapacity() const {
+        return capacity_;
+    }
+    /** @brief 現在アクティブに割り当てられている要素数を取得する */
+    uint32_t GetAllocatedCount() const {
+        return nextIndex_ - static_cast<uint32_t>(freeIndices_.size());
+    }
+    /** @brief 現在利用可能な空き要素数を取得する */
+    uint32_t GetFreeCount() const {
+        return (capacity_ - nextIndex_) + static_cast<uint32_t>(freeIndices_.size());
+    }
+    ///@}
+
 private:
     /**
      * @brief Unmap を実行する。
@@ -163,4 +198,5 @@ private:
     uint32_t capacity_ = 0;
     size_t elementAlignedSize_ = 0;
     DirectXCommon* dxCommon_ = nullptr;
+    bool warnedHighUsage_ = false;
 };

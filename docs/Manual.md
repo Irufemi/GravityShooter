@@ -53,6 +53,7 @@
   - [6.9 動的シャドウマップシステム (ShadowPass & ShadowMap)](#69-動的シャドウマップシステム-shadowpass--shadowmap)
   - [6.10 ライティングシステム (Directional, Point, Spot, Area)](#610-ライティングシステム-directional-point-spot-area)
   - [6.11 2D GPGPU 流体シミュレーション (FluidSimulation2D & IComputeTask)](#611-2d-gpgpu-流体シミュレーション-fluidsimulation2d--icomputetask)
+  - [6.12 GPU定数バッファ一括管理基盤 (DynamicConstantBuffer)](#612-gpu定数バッファ一括管理基盤-dynamicconstantbuffer)
 - [7. 物理・衝突判定と空間分割 (Physics, Colliders & BVH)](#7-物理衝突判定と空間分割-physics-colliders--bvh)
   - [7.1 衝突判定マネージャー (CollisionManager)](#71-衝突判定マネージャー-collisionmanager)
   - [7.2 動的BVH(TLAS)による空間クエリ最適化](#72-動的bvhtlasによる空間クエリ最適化)
@@ -1482,7 +1483,7 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
 - **主な機能・API**:
   - `UpdateCameraInput(Camera* cam, InputManager* input)`: マウスドラッグ・ホイール操作によるカメラ視点の回転・平行移動・距離伸縮を更新。
   - `Focus(Camera* cam, const Vector3& targetPos, float distance = -1.0f)`: 指定したワールド座標を中心（注視点）に捉えるようカメラを移動。
-  - `Frame(Camera* cam, const Vector3& center, float radius)`: バウンディング球（中心と半径）に基づき、オブジェクト全体が画面に収まる最適な距離へカメラを自動配置（Unityの FrameSelected / [F] キー相当）。
+  - `Frame(Camera* cam, const Vector3& center, float radius)`: バウンディング球（中心と半径）に基づき、オブジェクト全体が画面に収まる最適な距離へカメラを自動配置（Unityの FrameSelected / [F] キー相当）。カメラのアスペクト比（`cam->GetAspectRatio()`）から水平視野角（FOV X）を自動算出し、ワイド画面（16:9 や 21:9）でも左右が見切れないよう最小画角を基準に最適な距離を算出します。
   - `SetPreset(Camera* cam, OrbitCameraController::Preset preset)`: 見下ろし（`TopDown`）、斜め俯瞰（`Diagonal`）、正面（`Front`）のプリセット視点へ瞬時に切り替え。
 
 ---
@@ -2468,6 +2469,9 @@ myBatch.Draw();
 #### 注意点・制限事項
 - GPUカリングは、**1000個以上の大量のインスタンス**を描画する場合に効果を発揮します。少数のオブジェクトに対しては、逆にCompute Shaderのディスパッチオーバーヘッドが上回る可能性があります。
 - 描画対象のオブジェクトには、ローカル空間での正確な **バウンディングスフィア (BoundingSphere)** が設定されている必要があります（`GetBoundingSphereRadius` の値がカリングに使用されます）。
+- **単一メッシュ専用バッチ (`ModelBatch`)**: `ModelBatch` は大量オブジェクト（弾、デブリ、コイン等）を同一マテリアル・同一メッシュで高速描画する専用クラスです。複数メッシュを内包するモデルを指定した場合は先頭メッシュのみが描画され、コンソールに警告ログ（`[ModelBatch] Warning`）が出力されます。
+- **マルチフレーム同期 (`BaseBatch`)**: インスタンシングバッファはトリプルバッファリング（`kMaxFramesInFlight`）されています。インスタンスの追加・変更・クリア時は内部で自動的に `MarkInstanceDirty()` が呼ばれ、全バックバッファ（3フレーム分）へ確実に反映されるまでカウントダウン同期されるため、静止オブジェクトでもチラつき（フリッカー）やインスタンス消失が発生しません。
+- **視錐台カリングの自動適用**: GPUカリング無効時（CPUカリングモード）でも、`AddInstance` に加えて `AddInstanceWorld`（ワールド行列指定）で追加されたインスタンスに対しても自動的に視錐台（`frustum`）衝突判定が行われ、画面外のオブジェクトはGPU転送が自動的にスキップされます。
 
 ---
 
@@ -2703,6 +2707,22 @@ if (fluidSim && fluidSim->IsEnabled()) {
 
 #### 3. ポストプロセスおよびシェーダーでの活用
 生成された流体テクスチャ（SRV）は、ポストプロセス（`project/IrufemiEngine/EngineResources/shaders/PostProcess.PS.hlsl`）や画面遷移トランジション（`GravitySingularity`）でサンプリングされ、空間歪曲や流体ワイプ演出に活用されます。
+
+---
+
+### 6.12 GPU定数バッファ一括管理基盤 (DynamicConstantBuffer)
+
+DirectX 12 における定数バッファ（Constant Buffer）の頻繁な生成・破棄やディスクリプタヒープの切り替えコストを根絶するため、本エンジンでは **`DynamicConstantBuffer<T>`**（`#include "RHI/DirectX12/DynamicConstantBuffer.h"`）によるプール管理アーキテクチャを採用しています。
+`MaterialBufferManager` や `TransformBufferManager` など、エンジン全体で共有される巨大な定数バッファのバックエンドとして稼働しています。
+
+- **256バイトアライメント強制**: `(sizeof(T) + 255) & ~255` により、Direct3D 12 のハードウェア制約を満たした単一の巨大バッファ（最大65536要素等）を一括確保します。
+- **GPUフェンス同期による遅延解放 (`GarbageCollect`)**: `Free(index)` 呼び出し時、インデックスを即座に空きリストへ戻さず現在のフレームフェンス値を記録して `pendingFree_` 待機リストへ退避。GPUの描画完了（`dxCommon_->GetFence()->GetCompletedValue()`）を確認した後にのみ再利用可能とすることで、インフライトデータの破壊・GPU競合クラッシュを完全に防止します。
+- **Graceful Degradation（安全ガード）**: 万が一オブジェクト数が想定キャパシティを超過した場合、リリースビルド等でアサートが無効でも境界外アクセスを引き起こさないよう、エラーログ（`[DynamicConstantBuffer] Error: Capacity exceeded!`）を出力し、安全なインデックス（0番）へクランプして強制終了を回避します。
+- **80%高負荷警告検知**: バッファ使用率が80%に達した際、ログ（`[DynamicConstantBuffer] Warning: High buffer utilization detected (>80%)`）を一度だけ出力し、バッファ枯渇を開発時に早期察知できます。
+- **診断・監視API**:
+  - `GetCapacity()`: バッファの最大収容要素数を取得
+  - `GetAllocatedCount()`: 現在アクティブに割り当てられている要素数を取得
+  - `GetFreeCount()`: 現在利用可能な空き要素数を取得
 
 ---
 
@@ -3091,6 +3111,11 @@ float ly = input->GetLeftStickY();
 if (input->IsMouseButtonPressed(Mouse::Button::Left)) { ... }
 // マウスの現在座標 (スクリーン座標)
 Vector2 mousePos = input->GetMousePosition();
+
+// 【修飾キー判定 (InputManager / Keyboard 抽象化API)】
+if (input->IsShiftDown()) { /* 左右いずれかのShiftキーが押下中 */ }
+if (input->IsCtrlDown())  { /* 左右いずれかのCtrlキーが押下中 */ }
+if (input->IsAltDown())   { /* 左右いずれかのAltキーが押下中 */ }
 ```
 
 ---
@@ -3803,5 +3828,6 @@ public:
 > - 2026/11: 全システム精密精査に基づく開発者向け拡張基盤の完全網羅。第3章にエディタ拡張基盤（`IComponentEditor` / `ComponentEditorRegistry`）による独自カスタムInspector作成・登録手順を明文化。第6章に `LambdaRenderPass`（RDGスタイルのインラインレンダーパス追加）の仕様とコード例、低レイヤーシェーダー管理基盤（`ShaderManager`）のキャッシュアーキテクチャ、およびアニメーション再生速度制御（`PlaybackSpeed` / `GetRawAnimator()`）とボーン追従の階層ベストプラクティスを完全追記。
 > - 2026/11: マニュアル精密精査に基づく実コード乖離解消と基盤仕様の網羅補正。ポストプロセスHLSLシェーダー名の誤記修正（`CombinedPostEffect.PS.hlsl` ➔ `PostProcess.PS.hlsl`）、`CleanAssets.bat` のパス明記（`scripts/maintenance/CleanAssets.bat`）、RenderGraph 実行フロー表への `PostProcessCopyPass` / `PostUIPass` 補完、エフェクト分類表への `SeparableBlurEffect` 追加、新エフェクト追加時のコンポーネント連携（`IPostProcessSettings` / `IScreenEffectDriver`）および低レイヤーボクセル破砕（`VoxelParticleManager`）の解説追記、冒頭および2.1節における `GameArchitecture.md` との境界・相互参照を明文化。
 > - 2026/11: Manual.mdの精密ファクトチェックおよび最新基盤の完全網羅。第2.4節の `ScreenCaptureManager::SaveCapture` 概念スニペットに対する公開非同期API（第8.3.5節）への相互参照整備、第3.3節へのプレハブ高速寸法・コライダー事前抽出API（`PrefabUtility::ExtractMetrics`）の仕様・スニペット追記、第4.2節へのシーン遷移ドライバ Strategy パターン（`ITransitionDriver` / `SceneTransitionDrivers.h`）の設計解説追記、第6.4節への新設ポストプロセスエフェクト全5種（`Pixelation`, `Pointillism`, `NightVision`, `Kaleidoscope`, `Halftone`）のパラメータ仕様・分類の完全補完。
+> - 2026/11: 深層アーキテクチャ監査に基づくレンダリング・メモリ・カメラ基盤の完全網羅。第5章に `OrbitCameraController::Frame` の水平視野角（FOV X）考慮フレーミング、および `Camera::GetAspectRatio()` を追記。第6章に `BaseBatch` のマルチフレーム同期カウントダウン（`dirtyFramesLeft_`）とワールド行列指定インスタンスのCPU視錐台カリング、`ModelBatch` の単一メッシュ制約と警告通知、および `DynamicConstantBuffer`（GPUフェンス遅延回収、80%高負荷警告、上限超過フォールバック、診断API）の仕様を完全追記。第8章に `InputManager` / `Keyboard` の修飾キー判定API（`IsShiftDown` / `IsCtrlDown` / `IsAltDown`）を反映。
 
 
