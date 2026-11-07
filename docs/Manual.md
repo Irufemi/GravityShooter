@@ -122,6 +122,10 @@
 
 - **`BuildAndRun.bat` (ルート)**:
   - `scripts/build/build_and_run.ps1` を呼び出し、VS 2026 環境での即時ビルド・実行を行います（引数: `-Configuration Release|Development|Debug|Editor`, `-Rebuild`, `-BuildOnly`）。
+- **`Run_Benchmark.bat` (ルート)**:
+  - 10,000オブジェクトの極限ストレステスト用スクリプト。Releaseビルドを自動同期し、`TelemetryMonitor.exe` とゲーム本体を連携起動してリアルタイム負荷を検証します。
+- **`Launch_Telemetry.bat` (ルート)**:
+  - パフォーマンス監視ツール（WPF）`TelemetryMonitor.exe` を単体起動します。
 - **`PackageForSubmission.bat` (ルート)**:
   - `scripts/package/PackageForSubmission.ps1` を呼び出し、就活・コンテスト提出用の配布アーカイブを一発生成します。
 - **`scripts/maintenance/CleanAssets.bat`**:
@@ -632,6 +636,7 @@ IrufemiEngine のエディタは、モダンなゲームエンジン（Unity等�
    // Inspector最上部にPrefabメタデータバナーを描画
    IrufemiEditor::ComponentUIHelpers::DrawPrefabHeaderBanner(prefabAssetPath_);
    ```
+   ※ゲーム固有の複雑なパラメータ編集（ウェーブ出現タイムラインやボスの多層シールド制御）では、`project/Application_solo/Editor/` 内の `BossComponentEditor` や `WaveManagerComponentEditor` がこの仕組みを活用して実装されています。
 
 ---
 
@@ -1010,6 +1015,12 @@ Irufemi::CVarSystem::SetOnChangeCallback("r.VSync", [this]() {
 
 ## 5. コンポーネント完全リファレンス (Component System & All Components)
 
+本章では、汎用ゲームエンジン `IrufemiEngine` が提供する標準コンポーネント群を網羅します。
+
+> [!NOTE]
+> **ゲーム固有ロジック（Application層）との分離**:
+> レール移動（`SplineFollowerComponent`, `RailRelativeFollowerComponent`）、重力アクション（`GravityPlayerComponent`）、マルチロックオン（`PlayerTargetingComponent`, `TargetableComponent`）、デブリ制御（`DebrisManagerComponent`）、ボス制御（`BossComponent`）など、**ゲーム固有のアクター・ステートマシンに関するコンポーネント仕様** は [`project/Application_solo/docs/GameArchitecture.md`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/docs/GameArchitecture.md) を参照してください。
+
 ### 5.1 コンポーネントシステムの基礎と新規作成ルール
 - **基底ヘッダー**: `#include "Framework/Component/Component.h"`
 #### 新規コンポーネント作成時のルール（自動UI化とメニュー登録）
@@ -1118,8 +1129,8 @@ public:
             // 現在のワールド座標を取得（TransformComponent のカプセル化 API）
             Vector3 pos = GetTransform()->GetWorldPosition();
             
-            // "resources/scenes/Bullet.json" をもとに、指定した座標へオブジェクトを生成
-            auto bullet = GetGameObject()->Instantiate("Bullet", pos);
+            // プレハブパスをもとに、指定した座標へオブジェクトを動的生成
+            auto bullet = GetGameObject()->Instantiate("resources/prefabs/Bullet.prefab.json", pos);
         }
     }
 };
@@ -1836,14 +1847,25 @@ myEffect.Draw();
 `CombinedPostEffect` 内部では、`IRUFEMI_POSTPROCESS_EFFECT_LIST` マクロによって各エフェクトのパラメータ構造体（`TonemapParameters`, `VignetteParameters` 等）が一元定義されています。
 シーン切り替えやリセット時には、このマクロから全構造体のデフォルト初期化代入コードが自動展開されるため、**手動の分岐コードやボイラープレートを追加することなく、パラメータが完全自動で初期値へ安全にリセット** されます。
 
-#### 多彩なエフェクトモード一覧 (全31種)
-`PostProcessMode` 列挙体として以下の31種類のエフェクトが提供されています。
-- **色調・階調**: `Grayscale`, `Sepia`, `HSV`, `ToneMapping`(ACES), `Posterization`
-- **空間・光学ブラー**: `Smoothing`, `GaussianFilter`, `RadialBlur`, `DirectionalBlur`, `DualKawaseBlur`, `DepthOfField`(DoF), `LightShafts`(ゴッドレイ)
-- **演出・ディストーション**: `Vignette`, `Noise`, `Glitch`, `Dissolve`, `ChromaticAberration`, `DisplacementMap`, `Pixelation`, `Pointillism`, `NightVision`, `Kaleidoscope`, `Halftone`
-- **輪郭・境界検出**: `DepthBasedOutline`(深度+法線), `LuminanceBasedOutline`(2Dトゥーン調)
+#### 提供されているエフェクト群と分類
+IrufemiEngine は、色調補正から光学ブラー、重力演出に至るまで、豊富なポストプロセスエフェクトを標準搭載しています。
+
+- **色調・階調**: `ToneMapping`(ACES), `Grayscale`, `Sepia`, `HSV`, `Posterization` など
+- **空間・光学ブラー**: `DualKawaseBlur`, `DepthOfField`(DoF), `LightShafts`(ゴッドレイ), `RadialBlur`, `DirectionalBlur` など
+- **画面演出・ディストーション**: `Vignette`, `Noise`, `Glitch`, `Dissolve`, `ChromaticAberration`, `DisplacementMap` など
+- **輪郭・境界検出**: `DepthBasedOutline`(深度+法線複合), `LuminanceBasedOutline`(2Dトゥーン調・アウターシルエット) など
 - **画面遷移**: `Fade`(単色フェード), `Slide`(ワイプ演出)
-- **特殊演出**: `Bloom`(高輝度抽出発光), `GravityDistortion`(重力歪曲波紋), `BlackHoleSupernova`(重力特異点崩壊・超新星爆発)
+- **重力アクション専用**: `GravityDistortion`(時空歪曲波紋), `BlackHoleSupernova`(重力特異点崩壊・超新星爆発) など
+
+> [!TIP]
+> **最新のエフェクト一覧と定義 (Single Source of Truth)**:
+> 本エンジンでは、エフェクトの増減に伴うドキュメントの陳腐化を防ぎ、型安全性を100%保証するため、全エフェクトの識別子・パラメータ構造体・レンダーパス種別を [`PostProcessDefinitions.h`](file:///f:/school/3_5/WP1/WP1/project/IrufemiEngine/Renderer/PostProcess/PostProcessDefinitions.h) の `IRUFEMI_POSTPROCESS_EFFECT_LIST` にて一元管理（SSOT）しています。最新の対応状況やパラメータ詳細は該当ヘッダーを参照してください。
+
+#### 【開発者向け】新しいポストプロセスの追加手順 (How to Add New Effect)
+新しいエフェクトを追加する際は、以下のステップのみで自動的にパイプライン・エディタUI・パラメータリセット機構へ統合されます：
+1. [`PostProcessDefinitions.h`](file:///f:/school/3_5/WP1/WP1/project/IrufemiEngine/Renderer/PostProcess/PostProcessDefinitions.h) の `IRUFEMI_POSTPROCESS_EFFECT_LIST` に1行追加する（形式: `V(ModeName, StructType, PassType, DefaultLayer, DisplayName)`）。
+2. **Inlineパスの場合**: `CombinedPostEffect.PS.hlsl` にシェーディング計算を追記する。
+3. **Separate / MultiPassの場合**: `Renderer/PostProcess/Effects/` に `IPostProcessEffect` を継承した専用エフェクトクラスを作成し、`PostProcessManager` に登録する。
 
 #### 重力演出専用ポストプロセス
 ##### 1. GravityDistortion (重力波・空間歪み)
@@ -2237,6 +2259,7 @@ GPU上の定数バッファおよび構造化バッファ（StructuredBuffer）�
 > - 2026/06: Hierarchyでのオブジェクト管理機能（フォルダ化・ロック・保護機能）の解説を追加
 > - 2026/06: メニューバーの刷新（モダンダークテーマ化）、Play/Pause機能による時間管理（DeltaTime/RealDeltaTime）、およびレイアウト初期化（Reset Layout）の解説を追加
 > - 2026/07: エディタ機能にスクリーンショット（Screen Capture）機能を追加。マルチスレッドでの非同期保存および各描画パスごとの保存機能の解説を追記
+> - 2026/11: ポストプロセス記述をSSOT（`PostProcessDefinitions.h`）誘導および新規追加ワークフローへ刷新。音響システム（`SoundHelper` / `GameSE` / `GameBGM`）のAPIスニペット整合、`Run_Benchmark.bat` 負荷検証手順、`GameArchitecture.md` への相互参照誘導を追記
 
 ---
 
@@ -2546,13 +2569,18 @@ C++コード内に音声ファイルのパス（`"resources/audio/..."`）や音
 
   // 1. シーン初期化時に sound_actions.json をロード＆一括プリロード
   SoundHelper::Initialize(engine->GetAudioManager(), "resources/config/sound_actions.json");
+  SoundHelper::PreloadAll();
 
-  // 2. 列挙型（GameSoundAction）を指定して型安全にワンショット再生
-  SoundHelper::PlaySE(GameSoundAction::PlayerShoot);
-  SoundHelper::PlaySE(GameSoundAction::EnemyExplosion);
+  // 2. 列挙型（GameSE）を指定して型安全にワンショット再生（音量・ピッチ乗数の指定も可能）
+  SoundHelper::Play(GameSE::PlayerBoost);
+  SoundHelper::Play(GameSE::DebrisShatter);
+  // 文字列キーによる再生オーバーロード（イベント・スクリプト連携用）
+  // SoundHelper::Play("MenuDecide");
 
-  // 3. BGMのクロスフェード・再生
-  SoundHelper::PlayBGM(GameSoundAction::BgmInGame, true);
+  // 3. BGMのクロスフェード・再生（第2引数はフェード時間(秒)）
+  SoundHelper::PlayBGM(GameBGM::Stage1, 1.0f);
+  // BGMの停止（フェードアウト指定対応）
+  // SoundHelper::StopBGM(1.0f);
   ```
   ※これにより、プランナーやサウンドデザイナーがC++の再ビルドなしで音量バランスの調整や音源差し替えを即座に行えます。
 
@@ -2703,6 +2731,7 @@ engine_->GetTextureManager()->LoadAllFromFolder("resources/ui");
 
 ```cpp
 // モデルの事前ロード（インゲーム開始前などに呼ぶとカクつきを防げます）
+// ※歴史的経緯によりAPI名は GetObjModelManager() ですが、実体はOBJ/GLTF等を一元管理する ModelManager* を返します。
 ResourceHandle handle = engine_->GetObjModelManager()->LoadModel("enemy/enemy.obj");
 
 // ※ コンポーネント等に文字列で "enemy/enemy.obj" を渡せば、内部で自動ロードされます。
@@ -2829,6 +2858,10 @@ void MyCustomRenderer::Draw() {
    （※ルートの `Launch_Telemetry.bat` からもワンクリックで起動可能です）
 2. ツールが立ち上がったら、続けてゲーム本体 (`IrufemiEngine`) を起動します。
 3. UDP通信によって自動で接続され、FPSやCPU/GPUの処理時間がネオングラフで表示されます。
+
+> [!TIP]
+> **10,000オブジェクト負荷検証（ワンクリック連動起動）**:
+> リポジトリルートの **`Run_Benchmark.bat`** を実行すると、未ビルドであれば `TelemetryMonitor.exe` を自動ビルドした上で、Release版のゲーム本体と TelemetryMonitor を自動で連動起動します。10,000個のオブジェクトが存在する高負荷環境下でのフレームペーシングやGPUカリングの挙動を手軽に検証できます。
 
 **【表示される主な指標】**
 - **System/FPS**: 指数移動平均 (EMA) で平滑化された滑らかなFPS値です。
