@@ -425,9 +425,12 @@ void BaseBatch::BuildInstanceBuffer(bool force) {
             const auto& worldMat = instanceWorlds_[i];
             if (isCullingEnabled_ && activeCamera && frustum) {
                 Irufemi::Vector3 center = {worldMat.m[3][0], worldMat.m[3][1], worldMat.m[3][2]};
-                float sx = Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[0][0], worldMat.m[0][1], worldMat.m[0][2]});
-                float sy = Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[1][0], worldMat.m[1][1], worldMat.m[1][2]});
-                float sz = Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[2][0], worldMat.m[2][1], worldMat.m[2][2]});
+                float sx =
+                    Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[0][0], worldMat.m[0][1], worldMat.m[0][2]});
+                float sy =
+                    Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[1][0], worldMat.m[1][1], worldMat.m[1][2]});
+                float sz =
+                    Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[2][0], worldMat.m[2][1], worldMat.m[2][2]});
                 float maxScale = (std::max)({sx, sy, sz});
 
                 Irufemi::Sphere boundingSphere;

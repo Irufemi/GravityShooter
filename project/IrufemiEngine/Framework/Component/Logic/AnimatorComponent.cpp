@@ -89,6 +89,5 @@ void AnimatorComponent::OnRegisterProperties() {
     RegisterProperty("Apply Root Motion", &applyRootMotion_)
         .SetTooltip("Apply animation root motion to GameObject transform");
 
-    RegisterProperty("Fade Duration", &defaultFadeDuration_)
-        .SetTooltip("Crossfade transition duration in seconds");
+    RegisterProperty("Fade Duration", &defaultFadeDuration_).SetTooltip("Crossfade transition duration in seconds");
 }
