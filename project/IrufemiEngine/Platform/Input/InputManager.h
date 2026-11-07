@@ -65,6 +65,41 @@ public:
      * @return 読み込みに成功した場合 true
      */
     bool LoadBindingsFromJson(const std::string& filepath);
+
+    /** @name コンテキストスタック管理（Enhanced Input） */
+    ///@{
+    /**
+     * @brief 入力マッピングコンテキストをスタックへ追加する（優先度付き）
+     * @param[in] context 追加するマッピングコンテキスト
+     * @param[in] priority 優先度（値が大きいほど優先して評価・マスクされる）
+     */
+    void AddMappingContext(std::shared_ptr<InputMappingContext> context, int32_t priority = 0);
+
+    /**
+     * @brief 指定したマッピングコンテキストをスタックから除去する
+     * @param[in] context 除去するマッピングコンテキスト
+     */
+    void RemoveMappingContext(const std::shared_ptr<InputMappingContext>& context);
+
+    /**
+     * @brief 指定したマッピングコンテキストがアクティブか判定する
+     * @param[in] context 判定対象のマッピングコンテキスト
+     * @return アクティブな場合 true
+     */
+    bool HasMappingContext(const std::shared_ptr<InputMappingContext>& context) const;
+
+    /**
+     * @brief 名前でロード済みマッピングコンテキストを検索・取得する
+     * @param[in] name コンテキスト名（例: "Gameplay", "UI"）
+     * @return 存在すればコンテキストのshared_ptr、無ければnullptr
+     */
+    std::shared_ptr<InputMappingContext> FindContext(const std::string& name) const;
+
+    /**
+     * @brief 全てのマッピングコンテキストをスタックからクリアする
+     */
+    void ClearMappingContexts();
+    ///@}
     ///@}
 
     /** @name デバイス取得（推奨API） */
@@ -360,7 +395,13 @@ private:
     std::unique_ptr<Mouse> mouse_{};
     HWND hwnd_ = nullptr;
 
-    InputMappingContext mappingContext_{};
+    struct ActiveContextEntry {
+        std::shared_ptr<InputMappingContext> context;
+        int32_t priority = 0;
+    };
+    std::vector<ActiveContextEntry> activeContexts_{};
+    std::unordered_map<std::string, std::shared_ptr<InputMappingContext>> loadedContexts_{};
+    std::shared_ptr<InputMappingContext> defaultContext_{};
 
     // 前フレームと現在のフレームのアクション値を保持（Triggered等の判定用）
     std::unordered_map<std::string, InputActionValue> currentActionValues_{};

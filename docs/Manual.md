@@ -3091,9 +3091,43 @@ if (input->IsActionTriggered("Fire")) {
 ```
 ※これにより、キーコンフィグの変更やゲームパッド対応の追加をC++再コンパイルなしで即座に反映できます。
 
-##### 入力マッピングコンテキスト基盤 (`InputMappingContext`)
-内部では、Unreal Engine の Enhanced Input に近い設計を持つ **`InputMappingContext`**（`#include "Platform/Input/InputMappingContext.h"`）がアクションと物理バインディングの辞書管理を担っています。
-- 各 `InputAction` に対して複数の `InputBinding`（キーボード、ゲームパッドボタン、アナログスティック）が結びつけられ、入力値のスケーリングやデッドゾーン処理を正規化して透過的な値（`ActionValue`）として返却します。
+##### 優先度付き入力コンテキストスタックとSSOT階層設定 (`InputMappingContext` / `AddMappingContext`)
+内部では、Unreal Engine の Enhanced Input と同等の設計を持つ **`InputMappingContext`**（`#include "Platform/Input/InputMappingContext.h"`）がアクションと物理バインディングの辞書管理を担っています。
+`resources/config/input_actions.json` 内に `"Contexts"` セクションを定義することで、通常ゲームプレイ（`Gameplay`）とUI操作（`UI`）、ポーズメニュー等の入力プロファイルを1つのファイル（SSOT: Single Source of Truth）で階層管理できます。
+
+- **`input_actions.json`（SSOT階層定義例）**:
+```json
+{
+  "Contexts": {
+    "Gameplay": {
+      "Actions": { "Fire": ["Mouse_Left", "Pad_RightTrigger"], "LockOn": ["Mouse_Right", "Pad_A"] },
+      "Axes": { "MoveX": [ { "Source": "Key_D", "Scale": 1.0 }, { "Source": "Key_A", "Scale": -1.0 } ] }
+    },
+    "UI": {
+      "Actions": { "UI_Submit": ["Pad_A", "Key_Space", "Key_Enter"], "UI_Cancel": ["Pad_B", "Key_Escape"] }
+    }
+  }
+}
+```
+
+- **コンテキストの動的スタックと優先評価**:
+上位の優先度（高い数値）を持つコンテキストに定義されているアクションが優先評価され、背後の同名アクションを自動でマスク（上書き）します。
+
+```cpp
+auto input = engine_->GetInputManager();
+
+// 1. ポーズ画面やモーダルUIを開いた時
+auto uiContext = input->FindContext("UI");
+if (uiContext) {
+    input->AddMappingContext(uiContext, 100); // 優先度100で最上位にプッシュ
+}
+
+// 2. ポーズ画面を閉じた時
+if (uiContext) {
+    input->RemoveMappingContext(uiContext); // スタックから取り外して即座にGameplay(優先度0)へ復帰
+}
+```
+※従来の `input->BindAction(...)` やフラット形式の JSON 記述も自動的にデフォルトコンテキスト（優先度 0）として読み込まれるため、完全な下位互換性が保証されます。
 
 #### 8.1.2 直接キー・ボタン・マウス入力の取得
 キーボード、マウス、ゲームパッド（XInput互換）の操作を直接取得することも可能です。
@@ -3851,5 +3885,6 @@ public:
 > - 2026/11: Manual.mdの精密ファクトチェックおよび最新基盤の完全網羅。第2.4節の `ScreenCaptureManager::SaveCapture` 概念スニペットに対する公開非同期API（第8.3.5節）への相互参照整備、第3.3節へのプレハブ高速寸法・コライダー事前抽出API（`PrefabUtility::ExtractMetrics`）の仕様・スニペット追記、第4.2節へのシーン遷移ドライバ Strategy パターン（`ITransitionDriver` / `SceneTransitionDrivers.h`）の設計解説追記、第6.4節への新設ポストプロセスエフェクト全5種（`Pixelation`, `Pointillism`, `NightVision`, `Kaleidoscope`, `Halftone`）のパラメータ仕様・分類の完全補完。
 > - 2026/11: 深層アーキテクチャ監査に基づくレンダリング・メモリ・カメラ基盤の完全網羅。第5章に `OrbitCameraController::Frame` の水平視野角（FOV X）考慮フレーミング、および `Camera::GetAspectRatio()` を追記。第6章に `BaseBatch` のマルチフレーム同期カウントダウン（`dirtyFramesLeft_`）とワールド行列指定インスタンスのCPU視錐台カリング、`ModelBatch` の単一メッシュ制約と警告通知、および `DynamicConstantBuffer`（GPUフェンス遅延回収、80%高負荷警告、上限超過フォールバック、診断API）の仕様を完全追記。第8章に `InputManager` / `Keyboard` の修飾キー判定API（`IsShiftDown` / `IsCtrlDown` / `IsAltDown`）を反映。
 > - 2026/11: 深層アーキテクチャ監査に基づくアニメーションおよびモデルリソース管理の拡充。第3.3節に `AnimatorComponent` のクロスフェード時間プロパティ（`SetDefaultFadeDuration` / `GetDefaultFadeDuration`）および Inspector からの編集対応、`Play` メソッドのデフォルト引数連動を追記。第3.4節および第6章に `ModelManager` のメモリ予算動的制御API（`SetMemoryBudget` / `GetMemoryBudget` / `GetCurrentMemoryUsage`）とスレッドセーフな運用仕様を反映。
+> - 2026/11: 統合入力基盤の業界標準Enhanced Input化。第8.1節に優先度付き入力コンテキストスタック（`InputManager::AddMappingContext` / `RemoveMappingContext` / `FindContext`）および `input_actions.json` の階層的SSOT仕様、コンテキスト別の動的切り替え・マスク評価コード例を追記。
 
 

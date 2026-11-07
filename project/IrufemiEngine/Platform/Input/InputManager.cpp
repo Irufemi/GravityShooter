@@ -3,6 +3,7 @@
 #include "Core/Utility/JsonUtility.h"
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 
 void InputManager::Initialize(HWND hwnd) {
     hwnd_ = hwnd;
@@ -27,6 +28,13 @@ void InputManager::Initialize(HWND hwnd) {
     virtualCursorBaseSpeed_ = Irufemi::CVarSystem::GetFloat("i.CursorSpeed");
     if (virtualCursorBaseSpeed_ <= 0.0f) {
         virtualCursorBaseSpeed_ = 650.0f;
+    }
+
+    if (!defaultContext_) {
+        defaultContext_ = std::make_shared<InputMappingContext>("Default");
+        activeContexts_.clear();
+        activeContexts_.push_back({defaultContext_, 0});
+        loadedContexts_["Default"] = defaultContext_;
     }
 }
 
@@ -73,33 +81,49 @@ void InputManager::Update() {
         }
     }
 
-    // 全てのバインディングを評価（直接参照でゼロアロケーション走査）
-    for (const auto& [actionName, bindings] : mappingContext_.GetMappings()) {
-        InputActionValue totalValue;
+    // 評価済みアクションを記録（上位コンテキストで定義・評価されたアクションは下位で上書きしない）
+    std::unordered_set<std::string> evaluatedActions;
 
-        for (const auto& binding : bindings) {
-            // キーボード入力の場合は厳格なモディファイアマッチング（Strict Modifier Matching）を適用
-            // 要求された修飾キーと現在の修飾キー状態が完全一致しない場合は無視（Alt押下中の単体Enter等を除外）
-            if (IsKeyboardInput(binding.id)) {
-                if (binding.requiredModifiers != currentModifiers) {
-                    continue;
+    // activeContexts_ は priority 降順でソートされている
+    for (const auto& entry : activeContexts_) {
+        if (!entry.context) {
+            continue;
+        }
+
+        for (const auto& [actionName, bindings] : entry.context->GetMappings()) {
+            if (evaluatedActions.find(actionName) != evaluatedActions.end()) {
+                // すでに上位コンテキストで評価済み
+                continue;
+            }
+
+            InputActionValue totalValue;
+
+            for (const auto& binding : bindings) {
+                // キーボード入力の場合は厳格なモディファイアマッチング（Strict Modifier Matching）を適用
+                // 要求された修飾キーと現在の修飾キー状態が完全一致しない場合は無視（Alt押下中の単体Enter等を除外）
+                if (IsKeyboardInput(binding.id)) {
+                    if (binding.requiredModifiers != currentModifiers) {
+                        continue;
+                    }
+                }
+
+                float rawValue = GetPhysicalInputValue(binding.id);
+                // 簡易的に X 軸にマッピング（2Dスティックなどは別途分岐が必要な場合がありますが、今回は共通化）
+                if (binding.id == InputId::GamePad_LeftStickY || binding.id == InputId::GamePad_RightStickY ||
+                    binding.id == InputId::Mouse_Y) {
+                    totalValue.y += rawValue * binding.scaleY;
+                } else if (binding.id == InputId::GamePad_LeftStickX || binding.id == InputId::GamePad_RightStickX ||
+                           binding.id == InputId::Mouse_X) {
+                    totalValue.x += rawValue * binding.scaleX;
+                } else {
+                    // デフォルトはX軸（1D入力やボタン）
+                    totalValue.x += rawValue * binding.scaleX;
                 }
             }
 
-            float rawValue = GetPhysicalInputValue(binding.id);
-            // 簡易的に X 軸にマッピング（2Dスティックなどは別途分岐が必要な場合がありますが、今回は共通化）
-            if (binding.id == InputId::GamePad_LeftStickY || binding.id == InputId::GamePad_RightStickY ||
-                binding.id == InputId::Mouse_Y) {
-                totalValue.y += rawValue * binding.scaleY;
-            } else if (binding.id == InputId::GamePad_LeftStickX || binding.id == InputId::GamePad_RightStickX ||
-                       binding.id == InputId::Mouse_X) {
-                totalValue.x += rawValue * binding.scaleX;
-            } else {
-                // デフォルトはX軸（1D入力やボタン）
-                totalValue.x += rawValue * binding.scaleX;
-            }
+            currentActionValues_[actionName] = totalValue;
+            evaluatedActions.insert(actionName);
         }
-        currentActionValues_[actionName] = totalValue;
     }
 }
 
@@ -109,7 +133,12 @@ void InputManager::BindAction(const std::string& actionName, InputId inputId, fl
 }
 
 void InputManager::BindAction(const std::string& actionName, InputId inputId, InputModifier modifiers, float scale) {
-    mappingContext_.AddBinding(actionName, InputBinding(inputId, modifiers, scale, scale));
+    if (!defaultContext_) {
+        defaultContext_ = std::make_shared<InputMappingContext>("Default");
+        activeContexts_.push_back({defaultContext_, 0});
+        loadedContexts_["Default"] = defaultContext_;
+    }
+    defaultContext_->AddBinding(actionName, InputBinding(inputId, modifiers, scale, scale));
     // キーが追加されたら、現在のマップにもエントリーを作っておく
     if (currentActionValues_.find(actionName) == currentActionValues_.end()) {
         currentActionValues_[actionName] = InputActionValue{};
@@ -150,9 +179,70 @@ bool InputManager::IsActionReleased(const std::string& actionName) const {
 }
 
 void InputManager::ClearActionBindings() {
-    mappingContext_.Clear();
+    if (defaultContext_) {
+        defaultContext_->Clear();
+    }
+    ClearMappingContexts();
+    if (defaultContext_) {
+        activeContexts_.push_back({defaultContext_, 0});
+    }
     currentActionValues_.clear();
     previousActionValues_.clear();
+}
+
+void InputManager::AddMappingContext(std::shared_ptr<InputMappingContext> context, int32_t priority) {
+    if (!context) {
+        return;
+    }
+    auto it = std::find_if(activeContexts_.begin(), activeContexts_.end(),
+        [&context](const ActiveContextEntry& entry) { return entry.context == context; });
+    if (it != activeContexts_.end()) {
+        it->priority = priority;
+    } else {
+        activeContexts_.push_back({context, priority});
+    }
+
+    std::stable_sort(activeContexts_.begin(), activeContexts_.end(),
+        [](const ActiveContextEntry& a, const ActiveContextEntry& b) {
+            return a.priority > b.priority;
+        });
+
+    for (const auto& [actionName, _] : context->GetMappings()) {
+        if (currentActionValues_.find(actionName) == currentActionValues_.end()) {
+            currentActionValues_[actionName] = InputActionValue{};
+            previousActionValues_[actionName] = InputActionValue{};
+        }
+    }
+}
+
+void InputManager::RemoveMappingContext(const std::shared_ptr<InputMappingContext>& context) {
+    if (!context) {
+        return;
+    }
+    activeContexts_.erase(
+        std::remove_if(activeContexts_.begin(), activeContexts_.end(),
+            [&context](const ActiveContextEntry& entry) { return entry.context == context; }),
+        activeContexts_.end());
+}
+
+bool InputManager::HasMappingContext(const std::shared_ptr<InputMappingContext>& context) const {
+    if (!context) {
+        return false;
+    }
+    return std::any_of(activeContexts_.begin(), activeContexts_.end(),
+        [&context](const ActiveContextEntry& entry) { return entry.context == context; });
+}
+
+std::shared_ptr<InputMappingContext> InputManager::FindContext(const std::string& name) const {
+    auto it = loadedContexts_.find(name);
+    if (it != loadedContexts_.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void InputManager::ClearMappingContexts() {
+    activeContexts_.clear();
 }
 
 InputId StringToInputId(const std::string& name) {
@@ -299,21 +389,22 @@ const char* InputIdToString(InputId id) {
     return "Unknown";
 }
 
-bool InputManager::LoadBindingsFromJson(const std::string& filepath) {
-    nlohmann::json root;
-    if (!Irufemi::JsonUtility::LoadFromFile(filepath, root)) {
-        return false;
-    }
-
-    if (root.contains("Actions") && root["Actions"].is_object()) {
-        for (auto& [actionName, keys] : root["Actions"].items()) {
+static void ParseContextJson(const nlohmann::json& ctxJson, InputMappingContext& context,
+    std::unordered_map<std::string, InputActionValue>& currentActionValues,
+    std::unordered_map<std::string, InputActionValue>& previousActionValues) {
+    if (ctxJson.contains("Actions") && ctxJson["Actions"].is_object()) {
+        for (auto& [actionName, keys] : ctxJson["Actions"].items()) {
             if (keys.is_array()) {
                 for (const auto& keyItem : keys) {
                     if (keyItem.is_string()) {
                         InputId id = InputId::Unknown;
                         InputModifier mod = InputModifier::None;
                         if (StringToInputBinding(keyItem.get<std::string>(), id, mod)) {
-                            BindAction(actionName, id, mod, 1.0f);
+                            context.AddBinding(actionName, InputBinding(id, mod, 1.0f, 1.0f));
+                            if (currentActionValues.find(actionName) == currentActionValues.end()) {
+                                currentActionValues[actionName] = InputActionValue{};
+                                previousActionValues[actionName] = InputActionValue{};
+                            }
                         }
                     }
                 }
@@ -321,8 +412,8 @@ bool InputManager::LoadBindingsFromJson(const std::string& filepath) {
         }
     }
 
-    if (root.contains("Axes") && root["Axes"].is_object()) {
-        for (auto& [axisName, sources] : root["Axes"].items()) {
+    if (ctxJson.contains("Axes") && ctxJson["Axes"].is_object()) {
+        for (auto& [axisName, sources] : ctxJson["Axes"].items()) {
             if (sources.is_array()) {
                 for (const auto& item : sources) {
                     if (item.is_object() && item.contains("Source")) {
@@ -331,13 +422,63 @@ bool InputManager::LoadBindingsFromJson(const std::string& filepath) {
                         InputId id = InputId::Unknown;
                         InputModifier mod = InputModifier::None;
                         if (StringToInputBinding(src, id, mod)) {
-                            BindAction(axisName, id, mod, scale);
+                            context.AddBinding(axisName, InputBinding(id, mod, scale, scale));
+                            if (currentActionValues.find(axisName) == currentActionValues.end()) {
+                                currentActionValues[axisName] = InputActionValue{};
+                                previousActionValues[axisName] = InputActionValue{};
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
+
+bool InputManager::LoadBindingsFromJson(const std::string& filepath) {
+    nlohmann::json root;
+    if (!Irufemi::JsonUtility::LoadFromFile(filepath, root)) {
+        return false;
+    }
+
+    if (!defaultContext_) {
+        defaultContext_ = std::make_shared<InputMappingContext>("Default");
+        loadedContexts_["Default"] = defaultContext_;
+    }
+
+    // 1. "Contexts" セクションが存在する場合（モダンな SSOT 階層形式）
+    if (root.contains("Contexts") && root["Contexts"].is_object()) {
+        for (auto& [contextName, contextJson] : root["Contexts"].items()) {
+            if (!contextJson.is_object()) {
+                continue;
+            }
+            auto context = std::make_shared<InputMappingContext>(contextName);
+            ParseContextJson(contextJson, *context, currentActionValues_, previousActionValues_);
+            loadedContexts_[contextName] = context;
+        }
+
+        // Gameplay または Default コンテキストが存在すればアクティブコンテキストとして優先度0で登録
+        if (auto it = loadedContexts_.find("Gameplay"); it != loadedContexts_.end()) {
+            defaultContext_ = it->second;
+            AddMappingContext(defaultContext_, 0);
+        } else if (auto itDefault = loadedContexts_.find("Default"); itDefault != loadedContexts_.end()) {
+            defaultContext_ = itDefault->second;
+            AddMappingContext(defaultContext_, 0);
+        } else if (!loadedContexts_.empty()) {
+            defaultContext_ = loadedContexts_.begin()->second;
+            AddMappingContext(defaultContext_, 0);
+        }
+
+        // UI コンテキストが存在する場合、UI操作（決定・キャンセル等）用に優先度10で初期アクティブ化
+        if (auto itUi = loadedContexts_.find("UI"); itUi != loadedContexts_.end()) {
+            AddMappingContext(itUi->second, 10);
+        }
+        return true;
+    }
+
+    // 2. 従来のフラット形式（フォールバック後方互換）
+    ParseContextJson(root, *defaultContext_, currentActionValues_, previousActionValues_);
+    AddMappingContext(defaultContext_, 0);
     return true;
 }
 
@@ -703,7 +844,7 @@ bool InputManager::IsCursorActionDown() const {
     if (mouse_ && mouse_->IsButtonDown(Mouse::Button::Left)) {
         down = true;
     }
-    if (IsKeyDown(VK_LBUTTON)) {
+    if (IsKeyDown(VK_LBUTTON) || IsKeyDown(VK_SPACE) || IsKeyDown(VK_RETURN)) {
         down = true;
     }
     return down;
@@ -714,7 +855,7 @@ bool InputManager::IsCursorActionPressed() const {
     if (mouse_ && mouse_->IsButtonPressed(Mouse::Button::Left)) {
         pressed = true;
     }
-    if (IsKeyPressed(VK_LBUTTON)) {
+    if (IsKeyPressed(VK_LBUTTON) || IsKeyPressed(VK_SPACE) || IsKeyPressed(VK_RETURN)) {
         pressed = true;
     }
     return pressed;
@@ -725,7 +866,7 @@ bool InputManager::IsCursorActionReleased() const {
     if (mouse_ && mouse_->IsButtonReleased(Mouse::Button::Left)) {
         released = true;
     }
-    if (IsKeyReleased(VK_LBUTTON)) {
+    if (IsKeyReleased(VK_LBUTTON) || IsKeyReleased(VK_SPACE) || IsKeyReleased(VK_RETURN)) {
         released = true;
     }
     return released;

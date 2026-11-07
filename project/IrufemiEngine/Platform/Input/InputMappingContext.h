@@ -8,11 +8,26 @@
 /**
  * @class InputMappingContext
  * @brief アクションと物理入力（バインディング）の対応付けを管理するクラス
+ * @details 状態（Gameplay, UI, Pause等）ごとの入力プロファイルを表現し、InputManagerにより優先度スタック管理されます。
  */
 class InputMappingContext {
 public:
-    InputMappingContext() = default;
+    /**
+     * @brief コンストラクタ
+     * @param[in] name コンテキスト名（例: "Gameplay", "UI", "PauseMenu"）
+     */
+    explicit InputMappingContext(std::string name = "Default") : name_(std::move(name)) {}
     ~InputMappingContext() = default;
+
+    /** @brief コンテキスト名を取得する */
+    const std::string& GetName() const {
+        return name_;
+    }
+
+    /** @brief コンテキスト名を設定する */
+    void SetName(const std::string& name) {
+        name_ = name;
+    }
 
     /**
      * @brief アクションに対して新しいバインディングを追加する
@@ -48,5 +63,6 @@ public:
     void Clear();
 
 private:
+    std::string name_{"Default"};
     std::unordered_map<std::string, std::vector<InputBinding>> mappings_{};
 };
