@@ -65,7 +65,7 @@ void BaseBatch::SetEnvironmentCoefficient(float coefficient) {
 void BaseBatch::SetInstanceColor(uint32_t index, const Irufemi::Vector4& color) {
     if (index < instanceColors_.size()) {
         instanceColors_[index] = color;
-        instanceDirty_ = true;
+        MarkInstanceDirty();
     } else {
         IRUFEMI_ASSERT(false && "BaseBatch::SetInstanceColor: index out of range");
     }
@@ -78,14 +78,14 @@ void BaseBatch::SetAllInstanceColor(const Irufemi::Vector4& color) {
     for (auto& c : instanceWorldColors_) {
         c = color;
     }
-    instanceDirty_ = true;
+    MarkInstanceDirty();
 }
 
 void BaseBatch::AddInstance(const Irufemi::Transform& t, int32_t effectType, float effectParam, bool enableMask) {
     instances_.push_back(t);
     instanceColors_.push_back({1.0f, 1.0f, 1.0f, 1.0f});
     instanceEffects_.push_back({static_cast<float>(effectType), effectParam, enableMask ? 1.0f : 0.0f, 0.0f});
-    instanceDirty_ = true;
+    MarkInstanceDirty();
 }
 
 void BaseBatch::AddInstance(const Irufemi::Transform& t, const Irufemi::Vector4& color, int32_t effectType,
@@ -93,7 +93,7 @@ void BaseBatch::AddInstance(const Irufemi::Transform& t, const Irufemi::Vector4&
     instances_.push_back(t);
     instanceColors_.push_back(color);
     instanceEffects_.push_back({static_cast<float>(effectType), effectParam, enableMask ? 1.0f : 0.0f, 0.0f});
-    instanceDirty_ = true;
+    MarkInstanceDirty();
 }
 
 void BaseBatch::AddInstance(const Irufemi::Vector3& center, float scale, const Irufemi::Vector3& rotate,
@@ -105,7 +105,7 @@ void BaseBatch::AddInstance(const Irufemi::Vector3& center, float scale, const I
     instances_.push_back(t);
     instanceColors_.push_back({1.0f, 1.0f, 1.0f, 1.0f});
     instanceEffects_.push_back({static_cast<float>(effectType), effectParam, enableMask ? 1.0f : 0.0f, 0.0f});
-    instanceDirty_ = true;
+    MarkInstanceDirty();
 }
 
 void BaseBatch::AddInstance(const Irufemi::Vector3& center, float scale, const Irufemi::Vector3& rotate,
@@ -117,7 +117,7 @@ void BaseBatch::AddInstance(const Irufemi::Vector3& center, float scale, const I
     instances_.push_back(t);
     instanceColors_.push_back(color);
     instanceEffects_.push_back({static_cast<float>(effectType), effectParam, enableMask ? 1.0f : 0.0f, 0.0f});
-    instanceDirty_ = true;
+    MarkInstanceDirty();
 }
 
 void BaseBatch::AddInstanceWorld(const Irufemi::Matrix4x4& world, const Irufemi::Vector4& color, int32_t effectType,
@@ -125,13 +125,13 @@ void BaseBatch::AddInstanceWorld(const Irufemi::Matrix4x4& world, const Irufemi:
     instanceWorlds_.push_back(world);
     instanceWorldColors_.push_back(color);
     instanceWorldEffects_.push_back({static_cast<float>(effectType), effectParam, enableMask ? 1.0f : 0.0f, 0.0f});
-    instanceDirty_ = true;
+    MarkInstanceDirty();
 }
 
 void BaseBatch::UpdateInstance(uint32_t index, const Irufemi::Transform& t) {
     if (index < instances_.size()) {
         instances_[index] = t;
-        instanceDirty_ = true;
+        MarkInstanceDirty();
     } else {
         IRUFEMI_ASSERT(false && "BaseBatch::UpdateInstance: index out of range");
     }
@@ -144,7 +144,12 @@ void BaseBatch::ClearInstances() {
     instanceWorlds_.clear();
     instanceWorldColors_.clear();
     instanceWorldEffects_.clear();
+    MarkInstanceDirty();
+}
+
+void BaseBatch::MarkInstanceDirty() {
     instanceDirty_ = true;
+    dirtyFramesLeft_ = kMaxFramesInFlight;
 }
 
 void BaseBatch::CreateOrResizeInstanceBuffer(uint32_t instanceCount) {
@@ -293,7 +298,7 @@ void BaseBatch::BuildInstanceBuffer(bool force) {
         visibleInstanceCount_ = 0;
         return;
     }
-    if (!force && !instanceDirty_) {
+    if (!force && dirtyFramesLeft_ == 0 && !instanceDirty_) {
         return;
     }
 
@@ -417,10 +422,25 @@ void BaseBatch::BuildInstanceBuffer(bool force) {
             temp.push_back(data);
         }
         for (size_t i = 0; i < instanceWorlds_.size(); ++i) {
+            const auto& worldMat = instanceWorlds_[i];
+            if (isCullingEnabled_ && activeCamera && frustum) {
+                Irufemi::Vector3 center = {worldMat.m[3][0], worldMat.m[3][1], worldMat.m[3][2]};
+                float sx = Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[0][0], worldMat.m[0][1], worldMat.m[0][2]});
+                float sy = Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[1][0], worldMat.m[1][1], worldMat.m[1][2]});
+                float sz = Irufemi::Math::Length(Irufemi::Vector3{worldMat.m[2][0], worldMat.m[2][1], worldMat.m[2][2]});
+                float maxScale = (std::max)({sx, sy, sz});
+
+                Irufemi::Sphere boundingSphere;
+                boundingSphere.center = center;
+                boundingSphere.radius = modelRadius * maxScale * 1.1f;
+                if (!Irufemi::Collision::IsCollision(*frustum, boundingSphere)) {
+                    continue;
+                }
+            }
             InstanceData data;
             data.WVP = Irufemi::Math::MakeIdentity4x4();
-            data.World = instanceWorlds_[i];
-            Irufemi::Matrix4x4 worldForNormal = instanceWorlds_[i];
+            data.World = worldMat;
+            Irufemi::Matrix4x4 worldForNormal = worldMat;
             worldForNormal.m[3][0] = 0.0f;
             worldForNormal.m[3][1] = 0.0f;
             worldForNormal.m[3][2] = 0.0f;
@@ -434,7 +454,10 @@ void BaseBatch::BuildInstanceBuffer(bool force) {
 
         visibleInstanceCount_ = static_cast<uint32_t>(temp.size());
         if (visibleInstanceCount_ == 0) {
-            instanceDirty_ = false;
+            if (dirtyFramesLeft_ > 0) {
+                --dirtyFramesLeft_;
+            }
+            instanceDirty_ = (dirtyFramesLeft_ > 0);
             return;
         }
 
@@ -447,11 +470,14 @@ void BaseBatch::BuildInstanceBuffer(bool force) {
         instanceBuffer_[frameIndex]->Unmap(0, nullptr);
     }
 
-    instanceDirty_ = false;
+    if (dirtyFramesLeft_ > 0) {
+        --dirtyFramesLeft_;
+    }
+    instanceDirty_ = (dirtyFramesLeft_ > 0);
 }
 
 void BaseBatch::SyncBeforeDraw() {
-    if (instanceDirty_) {
+    if (instanceDirty_ || dirtyFramesLeft_ > 0) {
         BuildInstanceBuffer(false);
     }
 

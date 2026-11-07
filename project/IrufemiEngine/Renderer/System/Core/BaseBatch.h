@@ -268,6 +268,11 @@ public:
     void ClearInstances();
 
     /**
+     * @brief インスタンスデータが変更されたことをマークし、全フレームのバックバッファへ反映を予約する
+     */
+    void MarkInstanceDirty();
+
+    /**
      * @brief BuildInstanceBuffer を実行する。
      */
     virtual void BuildInstanceBuffer(bool force = false);
@@ -420,6 +425,7 @@ protected:
     std::vector<Irufemi::Vector4> instanceWorldEffects_;
 
     bool instanceDirty_ = false;
+    uint32_t dirtyFramesLeft_ = 0;
     bool isCullingEnabled_ = true;
     bool useGPUCulling_ = false;
     uint32_t visibleInstanceCount_ = 0;

@@ -9,7 +9,9 @@ class ModelManager;
 
 /**
  * @class ModelBatch
- * @brief 外部モデルデータ（.obj, .gltf）を描画するための領域クラス
+ * @brief 外部モデルデータ（.obj, .gltf）を大量インスタンシング描画するための領域クラス
+ * @note 単一メッシュ（先頭メッシュ）・単一マテリアル専用の高速バッチクラスです。
+ *       複数メッシュを内包するモデルの場合は先頭メッシュのみが描画されます。
  */
 class ModelBatch : public BaseBatch {
 public:
