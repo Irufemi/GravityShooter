@@ -47,7 +47,7 @@
   - [6.7 Bindless Resources (Descriptor Indexing) 完全移行](#67-bindless-resources-descriptor-indexing-完全移行)
   - [6.8 シェーダーの追加・変更・コンパイル構成](#68-シェーダーの追加変更コンパイル構成)
   - [6.9 動的シャドウマップシステム (ShadowPass & ShadowMap)](#69-動的シャドウマップシステム-shadowpass--shadowmap)
-  - [6.10 ライティングシステム (Directional, Point, Spot)](#610-ライティングシステム-directional-point-spot)
+  - [6.10 ライティングシステム (Directional, Point, Spot, Area)](#610-ライティングシステム-directional-point-spot-area)
 - [7. 物理・衝突判定と空間分割 (Physics, Colliders & BVH)](#7-物理衝突判定と空間分割-physics-colliders--bvh)
   - [7.1 衝突判定マネージャー (CollisionManager)](#71-衝突判定マネージャー-collisionmanager)
   - [7.2 動的BVH(TLAS)による空間クエリ最適化](#72-動的bvhtlasによる空間クエリ最適化)
@@ -55,7 +55,7 @@
 - [8. 入力・音響・UIシステム (Input, Audio & UI Framework)](#8-入力音響uiシステム-input-audio--ui-framework)
   - [8.1 入力システム (Input Action System & InputManager)](#81-入力システム-input-action-system--inputmanager)
   - [8.2 音響システム (AudioManager / AudioPlayer)](#82-音響システム-audiomanager--audioplayer)
-  - [8.3 UIフレームワーク (Canvas, UISelectionGroup, UIAnimator, Slider)](#83-uiフレームワーク-canvas-uiselectiongroup-uianimator-slider)
+  - [8.3 UIフレームワーク (Canvas, UISelectionGroup, UINavigationController, UIAnimator, Slider)](#83-uiフレームワーク-canvas-uiselectiongroup-uinavigationcontroller-uianimator-slider)
 - [9. リソース管理・最適化・運用 (Resource, Profiling & Troubleshooting)](#9-リソース管理最適化運用-resource-profiling--troubleshooting)
   - [9.1 リソース管理システム (ResourceHandle & 各種Manager)](#91-リソース管理システム-resourcehandle--各種manager)
   - [9.2 外部パフォーマンス監視 (TelemetryMonitor)](#92-外部パフォーマンス監視-telemetrymonitor)
@@ -92,7 +92,7 @@
 
 ### 1.2 ビルド環境と外部ライブラリのセットアップ (VS 2026)
 本プロジェクトは **Visual Studio 2026 (MSVC)** を標準開発環境としています。
-ソリューションファイルには、最新のXMLベース高速ソリューション形式 `project/Irufemi.slnx`（VS 2026推奨）および従来の `project/Irufemi.sln` が用意されています。
+ソリューションファイルには、最新のXMLベース高速ソリューション形式 **`project/Irufemi.slnx`**（VS 2026推奨）が用意されています。
 
 #### 1.2.1 外部ライブラリの手動セットアップ（クローン直後の手順）
 
@@ -1011,6 +1011,26 @@ Irufemi::CVarSystem::SetOnChangeCallback("r.VSync", [this]() {
 ```
 ※コールバックを登録した瞬間に、現在の値をもって一度即時実行されるため、ロード直後の初期化もこれ一つでカバーできます。
 
+#### 4.5.4 コンソールコマンドシステム (ConsoleCommandSystem)
+ゲーム内CLI、外部監視ツール（`TelemetryMonitor`）、コマンドライン引数から文字列ベースのデバッグコマンドを安全に実行するための仕組みです。スレッドセーフにコマンドの登録と実行を管理できます。
+- **ヘッダー**: `#include "Framework/Utility/ConsoleCommandSystem.h"`
+
+```cpp
+#include "Framework/Utility/ConsoleCommandSystem.h"
+
+// 1. コマンドの登録（コマンド名, 説明文, 引数を受け取るコールバック）
+Irufemi::ConsoleCommandSystem::RegisterCommand("spawn_debris", "指定数のデブリを生成します (例: spawn_debris 100)", [](const std::vector<std::string>& args) {
+    if (args.size() > 1) {
+        int count = std::stoi(args[1]);
+        // 生成処理...
+    }
+});
+
+// 2. コマンドライン文字列の実行
+std::string outputResult;
+bool success = Irufemi::ConsoleCommandSystem::ExecuteCommand("spawn_debris 500", &outputResult);
+```
+
 ---
 
 ## 5. コンポーネント完全リファレンス (Component System & All Components)
@@ -1884,7 +1904,7 @@ IrufemiEngine は、色調補正から光学ブラー、重力演出に至るま
   params.intensity = 0.06f;
   params.waveWidth = 0.08f;
   params.chromaticRatio = 0.04f;
-  ppm->SetGravityDistortionParams(params);
+  ppm->GetGravityDistortionParams() = params;
   ```
 
 ##### 2. BlackHoleSupernova (ブラックホール・重力特異点＆超新星爆発)
@@ -1903,7 +1923,7 @@ params.supernovaRadius = 0.45f;              // 超新星プラズマ火球半�
 params.supernovaIntensity = 0.12f;           // 衝撃波変位強度
 params.supernovaChromaticRatio = 0.05f;      // 重力色収差比率
 params.supernovaFlashIntensity = 0.30f;      // ガンマバースト白熱光強度
-ppm->SetBlackHoleSupernovaParams(params);
+ppm->GetBlackHoleSupernovaParams() = params;
 ```
 
 #### オブジェクト個別のカスタムエフェクト適用 (CustomEffectParams)
@@ -1920,10 +1940,10 @@ float effectParam = static_cast<float>(id) / 255.0f;
 
 ##### 2. 動的オブジェクトへの適用 (EffectMaskComponent)
 ```cpp
-gameObject->AddComponent<EffectMaskComponent>();
-// 型安全な指定: PostProcessMode::Dissolve を指定 (effectType, effectParam, duration(秒))
-uint32_t effectType = static_cast<uint32_t>(PostProcessMode::Dissolve);
-gameObject->GetComponent<EffectMaskComponent>()->ApplyEffect(effectType, effectParam, 1.0f);
+auto* mask = gameObject->AddComponent<EffectMaskComponent>();
+mask->SetEnableEffectMask(true);
+mask->SetCustomEffectType(static_cast<int32_t>(PostProcessMode::Dissolve));
+mask->SetCustomParams(params);
 ```
 
 ##### 【仕様】アウター・シルエット方式アウトライン (Outer Silhouette)
@@ -1966,15 +1986,14 @@ struct PixelShaderOutput {
 ---
 
 #### 3. 動的オブジェクトへの適用 (EffectMaskComponent)
-キャラクターやボスなど、個別の `GameObject` にアタッチしてエフェクトを管理する方法です。
-時間経過で自動的にエフェクトが切れる `duration` 管理機能が内蔵されています。
+キャラクターやボスなど、個別の `GameObject` にアタッチしてエフェクト（ディゾルブやシルエット発光など）を管理する方法です。
 
 ```cpp
 // 使い方
-gameObject->AddComponent<EffectMaskComponent>();
-
-// 発動時 (effectType, effectParam, duration(秒))
-gameObject->GetComponent<EffectMaskComponent>()->ApplyEffect(8, effectParam, 1.0f);
+auto* mask = gameObject->AddComponent<EffectMaskComponent>();
+mask->SetEnableEffectMask(true);
+mask->SetCustomEffectType(8); // 例: Type 8 = Dissolve
+mask->SetCustomParams(params);
 ```
 
 ##### 【仕様】アウター・シルエット方式アウトライン (Outer Silhouette)
@@ -2195,9 +2214,9 @@ float CalculateShadow(float4 shadowPos, Texture2D<float> shadowMap, SamplerCompa
 
 ---
 
-### 6.10 ライティングシステム (Directional, Point, Spot)
+### 6.10 ライティングシステム (Directional, Point, Spot, Area)
 
-IrufemiEngine は 3D空間の陰影を豊かに表現するため、3大主要光源（平行光源・点光源・スポットライト）をサポートしています。
+IrufemiEngine は 3D空間の陰影を豊かに表現するため、4大主要光源（平行光源・点光源・スポットライト・面光源）をサポートしています。
 
 #### 1. 光源の種類とデータ構造
 - **平行光源 (`DirectionalLight`)**:
@@ -2209,6 +2228,9 @@ IrufemiEngine は 3D空間の陰影を豊かに表現するため、3大主要�
 - **スポットライト (`SpotLight`)**:
   - サーチライト、懐中電灯、レーザー照射部など、円錐状に特定方向を照らす光源。
   - パラメータ: `position`, `direction`, `color`, `intensity`, `distance`, `decay`, `cosAngle` (外角コサイン), `cosFalloffStart` (内角コサイン)。
+- **面光源 (`AreaLight`)**:
+  - ネオン看板、モニター画面、発光パネルなど、矩形平面から特定方向へ広がる矩形面光源。
+  - パラメータ: `color` (RGBA), `position` (中心座標), `intensity`, `direction` (照射法線), `range` (到達最大距離), `size` (矩形幅・高さ Vector2), `isActive` (有効フラグ)。
 
 #### 2. C++ コードからのライト設定
 シーン（`BaseScene`）または管理コンポーネントから、フレーム描画時に `DrawManager` へライト情報を渡します。
@@ -2216,14 +2238,16 @@ IrufemiEngine は 3D空間の陰影を豊かに表現するため、3大主要�
 #include "Renderer/DrawManager.h"
 #include "Renderer/Data/DirectionalLight.h"
 #include "Renderer/Data/PointLight.h"
+#include "Renderer/Data/SpotLight.h"
+#include "Renderer/Data/AreaLight.h"
 
-// 平行光源の設定（太陽光）
+// 1. 平行光源の設定（太陽光）
 DirectionalLight sunLight{};
 sunLight.color = { 1.0f, 0.95f, 0.9f };
 sunLight.intensity = 1.2f;
 sunLight.direction = Vector3(0.3f, -1.0f, 0.5f).GetNormalized();
 
-// 点光源の動的追加（爆発の瞬間発光など）
+// 2. 点光源の動的追加（爆発の瞬間発光など）
 PointLight explosionLight{};
 explosionLight.position = hitPos;
 explosionLight.color = { 1.0f, 0.5f, 0.1f };
@@ -2231,11 +2255,22 @@ explosionLight.intensity = 5.0f;
 explosionLight.radius = 25.0f;
 explosionLight.decay = 2.0f;
 
+// 3. 面光源の追加（SFパネル等の発光）
+AreaLight panelLight{};
+panelLight.position = panelPos;
+panelLight.color = { 0.2f, 0.8f, 1.0f, 1.0f };
+panelLight.intensity = 3.0f;
+panelLight.direction = Vector3(0.0f, 0.0f, 1.0f);
+panelLight.size = Vector2(4.0f, 2.0f);
+panelLight.range = 15.0f;
+panelLight.isActive = 1;
+
 std::vector<PointLight*> pointLights = { &explosionLight };
 std::vector<SpotLight*> spotLights = {};
+std::vector<AreaLight*> areaLights = { &panelLight };
 
 // DrawManager にフレームデータとして転送
-drawManager->SetFrameData(camera, time, deltaTime, sunLight, pointLights, spotLights, false);
+drawManager->SetFrameData(camera, time, deltaTime, sunLight, pointLights, spotLights, areaLights);
 ```
 
 #### 3. PBR / Blinn-Phong シェーダーへの統合
@@ -2260,6 +2295,7 @@ GPU上の定数バッファおよび構造化バッファ（StructuredBuffer）�
 > - 2026/06: メニューバーの刷新（モダンダークテーマ化）、Play/Pause機能による時間管理（DeltaTime/RealDeltaTime）、およびレイアウト初期化（Reset Layout）の解説を追加
 > - 2026/07: エディタ機能にスクリーンショット（Screen Capture）機能を追加。マルチスレッドでの非同期保存および各描画パスごとの保存機能の解説を追記
 > - 2026/11: ポストプロセス記述をSSOT（`PostProcessDefinitions.h`）誘導および新規追加ワークフローへ刷新。音響システム（`SoundHelper` / `GameSE` / `GameBGM`）のAPIスニペット整合、`Run_Benchmark.bat` 負荷検証手順、`GameArchitecture.md` への相互参照誘導を追記
+> - 2026/11: 総合精査を実施。VS2026ソリューション構成（Irufemi.slnx）一本化、面光源（`AreaLight`）および `DrawManager::SetFrameData` 最新シグネチャ追記、`PostProcessManager` / `EffectMaskComponent` / `AttractDemoManager` のAPIスニペット修正、`UINavigationController` / `input_actions.json` / `CollisionLayers.json` / `ConsoleCommandSystem` の仕様を追記
 
 ---
 
@@ -2329,6 +2365,21 @@ if (collisionManager->Raycast(ray, hitInfo, 1000.0f, 0xFFFFFFFF, GetGameObject()
 auto future = collisionManager->RaycastAsync(engine_->GetThreadPool(), ray, 1000.0f);
 // ... 次フレームや必要になったタイミングで future.get() により結果を取得
 ```
+
+#### 7.1.5 衝突レイヤーとフィルタリング (CollisionLayers.json / layerMask)
+オブジェクトの種類（自機、敵、デブリ、地形など）ごとに衝突可否を柔軟に制御するため、ビットマスクによるレイヤーシステムを搭載しています。
+
+- **設定ファイル**: `resources/config/CollisionLayers.json` (または `layers.json`)
+  - レイヤーID（0: Default, 1: Player, 2: Enemy, 3: Debris_Neutral, 4: Debris_Player, 5: Debris_Enemy, 6: Environment 等）を定義。
+- **レイヤーマスクの指定とフィルタリング**:
+  `CollisionManager::GetLayerMask("LayerName")` でビットマスクを取得し、`Raycast` の `layerMask` 引数に渡すことで、特定のレイヤーのみを対象としたクエリが可能です。
+  ```cpp
+  // "Enemy" と "Environment" レイヤーのみを対象にレイキャスト
+  uint32_t mask = collisionManager->GetLayerMask("Enemy") | collisionManager->GetLayerMask("Environment");
+  if (collisionManager->Raycast(ray, hitInfo, 1000.0f, mask, GetGameObject())) {
+      // 敵または地形にヒットした際の処理
+  }
+  ```
 
 ---
 
@@ -2482,6 +2533,20 @@ float moveInputX = input->GetActionValue("MoveX").x;
 // プレイヤーの移動処理へ
 ```
 
+##### 【ベストプラクティス】JSON設定によるデータ駆動入力バインディング (`input_actions.json`)
+C++コード内に手動で `BindAction` を並べるのではなく、設定ファイル `resources/config/input_actions.json` にキー・ボタン割り当てを一括定義し、起動時またはシーン初期化時に `LoadBindingsFromJson` でロードする運用が推奨されます。
+
+```cpp
+// 1. JSONファイルから全アクションバインディングを一括読み込み
+engine_->GetInputManager()->LoadBindingsFromJson("resources/config/input_actions.json");
+
+// 2. コード側はアクション名（SSOT）のみで透過的に入力判定
+if (input->IsActionTriggered("Fire")) {
+    // 攻撃処理
+}
+```
+※これにより、キーコンフィグの変更やゲームパッド対応の追加をC++再コンパイルなしで即座に反映できます。
+
 #### 8.1.2 直接キー・ボタン・マウス入力の取得
 キーボード、マウス、ゲームパッド（XInput互換）の操作を直接取得することも可能です。
 `BaseScene` を継承したクラスでは、直接 `PressedVK()` や `IsButtonPressed()` などのヘルパー関数を呼び出すのが最も簡単です。
@@ -2521,10 +2586,11 @@ Vector2 mousePos = input->GetMousePosition();
 
 #### コンポーネントからの利用
 GameObject に `AudioSourceComponent` をアタッチすることで、インスペクタ（エディタ）上からサウンドの設定が可能です。
-- **Audio Type**: `BGM` か `SE` かを選択します。BGMはデフォルトでループ再生されます。
-- **File Path**: 再生するオーディオファイルのパス（例: `resources/audio/bgm/field.wav`）を指定します。
+- **Audio Type (0:BGM, 1:SE)**: `BGM` か `SE` かを選択します。BGMはデフォルトでループ再生されます。
+- **Audio Path**: 再生するオーディオファイルのパス（例: `resources/audio/bgm/field.wav`）を指定します。
 - **Volume**: 音量を 0.0 ～ 1.0 の間で調整します。
 - **Loop**: ループ再生のON/OFFを任意に切り替えます。
+- **Play On Awake**: シーン読み込み完了時に自動再生するかを指定します。
 
 スクリプトから再生・停止を行う場合は、コンポーネントを取得して以下のように呼び出します。
 ```cpp
@@ -2586,8 +2652,9 @@ C++コード内に音声ファイルのパス（`"resources/audio/..."`）や音
 
 ---
 
-### 8.3 UIフレームワーク (Canvas, UISelectionGroup, UIAnimator, Slider)
+### 8.3 UIフレームワーク (Canvas, UISelectionGroup, UINavigationController, UIAnimator, Slider)
 - **UISelectionGroup**: `#include "Framework/UI/UISelectionGroup.h"`
+- **UINavigationController**: `#include "Framework/UI/UINavigationController.h"`
 - **UIAnimator**: `#include "Framework/UI/UIAnimator.h"`
 - **SliderComponent**: `#include "Framework/Component/UI/SliderComponent.h"`
 
@@ -2627,7 +2694,32 @@ if (uiGroup_.ShouldTransition()) {
 uiGroup_.Draw();
 ```
 
-#### 8.3.2 UIのアニメーション演出 (`UIAnimator`)
+#### 8.3.2 ハイブリッドUI調停・キーリピートコントローラー (`UINavigationController`)
+ゲームパッド・キーボード・マウスが同時に接続された環境において、**「十字キーでボタンを移動した直後に、画面上に静止していたマウスカーソルのホバー判定によって元のボタンへ勝手に引き戻されてしまう事故」** を完全に防止するAAA品質のUIナビゲーションコントローラーです（`PauseScene` や `TitleMenuControllerComponent` 等で採用）。
+
+- **ヘッダー**: `#include "Framework/UI/UINavigationController.h"`
+- **主な機能**:
+  - **ハイブリッド入力調停**: マウスが物理的に動いた時のみマウスモードに遷移し、パッド・キー入力時はマウスホバーのフォーカス奪取を自動ブロック。
+  - **オートリピート**: 十字キーやスティックの長押し時に、初回ディレイ（0.4秒）を経て一定間隔（0.12秒）で滑らかに連続送り。
+  - **決定判定 (`IsSubmitted`)**: ゲームパッドのAボタン、Enterキー、Spaceキーなどの決定入力を統一判定。
+
+```cpp
+#include "Framework/UI/UINavigationController.h"
+
+// 項目数 3、縦並びメニューとして初期化
+UINavigationController navController_(3, false);
+
+// 毎フレームのUpdate
+navController_.Update(engine_->GetInputManager(), deltaTime);
+
+// 選択項目の取得と決定判定
+int currentIndex = navController_.GetSelectedIndex();
+if (navController_.IsSubmitted()) {
+    // 決定時の処理を実行
+}
+```
+
+#### 8.3.3 UIのアニメーション演出 (`UIAnimator`)
 UIの「明滅」や「浮遊」といった数学的なアニメーション（サイン波ベース）を簡単に計算してくれる便利なユーティリティクラスです。自分で時間を管理して計算式を書く必要がなくなります。
 
 ```cpp
@@ -2656,7 +2748,7 @@ if (uiAnimator_.GetFlashVisibility(40.0f)) {
 
 ---
 
-#### 8.3.3 UIシステム (Canvas & 2D描画)
+#### 8.3.4 UIシステム (Canvas & 2D描画)
 
 ゲームのHUDやメニュー画面を構築するために、階層的なUIシステムが用意されています。
 
@@ -2695,7 +2787,7 @@ if (input->IsMouseButtonDown(Mouse::Button::Left) && slider->CheckBounds(mousePo
 
 ---
 
-#### 8.3.4 ScreenCaptureManager (スクリーンショット・メタデータ)
+#### 8.3.5 ScreenCaptureManager (スクリーンショット・メタデータ)
 
 画面のキャプチャを安全に行うためのシステムです。UIを含めない純粋なシーンのみ (`PreUI`) や、UIを含めた最終画面 (`PostUI`) の出力、さらにはアルファチャンネルや深度バッファのみの出力に対応しています。
 - **メタデータ連携**: キャプチャ時にエンジン内の状態をJSONメタデータとして同時に出力する機能（`RecordMetadata`）も備わっており、機械学習用データセットの作成などに応用可能です。
@@ -2936,6 +3028,9 @@ public:
     void OnDrawUI() override {
         // ImGui やデバッグUI描画フェーズで呼び出されます
     }
+    void OnDraw() override {
+        // シーン描画後・ポストプロセス前の描画フェーズで呼び出されます
+    }
     void OnFinalize() override {
         // エンジン終了時に安全にクリーンアップされます
     }
@@ -2952,11 +3047,10 @@ public:
   #include "Core/System/IrufemiEngine.h"
   #include "Core/AttractDemoManager.h" // Application層の拡張クラス
 
-  auto attractDemo = std::make_shared<AttractDemoManager>();
   AttractDemoConfig config{};
-  config.enabledOnStart = false; // 通常プレイ優先（コマンドライン -demo 指定時のみ true）
-  config.enableHotkeys = true;   // F7/F8 ホットキー有効化
-  attractDemo->Initialize(config);
+  config.enabledOnStart = false;     // 通常プレイ優先（コマンドライン -demo 指定時のみ true）
+  config.enableDevHotkeys = true;   // F7/F8 ホットキー有効化
+  auto attractDemo = std::make_shared<AttractDemoManager>(config);
 
   // エンジンへプラグインとして安全に登録
   engine->AddExtension(attractDemo);
