@@ -702,6 +702,20 @@ IrufemiEngine のエディタは、モダンなゲームエンジン（Unity等�
      - ツールバー右端の **`[Cam]`** ボタンをクリックするか、Scene View上で **`P`** キー（または **`Ctrl + Shift + F`**）を押すと、シーン内の `MainCamera`（およびプレイヤー追従 `TargetFollowComponent`）からPlay開始時と全く同一のカメラ座標・回転角度・画角（FOV）を即座に算出し、Scene View の視点をゲーム視点へピタッとスナップ（同期）させます。
      - Playモードに入ることなく、実際のプレイヤー視点からフォグや背景天球、エネミーの配置がどう見えるかを瞬時に確認できます。スナップ後も通常通りマウス操作でパン・オービット・ズームが可能です。
 
+#### エディタのキーボードショートカット一覧
+エディタ（`IrufemiEditor`）内での作業効率を最大化するため、以下の標準ショートカットが整備されています（`EditorShortcutManager` / `SceneViewPanel` 実装）。
+
+| ショートカットキー | 機能・操作対象 | 説明 |
+| :--- | :--- | :--- |
+| **`Delete`** | 選択オブジェクト | Hierarchy / Scene View で選択中の GameObject を安全に削除（Undo対応） |
+| **`Ctrl + D`** | 選択オブジェクト | 選択中の GameObject を即座に複製（サフィックス付き自動命名・Undo対応） |
+| **`Ctrl + Z`** | エディタ全体 | 直前の操作（Transform変更、削除、追加、プロパティ変更等）を元に戻す（Undo） |
+| **`Ctrl + Y`** / **`Ctrl + Shift + Z`** | エディタ全体 | 取り消した操作をやり直す（Redo） |
+| **`Ctrl + S`** | シーン / プレハブ | 通常時は現在シーン（`.json`）を保存。Prefab分離編集モード時は編集中の `.prefab.json` を保存 |
+| **`F`** | Scene View | 選択中オブジェクト（または原点）にカメラ視点を即座にフォーカス・フレーミング（Unityの FrameSelected 相当） |
+| **`P`** / **`Ctrl + Shift + F`** | Scene View | シーン内 `MainCamera` の現在視点・画角へ Scene View カメラを瞬時にスナップ同期 |
+| **`Esc`** | Prefab分離モード | プレハブ分離編集モード（Isolation Stage）から安全に通常シーンへ復帰（変更破棄・安全離脱） |
+
 #### メニューバーの便利機能
 画面最上部のメニューバーからも、様々なアクションにアクセスできます。
 
@@ -1312,7 +1326,8 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
   - `Base Scale`: 文字の大きさ。
   - `Color`: 文字の色と透明度。
   - `Top Most`: ブルームなどのポストプロセスの影響を受けない、最前面レイヤーに描画するかどうか。
-  - `Alignment`: テキストのアライメント（`0=Left`, `1=Center`, `2=Right`）。複数行の場合は行ごとに適用されます。
+  - `Alignment`: テキストの水平アライメント（`0=Left`, `1=Center`, `2=Right`）。複数行の場合は行ごとに適用されます。
+  - `Vertical Alignment`: テキストの垂直アライメント（`0=Top`, `1=Middle`, `2=Bottom`）。UIの天地中央揃えに利用できます。
 
 - **`ButtonComponent`**: マウスカーソルのホバーやクリックを検知し、色を自動的に変えたり、明滅（Pulse）アニメーションを行うUI機能を提供します。
   - `Normal/Hover/Click Color`: マウスの操作状態に合わせて、アタッチされているSpriteの色を自動的に変化させます。
@@ -3130,7 +3145,12 @@ if (uiAnimator_.GetFlashVisibility(40.0f)) {
 
 1. **CanvasComponent (UIルート)**: すべてのUI要素の親となるコンポーネントです。画面解像度の変更に伴う自動スケーリングや、アスペクト比の維持を担当します。UIを作成する際は、必ずルートの `GameObject` にこのコンポーネントをアタッチしてください。
 2. **SpriteRendererComponent (2D画像描画)**: UIとして2Dテクスチャ（スプライト）を描画します。色や透明度、アンカーポイント（Pivot）の変更が可能です。
-3. **TextRendererComponent (テキスト描画)**: TrueTypeフォント（`.ttf`）を用いて、画面上に文字列を描画します。サイズや色、配置揃え（左寄せ・中央揃えなど）を調整できます。
+   - `SetTexture("ui/icon.png")`: 画像アセットの割り当て
+   - `SetAnchor(Vector2(0.5f, 0.5f))`: 原点・ピボット座標の指定（中央原点、左上原点など）
+   - `SetBaseSize(Vector2(64.0f, 64.0f))`: テクスチャ本来の解像度に依存しない表示サイズ設定
+   - `SetFlipX(bool)` / `SetFlipY(bool)`: スプライトの水平・垂直反転フラグ
+   - `SetTopMost(bool)`: ポストプロセスの影響を受けない最前面レイヤー描画フラグ
+3. **TextRendererComponent (テキスト描画)**: TrueTypeフォント（`.ttf`）を用いて、画面上に文字列を描画します。サイズや色、配置揃え（水平: `SetAlignment` / 垂直: `SetVerticalAlignment`）を調整できます。
 4. **ButtonComponent (インタラクション)**: ボタンとしてのクリック判定と、ホバー時・クリック時のコールバック処理を管理します。
 ```cpp
 auto button = uiObject->AddComponent<ButtonComponent>();
@@ -3422,6 +3442,25 @@ if (auto* sender = engine->GetTelemetrySender()) {
 - **包括的活動検知 (`InputManager::HasAnyInput()`)**: キーボード、マウス、ゲームパッド（全ボタン・スティック不感帯0.2f考慮）のいずれかが操作されたかを1行で判定し、無操作放置（Idle）タイマーの計測に利用できます。
 - **ゲームパッド仮想カーソル制御 (`SetIsUsingGamepadCursor`)**: 十字キーフォーカスと仮想カーソルの同期をサポート。
 
+```cpp
+#include "Platform/Input/InputManager.h"
+
+auto* input = engine_->GetInputManager();
+
+// 1. 包括的無操作放置タイマーの更新 (アトラクトデモやスクリーンセーバー突入用)
+if (input->HasAnyInput()) {
+    idleTimer_ = 0.0f; // 何らかの入力があれば即座にリセット
+} else {
+    idleTimer_ += deltaTime;
+    if (idleTimer_ >= 10.0f) {
+        // 10秒無操作で自動的にアトラクトデモへ突入
+    }
+}
+
+// 2. ゲームパッド仮想カーソルの有効化/無効化
+input->SetIsUsingGamepadCursor(true);
+```
+
 ---
 
 ### 9.4 エンジン拡張プラグイン機構 (IEngineExtension) とアトラクトデモ
@@ -3616,4 +3655,5 @@ public:
 > - 2026/11: 総合精査に基づく欠落基盤の拡充およびApplication境界整合。`SceneManager::Register`（C++シーンファクトリ登録）および `ChangeTo`、`AutoCVarRef<T>`（O(1)高速CVar参照）および `DebugConsole`（[F1]インゲームコンソール）、`OrbitCameraController`（Focus / Frame / プリセット視点制御）、`Primitive2DObject.h` / `FontManager.h` の正規ヘッダーパスおよび `PrecacheTextSync`、`CollisionManager::DrawDebugRay` & `QueryAABB`、`Irufemi::Random`（スレッドセーフメルセンヌ・ツイスター乱数）& `Irufemi::PerlinNoise`、`GpuProfiler`（DirectX12タイムスタンプGPU計測）の仕様・スニペットを追記。Application層サンプル（`SoundHelper`, `AttractDemoManager`）の境界注記を整備。
 > - 2026/11: 全コードベース完全精査に基づく実装乖離の解消および未記載コア基盤の追記。`SceneManager::ChangeTo` への修正、`BloomEffect` の `BloomParams` 操作整合、`Matrix4x4` 静的関数から `MathFunction.h` のグローバル関数（`MakeTranslateMatrix` / `MakeScaleMatrix`）への修正、シェーダー監視基盤（`DirectoryWatcher`）、幾何交差・視錐台カリング（`Frustum` / `Collision.h`）、および入力マッピング基盤（`InputMappingContext`）の仕様・スニペットを追記。
 > - 2026/11: 実装整合性再精査と描画・計算基盤の網羅拡充。`FileSystem::GetResourcePath` の名前空間修正（グローバルスコープ整合）および `GetCachePath` 等の主要API拡充、`SceneSerializer` のシーン全体保存・読込API、`DrawManager::SetFrameData` の `CameraForGPU` 引数型注記、`GPUParticleManager::RegisterEmitter` の `depthWrite` 引数追記、RenderGraph の全レンダーパス実行順序（ステージフロー）の図解、2D GPGPU 流体シミュレーション（`FluidSimulation2D` & `IComputeTask`）の仕様・外力注入コード例、および `InputActionValue` の高レベルアクセサ（`GetAsAxis1D/2D`, `GetAsBool`）を完全反映。
+> - 2026/11: 精密ファクトチェックに基づく未記載情報の完全補強。`IrufemiEditor` の標準キーボードショートカット一覧表（Delete, Ctrl+D/Z/Y/S, F, P, Esc）を明文化、`TextRendererComponent` の垂直アライメント（`SetVerticalAlignment`）および `SpriteRendererComponent` のカプセル化アクセサ（`SetFlipX/Y`, `SetAnchor`, `SetBaseSize`）の仕様追加、`InputManager` の包括的無操作放置検知（`HasAnyInput()`）と仮想カーソル制御コード例を完全追記。
 
