@@ -48,6 +48,7 @@
   - [6.8 シェーダーの追加・変更・コンパイル構成](#68-シェーダーの追加変更コンパイル構成)
   - [6.9 動的シャドウマップシステム (ShadowPass & ShadowMap)](#69-動的シャドウマップシステム-shadowpass--shadowmap)
   - [6.10 ライティングシステム (Directional, Point, Spot, Area)](#610-ライティングシステム-directional-point-spot-area)
+  - [6.11 2D GPGPU 流体シミュレーション (FluidSimulation2D & IComputeTask)](#611-2d-gpgpu-流体シミュレーション-fluidsimulation2d--icomputetask)
 - [7. 物理・衝突判定と空間分割 (Physics, Colliders & BVH)](#7-物理衝突判定と空間分割-physics-colliders--bvh)
   - [7.1 衝突判定マネージャー (CollisionManager)](#71-衝突判定マネージャー-collisionmanager)
   - [7.2 動的BVH(TLAS)による空間クエリ最適化](#72-動的bvhtlasによる空間クエリ最適化)
@@ -521,25 +522,32 @@ void DXCommandManager::CreateRenderTargetViews() {
 - `<nlohmann/json.hpp>` や `<assimp/*>` などの生ヘッダーを各 `.h` / `.cpp` で直接インクルードすることは禁止されています。
 - JSON を扱う場合は必ず `#include "Core/Utility/JsonUtility.h"` を使用し、`Irufemi::Json` 型エイリアスを使用してください。
 
-#### 2. ファイル読み書き・パス解決の公式パターン
+#### 2. ファイル読み書き・パス解決の公式パターン (`FileSystem` / `JsonUtility`)
 - `std::ifstream` や `std::ofstream` を直にオープンしてパースするボイラープレートは記述せず、`Irufemi::JsonUtility` のユーティリティ関数を使用してください。
-- 実行環境（実行時カレントディレクトリの違い）を吸収するため、パス解決には必ず `Irufemi::FileSystem::GetResourcePath(...)` を使用してください。
+- 実行環境（実行時カレントディレクトリの違いや配布時環境）を吸収するため、パス解決には必ず `FileSystem::GetResourcePath(...)` を使用してください。（※ `FileSystem` クラスはグローバルスコープで提供されています）
 
 ```cpp
 #include "Core/Utility/JsonUtility.h"
 #include "Core/Utility/FileSystem.h"
 
-// 1. パスの安全な解決
-std::string fullPath = Irufemi::FileSystem::GetResourcePath("resources/config/example.json");
+// 1. リソースパスの安全な解決 (resources/ 配下)
+std::string fullPath = FileSystem::GetResourcePath("resources/config/example.json");
 
-// 2. 読み込み (ファイルのオープンと例外処理を内包・成否を bool で返却)
+// 2. 派生キャッシュパスの安全な解決 (generated/cache/ 配下)
+std::string cacheShaderPath = FileSystem::GetCachePath("shaders");
+
+// 3. プロジェクトルート・エンジンルートの取得
+std::string projectRoot = FileSystem::GetProjectRoot();
+std::string engineRoot = FileSystem::GetEngineRoot();
+
+// 4. JSON 読み込み (ファイルのオープンと例外処理を内包・成否を bool で返却)
 Irufemi::Json rootJson;
 if (!Irufemi::JsonUtility::LoadFromFile(fullPath, rootJson)) {
     // 読み込み失敗ログは内部で出力されるため、安全に早期リターン可能
     return;
 }
 
-// 3. 書き出し (インデント付き整形保存)
+// 5. JSON 書き出し (インデント付き整形保存・親ディレクトリ自動生成)
 Irufemi::JsonUtility::SaveToFile(fullPath, rootJson, 4);
 ```
 
@@ -850,6 +858,23 @@ engine_->GetSceneManager()->PushScene("PauseScene");
 
 // 重ねたシーンを終了し、元のシーンに戻る場合（PauseScene側で呼ぶ）
 engine_->GetSceneManager()->PopScene();
+```
+
+##### 【開発者向け】シーン全体の保存と読み込み (`SceneSerializer`)
+エディタやデバッグツールからシーン状態（全GameObject・階層構造・コンポーネントパラメータ）をJSON形式でシリアライズ・復元する際は、`SceneSerializer` を使用します。
+- **ヘッダー**: `#include "Framework/Scene/SceneSerializer.h"`
+
+```cpp
+#include "Framework/Scene/SceneSerializer.h"
+
+// 1. シーンの状態を resources/scenes/Title.json に保存
+bool saved = SceneSerializer::Save(currentScene, "Title");
+
+// 2. 指定したシーンJSONファイルが存在するか確認
+if (SceneSerializer::Exists(currentScene, "InGame")) {
+    // 3. resources/scenes/InGame.json からオブジェクト階層を展開
+    bool loaded = SceneSerializer::Load(currentScene, "InGame");
+}
 ```
 
 #### 非同期遷移フェーズとロード画面の制御
@@ -1626,6 +1651,53 @@ virtualManager->Demote(id);
 ### 6.1 RenderGraph と DrawManager
 - **ヘッダー**: `#include "Renderer/DrawManager.h"`, `#include "Renderer/Pipeline/RenderGraph/RenderGraph.h"`
 
+#### 6.1.1 フレーム全体のレンダーパス実行順序 (Render Pipeline Stage Flow)
+
+`DrawManager::BuildRenderGraph` では、DirectX 12 コマンドリスト上に記録される描画パス群が以下の厳密な順序で RenderGraph にスケジュールされます。各パスは `Setup` フェーズで入出力リソースの要求ステートを宣言し、パイプライン実行時に自動でリソースバリア（Transition / Aliasing）が挿入されます。
+
+```mermaid
+flowchart TD
+    subgraph GPGPU ["1. GPGPU 計算フェーズ"]
+        P1["ComputePass\n(流体シミュレーション / GPU Skinning)"]
+    end
+    subgraph Shadow ["2. シャドウ生成フェーズ"]
+        P2["ShadowPass\n(2048x2048 深度バッファ描画)"]
+    end
+    subgraph Geometry ["3. ジオメトリレンダリングフェーズ"]
+        P3["MainOpaquePass\n(MRT 不透明描画: Color, Mask, Normal, Material, Velocity)"]
+        P4["FogPass\n(深度バッファに基づく大気・空気遠近フォグ合成)"]
+        P5["MainTransparentPass\n(Back-to-Front Zソート半透明オブジェクト描画)"]
+    end
+    subgraph PostPreUI ["4. Pre-UI ポストプロセス"]
+        P6["Pre-UI PostProcess\n(Bloom, Blur, Glitch, ToneMapping, 重力歪み等)"]
+    end
+    subgraph UI ["5. UI レンダリングフェーズ"]
+        P7["UIPass\n(Canvas, Sprite, Text などの2D要素描画)"]
+    end
+    subgraph PostPostUI ["6. Post-UI ポストプロセス"]
+        P8["Post-UI PostProcess\n(画面全体フェード, スタンドアロン時の最終画面転送)"]
+    end
+    subgraph Overlay ["7. 最前面・エディタオーバーレイ"]
+        P9["TopMostPass\n(ポストプロセス影響外の最前面UI・Text)"]
+        P10["SelectionOutlinePass\n(エディタ選択オブジェクトの輪郭線描画)"]
+    end
+
+    P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8 --> P9 --> P10
+```
+
+| レンダーパス | 実行タイミングと責務 | 主な入出力リソース |
+| :--- | :--- | :--- |
+| **`ComputePass`** | 描画の最初。流体演算やボーン変形CSを実行 | UAV バッファ、構造化バッファ |
+| **`ShadowPass`** | 不透明描画の前。太陽光方向から深度のみを高速描画 | `ShadowMap` (2048x2048 D32_FLOAT) |
+| **`MainOpaquePass`** | 3D静的/動的メッシュの描画（MRT 5枚出力） | SV_Target0~4 (G-Buffer) + Depth |
+| **`FogPass`** | 不透明描画直後。深度を参照し大気遠近をブレンド | MainRT + 深度バッファ |
+| **`MainTransparentPass`** | 不透明完了後。カメラ距離で降順ソートして描画 | MainRT (DepthWrite: Disable) |
+| **`Pre-UI PostProcess`** | 3Dシーン完了後、UI描画前。各種画面演出 | Transient 作業テクスチャ ➔ MainRT |
+| **`UIPass`** | 3Dシーンの上から2Dスプライトやテキストを描画 | MainRT |
+| **`Post-UI PostProcess`** | UI完了後。全画面トランジションやバックバッファ転送 | MainRT ➔ バックバッファ |
+| **`TopMostPass`** | ポストプロセスの影響を受けない最前面UIを描画 | バックバッファ |
+| **`SelectionOutlinePass`** | エディタ上で選択されたオブジェクトの輪郭線を描画 | バックバッファ |
+
 #### RenderGraph によるポストプロセスのサブパス化と自動バリア
 
 IrufemiEngine では、DirectX 12 におけるリソース状態（PIXEL_SHADER_RESOURCE と RENDER_TARGET 等）の遷移不整合を防ぎ、一時リソースのメモリ再利用（エイリアシング）を安全に行うため、ポストプロセスの各ステップを **RenderGraph のサブパス** として展開・実行する設計を採用しています。
@@ -1909,12 +1981,13 @@ myParticle.EmitBurst(50);
 // 1. エンジンからマネージャーを取得
 auto* gpm = engine_->GetGPUParticleManager();
 
-// 2. マネージャーにエミッターを登録（テクスチャ、ブレンドモード、ポーズ中動作フラグ、ライティング計算フラグ）
+// 2. マネージャーにエミッターを登録（テクスチャ、ブレンドモード、ポーズ中動作フラグ、ライティング計算フラグ、深度書き込み設定）
 auto handle = gpm->RegisterEmitter(
     "effect/particle_tex.png", 
     Irufemi::BlendMode::kBlendModeAdd, 
     false, // trueにするとポーズ中(UnscaledTime)でも動作する
-    false  // enableLighting: ライティング影響フラグ
+    false, // enableLighting: ライティング影響フラグ
+    PSOManager::DepthWrite::Disable // 第5引数: 深度書き込み（デフォルト: Disable）
 );
 
 // 3. パラメータを設定してマネージャーに更新を通知
@@ -2416,13 +2489,61 @@ std::vector<PointLight*> pointLights = { &explosionLight };
 std::vector<SpotLight*> spotLights = {};
 std::vector<AreaLight*> areaLights = { &panelLight };
 
-// DrawManager にフレームデータとして転送 (解像度はエンジンアクセサから動的取得)
-drawManager->SetFrameData(camera, time, deltaTime, sunLight, pointLights, spotLights, areaLights, engine->GetGameResolution());
+// DrawManager にフレームデータとして転送 (第1引数は CameraForGPU を渡す。解像度はエンジンアクセサから動的取得)
+CameraForGPU cameraForGpu = activeCamera->GetCameraForGPU();
+drawManager->SetFrameData(cameraForGpu, time, deltaTime, sunLight, pointLights, spotLights, areaLights, engine->GetGameResolution());
 ```
 
 #### 3. PBR / Blinn-Phong シェーダーへの統合
 GPU上の定数バッファおよび構造化バッファ（StructuredBuffer）に転送され、すべての不透明・半透明シェーダーにおいて、Lambert拡散反射、Blinn-Phong鏡面反射、および減衰逆二乗則が自動適用されます。
 ※陰影計算を完全にバイパスしたいモデルは、前述の `renderer->SetEnableLighting(false)` により Unlit 化が可能です。
+
+---
+
+### 6.11 2D GPGPU 流体シミュレーション (FluidSimulation2D & IComputeTask)
+
+本エンジンは、DirectX 12 Compute Shader 上で完全並列実行される **非圧縮性 Navier-Stokes 2D 流体シミュレーター (`FluidSimulation2D`)** を標準搭載しています。
+
+#### 1. アーキテクチャとアルゴリズム
+- **Jos Stam "Stable Fluids" アルゴリズム**:
+  半ラグランジュ移流（Semi-Lagrangian Advection）、外力・染料注入、渦度閉じ込め（Vorticity Confinement）、および Jacobi 反復法による圧力ポアソン方程式（Poisson Equation）の求解をコンピュートシェーダーで毎フレーム実行します。
+- **RenderGraph 統合 (`IComputeTask`)**:
+  `FluidSimulation2D` は `IComputeTask` を継承しており、パイプラインの最前段（`ComputePass`）で自動的にディスパッチされます。グラフィックスパイプラインをブロックせず、高精度な流速場（Velocity Field）と濃度場（Color/Density Field）を生成します。
+
+- **ヘッダー**:
+  - 流体シミュレーター: `#include "Renderer/Fluid/FluidSimulation2D.h"`
+  - 汎用コンピュートタスク: `#include "Renderer/Compute/IComputeTask.h"`
+
+#### 2. 外力・染料・重力特異点の注入 (`InjectionRequest`)
+ゲームロジックや演出（爆発の煙、高速移動する自機の後流、ブラックホールによる空間渦巻き）から、画面内の特定UV座標へ外力や染料を注入できます。
+
+```cpp
+#include "Renderer/Fluid/FluidSimulation2D.h"
+
+// エンジンから流体シミュレーターを取得
+auto* fluidSim = engine_->GetFluidSimulation();
+if (fluidSim && fluidSim->IsEnabled()) {
+    // 1. 通常の染料・外力の注入（爆発の煙やブースト後流）
+    FluidSimulation2D::InjectionRequest impulse{};
+    impulse.posUV = Irufemi::Vector2(0.5f, 0.5f);        // 注入中心UV
+    impulse.velocity = Irufemi::Vector2(0.0f, 0.8f);     // 上方向への推進速度
+    impulse.color = Irufemi::Vector4(1.0f, 0.3f, 0.1f, 1.0f); // 炎色染料
+    impulse.radius = 0.08f;                              // 影響半径
+    fluidSim->AddInjection(impulse);
+
+    // 2. 重力特異点（回転渦＋吸引力）の注入（ブラックホール・重力ダイブ演出）
+    FluidSimulation2D::InjectionRequest gravityVortex{};
+    gravityVortex.posUV = Irufemi::Vector2(0.5f, 0.5f);
+    gravityVortex.type = 2.0f;           // 2: 重力特異点モード
+    gravityVortex.vortexStrength = 15.0f; // 回転角速度（求心渦）
+    gravityVortex.pullStrength = 10.0f;   // 吸引力
+    gravityVortex.radius = 0.25f;
+    fluidSim->AddInjection(gravityVortex);
+}
+```
+
+#### 3. ポストプロセスおよびシェーダーでの活用
+生成された流体テクスチャ（SRV）は、ポストプロセス（`CombinedPostEffect.PS.hlsl`）や画面遷移トランジション（`GravitySingularity`）でサンプリングされ、空間歪曲や流体ワイプ演出に活用されます。
 
 ---
 
@@ -2761,7 +2882,10 @@ if (input->IsActionTriggered("Jump")) {
 }
 
 // アナログ入力（移動量など）の取得
-float moveInputX = input->GetActionValue("MoveX").x;
+// 戻り値の InputActionValue は高レベルアクセサ（GetAsAxis1D, GetAsAxis2D, GetAsBool）を提供
+float moveInputX = input->GetActionValue("MoveX").GetAsAxis1D(); // または .x
+Irufemi::Vector2 move2D = input->GetActionValue("Move2D").GetAsAxis2D(); // Vector2(x, y)
+bool isThrusting = input->GetActionValue("Thrust").GetAsBool();
 // プレイヤーの移動処理へ
 ```
 
@@ -3491,4 +3615,5 @@ public:
 > - 2026/11: Manual.mdの精密ファクトチェック修正および未記載基盤の完全網羅。`Irufemi::Ray`（`origin`）および `Log`（`OutPutLog`）のコンパイルエラー解消、`GPUParticleManager`（`GetGPUParticleManager()` / `enableLighting` 引数 / `UnregisterEmitter`）と `SoundHelper`（`PlayByName` / 音量乗数 / 引数なし `StopBGM`）の実コード整合、`Effect` クラスの初期化注記、シーン遷移トランジション全6種（`SceneTransition::Type`）とカスタムローディング画面（`ILoadingScreen`）、`AudioManager` のカテゴリ音量・フェード制御（`SetCategoryVolume` / `FadeCategoryVolume`）、および `ScreenCaptureManager` のC++リクエストコードを完全拡充
 > - 2026/11: 総合精査に基づく欠落基盤の拡充およびApplication境界整合。`SceneManager::Register`（C++シーンファクトリ登録）および `ChangeTo`、`AutoCVarRef<T>`（O(1)高速CVar参照）および `DebugConsole`（[F1]インゲームコンソール）、`OrbitCameraController`（Focus / Frame / プリセット視点制御）、`Primitive2DObject.h` / `FontManager.h` の正規ヘッダーパスおよび `PrecacheTextSync`、`CollisionManager::DrawDebugRay` & `QueryAABB`、`Irufemi::Random`（スレッドセーフメルセンヌ・ツイスター乱数）& `Irufemi::PerlinNoise`、`GpuProfiler`（DirectX12タイムスタンプGPU計測）の仕様・スニペットを追記。Application層サンプル（`SoundHelper`, `AttractDemoManager`）の境界注記を整備。
 > - 2026/11: 全コードベース完全精査に基づく実装乖離の解消および未記載コア基盤の追記。`SceneManager::ChangeTo` への修正、`BloomEffect` の `BloomParams` 操作整合、`Matrix4x4` 静的関数から `MathFunction.h` のグローバル関数（`MakeTranslateMatrix` / `MakeScaleMatrix`）への修正、シェーダー監視基盤（`DirectoryWatcher`）、幾何交差・視錐台カリング（`Frustum` / `Collision.h`）、および入力マッピング基盤（`InputMappingContext`）の仕様・スニペットを追記。
+> - 2026/11: 実装整合性再精査と描画・計算基盤の網羅拡充。`FileSystem::GetResourcePath` の名前空間修正（グローバルスコープ整合）および `GetCachePath` 等の主要API拡充、`SceneSerializer` のシーン全体保存・読込API、`DrawManager::SetFrameData` の `CameraForGPU` 引数型注記、`GPUParticleManager::RegisterEmitter` の `depthWrite` 引数追記、RenderGraph の全レンダーパス実行順序（ステージフロー）の図解、2D GPGPU 流体シミュレーション（`FluidSimulation2D` & `IComputeTask`）の仕様・外力注入コード例、および `InputActionValue` の高レベルアクセサ（`GetAsAxis1D/2D`, `GetAsBool`）を完全反映。
 
