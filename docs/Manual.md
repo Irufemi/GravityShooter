@@ -647,17 +647,47 @@ IrufemiEngine のエディタは、モダンなゲームエンジン（Unity等�
      - シーンとプレハブ間でのUndoデータの混ざりを防ぐため、突入時および離脱時にUndo履歴が自動でクリアされます。
      - Prefabのルートオブジェクト（Root）に対する誤った削除や複製操作は保護されます。
 
-5. **カスタムInspector（エディタ拡張）開発向け共通UIウィジェット (`ComponentUIHelpers`)**:
-   - `IrufemiEditor` 内で独自のコンポーネントインスペクター（`IComponentEditor`）を実装する際、[`ComponentUIHelpers.h`](project/IrufemiEditor/UI/ComponentUIHelpers.h) の共通関数を利用できます。
+5. **カスタムInspector（エディタ拡張）の作成と登録手順 (`IComponentEditor` / `ComponentEditorRegistry`)**:
+   - 変数の簡易自動UI（`OnRegisterProperties`）では対応しきれない複雑なパラメータ編集（専用ボタン、プレビュー、タイムライン、特殊なドロップダウン等）を実装する場合、エディタ専用のカスタムInspectorクラスを作成して登録できます。
+   - **基底インターフェース**: `#include "IrufemiEditor/Core/IComponentEditor.h"`
+   - **エディタレジストリ**: `#include "IrufemiEditor/Inspectors/ComponentEditorRegistry.h"`
+   - **共通ウィジェットヘルパー**: `#include "IrufemiEditor/UI/ComponentUIHelpers.h"`
+
    ```cpp
-   // IrufemiEditor 内でのインクルード
+   #ifdef EditorMode
+   #include "IrufemiEditor/Core/IComponentEditor.h"
    #include "IrufemiEditor/UI/ComponentUIHelpers.h"
+   #include "IrufemiEditor/Commands/EditorActionManager.h"
+   #include <imgui.h>
 
-   // プレハブパスの横にワンクリックで編集モードを開くボタンを描画
-   IrufemiEditor::ComponentUIHelpers::DrawOpenPrefabButton(dronePrefabPath_);
+   class MySpecialComponentEditor : public IComponentEditor {
+   public:
+       void Draw(Component* component, EditorActionManager* actionManager) override {
+           auto* myComp = static_cast<MySpecialComponent*>(component);
 
-   // Inspector最上部にPrefabメタデータバナーを描画
-   IrufemiEditor::ComponentUIHelpers::DrawPrefabHeaderBanner(prefabAssetPath_);
+           // 1. プレハブ関連の共通ヘッダーバナーやボタンの描画
+           // IrufemiEditor::ComponentUIHelpers::DrawPrefabHeaderBanner(myComp->GetPrefabAssetPath());
+
+           // 2. ImGui による独自コントロール描画（Undo/Redo アクション連携）
+           float currentVal = myComp->GetPower();
+           if (ImGui::SliderFloat("Power", &currentVal, 0.0f, 100.0f)) {
+               myComp->SetPower(currentVal);
+           }
+
+           // 3. 専用のデバッグ・アクションボタン
+           if (ImGui::Button("Reset to Default")) {
+               myComp->ResetValues();
+           }
+       }
+   };
+   #endif
+   ```
+
+   **【エディタへの登録方法】**:
+   `ComponentEditorRegistry::RegisterAllEditors()` 内、またはエディタ初期化時に型とエディタを紐付けます。
+   ```cpp
+   // ComponentEditorRegistry.cpp 内
+   RegisterEditor<MySpecialComponent, MySpecialComponentEditor>();
    ```
    ※ゲーム固有の複雑なパラメータ編集（ウェーブ出現タイムラインやボスの多層シールド制御）では、`project/Application_solo/Editor/` 内の `BossComponentEditor` や `WaveManagerComponentEditor` がこの仕組みを活用して実装されています。
 
@@ -1562,10 +1592,28 @@ Catmull-Rom スプライン曲線を定義し、レールシューターの自�
   attach->SetTargetName("PlayerCharacter");    // 追従対象のGameObject名
   attach->SetTargetBoneName("RightHandBone");  // 追従対象のボーン名
   ```
+  > [!TIP]
+  > **武器の位置・回転オフセットの微調整**:
+  > `BoneAttachmentComponent` を持たせたGameObjectは、対象ボーンのワールド姿勢に毎フレーム自動上書きされます。そのため、銃や剣の握り手オフセット（持ち手の微調整）を行いたい場合は、**「アタッチ用空GameObject（親）の下に、オフセットを持たせた武器メッシュGameObject（子）」** を配置する親子階層パターンが最も美しく推奨されます。
 
 #### 5. AnimatorComponent (アニメーション制御)
-3Dモデルのスケルタルアニメーション再生、遷移、ブレンドを制御するコンポーネントです。
+3Dモデルのスケルタルアニメーション再生、クロスフェード遷移、Root Motion、および再生速度を制御するコンポーネントです。
 - **ヘッダー**: `#include "Framework/Component/Logic/AnimatorComponent.h"`
+- **低レイヤーコア**: `#include "Resource/Model/Animator.h"`
+- **主なAPI**:
+  ```cpp
+  #include "Framework/Component/Logic/AnimatorComponent.h"
+
+  auto* animator = obj->GetComponent<AnimatorComponent>();
+
+  // 1. 再生とクロスフェード (アニメーション名, ループ有無, クロスフェード時間秒)
+  animator->Play("sample/attack.gltf", false, 0.2f);
+
+  // 2. 低レイヤー Animator を経由した再生速度制御
+  if (auto* rawAnim = animator->GetRawAnimator()) {
+      rawAnim->SetPlaybackSpeed(1.5f); // 1.5倍速再生
+  }
+  ```
 
 ---
 
@@ -1733,6 +1781,38 @@ IrufemiEngine では、DirectX 12 におけるリソース状態（PIXEL_SHADER_
 3. **テクスチャの安全な取得**:
    各サブパスの `Execute` 内では、`rc.drawManager->GetRenderGraph()->GetTransientRenderTexture(handle)` を用いて直接テクスチャを取得するため、初期化順序やキャッシュ不整合によるヌルポインタ参照を防止します。
 
+#### 6.1.2 独自レンダーパスの追加 (LambdaRenderPass & IRenderPass)
+
+RenderGraph に独自の描画処理やコンピュートシェーダーパスを安全に挿入する場合、Unreal Engine RDG（Render Dependency Graph）の `AddPass` と同様の柔軟性を持つ **`LambdaRenderPass`** を使用できます。
+クラスを丸ごと新規作成することなく、インラインのラムダ式で `Setup`（一時リソース要求・バリア宣言）と `Execute`（DirectX12 コマンドリストへの描画記録）を記述可能です。
+
+- **ヘッダー**: 
+  - `#include "Renderer/Pipeline/RenderGraph/LambdaRenderPass.h"`
+  - `#include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"`
+  - `#include "Renderer/Data/RenderContext.h"`
+
+```cpp
+#include "Renderer/Pipeline/RenderGraph/LambdaRenderPass.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
+#include "Renderer/Data/RenderContext.h"
+
+// RenderGraph 構築時にパスを動的追加
+renderGraph->AddPass(std::make_unique<LambdaRenderPass>(
+    "CustomEffectPass",
+    // 1. Setup フェーズ: 必要なリソース状態（SRV, RTV, UAV 等）を宣言し、自動バリアを構成
+    [](RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
+        // 例: 作業バッファを RENDER_TARGET 状態として要求
+        // builder.RequireTransientState(workHandle, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    },
+    // 2. Execute フェーズ: 実際のGPU描画コマンドを発行
+    [](const Irufemi::RenderContext& rc) {
+        auto* cmdList = rc.commandList;
+        // カスタムPSOの設定やDrawInstancedの呼び出し
+    }
+));
+```
+※複雑な内部ステートや中間キャッシュを長期保持したい場合は、基底クラス `IRenderPass`（`#include "Renderer/Pipeline/RenderGraph/IRenderPass.h"`）を直接継承した専用クラスを新設することも可能です。
+
 ---
 
 #### 静的モデルの描画 (MeshRendererComponent)
@@ -1870,6 +1950,15 @@ auto animator = gameObject_->GetComponent<AnimatorComponent>();
 // 例：1.0秒かけて "walk" から "sneakWalk" に滑らかに移行する
 animator->Play("sample/sneakWalk.gltf", true, 1.0f);
 ```
+
+#### 再生速度の動的制御 (PlaybackSpeed)
+スローモーション演出や攻撃モーションの加速など、アニメーションの再生速度を変更したい場合は、低レイヤーの `Animator` アクセサ経由で制御できます。
+```cpp
+if (auto* rawAnim = animator->GetRawAnimator()) {
+    rawAnim->SetPlaybackSpeed(0.5f); // 0.5倍速スローモーション
+}
+```
+※エディタの Inspector からも `Playback Speed` プロパティをリアルタイムに変更可能です。
 
 #### 足滑りを防ぐ Root Motion (ルートモーション)
 
@@ -2378,7 +2467,14 @@ Releaseビルドでは、`dxcompiler.dll` などのコンパイラを一切ロ�
 - 実行時には `.hlsl` ではなく生成された `.cso` を直接メモリに読み込みます。
 - そのため、最終的にプレイヤーに配布（リリース）する際は、**「すべての `.hlsl` / `.hlsli` ファイルは削除して `.cso` だけを含める」** ことで、ソースコードの秘匿化と容量削減が可能です（Compute Shaderも含む）。
 
-#### 6.8.4 Bindless Resources とカスタムシェーダーでのテクスチャアクセス
+#### 6.8.4 低レイヤーシェーダー管理基盤 (`ShaderManager`)
+DirectX 12 におけるシェーダーバイトコードのコンパイル結果やファイル読み込みは、RHI層の **`ShaderManager`**（`#include "RHI/DirectX12/ShaderManager.h"`）によってスレッドセーフに一元キャッシュされています。
+- **機能**:
+  - `GetOrCompile(filePath, options, profileOverride)`: 初回要求時にコンパイルまたはバイナリキャッシュ（`.cso`）をロードし、`IDxcBlob`（バイトコード）を返却。2回目以降はメモリマップキャッシュから $O(1)$ で即座に返却されます。
+  - `ReloadShader(filePath)`: ホットリロード時にキャッシュを強制破棄し、最新ソースから即座に再コンパイルを実行します。
+  - `AddSearchPath` / `SetBinaryPath`: 開発環境のソースパスと配布環境のバイナリパス（`generated/cache/shaders/`）の動的解決。
+
+#### 6.8.5 Bindless Resources とカスタムシェーダーでのテクスチャアクセス
 本エンジンは最新の **Bindless アーキテクチャ (Descriptor Indexing)** に移行しています。
 C++ 側でシェーダーごとにテクスチャを個別にバインドするのではなく、すべてのテクスチャが1つの巨大な配列に登録されており、シェーダー側からは **「テクスチャのインデックス（番号）」** さえ分かれば自由にアクセスできます。
 
@@ -3656,4 +3752,5 @@ public:
 > - 2026/11: 全コードベース完全精査に基づく実装乖離の解消および未記載コア基盤の追記。`SceneManager::ChangeTo` への修正、`BloomEffect` の `BloomParams` 操作整合、`Matrix4x4` 静的関数から `MathFunction.h` のグローバル関数（`MakeTranslateMatrix` / `MakeScaleMatrix`）への修正、シェーダー監視基盤（`DirectoryWatcher`）、幾何交差・視錐台カリング（`Frustum` / `Collision.h`）、および入力マッピング基盤（`InputMappingContext`）の仕様・スニペットを追記。
 > - 2026/11: 実装整合性再精査と描画・計算基盤の網羅拡充。`FileSystem::GetResourcePath` の名前空間修正（グローバルスコープ整合）および `GetCachePath` 等の主要API拡充、`SceneSerializer` のシーン全体保存・読込API、`DrawManager::SetFrameData` の `CameraForGPU` 引数型注記、`GPUParticleManager::RegisterEmitter` の `depthWrite` 引数追記、RenderGraph の全レンダーパス実行順序（ステージフロー）の図解、2D GPGPU 流体シミュレーション（`FluidSimulation2D` & `IComputeTask`）の仕様・外力注入コード例、および `InputActionValue` の高レベルアクセサ（`GetAsAxis1D/2D`, `GetAsBool`）を完全反映。
 > - 2026/11: 精密ファクトチェックに基づく未記載情報の完全補強。`IrufemiEditor` の標準キーボードショートカット一覧表（Delete, Ctrl+D/Z/Y/S, F, P, Esc）を明文化、`TextRendererComponent` の垂直アライメント（`SetVerticalAlignment`）および `SpriteRendererComponent` のカプセル化アクセサ（`SetFlipX/Y`, `SetAnchor`, `SetBaseSize`）の仕様追加、`InputManager` の包括的無操作放置検知（`HasAnyInput()`）と仮想カーソル制御コード例を完全追記。
+> - 2026/11: 全システム精密精査に基づく開発者向け拡張基盤の完全網羅。第3章にエディタ拡張基盤（`IComponentEditor` / `ComponentEditorRegistry`）による独自カスタムInspector作成・登録手順を明文化。第6章に `LambdaRenderPass`（RDGスタイルのインラインレンダーパス追加）の仕様とコード例、低レイヤーシェーダー管理基盤（`ShaderManager`）のキャッシュアーキテクチャ、およびアニメーション再生速度制御（`PlaybackSpeed` / `GetRawAnimator()`）とボーン追従の階層ベストプラクティスを完全追記。
 
