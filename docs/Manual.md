@@ -414,7 +414,8 @@ void DXCommandManager::CreateRenderTargetViews() {
   void ParticleObject::PrewarmSystem() {
       // パラメータは送信せず、マネージャーに「このテクスチャとブレンドモードを使う」と登録だけ行う
       if (!emitterHandle_.IsValid() && gpuParticleManager_) {
-          emitterHandle_ = gpuParticleManager_->RegisterEmitter(texturePath_, blendMode_, isUnscaledTime_);
+          // 第4引数: enableLighting (ライティング計算フラグ)
+          emitterHandle_ = gpuParticleManager_->RegisterEmitter(texturePath_, blendMode_, isUnscaledTime_, false);
       }
   }
   ```
@@ -575,7 +576,7 @@ std::string str = ConvertString(L"日本語テキスト");
 
 #### コンソールパネル (Console)
 エンジンからのログ出力（エラー、警告、情報）は、エディタ下部の **Console** パネルに表示されます。
-コード内で `Log::Info()`, `Log::Warning()`, `Log::Error()` を呼び出すとリアルタイムに反映され、パネル上の「Clear」ボタンでログを消去できます。
+コード内で `Log::OutPutLog(std::cout, "メッセージ\n")`（通常情報ログ）または `Log::OutPutLog(std::cerr, "エラー\n")`（赤字エラーログ）を呼び出すとリアルタイムに反映され、パネル上の「Clear」ボタンでログを消去できます。
 
 ---
 
@@ -806,7 +807,22 @@ engine_->GetSceneManager()->LoadScene("Title", SceneTransition::Type::Fade, 1.0f
 
 // ホワイトアウト遷移（白フェード）を行う場合: customColor に Vector4(1,1,1,1) を指定
 engine_->GetSceneManager()->LoadScene("Result", SceneTransition::Type::Fade, 1.5f, EaseType::EaseOutQuad, Irufemi::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+
+// 重力ワープ遷移を行う場合
+engine_->GetSceneManager()->LoadScene("InGame", SceneTransition::Type::GravitySingularity, 1.2f, EaseType::EaseInOutQuad);
 ```
+
+##### 【選べるトランジション効果 (`SceneTransition::Type`)】
+エンジンには以下の6種類の高品位トランジションが標準搭載されています。
+
+| トランジション種別 (`SceneTransition::Type`) | 視覚効果と用途 |
+| :--- | :--- |
+| **`Fade`** | 画面全体を徐々に指定色（黒・白など）で塗りつぶす最も標準的なフェード遷移。第5引数の `customColor` で白や任意色に変更可能。 |
+| **`Dissolve`** | ノイズテクスチャを利用し、画面がバラバラに崩れ去る、または再構築されるようなディゾルブ演出。 |
+| **`Slide`** | 画面の端からワイプ（掃き取り）のように色がスライドしてくる演出。 |
+| **`RadialBlur`** | 画面中心に向かって引き込まれるような放射状ブラーを伴いながら暗転遷移する演出。 |
+| **`RadialBlurWhite`** | 放射状ブラーがかかりながら真夜中から真昼へ抜けるようなホワイトアウト遷移演出。 |
+| **`GravitySingularity`** | 空間歪み・重力色収差・流体渦巻きが連動する重力特異点崩壊・ワープ遷移演出。インゲーム突入時等に最適。 |
 
 **2. C++クラスによる手動遷移 (std::string_view によるゼロコピー呼び出し)**
 `BaseScene` を継承した専用クラスへ遷移します。引数はすべて `std::string_view` に統一されており、一時オブジェクトを生成せず高速に処理されます。
@@ -846,6 +862,27 @@ std::string prevScene = engine_->GetSceneManager()->GetPreviousSceneName();
 if (prevScene == "GameScene") {
     // GameScene からポーズされた場合の処理
 }
+```
+
+##### 【カスタムローディング画面の実装 (`ILoadingScreen`)】
+独自のローディング画面（ゲージアニメーションやTips表示など）を描画したい場合は、エンジン提供の `ILoadingScreen`（`#include "Core/System/ILoadingScreen.h"`）を継承したクラスを作成し、エンジンに注入します。
+
+```cpp
+#include "Core/System/ILoadingScreen.h"
+#include "Core/System/IrufemiEngine.h"
+
+class CustomLoadingScreen : public ILoadingScreen {
+public:
+    void OnDrawLoadingScreen(IrufemiEngine* engine, float deltaTime) override {
+        // ローディング中の2Dスプライトやテキスト、アニメーションを描画
+    }
+    void SetFadeAlpha(float alpha) override {
+        // 暗転フェード進行度に応じたアルファ制御
+    }
+};
+
+// ゲーム初期化時（GameApplication等）にエンジンへ登録
+engine->SetLoadingScreen(std::make_shared<CustomLoadingScreen>());
 ```
 
 #### GameObject の検索（名前、タグ、ID）
@@ -1225,7 +1262,7 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
   - `Life Time`: 寿命（秒）
   - `Timeout Action`: 0(Destroy), 1(Disable)
 - **`SplineComponent`**: 複数のウェイポイント（座標リスト）をセットし、Catmull-Rom スプライン補間による滑らかな曲線パスを作成します。
-  - C++コードから `GetPointAt(t)` や `GetTangentAt(t)` を呼ぶことで、曲線上の座標や進行方向ベクトルを取得できます。
+  - C++コードから進行度ベース（`GetPointAt(t)`, `GetTangentAt(t)`）だけでなく、等速移動に不可欠な距離ベース（`GetPointAtDistance(distance)`, `GetTangentAtDistance(distance)`）や総延長距離（`GetTotalLength()`）を取得できます。エディタ上で子ノード（`SplineNodeComponent`）を配置するだけで視覚的にレールが生成されます。
 - **`VirtualEntityManagerComponent`**: 大量のオブジェクト（弾幕、草、群集など）の座標やスケールを「仮想データ」として超軽量な密配列で管理し、必要なときだけ実体の GameObject として生成（Promote）したり、プールに戻す（Demote）ことができる最適化コンポーネントです。
   - `Setup()` で最大数と実体化用のファクトリ関数（GameObjectの生成処理）を渡して初期化します。
   - `AddVirtualInstance()` で座標などを登録するとIDが返され、そのIDを使って `Promote(id)` を呼ぶことでプールから GameObject が貸し出されます。
@@ -1811,28 +1848,35 @@ myParticle.EmitBurst(50);
 
 #### 【上級者向け】GPUParticleManager の直接利用
 直接マネージャーに通信して描画リクエストを送ることも可能です（独自の最適化を行いたい場合など）。
-※現在のマネージャーは「テクスチャ + ブレンドモード + タイムスケール」の複合キーで管理されています。
+マネージャーはエンジンインスタンスから取得し、エミッターは「テクスチャ + ブレンドモード + タイムスケール + ライティング」の複合キーで一元管理されます。
 
 ```cpp
 #include "Renderer/System/ParticleGPU/GPUParticleManager.h"
 #include "Renderer/System/ParticleGPU/GPUParticleSystem.h"
 
-// 1. マネージャーにエミッターを登録（テクスチャ、ブレンドモード、ポーズ中動作フラグ）
-auto handle = GPUParticleManager::GetInstance()->RegisterEmitter(
+// 1. エンジンからマネージャーを取得
+auto* gpm = engine_->GetGPUParticleManager();
+
+// 2. マネージャーにエミッターを登録（テクスチャ、ブレンドモード、ポーズ中動作フラグ、ライティング計算フラグ）
+auto handle = gpm->RegisterEmitter(
     "effect/particle_tex.png", 
-    BlendMode::kBlendModeAdd, 
-    false // trueにするとポーズ中(UnscaledTime)でも動作する
+    Irufemi::BlendMode::kBlendModeAdd, 
+    false, // trueにするとポーズ中(UnscaledTime)でも動作する
+    false  // enableLighting: ライティング影響フラグ
 );
 
-// 2. パラメータを設定してマネージャーに更新を通知
+// 3. パラメータを設定してマネージャーに更新を通知
 GPUParticleEmitter data;
 data.emit = 1;
 data.type = 0; // 0: Sphere, 1: Beam, 2: Ring, 3: Cylinder, 4: Box
 data.translateX = 10.0f;
 data.emissionRate = 50.0f; // 1秒あたりの連続放出数
 
-// 3. データの適用
-GPUParticleManager::GetInstance()->UpdateEmitterData(handle, data);
+// 4. データの適用
+gpm->UpdateEmitterData(handle, data);
+
+// 5. 不要になったら安全に登録解除
+// gpm->UnregisterEmitter(handle);
 ```
 
 #### GPU Bitonic Sort による半透明ソート (Zソート)
@@ -1840,7 +1884,10 @@ GPUParticleManager::GetInstance()->UpdateEmitterData(handle, data);
 これにより、CPUへデータを差し戻すオーバーヘッドをゼロにしつつ、数万のパーティクルが奥から手前へ正しくアルファブレンドされるAAA品質のレンダリングパイプラインが構築されています。開発者はソートの負荷や描画順序の破綻を一切気にする必要がありません。
 
 #### ゲーム中での一時的なエフェクト再生 (爆発など)
-シーン内の特定座標に単発（ワンショット）の爆発エフェクトなどを出したい場合は、新しく追加された `Effect` クラスを使用するのが最も簡単です。
+シーン内の特定座標に単発（ワンショット）の爆発エフェクトなどを出したい場合は、`Effect` クラス（低レイヤー）またはプレハブ・コンポーネント（`VoxelParticleComponent` や `ParticleEmitterComponent`）を使用します。
+
+> [!NOTE]
+> `Effect` クラス（低レイヤー）を直接利用する場合、エンジン共通ポインタ `Effect::SetEngine(engine)` が設定されている必要があります。通常のゲーム開発では、シーンのプレハブ動的生成（`Instantiate`）や `VoxelParticleComponent::Explode()`、`ScreenEffectComponent` 等のコンポーネント指向での実装が強く推奨されます。
 
 ```cpp
 #include "Renderer/Object/Effect/Effect.h"
@@ -2390,8 +2437,8 @@ if (debugRenderer && debugRenderer->IsEnabled()) {
 
 // 1. 同期レイキャスト
 Irufemi::Ray ray;
-ray.start = GetTransform()->GetWorldPosition();
-ray.diff = GetTransform()->GetWorldForward();
+ray.origin = GetTransform()->GetWorldPosition(); // 始点
+ray.diff = GetTransform()->GetWorldForward();   // 終点への方向・差分ベクトル
 
 RaycastHit hitInfo;
 if (collisionManager->Raycast(ray, hitInfo, 1000.0f, 0xFFFFFFFF, GetGameObject())) {
@@ -2703,13 +2750,13 @@ C++コード内に音声ファイルのパス（`"resources/audio/..."`）や音
   // 2. 列挙型（GameSE）を指定して型安全にワンショット再生（音量・ピッチ乗数の指定も可能）
   SoundHelper::Play(GameSE::PlayerBoost);
   SoundHelper::Play(GameSE::DebrisShatter);
-  // 文字列キーによる再生オーバーロード（イベント・スクリプト連携用）
-  // SoundHelper::Play("MenuDecide");
+  // 文字列キーによる再生（JSONイベント・スクリプト連携用）
+  SoundHelper::PlayByName("MenuDecide");
 
-  // 3. BGMのクロスフェード・再生（第2引数はフェード時間(秒)）
-  SoundHelper::PlayBGM(GameBGM::Stage1, 1.0f);
-  // BGMの停止（フェードアウト指定対応）
-  // SoundHelper::StopBGM(1.0f);
+  // 3. BGMの再生（第2引数で音量乗数 volumeMultiplier を指定可能）
+  SoundHelper::PlayBGM(GameBGM::Stage1);
+  // BGMの停止
+  SoundHelper::StopBGM();
   ```
   ※これにより、プランナーやサウンドデザイナーがC++の再ビルドなしで音量バランスの調整や音源差し替えを即座に行えます。
 
@@ -2864,8 +2911,26 @@ if (input->IsMouseButtonDown(Mouse::Button::Left) && slider->CheckBounds(mousePo
 
 #### 8.3.5 ScreenCaptureManager (スクリーンショット・メタデータ)
 
-画面のキャプチャを安全に行うためのシステムです。UIを含めない純粋なシーンのみ (`PreUI`) や、UIを含めた最終画面 (`PostUI`) の出力、さらにはアルファチャンネルや深度バッファのみの出力に対応しています。
-- **メタデータ連携**: キャプチャ時にエンジン内の状態をJSONメタデータとして同時に出力する機能（`RecordMetadata`）も備わっており、機械学習用データセットの作成などに応用可能です。
+画面のキャプチャを安全に行うためのシステムです。UIを含めない純粋なシーンのみ (`ScreenCaptureType::SceneOnly`) や、UIを含めた最終画面 (`ScreenCaptureType::WithUI`) の出力、さらにはアルファチャンネルや深度バッファのみの出力に対応しています。
+- **メタデータ連携**: キャプチャ時にエンジン内の状態をJSONメタデータとして同時に出力する機能（`RequestCaptureWithMetadata`）も備わっており、機械学習用データセットの作成などに応用可能です。
+- **スレッドセーフ非同期保存**: `ThreadPool` を用いてバックグラウンドで画像エンコードとディスク書き出しを行うため、保存時のフレームドロップが発生しません。
+
+```cpp
+#include "Renderer/ScreenCaptureManager.h"
+
+auto* captureManager = engine_->GetScreenCaptureManager();
+
+// 1. 純粋な3Dシーン（UI抜き）のキャプチャ
+captureManager->RequestCapture(L"screenshots/scene.png", ScreenCaptureType::SceneOnly, []() {
+    Log::OutPutLog(std::cout, "シーンキャプチャ保存完了\n");
+});
+
+// 2. UIを含めた全画面＋メタデータJSON付き保存
+captureManager->RequestCaptureWithMetadata(L"screenshots/gameplay.png", ScreenCaptureType::WithUI);
+
+// 3. 深度マップ（Depth）の出力
+captureManager->RequestCaptureDepth(L"screenshots/depth.png");
+```
 
 ---
 
@@ -2930,6 +2995,18 @@ std::weak_ptr<VoiceInstance> voice = engine_->GetAudioManager()->Play(soundData,
 
 // 5. 停止
 engine_->GetAudioManager()->Stop(voice);
+
+// 6. 【カテゴリ別音量制御・フェード】(設定画面・ポーズメニュー用)
+// 全体マスター音量、BGM音量、SE音量を独立制御（0.0f〜1.0f）
+engine_->GetAudioManager()->SetCategoryVolume(AudioCategory::BGM, 0.7f);
+engine_->GetAudioManager()->SetCategoryVolume(AudioCategory::SE, 0.9f);
+
+// 2秒かけてBGMを目標音量へ滑らかにフェード
+engine_->GetAudioManager()->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 2.0f);
+
+// ポーズ時のカテゴリ別一時停止と復帰
+engine_->GetAudioManager()->PauseCategory(AudioCategory::SE);
+engine_->GetAudioManager()->ResumeCategory(AudioCategory::SE);
 ```
 
 #### 9.1.4 FontManager (フォントとテキストの管理)
@@ -3274,4 +3351,5 @@ public:
 > - 2026/11: Manual.mdの総合精査および実コード乖離修正。解像度正規アクセサ（`GetClientWidth()` 等）への整合、`ScopedEffectHandle`（RAII寿命管理）および `GetEffect<T>()` 追記、CodeGen（`GeneratePostProcessHlsl.py`）および `PropertyVisitor` によるDebugUI自動展開ワークフローの明文化、6.5節の重複記述（マジックナンバー残存部）の整理と更新履歴配置の適正化
 > - 2026/11: Manual.mdの精密ファクトチェックおよび不足基盤システムの完全拡充。`UINavigationController` の決定入力（存在しない `IsSubmitted()` 撤廃）および `PostProcessManager`（存在しない `SetModeEnabled` 撤廃・`ActivateScoped` 推奨化）の実コード整合、`CameraComponent` の正規アクセサ整合、補間・イージング基盤（`Ease.h` / `Lerp` / `Slerp` / `EvaluateEase`）、GPUインスタンシングデバッグ描画（`DebugPrimitiveRenderer`）、マルチカメラ管理（`CameraManager`）、文字列変換（`StringUtility.h` / `ConvertString`）の仕様・スニペットを追記
 > - 2026/11: Manual.mdの精密再精査と全コードベース整合。`EaseType::EaseOutQuad` / `ToRadian(90.0f)` / `MeshRendererComponent` の JSON キー名（`modelName`）の誤記修正、`Collision.h` インクルード漏れおよび `DebugPrimitiveRenderer` 取得元（`engine_->GetDebugPrimitiveRenderer()`）のコンパイルエラー解消、`Dot` / `Cross` のグローバルスコープ整合、`TargetFollowComponent`（`SnapToTarget()`）および `LifetimeComponent` / `TextureManager` / `ModelManager` のヘッダーパス・API仕様を完全拡充
+> - 2026/11: Manual.mdの精密ファクトチェック修正および未記載基盤の完全網羅。`Irufemi::Ray`（`origin`）および `Log`（`OutPutLog`）のコンパイルエラー解消、`GPUParticleManager`（`GetGPUParticleManager()` / `enableLighting` 引数 / `UnregisterEmitter`）と `SoundHelper`（`PlayByName` / 音量乗数 / 引数なし `StopBGM`）の実コード整合、`Effect` クラスの初期化注記、シーン遷移トランジション全6種（`SceneTransition::Type`）とカスタムローディング画面（`ILoadingScreen`）、`AudioManager` のカテゴリ音量・フェード制御（`SetCategoryVolume` / `FadeCategoryVolume`）、および `ScreenCaptureManager` のC++リクエストコードを完全拡充
 
