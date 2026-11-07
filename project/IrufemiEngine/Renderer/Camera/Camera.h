@@ -116,7 +116,7 @@ public: // メンバ関数
      * @param windowWidth ウィンドウの幅
      * @param windowHeight ウィンドウの高さ
      */
-    void Initialize(const int& windowWidth = 1280, const int& windowHeight = 720);
+    void Initialize(int windowWidth = 1280, int windowHeight = 720);
 
     /**
      * @brief 更新処理
@@ -236,7 +236,7 @@ public: // メンバ関数
      * @brief FovY を設定する。
      * @param[in] fovY 設定する FovY の値
      */
-    void SetFovY(const float& fovY) {
+    void SetFovY(float fovY) {
         this->fovAngleY_ = fovY;
         this->isDirtyProjection_ = true;
     }
@@ -247,6 +247,14 @@ public: // メンバ関数
      */
     float GetFovY() const {
         return this->fovAngleY_;
+    }
+
+    /**
+     * @brief アスペクト比を取得する
+     * @return アスペクト比 (幅 / 高さ)
+     */
+    float GetAspectRatio() const {
+        return this->aspectRatio_;
     }
 
     // ゲッター
@@ -336,42 +344,42 @@ public: // メンバ関数
      * @brief NearZ を取得する。
      * @return 取得された NearZ
      */
-    const float& GetNearZ() const {
+    float GetNearZ() const {
         return nearZ_;
     }
     /**
      * @brief FarZ を取得する。
      * @return 取得された FarZ
      */
-    const float& GetFarZ() const {
+    float GetFarZ() const {
         return farZ_;
     }
 
     /**
      * @brief 3DカメラのNearClipを取得する（GetNearZのエイリアス）
      */
-    const float& GetNearClip() const {
+    float GetNearClip() const {
         return nearZ_;
     }
 
     /**
      * @brief 3DカメラのFarClipを取得する（GetFarZのエイリアス）
      */
-    const float& GetFarClip() const {
+    float GetFarClip() const {
         return farZ_;
     }
 
     /**
      * @brief 2D正射影の近平面を取得する（UI空間用）
      */
-    const float& GetOrthographicNearClip() const {
+    float GetOrthographicNearClip() const {
         return nearClip_;
     }
 
     /**
      * @brief 2D正射影の遠平面を取得する（UI空間用）
      */
-    const float& GetOrthographicFarClip() const {
+    float GetOrthographicFarClip() const {
         return farClip_;
     }
 
@@ -414,14 +422,14 @@ public:
      * @brief ViewportWidth を取得する。
      * @return 取得された ViewportWidth
      */
-    const float& GetViewportWidth() const {
+    float GetViewportWidth() const {
         return width_;
     }
     /**
      * @brief ViewportHeight を取得する。
      * @return 取得された ViewportHeight
      */
-    const float& GetViewportHeight() const {
+    float GetViewportHeight() const {
         return height_;
     }
 };

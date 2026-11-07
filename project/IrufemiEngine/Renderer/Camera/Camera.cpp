@@ -10,7 +10,7 @@ Camera::Camera() {}
 Camera::~Camera() {}
 
 // 初期化
-void Camera::Initialize(const int& windowWidth, const int& windowHeight) {
+void Camera::Initialize(int windowWidth, int windowHeight) {
     width_ = static_cast<float>(windowWidth);
     height_ = static_cast<float>(windowHeight);
 

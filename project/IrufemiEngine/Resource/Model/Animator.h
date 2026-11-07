@@ -88,6 +88,7 @@ private:
     float fadeTimer_ = 0.0f;
     float fadeDuration_ = 0.0f;
     bool isBlending_ = false;
+    bool previousIsLooping_ = false;
 
     // ルートモーション用
     Irufemi::Vector3 deltaRootTranslation_ = {0.0f, 0.0f, 0.0f};

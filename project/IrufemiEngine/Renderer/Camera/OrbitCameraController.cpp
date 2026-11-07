@@ -1,5 +1,5 @@
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
+
+#include <cmath>
 #include "Renderer/Camera/OrbitCameraController.h"
 #include "Core/Math/MathFunction.h"
 #include <algorithm>
@@ -11,8 +11,8 @@ void OrbitCameraController::UpdateCameraInput(Camera* camera, InputManager* inpu
 
     bool isMiddleButtonDown = input->IsMouseButtonDown(Mouse::Button::Middle);
     bool isRightButtonDown = input->IsMouseButtonDown(Mouse::Button::Right);
-    auto* keyboard = input->GetKeyboard();
-    bool isShiftDown = keyboard->IsKeyDownDIK(DIK_LSHIFT) || keyboard->IsKeyDownDIK(DIK_RSHIFT);
+    bool isShiftDown = input->IsShiftDown();
+
     Irufemi::Vector2 mouseDelta = input->GetMouseDelta();
 
     // 初期化されていない場合は現在のカメラからTarget等を逆算する
@@ -120,7 +120,15 @@ void OrbitCameraController::Frame(Camera* camera, const Irufemi::Vector3& center
     if (fovY <= 0.001f) {
         fovY = 45.0f * (Irufemi::Math::PI / 180.0f);
     }
-    float distance = (radius / std::sin(fovY * 0.5f)) * 1.35f;
+    // 水平視野角（fovX）を算出し、幅と高さのいずれにも確実に収まる最小視野角を用いて距離を計算
+    float aspect = camera->GetAspectRatio();
+    if (aspect <= 0.001f) {
+        aspect = 16.0f / 9.0f;
+    }
+    float fovX = 2.0f * std::atan(std::tan(fovY * 0.5f) * aspect);
+    float minFov = (std::min)(fovY, fovX);
+
+    float distance = (radius / std::sin(minFov * 0.5f)) * 1.35f;
     if (distance < 1.0f) {
         distance = 1.0f;
     }

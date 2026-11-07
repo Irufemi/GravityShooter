@@ -47,6 +47,22 @@ public:
     bool IsKeyReleased(uint8_t key) const;
     ///@}
 
+    /** @name 修飾キー判定 */
+    ///@{
+    /** @brief Shiftキー（左右いずれか）が押されているか判定 */
+    bool IsShiftDown() const {
+        return IsKeyDown(VK_SHIFT) || IsKeyDown(VK_LSHIFT) || IsKeyDown(VK_RSHIFT);
+    }
+    /** @brief Ctrlキー（左右いずれか）が押されているか判定 */
+    bool IsCtrlDown() const {
+        return IsKeyDown(VK_CONTROL) || IsKeyDown(VK_LCONTROL) || IsKeyDown(VK_RCONTROL);
+    }
+    /** @brief Altキー（左右いずれか）が押されているか判定 */
+    bool IsAltDown() const {
+        return IsKeyDown(VK_MENU) || IsKeyDown(VK_LMENU) || IsKeyDown(VK_RMENU);
+    }
+    ///@}
+
     /** @name DIK互換API */
     ///@{
     /** @brief 指定したDirectInputキー（DIK）が押されているか判定 */

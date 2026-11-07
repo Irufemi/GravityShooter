@@ -103,6 +103,21 @@ public:
      * @details 同一フレーム内の後続システムへキー入力を伝播させない（Handled状態にする）ために使用します。
      */
     void ConsumeKey(uint8_t key);
+
+    /** @name 修飾キー判定 */
+    ///@{
+    /** @brief Shiftキー（左右いずれか）が押されているか判定 */
+    bool IsShiftDown() const {
+        return keyboard_ ? keyboard_->IsShiftDown() : false;
+    }
+    /** @brief Ctrlキー（左右いずれか）が押されているか判定 */
+    bool IsCtrlDown() const {
+        return keyboard_ ? keyboard_->IsCtrlDown() : false;
+    }
+    /** @brief Altキー（左右いずれか）が押されているか判定 */
+    bool IsAltDown() const {
+        return keyboard_ ? keyboard_->IsAltDown() : false;
+    }
     ///@}
 
     /** @name DIK互換API */

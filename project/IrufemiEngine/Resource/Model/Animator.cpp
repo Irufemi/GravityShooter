@@ -5,6 +5,7 @@
 #include "Framework/UI/DebugUI.h"
 #include "Core/Math/Math.h"
 #include <cmath>
+#include <algorithm>
 
 #if defined USE_IMGUI
 #include <imgui.h>
@@ -31,12 +32,14 @@ void Animator::Play(const std::string& filename, bool loop, float fadeDuration) 
         previousAnimation_ = currentAnimation_;
         previousAnimationName_ = currentAnimationName_;
         previousAnimationTime_ = animationTime_;
+        previousIsLooping_ = isLooping_;
         fadeTimer_ = 0.0f;
         fadeDuration_ = fadeDuration;
         isBlending_ = true;
     } else {
         isBlending_ = false;
         previousAnimation_.reset();
+        previousIsLooping_ = false;
     }
 
     currentAnimation_ = newAnim;
@@ -91,14 +94,19 @@ void Animator::Update(SkeletonPose& targetPose) {
         float prevDeltaTime =
             engine_->GetGameDeltaTime() * playbackSpeed_; // ブレンド元の旧アニメーションも同一の再生速度で進行
         previousAnimationTime_ += prevDeltaTime;
-        if (previousAnimation_->duration > 0.0f && isLooping_) {
-            previousAnimationTime_ = std::fmod(previousAnimationTime_, previousAnimation_->duration);
+        if (previousAnimation_->duration > 0.0f) {
+            if (previousIsLooping_) {
+                previousAnimationTime_ = std::fmod(previousAnimationTime_, previousAnimation_->duration);
+            } else {
+                previousAnimationTime_ = (std::min)(previousAnimationTime_, previousAnimation_->duration);
+            }
         }
 
         float weight = fadeTimer_ / fadeDuration_;
         if (weight >= 1.0f) {
             isBlending_ = false;
             previousAnimation_.reset();
+            previousIsLooping_ = false;
             AnimationManager::ApplyAnimation(targetPose, *currentAnimation_, animationTime_,
                                              false); // Rootは適用しない(外部で移動)
         } else {
