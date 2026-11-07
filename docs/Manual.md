@@ -805,7 +805,7 @@ private:
 engine_->GetSceneManager()->LoadScene("Title", SceneTransition::Type::Fade, 1.0f);
 
 // ホワイトアウト遷移（白フェード）を行う場合: customColor に Vector4(1,1,1,1) を指定
-engine_->GetSceneManager()->LoadScene("Result", SceneTransition::Type::Fade, 1.5f, EaseType::OutQuad, Irufemi::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+engine_->GetSceneManager()->LoadScene("Result", SceneTransition::Type::Fade, 1.5f, EaseType::EaseOutQuad, Irufemi::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 ```
 
 **2. C++クラスによる手動遷移 (std::string_view によるゼロコピー呼び出し)**
@@ -972,7 +972,7 @@ Vector3 forward = transform->GetWorldForward();
 // --- 更新 (Setter) ---
 // 値を更新すると、内部で Dirty フラグ (isLocalDirty_) が立ちます
 transform->SetPosition(Vector3(10, 5, 0));
-transform->SetRotation(Vector3(0, Math::ToRadian(90), 0));
+transform->SetRotation(Vector3(0, ToRadian(90.0f), 0)); // Core/Math/MathFunction.h
 transform->SetScale(Vector3(2, 2, 2));
 ```
 
@@ -1297,6 +1297,11 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
 
 #### 4. TargetFollowComponent (スムーズダンピング追従)
 注視点および位置をスムーズダンピング（追従遅延・Lerp補間）しながら滑らかに追尾するカメラコンポーネントです。
+- **ヘッダー**: `#include "Framework/Component/Camera/TargetFollowComponent.h"`
+- **主な機能・API**:
+  - `SnapToTarget()`: シーン遷移直後やプレイヤーリスポーン時、補間遅延を行わずにターゲットの現在位置・向きへカメラを即座にスナップ配置（Camera Cut）します。
+  - インスペクターから `Target Object ID`、`Offset` (右, 上, 前)、`Follow Delay` (追従遅延係数: 0.0で即時追従、1.0に近いほど滑らかに遅延) をリアルタイムに調整・シリアライズ可能。
+  - 追従対象への参照は `std::weak_ptr<GameObject>` による安全な弱参照で保護されており、対象破棄時のクラッシュを防止します。
 
 ---
 
@@ -1391,6 +1396,8 @@ IrufemiEngine は用途と計算負荷に合わせて3種類の3Dコライダー
 
 #### 2. LifetimeComponent (自動自己消滅)
 一定時間（秒数）経過後に自動的に `GetGameObject()->Destroy()` を呼び出すタイマーコンポーネントです。弾薬や一時的なパーティクル発生オブジェクトにアタッチします。
+- **ヘッダー**: `#include "Framework/Component/Utility/LifetimeComponent.h"`
+- **主な機能**: `SetLifeTime(float seconds)`, `SetTimeoutAction(TimeoutAction action)` (0: Destroy, 1: Disable) によるプール運用対応。
 
 #### 3. SplineComponent / SplineNodeComponent (レール移動・カメラパス)
 Catmull-Rom スプライン曲線を定義し、レールシューターの自機・敵編隊の飛行ルートやカメラレールを構築します。
@@ -1581,7 +1588,7 @@ renderer->SetEnableLighting(false); // Unlit（陰影なし・自己発光）モ
 ```json
 {
     "type": "MeshRendererComponent",
-    "modelPath": "resources/models/skydome/skydome.obj",
+    "modelName": "resources/model/skydome/skydome.obj",
     "enableLighting": false
 }
 ```
@@ -2335,6 +2342,7 @@ collider->SetSize({ 1.0f, 2.0f, 1.0f });
 `OBB` (有向境界箱) や `Sphere` などの定義と交差判定を行います。
 
 ```cpp
+#include "Physics/Collision/Collision.h"
 #include "Core/Math/Geometry/OBB.h"
 #include "Core/Shape/Sphere.h"
 
@@ -2361,7 +2369,8 @@ if (IsCollision(playerOBB, enemySphere)) {
 ```cpp
 #include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
 
-auto* debugRenderer = engine_->GetDrawManager()->GetDebugPrimitiveRenderer();
+// Engine コアから直接取得（DrawManager 経由ではありません）
+auto* debugRenderer = engine_->GetDebugPrimitiveRenderer();
 if (debugRenderer && debugRenderer->IsEnabled()) {
     // 1. デバッグ球の描画 (中心座標, 半径, カラーRGBA, カテゴリ)
     debugRenderer->AddSphere(targetPos, 2.5f, {1.0f, 0.2f, 0.2f, 0.6f}, DebugCategory::Combat);
@@ -2509,9 +2518,9 @@ direction.Normalize();              // 破壊的正規化
 Vector3 norm = direction.GetNormalized(); // 非破壊的正規化
 
 // 3. 内積 (Dot) と 外積 (Cross)
-// メンバ関数呼び出し、または Irufemi::Math::Dot / Cross ユーティリティを使用可能
-float d = forward.Dot(targetDir);   // または Irufemi::Math::Dot(forward, targetDir)
-Vector3 c = up.Cross(right);        // または Irufemi::Math::Cross(up, right)
+// メンバ関数呼び出し、または Core/Math/MathFunction.h のグローバル関数 Dot / Cross を使用可能
+float d = forward.Dot(targetDir);   // または Dot(forward, targetDir)
+Vector3 c = up.Cross(right);        // または Cross(up, right)
 
 // 4. 浮動小数点の安全な比較
 // == 演算子は厳密な一致(ビット完全一致)を判定しますが、計算誤差が含まれる場合は Equals を使います。
@@ -2867,6 +2876,8 @@ if (input->IsMouseButtonDown(Mouse::Button::Left) && slider->CheckBounds(mousePo
 ### 9.1 リソース管理システム (ResourceHandle & 各種Manager)
 
 #### 9.1.1 TextureManager (テクスチャ管理)
+- **ヘッダー**: `#include "Resource/Texture/TextureManager.h"`
+
 `Sprite` などの描画に必要な画像をロードし、GPU用のハンドルを取得します。同じ画像を何度ロードしても、1度だけメモリに乗るようになっています。
 C++のコードから直接テクスチャを管理する場合は、戻り値として `ResourceHandle` を受け取ります。
 
@@ -2881,6 +2892,8 @@ engine_->GetTextureManager()->LoadAllFromFolder("resources/ui");
 ```
 
 #### 9.1.2 ModelManager (3Dモデル管理)
+- **ヘッダー**: `#include "Resource/Model/ModelManager.h"`
+
 ##### ModelManager のメモリバジェット管理と自動キャッシュパージ
 3Dモデルデータ（頂点バッファ、インデックスバッファ、マテリアル等）が肥大化しVRAM/RAMを圧迫することを防ぐため、`ModelManager` はLRU（Least Recently Used）に基づくメモリバジェット管理を備えています。
 - 一定容量（バジェット）を超過した場合、参照カウントが0の未使用モデルを自動的に安全アンロードします。
@@ -3260,4 +3273,5 @@ public:
 > - 2026/11: 総合精査を実施。VS2026ソリューション構成（Irufemi.slnx）一本化、面光源（`AreaLight`）および `DrawManager::SetFrameData` 最新シグネチャ追記、`PostProcessManager` / `EffectMaskComponent` / `AttractDemoManager` のAPIスニペット修正、`UINavigationController` / `input_actions.json` / `CollisionLayers.json` / `ConsoleCommandSystem` の仕様を追記
 > - 2026/11: Manual.mdの総合精査および実コード乖離修正。解像度正規アクセサ（`GetClientWidth()` 等）への整合、`ScopedEffectHandle`（RAII寿命管理）および `GetEffect<T>()` 追記、CodeGen（`GeneratePostProcessHlsl.py`）および `PropertyVisitor` によるDebugUI自動展開ワークフローの明文化、6.5節の重複記述（マジックナンバー残存部）の整理と更新履歴配置の適正化
 > - 2026/11: Manual.mdの精密ファクトチェックおよび不足基盤システムの完全拡充。`UINavigationController` の決定入力（存在しない `IsSubmitted()` 撤廃）および `PostProcessManager`（存在しない `SetModeEnabled` 撤廃・`ActivateScoped` 推奨化）の実コード整合、`CameraComponent` の正規アクセサ整合、補間・イージング基盤（`Ease.h` / `Lerp` / `Slerp` / `EvaluateEase`）、GPUインスタンシングデバッグ描画（`DebugPrimitiveRenderer`）、マルチカメラ管理（`CameraManager`）、文字列変換（`StringUtility.h` / `ConvertString`）の仕様・スニペットを追記
+> - 2026/11: Manual.mdの精密再精査と全コードベース整合。`EaseType::EaseOutQuad` / `ToRadian(90.0f)` / `MeshRendererComponent` の JSON キー名（`modelName`）の誤記修正、`Collision.h` インクルード漏れおよび `DebugPrimitiveRenderer` 取得元（`engine_->GetDebugPrimitiveRenderer()`）のコンパイルエラー解消、`Dot` / `Cross` のグローバルスコープ整合、`TargetFollowComponent`（`SnapToTarget()`）および `LifetimeComponent` / `TextureManager` / `ModelManager` のヘッダーパス・API仕様を完全拡充
 
