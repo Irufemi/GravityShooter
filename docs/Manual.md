@@ -46,6 +46,8 @@
   - [6.6 GPU カリング (GPU Culling & ExecuteIndirect)](#66-gpu-カリング-gpu-culling--executeindirect)
   - [6.7 Bindless Resources (Descriptor Indexing) 完全移行](#67-bindless-resources-descriptor-indexing-完全移行)
   - [6.8 シェーダーの追加・変更・コンパイル構成](#68-シェーダーの追加変更コンパイル構成)
+  - [6.9 動的シャドウマップシステム (ShadowPass & ShadowMap)](#69-動的シャドウマップシステム-shadowpass--shadowmap)
+  - [6.10 ライティングシステム (Directional, Point, Spot)](#610-ライティングシステム-directional-point-spot)
 - [7. 物理・衝突判定と空間分割 (Physics, Colliders & BVH)](#7-物理衝突判定と空間分割-physics-colliders--bvh)
   - [7.1 衝突判定マネージャー (CollisionManager)](#71-衝突判定マネージャー-collisionmanager)
   - [7.2 動的BVH(TLAS)による空間クエリ最適化](#72-動的bvhtlasによる空間クエリ最適化)
@@ -1265,9 +1267,11 @@ Unreal Engine の PostProcessVolume に相当するコンポーネントです�
 - **ヘッダー**: `#include "Framework/Component/Effect/FogComponent.h"`
 
 #### 4. ParticleEmitterComponent / ParticleFieldComponent / VoxelParticleComponent
-- **ParticleEmitterComponent**: 特定の発生源からパーティクルを噴射
-- **ParticleFieldComponent**: 空間全域に漂う環境パーティクル（塵・光子）を配置
-- **VoxelParticleComponent**: 敵やオブジェクト破壊時にブロック状のキューブ破片を四方へ飛散
+- **ParticleEmitterComponent**: 特定の発生源からパーティクルを噴射（球、ビーム、ボックス、円柱などの形状に対応）。
+- **ParticleFieldComponent**: GPUパーティクルに対して重力・風・吸引・斥力などの**フォースフィールド（力場）**を与えるコンポーネント。竜巻、ブラックホール吸引、強風域などを表現します。
+  - **ヘッダー**: `#include "Framework/Component/Effect/ParticleFieldComponent.h"`
+  - エディタの Inspector からフィールドの種類（Gravity, Wind, Attract, Repel）、強さ（Strength）、影響範囲（Radius / BoxSize）をリアルタイムに調整・シリアライズ可能。
+- **VoxelParticleComponent**: 敵やオブジェクト破壊時にブロック状のキューブ破片を四方へ飛散（事前プール32体、寿命・初速動的制御対応）。
 
 #### 5. EffectMaskComponent (個別オブジェクトマスク)
 特定オブジェクトに対してのみアウトラインやシルエット発光を適用するためのマスクバッファ登録コンポーネントです。
@@ -1326,7 +1330,29 @@ IrufemiEngine は用途と計算負荷に合わせて3種類の3Dコライダー
 一定時間（秒数）経過後に自動的に `GetGameObject()->Destroy()` を呼び出すタイマーコンポーネントです。弾薬や一時的なパーティクル発生オブジェクトにアタッチします。
 
 #### 3. SplineComponent / SplineNodeComponent (レール移動・カメラパス)
-スプライン曲線を定義し、レールシューターの進行軌道や敵の編隊飛行ルートを構築します。
+Catmull-Rom スプライン曲線を定義し、レールシューターの自機・敵編隊の飛行ルートやカメラレールを構築します。
+- **ヘッダー**: 
+  - `#include "Framework/Component/Utility/SplineComponent.h"`
+  - `#include "Framework/Component/Utility/SplineNodeComponent.h"`
+- **エディタでの制作手順**:
+  1. 親となる `GameObject`（例: "RailPath"）に `SplineComponent` をアタッチします。
+  2. その子要素として複数の空の `GameObject` を作成し、それぞれに `SplineNodeComponent`（または単なる `TransformComponent`）をアタッチします。
+  3. エディタの Scene View 上で各子ノードの座標をギズモで移動させると、自動的に滑らかなスプライン曲線が生成され、エディタ上でデバッグレールが視覚的にリアルタイム描画されます。
+- **C++ コードからのサンプリングAPI**:
+  ```cpp
+  #include "Framework/Component/Utility/SplineComponent.h"
+
+  auto* spline = railObj->GetComponent<SplineComponent>();
+
+  // 1. 進行度 t (0.0f = 開始点 〜 1.0f = 終点) による座標・接線取得
+  Vector3 pos = spline->GetPointAt(t);
+  Vector3 forward = spline->GetTangentAt(t); // 正規化された進行方向
+
+  // 2. 走行距離（メートル）ベースでの高精度サンプリング（等速移動に最適）
+  float totalLen = spline->GetTotalLength(); // スプライン全体の総延長距離(m)
+  Vector3 posAtDist = spline->GetPointAtDistance(currentDistance);
+  Vector3 forwardAtDist = spline->GetTangentAtDistance(currentDistance);
+  ```
 
 #### 4. BoneAttachmentComponent (特定ボーン追従)
 モデルの特定のボーン（関節）に追従するコンポーネントです。武器やアクセサリーをキャラクターの手に持たせる際や、特定の関節からエフェクトを発生させる際に、対象ボーンのワールド行列に同期して移動・回転させます。
@@ -1389,7 +1415,7 @@ IrufemiEngine は用途と計算負荷に合わせて3種類の3Dコライダー
 // 1. コンポーネントの追加
 auto virtualManager = gameObject_->AddComponent<VirtualEntityManagerComponent>();
 
-// 2. プールサイズと生成ファクトリの登録
+// 2. プールサイズと最大予約数、生成ファクトリの登録
 auto factory = [this]() -> std::shared_ptr<GameObject> {
     auto obj = std::make_shared<GameObject>("MyEntity");
     obj->AddComponent<DebrisComponent>(); // 物理挙動などをアタッチ
@@ -1397,7 +1423,8 @@ auto factory = [this]() -> std::shared_ptr<GameObject> {
     gameObject_->AddChild(obj);
     return obj;
 };
-virtualManager->Setup(500, factory); // 最大500個までは同時に実体化可能
+// 第1引数: 実体化プールの最大数(500), 第2引数: 仮想インスタンスの最大予約数(2000), 第3引数: 生成関数
+virtualManager->Setup(500, 2000, factory);
 ```
 
 2. **データの追加（実体化しない）**:
@@ -1407,13 +1434,15 @@ int id = virtualManager->AddVirtualInstance(Vector3(10, 0, 0));
 ```
 
 3. **データの更新 (Data-Oriented Update)**:
-   アニメーションなどを適用したい場合は、`GetVirtualInstances()` で配列を取得し、毎フレーム直接書き換えます。実体がないため超高速に処理されます。
+   アニメーションなどを適用したい場合は、`GetDenseInstances()` で配列を参照し、`GetInstance(id)` を介して直接書き換えます。実体がないため超高速に処理されます。
 ```cpp
-auto& instances = virtualManager->GetVirtualInstances();
-for (auto& vi : instances) {
-    if (!vi.isPromoted_ && !vi.isDestroyed_) {
-        // 例：Y座標をフワフワさせる
-        vi.position_.y += std::sin(time) * 0.1f;
+const auto& instances = virtualManager->GetDenseInstances();
+for (const auto& vi : instances) {
+    if (!vi.isPromoted && !vi.isDestroyed) {
+        if (auto* mutableInst = virtualManager->GetInstance(vi.id)) {
+            // 例：Y座標をフワフワさせる
+            mutableInst->position.y += std::sin(time) * 0.1f;
+        }
     }
 }
 ```
@@ -1654,8 +1683,23 @@ skybox_->Draw();
 
 #### 汎用2Dプリミティブ描画 (Primitive2DObject / Primitive2DRendererComponent) の利用方法
 
-2D空間での汎用的な図形（四角形、円、線、リングなど）を簡単に描画するための `Primitive2DObject` および、それをエディタで直感的に扱える `Primitive2DRendererComponent` が追加されました。
-デバッグ表示、UIの枠線、シンプルな2Dエフェクトなどに最適です。
+2D空間での汎用的な図形（四角形、円、線、リング、三角形など）を簡単に描画するための `Primitive2DObject` および、それをエディタで直感的に扱える `Primitive2DRendererComponent` が提供されています。
+デバッグ表示、UIの枠線、シンプルなゲージや2Dエフェクトなどに最適です。
+
+- **ヘッダー**: `#include "Framework/Component/Renderer/Primitive2DRendererComponent.h"`
+- **主な形状 (`Primitive2DType`)**: `Rect`, `Circle`, `Triangle`, `Line`, `Ring`, `Capsule`
+- **C++ コードでの使用例**:
+  ```cpp
+  #include "Framework/Component/Renderer/Primitive2DRendererComponent.h"
+  #include "Core/Type/Primitive2DType.h"
+
+  auto* p2d = uiObj->AddComponent<Primitive2DRendererComponent>();
+  p2d->SetShape(Irufemi::Primitive2DType::Rect);
+  p2d->SetSize(Irufemi::Vector2(200.0f, 40.0f));     // 幅・高さ
+  p2d->SetColor(Irufemi::Vector4(0.1f, 0.6f, 1.0f, 0.8f)); // 水色半透明
+  p2d->SetPivot(Irufemi::Vector2(0.5f, 0.5f));        // 中央原点
+  p2d->SetTopMost(true);                              // ポストプロセス影響外の最前面UIレイヤー描画
+  ```
 
 ---
 
@@ -2084,6 +2128,99 @@ float4 main(VertexShaderOutput input) : SV_TARGET {
 ※このように書くことで、C++ 側でマテリアルにテクスチャパスを指定するだけで、自動的に適切なインデックスがシェーダーに渡るようになります。
 
 ---
+
+### 6.9 動的シャドウマップシステム (ShadowPass & ShadowMap)
+
+本エンジンでは、DirectX 12 と RenderGraph に統合された **動的リアルタイムシャドウマップ（Depth Shadow Mapping）** を標準搭載しています。
+
+#### 1. アーキテクチャ概要
+- **解像度**: 高精細な `2048 x 2048` ピクセルの単一浮動小数点深度バッファ (`DXGI_FORMAT_R32_TYPELESS` / `D32_FLOAT` / `R32_FLOAT`) をダブルバッファリング管理 (`kMaxFramesInFlight`)。
+- **RenderPass 構成**: 不透明描画（`MainOpaquePass`）に先立ち、レンダーグラフの `ShadowPass` が起動して深度値のみを高速レンダリングします。
+  - 専用の軽量シェーダー（`ShadowMap.VS.hlsl`, `ShadowMapSkinning.VS.hlsl`, `ShadowMapBatch.VS.hlsl`）を用い、ピクセルシェーダーの評価やカラー出力を完全にバイパスすることで、GPU負荷を極小化しています。
+- **カスケード・直交射影の自動更新**:
+  `DrawManager::UpdateDirectionalLight` 内で、平行光源（DirectionalLight）の照射方向ベクトルとプレイヤーの注視点（Target Position）から、シーンを過不足なくカバーする直交射影行列（`orthoSize`）を毎フレーム自動算出してライト空間のビュー・プロジェクション行列（`viewProjection`）を構築します。
+
+#### 2. HLSL シェーダー側での影計算 (PCF フィルタリング)
+影の境界のジャギ（エイリアシング）や、セルフシャドウのモアレ（シャドウアクネ）を防ぐため、エンジン共通シェーダー [`Lighting.hlsli`](EngineResources/shaders/Lighting.hlsli) には高品質な **PCF (Percentage-Closer Filtering)** が組み込まれています。
+
+```hlsl
+// Lighting.hlsli に実装されている影係数計算
+float CalculateShadow(float4 shadowPos, Texture2D<float> shadowMap, SamplerComparisonState shadowSampler, float3 normal, float3 lightDir) {
+    // 1. 同次座標系からライト空間 UV / 深度へ変換
+    float3 projCoords = shadowPos.xyz / shadowPos.w;
+    float2 uv = projCoords.xy * float2(0.5f, -0.5f) + 0.5f;
+    float currentDepth = projCoords.z;
+
+    // 範囲外なら影を作らない (日照エリア扱い)
+    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f || currentDepth > 1.0f) {
+        return 1.0f;
+    }
+
+    // 2. 法線傾斜に応じたスロープスケールデプスバイアス
+    float bias = max(0.0005f * (1.0f - dot(normal, lightDir)), 0.0001f);
+
+    // 3. 4タップ PCF 比較サンプリング (SampleCmpLevelZero)
+    // テクセル近傍をサンプリングし、半影（ペナンブラ）を滑らかに表現
+    float shadowFactor = 0.0f;
+    // ... 4タップ平均処理 ...
+    return shadowFactor;
+}
+```
+
+#### 3. Bindless / レガシースロットの連携
+- **PerFrame 定数バッファ (Bindless)**: `fr.perFrameData->shadowMapIndex` にシャドウマップのSRVインデックスが渡され、空間空間テクスチャ配列から参照可能です。
+- **レガシー互換テーブル**: ピクセルシェーダーの `register(t5)`（`RootSlot::ShadowMap`）およびサンプラ `register(s1)`（`SamplerComparisonState`）にも自動バインドされているため、カスタムシェーダーからも即座に影計算を利用できます。
+
+---
+
+### 6.10 ライティングシステム (Directional, Point, Spot)
+
+IrufemiEngine は 3D空間の陰影を豊かに表現するため、3大主要光源（平行光源・点光源・スポットライト）をサポートしています。
+
+#### 1. 光源の種類とデータ構造
+- **平行光源 (`DirectionalLight`)**:
+  - 太陽光や月光などの無限遠からの平行光線。影の生成源（キャスター）となります。
+  - パラメータ: `color` (RGB), `intensity` (輝度), `direction` (照射方向ベクトル・正規化必須)。
+- **点光源 (`PointLight`)**:
+  - 爆発、松明、弾薬のマズルフラッシュなど、特定座標から全方向へ放射状に広がる光源。
+  - パラメータ: `position` (ワールド座標), `color`, `intensity`, `radius` (減衰限界距離), `decay` (減衰指数・通常2.0)。
+- **スポットライト (`SpotLight`)**:
+  - サーチライト、懐中電灯、レーザー照射部など、円錐状に特定方向を照らす光源。
+  - パラメータ: `position`, `direction`, `color`, `intensity`, `distance`, `decay`, `cosAngle` (外角コサイン), `cosFalloffStart` (内角コサイン)。
+
+#### 2. C++ コードからのライト設定
+シーン（`BaseScene`）または管理コンポーネントから、フレーム描画時に `DrawManager` へライト情報を渡します。
+```cpp
+#include "Renderer/DrawManager.h"
+#include "Renderer/Data/DirectionalLight.h"
+#include "Renderer/Data/PointLight.h"
+
+// 平行光源の設定（太陽光）
+DirectionalLight sunLight{};
+sunLight.color = { 1.0f, 0.95f, 0.9f };
+sunLight.intensity = 1.2f;
+sunLight.direction = Vector3(0.3f, -1.0f, 0.5f).GetNormalized();
+
+// 点光源の動的追加（爆発の瞬間発光など）
+PointLight explosionLight{};
+explosionLight.position = hitPos;
+explosionLight.color = { 1.0f, 0.5f, 0.1f };
+explosionLight.intensity = 5.0f;
+explosionLight.radius = 25.0f;
+explosionLight.decay = 2.0f;
+
+std::vector<PointLight*> pointLights = { &explosionLight };
+std::vector<SpotLight*> spotLights = {};
+
+// DrawManager にフレームデータとして転送
+drawManager->SetFrameData(camera, time, deltaTime, sunLight, pointLights, spotLights, false);
+```
+
+#### 3. PBR / Blinn-Phong シェーダーへの統合
+GPU上の定数バッファおよび構造化バッファ（StructuredBuffer）に転送され、すべての不透明・半透明シェーダーにおいて、Lambert拡散反射、Blinn-Phong鏡面反射、および減衰逆二乗則が自動適用されます。
+※陰影計算を完全にバイパスしたいモデルは、前述の `renderer->SetEnableLighting(false)` により Unlit 化が可能です。
+
+---
 > **ドキュメント更新履歴**
 > - 2026/05: RenderGraph / パケット分離対応を反映、Phase 1~3 および 便利機能（カメラ、ディレクトリ構造、UISelectionGroup）を追記
 > - 2026/05: エディタ機能（Project Browserの2ペイン化、FontAwesome対応、ドラッグ＆ドロップ機能）の解説を追記
@@ -2209,7 +2346,7 @@ void SpawnEnemyFromCode(BaseScene* scene) {
 
     // 2. Transformの追加と座標設定
     auto* transform = enemyObj->AddComponent<TransformComponent>();
-    transform->position_ = {0.0f, 0.0f, 5.0f};
+    transform->SetPosition({0.0f, 0.0f, 5.0f});
 
     // 3. コライダーの追加（これだけで自動的にBVHツリーに組み込まれます）
     auto* collider = enemyObj->AddComponent<SphereColliderComponent>();
@@ -2264,12 +2401,13 @@ Vector3 right = Vector3::right; // (1, 0, 0)
 
 // 2. 直感的なメンバ関数
 float len = direction.Length();
-direction.Normalize();          // 破壊的変更
-Vector3 norm = direction.Normalized(); // 非破壊的変更
+direction.Normalize();              // 破壊的正規化
+Vector3 norm = direction.GetNormalized(); // 非破壊的正規化
 
 // 3. 内積 (Dot) と 外積 (Cross)
-float d = Vector3::Dot(forward, targetDir);
-Vector3 c = Vector3::Cross(up, right);
+// メンバ関数呼び出し、または Irufemi::Math::Dot / Cross ユーティリティを使用可能
+float d = forward.Dot(targetDir);   // または Irufemi::Math::Dot(forward, targetDir)
+Vector3 c = up.Cross(right);        // または Irufemi::Math::Cross(up, right)
 
 // 4. 浮動小数点の安全な比較
 // == 演算子は厳密な一致(ビット完全一致)を判定しますが、計算誤差が含まれる場合は Equals を使います。
@@ -2396,6 +2534,28 @@ clickSe.Play(); // 1回再生
 // clickSe.Stop();
 ```
 
+#### 【推奨ベストプラクティス】データ駆動サウンド基盤 (`sound_actions.json` & `SoundHelper`)
+C++コード内に音声ファイルのパス（`"resources/audio/..."`）や音量数値を直接ハードコードすることは避け、JSON設定ファイル（Single Source of Truth）で一元管理する設計パターンが推奨されます。
+
+- **設定ファイル**: `resources/config/sound_actions.json`
+  - SE/BGMのファイルパス、ボリューム、同時再生制限（ポリフォニー）、ピッチランダマイズ幅などを一括定義。
+- **利用例 (Application層)**:
+  ```cpp
+  #include "Audio/SoundHelper.h"
+  #include "Audio/GameSoundAction.h"
+
+  // 1. シーン初期化時に sound_actions.json をロード＆一括プリロード
+  SoundHelper::Initialize(engine->GetAudioManager(), "resources/config/sound_actions.json");
+
+  // 2. 列挙型（GameSoundAction）を指定して型安全にワンショット再生
+  SoundHelper::PlaySE(GameSoundAction::PlayerShoot);
+  SoundHelper::PlaySE(GameSoundAction::EnemyExplosion);
+
+  // 3. BGMのクロスフェード・再生
+  SoundHelper::PlayBGM(GameSoundAction::BgmInGame, true);
+  ```
+  ※これにより、プランナーやサウンドデザイナーがC++の再ビルドなしで音量バランスの調整や音源差し替えを即座に行えます。
+
 ---
 
 ### 8.3 UIフレームワーク (Canvas, UISelectionGroup, UIAnimator, Slider)
@@ -2412,24 +2572,31 @@ clickSe.Play(); // 1回再生
 // 1. メンバ変数に定義
 UISelectionGroup uiGroup_;
 
-// 2. Initialize() で設定
-// (要素数, 初期選択インデックス, 横並びか, 連続入力の間隔, ループするか)
-uiGroup_.Initialize(3, 0, false, 0.2f, true); 
+// 2. 選択対象のスプライト等を登録（上から順にインデックス 0, 1, 2... となる）
+uiGroup_.AddItem(btnStartSprite_.get());
+uiGroup_.AddItem(btnOptionSprite_.get());
+uiGroup_.AddItem(btnExitSprite_.get());
 
-// 3. Update() で入力判定
-uiGroup_.Update(engine_->GetInputManager());
+// オプション設定
+uiGroup_.SetActiveBaseColor({1.0f, 1.0f, 1.0f, 1.0f}); // 選択中のカラー（パルスアニメーション適用）
+uiGroup_.SetInactiveColor({0.4f, 0.4f, 0.4f, 0.8f});    // 非選択項目のカラー
+// 横並び（左右キー）メニューにする場合: uiGroup_.SetHorizontalMode(true);
 
-if (uiGroup_.IsTriggered()) {
-    // 現在選ばれている項目を取得
+// 3. Update() で入力処理（方向キー操作、明滅演出、決定入力）
+uiGroup_.Update(engine_->GetInputManager(), engine_->GetGameDeltaTime());
+
+// 決定演出（点滅等）が完了して次シーンへ遷移すべきタイミングを判定
+if (uiGroup_.ShouldTransition()) {
     int selected = uiGroup_.GetSelectedIndex();
     if (selected == 0) {
-        // 「ゲーム開始」が選ばれた
+        // 「ゲーム開始」
     } else if (selected == 1) {
-        // 「設定」が選ばれた
+        // 「設定」
     }
 }
 
-// ※描画時は uiGroup_.GetSelectedIndex() に応じて、選ばれている項目の色やスプライトを変えます。
+// 4. 標準のカラー反映付き描画
+uiGroup_.Draw();
 ```
 
 #### 8.3.2 UIのアニメーション演出 (`UIAnimator`)
@@ -2491,7 +2658,7 @@ auto* input = engine_->GetInputManager();
 Irufemi::Vector2 mousePos = input->GetMousePosition();
 
 // マウス左クリック・ドラッグ中にスライダー範囲内であれば値を自動更新
-if (input->IsMousePressed(0) && slider->CheckBounds(mousePos)) {
+if (input->IsMouseButtonDown(Mouse::Button::Left) && slider->CheckBounds(mousePos)) {
     float newValue = slider->CalculateValueFromPosition(mousePos.x);
     slider->SetValue(newValue);
 }
@@ -2577,15 +2744,15 @@ engine_->GetFontManager()->LoadAllFromFolder("resources/fonts");
 engine_->GetFontManager()->PrecacheText("my_font", L"このシーンで使う予定の会話テキストや、よく使う漢字一覧など...");
 ```
 
-#### 9.1.5 キャッシュ管理 (.cache)
+#### 9.1.5 キャッシュ管理 (generated/cache/)
 ゲームを高速にロード・実行するために、各種リソースのパース結果や重いコンパイル結果は自動的にキャッシュ（バイナリ化）されます。
-本エンジンでは、人間が直接編集・管理するリソースデータ（`.obj`, `.png`, `.hlsl` 等）と、システムが自動生成する中間バイナリを明確に分離するため、**キャッシュファイルはすべて `resources/.cache/` 配下に集約して出力されます。**
+本エンジンでは、人間が直接編集・管理するリソースデータ（`.obj`, `.png`, `.hlsl` 等）と、システムが自動生成する中間バイナリを明確に分離するため、**キャッシュファイルはすべて `generated/cache/` 配下に集約して出力されます（`resources/` 内にキャッシュフォルダを作成してはいけません）。**
 
-- **`resources/.cache/model/`**: `ModelManager` や `AnimationManager` がロードした `.obj` や `.gltf` 等を解析し、次回以降のロードを爆速にするための独自バイナリ (`.ibin`) が保存されます。
-- **`resources/.cache/pso/`**: `PSOManager` が生成した DirectX12 のパイプラインステートオブジェクト（PSO）の塊 (`.pso`) が保存されます。これによりゲーム起動時やシーン遷移時のカクつき（スタッター）を防ぎます。さらに、エンジン起動時には全登録パイプラインを `ThreadPool` によるマルチスレッド並列ワーカージョブで一括ウォームアップ（PreWarm）するため、ゲームプレイ中の初回描画スタッターを完全にゼロに抑制します。
-- **`resources/.cache/shaders/`**: Releaseビルドなどで事前にコンパイルされたシェーダーバイナリ (`.cso`) が格納されます。
+- **`generated/cache/model/`**: `ModelManager` や `AnimationManager` がロードした `.obj` や `.gltf` 等を解析し、次回以降のロードを爆速にするための独自バイナリ (`.ibin`) が保存されます。
+- **`generated/cache/pso/`**: `PSOManager` が生成した DirectX12 のパイプラインステートオブジェクト（PSO）の塊 (`.pso`) が保存されます。これによりゲーム起動時やシーン遷移時のカクつき（スタッター）を防ぎます。さらに、エンジン起動時には全登録パイプラインを `ThreadPool` によるマルチスレッド並列ワーカージョブで一括ウォームアップ（PreWarm）するため、ゲームプレイ中の初回描画スタッターを完全にゼロに抑制します。
+- **`generated/cache/shaders/`**: Releaseビルドなどで事前にコンパイルされたシェーダーバイナリ (`.cso`) が格納されます。
 
-※ **【重要】** `.cache/` フォルダは `.gitignore` に登録されており、Git のバージョン管理から除外されています。また、キャッシュのバージョンが古かったり見つからない場合は、エンジンが**自動で元のソースファイルから再生成する（フォールバック機構）** ため、不具合が起きた際は `.cache/` フォルダごと手動で削除しても全く問題ありません。
+※ **【重要】** `generated/cache/` フォルダは `.gitignore` に登録されており、Git のバージョン管理から除外されています。また、キャッシュのバージョンが古かったり見つからない場合は、エンジンが**自動で元のソースファイルから再生成する（フォールバック機構）** ため、不具合が起きた際は `generated/cache/` フォルダごと手動で削除しても全く問題ありません。
 
 ---
 
@@ -2804,7 +2971,7 @@ public:
 - **`[4] Restore Backup`**: 直前のバックアップから1秒で元の状態に完全ロールバック。
 
 > [!NOTE]
-> アセットクッカーおよびアセットサニタイザーの内部仕様、新しいモデル・音源を追加した際の命名・配置ルールについては、[scripts/README.md](file:///f:/school/3_0/WP0/WP0/scripts/README.md) を参照してください。
+> アセットクッカーおよびアセットサニタイザーの内部仕様、新しいモデル・音源を追加した際の命名・配置ルールについては、[scripts/README.md](file:///f:/school/3_5/WP1/WP1/scripts/README.md) を参照してください。
 
 ---
 
