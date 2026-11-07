@@ -362,12 +362,12 @@ Irufemi Engineでは、実行対象ユーザー（開発者・アーティスト
 | **Development (`DEVELOPMENT`)** | QA / イベント展示会 | 画面・ログダンプに記録 ➔ **早期リターンでゲーム更新継続** | 画面にFatal警告ダンプ ➔ **例外送出または安全終了** | テストプレイや展示を中断させず、ログを収集する |
 | **Release (製品版)** | 一般プレイヤー | サイレントリカバリ（ログのみ） ➔ **ゲーム更新を維持** | `PostQuitMessage(0)` 等で **OSごとクリーン終了** | プレイヤーに無用なダイアログを見せず、フリーズを防ぐ |
 
-#### 3. 実装スニペット例
+#### 3. 実装スニペット例（※概念説明用の実装イメージ）
 
 ```cpp
 #include "Core/Utility/ErrorUtility.h"
 
-// 【非致命的処理】スクリーンショット保存
+// 【非致命的処理の例】スクリーンショット保存などのリカバリ可能処理
 bool ScreenCaptureManager::SaveCapture(ID3D12Resource* buffer, const std::wstring& path) {
     HRESULT hr = DirectX::SaveWICTextureToFile(...);
     // [[nodiscard]] のため、戻り値のチェックとリカバリ処理が必須
@@ -378,7 +378,7 @@ bool ScreenCaptureManager::SaveCapture(ID3D12Resource* buffer, const std::wstrin
     return true;
 }
 
-// 【致命的処理】バックバッファの取得
+// 【致命的処理の例】SwapChainバックバッファの取得などの中断必須処理
 void DXCommandManager::CreateRenderTargetViews() {
     for (UINT i = 0; i < kFrameBufferCount; ++i) {
         HRESULT hr = swapChain_->GetBuffer(i, IID_PPV_ARGS(&renderTargets_[i]));
@@ -843,7 +843,7 @@ if (isClear) {
 }
 
 // 演出なしで即座に切り替えたい場合（初期起動時など）
-engine_->GetSceneManager()->ChangeSceneImmediate("TitleScene");
+engine_->GetSceneManager()->ChangeTo("TitleScene");
 
 // 現在のシーンの上に一時的なシーン（ポーズ画面など）を重ねる場合
 engine_->GetSceneManager()->PushScene("PauseScene");
@@ -2031,10 +2031,11 @@ public:
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Renderer/PostProcess/Effects/BloomEffect.h"
 
-// Bloomエフェクトの型安全な取得と設定変更
+// Bloomエフェクトの型安全な取得と設定変更（自己完結パラメータ構造体経由）
 if (auto* bloom = engine->GetPostProcessManager()->GetEffect<BloomEffect>()) {
-    bloom->SetThreshold(0.85f);
-    bloom->SetIntensity(1.4f);
+    auto& params = bloom->GetParams();
+    params.threshold = 0.85f;
+    params.intensity = 1.4f;
 }
 ```
 
@@ -2220,6 +2221,7 @@ batchRenderer->SetUseGPUCulling(true);
 
 ```cpp
 #include "Renderer/Object/Batch/ModelBatch.h"
+#include "Core/Math/MathFunction.h"
 
 // 1. バッチの生成
 ModelBatch myBatch;
@@ -2230,7 +2232,7 @@ myBatch.SetUseGPUCulling(true);
 
 // 3. インスタンスの追加 (CPU側でTransformを設定)
 for (int i = 0; i < 10000; ++i) {
-    myBatch.AddInstanceWorld(Matrix4x4::MakeTranslation(Vector3(i * 1.0f, 0, 0)));
+    myBatch.AddInstanceWorld(MakeTranslateMatrix(Vector3(i * 1.0f, 0, 0)));
 }
 
 // 4. 描画
@@ -2268,6 +2270,11 @@ C++側の基盤構築およびHLSL側の対応がすべて完了しており、�
 Editor または Debug モードで起動している場合、ゲームを実行したまま（エディタを立ち上げたまま）、シェーダーファイル（`.hlsl` または `.hlsli`）を上書き保存するだけで、自動的に **ホットリロード** が行われます。
 - バックグラウンドでフォルダを監視しており、保存を検知すると安全に古いシェーダーとPSOキャッシュを破棄し、再コンパイルして即座に描画に反映します。
 - 一々ビルドし直す必要がないため、ライティングの微調整やエフェクト作成のイテレーションが非常に高速です。
+
+##### ファイル監視基盤 (`DirectoryWatcher`)
+エンジン内部では、Windows API (`ReadDirectoryChangesW`) を利用した独立監視スレッド基盤 **`DirectoryWatcher`**（`#include "Core/System/DirectoryWatcher.h"`）が稼働しています。
+- **特徴**: ディレクトリ配下のファイル追加・変更・削除を低CPU負荷で常時監視し、変更検知時にコールバックを通知します。
+- **スレッドセーフティ**: ワーカースレッドからコールバックが呼び出されるため、描画パイプラインの再構築やPSOキャッシュの更新はメインスレッド/レンダースレッドの安全な境界で同期待ちを行って実行されます。
 
 #### 6.8.2 シェーダーの追加手順と命名規則
 新しいシェーダー（`.hlsl`）を追加する際は、必ずファイル名の中に「プロファイル名」を含めるようにしてください。ビルド時の自動コンパイルバッチ（`CompileShaders.bat`）がこのファイル名を見て適切なコンパイルを行います。
@@ -2467,6 +2474,7 @@ if (IsCollision(playerOBB, enemySphere)) {
 
 ```cpp
 #include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
+#include "Core/Math/MathFunction.h"
 
 // Engine コアから直接取得（DrawManager 経由ではありません）
 auto* debugRenderer = engine_->GetDebugPrimitiveRenderer();
@@ -2475,7 +2483,7 @@ if (debugRenderer && debugRenderer->IsEnabled()) {
     debugRenderer->AddSphere(targetPos, 2.5f, {1.0f, 0.2f, 0.2f, 0.6f}, DebugCategory::Combat);
 
     // 2. デバッグ直方体の描画 (ワールド変換行列, カラーRGBA, カテゴリ)
-    Matrix4x4 boxWorld = Matrix4x4::MakeScale({4.0f, 2.0f, 4.0f}) * Matrix4x4::MakeTranslation(areaCenter);
+    Matrix4x4 boxWorld = MakeScaleMatrix({4.0f, 2.0f, 4.0f}) * MakeTranslateMatrix(areaCenter);
     debugRenderer->AddCube(boxWorld, {0.2f, 1.0f, 0.4f, 0.5f}, DebugCategory::Level);
 }
 ```
@@ -2525,6 +2533,27 @@ collisionManager->QueryAABB(searchBoxAABB, overlappingColliders);
       // 敵または地形にヒットした際の処理
   }
   ```
+
+#### 7.1.6 プリミティブ交差判定と視錐台 (`Collision.h` / `Frustum.h`)
+コライダーコンポーネントを介さず、低レイヤーの幾何形状同士の交差判定やカメラの視野内外（フラスタムカリング）判定を直接行いたい場合は、以下のユーティリティ関数群を使用します。
+
+- **視錐台形状**: `#include "Core/Math/Geometry/Frustum.h"`
+- **幾何交差判定**: `#include "Physics/Collision/Collision.h"`
+
+```cpp
+#include "Core/Math/Geometry/Frustum.h"
+#include "Physics/Collision/Collision.h"
+
+// 1. ビュープロジェクション行列からカメラの視錐台（6平面）を構築
+Irufemi::Frustum frustum{};
+frustum.SetFromViewProjection(camera->GetViewProjectionMatrix());
+
+// 2. 視錐台と球体による視野内外判定（CPUカリング等）
+Irufemi::Sphere targetSphere{ targetPosition, 2.0f };
+if (Irufemi::IsCollision(frustum, targetSphere)) {
+    // カメラの視野内に入っている場合の処理
+}
+```
 
 ---
 
@@ -2749,6 +2778,10 @@ if (input->IsActionTriggered("Fire")) {
 }
 ```
 ※これにより、キーコンフィグの変更やゲームパッド対応の追加をC++再コンパイルなしで即座に反映できます。
+
+##### 入力マッピングコンテキスト基盤 (`InputMappingContext`)
+内部では、Unreal Engine の Enhanced Input に近い設計を持つ **`InputMappingContext`**（`#include "Platform/Input/InputMappingContext.h"`）がアクションと物理バインディングの辞書管理を担っています。
+- 各 `InputAction` に対して複数の `InputBinding`（キーボード、ゲームパッドボタン、アナログスティック）が結びつけられ、入力値のスケーリングやデッドゾーン処理を正規化して透過的な値（`ActionValue`）として返却します。
 
 #### 8.1.2 直接キー・ボタン・マウス入力の取得
 キーボード、マウス、ゲームパッド（XInput互換）の操作を直接取得することも可能です。
@@ -3456,5 +3489,6 @@ public:
 > - 2026/11: Manual.mdの精密ファクトチェックおよび不足基盤システムの完全拡充。`UINavigationController` の決定入力（存在しない `IsSubmitted()` 撤廃）および `PostProcessManager`（存在しない `SetModeEnabled` 撤廃・`ActivateScoped` 推奨化）の実コード整合、`CameraComponent` の正規アクセサ整合、補間・イージング基盤（`Ease.h` / `Lerp` / `Slerp` / `EvaluateEase`）、GPUインスタンシングデバッグ描画（`DebugPrimitiveRenderer`）、マルチカメラ管理（`CameraManager`）、文字列変換（`StringUtility.h` / `ConvertString`）の仕様・スニペットを追記
 > - 2026/11: Manual.mdの精密再精査と全コードベース整合。`EaseType::EaseOutQuad` / `ToRadian(90.0f)` / `MeshRendererComponent` の JSON キー名（`modelName`）の誤記修正、`Collision.h` インクルード漏れおよび `DebugPrimitiveRenderer` 取得元（`engine_->GetDebugPrimitiveRenderer()`）のコンパイルエラー解消、`Dot` / `Cross` のグローバルスコープ整合、`TargetFollowComponent`（`SnapToTarget()`）および `LifetimeComponent` / `TextureManager` / `ModelManager` のヘッダーパス・API仕様を完全拡充
 > - 2026/11: Manual.mdの精密ファクトチェック修正および未記載基盤の完全網羅。`Irufemi::Ray`（`origin`）および `Log`（`OutPutLog`）のコンパイルエラー解消、`GPUParticleManager`（`GetGPUParticleManager()` / `enableLighting` 引数 / `UnregisterEmitter`）と `SoundHelper`（`PlayByName` / 音量乗数 / 引数なし `StopBGM`）の実コード整合、`Effect` クラスの初期化注記、シーン遷移トランジション全6種（`SceneTransition::Type`）とカスタムローディング画面（`ILoadingScreen`）、`AudioManager` のカテゴリ音量・フェード制御（`SetCategoryVolume` / `FadeCategoryVolume`）、および `ScreenCaptureManager` のC++リクエストコードを完全拡充
-> - 2026/11: 総合精査に基づく欠落基盤の拡充およびApplication境界整合。`SceneManager::Register`（C++シーンファクトリ登録）および `ChangeSceneImmediate`、`AutoCVarRef<T>`（O(1)高速CVar参照）および `DebugConsole`（[F1]インゲームコンソール）、`OrbitCameraController`（Focus / Frame / プリセット視点制御）、`Primitive2DObject.h` / `FontManager.h` の正規ヘッダーパスおよび `PrecacheTextSync`、`CollisionManager::DrawDebugRay` & `QueryAABB`、`Irufemi::Random`（スレッドセーフメルセンヌ・ツイスター乱数）& `Irufemi::PerlinNoise`、`GpuProfiler`（DirectX12タイムスタンプGPU計測）の仕様・スニペットを追記。Application層サンプル（`SoundHelper`, `AttractDemoManager`）の境界注記を整備。
+> - 2026/11: 総合精査に基づく欠落基盤の拡充およびApplication境界整合。`SceneManager::Register`（C++シーンファクトリ登録）および `ChangeTo`、`AutoCVarRef<T>`（O(1)高速CVar参照）および `DebugConsole`（[F1]インゲームコンソール）、`OrbitCameraController`（Focus / Frame / プリセット視点制御）、`Primitive2DObject.h` / `FontManager.h` の正規ヘッダーパスおよび `PrecacheTextSync`、`CollisionManager::DrawDebugRay` & `QueryAABB`、`Irufemi::Random`（スレッドセーフメルセンヌ・ツイスター乱数）& `Irufemi::PerlinNoise`、`GpuProfiler`（DirectX12タイムスタンプGPU計測）の仕様・スニペットを追記。Application層サンプル（`SoundHelper`, `AttractDemoManager`）の境界注記を整備。
+> - 2026/11: 全コードベース完全精査に基づく実装乖離の解消および未記載コア基盤の追記。`SceneManager::ChangeTo` への修正、`BloomEffect` の `BloomParams` 操作整合、`Matrix4x4` 静的関数から `MathFunction.h` のグローバル関数（`MakeTranslateMatrix` / `MakeScaleMatrix`）への修正、シェーダー監視基盤（`DirectoryWatcher`）、幾何交差・視錐台カリング（`Frustum` / `Collision.h`）、および入力マッピング基盤（`InputMappingContext`）の仕様・スニペットを追記。
 
