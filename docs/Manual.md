@@ -827,11 +827,23 @@ engine_->GetSceneManager()->LoadScene("InGame", SceneTransition::Type::GravitySi
 **2. C++クラスによる手動遷移 (std::string_view によるゼロコピー呼び出し)**
 `BaseScene` を継承した専用クラスへ遷移します。引数はすべて `std::string_view` に統一されており、一時オブジェクトを生成せず高速に処理されます。
 また、シーン名文字列をハードコードせず、アプリケーション層で定義された定数（SSOT）を渡すことが推奨されます。
+
+事前にゲーム初期化時（`GameApplication` 等）で、`SceneManager::Register` を用いてシーン名とファクトリ関数（ラムダ式）を紐付けて登録します。
 ```cpp
+// --- シーンの事前登録 (初期化フェーズ) ---
+auto* sceneManager = engine_->GetSceneManager();
+sceneManager->Register("TitleScene", []() { return std::make_unique<TitleScene>(); });
+sceneManager->Register("InGameScene", []() { return std::make_unique<InGameScene>(); });
+sceneManager->Register("ClearScene", []() { return std::make_unique<ClearScene>(); });
+
+// --- シーンの遷移 (実行フェーズ) ---
 if (isClear) {
-    // 登録済みの "ClearScene" クラスに遷移する (string_view 渡し)
+    // 登録済みの "ClearScene" クラスに演出付きで遷移する (string_view 渡し)
     engine_->GetSceneManager()->TransitionTo("ClearScene", SceneTransition::Type::Fade, 1.0f);
 }
+
+// 演出なしで即座に切り替えたい場合（初期起動時など）
+engine_->GetSceneManager()->ChangeSceneImmediate("TitleScene");
 
 // 現在のシーンの上に一時的なシーン（ポーズ画面など）を重ねる場合
 engine_->GetSceneManager()->PushScene("PauseScene");
@@ -1062,7 +1074,28 @@ Irufemi::CVarSystem::SetOnChangeCallback("r.VSync", [this]() {
 ```
 ※コールバックを登録した瞬間に、現在の値をもって一度即時実行されるため、ロード直後の初期化もこれ一つでカバーできます。
 
-#### 4.5.4 コンソールコマンドシステム (ConsoleCommandSystem)
+#### 4.5.4 高速キャッシュアクセサ (AutoCVarRef<T>)
+毎フレームの `Update()` や描画ループ内で `CVarSystem::Get***("name")` を呼ぶと、文字列ハッシュ探索（`std::unordered_map`）のオーバーヘッドが発生します。
+Unreal Engine の `TAutoConsoleVariableRef` に相当する **`AutoCVarRef<T>`** をメンバ変数やローカル静的変数として保持することで、ポインタを内部キャッシュし、$O(1)$ の極小コストで直接値を取得できます。
+
+```cpp
+#include "Framework/Utility/CVar.h"
+
+class PlayerMovementComponent : public Component {
+private:
+    // メンバ変数としてキャッシュ参照を保持（初期化時は名前を指定するだけ）
+    Irufemi::AutoCVarRef<float> cvarMoveSpeed_{ "player.MoveSpeed" };
+
+public:
+    void Update() override {
+        // 毎フレームのハッシュ検索をスキップして O(1) で即座に値を取得
+        float speed = cvarMoveSpeed_.Get();
+        // 移動処理...
+    }
+};
+```
+
+#### 4.5.5 コンソールコマンドシステム (ConsoleCommandSystem)
 ゲーム内CLI、外部監視ツール（`TelemetryMonitor`）、コマンドライン引数から文字列ベースのデバッグコマンドを安全に実行するための仕組みです。スレッドセーフにコマンドの登録と実行を管理できます。
 - **ヘッダー**: `#include "Framework/Utility/ConsoleCommandSystem.h"`
 
@@ -1081,6 +1114,14 @@ Irufemi::ConsoleCommandSystem::RegisterCommand("spawn_debris", "指定数のデ�
 std::string outputResult;
 bool success = Irufemi::ConsoleCommandSystem::ExecuteCommand("spawn_debris 500", &outputResult);
 ```
+
+#### 4.5.6 インゲーム開発者コンソール (DebugConsole & [F1] キー)
+ゲーム実行中に **`F1` キー** を押すと、画面上部に半透明のインゲームコンソール（`DebugConsole`）がオーバーレイ表示されます。
+- **ヘッダー**: `#include "Framework/UI/DebugConsole.h"`
+- **主な機能**:
+  - `ConsoleCommandSystem` に登録されたコマンドをキーボード入力から直接実行可能。
+  - コマンドの入力履歴（Up/Downキーでの履歴呼び出し）や、実行結果ログのリアルタイム表示に対応。
+  - エディタ外（Release/Development単体起動時）でも、即座にデバッグパラメータの書き換えやコマンド実行が可能です。
 
 ---
 
@@ -1339,6 +1380,15 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
   - `SnapToTarget()`: シーン遷移直後やプレイヤーリスポーン時、補間遅延を行わずにターゲットの現在位置・向きへカメラを即座にスナップ配置（Camera Cut）します。
   - インスペクターから `Target Object ID`、`Offset` (右, 上, 前)、`Follow Delay` (追従遅延係数: 0.0で即時追従、1.0に近いほど滑らかに遅延) をリアルタイムに調整・シリアライズ可能。
   - 追従対象への参照は `std::weak_ptr<GameObject>` による安全な弱参照で保護されており、対象破棄時のクラッシュを防止します。
+
+#### 5. OrbitCameraController (マウス操作・注視・プリセット視点制御)
+カメラデータ（`Camera`）と操作ロジック（`Controller`）を分離し、マウス操作によるパン・オービット・ズーム機能や、特定オブジェクトへのスムーズフォーカスを提供するカメラコントローラーです。エディタのScene View操作やデバッグカメラの制御基盤として利用されています。
+- **ヘッダー**: `#include "Renderer/Camera/OrbitCameraController.h"`
+- **主な機能・API**:
+  - `UpdateCameraInput(Camera* cam, InputManager* input)`: マウスドラッグ・ホイール操作によるカメラ視点の回転・平行移動・距離伸縮を更新。
+  - `Focus(Camera* cam, const Vector3& targetPos, float distance = -1.0f)`: 指定したワールド座標を中心（注視点）に捉えるようカメラを移動。
+  - `Frame(Camera* cam, const Vector3& center, float radius)`: バウンディング球（中心と半径）に基づき、オブジェクト全体が画面に収まる最適な距離へカメラを自動配置（Unityの FrameSelected / [F] キー相当）。
+  - `SetPreset(Camera* cam, OrbitCameraController::Preset preset)`: 見下ろし（`TopDown`）、斜め俯瞰（`Diagonal`）、正面（`Front`）のプリセット視点へ瞬時に切り替え。
 
 ---
 
@@ -1793,7 +1843,9 @@ skybox_->Draw();
 2D空間での汎用的な図形（四角形、円、線、リング、三角形など）を簡単に描画するための `Primitive2DObject` および、それをエディタで直感的に扱える `Primitive2DRendererComponent` が提供されています。
 デバッグ表示、UIの枠線、シンプルなゲージや2Dエフェクトなどに最適です。
 
-- **ヘッダー**: `#include "Framework/Component/Renderer/Primitive2DRendererComponent.h"`
+- **ヘッダー**:
+  - コンポーネント: `#include "Framework/Component/Renderer/Primitive2DRendererComponent.h"`
+  - 単体描画オブジェクト: `#include "Renderer/Object/2D/Primitive/Primitive2DObject.h"`
 - **主な形状 (`Primitive2DType`)**: `Rect`, `Circle`, `Triangle`, `Line`, `Ring`, `Capsule`
 - **C++ コードでの使用例**:
   ```cpp
@@ -2450,6 +2502,13 @@ if (collisionManager->Raycast(ray, hitInfo, 1000.0f, 0xFFFFFFFF, GetGameObject()
 // 2. 非同期レイキャスト (ThreadPool によるバックグラウンド並行クエリ)
 auto future = collisionManager->RaycastAsync(engine_->GetThreadPool(), ray, 1000.0f);
 // ... 次フレームや必要になったタイミングで future.get() により結果を取得
+
+// 3. デバッグ用レイの可視化描画 (レイ, 描画距離, カラーRGBA)
+collisionManager->DrawDebugRay(ray, 1000.0f, {1.0f, 0.0f, 0.0f, 1.0f});
+
+// 4. BVH空間に対するAABBクエリ (指定範囲と交差する全コライダーの高速取得)
+std::vector<ColliderComponent*> overlappingColliders;
+collisionManager->QueryAABB(searchBoxAABB, overlappingColliders);
 ```
 
 #### 7.1.5 衝突レイヤーとフィルタリング (CollisionLayers.json / layerMask)
@@ -2600,6 +2659,40 @@ float currentAlpha = LerpClamped(0.0f, 1.0f, timer / duration);
 Quaternion currentRot = Lerp(startRot, targetRot, easeT);
 ```
 
+#### 6. スレッドセーフ高速乱数生成 (`Irufemi::Random`)
+敵の出現位置、散弾の拡散角度、パーティクルのばらつきなど、ゲームロジックで乱数を生成する際は、C標準の `rand()` ではなく、スレッドローカルな 64bit メルセンヌ・ツイスター (`std::mt19937_64`) に基づく **`Irufemi::Random`** を使用してください。マルチスレッド環境下でも競合・ロックなしで超高速に動作します。
+- **ヘッダー**: `#include "Core/Math/Random/Random.h"`
+- **主なAPI**:
+  - `GeneratorFloat(min, max)`: 指定範囲の浮動小数点乱数を生成
+  - `GeneratorUint64(min, max)`: 指定範囲の64bit符号なし整数乱数を生成
+  - `SeedEngine()`: 現在のスレッドの乱数エンジンを再シード
+
+```cpp
+#include "Core/Math/Random/Random.h"
+
+// 浮動小数点乱数の生成 (-5.0f 〜 5.0f)
+float offsetX = Irufemi::Random::GeneratorFloat(-5.0f, 5.0f);
+
+// 整数乱数の生成 (0 〜 3 のドロップアイテムID抽選など)
+uint64_t dropIndex = Irufemi::Random::GeneratorUint64(0, 3);
+```
+
+#### 7. パーリンノイズ生成 (`Irufemi::PerlinNoise`)
+カメラの有機的な揺れ、水面の波打ち、雲や煙のゆらぎなど、自然で滑らかな連続ノイズを生成するためのユーティリティクラスです。
+- **ヘッダー**: `#include "Core/Utility/PerlinNoise.h"`
+- **主なAPI**:
+  - `Noise1D(x)` / `Noise2D(x, y)` / `Noise3D(x, y, z)`: `-1.0f 〜 1.0f` の範囲でノイズ値を返却
+  - `Noise(x, y, z)`: `0.0f 〜 1.0f` の範囲で正規化ノイズ値を返却
+
+```cpp
+#include "Core/Utility/PerlinNoise.h"
+
+Irufemi::PerlinNoise noise(12345); // シード値を指定して初期化
+
+// 時間経過に応じた滑らかな浮遊オフセットの算出 (-1.0f 〜 1.0f)
+float hoverY = noise.Noise1D(totalTime * 2.0f) * 0.5f;
+```
+
 ---
 
 ## 8. 入力・音響・UIシステム (Input, Audio & UI Framework)
@@ -2736,9 +2829,13 @@ clickSe.Play(); // 1回再生
 #### 【推奨ベストプラクティス】データ駆動サウンド基盤 (`sound_actions.json` & `SoundHelper`)
 C++コード内に音声ファイルのパス（`"resources/audio/..."`）や音量数値を直接ハードコードすることは避け、JSON設定ファイル（Single Source of Truth）で一元管理する設計パターンが推奨されます。
 
+> [!NOTE]
+> **Application層との分離について**:
+> 本項で解説する `SoundHelper` および `GameSoundAction.h` は、アプリケーション層（`project/Application_solo/Audio/`）で設計されたデータ駆動サウンドラッパーです。詳細な仕様やアクション列挙体の定義については [`project/Application_solo/docs/GameArchitecture.md`](file:///f:/school/3_5/WP1/WP1/project/Application_solo/docs/GameArchitecture.md) を参照してください。
+
 - **設定ファイル**: `resources/config/sound_actions.json`
   - SE/BGMのファイルパス、ボリューム、同時再生制限（ポリフォニー）、ピッチランダマイズ幅などを一括定義。
-- **利用例 (Application層)**:
+- **利用例 (Application層: `project/Application_solo/`)**:
   ```cpp
   #include "Audio/SoundHelper.h"
   #include "Audio/GameSoundAction.h"
@@ -3010,15 +3107,20 @@ engine_->GetAudioManager()->ResumeCategory(AudioCategory::SE);
 ```
 
 #### 9.1.4 FontManager (フォントとテキストの管理)
+- **ヘッダー**: `#include "Renderer/Font/FontManager.h"`
+
 TTF等のフォントファイルを読み込み、テキスト描画用の高品質なMSDF画像を動的に生成・キャッシュします。
 
 ```cpp
 // 1. フォルダ内の全フォント一括ロード
 engine_->GetFontManager()->LoadAllFromFolder("resources/fonts");
 
-// 2. 【超重要】スパイク（処理落ち）防止のための事前生成
+// 2. 【超重要】スパイク（処理落ち）防止のための事前生成 (非同期)
 // プレイスルーを滑らかにするため、シーン開始時のロード中などに「使う予定の全文字」を事前生成してください。
 engine_->GetFontManager()->PrecacheText("my_font", L"このシーンで使う予定の会話テキストや、よく使う漢字一覧など...");
+
+// 3. ロード画面などで確実に完了を待ちたい場合の同期事前生成
+engine_->GetFontManager()->PrecacheTextSync("my_font", L"0123456789スコアなどの固定文字列");
 ```
 
 #### 9.1.5 キャッシュ管理 (generated/cache/)
@@ -3116,6 +3218,8 @@ void MyCustomRenderer::Draw() {
 - **System/FrameTime_ms**: 1フレームにかかったトータル時間（ハイブリッド・スリープによる待機時間を含む）です。60FPS時は約16.67msになります。
 - **System/CPU_Time_ms**: エンジン側のロジック計算と描画コマンド生成にかかった「純粋なCPU稼働時間」です（GPUのフェンス同期待ち時間を除外して正確に計測されます）。
 - **System/GPU_Time_ms**: 前フレームで実際にGPUが描画処理に費やした時間です。
+  - エンジン内部では、DirectX 12 のタイムスタンプクエリを用いた **`GpuProfiler`**（`#include "Core/Profiler/GpuProfiler.h"`）が描画コマンドリストの開始（`StartFrame`）と終了（`EndFrame`）を記録し、GPU周波数に基づいてミリ秒単位の高精度な描画負荷を算出しています。
+
 
 *(※プログラマー向け)*
 もしC#側のツールのソースコード（`Tools/TelemetryMonitor/`）を拡張・改修した場合は、対象ディレクトリで以下のコマンドを実行することで、チーム配布用の新しい単一exeが `Binaries` フォルダに上書き生成されます。
@@ -3201,7 +3305,7 @@ public:
 - **プラグイン登録と設定構造体 (`AttractDemoConfig`)**:
   ```cpp
   #include "Core/System/IrufemiEngine.h"
-  #include "Core/AttractDemoManager.h" // Application層の拡張クラス
+  #include "Core/AttractDemoManager.h" // Application層 (project/Application_solo/Core/) 内でのインクルード
 
   AttractDemoConfig config{};
   config.enabledOnStart = false;     // 通常プレイ優先（コマンドライン -demo 指定時のみ true）
@@ -3352,4 +3456,5 @@ public:
 > - 2026/11: Manual.mdの精密ファクトチェックおよび不足基盤システムの完全拡充。`UINavigationController` の決定入力（存在しない `IsSubmitted()` 撤廃）および `PostProcessManager`（存在しない `SetModeEnabled` 撤廃・`ActivateScoped` 推奨化）の実コード整合、`CameraComponent` の正規アクセサ整合、補間・イージング基盤（`Ease.h` / `Lerp` / `Slerp` / `EvaluateEase`）、GPUインスタンシングデバッグ描画（`DebugPrimitiveRenderer`）、マルチカメラ管理（`CameraManager`）、文字列変換（`StringUtility.h` / `ConvertString`）の仕様・スニペットを追記
 > - 2026/11: Manual.mdの精密再精査と全コードベース整合。`EaseType::EaseOutQuad` / `ToRadian(90.0f)` / `MeshRendererComponent` の JSON キー名（`modelName`）の誤記修正、`Collision.h` インクルード漏れおよび `DebugPrimitiveRenderer` 取得元（`engine_->GetDebugPrimitiveRenderer()`）のコンパイルエラー解消、`Dot` / `Cross` のグローバルスコープ整合、`TargetFollowComponent`（`SnapToTarget()`）および `LifetimeComponent` / `TextureManager` / `ModelManager` のヘッダーパス・API仕様を完全拡充
 > - 2026/11: Manual.mdの精密ファクトチェック修正および未記載基盤の完全網羅。`Irufemi::Ray`（`origin`）および `Log`（`OutPutLog`）のコンパイルエラー解消、`GPUParticleManager`（`GetGPUParticleManager()` / `enableLighting` 引数 / `UnregisterEmitter`）と `SoundHelper`（`PlayByName` / 音量乗数 / 引数なし `StopBGM`）の実コード整合、`Effect` クラスの初期化注記、シーン遷移トランジション全6種（`SceneTransition::Type`）とカスタムローディング画面（`ILoadingScreen`）、`AudioManager` のカテゴリ音量・フェード制御（`SetCategoryVolume` / `FadeCategoryVolume`）、および `ScreenCaptureManager` のC++リクエストコードを完全拡充
+> - 2026/11: 総合精査に基づく欠落基盤の拡充およびApplication境界整合。`SceneManager::Register`（C++シーンファクトリ登録）および `ChangeSceneImmediate`、`AutoCVarRef<T>`（O(1)高速CVar参照）および `DebugConsole`（[F1]インゲームコンソール）、`OrbitCameraController`（Focus / Frame / プリセット視点制御）、`Primitive2DObject.h` / `FontManager.h` の正規ヘッダーパスおよび `PrecacheTextSync`、`CollisionManager::DrawDebugRay` & `QueryAABB`、`Irufemi::Random`（スレッドセーフメルセンヌ・ツイスター乱数）& `Irufemi::PerlinNoise`、`GpuProfiler`（DirectX12タイムスタンプGPU計測）の仕様・スニペットを追記。Application層サンプル（`SoundHelper`, `AttractDemoManager`）の境界注記を整備。
 
