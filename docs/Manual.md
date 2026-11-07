@@ -14,7 +14,7 @@
   - [2.5 メモリ管理と安全性 (C++ / DirectX)](#25-メモリ管理と安全性-c--directx)
   - [2.6 オブジェクトのライフサイクル管理とプールの安全な運用](#26-オブジェクトのライフサイクル管理とプールの安全な運用)
   - [2.7 命名規則・コードスタイル](#27-命名規則コードスタイル)
-  - [2.8 外部ライブラリ利用規約と I/O 共通ユーティリティ (JsonUtility / FileSystem)](#28-外部ライブラリ利用規約と-io-共通ユーティリティ-jsonutility--filesystem)
+  - [2.8 外部ライブラリ利用規約と共通ユーティリティ (JsonUtility / FileSystem / StringUtility)](#28-外部ライブラリ利用規約と共通ユーティリティ-jsonutility--filesystem--stringutility)
 - [3. エディタの使い方とレベル制作 (IrufemiEditor & Level Design)](#3-エディタの使い方とレベル制作-irufemieditor--level-design)
   - [3.1 エディタ画面の基本レイアウト](#31-エディタ画面の基本レイアウト)
   - [3.2 Project Browser の操作（2ペイン表示とアセットD&D配置）](#32-project-browser-の操作2ペイン表示とアセットdd配置)
@@ -512,7 +512,7 @@ void DXCommandManager::CreateRenderTargetViews() {
 
 ---
 
-### 2.8 外部ライブラリ利用規約と I/O 共通ユーティリティ (JsonUtility / FileSystem)
+### 2.8 外部ライブラリ利用規約と共通ユーティリティ (JsonUtility / FileSystem / StringUtility)
 
 外部ライブラリの肥大化やコンパイル速度低下、二重インクルードを防ぐため、プロジェクト全体で以下のルールを徹底しています。
 
@@ -545,6 +545,19 @@ Irufemi::JsonUtility::SaveToFile(fullPath, rootJson, 4);
 #### 3. 画面解像度・アスペクト比のマジックナンバー禁止
 - コード内で `1280.0f` や `720.0f` 等の解像度数値をハードコードすることは禁止されています。
 - ウィンドウや描画解像度を参照する際は、必ずエンジンの正規アクセサ（`engine->GetClientWidth()` / `engine->GetClientHeight()`、または内部解像度 `engine->GetGameResolutionWidth()` / `engine->GetGameResolutionHeight()`）を利用して一元管理してください。アスペクト比が必要な場合も、これらのアクセサから動的に算出し、`16.0f / 9.0f` 等の決め打ちを避けてください。
+
+#### 4. 文字列相互変換ユーティリティ (ConvertString)
+- Windows API (UTF-16: `std::wstring`) やフォント描画（`TextRendererComponent`）と、エンジン内部・JSON (UTF-8: `std::string`) 間で文字列を変換する際は、生 Win32 API (`MultiByteToWideChar` 等) を直接記述せず、共通ユーティリティ `ConvertString` を使用してください。
+- **ヘッダー**: `#include "Core/Utility/StringUtility.h"`
+```cpp
+#include "Core/Utility/StringUtility.h"
+
+// string (UTF-8) -> wstring (UTF-16)
+std::wstring wstr = ConvertString("Hello World");
+
+// wstring (UTF-16) -> string (UTF-8)
+std::string str = ConvertString(L"日本語テキスト");
+```
 
 ---
 
@@ -1239,11 +1252,29 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
 シーンの視点・画角（FOV）・クリッピングプレーン（Near/Far）を制御する基底カメラコンポーネントです。
 - **ヘッダー**: `#include "Framework/Component/Camera/CameraComponent.h"`
 - **主な機能**:
-  - `SetFov(float fov)`: 視野角の設定
-  - `SetNearClip(float n)` / `SetFarClip(float f)`: クリップ面の設定
-  - `GetViewMatrix()` / `GetProjectionMatrix()`: 行列の取得
+  - `SetFovAngleY(float fov)`: 垂直視野角の設定（ラジアン）
+  - `SetNearZ(float n)` / `SetFarZ(float f)`: クリップ面の設定
+  - `SetPositionOffset(offset)` / `SetRotationOffset(offset)`: Shake演出等による一時オフセット
+  - `GetCamera()->GetViewMatrix()` / `GetCamera()->GetProjectionMatrix()`: 行列の取得
+  - `GetCamera()`: 内包する低レイヤー `Camera` インスタンスを取得
 
-#### 2. CameraShakeComponent (高品位カメラシェイク)
+#### 2. CameraManager (マルチカメラ統括管理)
+エンジン全体で複数のカメラ（メインカメラ、演出用サブカメラ、デバッグカメラ等）を一元管理し、描画に使用するアクティブカメラの切り替えを統括します。
+- **ヘッダー**: `#include "Renderer/Camera/CameraManager.h"`
+- **主なAPI**:
+  ```cpp
+  auto* cameraManager = engine_->GetCameraManager();
+
+  // 1. カメラの登録・切り替え
+  // cameraManager->AddCamera("Cinematic", cinematicCam);
+  cameraManager->SetActiveCamera("Cinematic");
+
+  // 2. 現在アクティブなカメラの取得
+  Camera* activeCam = cameraManager->GetActiveCamera();
+  const std::string& activeCamName = cameraManager->GetActiveCameraName();
+  ```
+
+#### 3. CameraShakeComponent (高品位カメラシェイク)
 被弾時や大爆発、加速時などに、パーリンノイズとイージングを用いたAAA品質のカメラ揺れ演出を付与します。複数イベントの揺れが線形合成され、自然な減衰衰弱を行います。
 - **ヘッダー**: `#include "Framework/Component/Camera/CameraShakeComponent.h"`
 - **主なAPI**:
@@ -1264,7 +1295,7 @@ BGMやSEを鳴らしたり、エフェクトを発生させるには、インス
   bool isShaking = shake->IsPlaying();
   ```
 
-#### 3. TargetFollowComponent (スムーズダンピング追従)
+#### 4. TargetFollowComponent (スムーズダンピング追従)
 注視点および位置をスムーズダンピング（追従遅延・Lerp補間）しながら滑らかに追尾するカメラコンポーネントです。
 
 ---
@@ -1879,9 +1910,8 @@ private:
 public:
     void PlayDamageEffect() {
         auto* ppm = GetEngine()->GetPostProcessManager();
-        ppm->SetModeEnabled(PostProcessMode::Glitch, true);
-        // ハンドルを生成して保持（所有権管理）
-        glitchHandle_ = Irufemi::ScopedEffectHandle(ppm, PostProcessMode::Glitch, PostProcessManager::Layer::PreUI);
+        // 推奨: ActivateScoped により、エフェクト有効化とハンドル生成（寿命管理）を1行で安全に実行
+        glitchHandle_ = ppm->ActivateScoped(PostProcessMode::Glitch, PostProcessManager::Layer::PreUI);
     }
     // コンポーネント破棄時やオブジェクト削除時、glitchHandle_ のデストラクタにより
     // 自動的に RemoveActiveMode が呼ばれ、エフェクト残留バグを100%防止
@@ -1955,7 +1985,7 @@ IrufemiEngine は、色調補正から光学ブラー、重力演出に至るま
 #include "Renderer/PostProcess/PostProcessManager.h"
 
 auto* ppm = engine->GetPostProcessManager();
-ppm->SetModeEnabled(PostProcessMode::BlackHoleSupernova, true);
+ppm->AddActiveMode(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI);
 
 PostProcessManager::BlackHoleSupernovaParams params{};
 params.center = Irufemi::Vector2(0.5f, 0.5f); // 撃墜瞬間のスクリーンUV
@@ -2273,8 +2303,8 @@ std::vector<PointLight*> pointLights = { &explosionLight };
 std::vector<SpotLight*> spotLights = {};
 std::vector<AreaLight*> areaLights = { &panelLight };
 
-// DrawManager にフレームデータとして転送
-drawManager->SetFrameData(camera, time, deltaTime, sunLight, pointLights, spotLights, areaLights);
+// DrawManager にフレームデータとして転送 (解像度はエンジンアクセサから動的取得)
+drawManager->SetFrameData(camera, time, deltaTime, sunLight, pointLights, spotLights, areaLights, engine->GetGameResolution());
 ```
 
 #### 3. PBR / Blinn-Phong シェーダーへの統合
@@ -2314,7 +2344,7 @@ if (IsCollision(playerOBB, enemySphere)) {
 }
 ```
 
-#### 7.1.3 デバッグ描画と当たり判定 (CollisionManager)
+#### 7.1.3 デバッグ描画と当たり判定 (CollisionManager & DebugPrimitiveRenderer)
 
 コライダー（AABB, Sphere, OBB）のデバッグ描画（ワイヤーフレーム表示）は、各コンポーネント内で個別に実装・描画する必要はありません。
 すべてのコライダーのデバッグ描画は、`CollisionManager::DrawDebug()` にて一元管理・一括描画されるアーキテクチャに変更されています。
@@ -2323,6 +2353,24 @@ if (IsCollision(playerOBB, enemySphere)) {
   `ColliderComponent` を継承してコンポーネントを作成し、`GetWorldAABB()` などの形状取得メソッドを正しくオーバーライドすれば、エディタ上で自動的にワイヤーフレームが表示されます。
 - **自分で `DrawDebug` を呼ばない**:
   各コンポーネント内に独自の `DrawDebug` 等の描画命令（PrimitiveManager等の呼び出し）を記述すると、描画が重複したり描画ステートが壊れる原因となるため、当たり判定の描画は完全にマネージャに委譲してください。
+
+##### 【開発者向け】自前のデバッグ図形描画 (`DebugPrimitiveRenderer`)
+ゲーム固有の攻撃範囲、索敵球、スポーン境界、レールのノードなどを一時的に画面へデバッグ描画したい場合は、GPUインスタンシング対応の `DebugPrimitiveRenderer`（`#include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"`）を利用できます。
+`DebugCategory` によるカテゴリ別フィルタリング（表示/非表示）に対応しており、毎フレームの `Update` 内で登録するだけで自動的にバッチ描画されます。
+
+```cpp
+#include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
+
+auto* debugRenderer = engine_->GetDrawManager()->GetDebugPrimitiveRenderer();
+if (debugRenderer && debugRenderer->IsEnabled()) {
+    // 1. デバッグ球の描画 (中心座標, 半径, カラーRGBA, カテゴリ)
+    debugRenderer->AddSphere(targetPos, 2.5f, {1.0f, 0.2f, 0.2f, 0.6f}, DebugCategory::Combat);
+
+    // 2. デバッグ直方体の描画 (ワールド変換行列, カラーRGBA, カテゴリ)
+    Matrix4x4 boxWorld = Matrix4x4::MakeScale({4.0f, 2.0f, 4.0f}) * Matrix4x4::MakeTranslation(areaCenter);
+    debugRenderer->AddCube(boxWorld, {0.2f, 1.0f, 0.4f, 0.5f}, DebugCategory::Level);
+}
+```
 
 #### 7.1.4 レイキャストによる空間クエリ (`Raycast` / `RaycastAsync`)
 シーン内のオブジェクトやコライダーに対する視線判定・着弾判定を行うには、`CollisionManager` のレイキャスト機能を利用します。同期版とThreadPoolを活用した非同期版が提供されています。
@@ -2470,6 +2518,30 @@ Vector3 c = up.Cross(right);        // または Irufemi::Math::Cross(up, right)
 if (currentPos.Equals(targetPos, 0.001f)) {
     // 目標地点に到達した
 }
+```
+
+#### 5. 補間・イージング基盤 (Lerp / Slerp / EvaluateEase)
+キャラクターの移動補間、カメラワーク、UIフェードイン・浮遊など、ゲームプレイの滑らかな演出には `#include "Core/Utility/Ease.h"` のイージング・補間ユーティリティを使用してください。
+
+- **ヘッダー**: `#include "Core/Utility/Ease.h"`
+- **主な関数と型**:
+  - `Lerp(a, b, t)` / `LerpClamped(a, b, t)`: スカラー (`float`) およびベクトル (`Vector2`, `Vector3`, `Vector4`) に対応した汎用線形補間。
+  - `Lerp(q1, q2, t)` / `Slerp(v1, v2, t)`: クォータニオンおよび方向ベクトルの球面線形補間。
+  - `EvaluateEase(EaseType type, float t)`: 指定したイージング関数で進行度 `t (0.0f〜1.0f)` をカーブ変換。
+  - **`EaseType` 一覧**: `Linear`, `EaseInSine`, `EaseOutSine`, `EaseInOutSine`, `EaseInQuad`, `EaseOutQuad`, `EaseInOutQuad`, `EaseInCubic`, `EaseOutCubic`, `EaseInOutCubic`, `EaseInQuart`, `EaseOutQuart`, `EaseInOutQuart`, `EaseInQuint`, `EaseOutQuint`, `EaseInOutQuint`
+
+```cpp
+#include "Core/Utility/Ease.h"
+
+// 1. イージングカーブを通した位置補間 (EaseOutCubic: 急速に動き、最後滑らかに減速)
+float easeT = EvaluateEase(EaseType::EaseOutCubic, progress); // progress は 0.0f 〜 1.0f
+Vector3 currentPos = Lerp(startPos, endPos, easeT);
+
+// 2. 0.0f〜1.0f に安全にクランプする線形補間
+float currentAlpha = LerpClamped(0.0f, 1.0f, timer / duration);
+
+// 3. クォータニオン回転の補間 (最短経路)
+Quaternion currentRot = Lerp(startRot, targetRot, easeT);
 ```
 
 ---
@@ -2682,21 +2754,33 @@ uiGroup_.Draw();
 - **ヘッダー**: `#include "Framework/UI/UINavigationController.h"`
 - **主な機能**:
   - **ハイブリッド入力調停**: マウスが物理的に動いた時のみマウスモードに遷移し、パッド・キー入力時はマウスホバーのフォーカス奪取を自動ブロック。
-  - **オートリピート**: 十字キーやスティックの長押し時に、初回ディレイ（0.4秒）を経て一定間隔（0.12秒）で滑らかに連続送り。
-  - **決定判定 (`IsSubmitted`)**: ゲームパッドのAボタン、Enterキー、Spaceキーなどの決定入力を統一判定。
+  - **オートリピート**: 十字キーやスティックの長押し時に、初回ディレイ（0.35秒）を経て一定間隔（0.10秒）で滑らかに連続送り。
+  - **選択変更イベント**: `SetOnSelectionChanged` でカーソル移動音の再生などを1行で紐付け可能。
+  - **決定入力との連携**: 選択項目の遷移と調停に特化しているため、決定判定は `InputManager` の論理アクション（`UI_Submit`）やカーソルクリック判定と組み合わせて行います。
 
 ```cpp
 #include "Framework/UI/UINavigationController.h"
+#include "Platform/Input/InputManager.h"
 
-// 項目数 3、縦並びメニューとして初期化
+// 1. 項目数 3、縦並びメニューとして初期化（カーソル音コールバックも設定可能）
 UINavigationController navController_(3, false);
+navController_.SetOnSelectionChanged([](int newIndex) {
+    // カーソル移動音の再生など
+});
 
-// 毎フレームのUpdate
-navController_.Update(engine_->GetInputManager(), deltaTime);
+// 2. 毎フレームのUpdate（キーボード/ゲームパッドの長押しリピート・即時移動）
+bool isSelectionMoved = navController_.Update(input, deltaTime);
 
-// 選択項目の取得と決定判定
+// 3. マウスホバーとの調停（静止マウスによる誤フォーカス奪取を完全ブロック）
+if (mouseHoveredIndex >= 0) {
+    if (navController_.TrySetHoveredIndex(mouseHoveredIndex, input)) {
+        // マウスが実際に移動した場合のみフォーカスを更新
+    }
+}
+
+// 4. 決定判定（論理アクションまたはカーソルクリック判定）
 int currentIndex = navController_.GetSelectedIndex();
-if (navController_.IsSubmitted()) {
+if (input->IsActionTriggered("UI_Submit") || input->IsCursorActionPressed()) {
     // 決定時の処理を実行
 }
 ```
@@ -3175,4 +3259,5 @@ public:
 > - 2026/11: ポストプロセス記述をSSOT（`PostProcessDefinitions.h`）誘導および新規追加ワークフローへ刷新。音響システム（`SoundHelper` / `GameSE` / `GameBGM`）のAPIスニペット整合、`Run_Benchmark.bat` 負荷検証手順、`GameArchitecture.md` への相互参照誘導を追記
 > - 2026/11: 総合精査を実施。VS2026ソリューション構成（Irufemi.slnx）一本化、面光源（`AreaLight`）および `DrawManager::SetFrameData` 最新シグネチャ追記、`PostProcessManager` / `EffectMaskComponent` / `AttractDemoManager` のAPIスニペット修正、`UINavigationController` / `input_actions.json` / `CollisionLayers.json` / `ConsoleCommandSystem` の仕様を追記
 > - 2026/11: Manual.mdの総合精査および実コード乖離修正。解像度正規アクセサ（`GetClientWidth()` 等）への整合、`ScopedEffectHandle`（RAII寿命管理）および `GetEffect<T>()` 追記、CodeGen（`GeneratePostProcessHlsl.py`）および `PropertyVisitor` によるDebugUI自動展開ワークフローの明文化、6.5節の重複記述（マジックナンバー残存部）の整理と更新履歴配置の適正化
+> - 2026/11: Manual.mdの精密ファクトチェックおよび不足基盤システムの完全拡充。`UINavigationController` の決定入力（存在しない `IsSubmitted()` 撤廃）および `PostProcessManager`（存在しない `SetModeEnabled` 撤廃・`ActivateScoped` 推奨化）の実コード整合、`CameraComponent` の正規アクセサ整合、補間・イージング基盤（`Ease.h` / `Lerp` / `Slerp` / `EvaluateEase`）、GPUインスタンシングデバッグ描画（`DebugPrimitiveRenderer`）、マルチカメラ管理（`CameraManager`）、文字列変換（`StringUtility.h` / `ConvertString`）の仕様・スニペットを追記
 
