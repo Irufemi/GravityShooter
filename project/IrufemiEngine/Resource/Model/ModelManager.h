@@ -223,6 +223,27 @@ public:
      */
     void ClearAll();
 
+    /** @name メモリ予算・キャッシュ管理 */
+    ///@{
+    /**
+     * @brief モデルキャッシュの最大メモリ予算（バイト数）を設定する
+     * @param[in] bytes 最大バイト数（0で無制限）
+     */
+    void SetMemoryBudget(size_t bytes);
+
+    /**
+     * @brief 現在設定されている最大メモリ予算（バイト数）を取得する
+     * @return 最大バイト数
+     */
+    size_t GetMemoryBudget() const;
+
+    /**
+     * @brief 現在キャッシュされているモデルリソースの推定合計メモリ使用量を取得する
+     * @return 使用バイト数
+     */
+    size_t GetCurrentMemoryUsage() const;
+    ///@}
+
     // --- ロード関数群 (内部的または特殊用途で使用) ---
 
     /**

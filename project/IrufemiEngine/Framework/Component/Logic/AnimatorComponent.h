@@ -40,7 +40,7 @@ public:
     /**
      * @brief Play を実行する。
      */
-    void Play(const std::string& animationName, bool loop = true, float fadeDuration = 0.0f);
+    void Play(const std::string& animationName, bool loop = true, float fadeDuration = -1.0f);
 
     /**
      * @brief ComponentName を取得する。
@@ -58,12 +58,28 @@ public:
         return animator_.get();
     }
 
+    /**
+     * @brief デフォルトのクロスフェード時間を設定する
+     * @param[in] duration フェード時間（秒）
+     */
+    void SetDefaultFadeDuration(float duration) {
+        defaultFadeDuration_ = duration;
+    }
+    /**
+     * @brief デフォルトのクロスフェード時間を取得する
+     * @return フェード時間（秒）
+     */
+    float GetDefaultFadeDuration() const {
+        return defaultFadeDuration_;
+    }
+
 private:
     std::unique_ptr<Animator> animator_;
     std::string defaultAnimation_ = "";
     std::string currentLoadedAnimation_ = "";
     float playbackSpeed_ = 1.0f;
     bool applyRootMotion_ = false;
+    float defaultFadeDuration_ = 0.2f;
 
     class SkinnedMeshRendererComponent* cachedRenderer_ = nullptr;
 };

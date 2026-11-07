@@ -35,7 +35,8 @@ void AnimatorComponent::Start() {
 void AnimatorComponent::Play(const std::string& animationName, bool loop, float fadeDuration) {
     defaultAnimation_ = animationName;
     currentLoadedAnimation_ = animationName;
-    animator_->Play(animationName, loop, fadeDuration);
+    float actualFade = (fadeDuration >= 0.0f) ? fadeDuration : defaultFadeDuration_;
+    animator_->Play(animationName, loop, actualFade);
 }
 
 void AnimatorComponent::Update() {
@@ -87,4 +88,7 @@ void AnimatorComponent::OnRegisterProperties() {
 
     RegisterProperty("Apply Root Motion", &applyRootMotion_)
         .SetTooltip("Apply animation root motion to GameObject transform");
+
+    RegisterProperty("Fade Duration", &defaultFadeDuration_)
+        .SetTooltip("Crossfade transition duration in seconds");
 }

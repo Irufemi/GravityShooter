@@ -1626,6 +1626,11 @@ Catmull-Rom スプライン曲線を定義し、レールシューターの自�
 3Dモデルのスケルタルアニメーション再生、クロスフェード遷移、Root Motion、および再生速度を制御するコンポーネントです。
 - **ヘッダー**: `#include "Framework/Component/Logic/AnimatorComponent.h"`
 - **低レイヤーコア**: `#include "Resource/Model/Animator.h"`
+- **インスペクター設定プロパティ**:
+  - `Default Animation`: 初期再生アニメーションファイル名
+  - `Playback Speed`: 再生速度倍率（0.0f～3.0f）
+  - `Apply Root Motion`: アニメーションの移動・回転差分をGameObjectへ直接適用するかのフラグ
+  - `Fade Duration`: デフォルトのクロスフェード遷移時間（秒・初期値 0.2f）。`Play(name, loop)` 呼び出し時に第3引数を省略（デフォルト `-1.0f`）した場合、この値が自動適用されます。
 - **主なAPI**:
   ```cpp
   #include "Framework/Component/Logic/AnimatorComponent.h"
@@ -1979,6 +1984,10 @@ auto animator = gameObject_->GetComponent<AnimatorComponent>();
 // 第3引数にフェード時間（秒）を指定することで、現在のポーズから次のポーズへ滑らかに遷移します。
 // 例：1.0秒かけて "walk" から "sneakWalk" に滑らかに移行する
 animator->Play("sample/sneakWalk.gltf", true, 1.0f);
+
+// 第3引数を省略（デフォルト -1.0f）した場合は、インスペクター設定または SetDefaultFadeDuration() で指定されたデフォルトフェード時間（標準 0.2f）が自動適用されます。
+animator->Play("sample/sneakWalk.gltf", true); // デフォルト時間で滑らかにクロスフェード
+animator->Play("sample/jump.gltf", false, 0.05f); // 俊敏なアクションは明示的に短縮フェード
 ```
 
 #### 再生速度の動的制御 (PlaybackSpeed)
@@ -3406,6 +3415,18 @@ engine_->GetTextureManager()->LoadAllFromFolder("resources/ui");
 3Dモデルデータ（頂点バッファ、インデックスバッファ、マテリアル等）が肥大化しVRAM/RAMを圧迫することを防ぐため、`ModelManager` はLRU（Least Recently Used）に基づくメモリバジェット管理を備えています。
 - 一定容量（バジェット）を超過した場合、参照カウントが0の未使用モデルを自動的に安全アンロードします。
 - **キャッシュ逆引きマップの整合性確保**: パージ時にアセットパスと内部ハンドルの逆引きマップを適正に整合・クリーンアップするため、パージ後に同一モデルが再要求された場合でも、古いハンドルのダングリングポインタを発生させず安全に再ロード・キャッシュ構築が行われます。
+- **動的メモリ予算設定と使用量監視API**:
+  GPUのVRAM容量や低スペックモード設定に応じて、モデルキャッシュの最大メモリ予算（デフォルト: 1GB）を動的に設定・監視できます。
+  ```cpp
+  auto* modelMgr = engine_->GetObjModelManager();
+
+  // 1. メモリ予算を 512MB に設定（低スペック環境向け）
+  modelMgr->SetMemoryBudget(512ULL * 1024ULL * 1024ULL);
+
+  // 2. 現在の予算と使用量の取得（プロファイリング・デバッグ用）
+  size_t budget = modelMgr->GetMemoryBudget();
+  size_t currentUsage = modelMgr->GetCurrentMemoryUsage();
+  ```
 `.obj` や `.gltf` 形式の3Dモデルを読み込み、最適化してキャッシュします。
 
 ```cpp
@@ -3829,5 +3850,6 @@ public:
 > - 2026/11: マニュアル精密精査に基づく実コード乖離解消と基盤仕様の網羅補正。ポストプロセスHLSLシェーダー名の誤記修正（`CombinedPostEffect.PS.hlsl` ➔ `PostProcess.PS.hlsl`）、`CleanAssets.bat` のパス明記（`scripts/maintenance/CleanAssets.bat`）、RenderGraph 実行フロー表への `PostProcessCopyPass` / `PostUIPass` 補完、エフェクト分類表への `SeparableBlurEffect` 追加、新エフェクト追加時のコンポーネント連携（`IPostProcessSettings` / `IScreenEffectDriver`）および低レイヤーボクセル破砕（`VoxelParticleManager`）の解説追記、冒頭および2.1節における `GameArchitecture.md` との境界・相互参照を明文化。
 > - 2026/11: Manual.mdの精密ファクトチェックおよび最新基盤の完全網羅。第2.4節の `ScreenCaptureManager::SaveCapture` 概念スニペットに対する公開非同期API（第8.3.5節）への相互参照整備、第3.3節へのプレハブ高速寸法・コライダー事前抽出API（`PrefabUtility::ExtractMetrics`）の仕様・スニペット追記、第4.2節へのシーン遷移ドライバ Strategy パターン（`ITransitionDriver` / `SceneTransitionDrivers.h`）の設計解説追記、第6.4節への新設ポストプロセスエフェクト全5種（`Pixelation`, `Pointillism`, `NightVision`, `Kaleidoscope`, `Halftone`）のパラメータ仕様・分類の完全補完。
 > - 2026/11: 深層アーキテクチャ監査に基づくレンダリング・メモリ・カメラ基盤の完全網羅。第5章に `OrbitCameraController::Frame` の水平視野角（FOV X）考慮フレーミング、および `Camera::GetAspectRatio()` を追記。第6章に `BaseBatch` のマルチフレーム同期カウントダウン（`dirtyFramesLeft_`）とワールド行列指定インスタンスのCPU視錐台カリング、`ModelBatch` の単一メッシュ制約と警告通知、および `DynamicConstantBuffer`（GPUフェンス遅延回収、80%高負荷警告、上限超過フォールバック、診断API）の仕様を完全追記。第8章に `InputManager` / `Keyboard` の修飾キー判定API（`IsShiftDown` / `IsCtrlDown` / `IsAltDown`）を反映。
+> - 2026/11: 深層アーキテクチャ監査に基づくアニメーションおよびモデルリソース管理の拡充。第3.3節に `AnimatorComponent` のクロスフェード時間プロパティ（`SetDefaultFadeDuration` / `GetDefaultFadeDuration`）および Inspector からの編集対応、`Play` メソッドのデフォルト引数連動を追記。第3.4節および第6章に `ModelManager` のメモリ予算動的制御API（`SetMemoryBudget` / `GetMemoryBudget` / `GetCurrentMemoryUsage`）とスレッドセーフな運用仕様を反映。
 
 

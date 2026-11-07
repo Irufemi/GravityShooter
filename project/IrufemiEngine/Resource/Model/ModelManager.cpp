@@ -424,6 +424,21 @@ void ModelManager::ClearAll() {
     filePathCache_.clear();
 }
 
+void ModelManager::SetMemoryBudget(size_t bytes) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    modelPool_.SetMemoryBudget(bytes);
+}
+
+size_t ModelManager::GetMemoryBudget() const {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return modelPool_.GetMemoryBudget();
+}
+
+size_t ModelManager::GetCurrentMemoryUsage() const {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return modelPool_.GetCurrentMemoryUsage();
+}
+
 void ModelManager::OnDirectoryChanged() {
     // 変更が複数回呼ばれることを防ぐため少し待つ
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
