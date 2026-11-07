@@ -370,6 +370,9 @@ Irufemi Engineでは、実行対象ユーザー（開発者・アーティスト
 
 #### 3. 実装スニペット例（※概念説明用の実装イメージ）
 
+> [!NOTE]
+> 以下の `ScreenCaptureManager::SaveCapture` は、リカバリ可能処理における `IRUFEMI_CHECK_HR` の使い方を示すための**概念説明用イメージコード**です。`ScreenCaptureManager` の実際の公開API（スレッドセーフな非同期キャプチャリクエスト）については、[第8.3.5節 ScreenCaptureManager](#835-screencapturemanager-スクリーンショットメタデータ) を参照してください。
+
 ```cpp
 #include "Core/Utility/ErrorUtility.h"
 
@@ -636,6 +639,19 @@ IrufemiEngine のエディタは、モダンなゲームエンジン（Unity等�
    > [!NOTE]
    > `SceneSerializer::LoadPrefab` も後方互換としてそのまま動作しますが、内部的には `PrefabManager` へ委譲されています。シーン遷移時にはキャッシュが自動解放されます。
 
+   **【実体化前の高速メトリクス抽出 (`PrefabUtility`)】**:
+   敵のウェーブスポーン予測や空間配置クエリなど、**`GameObject` をインスタンス化（実体化）することなく、プレハブの基準スケールや当たり判定半径などの寸法情報のみを事前に高速取得したい場合** は、`PrefabUtility` (`#include "Framework/Prefab/PrefabUtility.h"`) を使用します。
+   ```cpp
+   #include "Framework/Prefab/PrefabUtility.h"
+
+   // プレハブJSONから直接メトリクス（寸法・コライダー情報）を抽出
+   PrefabMetrics metrics = PrefabUtility::ExtractMetrics("resources/prefabs/EnemyHeavy.prefab.json");
+
+   // 事前に当たり判定半径やモデルパスを取得してスポーン余白を計算可能
+   float spawnClearance = metrics.hasSphereCollider ? metrics.colliderRadius : 1.5f;
+   Vector3 baseScale = metrics.baseScale;
+   ```
+
 4. **Prefab分離編集モード (Isolation Stage)**:
    - シーン内の他オブジェクトに干渉されることなく、プレハブ単体を隔離されたクリーンな空間で編集できます。
    - **進入方法**:
@@ -880,6 +896,10 @@ engine_->GetSceneManager()->LoadScene("InGame", SceneTransition::Type::GravitySi
 | **`RadialBlur`** | 画面中心に向かって引き込まれるような放射状ブラーを伴いながら暗転遷移する演出。 |
 | **`RadialBlurWhite`** | 放射状ブラーがかかりながら真夜中から真昼へ抜けるようなホワイトアウト遷移演出。 |
 | **`GravitySingularity`** | 空間歪み・重力色収差・流体渦巻きが連動する重力特異点崩壊・ワープ遷移演出。インゲーム突入時等に最適。 |
+
+> [!TIP]
+> **トランジションの内部設計 (Strategy パターン)**:
+> シーン遷移の各演出ロジックは、[`SceneTransitionDrivers.h`](file:///f:/school/3_5/WP1/WP1/project/IrufemiEngine/Framework/Scene/SceneTransitionDrivers.h) の基底インターフェース **`ITransitionDriver`**（`OnStart` / `OnUpdate`）を継承した個別ドライバクラス（`FadeTransitionDriver`, `DissolveTransitionDriver`, `RadialBlurTransitionDriver`, `GravitySingularityTransitionDriver` 等）として分離・実装されています。演出パラメータの更新と `PostProcessManager` の制御が疎結合に保たれているため、将来的な新遷移演出の追加も容易です。
 
 **2. C++クラスによる手動遷移 (std::string_view によるゼロコピー呼び出し)**
 `BaseScene` を継承した専用クラスへ遷移します。引数はすべて `std::string_view` に統一されており、一時オブジェクトを生成せず高速に処理されます。
@@ -2240,10 +2260,20 @@ IrufemiEngine は、色調補正から光学ブラー、重力演出に至るま
 
 - **色調・階調**: `ToneMapping`(ACES), `Grayscale`, `Sepia`, `HSV`, `Posterization` など
 - **空間・光学ブラー**: `DualKawaseBlur`, `SeparableBlur`(ガウシアン), `DepthOfField`(DoF), `LightShafts`(ゴッドレイ), `RadialBlur`, `DirectionalBlur` など
-- **画面演出・ディストーション**: `Vignette`, `Noise`, `Glitch`, `Dissolve`, `ChromaticAberration`, `DisplacementMap` など
+- **画面演出・ディストーション**: `Vignette`, `Noise`, `Glitch`, `Dissolve`, `ChromaticAberration`, `DisplacementMap`, `Pixelation`(モザイク), `Kaleidoscope`(万華鏡) など
+- **アート・レトロ・特殊表現**: `Pointillism`(油絵・点描画), `NightVision`(暗視ゴーグル・走査線), `Halftone`(新聞・アメコミ調ドット網点) など
 - **輪郭・境界検出**: `DepthBasedOutline`(深度+法線複合), `LuminanceBasedOutline`(2Dトゥーン調・アウターシルエット) など
 - **画面遷移**: `Fade`(単色フェード), `Slide`(ワイプ演出)
 - **重力アクション専用**: `GravityDistortion`(時空歪曲波紋), `BlackHoleSupernova`(重力特異点崩壊・超新星爆発) など
+
+##### 【追加特殊表現エフェクトのパラメータ仕様】
+| エフェクト名 (`PostProcessMode`) | パス種別 | 専用構造体 (`PostProcessParams.h`) | 主要パラメータと演出用途 |
+| :--- | :--- | :--- | :--- |
+| **`Pixelation`** | `Inline` | `PixelationParams` | `pixelSize`: 1ドットのピクセル数。レトロゲーム風のモザイク・解像度ダウン演出に最適。 |
+| **`Pointillism`** | `Separate` | `PointillismParams` | `strokeSize`: 筆の太さ, `colorSteps`: 色階調。油絵・点描画風のアーティスティックな表現。 |
+| **`NightVision`** | `Inline` | `NightVisionParams` | `intensity`: ノイズ・走査線強度。暗視スコープ風のグリーン単色化および動的スキャンライン演出。 |
+| **`Kaleidoscope`** | `Separate` | `KaleidoscopeParams` | `segments`: 分割数。万華鏡・多面鏡のような回転対称分割ワープ演出。 |
+| **`Halftone`** | `Inline` | `HalftoneParams` | `scale`: ドット密度, `angle`: 回転角, `blend`: 適用度。新聞印刷やアメコミ調のCMYKドット網点演出。 |
 
 > [!TIP]
 > **最新のエフェクト一覧と定義 (Single Source of Truth)**:
@@ -3772,4 +3802,6 @@ public:
 > - 2026/11: 精密ファクトチェックに基づく未記載情報の完全補強。`IrufemiEditor` の標準キーボードショートカット一覧表（Delete, Ctrl+D/Z/Y/S, F, P, Esc）を明文化、`TextRendererComponent` の垂直アライメント（`SetVerticalAlignment`）および `SpriteRendererComponent` のカプセル化アクセサ（`SetFlipX/Y`, `SetAnchor`, `SetBaseSize`）の仕様追加、`InputManager` の包括的無操作放置検知（`HasAnyInput()`）と仮想カーソル制御コード例を完全追記。
 > - 2026/11: 全システム精密精査に基づく開発者向け拡張基盤の完全網羅。第3章にエディタ拡張基盤（`IComponentEditor` / `ComponentEditorRegistry`）による独自カスタムInspector作成・登録手順を明文化。第6章に `LambdaRenderPass`（RDGスタイルのインラインレンダーパス追加）の仕様とコード例、低レイヤーシェーダー管理基盤（`ShaderManager`）のキャッシュアーキテクチャ、およびアニメーション再生速度制御（`PlaybackSpeed` / `GetRawAnimator()`）とボーン追従の階層ベストプラクティスを完全追記。
 > - 2026/11: マニュアル精密精査に基づく実コード乖離解消と基盤仕様の網羅補正。ポストプロセスHLSLシェーダー名の誤記修正（`CombinedPostEffect.PS.hlsl` ➔ `PostProcess.PS.hlsl`）、`CleanAssets.bat` のパス明記（`scripts/maintenance/CleanAssets.bat`）、RenderGraph 実行フロー表への `PostProcessCopyPass` / `PostUIPass` 補完、エフェクト分類表への `SeparableBlurEffect` 追加、新エフェクト追加時のコンポーネント連携（`IPostProcessSettings` / `IScreenEffectDriver`）および低レイヤーボクセル破砕（`VoxelParticleManager`）の解説追記、冒頭および2.1節における `GameArchitecture.md` との境界・相互参照を明文化。
+> - 2026/11: Manual.mdの精密ファクトチェックおよび最新基盤の完全網羅。第2.4節の `ScreenCaptureManager::SaveCapture` 概念スニペットに対する公開非同期API（第8.3.5節）への相互参照整備、第3.3節へのプレハブ高速寸法・コライダー事前抽出API（`PrefabUtility::ExtractMetrics`）の仕様・スニペット追記、第4.2節へのシーン遷移ドライバ Strategy パターン（`ITransitionDriver` / `SceneTransitionDrivers.h`）の設計解説追記、第6.4節への新設ポストプロセスエフェクト全5種（`Pixelation`, `Pointillism`, `NightVision`, `Kaleidoscope`, `Halftone`）のパラメータ仕様・分類の完全補完。
+
 
