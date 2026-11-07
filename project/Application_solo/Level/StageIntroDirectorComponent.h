@@ -92,8 +92,8 @@ private:
     float maxWarpBlurWidth_ = 0.14f;        ///< 突入時の最大ラジアルブラー強度（強烈な速度線）
     float warpInRailSpeedBoost_ = 2.2f;     ///< 突入開始時のレール前進初速ブースト倍率（2.2倍 -> 1.0倍へ滑らかに減衰）
     std::string targetShipName_ = "Player"; ///< 演出対象の自機オブジェクト名
-    std::string warpSePath_;    ///< 空間突破・重力膜通過音
-    std::string fcsBootSePath_; ///< FCSシステム起動チャイム音
+    std::string warpSePath_;                ///< 空間突破・重力膜通過音
+    std::string fcsBootSePath_;             ///< FCSシステム起動チャイム音
 
     // --- 空間物理配置 超高密度重力エネルギー界面（Gravity Membrane: Primitive + EffectMask）突破用プロパティ ---
     float membraneOffsetZ_ = -1.80f;               ///< 重力界面の初期ローカルZ位置（自機開始Z=-4.8mと定位置0.0mの中間）
@@ -101,7 +101,7 @@ private:
     float membraneScaleY_ = 36.00f;                ///< 重力界面の縦幅（メートル: 視界一面を覆い尽くす重力レンズ界面）
     float membraneDisplacementIntensity_ = 0.038f; ///< 重力界面の上品な局所Simplex Noise屈折歪み強度
     float membraneRgbShiftRatio_ = 0.04f;          ///< 重力界面の色収差比率（ギラつきを抑えた自然な空間屈折）
-    std::string breachSePath_; ///< 重力界面破断・空間突破音
+    std::string breachSePath_;                     ///< 重力界面破断・空間突破音
     float breachProgressThreshold_ =
         0.32f; ///< 重力膜を突き破るタイミング（進行割合: 0.32 = 自機が膜Z=-1.8mに接触・貫通する瞬間）
     float breachFlashIntensity_ = 0.30f;  ///< 重力膜突破時の白・シアン重力破断閃光強度（白飛びを抑え色収差を鮮明化）

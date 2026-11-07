@@ -8,18 +8,18 @@
  * @details シーン登録および TransitionTo / PushScene で使用するキーを一元管理します。
  */
 namespace GameScenes {
-    inline constexpr std::string_view Title = "Title";
-    inline constexpr std::string_view Select = "Select";
-    inline constexpr std::string_view InGame = "InGame";
-    inline constexpr std::string_view Pause = "Pause";
-    inline constexpr std::string_view TL1 = "TL1";
-    inline constexpr std::string_view Result = "Result";
+inline constexpr std::string_view Title = "Title";
+inline constexpr std::string_view Select = "Select";
+inline constexpr std::string_view InGame = "InGame";
+inline constexpr std::string_view Pause = "Pause";
+inline constexpr std::string_view TL1 = "TL1";
+inline constexpr std::string_view Result = "Result";
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-    inline constexpr std::string_view Debug = "Debug";
+inline constexpr std::string_view Debug = "Debug";
 #endif
-    inline constexpr std::string_view Options = "OptionsScene";
-    inline constexpr std::string_view HowToPlay = "HowToPlayScene";
-}
+inline constexpr std::string_view Options = "OptionsScene";
+inline constexpr std::string_view HowToPlay = "HowToPlayScene";
+} // namespace GameScenes
 
 /**
  * @class GameApplication

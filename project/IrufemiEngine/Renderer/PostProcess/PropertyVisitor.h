@@ -29,21 +29,24 @@ public:
     /**
      * @brief 2次元ベクトルドラッグ入力
      */
-    void DragFloat2(const char* label, Irufemi::Vector2& value, float speed = 0.01f, float min = 0.0f, float max = 1.0f) {
+    void DragFloat2(const char* label, Irufemi::Vector2& value, float speed = 0.01f, float min = 0.0f,
+                    float max = 1.0f) {
         ImGui::DragFloat2(label, &value.x, speed, min, max);
     }
 
     /**
      * @brief 3次元ベクトルドラッグ入力
      */
-    void DragFloat3(const char* label, Irufemi::Vector3& value, float speed = 0.01f, float min = 0.0f, float max = 1.0f) {
+    void DragFloat3(const char* label, Irufemi::Vector3& value, float speed = 0.01f, float min = 0.0f,
+                    float max = 1.0f) {
         ImGui::DragFloat3(label, &value.x, speed, min, max);
     }
 
     /**
      * @brief 4次元ベクトルドラッグ入力
      */
-    void DragFloat4(const char* label, Irufemi::Vector4& value, float speed = 0.01f, float min = 0.0f, float max = 1.0f) {
+    void DragFloat4(const char* label, Irufemi::Vector4& value, float speed = 0.01f, float min = 0.0f,
+                    float max = 1.0f) {
         ImGui::DragFloat4(label, &value.x, speed, min, max);
     }
 
@@ -101,4 +104,3 @@ public:
 };
 
 } // namespace Irufemi
-

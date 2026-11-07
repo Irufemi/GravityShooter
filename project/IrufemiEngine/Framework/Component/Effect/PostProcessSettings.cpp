@@ -230,9 +230,9 @@ std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(const s
     }
 
     // SSOT マクロによるエフェクト名・DisplayName からの動的逆引き
-#define IRUFEMI_MATCH_SETTINGS_MODE(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
-    if (typeName == #ModeName || typeName == DisplayName) { \
-        return Create(PostProcessMode::ModeName); \
+#define IRUFEMI_MATCH_SETTINGS_MODE(ModeName, StructType, PassType, DefaultLayer, DisplayName)                         \
+    if (typeName == #ModeName || typeName == DisplayName) {                                                            \
+        return Create(PostProcessMode::ModeName);                                                                      \
     }
     IRUFEMI_POSTPROCESS_EFFECT_LIST(IRUFEMI_MATCH_SETTINGS_MODE)
 #undef IRUFEMI_MATCH_SETTINGS_MODE

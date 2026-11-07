@@ -71,13 +71,14 @@ public:
      */
     void ResetAllEffects(PostProcessManager::Layer layer = PostProcessManager::Layer::All);
 
-    Irufemi::KawaseBlurEffect* GetKawaseBlurEffect() const { return kawaseBlurEffect_.get(); }
+    Irufemi::KawaseBlurEffect* GetKawaseBlurEffect() const {
+        return kawaseBlurEffect_.get();
+    }
 
     /**
      * @brief 型指定による自己完結エフェクトの高速安全取得（レジストリパターン）
      */
-    template <typename T>
-    T* GetEffect() const {
+    template <typename T> T* GetEffect() const {
         auto it = effectRegistry_.find(std::type_index(typeid(T)));
         if (it != effectRegistry_.end()) {
             return static_cast<T*>(it->second);

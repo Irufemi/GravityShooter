@@ -91,7 +91,8 @@ void PostProcessPass::Execute(const Irufemi::RenderContext& rc) {
     if (needsProjectionInverse) {
         if (auto* perFrameData = drawManager->GetPerFrameData()) {
             if (auto* combined = ppMgr->GetEffect<Irufemi::CombinedPostEffect>()) {
-                combined->GetOutlineParams().projectionInverse = Irufemi::Math::Inverse(perFrameData->camera.projection);
+                combined->GetOutlineParams().projectionInverse =
+                    Irufemi::Math::Inverse(perFrameData->camera.projection);
             }
         }
     }

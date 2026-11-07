@@ -39,18 +39,8 @@ enum class GameBGM : uint32_t {
  */
 inline constexpr const char* GameSEToString(GameSE se) noexcept {
     constexpr std::array<const char*, static_cast<size_t>(GameSE::Count)> kNames = {
-        "DebrisShatter",
-        "FcsOnline",
-        "GravityWarp",
-        "HudSnap",
-        "LaunchCharge",
-        "MenuCancel",
-        "MenuCursor",
-        "MenuDecide",
-        "PlayerBoost",
-        "ResultImpact",
-        "WaterBreach"
-    };
+        "DebrisShatter", "FcsOnline",  "GravityWarp", "HudSnap",      "LaunchCharge", "MenuCancel",
+        "MenuCursor",    "MenuDecide", "PlayerBoost", "ResultImpact", "WaterBreach"};
     const auto idx = static_cast<size_t>(se);
     return idx < kNames.size() ? kNames[idx] : "Unknown";
 }
@@ -59,11 +49,7 @@ inline constexpr const char* GameSEToString(GameSE se) noexcept {
  * @brief GameBGM enum を JSON 定義キー名へ変換する（Branchless コンパイル時データテーブル）
  */
 inline constexpr const char* GameBGMToString(GameBGM bgm) noexcept {
-    constexpr std::array<const char*, static_cast<size_t>(GameBGM::Count)> kNames = {
-        "Title",
-        "Stage1"
-    };
+    constexpr std::array<const char*, static_cast<size_t>(GameBGM::Count)> kNames = {"Title", "Stage1"};
     const auto idx = static_cast<size_t>(bgm);
     return idx < kNames.size() ? kNames[idx] : "Unknown";
 }
-

@@ -69,9 +69,8 @@ bool Initialize(AudioManager* audioManager, const std::string& configPath) {
         }
     }
 
-    Log::OutPutLog(std::cout, "[SoundHelper] Initialized successfully from " + loadedPath +
-                              " (SE: " + std::to_string(s_seMap.size()) +
-                              ", BGM: " + std::to_string(s_bgmMap.size()) + ")\n");
+    Log::OutPutLog(std::cout, "[SoundHelper] Initialized successfully from " + loadedPath + " (SE: " +
+                                  std::to_string(s_seMap.size()) + ", BGM: " + std::to_string(s_bgmMap.size()) + ")\n");
     return true;
 }
 
@@ -166,4 +165,3 @@ void StopBGM() {
 }
 
 } // namespace SoundHelper
-

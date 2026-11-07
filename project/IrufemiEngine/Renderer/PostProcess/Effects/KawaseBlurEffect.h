@@ -31,16 +31,26 @@ public:
     }
     void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) override;
     void ResolveResources(RenderGraph* renderGraph) override;
-    void Reset() override { params_ = DualKawaseBlurParams{}; }
+    void Reset() override {
+        params_ = DualKawaseBlurParams{};
+    }
     void Render(const PostProcessRenderContext& context) override;
     void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager, TransientResourceHandle inputHandle,
                         TransientResourceHandle outputHandle, bool writeToScreen) override;
 
-    DualKawaseBlurParams& GetParams() { return params_; }
-    const DualKawaseBlurParams& GetParams() const { return params_; }
-    void SetParams(const DualKawaseBlurParams& params) { params_ = params; }
+    DualKawaseBlurParams& GetParams() {
+        return params_;
+    }
+    const DualKawaseBlurParams& GetParams() const {
+        return params_;
+    }
+    void SetParams(const DualKawaseBlurParams& params) {
+        params_ = params;
+    }
 
-    ID3D12Resource* GetConstantBuffer() const { return constantBuffer_.Get(); }
+    ID3D12Resource* GetConstantBuffer() const {
+        return constantBuffer_.Get();
+    }
 
 private:
     DualKawaseBlurParams params_{};

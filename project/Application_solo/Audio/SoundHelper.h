@@ -52,15 +52,13 @@ const SoundActionDescriptor* GetDescriptor(GameBGM bgm);
  * @param volumeMultiplier 音量乗数（std::nullopt の場合は JSON の定義値そのまま）
  * @param pitchMultiplier ピッチ乗数（std::nullopt の場合は JSON の定義値そのまま）
  */
-void Play(GameSE se,
-          std::optional<float> volumeMultiplier = std::nullopt,
+void Play(GameSE se, std::optional<float> volumeMultiplier = std::nullopt,
           std::optional<float> pitchMultiplier = std::nullopt);
 
 /**
  * @brief 論理キー名（文字列）から効果音を再生します（JSONイベント・スクリプト連携用）
  */
-void PlayByName(std::string_view name,
-                std::optional<float> volumeMultiplier = std::nullopt,
+void PlayByName(std::string_view name, std::optional<float> volumeMultiplier = std::nullopt,
                 std::optional<float> pitchMultiplier = std::nullopt);
 
 /**
@@ -76,4 +74,3 @@ void PlayBGM(GameBGM bgm, std::optional<float> volumeMultiplier = std::nullopt);
 void StopBGM();
 
 } // namespace SoundHelper
-

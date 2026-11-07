@@ -35,7 +35,9 @@ public:
      * @param targetLayer リセット対象のレイヤー (PreUI / PostUI / All)
      */
     void Reset(PostProcessManager::Layer targetLayer);
-    void Reset() override { Reset(PostProcessManager::Layer::All); }
+    void Reset() override {
+        Reset(PostProcessManager::Layer::All);
+    }
 
     bool RequiresSeparatePass() const override {
         return false;
@@ -62,94 +64,215 @@ public:
     static void RenderFinalCopyPass(const PostProcessRenderContext& context);
 
     // --- シングルパスパラメータ アクセサ ---
-    ToneMappingParams& GetToneMappingParams() { return toneMappingParams_; }
-    const ToneMappingParams& GetToneMappingParams() const { return toneMappingParams_; }
-    void SetToneMappingParams(const ToneMappingParams& p) { toneMappingParams_ = p; }
+    ToneMappingParams& GetToneMappingParams() {
+        return toneMappingParams_;
+    }
+    const ToneMappingParams& GetToneMappingParams() const {
+        return toneMappingParams_;
+    }
+    void SetToneMappingParams(const ToneMappingParams& p) {
+        toneMappingParams_ = p;
+    }
 
-    HSVParams& GetHSVParams() { return hsvParams_; }
-    const HSVParams& GetHSVParams() const { return hsvParams_; }
-    void SetHSVParams(const HSVParams& p) { hsvParams_ = p; }
+    HSVParams& GetHSVParams() {
+        return hsvParams_;
+    }
+    const HSVParams& GetHSVParams() const {
+        return hsvParams_;
+    }
+    void SetHSVParams(const HSVParams& p) {
+        hsvParams_ = p;
+    }
 
-    VignetteParams& GetVignetteParams() { return vignetteParams_; }
-    const VignetteParams& GetVignetteParams() const { return vignetteParams_; }
-    void SetVignetteParams(const VignetteParams& p) { vignetteParams_ = p; }
+    VignetteParams& GetVignetteParams() {
+        return vignetteParams_;
+    }
+    const VignetteParams& GetVignetteParams() const {
+        return vignetteParams_;
+    }
+    void SetVignetteParams(const VignetteParams& p) {
+        vignetteParams_ = p;
+    }
 
-    OutlineParams& GetOutlineParams() { return outlineParams_; }
-    const OutlineParams& GetOutlineParams() const { return outlineParams_; }
-    void SetOutlineParams(const OutlineParams& p) { outlineParams_ = p; }
+    OutlineParams& GetOutlineParams() {
+        return outlineParams_;
+    }
+    const OutlineParams& GetOutlineParams() const {
+        return outlineParams_;
+    }
+    void SetOutlineParams(const OutlineParams& p) {
+        outlineParams_ = p;
+    }
 
-    RadialBlurParams& GetRadialBlurParams() { return radialBlurParams_; }
-    const RadialBlurParams& GetRadialBlurParams() const { return radialBlurParams_; }
+    RadialBlurParams& GetRadialBlurParams() {
+        return radialBlurParams_;
+    }
+    const RadialBlurParams& GetRadialBlurParams() const {
+        return radialBlurParams_;
+    }
 
-    FadeParams& GetFadeParams() { return fadeParams_; }
-    const FadeParams& GetFadeParams() const { return fadeParams_; }
+    FadeParams& GetFadeParams() {
+        return fadeParams_;
+    }
+    const FadeParams& GetFadeParams() const {
+        return fadeParams_;
+    }
 
-    SlideParams& GetSlideParams() { return slideParams_; }
-    const SlideParams& GetSlideParams() const { return slideParams_; }
+    SlideParams& GetSlideParams() {
+        return slideParams_;
+    }
+    const SlideParams& GetSlideParams() const {
+        return slideParams_;
+    }
 
-    DissolveParams& GetDissolveParams() { return dissolveParams_; }
-    const DissolveParams& GetDissolveParams() const { return dissolveParams_; }
+    DissolveParams& GetDissolveParams() {
+        return dissolveParams_;
+    }
+    const DissolveParams& GetDissolveParams() const {
+        return dissolveParams_;
+    }
 
-    NoiseParams& GetNoiseParams() { return noiseParams_; }
-    const NoiseParams& GetNoiseParams() const { return noiseParams_; }
+    NoiseParams& GetNoiseParams() {
+        return noiseParams_;
+    }
+    const NoiseParams& GetNoiseParams() const {
+        return noiseParams_;
+    }
 
-    GlitchParams& GetGlitchParams() { return glitchParams_; }
-    const GlitchParams& GetGlitchParams() const { return glitchParams_; }
+    GlitchParams& GetGlitchParams() {
+        return glitchParams_;
+    }
+    const GlitchParams& GetGlitchParams() const {
+        return glitchParams_;
+    }
 
-    LuminanceOutlineParams& GetLuminanceOutlineParams() { return luminanceOutlineParams_; }
-    const LuminanceOutlineParams& GetLuminanceOutlineParams() const { return luminanceOutlineParams_; }
+    LuminanceOutlineParams& GetLuminanceOutlineParams() {
+        return luminanceOutlineParams_;
+    }
+    const LuminanceOutlineParams& GetLuminanceOutlineParams() const {
+        return luminanceOutlineParams_;
+    }
 
-    PixelationParams& GetPixelationParams() { return pixelationParams_; }
-    const PixelationParams& GetPixelationParams() const { return pixelationParams_; }
+    PixelationParams& GetPixelationParams() {
+        return pixelationParams_;
+    }
+    const PixelationParams& GetPixelationParams() const {
+        return pixelationParams_;
+    }
 
-    PointillismParams& GetPointillismParams() { return pointillismParams_; }
-    const PointillismParams& GetPointillismParams() const { return pointillismParams_; }
+    PointillismParams& GetPointillismParams() {
+        return pointillismParams_;
+    }
+    const PointillismParams& GetPointillismParams() const {
+        return pointillismParams_;
+    }
 
-    PosterizationParams& GetPosterizationParams() { return posterizationParams_; }
-    const PosterizationParams& GetPosterizationParams() const { return posterizationParams_; }
+    PosterizationParams& GetPosterizationParams() {
+        return posterizationParams_;
+    }
+    const PosterizationParams& GetPosterizationParams() const {
+        return posterizationParams_;
+    }
 
-    NightVisionParams& GetNightVisionParams() { return nightVisionParams_; }
-    const NightVisionParams& GetNightVisionParams() const { return nightVisionParams_; }
+    NightVisionParams& GetNightVisionParams() {
+        return nightVisionParams_;
+    }
+    const NightVisionParams& GetNightVisionParams() const {
+        return nightVisionParams_;
+    }
 
-    KaleidoscopeParams& GetKaleidoscopeParams() { return kaleidoscopeParams_; }
-    const KaleidoscopeParams& GetKaleidoscopeParams() const { return kaleidoscopeParams_; }
+    KaleidoscopeParams& GetKaleidoscopeParams() {
+        return kaleidoscopeParams_;
+    }
+    const KaleidoscopeParams& GetKaleidoscopeParams() const {
+        return kaleidoscopeParams_;
+    }
 
-    ChromaticAberrationParams& GetChromaticAberrationParams() { return chromaticAberrationParams_; }
-    const ChromaticAberrationParams& GetChromaticAberrationParams() const { return chromaticAberrationParams_; }
+    ChromaticAberrationParams& GetChromaticAberrationParams() {
+        return chromaticAberrationParams_;
+    }
+    const ChromaticAberrationParams& GetChromaticAberrationParams() const {
+        return chromaticAberrationParams_;
+    }
 
-    DisplacementMapParams& GetDisplacementMapParams() { return displacementMapParams_; }
-    const DisplacementMapParams& GetDisplacementMapParams() const { return displacementMapParams_; }
+    DisplacementMapParams& GetDisplacementMapParams() {
+        return displacementMapParams_;
+    }
+    const DisplacementMapParams& GetDisplacementMapParams() const {
+        return displacementMapParams_;
+    }
 
-    DirectionalBlurParams& GetDirectionalBlurParams() { return directionalBlurParams_; }
-    const DirectionalBlurParams& GetDirectionalBlurParams() const { return directionalBlurParams_; }
+    DirectionalBlurParams& GetDirectionalBlurParams() {
+        return directionalBlurParams_;
+    }
+    const DirectionalBlurParams& GetDirectionalBlurParams() const {
+        return directionalBlurParams_;
+    }
 
-    HalftoneParams& GetHalftoneParams() { return halftoneParams_; }
-    const HalftoneParams& GetHalftoneParams() const { return halftoneParams_; }
+    HalftoneParams& GetHalftoneParams() {
+        return halftoneParams_;
+    }
+    const HalftoneParams& GetHalftoneParams() const {
+        return halftoneParams_;
+    }
 
-    DepthOfFieldParams& GetDepthOfFieldParams() { return dofParams_; }
-    const DepthOfFieldParams& GetDepthOfFieldParams() const { return dofParams_; }
+    DepthOfFieldParams& GetDepthOfFieldParams() {
+        return dofParams_;
+    }
+    const DepthOfFieldParams& GetDepthOfFieldParams() const {
+        return dofParams_;
+    }
 
-    SmoothingParams& GetSmoothingParams() { return smoothingParams_; }
-    const SmoothingParams& GetSmoothingParams() const { return smoothingParams_; }
+    SmoothingParams& GetSmoothingParams() {
+        return smoothingParams_;
+    }
+    const SmoothingParams& GetSmoothingParams() const {
+        return smoothingParams_;
+    }
 
-    GaussianParams& GetGaussianParams() { return gaussianParams_; }
-    const GaussianParams& GetGaussianParams() const { return gaussianParams_; }
+    GaussianParams& GetGaussianParams() {
+        return gaussianParams_;
+    }
+    const GaussianParams& GetGaussianParams() const {
+        return gaussianParams_;
+    }
 
-    GravityDistortionParams& GetGravityDistortionParams() { return gravityDistortionParams_; }
-    const GravityDistortionParams& GetGravityDistortionParams() const { return gravityDistortionParams_; }
+    GravityDistortionParams& GetGravityDistortionParams() {
+        return gravityDistortionParams_;
+    }
+    const GravityDistortionParams& GetGravityDistortionParams() const {
+        return gravityDistortionParams_;
+    }
 
-    BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() { return blackHoleSupernovaParams_; }
-    const BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() const { return blackHoleSupernovaParams_; }
+    BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() {
+        return blackHoleSupernovaParams_;
+    }
+    const BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() const {
+        return blackHoleSupernovaParams_;
+    }
 
     // MultiPass/voidエフェクト用ダミースタブ（SSOTマクロ自動展開時の完全な構文合法性を保証）
     struct DummyParam {
-        template <typename T>
-        DummyParam& operator=(const T&) { return *this; }
+        template <typename T> DummyParam& operator=(const T&) {
+            return *this;
+        }
     };
-    DummyParam& Getvoid() { static DummyParam s; return s; }
-    DummyParam& GetBloomParams() { static DummyParam s; return s; }
-    DummyParam& GetDualKawaseBlurParams() { static DummyParam s; return s; }
-    DummyParam& GetLightShaftsParams() { static DummyParam s; return s; }
+    DummyParam& Getvoid() {
+        static DummyParam s;
+        return s;
+    }
+    DummyParam& GetBloomParams() {
+        static DummyParam s;
+        return s;
+    }
+    DummyParam& GetDualKawaseBlurParams() {
+        static DummyParam s;
+        return s;
+    }
+    DummyParam& GetLightShaftsParams() {
+        static DummyParam s;
+        return s;
+    }
 
     /**
      * @brief 自身が保持するシングルパスパラメータをマネージャーの CombinedParams に流し込む

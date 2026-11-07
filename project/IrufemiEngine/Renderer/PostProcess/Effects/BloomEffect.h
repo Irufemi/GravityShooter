@@ -36,20 +36,36 @@ public:
 
     void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc) override;
     void ResolveResources(RenderGraph* renderGraph) override;
-    void Reset() override { params_ = BloomParams{}; }
+    void Reset() override {
+        params_ = BloomParams{};
+    }
     void Render(const PostProcessRenderContext& context) override;
     void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager, TransientResourceHandle inputHandle,
                         TransientResourceHandle outputHandle, bool writeToScreen) override;
 
-    BloomParams& GetParams() { return params_; }
-    const BloomParams& GetParams() const { return params_; }
+    BloomParams& GetParams() {
+        return params_;
+    }
+    const BloomParams& GetParams() const {
+        return params_;
+    }
     void SetParams(const BloomParams& params);
 
-    ID3D12PipelineState* GetExtractPSO() const { return extractPSO_.Get(); }
-    ID3D12PipelineState* GetBlurHPSO() const { return blurHPSO_.Get(); }
-    ID3D12PipelineState* GetBlurVPSO() const { return blurVPSO_.Get(); }
-    ID3D12PipelineState* GetCombinePSO() const { return combinePSO_.Get(); }
-    ID3D12PipelineState* GetFinalCombinePSO() const { return finalCombinePSO_.Get(); }
+    ID3D12PipelineState* GetExtractPSO() const {
+        return extractPSO_.Get();
+    }
+    ID3D12PipelineState* GetBlurHPSO() const {
+        return blurHPSO_.Get();
+    }
+    ID3D12PipelineState* GetBlurVPSO() const {
+        return blurVPSO_.Get();
+    }
+    ID3D12PipelineState* GetCombinePSO() const {
+        return combinePSO_.Get();
+    }
+    ID3D12PipelineState* GetFinalCombinePSO() const {
+        return finalCombinePSO_.Get();
+    }
     D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferAddress(size_t slot = 0) const {
         return constantBuffer_ ? (constantBuffer_->GetGPUVirtualAddress() + slot * 256) : 0;
     }

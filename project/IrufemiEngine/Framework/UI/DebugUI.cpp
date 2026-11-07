@@ -47,10 +47,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include "Framework/Utility/CVar.h"
 #include "Framework/Scene/IScene.h"
 
-
-
-
-
 #include "Renderer/System/ParticleGPU/GPUParticleManager.h"
 #include "Renderer/DrawManager.h"
 #include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
@@ -62,10 +58,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
 #include "Renderer/PostProcess/PostProcessParams.h"
 #include "Renderer/PostProcess/PropertyVisitor.h"
-
-
-
-
 
 #include <chrono>
 #include <iomanip>
@@ -894,19 +886,18 @@ template <typename CombinedType>
 void DrawCombinedPropertyHelper(CombinedType* combined, PostProcessMode mode, Irufemi::ImGuiPropertyVisitor& visitor) {
     using namespace Irufemi;
     switch (mode) {
-#define DRAW_COMBINED_PROPERTIES(ModeName, StructType, PassType, DefaultLayer, DisplayName) \
-    case PostProcessMode::ModeName: \
-        if constexpr (!std::is_same_v<StructType, void> && \
-                      !std::is_same_v<StructType, BloomParams> && \
-                      !std::is_same_v<StructType, LightShaftsParams> && \
-                      !std::is_same_v<StructType, DualKawaseBlurParams>) { \
-            if (combined) { \
-                combined->Get##StructType().Visit(visitor); \
-            } \
-        } \
+#define DRAW_COMBINED_PROPERTIES(ModeName, StructType, PassType, DefaultLayer, DisplayName)                            \
+    case PostProcessMode::ModeName:                                                                                    \
+        if constexpr (!std::is_same_v<StructType, void> && !std::is_same_v<StructType, BloomParams> &&                 \
+                      !std::is_same_v<StructType, LightShaftsParams> &&                                                \
+                      !std::is_same_v<StructType, DualKawaseBlurParams>) {                                             \
+            if (combined) {                                                                                            \
+                combined->Get##StructType().Visit(visitor);                                                            \
+            }                                                                                                          \
+        }                                                                                                              \
         break;
 
-    IRUFEMI_POSTPROCESS_EFFECT_LIST(DRAW_COMBINED_PROPERTIES)
+        IRUFEMI_POSTPROCESS_EFFECT_LIST(DRAW_COMBINED_PROPERTIES)
 #undef DRAW_COMBINED_PROPERTIES
 
     default:

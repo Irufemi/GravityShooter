@@ -112,9 +112,8 @@ std::vector<PostProcessManager::Mode> PostProcessManager::GetActiveModes(Layer l
 bool PostProcessManager::HasActiveMode(Mode mode, Layer layer) const {
     std::lock_guard<std::mutex> lock(modesMutex_);
     auto checkFunc = [mode](const std::vector<PostProcessModeInfo>& list) {
-        return std::any_of(list.begin(), list.end(), [mode](const PostProcessModeInfo& info) {
-            return info.mode == mode;
-        });
+        return std::any_of(list.begin(), list.end(),
+                           [mode](const PostProcessModeInfo& info) { return info.mode == mode; });
     };
 
     if (layer == Layer::PreUI) {
@@ -143,9 +142,8 @@ void PostProcessManager::AddActiveMode(Mode mode, Layer layer, int priority) {
 void PostProcessManager::RemoveActiveMode(Mode mode, Layer layer) {
     std::lock_guard<std::mutex> lock(modesMutex_);
     auto removeFunc = [mode](std::vector<PostProcessModeInfo>& list) {
-        auto it = std::remove_if(list.begin(), list.end(), [mode](const PostProcessModeInfo& info) {
-            return info.mode == mode;
-        });
+        auto it = std::remove_if(list.begin(), list.end(),
+                                 [mode](const PostProcessModeInfo& info) { return info.mode == mode; });
         list.erase(it, list.end());
     };
 
@@ -424,8 +422,8 @@ void PostProcessManager::CreatePSOs() {
 
     // 各自律エフェクトの初期化（自己完結 PSO / CBV の作成）
     if (runner_) {
-        runner_->InitializeEffects(device_, dxCommon_, rootSig_,
-                                   {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()}, rtvFormat_);
+        runner_->InitializeEffects(device_, dxCommon_, rootSig_, {vsBlob->GetBufferPointer(), vsBlob->GetBufferSize()},
+                                   rtvFormat_);
     }
 }
 
@@ -486,8 +484,8 @@ void PostProcessManager::UnregisterCustomEffectParams(uint64_t objectId) {
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS PostProcessManager::AllocateBindlessParams(uint32_t mainTextureIndex,
-                                                                       uint32_t extraTextureIndex,
-                                                                       uint32_t maskTextureIndex) {
+                                                                     uint32_t extraTextureIndex,
+                                                                     uint32_t maskTextureIndex) {
     if (!mappedBindless_ || !bindlessCB_) {
         return 0;
     }
@@ -506,8 +504,7 @@ D3D12_GPU_VIRTUAL_ADDRESS PostProcessManager::AllocateBindlessParams(uint32_t ma
 
 void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,
                                         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalPass,
-                                        ID3D12PipelineState* psoOverride,
-                                        D3D12_GPU_VIRTUAL_ADDRESS cbvOverride) {
+                                        ID3D12PipelineState* psoOverride, D3D12_GPU_VIRTUAL_ADDRESS cbvOverride) {
     uint32_t modeIdx = static_cast<uint32_t>(mode);
     if (!psoOverride && (modeIdx >= psos_.size() || !psos_[modeIdx])) {
         return;
@@ -554,8 +551,7 @@ void PostProcessManager::DrawSinglePass(ID3D12GraphicsCommandList* commandList, 
     TryIncrementBindlessOffset();
 }
 
-template <typename T>
-T* PostProcessManager::GetEffect() const {
+template <typename T> T* PostProcessManager::GetEffect() const {
     return runner_ ? runner_->GetEffect<T>() : nullptr;
 }
 
@@ -568,14 +564,20 @@ template Irufemi::CombinedPostEffect* PostProcessManager::GetEffect<Irufemi::Com
 // 各ポストプロセスパラメータへの安全な委譲アクセサ（Facade API）
 // ============================================================================
 
-#define IRUFEMI_PP_ACCESSOR_COMBINED(Type, Getter) \
-    PostProcessManager::Type& PostProcessManager::Get##Type() { \
-        if (auto* c = GetEffect<Irufemi::CombinedPostEffect>()) { return c->Getter(); } \
-        static Type dummy{}; return dummy; \
-    } \
-    const PostProcessManager::Type& PostProcessManager::Get##Type() const { \
-        if (auto* c = GetEffect<Irufemi::CombinedPostEffect>()) { return c->Getter(); } \
-        static Type dummy{}; return dummy; \
+#define IRUFEMI_PP_ACCESSOR_COMBINED(Type, Getter)                                                                     \
+    PostProcessManager::Type& PostProcessManager::Get##Type() {                                                        \
+        if (auto* c = GetEffect<Irufemi::CombinedPostEffect>()) {                                                      \
+            return c->Getter();                                                                                        \
+        }                                                                                                              \
+        static Type dummy{};                                                                                           \
+        return dummy;                                                                                                  \
+    }                                                                                                                  \
+    const PostProcessManager::Type& PostProcessManager::Get##Type() const {                                            \
+        if (auto* c = GetEffect<Irufemi::CombinedPostEffect>()) {                                                      \
+            return c->Getter();                                                                                        \
+        }                                                                                                              \
+        static Type dummy{};                                                                                           \
+        return dummy;                                                                                                  \
     }
 
 IRUFEMI_PP_ACCESSOR_COMBINED(FadeParams, GetFadeParams)
@@ -603,28 +605,46 @@ IRUFEMI_PP_ACCESSOR_COMBINED(PosterizationParams, GetPosterizationParams)
 #undef IRUFEMI_PP_ACCESSOR_COMBINED
 
 PostProcessManager::BloomParams& PostProcessManager::GetBloomParams() {
-    if (auto* b = GetEffect<Irufemi::BloomEffect>()) { return b->GetParams(); }
-    static BloomParams dummy{}; return dummy;
+    if (auto* b = GetEffect<Irufemi::BloomEffect>()) {
+        return b->GetParams();
+    }
+    static BloomParams dummy{};
+    return dummy;
 }
 const PostProcessManager::BloomParams& PostProcessManager::GetBloomParams() const {
-    if (auto* b = GetEffect<Irufemi::BloomEffect>()) { return b->GetParams(); }
-    static BloomParams dummy{}; return dummy;
+    if (auto* b = GetEffect<Irufemi::BloomEffect>()) {
+        return b->GetParams();
+    }
+    static BloomParams dummy{};
+    return dummy;
 }
 
 PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParams() {
-    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) { return ls->GetParams(); }
-    static LightShaftsParams dummy{}; return dummy;
+    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) {
+        return ls->GetParams();
+    }
+    static LightShaftsParams dummy{};
+    return dummy;
 }
 const PostProcessManager::LightShaftsParams& PostProcessManager::GetLightShaftsParams() const {
-    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) { return ls->GetParams(); }
-    static LightShaftsParams dummy{}; return dummy;
+    if (auto* ls = GetEffect<Irufemi::LightShaftsEffect>()) {
+        return ls->GetParams();
+    }
+    static LightShaftsParams dummy{};
+    return dummy;
 }
 
 PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() {
-    if (auto* k = GetEffect<Irufemi::KawaseBlurEffect>()) { return k->GetParams(); }
-    static DualKawaseBlurParams dummy{}; return dummy;
+    if (auto* k = GetEffect<Irufemi::KawaseBlurEffect>()) {
+        return k->GetParams();
+    }
+    static DualKawaseBlurParams dummy{};
+    return dummy;
 }
 const PostProcessManager::DualKawaseBlurParams& PostProcessManager::GetDualKawaseBlurParams() const {
-    if (auto* k = GetEffect<Irufemi::KawaseBlurEffect>()) { return k->GetParams(); }
-    static DualKawaseBlurParams dummy{}; return dummy;
+    if (auto* k = GetEffect<Irufemi::KawaseBlurEffect>()) {
+        return k->GetParams();
+    }
+    static DualKawaseBlurParams dummy{};
+    return dummy;
 }

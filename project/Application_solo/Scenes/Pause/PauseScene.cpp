@@ -182,8 +182,8 @@ void PauseScene::CreateUIElements() {
          [this]() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->LoadScene(std::string(GameScenes::InGame), SceneTransition::Type::RadialBlur, 0.45f, EaseType::EaseInOutQuad,
-                               Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+                 sm->LoadScene(std::string(GameScenes::InGame), SceneTransition::Type::RadialBlur, 0.45f,
+                               EaseType::EaseInOutQuad, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},
         {L"OPTIONS", MenuItem::Options,
