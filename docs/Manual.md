@@ -1,4 +1,8 @@
-# IrufemiEngine & Application 総合開発マニュアル
+# IrufemiEngine 総合開発マニュアル
+
+> [!NOTE]
+> 本書は、汎用ゲームエンジン **`IrufemiEngine`** のアーキテクチャ、レンダリングパイプライン、コンポーネントシステム、エディタ運用および各種基盤APIを解説する総合開発マニュアルです。  
+> ゲーム固有（レールシューター／重力アクション）のゲームプレイループ、自機・敵機AI、ステートマシンおよび固有コンポーネント群の仕様については、アプリケーション専用仕様書 **[project/Application_solo/docs/GameArchitecture.md](file:///f:/school/3_5/WP1/WP1/project/Application_solo/docs/GameArchitecture.md)** を参照してください。
 
 ## 目次 (Table of Contents)
 - [1. 開発環境とワークスペース運用 (Environment & Workspace)](#1-開発環境とワークスペース運用-environment--workspace)
@@ -156,6 +160,7 @@
 ### 2.1 アーキテクチャと関心の分離
 - **エンジンの独立性**: `IrufemiEngine/` フォルダ配下のコア機能には、特定のゲームやシーンに依存する処理・固有のデータ・アクターを**絶対に含めない**でください。
 - **ゲームロジックの配置**: ゲーム固有のロジックやキャラクター制御は、必ず `Application_team/` や `Application_solo/` (または各ゲームの Application フォルダ) 内に記述し、エンジンとアプリケーションの境界を厳格に保ちます。
+- **ゲーム固有仕様書の参照**: レール前進・XY相対移動階層、自機・敵機制御、ボスマネージャー等のゲーム固有ロジックは、[GameArchitecture.md](file:///f:/school/3_5/WP1/WP1/project/Application_solo/docs/GameArchitecture.md) に集約されています。
 
 ---
 
@@ -1732,20 +1737,22 @@ flowchart TD
         P5["MainTransparentPass\n(Back-to-Front Zソート半透明オブジェクト描画)"]
     end
     subgraph PostPreUI ["4. Pre-UI ポストプロセス"]
-        P6["Pre-UI PostProcess\n(Bloom, Blur, Glitch, ToneMapping, 重力歪み等)"]
+        P6a["PostProcessCopyPass\n(MainRT ➔ PP_PreUISrc コピー)"]
+        P6b["Pre-UI PostProcessPass\n(Bloom, Blur, Glitch, ToneMapping, 重力歪み等)"]
     end
     subgraph UI ["5. UI レンダリングフェーズ"]
         P7["UIPass\n(Canvas, Sprite, Text などの2D要素描画)"]
     end
     subgraph PostPostUI ["6. Post-UI ポストプロセス"]
-        P8["Post-UI PostProcess\n(画面全体フェード, スタンドアロン時の最終画面転送)"]
+        P8a["PostProcessCopyPass\n(MainRT ➔ PP_PostUISrc コピー)"]
+        P8b["PostUIPass / PostProcessPass\n(全画面フェード, スタンドアロン時の最終画面転送)"]
     end
     subgraph Overlay ["7. 最前面・エディタオーバーレイ"]
         P9["TopMostPass\n(ポストプロセス影響外の最前面UI・Text)"]
         P10["SelectionOutlinePass\n(エディタ選択オブジェクトの輪郭線描画)"]
     end
 
-    P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8 --> P9 --> P10
+    P1 --> P2 --> P3 --> P4 --> P5 --> P6a --> P6b --> P7 --> P8a --> P8b --> P9 --> P10
 ```
 
 | レンダーパス | 実行タイミングと責務 | 主な入出力リソース |
@@ -1755,10 +1762,12 @@ flowchart TD
 | **`MainOpaquePass`** | 3D静的/動的メッシュの描画（MRT 5枚出力） | SV_Target0~4 (G-Buffer) + Depth |
 | **`FogPass`** | 不透明描画直後。深度を参照し大気遠近をブレンド | MainRT + 深度バッファ |
 | **`MainTransparentPass`** | 不透明完了後。カメラ距離で降順ソートして描画 | MainRT (DepthWrite: Disable) |
+| **`PostProcessCopyPass`** | ポストプロセス実行前。現在フレームのMainRTを作業バッファへ退避複製 | MainRT ➔ `PP_PreUISrc` / `PP_PostUISrc` |
 | **`Pre-UI PostProcess`** | 3Dシーン完了後、UI描画前。各種画面演出 | Transient 作業テクスチャ ➔ MainRT |
 | **`UIPass`** | 3Dシーンの上から2Dスプライトやテキストを描画 | MainRT |
-| **`Post-UI PostProcess`** | UI完了後。全画面トランジションやバックバッファ転送 | MainRT ➔ バックバッファ |
-| **`TopMostPass`** | ポストプロセスの影響を受けない最前面UIを描画 | バックバッファ |
+| **`PostUIPass`** | UI描画後。全画面トランジションや最終トーン補正を適用 | `PP_PostUISrc` ➔ MainRT / バックバッファ |
+| **`Post-UI PostProcess`** | スタンドアロン実行時の最終画面転送（バックバッファBlit） | MainRT ➔ バックバッファ |
+| **`TopMostPass`** | ポストプロセスの影響を受けない最前面UI・システム情報を描画 | バックバッファ |
 | **`SelectionOutlinePass`** | エディタ上で選択されたオブジェクトの輪郭線を描画 | バックバッファ |
 
 #### RenderGraph によるポストプロセスのサブパス化と自動バリア
@@ -2156,6 +2165,12 @@ myEffect.Draw();
 `ParticleObject` が持つパラメータ群をインスペクターに表示するためのUI登録処理は、すべて `ParticleObject::RegisterProperties(Component* comp)` というメソッドに集約されています。
 これにより、エンジンコアの描画処理とエディターUIの責務が完全に分離されました。もし新しい機能やパラメータを追加したい場合は、この `RegisterProperties` 内に `comp->RegisterProperty(...)` などを1行追記するだけで、自動的にエディタUIに項目が追加され、保存（シリアライズ）も連動して行われるようになっています。
 
+#### 【低レイヤー基盤】ボクセル破砕システム (VoxelParticleManager / VoxelParticleSystem)
+`VoxelParticleComponent` を裏で駆動するコアシステムとして、**`VoxelParticleManager`**（`#include "Renderer/System/VoxelParticle/VoxelParticleManager.h"`）が提供されています。
+- **アーキテクチャ**: 3Dモデル（OBJ）のAABB空間をグリッド分割・ボクセル化し、各ボクセルキューブのトランスフォームと速度ベクトルをインスタンシングバッファとしてGPUへ一括転送します。
+- **ライフサイクル**: `IrufemiEngine::Initialize` 時に初期化され、毎フレーム `Update(deltaTime)` で物理シミュレーション（重力・減衰・床衝突バウンド）を実行し、`Draw()` で単一ドローコールによる高速インスタンス描画を行います。
+- **メモリ安全性**: 破砕インスタンスは内部で事前確保（最大32インスタンス）されており、ゲームプレイ中の動的アロケーションを完全排除しています。
+
 ---
 
 ---
@@ -2224,7 +2239,7 @@ if (auto* bloom = engine->GetPostProcessManager()->GetEffect<BloomEffect>()) {
 IrufemiEngine は、色調補正から光学ブラー、重力演出に至るまで、豊富なポストプロセスエフェクトを標準搭載しています。
 
 - **色調・階調**: `ToneMapping`(ACES), `Grayscale`, `Sepia`, `HSV`, `Posterization` など
-- **空間・光学ブラー**: `DualKawaseBlur`, `DepthOfField`(DoF), `LightShafts`(ゴッドレイ), `RadialBlur`, `DirectionalBlur` など
+- **空間・光学ブラー**: `DualKawaseBlur`, `SeparableBlur`(ガウシアン), `DepthOfField`(DoF), `LightShafts`(ゴッドレイ), `RadialBlur`, `DirectionalBlur` など
 - **画面演出・ディストーション**: `Vignette`, `Noise`, `Glitch`, `Dissolve`, `ChromaticAberration`, `DisplacementMap` など
 - **輪郭・境界検出**: `DepthBasedOutline`(深度+法線複合), `LuminanceBasedOutline`(2Dトゥーン調・アウターシルエット) など
 - **画面遷移**: `Fade`(単色フェード), `Slide`(ワイプ演出)
@@ -2240,8 +2255,11 @@ IrufemiEngine は、色調補正から光学ブラー、重力演出に至るま
 2. **HLSL定数の自動同期 (CodeGen)**: Visual Studio の Pre-Build Event により `tools/GeneratePostProcessHlsl.py` が自動実行され、`PostProcessModes.generated.hlsli` に HLSL 定数が自動出力されます（手動編集不要）。
 3. **パラメータ構造体の定義と PropertyVisitor**: `Renderer/PostProcess/PostProcessParams.h` に専用構造体を作成し、`template <typename TVisitor> void Visit(TVisitor& visitor)` メソッドを記述して各メンバを `visitor.Visit(...)` で公開します。これにより、DebugUI（ImGui）描画コードを手書きすることなく、エディタ上でパラメータ調整スライダーが完全自動展開されます。
 4. **シェーダー・レンダーパスの実装**:
-   - **Inlineパスの場合**: `CombinedPostEffect.PS.hlsl` にシェーディング計算を追記する。
+   - **Inlineパスの場合**: `project/IrufemiEngine/EngineResources/shaders/PostProcess.PS.hlsl` にシェーディング計算を追記する。
    - **Separate / MultiPassの場合**: `Renderer/PostProcess/Effects/` に `IPostProcessEffect` を継承した専用エフェクトクラスを作成し、`PostProcessManager` に登録する。
+5. **コンポーネント連携 (任意)**:
+   - シーン全域で永続化・JSON保存させたい場合は、`Framework/Component/Effect/PostProcessSettings.h` の `IPostProcessSettings` 派生構造体（例: `BloomSettings`）を作成して `GlobalPostProcessComponent` に登録します。
+   - 衝突や爆発によるワンショット演出（補間減衰）を行いたい場合は、`Framework/Component/Effect/ScreenEffectDrivers.h` の `IScreenEffectDriver` 派生クラスを作成して `ScreenEffectComponent` で利用します。
 
 #### 重力演出専用ポストプロセス
 ##### 1. GravityDistortion (重力波・空間歪み)
@@ -2654,7 +2672,7 @@ if (fluidSim && fluidSim->IsEnabled()) {
 ```
 
 #### 3. ポストプロセスおよびシェーダーでの活用
-生成された流体テクスチャ（SRV）は、ポストプロセス（`CombinedPostEffect.PS.hlsl`）や画面遷移トランジション（`GravitySingularity`）でサンプリングされ、空間歪曲や流体ワイプ演出に活用されます。
+生成された流体テクスチャ（SRV）は、ポストプロセス（`project/IrufemiEngine/EngineResources/shaders/PostProcess.PS.hlsl`）や画面遷移トランジション（`GravitySingularity`）でサンプリングされ、空間歪曲や流体ワイプ演出に活用されます。
 
 ---
 
@@ -3639,8 +3657,8 @@ public:
 - **`[5] SEGAチャレンジ提出用 一式パッケージ (Playable + Source + 概要書ZIP)`**
   - SEGAコンテスト等の応募規定に完全準拠し、プレイ可能ビルド、ソースコード一式、および提出ドキュメントを規定フォルダ構成で一括生成・ZIP化。
 
-#### 9.5.3 アセット監査 ＆ 健全化クリーンアップ (`CleanAssets.bat`)
-大手ゲームスタジオ準拠の「3層アセット分離アーキテクチャ（DCC層 / ランタイム層 / 製品層）」に基づき、開発環境内のアセット健全性を自動監査・クリーンアップするツールです。
+#### 9.5.3 アセット監査 ＆ 健全化クリーンアップ (`scripts/maintenance/CleanAssets.bat`)
+大手ゲームスタジオ準拠の「3層アセット分離アーキテクチャ（DCC層 / ランタイム層 / 製品層）」に基づき、開発環境内のアセット健全性を自動監査・クリーンアップするツールです。`scripts/maintenance/CleanAssets.bat` をダブルクリック（または PowerShell から実行）すると対話メニューが立ち上がります。
 
 - **`[1] Audit Mode`**: C++・JSON・マテリアルの逆引き走査を行い、未参照ファイルやDCC生データを一覧レポート。
 - **`[2] Dry-Run Mode`**: ファイルを操作せず、移動・削除のシミュレーション結果をプレビュー。
@@ -3753,4 +3771,5 @@ public:
 > - 2026/11: 実装整合性再精査と描画・計算基盤の網羅拡充。`FileSystem::GetResourcePath` の名前空間修正（グローバルスコープ整合）および `GetCachePath` 等の主要API拡充、`SceneSerializer` のシーン全体保存・読込API、`DrawManager::SetFrameData` の `CameraForGPU` 引数型注記、`GPUParticleManager::RegisterEmitter` の `depthWrite` 引数追記、RenderGraph の全レンダーパス実行順序（ステージフロー）の図解、2D GPGPU 流体シミュレーション（`FluidSimulation2D` & `IComputeTask`）の仕様・外力注入コード例、および `InputActionValue` の高レベルアクセサ（`GetAsAxis1D/2D`, `GetAsBool`）を完全反映。
 > - 2026/11: 精密ファクトチェックに基づく未記載情報の完全補強。`IrufemiEditor` の標準キーボードショートカット一覧表（Delete, Ctrl+D/Z/Y/S, F, P, Esc）を明文化、`TextRendererComponent` の垂直アライメント（`SetVerticalAlignment`）および `SpriteRendererComponent` のカプセル化アクセサ（`SetFlipX/Y`, `SetAnchor`, `SetBaseSize`）の仕様追加、`InputManager` の包括的無操作放置検知（`HasAnyInput()`）と仮想カーソル制御コード例を完全追記。
 > - 2026/11: 全システム精密精査に基づく開発者向け拡張基盤の完全網羅。第3章にエディタ拡張基盤（`IComponentEditor` / `ComponentEditorRegistry`）による独自カスタムInspector作成・登録手順を明文化。第6章に `LambdaRenderPass`（RDGスタイルのインラインレンダーパス追加）の仕様とコード例、低レイヤーシェーダー管理基盤（`ShaderManager`）のキャッシュアーキテクチャ、およびアニメーション再生速度制御（`PlaybackSpeed` / `GetRawAnimator()`）とボーン追従の階層ベストプラクティスを完全追記。
+> - 2026/11: マニュアル精密精査に基づく実コード乖離解消と基盤仕様の網羅補正。ポストプロセスHLSLシェーダー名の誤記修正（`CombinedPostEffect.PS.hlsl` ➔ `PostProcess.PS.hlsl`）、`CleanAssets.bat` のパス明記（`scripts/maintenance/CleanAssets.bat`）、RenderGraph 実行フロー表への `PostProcessCopyPass` / `PostUIPass` 補完、エフェクト分類表への `SeparableBlurEffect` 追加、新エフェクト追加時のコンポーネント連携（`IPostProcessSettings` / `IScreenEffectDriver`）および低レイヤーボクセル破砕（`VoxelParticleManager`）の解説追記、冒頭および2.1節における `GameArchitecture.md` との境界・相互参照を明文化。
 
