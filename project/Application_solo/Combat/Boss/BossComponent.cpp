@@ -13,6 +13,7 @@
 #include "Combat/BossBulletManagerComponent.h"
 #include "Combat/Boss/BossDamageVisualizerComponent.h"
 #include "Player/TargetableComponent.h"
+#include "Combat/ScoreManagerComponent.h"
 #include <algorithm>
 #include <iostream>
 #include "Core/Utility/JsonUtility.h"
@@ -298,6 +299,10 @@ void BossComponent::ApplyCoreDamage(float damage) {
     Log::OutPutLog(std::cout, dmgLog);
 
     NotifyDamageTaken(damage);
+
+    if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+        scoreMgr->NotifyBossCoreDamaged(damage);
+    }
 
     if (hp_ <= 0.0f) {
         hp_ = 0.0f;

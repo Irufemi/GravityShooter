@@ -8,6 +8,7 @@
 #include "Core/Utility/JsonUtility.h"
 #include <iostream>
 #include <algorithm>
+#include "Combat/ScoreManagerComponent.h"
 
 void PlayerHealthComponent::LoadStatusFromJson() {
     if (statusDataPath_.empty()) {
@@ -157,6 +158,10 @@ void PlayerHealthComponent::TakeDamage(int damage) {
     }
 
     invincibilityTimer_ = maxInvincibilityTime_;
+
+    if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+        scoreMgr->NotifyPlayerDamaged();
+    }
 
     for (const auto& listener : onDamageTakenListeners_) {
         if (listener) {

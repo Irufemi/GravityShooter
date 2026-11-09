@@ -9,6 +9,7 @@
 #include "Effects/EffectManagerComponent.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Framework/Scene/BaseScene.h"
+#include "Combat/ScoreManagerComponent.h"
 
 void EnemyBulletComponent::Initialize() {
     lifeTimer_ = 0.0f;
@@ -94,6 +95,9 @@ void EnemyBulletComponent::OnCollisionEnter(GameObject* other) {
     if (auto debris = other->GetComponent<DebrisComponent>()) {
         if (debris->GetState() == DebrisState::Orbiting) {
             playBulletImpact();
+            if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+                scoreMgr->NotifyBulletBlocked();
+            }
             Deactivate();
             return;
         }

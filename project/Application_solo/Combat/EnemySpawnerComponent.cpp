@@ -16,6 +16,7 @@
 #include "Effects/EffectManagerComponent.h"
 #include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
 #include "Framework/Component/Effect/EffectMaskComponent.h"
+#include "Combat/ScoreManagerComponent.h"
 
 // データ指向設計とインスタンシング（Data-Oriented Design & Instancing）:
 // 個々の敵オブジェクトにMeshRendererを持たせるのではなく、Spawnerが一括でModelBatchRendererComponentを管理します。
@@ -258,6 +259,11 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                         // 5. 撃破爆発エフェクトの再生
                         if (auto effectMgr = EffectManagerComponent::GetInstance()) {
                             effectMgr->PlayEffect("debris_dust_effect", deadPos);
+                        }
+
+                        // 6. スコア＆マルチキル通知（基本点100pts）
+                        if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+                            scoreMgr->NotifyEnemyKilled(100);
                         }
                     }
                 }

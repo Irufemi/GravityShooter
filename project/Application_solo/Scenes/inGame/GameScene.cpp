@@ -7,12 +7,18 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
 #include "Framework/Scene/SceneSerializer.h"
+#include "Combat/ScoreManagerComponent.h"
+#include "UI/ScoreHUDComponent.h"
 
 GameScene::~GameScene() = default;
 
 // 初期化
 void GameScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
+
+    // スコア管理およびHUDコンポーネントを確実にプロビジョニング
+    ScoreManagerComponent::GetOrCreate(this);
+    ScoreHUDComponent::GetOrCreate(this);
 
     // JSONからのロードは SceneManager が自動で行うため、ここでは手動で呼ばない
 }
@@ -53,5 +59,13 @@ void GameScene::SetHUDActive(bool active) {
     }
     if (auto lockon = FindGameObject("LockonMarkerUI")) {
         lockon->SetActive(active);
+    }
+    const char* kScoreHudObjects[] = {
+        "HUD_ScoreHeader", "HUD_ScoreText", "HUD_KillsText", "HUD_HitPopText", "HUD_HitPopScore"
+    };
+    for (const char* name : kScoreHudObjects) {
+        if (auto obj = FindGameObject(name)) {
+            obj->SetActive(active);
+        }
     }
 }

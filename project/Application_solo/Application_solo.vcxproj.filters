@@ -267,6 +267,9 @@
     <ClCompile Include="Combat\EnemySpawnerComponent.cpp">
       <Filter>Combat</Filter>
     </ClCompile>
+    <ClCompile Include="Combat\ScoreManagerComponent.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
     <ClCompile Include="Core\SceneTransitionButtonComponent.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -274,6 +277,9 @@
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="UI\LockonMarkerUIComponent.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\ScoreHUDComponent.cpp">
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="Combat\EnemyBeamComponent.cpp">
@@ -513,6 +519,9 @@
     <ClInclude Include="Combat\EnemySpawnerComponent.h">
       <Filter>Combat</Filter>
     </ClInclude>
+    <ClInclude Include="Combat\ScoreManagerComponent.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
     <ClInclude Include="Core\SceneTransitionButtonComponent.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -520,6 +529,9 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="UI\LockonMarkerUIComponent.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\ScoreHUDComponent.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="Combat\EnemyBeamComponent.h">
