@@ -3231,6 +3231,8 @@ C++コード内に音声ファイルのパス（`"resources/audio/..."`）や音
   // 2. 列挙型（GameSE）を指定して型安全にワンショット再生（音量・ピッチ乗数の指定も可能）
   SoundHelper::Play(GameSE::PlayerBoost);
   SoundHelper::Play(GameSE::DebrisShatter);
+  SoundHelper::Play(GameSE::DataSync);   // リザルト統計開示音
+  SoundHelper::Play(GameSE::RankStamp);  // ランク刻印スタンプ音
   // 文字列キーによる再生（JSONイベント・スクリプト連携用）
   SoundHelper::PlayByName("MenuDecide");
 
@@ -3422,6 +3424,32 @@ captureManager->RequestCaptureDepth(L"screenshots/depth.png");
 
 ---
 
+
+
+---
+
+### 8.4 スコア・セッション統計API (ScoreManagerComponent)
+本作のマルチロック一斉殲滅（Rez思想）とリザルト評価を支えるゲームプレイ統計マネージャ。戦闘アクターから疎結合に呼び出します。
+
+```cpp
+#include "Combat/ScoreManagerComponent.h"
+
+// 敵撃破時（自動で0.5秒集計ウィンドウが走り、マルチキル判定が行われます）
+ScoreManagerComponent::GetInstance()->NotifyEnemyKilled(100);
+
+// ガレキシールドで敵弾防御時（+50 pts）
+ScoreManagerComponent::GetInstance()->NotifyBulletBlocked();
+
+// ボスコア弱点への被弾時（ダメージ量に応じた加点）
+ScoreManagerComponent::GetInstance()->NotifyBossCoreDamaged(damage);
+
+// 自機被弾時（-500 pts ペナルティ）
+ScoreManagerComponent::GetInstance()->NotifyPlayerDamaged();
+
+// リザルト画面でのセッション統計引き渡し
+const GameplaySessionStats& stats = ScoreManagerComponent::GetInstance()->GetStats();
+// stats.totalScore, stats.maxMultiKill, stats.enemiesKilled, stats.bulletsBlocked, stats.clearTimeSeconds
+```
 ## 9. リソース管理・最適化・運用 (Resource, Profiling & Troubleshooting)
 
 ### 9.1 リソース管理システム (ResourceHandle & 各種Manager)

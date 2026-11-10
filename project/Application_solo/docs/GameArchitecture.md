@@ -126,3 +126,40 @@
 
 3. **事前ロード (ヒッチ防止)**:
    ゲーム起動時やシーン初期化時に `SoundHelper::PreloadAll()` を呼び出すことで、全サウンドファイルがメモリキャッシュされ、初弾発射時などのフレームレート低下（ヒッチ）を完全に防ぎます。
+
+---
+
+## 7. 戦闘スコア管理・リザルトセッション統計システム (Score & Session Analytics)
+
+### 7.1 クラス構成と責務分離 (MVC Architecture)
+大手ゲームエンジンのベストプラクティスに基づき、ゲームロジック・表示View・結果画面を完全疎結合に分離した設計を採用。
+
+```
++--------------------------------------------------------+
+|               ScoreManagerComponent (Model)            |
+|  - 0.5s集計ウィンドウによるマルチキル判定              |
+|  - 指数加点計算 / シールド防御加点 / 被弾減点           |
+|  - GameplaySessionStats の集計保持                     |
++-------------------+--------------------------------+---+
+                    | (イベント通知 / ポーリング)    | (PushScene後の引き渡し)
+                    v                                v
++-------------------------+             +-------------------------+
+| ScoreHUDComponent(View) |             | ResultManager(View)     |
+|  - 右上固定スコア/KILLS |             |  - 5項目順次ロール開示  |
+|  - 照準脇マルチキルPOP  |             |  - ランクスタンプ刻印   |
++-------------------------+             +-------------------------+
+```
+
+1. **`ScoreManagerComponent` (Model & Logic)**:
+   - 各戦闘アクター (`EnemySpawner`, `EnemyBullet`, `Boss`, `PlayerHealth`) から呼ばれる疎結合API (`NotifyEnemyKilled`, `NotifyBulletBlocked`, `NotifyBossCoreDamaged`, `NotifyPlayerDamaged`) を提供。
+   - `0.50秒` のマルチキル集計ウィンドウ (`kMultiKillWindowDuration_`) を管理し、時間差投擲による撃破を同一バッチとして吸収。
+   - 撃破数に応じた指数関数的加点 (1機: 100 / 2機: 300 / 3機: 700 / 4機: 1,500 / 5機: 3,500 pts)。
+   - リザルト画面への引き渡し構造体 `GameplaySessionStats` (トータルスコア、最大マルチキル、総撃破数、防御弾数、クリアタイム) を一元管理。
+2. **`ScoreHUDComponent` (In-Game View)**:
+   - 画面右上 (X: 1240, Y: 22〜68) に `SCORE: 00000000` (Rolling Digits演出) および `KILLS: 00` を固定表示。
+   - 普段は照準周りに一切文字を出さず (照準視界100%確保)、一斉撃破時のみ照準斜め右下に `MULTI KILL xN! +XXXX pts` を0.85秒間ポップアップ表示。
+3. **`ResultManagerComponent` (Result View)**:
+   - `GameLoopManagerComponent` の `ResultScene::SetIsClear()` および `PushScene` に連動。
+   - `ScoreManagerComponent::GetInstance()->GetStats()` からセッション統計を取得し、5項目を `se_data_sync.mp3` と共に順次ロール開示。
+   - 獲得スコアに応じたランク (S / A / B / C / D) を判定し、`se_rank_stamp.mp3` と共に巨大スタンプ演出を着弾。
+   - SPACE / Aボタン による即時全開示 (スキップ) 制御を統合。

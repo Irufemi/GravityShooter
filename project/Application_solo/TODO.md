@@ -219,3 +219,25 @@
   - [x] FCSオンライン時のスプリング展開アニメーション（初期スケール 2.2x $\to$ 1.0x 収縮・オーバーシュート）
   - [x] 起動エミッシブ閃光パルス同期
 
+
+## 13. スコア・リワード＆リザルト評価システム
+- [x] **マルチロック一斉殲滅特化型スコア基盤 (ScoreManagerComponent)**
+  - [x] レールシューターの緩急にケンカする秒数制限コンボタイマーを完全撤廃し、「同時撃破数（マルチキル）」に特化したスコアリングを導入
+  - [x] 0.5秒の集計ウィンドウ（kMultiKillWindowDuration_ = 0.50f）による時間差投擲（0.15s刻み）のバッチ吸収
+  - [x] 一斉撃破数に応じた指数関数的加点（1機: 100 / 2機: 300 / 3機: 700 / 4機: 1,500 / 5機: 3,500 pts）
+  - [x] ガレキシールド敵弾防御ボーナス（+50 pts）、ボスコア被弾加点、自機被弾ペナルティ（-500 pts）
+  - [x] 戦闘アクター（EnemySpawner, EnemyBullet, Boss, PlayerHealth）からの疎結合イベント通知
+  - [x] リザルト画面引き渡し用セッション統計（GameplaySessionStats）の一元集計
+- [x] **人間工学的照準連動HUD (ScoreHUDComponent)**
+  - [x] 画面右上への累計スコア（ローリングアニメーション）および総撃破数（KILLS）の常時表示
+  - [x] 照準視界100%確保設計（普段は照準周りに一切文字を出さない）
+  - [x] 撃破時のみ照準斜め右下にフェード出現するマルチキルポップアップ演出（MULTI KILL xN! +XXXX pts）
+- [x] **リザルト画面セッション統計集約＆ランク判定演出 (ResultManagerComponent)**
+  - [x] ScoreManagerComponent からのセッション統計取得と5項目（TOTAL SCORE, MAX MULTI-LOCK, PURGED ENEMIES, BULLETS BLOCKED, CLEAR TIME）の順次ロールアップ開示
+  - [x] 獲得スコア実績に基づく評価ランク判定（S: 20,000+ / A: 12,000+ / B: 6,000+ / C: 6,000未満 / D: ゲームオーバー）
+  - [x] 巨大スケール（2.0x $	o$ 1.0x）からのスナップ着弾スタンプ演出
+  - [x] 演出中ボタン押下による即時全開示（スキップ）制御
+- [x] **退廃SF音響アセットの統合 (SoundHelper)**
+  - [x] se_data_sync.mp3: 統計開示時のデータ同期SE（GameSE::DataSync）
+  - [x] se_rank_stamp.mp3: ランク着弾刻印SE（GameSE::RankStamp）
+  - [x] GameSoundAction.h および sound_actions.json への型安全マッピング
