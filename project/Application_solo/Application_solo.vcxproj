@@ -307,6 +307,7 @@ exit 0</Command>
     <ClCompile Include="UI\ReticleUIComponent.cpp" />
     <ClCompile Include="UI\LockonMarkerUIComponent.cpp" />
     <ClCompile Include="UI\ScoreHUDComponent.cpp" />
+    <ClCompile Include="UI\ControlGuideHUDComponent.cpp" />
     <ClCompile Include="Player\PlayerTargetingComponent.cpp" />
     <ClCompile Include="Level\EnemyBuilder.cpp" />
     <ClCompile Include="Level\WaveEventHandlers.cpp" />
@@ -401,6 +402,7 @@ exit 0</Command>
     <ClInclude Include="UI\ReticleUIComponent.h" />
     <ClInclude Include="UI\LockonMarkerUIComponent.h" />
     <ClInclude Include="UI\ScoreHUDComponent.h" />
+    <ClInclude Include="UI\ControlGuideHUDComponent.h" />
     <ClInclude Include="Player\PlayerTargetingComponent.h" />
     <ClInclude Include="Level\WaveEvent.h" />
     <ClInclude Include="Level\EnemyBuilder.h" />

@@ -282,6 +282,9 @@
     <ClCompile Include="UI\ScoreHUDComponent.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="UI\ControlGuideHUDComponent.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
     <ClCompile Include="Combat\EnemyBeamComponent.cpp">
       <Filter>Combat</Filter>
     </ClCompile>
@@ -532,6 +535,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UI\ScoreHUDComponent.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\ControlGuideHUDComponent.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="Combat\EnemyBeamComponent.h">

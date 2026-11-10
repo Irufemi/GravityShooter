@@ -9,6 +9,7 @@
 #include "Framework/Scene/SceneSerializer.h"
 #include "Combat/ScoreManagerComponent.h"
 #include "UI/ScoreHUDComponent.h"
+#include "UI/ControlGuideHUDComponent.h"
 
 GameScene::~GameScene() = default;
 
@@ -19,6 +20,7 @@ void GameScene::Initialize(IrufemiEngine* engine) {
     // スコア管理およびHUDコンポーネントを確実にプロビジョニング
     ScoreManagerComponent::GetOrCreate(this);
     ScoreHUDComponent::GetOrCreate(this);
+    ControlGuideHUDComponent::GetOrCreate(this);
 
     // JSONからのロードは SceneManager が自動で行うため、ここでは手動で呼ばない
 }
@@ -61,7 +63,8 @@ void GameScene::SetHUDActive(bool active) {
         lockon->SetActive(active);
     }
     const char* kScoreHudObjects[] = {
-        "HUD_ScoreHeader", "HUD_ScoreText", "HUD_KillsText", "HUD_HitPopText", "HUD_HitPopScore"
+        "HUD_ScoreHeader", "HUD_ScoreText", "HUD_KillsText", "HUD_HitPopText", "HUD_HitPopScore",
+        "HUD_ControlGuideContainer"
     };
     for (const char* name : kScoreHudObjects) {
         if (auto obj = FindGameObject(name)) {
