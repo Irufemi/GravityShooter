@@ -84,13 +84,13 @@ void ResultManagerComponent::Initialize() {
         auto uiObj = std::make_shared<GameObject>("ReturnText");
         gameObject_->GetScene()->AddGameObject(uiObj);
         if (auto t = uiObj->GetTransform()) {
-            t->SetPosition({640.0f, 600.0f, 0.0f});
+            t->SetPosition({640.0f, 620.0f, 0.0f});
         }
 
         auto returnText = uiObj->AddComponent<TextRendererComponent>().get();
         returnText->SetFontId(fontId_);
         returnText->SetText(L"Press SPACE / A to Return");
-        returnText->SetBaseScale(20.0f);
+        returnText->SetBaseScale(18.0f);
         returnText->SetTopMost(true);
         returnText->SetAlignment(TextAlignment::Center);
         returnText->SetColor({0.85f, 0.9f, 1.0f, 0.0f});
@@ -100,7 +100,10 @@ void ResultManagerComponent::Initialize() {
         pressSpaceObj_ = uiObj;
     }
 
-    // 4. リザルト突入時の演出ポストプロセス（勝利の光芒 or 敗北の重力歪曲）を発火
+    // 4. セッション統計＆ランク判定UIの構築
+    SetupStatsUI();
+
+    // 5. リザルト突入時の演出ポストプロセス（勝利の光芒 or 敗北の重力歪曲）を発火
     ApplyEntryPostProcess();
 }
 
@@ -164,16 +167,10 @@ void ResultManagerComponent::Update() {
         }
     }
 
-    // リターン待機解除
-    if (!canReturnToTitle_ && timer_ >= resultDelayTime_) {
-        canReturnToTitle_ = true;
+    // 統計・ランク演出の更新
+    UpdateStatsRoll(dt);
 
-        if (auto uiObj = pressSpaceObj_.lock()) {
-            uiObj->SetActive(true);
-        }
-    }
-
-    // ガイドテキストの呼吸点滅 (Pulse) & タイトル帰還
+    // ガイドテキストの呼吸点滅 (Pulse)
     if (canReturnToTitle_ && !isExiting_) {
         if (auto uiObj = pressSpaceObj_.lock()) {
             if (auto returnText = uiObj->GetComponent<TextRendererComponent>()) {
@@ -181,12 +178,19 @@ void ResultManagerComponent::Update() {
                 returnText->SetColor({0.85f, 0.9f, 1.0f, 0.35f + 0.65f * pulse});
             }
         }
+    }
 
-        auto input = engine->GetInputManager();
-        bool userTrigger = input && (input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A) ||
-                                     input->IsButtonPressed(XINPUT_GAMEPAD_START));
+    // ユーザー入力（スキップ または タイトル帰還）
+    auto input = engine->GetInputManager();
+    bool userTrigger = input && (input->IsKeyPressed(VK_SPACE) || input->IsButtonPressed(XINPUT_GAMEPAD_A) ||
+                                 input->IsButtonPressed(XINPUT_GAMEPAD_START));
 
-        if (userTrigger) {
+    if (userTrigger) {
+        if (phase_ != ResultPhase::Ready) {
+            // 演出中の場合は即座にフル開示（スキップ）
+            SkipToReady();
+        } else if (!isExiting_) {
+            // 演出完了後の場合はタイトルへ帰還
             isExiting_ = true;
             UISound::PlayDecide(1.0f);
             engine->SetTimeScale(1.0f);
@@ -200,6 +204,231 @@ void ResultManagerComponent::Update() {
             engine->GetSceneManager()->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.8f,
                                                     EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
+    }
+}
+
+void ResultManagerComponent::SetupStatsUI() {
+    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
+    if (!scene) {
+        return;
+    }
+
+    if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+        stats_ = scoreMgr->GetStats();
+    }
+
+    // ランク判定（クリア時：スコア基準、ゲームオーバー時：D）
+    if (ResultScene::IsClear()) {
+        if (stats_.totalScore >= 20000) {
+            rankText_ = L"EVALUATION: RANK S";
+            rankColor_ = {1.0f, 0.85f, 0.2f, 1.0f}; // ゴールド
+        } else if (stats_.totalScore >= 12000) {
+            rankText_ = L"EVALUATION: RANK A";
+            rankColor_ = {0.3f, 0.95f, 1.0f, 1.0f}; // シアン
+        } else if (stats_.totalScore >= 6000) {
+            rankText_ = L"EVALUATION: RANK B";
+            rankColor_ = {0.4f, 1.0f, 0.6f, 1.0f}; // エメラルドグリーン
+        } else {
+            rankText_ = L"EVALUATION: RANK C";
+            rankColor_ = {0.8f, 0.85f, 0.9f, 1.0f}; // クールホワイト
+        }
+    } else {
+        rankText_ = L"MISSION FAILED (RANK D)";
+        rankColor_ = {1.0f, 0.3f, 0.3f, 1.0f}; // 警告レッド
+    }
+
+    // 統計データ5行の構築
+    struct RowData {
+        std::wstring label;
+        std::wstring value;
+    };
+    std::vector<RowData> rows;
+
+    wchar_t scoreBuf[32];
+    swprintf_s(scoreBuf, L"%08d pts", stats_.totalScore);
+    rows.push_back({L"TOTAL SCORE", scoreBuf});
+
+    std::wstring multiStr = stats_.maxMultiKill >= 5 ? L"x5 (MAX)" : (L"x" + std::to_wstring((std::max)(1, stats_.maxMultiKill)));
+    rows.push_back({L"MAX MULTI-LOCK", multiStr});
+
+    rows.push_back({L"PURGED ENEMIES", std::to_wstring(stats_.enemiesKilled) + L" UNITS"});
+    rows.push_back({L"BULLETS BLOCKED", std::to_wstring(stats_.bulletsBlocked) + L" SHOTS"});
+
+    int mins = static_cast<int>(stats_.clearTimeSeconds) / 60;
+    int secs = static_cast<int>(stats_.clearTimeSeconds) % 60;
+    int millis = static_cast<int>((stats_.clearTimeSeconds - static_cast<int>(stats_.clearTimeSeconds)) * 10.0f);
+    wchar_t timeBuf[32];
+    swprintf_s(timeBuf, L"%02d:%02d.%1d", mins, secs, millis);
+    rows.push_back({L"CLEAR TIME", timeBuf});
+
+    statRows_.clear();
+    const float startY = 220.0f;
+    const float stepY = 38.0f;
+
+    for (size_t i = 0; i < rows.size(); ++i) {
+        float y = startY + static_cast<float>(i) * stepY;
+
+        // ラベル列 (左揃え X: 380)
+        auto labelObj = std::make_shared<GameObject>("StatLabel_" + std::to_string(i));
+        scene->AddGameObject(labelObj);
+        if (auto t = labelObj->GetTransform()) {
+            t->SetPosition({380.0f, y, 0.0f});
+        }
+        auto labelText = labelObj->AddComponent<TextRendererComponent>();
+        labelText->SetFontId(fontId_);
+        labelText->SetText(rows[i].label);
+        labelText->SetBaseScale(18.0f);
+        labelText->SetTopMost(true);
+        labelText->SetAlignment(TextAlignment::Left);
+        labelText->SetColor({0.65f, 0.72f, 0.85f, 0.0f}); // 初期非表示
+        labelObj->Initialize();
+
+        // 値列 (右揃え X: 900)
+        auto valObj = std::make_shared<GameObject>("StatVal_" + std::to_string(i));
+        scene->AddGameObject(valObj);
+        if (auto t = valObj->GetTransform()) {
+            t->SetPosition({900.0f, y, 0.0f});
+        }
+        auto valText = valObj->AddComponent<TextRendererComponent>();
+        valText->SetFontId(fontId_);
+        valText->SetText(rows[i].value);
+        valText->SetBaseScale(20.0f);
+        valText->SetTopMost(true);
+        valText->SetAlignment(TextAlignment::Right);
+        valText->SetColor({0.35f, 0.92f, 1.0f, 0.0f}); // 初期非表示
+        valObj->Initialize();
+
+        statRows_.push_back({labelObj, valObj, rows[i].value});
+    }
+
+    // ランクスタンプUI (中央 Y: 485)
+    auto rankObj = std::make_shared<GameObject>("RankStampText");
+    scene->AddGameObject(rankObj);
+    if (auto t = rankObj->GetTransform()) {
+        t->SetPosition({640.0f, 485.0f, 0.0f});
+    }
+    auto rankText = rankObj->AddComponent<TextRendererComponent>();
+    rankText->SetFontId(fontId_);
+    rankText->SetText(rankText_);
+    rankText->SetBaseScale(46.0f);
+    rankText->SetTopMost(true);
+    rankText->SetAlignment(TextAlignment::Center);
+    rankText->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, 0.0f}); // 初期非表示
+    rankObj->Initialize();
+    rankValueObj_ = rankObj;
+}
+
+void ResultManagerComponent::UpdateStatsRoll(float dt) {
+    if (phase_ == ResultPhase::TitleSnap) {
+        phaseTimer_ += dt;
+        if (phaseTimer_ >= 0.45f) {
+            phase_ = ResultPhase::RollStats;
+            phaseTimer_ = 0.0f;
+            if (!hasPlayedDataSyncSE_) {
+                hasPlayedDataSyncSE_ = true;
+                SoundHelper::Play(GameSE::DataSync);
+            }
+        }
+    } else if (phase_ == ResultPhase::RollStats) {
+        phaseTimer_ += dt;
+        float rollDuration = 0.90f;
+        float progress = std::clamp(phaseTimer_ / rollDuration, 0.0f, 1.0f);
+
+        for (size_t i = 0; i < statRows_.size(); ++i) {
+            float rowThreshold = static_cast<float>(i) / static_cast<float>(statRows_.size());
+            float rowAlpha = std::clamp((progress - rowThreshold) / 0.20f, 0.0f, 1.0f);
+
+            if (auto label = statRows_[i].labelObj.lock()) {
+                if (auto text = label->GetComponent<TextRendererComponent>()) {
+                    text->SetColor({0.65f, 0.72f, 0.85f, rowAlpha});
+                }
+            }
+            if (auto val = statRows_[i].valueObj.lock()) {
+                if (auto text = val->GetComponent<TextRendererComponent>()) {
+                    text->SetColor({0.35f, 0.92f, 1.0f, rowAlpha});
+                }
+            }
+        }
+
+        if (phaseTimer_ >= 1.00f) {
+            phase_ = ResultPhase::PreStamp;
+            phaseTimer_ = 0.0f;
+        }
+    } else if (phase_ == ResultPhase::PreStamp) {
+        phaseTimer_ += dt;
+        if (phaseTimer_ >= 0.15f) { // 0.15秒のタメ
+            phase_ = ResultPhase::StampRank;
+            phaseTimer_ = 0.0f;
+            TriggerRankStamp();
+        }
+    } else if (phase_ == ResultPhase::StampRank) {
+        phaseTimer_ += dt;
+        float stampProgress = std::clamp(phaseTimer_ / 0.25f, 0.0f, 1.0f);
+        float scaleOffset = 1.0f * std::pow(1.0f - stampProgress, 3.0f); // 2.0 -> 1.0
+        float alpha = std::clamp(phaseTimer_ / 0.08f, 0.0f, 1.0f);
+
+        if (auto rankObj = rankValueObj_.lock()) {
+            if (auto text = rankObj->GetComponent<TextRendererComponent>()) {
+                text->SetBaseScale(46.0f * (1.0f + scaleOffset));
+                text->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, alpha});
+            }
+        }
+
+        if (phaseTimer_ >= 0.40f) {
+            phase_ = ResultPhase::Ready;
+            canReturnToTitle_ = true;
+            if (auto uiObj = pressSpaceObj_.lock()) {
+                uiObj->SetActive(true);
+            }
+        }
+    }
+}
+
+void ResultManagerComponent::TriggerRankStamp() {
+    if (!hasPlayedRankSE_) {
+        hasPlayedRankSE_ = true;
+        SoundHelper::Play(GameSE::RankStamp);
+    }
+    if (auto rankObj = rankValueObj_.lock()) {
+        if (auto text = rankObj->GetComponent<TextRendererComponent>()) {
+            text->SetBaseScale(46.0f * 2.0f);
+            text->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, 1.0f});
+        }
+    }
+}
+
+void ResultManagerComponent::SkipToReady() {
+    phase_ = ResultPhase::Ready;
+    canReturnToTitle_ = true;
+
+    // 全行をアルファ1.0で表示
+    for (size_t i = 0; i < statRows_.size(); ++i) {
+        if (auto label = statRows_[i].labelObj.lock()) {
+            if (auto text = label->GetComponent<TextRendererComponent>()) {
+                text->SetColor({0.65f, 0.72f, 0.85f, 1.0f});
+            }
+        }
+        if (auto val = statRows_[i].valueObj.lock()) {
+            if (auto text = val->GetComponent<TextRendererComponent>()) {
+                text->SetColor({0.35f, 0.92f, 1.0f, 1.0f});
+            }
+        }
+    }
+
+    // ランクスタンプ表示
+    if (!hasPlayedRankSE_) {
+        hasPlayedRankSE_ = true;
+        SoundHelper::Play(GameSE::RankStamp);
+    }
+    if (auto rankObj = rankValueObj_.lock()) {
+        if (auto text = rankObj->GetComponent<TextRendererComponent>()) {
+            text->SetBaseScale(46.0f);
+            text->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, 1.0f});
+        }
+    }
+
+    if (auto uiObj = pressSpaceObj_.lock()) {
+        uiObj->SetActive(true);
     }
 }
 

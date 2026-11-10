@@ -20,6 +20,8 @@ enum class GameSE : uint32_t {
     PlayerBoost,   ///< プレイヤーブースト音
     ResultImpact,  ///< リザルトインパクト衝撃音
     WaterBreach,   ///< 空間突破・突入音
+    DataSync,      ///< リザルトデータ同期・集計音
+    RankStamp,     ///< リザルトランク刻印スタンプ音
     Count
 };
 
@@ -40,7 +42,8 @@ enum class GameBGM : uint32_t {
 inline constexpr const char* GameSEToString(GameSE se) noexcept {
     constexpr std::array<const char*, static_cast<size_t>(GameSE::Count)> kNames = {
         "DebrisShatter", "FcsOnline",  "GravityWarp", "HudSnap",      "LaunchCharge", "MenuCancel",
-        "MenuCursor",    "MenuDecide", "PlayerBoost", "ResultImpact", "WaterBreach"};
+        "MenuCursor",    "MenuDecide", "PlayerBoost", "ResultImpact", "WaterBreach",  "DataSync",
+        "RankStamp"};
     const auto idx = static_cast<size_t>(se);
     return idx < kNames.size() ? kNames[idx] : "Unknown";
 }

@@ -54,6 +54,16 @@
       "Path": "resources/audio/SE/se_water_breach.mp3",
       "Volume": 1.0,
       "Pitch": 1.0
+    },
+    "DataSync": {
+      "Path": "resources/audio/SE/se_data_sync.mp3",
+      "Volume": 0.85,
+      "Pitch": 1.0
+    },
+    "RankStamp": {
+      "Path": "resources/audio/SE/se_rank_stamp.mp3",
+      "Volume": 1.0,
+      "Pitch": 1.0
     }
   },
   "BGM": {

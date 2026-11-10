@@ -1,8 +1,10 @@
 #pragma once
 #include "Core/GameApplication.h"
 #include "Framework/Component/Component.h"
+#include "Combat/ScoreManagerComponent.h"
 #include <string>
 #include <memory>
+#include <vector>
 
 class ResultManagerComponent : public Component {
 public:
@@ -33,7 +35,7 @@ private:
 
     // プロパティ化してエディタで設定可能にする
     std::string nextSceneName_ = std::string(GameScenes::Title);
-    float baseTitleScale_ = 64.0f;
+    float baseTitleScale_ = 48.0f;
     std::string fontId_ = "toro_glitch";
 
     void ApplyEntryPostProcess();
@@ -45,4 +47,37 @@ private:
 
     std::weak_ptr<GameObject> darkBackdropObj_;
     std::weak_ptr<GameObject> pressSpaceObj_;
+
+    // --- リザルト集計・統計＆ランク演出用 ---
+    enum class ResultPhase {
+        TitleSnap,   //!< 0.0s〜0.45s: タイトル文字スナップ出現
+        RollStats,   //!< 0.45s〜1.45s: 統計行が順次カウントアップ開示 (se_data_sync)
+        PreStamp,    //!< 1.45s〜1.60s: 一瞬の静寂・タメ
+        StampRank,   //!< 1.60s〜2.00s: ランク巨大スタンプ着弾 (se_rank_stamp)
+        Ready        //!< 2.00s〜: リターン待機 (SPACE/Aでタイトルへ)
+    };
+    ResultPhase phase_ = ResultPhase::TitleSnap;
+    float phaseTimer_ = 0.0f;
+
+    GameplaySessionStats stats_{};
+    std::wstring rankText_ = L"S";
+    Irufemi::Vector4 rankColor_ = {1.0f, 0.85f, 0.2f, 1.0f};
+
+    bool hasPlayedDataSyncSE_ = false;
+    bool hasPlayedRankSE_ = false;
+
+    // 統計行UIのGameObject保持
+    struct StatRowUI {
+        std::weak_ptr<GameObject> labelObj;
+        std::weak_ptr<GameObject> valueObj;
+        std::wstring targetValueStr;
+    };
+    std::vector<StatRowUI> statRows_;
+    std::weak_ptr<GameObject> rankLabelObj_;
+    std::weak_ptr<GameObject> rankValueObj_;
+
+    void SetupStatsUI();
+    void UpdateStatsRoll(float dt);
+    void TriggerRankStamp();
+    void SkipToReady();
 };
