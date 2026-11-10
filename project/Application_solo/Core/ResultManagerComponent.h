@@ -6,6 +6,9 @@
 #include <memory>
 #include <vector>
 
+class SpriteRendererComponent;
+class TextRendererComponent;
+
 class ResultManagerComponent : public Component {
 public:
     ResultManagerComponent() = default;
@@ -75,6 +78,20 @@ private:
     std::vector<StatRowUI> statRows_;
     std::weak_ptr<GameObject> rankLabelObj_;
     std::weak_ptr<GameObject> rankValueObj_;
+
+    // 大手AAA基準: パネル階層コンテナ＆装飾オブジェクト
+    std::weak_ptr<GameObject> panelContainerObj_;
+    struct DecorSpriteUI {
+        std::weak_ptr<SpriteRendererComponent> sprite;
+        float baseAlpha = 1.0f;
+    };
+    std::vector<DecorSpriteUI> panelDecorSprites_;
+
+    struct DecorTextUI {
+        std::weak_ptr<TextRendererComponent> text;
+        float baseAlpha = 1.0f;
+    };
+    std::vector<DecorTextUI> panelDecorTexts_;
 
     void SetupStatsUI();
     void UpdateStatsRoll(float dt);

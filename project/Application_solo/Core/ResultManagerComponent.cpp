@@ -84,7 +84,7 @@ void ResultManagerComponent::Initialize() {
         auto uiObj = std::make_shared<GameObject>("ReturnText");
         gameObject_->GetScene()->AddGameObject(uiObj);
         if (auto t = uiObj->GetTransform()) {
-            t->SetPosition({640.0f, 620.0f, 0.0f});
+            t->SetPosition({640.0f, 635.0f, 0.0f});
         }
 
         auto returnText = uiObj->AddComponent<TextRendererComponent>().get();
@@ -237,7 +237,123 @@ void ResultManagerComponent::SetupStatsUI() {
         rankColor_ = {1.0f, 0.3f, 0.3f, 1.0f}; // 警告レッド
     }
 
-    // 統計データ5行の構築
+    // =========================================================================
+    // 大手AAA基準: 親パネルコンテナの生成（中心: 640.0f, 355.0f）
+    // =========================================================================
+    auto panelContainer = std::make_shared<GameObject>("Result_PanelContainer");
+    scene->AddGameObject(panelContainer);
+    if (auto t = panelContainer->GetTransform()) {
+        t->SetPosition({640.0f, 375.0f, 0.0f});
+    }
+    panelContainer->Initialize();
+    panelContainerObj_ = panelContainer;
+
+    panelDecorSprites_.clear();
+    panelDecorTexts_.clear();
+
+    const float panelW = 620.0f;
+    const float panelH = 370.0f;
+    const float halfW = panelW * 0.5f;
+    const float halfH = panelH * 0.5f;
+
+    // 1. 半透明ダークネイビー・バックプレート (Z: 2.0f)
+    {
+        auto plateObj = std::make_shared<GameObject>("Panel_Backplate");
+        scene->AddGameObject(plateObj);
+        panelContainer->AddChild(plateObj);
+        if (auto t = plateObj->GetTransform()) {
+            t->SetPosition({0.0f, 0.0f, 2.0f});
+        }
+        auto sprite = plateObj->AddComponent<SpriteRendererComponent>();
+        sprite->SetBaseSize({panelW, panelH});
+        sprite->SetAnchor({0.5f, 0.5f});
+        sprite->SetColor({0.02f, 0.04f, 0.07f, 0.0f}); // 初期非表示
+        plateObj->Initialize();
+        panelDecorSprites_.push_back({sprite, 0.78f});
+    }
+
+    // 2. 上下ネオンシアン・アクセントボーダー (厚さ 2px, Z: 1.5f)
+    auto createLine = [&](const std::string& name, float localY, float width, float height,
+                          const Irufemi::Vector4& color, float baseAlpha) {
+        auto lineObj = std::make_shared<GameObject>(name);
+        scene->AddGameObject(lineObj);
+        panelContainer->AddChild(lineObj);
+        if (auto t = lineObj->GetTransform()) {
+            t->SetPosition({0.0f, localY, 1.5f});
+        }
+        auto sprite = lineObj->AddComponent<SpriteRendererComponent>();
+        sprite->SetBaseSize({width, height});
+        sprite->SetAnchor({0.5f, 0.5f});
+        sprite->SetColor({color.x, color.y, color.z, 0.0f});
+        lineObj->Initialize();
+        panelDecorSprites_.push_back({sprite, baseAlpha});
+    };
+
+    createLine("Panel_TopBorder", -halfH, panelW, 2.0f, {0.30f, 0.90f, 1.00f, 1.0f}, 0.75f);
+    createLine("Panel_BottomBorder", halfH, panelW, 2.0f, {0.30f, 0.90f, 1.00f, 1.0f}, 0.75f);
+    createLine("Panel_HeaderDivider", -150.0f, panelW - 40.0f, 1.0f, {0.20f, 0.55f, 0.75f, 1.0f}, 0.50f);
+    createLine("Panel_FooterDivider", 65.0f, panelW - 40.0f, 1.0f, {0.20f, 0.55f, 0.75f, 1.0f}, 0.50f);
+
+    // 3. 四隅のL字コーナーブラケット (Corner Brackets, 各20px x 2px)
+    auto createBracket = [&](const std::string& name, float posX, float posY, float w, float h) {
+        auto bObj = std::make_shared<GameObject>(name);
+        scene->AddGameObject(bObj);
+        panelContainer->AddChild(bObj);
+        if (auto t = bObj->GetTransform()) {
+            t->SetPosition({posX, posY, 1.5f});
+        }
+        auto sprite = bObj->AddComponent<SpriteRendererComponent>();
+        sprite->SetBaseSize({w, h});
+        sprite->SetAnchor({0.5f, 0.5f});
+        sprite->SetColor({0.40f, 0.95f, 1.00f, 0.0f});
+        bObj->Initialize();
+        panelDecorSprites_.push_back({sprite, 0.90f});
+    };
+
+    const float brkLen = 22.0f;
+    const float brkThk = 2.0f;
+    const float pad = 6.0f;
+    // Top-Left
+    createBracket("Bracket_TL_H", -halfW - pad + brkLen * 0.5f, -halfH - pad, brkLen, brkThk);
+    createBracket("Bracket_TL_V", -halfW - pad, -halfH - pad + brkLen * 0.5f, brkThk, brkLen);
+    // Top-Right
+    createBracket("Bracket_TR_H", halfW + pad - brkLen * 0.5f, -halfH - pad, brkLen, brkThk);
+    createBracket("Bracket_TR_V", halfW + pad, -halfH - pad + brkLen * 0.5f, brkThk, brkLen);
+    // Bottom-Left
+    createBracket("Bracket_BL_H", -halfW - pad + brkLen * 0.5f, halfH + pad, brkLen, brkThk);
+    createBracket("Bracket_BL_V", -halfW - pad, halfH + pad - brkLen * 0.5f, brkThk, brkLen);
+    // Bottom-Right
+    createBracket("Bracket_BR_H", halfW + pad - brkLen * 0.5f, halfH + pad, brkLen, brkThk);
+    createBracket("Bracket_BR_V", halfW + pad, halfH + pad - brkLen * 0.5f, brkThk, brkLen);
+
+    // 4. ヘッダー装飾テキスト (SF端末記号論)
+    auto createHeaderTxt = [&](const std::string& name, const std::wstring& str, float posX, float posY,
+                              TextAlignment align, const Irufemi::Vector4& col, float baseAlpha) {
+        auto obj = std::make_shared<GameObject>(name);
+        scene->AddGameObject(obj);
+        panelContainer->AddChild(obj);
+        if (auto t = obj->GetTransform()) {
+            t->SetPosition({posX, posY, 0.0f});
+        }
+        auto text = obj->AddComponent<TextRendererComponent>();
+        text->SetFontId(fontId_);
+        text->SetText(str);
+        text->SetBaseScale(13.0f);
+        text->SetTopMost(true);
+        text->SetAlignment(align);
+        text->SetColor({col.x, col.y, col.z, 0.0f});
+        obj->Initialize();
+        panelDecorTexts_.push_back({text, baseAlpha});
+    };
+
+    createHeaderTxt("Hdr_Status", L"[SYS: ONLINE]", -halfW + 25.0f, -165.0f, TextAlignment::Left,
+                    {0.35f, 1.0f, 0.65f, 1.0f}, 0.85f);
+    createHeaderTxt("Hdr_Title", L"// MISSION PERFORMANCE ARCHIVE", -halfW + 145.0f, -165.0f, TextAlignment::Left,
+                    {0.45f, 0.82f, 0.98f, 1.0f}, 0.85f);
+    createHeaderTxt("Hdr_Version", L"[VER 2.0.4]", halfW - 25.0f, -165.0f, TextAlignment::Right,
+                    {0.55f, 0.62f, 0.72f, 1.0f}, 0.65f);
+
+    // 5. 統計データ5行の構築（インデックス [01] 付き）
     struct RowData {
         std::wstring label;
         std::wstring value;
@@ -246,53 +362,55 @@ void ResultManagerComponent::SetupStatsUI() {
 
     wchar_t scoreBuf[32];
     swprintf_s(scoreBuf, L"%08d pts", stats_.totalScore);
-    rows.push_back({L"TOTAL SCORE", scoreBuf});
+    rows.push_back({L"[01] TOTAL SCORE", scoreBuf});
 
     std::wstring multiStr = stats_.maxMultiKill >= 5 ? L"x5 (MAX)" : (L"x" + std::to_wstring((std::max)(1, stats_.maxMultiKill)));
-    rows.push_back({L"MAX MULTI-LOCK", multiStr});
+    rows.push_back({L"[02] MAX MULTI-LOCK", multiStr});
 
-    rows.push_back({L"PURGED ENEMIES", std::to_wstring(stats_.enemiesKilled) + L" UNITS"});
-    rows.push_back({L"BULLETS BLOCKED", std::to_wstring(stats_.bulletsBlocked) + L" SHOTS"});
+    rows.push_back({L"[03] PURGED ENEMIES", std::to_wstring(stats_.enemiesKilled) + L" UNITS"});
+    rows.push_back({L"[04] BULLETS BLOCKED", std::to_wstring(stats_.bulletsBlocked) + L" SHOTS"});
 
     int mins = static_cast<int>(stats_.clearTimeSeconds) / 60;
     int secs = static_cast<int>(stats_.clearTimeSeconds) % 60;
     int millis = static_cast<int>((stats_.clearTimeSeconds - static_cast<int>(stats_.clearTimeSeconds)) * 10.0f);
     wchar_t timeBuf[32];
     swprintf_s(timeBuf, L"%02d:%02d.%1d", mins, secs, millis);
-    rows.push_back({L"CLEAR TIME", timeBuf});
+    rows.push_back({L"[05] CLEAR TIME", timeBuf});
 
     statRows_.clear();
-    const float startY = 220.0f;
-    const float stepY = 38.0f;
+    const float startLocalY = -120.0f;
+    const float stepLocalY = 35.0f;
 
     for (size_t i = 0; i < rows.size(); ++i) {
-        float y = startY + static_cast<float>(i) * stepY;
+        float y = startLocalY + static_cast<float>(i) * stepLocalY;
 
-        // ラベル列 (左揃え X: 380)
+        // ラベル列 (左揃え ローカル X: -halfW + 35)
         auto labelObj = std::make_shared<GameObject>("StatLabel_" + std::to_string(i));
         scene->AddGameObject(labelObj);
+        panelContainer->AddChild(labelObj);
         if (auto t = labelObj->GetTransform()) {
-            t->SetPosition({380.0f, y, 0.0f});
+            t->SetPosition({-halfW + 35.0f, y, 0.0f});
         }
         auto labelText = labelObj->AddComponent<TextRendererComponent>();
         labelText->SetFontId(fontId_);
         labelText->SetText(rows[i].label);
-        labelText->SetBaseScale(18.0f);
+        labelText->SetBaseScale(17.0f);
         labelText->SetTopMost(true);
         labelText->SetAlignment(TextAlignment::Left);
         labelText->SetColor({0.65f, 0.72f, 0.85f, 0.0f}); // 初期非表示
         labelObj->Initialize();
 
-        // 値列 (右揃え X: 900)
+        // 値列 (右揃え ローカル X: halfW - 35)
         auto valObj = std::make_shared<GameObject>("StatVal_" + std::to_string(i));
         scene->AddGameObject(valObj);
+        panelContainer->AddChild(valObj);
         if (auto t = valObj->GetTransform()) {
-            t->SetPosition({900.0f, y, 0.0f});
+            t->SetPosition({halfW - 35.0f, y, 0.0f});
         }
         auto valText = valObj->AddComponent<TextRendererComponent>();
         valText->SetFontId(fontId_);
         valText->SetText(rows[i].value);
-        valText->SetBaseScale(20.0f);
+        valText->SetBaseScale(19.0f);
         valText->SetTopMost(true);
         valText->SetAlignment(TextAlignment::Right);
         valText->SetColor({0.35f, 0.92f, 1.0f, 0.0f}); // 初期非表示
@@ -301,11 +419,12 @@ void ResultManagerComponent::SetupStatsUI() {
         statRows_.push_back({labelObj, valObj, rows[i].value});
     }
 
-    // ランクスタンプUI (中央 Y: 485)
+    // 6. ランクスタンプUI (ローカル中央 Y: 120.0f)
     auto rankObj = std::make_shared<GameObject>("RankStampText");
     scene->AddGameObject(rankObj);
+    panelContainer->AddChild(rankObj);
     if (auto t = rankObj->GetTransform()) {
-        t->SetPosition({640.0f, 485.0f, 0.0f});
+        t->SetPosition({0.0f, 120.0f, 0.0f});
     }
     auto rankText = rankObj->AddComponent<TextRendererComponent>();
     rankText->SetFontId(fontId_);
@@ -319,8 +438,28 @@ void ResultManagerComponent::SetupStatsUI() {
 }
 
 void ResultManagerComponent::UpdateStatsRoll(float dt) {
+    // パネルフレーム＆装飾のフェードイン同期 (0.0s〜0.40s)
     if (phase_ == ResultPhase::TitleSnap) {
         phaseTimer_ += dt;
+        float decorProgress = std::clamp(phaseTimer_ / 0.38f, 0.0f, 1.0f);
+
+        // スプライト装飾のアルファ更新
+        for (auto& item : panelDecorSprites_) {
+            if (auto sp = item.sprite.lock()) {
+                auto c = sp->GetColor();
+                c.w = item.baseAlpha * decorProgress;
+                sp->SetColor(c);
+            }
+        }
+        // テキスト装飾のアルファ更新
+        for (auto& item : panelDecorTexts_) {
+            if (auto txt = item.text.lock()) {
+                auto c = txt->GetColor();
+                c.w = item.baseAlpha * decorProgress;
+                txt->SetColor(c);
+            }
+        }
+
         if (phaseTimer_ >= 0.45f) {
             phase_ = ResultPhase::RollStats;
             phaseTimer_ = 0.0f;
@@ -400,6 +539,22 @@ void ResultManagerComponent::TriggerRankStamp() {
 void ResultManagerComponent::SkipToReady() {
     phase_ = ResultPhase::Ready;
     canReturnToTitle_ = true;
+
+    // パネル装飾のアルファを即座に最大化
+    for (auto& item : panelDecorSprites_) {
+        if (auto sp = item.sprite.lock()) {
+            auto c = sp->GetColor();
+            c.w = item.baseAlpha;
+            sp->SetColor(c);
+        }
+    }
+    for (auto& item : panelDecorTexts_) {
+        if (auto txt = item.text.lock()) {
+            auto c = txt->GetColor();
+            c.w = item.baseAlpha;
+            txt->SetColor(c);
+        }
+    }
 
     // 全行をアルファ1.0で表示
     for (size_t i = 0; i < statRows_.size(); ++i) {

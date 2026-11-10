@@ -33,7 +33,7 @@ void ResultScene::Initialize(IrufemiEngine* engine) {
 
     auto t = managerObj->GetTransform();
     if (t) {
-        t->SetPosition({640.0f, 130.0f, 0.0f});
+        t->SetPosition({640.0f, 85.0f, 0.0f});
     }
 
     // ResultManagerComponent にすべてのロジックを委譲する
