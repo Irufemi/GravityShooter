@@ -28,9 +28,10 @@ void ModelBatch::InitializeResources() {
         return;
     }
     if (m->cpuModel->meshes.size() > 1) {
-        Log::OutPutLog(std::cerr, "[ModelBatch] Warning: Model has multiple meshes (" +
-                                      std::to_string(m->cpuModel->meshes.size()) +
-                                      "), but ModelBatch only renders the first mesh. Additional meshes will be ignored.\n");
+        Log::OutPutLog(std::cerr,
+                       "[ModelBatch] Warning: Model has multiple meshes (" +
+                           std::to_string(m->cpuModel->meshes.size()) +
+                           "), but ModelBatch only renders the first mesh. Additional meshes will be ignored.\n");
     }
     const auto& mesh = m->cpuModel->meshes.front();
 

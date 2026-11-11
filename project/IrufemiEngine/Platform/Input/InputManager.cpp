@@ -195,7 +195,7 @@ void InputManager::AddMappingContext(std::shared_ptr<InputMappingContext> contex
         return;
     }
     auto it = std::find_if(activeContexts_.begin(), activeContexts_.end(),
-        [&context](const ActiveContextEntry& entry) { return entry.context == context; });
+                           [&context](const ActiveContextEntry& entry) { return entry.context == context; });
     if (it != activeContexts_.end()) {
         it->priority = priority;
     } else {
@@ -203,9 +203,7 @@ void InputManager::AddMappingContext(std::shared_ptr<InputMappingContext> contex
     }
 
     std::stable_sort(activeContexts_.begin(), activeContexts_.end(),
-        [](const ActiveContextEntry& a, const ActiveContextEntry& b) {
-            return a.priority > b.priority;
-        });
+                     [](const ActiveContextEntry& a, const ActiveContextEntry& b) { return a.priority > b.priority; });
 
     for (const auto& [actionName, _] : context->GetMappings()) {
         if (currentActionValues_.find(actionName) == currentActionValues_.end()) {
@@ -221,7 +219,7 @@ void InputManager::RemoveMappingContext(const std::shared_ptr<InputMappingContex
     }
     activeContexts_.erase(
         std::remove_if(activeContexts_.begin(), activeContexts_.end(),
-            [&context](const ActiveContextEntry& entry) { return entry.context == context; }),
+                       [&context](const ActiveContextEntry& entry) { return entry.context == context; }),
         activeContexts_.end());
 }
 
@@ -230,7 +228,7 @@ bool InputManager::HasMappingContext(const std::shared_ptr<InputMappingContext>&
         return false;
     }
     return std::any_of(activeContexts_.begin(), activeContexts_.end(),
-        [&context](const ActiveContextEntry& entry) { return entry.context == context; });
+                       [&context](const ActiveContextEntry& entry) { return entry.context == context; });
 }
 
 std::shared_ptr<InputMappingContext> InputManager::FindContext(const std::string& name) const {
@@ -390,8 +388,8 @@ const char* InputIdToString(InputId id) {
 }
 
 static void ParseContextJson(const nlohmann::json& ctxJson, InputMappingContext& context,
-    std::unordered_map<std::string, InputActionValue>& currentActionValues,
-    std::unordered_map<std::string, InputActionValue>& previousActionValues) {
+                             std::unordered_map<std::string, InputActionValue>& currentActionValues,
+                             std::unordered_map<std::string, InputActionValue>& previousActionValues) {
     if (ctxJson.contains("Actions") && ctxJson["Actions"].is_object()) {
         for (auto& [actionName, keys] : ctxJson["Actions"].items()) {
             if (keys.is_array()) {
