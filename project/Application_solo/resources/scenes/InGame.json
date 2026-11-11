@@ -498,7 +498,7 @@
             "Boss Shield Radius": 8.0,
             "Camera Shake Duration(Frames)": 10,
             "Camera Shake Intensity": 0.5,
-            "Catch Distance Sq": 2.0,
+            "Catch Distance Sq": 25.0,
             "Debris Aura Scale": [
               2.200000047683716,
               2.200000047683716,

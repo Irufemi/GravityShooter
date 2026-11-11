@@ -699,8 +699,7 @@ void DebrisManagerComponent::UpdatePulledDebris(float deltaTime) {
 
         if (auto target = debris->GetTarget().lock()) {
             if (auto targetTransform = target->GetComponent<TransformComponent>()) {
-                if (debris->UpdatePullMovement(targetTransform->GetWorldPosition(), pullSpeed, catchDistSq,
-                                               deltaTime)) {
+                if (debris->UpdatePullMovement(targetTransform, pullSpeed, catchDistSq, deltaTime)) {
                     caughtDebris.push_back(debris);
                 }
             }

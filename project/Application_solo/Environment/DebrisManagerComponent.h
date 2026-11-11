@@ -197,7 +197,7 @@ private:
     Irufemi::Vector4 playerAuraColor_ = {0.0f, 0.8f, 1.0f, 0.4f};
     Irufemi::Vector4 bossAuraColor_ = {0.8f, 0.0f, 0.6f, 0.4f};
     Irufemi::Vector4 idleAuraColor_ = {0.6f, 0.2f, 1.0f, 0.4f};
-    float catchDistanceSq_ = 2.0f;
+    float catchDistanceSq_ = 25.0f; ///< キャッチ判定の二乗距離 (半径5.0m相当、公転軌道2〜4mを確実に包摂)
     float bossShieldRadius_ = 8.0f;
 
     Irufemi::Vector3 debrisBaseScale_ = {0.5f, 0.5f, 0.5f};

@@ -199,13 +199,14 @@ public:
 
     /**
      * @brief プレイヤーへの引き寄せ移動を更新する
-     * @param targetPos 目標位置
+     * @param targetTransform 自機のTransformコンポーネント
      * @param pullSpeed 引き寄せ速度
      * @param catchDistSq キャッチ判定の二乗距離
      * @param deltaTime フレーム経過時間
      * @return キャッチ完了（オービットへ遷移すべき）なら true
      */
-    bool UpdatePullMovement(const Irufemi::Vector3& targetPos, float pullSpeed, float catchDistSq, float deltaTime);
+    bool UpdatePullMovement(const TransformComponent* targetTransform, float pullSpeed, float catchDistSq,
+                            float deltaTime);
 
     /**
      * @brief プレイヤー周辺での公転位置・姿勢を自機の姿勢（Right/Up/Forward）に合わせて更新する
@@ -295,6 +296,9 @@ private:
     float baseIdleY_ = 0.0f;
     float idleTimeY_ = 0.0f;
     float orbitAngle_ = 0.0f;
+    float pullTimer_ = 0.0f;          ///< 引き寄せ経過時間（大手ゲーム標準のタイムアウト保証用）
+    Irufemi::Vector3 lastTargetPos_ = {0.0f, 0.0f, 0.0f}; ///< 自機移動量の結合用
+    bool hasLastTargetPos_ = false;   ///< 前フレーム自機位置キャッシュの有効フラグ
     Irufemi::Vector3 throwDirection_ = {0, 0, 0};
     Irufemi::Vector3 throwOrigin_ = {0, 0, 0};
 

@@ -294,6 +294,8 @@ void DebrisComponent::ResetForPool() {
     ownerObject_.reset();
     orbitAngle_ = 0.0f;
     currentOrbitRadius_ = orbitRadius_;
+    pullTimer_ = 0.0f;
+    hasLastTargetPos_ = false;
     throwDirection_ = {0.0f, 0.0f, 0.0f};
     throwOrigin_ = {0.0f, 0.0f, 0.0f};
 
@@ -388,23 +390,56 @@ std::shared_ptr<Component> DebrisComponent::Clone() {
     return clone;
 }
 
-bool DebrisComponent::UpdatePullMovement(const Irufemi::Vector3& targetPos, float pullSpeed, float catchDistSq,
-                                         float deltaTime) {
+bool DebrisComponent::UpdatePullMovement(const TransformComponent* targetTransform, float pullSpeed,
+                                         float catchDistSq, float deltaTime) {
     auto transform = GetTransform();
-    if (!transform) {
+    if (!transform || !targetTransform) {
         return false;
     }
 
+    pullTimer_ += deltaTime;
+
+    Irufemi::Vector3 targetPos = targetTransform->GetWorldPosition();
     Irufemi::Vector3 pos = transform->GetWorldPosition();
+
+    // 1. ターゲット移動量の結合（Target Motion Coupling - 業界標準設計）
+    // 自機（PlayerCart）の前フレームからのワールド移動量をガレキの位置にも同期加算し、
+    // 自機が超高速でレール前進・加速しても取り残される定常偏差を物理的に完全根絶
+    if (hasLastTargetPos_) {
+        Irufemi::Vector3 targetMove = targetPos - lastTargetPos_;
+        pos += targetMove;
+    }
+    lastTargetPos_ = targetPos;
+    hasLastTargetPos_ = true;
+
+    // 2. 目標地点（自機頭上オフセット位置）への吸い寄せ移動
     float pullYOffset = GetPullYOffset();
-    Irufemi::Vector3 diff = {targetPos.x - pos.x, targetPos.y + pullYOffset - pos.y, targetPos.z - pos.z};
-    pos.x += diff.x * pullSpeed * deltaTime;
-    pos.y += diff.y * pullSpeed * deltaTime;
-    pos.z += diff.z * pullSpeed * deltaTime;
+    Irufemi::Vector3 targetWithOffset = {targetPos.x, targetPos.y + pullYOffset, targetPos.z};
+    Irufemi::Vector3 diff = targetWithOffset - pos;
+
+    float currentPullSpeed = (std::max)(pullSpeed, 18.0f);
+    pos.x += diff.x * currentPullSpeed * deltaTime;
+    pos.y += diff.y * currentPullSpeed * deltaTime;
+    pos.z += diff.z * currentPullSpeed * deltaTime;
     transform->SetWorldPosition(pos);
 
+    // 3. キャッチ完了判定
+    // A. 公転軌道面連動判定（Radius-Aware Catch Condition）：
+    //    ガレキの公転半径 orbitRadius_（通常 2.0〜4.0m）の近傍（マージンを加味した安全圏）
+    float effectiveCatchRadius = (std::max)(std::sqrt(catchDistSq), orbitRadius_ + 1.5f);
+    float effectiveCatchDistSq = effectiveCatchRadius * effectiveCatchRadius;
     float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
-    return distSq < catchDistSq;
+
+    // B. タイムバウンド・フェイルセーフ（大手ゲーム標準のタイムアウト保証）：
+    //    0.6秒を超過した場合は問答無用でキャッチ成立とし、公転ステートへ昇格させてスタックをゼロ化
+    constexpr float kMaxPullDuration = 0.6f;
+    if (distSq < effectiveCatchDistSq || pullTimer_ >= kMaxPullDuration) {
+        pullTimer_ = 0.0f;
+        hasLastTargetPos_ = false;
+        return true;
+    }
+
+    return false;
 }
 
 void DebrisComponent::InitializeOrbitTransition(const TransformComponent* targetTransform) {
