@@ -21,6 +21,7 @@ public:
     ~WaveManagerComponent() override = default;
 
     void Initialize() override;
+    void Start() override;
     void Update() override;
     void Draw() override;
     bool CanUpdateInEditMode() const override {
@@ -35,6 +36,11 @@ public:
     void OnIDRemapped(const std::unordered_map<uint64_t, uint64_t>& idMap) override;
 
     void ReloadLevelData();
+
+    /**
+     * @brief Waveデータ内で使用される全BGMおよび敵Prefabをシーン初期化時に完全プリロードする
+     */
+    void PreloadWaveAssets();
 
     std::shared_ptr<ModelBatchRendererComponent> GetPreviewBatchRenderer(const std::string& modelPath);
 

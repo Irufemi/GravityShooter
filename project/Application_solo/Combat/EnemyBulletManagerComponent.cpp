@@ -53,6 +53,7 @@ EnemyBulletManagerComponent* EnemyBulletManagerComponent::GetOrCreate(BaseScene*
     auto mgr = managerObj->AddComponent<EnemyBulletManagerComponent>();
     scene->AddGameObject(managerObj);
     mgr->Initialize();
+    mgr->WarmupPool(); // ロード画面中に弾丸モデルと64個のプールを即座に事前確保
     return mgr.get();
 }
 

@@ -33,6 +33,8 @@ void DroneManagerComponent::Start() {
     if (auto scene = gameObject_->GetScene()) {
         player_ = scene->FindGameObject("Player");
     }
+    // ロード画面表示中にプールを事前生成（戦闘中のInstantiateヒッチを根絶）
+    WarmupPool();
 }
 
 void DroneManagerComponent::Update() {
@@ -210,6 +212,32 @@ void DroneManagerComponent::OnRegisterProperties() {
     RegisterProperty("Active Drones (Batch)", &activeDroneCount_);
 }
 
+void DroneManagerComponent::WarmupPool() {
+    if (dronePool_ || !gameObject_ || dronePrefabPath_.empty()) {
+        return;
+    }
+
+    auto factory = [this]() {
+        auto obj = GetGameObject()->Instantiate(dronePrefabPath_);
+        if (obj) {
+            obj->SetIsActive(false);
+            obj->SetIsSerializable(false); // セーブデータ（InGame.json）への混入を防止
+
+            // プレハブから動的生成されたドローンの弾がプレイヤーを追跡できるようIDを伝播する
+            if (auto playerLock = player_.lock()) {
+                if (auto bulletMgr = obj->GetComponent<BossBulletManagerComponent>()) {
+                    bulletMgr->SetTargetPlayerID(playerLock->GetInstanceID());
+                }
+            }
+
+            // プレハブを BossDroneManager (gameObject_) の直接の子として追加する
+            gameObject_->AddChild(obj);
+        }
+        return obj;
+    };
+    dronePool_ = std::make_unique<ObjectPool<GameObject>>(maxDrones_, factory);
+}
+
 void DroneManagerComponent::DeployDrones(std::weak_ptr<GameObject> boss, int count,
                                          BossBulletManagerComponent* bulletMgr) {
     if (count <= 0) {
@@ -219,25 +247,7 @@ void DroneManagerComponent::DeployDrones(std::weak_ptr<GameObject> boss, int cou
     bulletManager_ = bulletMgr;
 
     if (!dronePool_) {
-        auto factory = [this]() {
-            auto obj = GetGameObject()->Instantiate(dronePrefabPath_);
-            if (obj) {
-                obj->SetIsActive(false);
-                obj->SetIsSerializable(false); // セーブデータ（InGame.json）への混入を防止
-
-                // プレハブから動的生成されたドローンの弾がプレイヤーを追跡できるようIDを伝播する
-                if (auto playerLock = player_.lock()) {
-                    if (auto bulletMgr = obj->GetComponent<BossBulletManagerComponent>()) {
-                        bulletMgr->SetTargetPlayerID(playerLock->GetInstanceID());
-                    }
-                }
-
-                // プレハブを BossDroneManager (gameObject_) の直接の子として追加する
-                gameObject_->AddChild(obj);
-            }
-            return obj;
-        };
-        dronePool_ = std::make_unique<ObjectPool<GameObject>>(maxDrones_, factory);
+        WarmupPool();
     }
 
     if (!dronePool_) {

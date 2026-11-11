@@ -25,6 +25,11 @@ public:
     void OnRegisterProperties() override;
 
     /**
+     * @brief ドローンプールを事前構築する（ロード時ウォームアップ）
+     */
+    void WarmupPool();
+
+    /**
      * @brief ボスの周囲にドローンを一斉展開する
      */
     void DeployDrones(std::weak_ptr<GameObject> boss, int count, BossBulletManagerComponent* bulletMgr);

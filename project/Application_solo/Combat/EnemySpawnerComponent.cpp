@@ -104,6 +104,18 @@ void EnemySpawnerComponent::Start() {
     }
 }
 
+void EnemySpawnerComponent::PreloadPrefab(const std::string& prefabPath, uint32_t poolSize) {
+    if (prefabPath.empty()) {
+        return;
+    }
+    auto* poolData = GetOrCreatePrefabPool(prefabPath, poolSize);
+    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
+    auto voxelMgr = (scene && scene->GetEngine()) ? scene->GetEngine()->GetVoxelParticleManager() : nullptr;
+    if (poolData && voxelMgr && !poolData->modelPath.empty()) {
+        voxelMgr->ReservePool(poolData->modelPath, {3, 3, 3}, 8);
+    }
+}
+
 EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabPool(const std::string& prefabPath,
                                                                                     uint32_t poolSize) {
     if (prefabPath.empty()) {
@@ -188,6 +200,7 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
         }
 
         if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {
+            enemyComp->Initialize(); // ロード画面中にGPUリソースや事前コンポーネントを先行確立
             enemyComp->SetOnDespawnListener([weakObj, capturedModelPath](GameObject* deadObj, DespawnReason reason) {
                 if (!deadObj) {
                     return;

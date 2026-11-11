@@ -15,6 +15,9 @@
 #include "Framework/Component/Logic/SpawnPointComponent.h"
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 #include "Combat/EnemySpawnerComponent.h"
+#include "Audio/AudioManager.h"
+#include "Audio/SoundHelper.h"
+#include <filesystem>
 
 WaveManagerComponent::WaveManagerComponent() {
     // デフォルトハンドラの登録（コンポーネント自身のストラテジーとして自己完結カプセル化）
@@ -43,6 +46,84 @@ void WaveManagerComponent::Initialize() {
     }
 
     ReloadLevelData();
+}
+
+void WaveManagerComponent::Start() {
+    PreloadWaveAssets();
+}
+
+void WaveManagerComponent::PreloadWaveAssets() {
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+
+    auto audioManager = engine->GetAudioManager();
+    auto enemySpawner = GetEnemySpawner();
+
+    for (const auto& ev : allEvents_) {
+        // 1. PlayBGM イベントの先行ロード（戦闘中のファイル探索・デコードを完全排除）
+        if (ev.eventType == "PlayBGM" && audioManager) {
+            std::string track = ev.parameters.value("track", "");
+            if (!track.empty()) {
+                namespace fs = std::filesystem;
+                const std::vector<std::string> searchDirs = {
+                    "resources/audio/BGM/",
+                    "resources/audio/",
+                    "resources/audio/SE/"
+                };
+                const std::vector<std::string> extensions = {".mp3", ".wav", ".ogg"};
+
+                std::string resolvedPath = "";
+                for (const auto& dir : searchDirs) {
+                    std::string p = dir + track;
+                    if (fs::exists(p)) {
+                        resolvedPath = p;
+                        break;
+                    }
+                }
+                if (resolvedPath.empty()) {
+                    if (track == "Stage1_Theme" || track == "Stage1") {
+                        if (const auto* d = SoundHelper::GetDescriptor(GameBGM::Stage1)) {
+                            if (!d->path.empty() && fs::exists(d->path)) {
+                                resolvedPath = d->path;
+                            }
+                        }
+                    }
+                }
+                if (resolvedPath.empty()) {
+                    for (const auto& dir : searchDirs) {
+                        for (const auto& ext : extensions) {
+                            std::string p = dir + track + ext;
+                            if (fs::exists(p)) {
+                                resolvedPath = p;
+                                break;
+                            }
+                        }
+                        if (!resolvedPath.empty()) {
+                            break;
+                        }
+                    }
+                }
+                if (resolvedPath.empty()) {
+                    resolvedPath = "resources/audio/BGM/" + track + ".mp3";
+                }
+
+                // ロード画面中にディスクI/Oおよびデコードを完了させておく
+                audioManager->GetOrLoadSoundByFile(resolvedPath, track);
+            }
+        }
+        // 2. SpawnEnemy イベントで指定された敵プレハブの事前確保
+        else if (ev.eventType == "SpawnEnemy" && enemySpawner) {
+            std::string prefab = ev.parameters.value("Prefab", "");
+            if (prefab.empty()) {
+                prefab = ev.parameters.value("enemyPrefab", "");
+            }
+            if (!prefab.empty()) {
+                enemySpawner->PreloadPrefab(prefab);
+            }
+        }
+    }
 }
 
 std::shared_ptr<ModelBatchRendererComponent>

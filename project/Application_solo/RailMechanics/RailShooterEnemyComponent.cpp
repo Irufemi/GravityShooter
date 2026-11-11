@@ -91,6 +91,11 @@ void RailShooterEnemyComponent::Initialize() {
             }
         }
     }
+
+    // スナイパー型エネミーの場合、照準レーザー描画用のGPUバッファをロード画面中に先行ウォームアップ（描画ヒッチ根絶）
+    if (behaviorType_ == static_cast<int>(EnemyBehaviorType::PredictiveSniper)) {
+        EnsureTelegraphResources();
+    }
 }
 
 void RailShooterEnemyComponent::SetRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* follower,

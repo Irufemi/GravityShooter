@@ -71,9 +71,12 @@ public:
      */
     void AbsorbAndClearAllBullets();
 
-private:
+    /**
+     * @brief 弾丸プールおよびモデルをロード画面中に先行ウォームアップする
+     */
     void WarmupPool();
 
+private:
     static inline EnemyBulletManagerComponent* instance_ = nullptr; //!< 静的サービスロケータインスタンス
 
     int maxBullets_ = 64;                                                         //!< プール最大容量

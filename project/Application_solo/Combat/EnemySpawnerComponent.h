@@ -111,6 +111,13 @@ public:
     }
 
     /**
+     * @brief 指定したプレハブ（JSON）のオブジェクトプールおよびGPU Instancingバッチを事前確保する
+     * @param[in] prefabPath プレハブパス
+     * @param[in] poolSize プール最大数（0の場合はデフォルト値）
+     */
+    void PreloadPrefab(const std::string& prefabPath, uint32_t poolSize = 0);
+
+    /**
      * @brief プレイヤー（自機カート）GameObjectを取得する（キャッシュ付き）
      */
     std::shared_ptr<GameObject> GetPlayerCartObject();
