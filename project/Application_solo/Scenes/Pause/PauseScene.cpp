@@ -141,6 +141,7 @@ void PauseScene::CreateUIElements() {
         sprite->SetBaseSize(gameRes);
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor(kColorDarkMask);
+        sprite->SetTopMost(true);
         darkOverlaySprite_ = sprite;
     }
     darkOverlayObj->Initialize();

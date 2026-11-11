@@ -181,6 +181,12 @@ void PlayerDamageVisualizerComponent::HideInGameHUD() {
             markerComp->SyncTargets({});
         }
     }
+    if (auto statusHud = scene->FindGameObject("PlayerStatusHUD")) {
+        statusHud->SetIsActive(false);
+    }
+    if (auto scoreHud = scene->FindGameObject("ScoreHUD")) {
+        scoreHud->SetIsActive(false);
+    }
 
     // 自機のターゲティングコンポーネントを即時完全無効化＆ハイライト消去（業界標準フェイルセーフ）
     if (auto targeting = gameObject_->GetComponent<PlayerTargetingComponent>()) {

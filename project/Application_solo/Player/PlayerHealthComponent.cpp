@@ -145,6 +145,13 @@ void PlayerHealthComponent::TakeDamage(int damage) {
 
     hp_ -= damage;
     Log::OutPutLog(std::cout, "[PlayerHealth] Took Damage! HP: " + std::to_string(hp_) + "\n");
+
+    for (const auto& listener : onHealthChangedListeners_) {
+        if (listener) {
+            listener((std::max)(0, hp_), maxHp_);
+        }
+    }
+
     if (hp_ <= 0) {
         hp_ = 0;
         isDead_ = true;

@@ -67,11 +67,8 @@ void WaveManagerComponent::PreloadWaveAssets() {
             std::string track = ev.parameters.value("track", "");
             if (!track.empty()) {
                 namespace fs = std::filesystem;
-                const std::vector<std::string> searchDirs = {
-                    "resources/audio/BGM/",
-                    "resources/audio/",
-                    "resources/audio/SE/"
-                };
+                const std::vector<std::string> searchDirs = {"resources/audio/BGM/", "resources/audio/",
+                                                             "resources/audio/SE/"};
                 const std::vector<std::string> extensions = {".mp3", ".wav", ".ogg"};
 
                 std::string resolvedPath = "";

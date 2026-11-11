@@ -282,6 +282,9 @@
     <ClCompile Include="UI\ScoreHUDComponent.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="UI\PlayerStatusHUDComponent.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
     <ClCompile Include="UI\ControlGuideHUDComponent.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -535,6 +538,9 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UI\ScoreHUDComponent.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PlayerStatusHUDComponent.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UI\ControlGuideHUDComponent.h">

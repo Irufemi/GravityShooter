@@ -93,6 +93,20 @@ public:
      */
     void ExecuteMarkAction();
 
+    /**
+     * @brief 現在プレイヤー周囲を回転・保持しているガレキ数を取得する
+     */
+    int GetOrbitingDebrisCount() const {
+        return static_cast<int>(orbitingDebris_.size());
+    }
+
+    /**
+     * @brief ガレキの最大保持数を取得する
+     */
+    int GetMaxOrbitCount() const {
+        return maxOrbitCount_;
+    }
+
 private:
     /**
      * @brief ガレキの引き寄せ入力（右クリック長押し等）の処理

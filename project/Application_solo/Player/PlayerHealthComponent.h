@@ -50,6 +50,13 @@ public:
     }
 
     /**
+     * @brief 体力変動（現在値/最大値）のイベントリスナーを追加する
+     */
+    void AddOnHealthChangedListener(std::function<void(int currentHp, int maxHp)> callback) {
+        onHealthChangedListeners_.push_back(std::move(callback));
+    }
+
+    /**
      * @brief プレイヤー死亡時のイベントリスナーを追加する（マルチキャスト）
      * @param[in] callback 呼び出される関数オブジェクト
      * @return 登録解除用のリスナーID (ListenerId)
@@ -141,6 +148,7 @@ private:
     class ColliderComponent* GetCollider() const;
 
     std::vector<std::function<void(int damage)>> onDamageTakenListeners_;
+    std::vector<std::function<void(int currentHp, int maxHp)>> onHealthChangedListeners_;
     std::vector<PlayerDiedListenerEntry> onPlayerDiedListeners_;
     ListenerId nextPlayerDiedListenerId_ = 0;
     std::function<void()> onDeathSequenceFinished_;

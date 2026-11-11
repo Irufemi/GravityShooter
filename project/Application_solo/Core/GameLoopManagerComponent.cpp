@@ -17,6 +17,9 @@
 #include "Audio/AudioManager.h"
 #include "Audio/SoundHelper.h"
 #include "Core/AttractDemoManager.h"
+#include "Combat/ScoreManagerComponent.h"
+#include "UI/ScoreHUDComponent.h"
+#include "UI/PlayerStatusHUDComponent.h"
 #include "Core/Utility/Log.h"
 #include <iostream>
 
@@ -63,6 +66,15 @@ void GameLoopManagerComponent::Initialize() {
 
 void GameLoopManagerComponent::Start() {
     BindTargets();
+
+    // インゲーム用 HUD ＆ スコアシステムの自動プロビジョニング
+    if (gameObject_) {
+        if (auto scene = gameObject_->GetScene()) {
+            ScoreManagerComponent::GetOrCreate(scene);
+            ScoreHUDComponent::GetOrCreate(scene);
+            PlayerStatusHUDComponent::GetOrCreate(scene);
+        }
+    }
 }
 
 bool GameLoopManagerComponent::BindTargets() {

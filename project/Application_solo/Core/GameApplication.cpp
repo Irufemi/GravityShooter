@@ -28,6 +28,8 @@
 #include "Environment/EnvironmentManagerComponent.h"
 #include "UI/ReticleUIComponent.h"
 #include "UI/LockonMarkerUIComponent.h"
+#include "UI/ScoreHUDComponent.h"
+#include "UI/PlayerStatusHUDComponent.h"
 #include "Combat/DroneManagerComponent.h"
 #include "Combat/BossBulletManagerComponent.h"
 #include "Core/GameLoopManagerComponent.h"
@@ -178,6 +180,9 @@ void RegisterComponents() {
     ComponentFactory::Register("ReticleUIComponent", "UI", []() { return std::make_shared<ReticleUIComponent>(); });
     ComponentFactory::Register("LockonMarkerUIComponent", "UI",
                                []() { return std::make_shared<LockonMarkerUIComponent>(); });
+    ComponentFactory::Register("ScoreHUDComponent", "UI", []() { return std::make_shared<ScoreHUDComponent>(); });
+    ComponentFactory::Register("PlayerStatusHUDComponent", "UI",
+                               []() { return std::make_shared<PlayerStatusHUDComponent>(); });
     ComponentFactory::Register("DroneManagerComponent", "Game",
                                []() { return std::make_shared<DroneManagerComponent>(); });
     ComponentFactory::Register("BossBulletManagerComponent", "Game",

@@ -4,6 +4,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
+#include "Framework/Scene/SceneManager.h"
 #include "Core/System/IrufemiEngine.h"
 #include "Platform/Input/InputManager.h"
 #include <cmath>
@@ -133,6 +134,30 @@ void ScoreHUDComponent::Update() {
     if (!engine) {
         return;
     }
+
+    // ポーズ画面（PauseScene）など別シーンが前面にある場合はHUDを非表示化
+    bool isCurrentSceneActive = true;
+    if (auto sm = engine->GetSceneManager()) {
+        if (gameObject_ && gameObject_->GetScene()) {
+            isCurrentSceneActive = (sm->GetCurrentScene() == gameObject_->GetScene());
+        }
+    }
+
+    auto setAllActive = [this](bool active) {
+        if (scoreHeaderObj_) scoreHeaderObj_->SetIsActive(active);
+        if (scoreObj_) scoreObj_->SetIsActive(active);
+        if (killsObj_) killsObj_->SetIsActive(active);
+        if (popObj_) popObj_->SetIsActive(active);
+        if (popScoreObj_) popScoreObj_->SetIsActive(active);
+    };
+
+    if (!isCurrentSceneActive) {
+        setAllActive(false);
+        return;
+    } else {
+        setAllActive(true);
+    }
+
     float dt = engine->GetGameDeltaTime();
     if (dt <= 0.0f) {
         return;
