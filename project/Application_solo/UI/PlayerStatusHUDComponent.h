@@ -40,6 +40,7 @@ public:
 private:
     void EnsureUIElements();
     void BindPlayerComponents();
+    void SetupDebrisPips(int maxCount);
     void UpdateHealthAnimation(float dt);
     void UpdateDebrisPips(float dt);
     void UpdateCriticalPulse(float dt);
@@ -55,14 +56,16 @@ private:
     std::shared_ptr<GameObject> hpFrontBarObj_;
     std::shared_ptr<GameObject> hpTextObj_;
 
-    // デブリPipスロット（最大5スロット）
+    // デブリPipスロット（動的スロット）
     std::shared_ptr<GameObject> debrisHeaderObj_;
     std::shared_ptr<GameObject> debrisCountObj_;
-    static constexpr int kMaxPipCount = 5;
-    std::shared_ptr<GameObject> debrisPipBgObjs_[kMaxPipCount];
-    std::shared_ptr<GameObject> debrisPipFillObjs_[kMaxPipCount];
-    SpriteRendererComponent* debrisPipFillSprites_[kMaxPipCount] = {};
-    float pipPopScales_[kMaxPipCount] = {};
+    int maxPipCount_ = 10;
+    float pipWidth_ = 9.5f;
+    float pipHeight_ = 8.0f;
+    std::vector<std::shared_ptr<GameObject>> debrisPipBgObjs_;
+    std::vector<std::shared_ptr<GameObject>> debrisPipFillObjs_;
+    std::vector<SpriteRendererComponent*> debrisPipFillSprites_;
+    std::vector<float> pipPopScales_;
 
     // キャッシュされたレンダラー
     SpriteRendererComponent* hpBarBgSprite_ = nullptr;

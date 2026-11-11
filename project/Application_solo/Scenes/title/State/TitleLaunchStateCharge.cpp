@@ -61,30 +61,18 @@ void TitleLaunchStateCharge::Update(TitleSceneDirectorComponent* director, float
     const auto& initialShipPos = director->GetInitialShipPos();
     const auto& launchStartRot = director->GetLaunchStartRot();
 
-    // 自機の沈み込み＆斜め姿勢から正面水平([0, 0, 0])への整流
+    // 自機の沈み込み＆斜め姿勢から正面水平([0, 0, 0])への整流 ＋ 充填エネルギー蓄積による身震い
     if (shipTransform) {
         float backZ = initialShipPos.z - p1 * 0.45f;
-        shipTransform->SetPosition({initialShipPos.x, initialShipPos.y, backZ});
+        // チャージ進行に伴い、臨界点直前のエネルギー凝縮による微細な身震い（高周波ジッター）を付与
+        float jitterAmp = p1 * p1 * 0.005f;
+        float jitterX = std::sin(stateTimer * 90.0f) * jitterAmp;
+        float jitterY = std::cos(stateTimer * 110.0f) * jitterAmp;
+
+        shipTransform->SetPosition({initialShipPos.x + jitterX, initialShipPos.y + jitterY, backZ});
         shipTransform->SetRotation({std::lerp(launchStartRot.x, 0.0f, alignT),
                                     std::lerp(launchStartRot.y, 0.0f, alignT),
                                     std::lerp(launchStartRot.z, 0.0f, alignT)});
-    }
-
-    // 小惑星（スペースデブリ）が自機中心へ螺旋状に吸い寄せられる（重力降着円盤・Accretion Disk）
-    auto& asteroids = director->GetAsteroidInstances();
-    float swirlAngle = p1 * p1 * 1.8f; // 加速度的な渦巻き回転
-    float cosS = std::cos(swirlAngle);
-    float sinS = std::sin(swirlAngle);
-
-    for (auto& ast : asteroids) {
-        if (ast.basePos.z < 60.0f) { // 手前〜中景の小惑星を自機コアへ螺旋吸引
-            float rotX = ast.basePos.x * cosS - ast.basePos.z * sinS;
-            float rotZ = ast.basePos.x * sinS + ast.basePos.z * cosS;
-            float pull = 1.0f - p1 * 0.45f;
-            ast.currentPos.x = rotX * pull;
-            ast.currentPos.y = std::lerp(ast.basePos.y, 0.52f, p1 * 0.3f);
-            ast.currentPos.z = rotZ * pull;
-        }
     }
 
     // スラスター炎の引き絞り（点火直前のエネルギー圧縮）

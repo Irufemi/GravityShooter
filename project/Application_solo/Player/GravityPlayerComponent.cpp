@@ -31,6 +31,8 @@
 #include <iostream>
 #include "Framework/Component/Effect/ScreenEffectComponent.h"
 #include "Core/Utility/JsonUtility.h"
+#include "Combat/ScoreManagerComponent.h"
+#include "Audio/SoundHelper.h"
 
 void GravityPlayerComponent::LoadStatusFromJson() {
     if (statusDataPath_.empty()) {
@@ -246,6 +248,13 @@ void GravityPlayerComponent::ExecutePullAction() {
                     debrisComp->SetOrbitParams(Irufemi::Random::GeneratorFloat(0.0f, orbitAngleRandomMax_),
                                                Irufemi::Random::GeneratorFloat(orbitRadiusMin_, orbitRadiusMax_));
                     orbitingDebris_.push_back(debrisObj);
+
+                    // 【Juice】最大保持数に達した瞬間に MAX STOCK! 通知
+                    if (static_cast<int>(orbitingDebris_.size()) >= maxOrbitCount_) {
+                        if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+                            scoreMgr->TriggerPopup(CombatPopupType::MaxStock, 0, 0.65f);
+                        }
+                    }
                 }
             }
         }
@@ -308,6 +317,11 @@ void GravityPlayerComponent::HandleThrowInput() {
 
 void GravityPlayerComponent::ExecuteThrowAction() {
     if (orbitingDebris_.empty()) {
+        // 【Juice】弾切れ空撃ち警告ポップ＆SE
+        if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+            scoreMgr->TriggerPopup(CombatPopupType::NoDebris, 0, 0.55f);
+        }
+        SoundHelper::Play(GameSE::HudSnap);
         return;
     }
 

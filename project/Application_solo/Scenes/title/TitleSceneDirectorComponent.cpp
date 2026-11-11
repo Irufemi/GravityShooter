@@ -419,12 +419,13 @@ void TitleSceneDirectorComponent::Update() {
 }
 
 void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
-    idleTimer_ += deltaTime;
+    // 1. アステロイドベルト（スペースデブリ群）の星雲同期スワール公転 ＆ 3軸自転
+    UpdateAsteroidSimulation(deltaTime);
 
     auto shipTransform = GetShipTransform();
     auto cameraTransform = GetCameraTransform();
 
-    // 1. 自機のホバリング浮遊（上下微動 + ロール揺らぎ）
+    // 2. 自機のホバリング浮遊（上下微動 + ロール揺らぎ）
     if (shipTransform) {
         float hoverY = initialShipPos_.y + std::sin(idleTimer_ * 1.8f) * 0.07f;
         float rollZ = initialShipRot_.z + std::sin(idleTimer_ * 1.2f) * 0.035f;
@@ -434,15 +435,35 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
         shipTransform->SetRotation({pitchX, initialShipRot_.y, rollZ});
     }
 
-    // 2. カメラの呼吸揺れ
+    // 3. カメラの呼吸揺れ
     if (cameraTransform) {
         float swayX = initialCameraPos_.x + std::sin(idleTimer_ * 0.8f) * 0.03f;
         float swayY = initialCameraPos_.y + std::cos(idleTimer_ * 0.9f) * 0.025f;
         cameraTransform->SetPosition({swayX, swayY, initialCameraPos_.z});
     }
 
-    // 3. アステロイドベルト（スペースデブリ群）の星雲同期スワール公転 ＆ 3軸自転
+    // 4. 自機スラスターの呼吸脈動（GameSceneアイドル時と完全準拠）
+    targetThrusterScaleZ_ = 0.85f + std::sin(idleTimer_ * 2.2f) * 0.10f;
+    float lerpFactor = 1.0f - std::exp(-10.0f * deltaTime);
+    currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
+
+    if (auto thruster = thrusterObj_.lock()) {
+        if (auto t = thruster->GetTransform()) {
+            t->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
+        }
+    }
+}
+
+void TitleSceneDirectorComponent::UpdateAsteroidSimulation(float deltaTime) {
+    idleTimer_ += deltaTime;
+
+    // アステロイドベルト（スペースデブリ群）の星雲同期スワール公転 ＆ 3軸自転
     for (auto& ast : asteroidInstances_) {
+        // 既にスラスター爆風（Blast Velocity）で吹き飛ばされている小惑星は公転更新から除外
+        if (ast.blastVelocity.x != 0.0f || ast.blastVelocity.y != 0.0f || ast.blastVelocity.z != 0.0f) {
+            continue;
+        }
+
         // 差動公転角の更新（星雲の反時計回り渦流に同期して緩やかに公転）
         ast.orbitAngle += ast.orbitSpeed * deltaTime;
         if (ast.orbitAngle > Irufemi::Math::TwoPI * 100.0f) {
@@ -484,17 +505,6 @@ void TitleSceneDirectorComponent::UpdateIdling(float deltaTime) {
     // 衝撃波強度の毎フレーム指数的減衰
     if (shockwaveIntensity_ > 0.0f) {
         shockwaveIntensity_ = (std::max)(0.0f, shockwaveIntensity_ - deltaTime * 2.5f);
-    }
-
-    // 4. 自機スラスターの呼吸脈動（GameSceneアイドル時と完全準拠）
-    targetThrusterScaleZ_ = 0.85f + std::sin(idleTimer_ * 2.2f) * 0.10f;
-    float lerpFactor = 1.0f - std::exp(-10.0f * deltaTime);
-    currentThrusterScaleZ_ = std::lerp(currentThrusterScaleZ_, targetThrusterScaleZ_, lerpFactor);
-
-    if (auto thruster = thrusterObj_.lock()) {
-        if (auto t = thruster->GetTransform()) {
-            t->SetScale({1.0f, 1.0f, currentThrusterScaleZ_});
-        }
     }
 }
 
@@ -601,6 +611,9 @@ void TitleSceneDirectorComponent::UpdateLaunchSequence(float deltaTime) {
             }
         }
     }
+
+    // 小惑星シミュレーションの継続（爆散していない小惑星の自然な宇宙漂流を維持）
+    UpdateAsteroidSimulation(deltaTime);
 
     // Stateパターン更新（多態性呼び出し）
     stateTimer_ += deltaTime;

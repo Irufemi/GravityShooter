@@ -153,12 +153,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpText_->SetText(L"100%");
     hpTextObj_->Initialize();
 
-    // 7. デブリPipスロット（HPバー直下、Y: 38px）
+    // 7. デブリヘッダー（HPバー直下、Y: 38px）
     constexpr float kDebrisY = 38.0f;
-    constexpr float kPipStartX = 52.0f;
-    constexpr float kPipW = 18.0f;
-    constexpr float kPipH = 8.0f;
-    constexpr float kPipSpacing = 5.0f;
 
     debrisHeaderObj_ = std::make_shared<GameObject>("HUD_DebrisHeader");
     debrisHeaderObj_->SetIsSerializable(false);
@@ -176,8 +172,88 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     debrisHeaderText_->SetText(L"DEBRIS");
     debrisHeaderObj_->Initialize();
 
-    for (int i = 0; i < kMaxPipCount; ++i) {
-        float pipX = kPipStartX + i * (kPipW + kPipSpacing);
+    // 8. デブリカウントテキスト
+    debrisCountObj_ = std::make_shared<GameObject>("HUD_DebrisCount");
+    debrisCountObj_->SetIsSerializable(false);
+    scene->AddGameObject(debrisCountObj_);
+    rootContainerObj_->AddChild(debrisCountObj_);
+    if (auto t = debrisCountObj_->GetTransform()) {
+        t->SetPosition({0.0f, kDebrisY - 5.0f, 1.5f});
+    }
+    debrisCountText_ = debrisCountObj_->AddComponent<TextRendererComponent>().get();
+    debrisCountText_->SetFontId("toro_glitch");
+    debrisCountText_->SetAlignment(TextAlignment::Left);
+    debrisCountText_->SetBaseScale(10.0f);
+    debrisCountText_->SetTopMost(true);
+    debrisCountText_->SetColor({0.60f, 0.85f, 1.0f, 0.75f});
+    debrisCountText_->SetText(L"(0/10)");
+    debrisCountObj_->Initialize();
+
+    // 9. 動的Pipスロットの初期構築（10個またはプレイヤー設定）
+    int initialMax = cachedGravityComp_ ? cachedGravityComp_->GetMaxOrbitCount() : 10;
+    SetupDebrisPips(initialMax);
+
+    rootContainerObj_->Initialize();
+    isElementsCreated_ = true;
+}
+
+void PlayerStatusHUDComponent::SetupDebrisPips(int maxCount) {
+    if (maxCount <= 0) {
+        maxCount = 10;
+    }
+    if (maxPipCount_ == maxCount && !debrisPipBgObjs_.empty()) {
+        return;
+    }
+
+    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
+    if (!scene || !rootContainerObj_) {
+        return;
+    }
+
+    // 既存Pipのクリーンアップ
+    for (auto& obj : debrisPipBgObjs_) {
+        if (obj) {
+            rootContainerObj_->RemoveChild(obj);
+            obj->Destroy();
+        }
+    }
+    for (auto& obj : debrisPipFillObjs_) {
+        if (obj) {
+            rootContainerObj_->RemoveChild(obj);
+            obj->Destroy();
+        }
+    }
+    debrisPipBgObjs_.clear();
+    debrisPipFillObjs_.clear();
+    debrisPipFillSprites_.clear();
+    pipPopScales_.clear();
+
+    maxPipCount_ = maxCount;
+    debrisPipBgObjs_.resize(maxPipCount_);
+    debrisPipFillObjs_.resize(maxPipCount_);
+    debrisPipFillSprites_.resize(maxPipCount_, nullptr);
+    pipPopScales_.resize(maxPipCount_, 1.0f);
+
+    constexpr float kDebrisY = 38.0f;
+    constexpr float kPipStartX = 52.0f;
+    constexpr float kPipH = 8.0f;
+
+    // HPバーの右端（幅180px）直下にフィットするよう、スロット数に応じて幅・間隔を算出
+    float pipSpacing = 3.5f;
+    float availableWidth = 126.0f;
+    float pipW = (availableWidth - (maxPipCount_ - 1) * pipSpacing) / static_cast<float>(maxPipCount_);
+    if (pipW < 6.0f) {
+        pipW = 6.0f;
+        pipSpacing = 2.0f;
+    } else if (pipW > 18.0f) {
+        pipW = 18.0f;
+        pipSpacing = 5.0f;
+    }
+    pipWidth_ = pipW;
+    pipHeight_ = kPipH;
+
+    for (int i = 0; i < maxPipCount_; ++i) {
+        float pipX = kPipStartX + i * (pipW + pipSpacing);
 
         // Pip背景枠
         auto bgObj = std::make_shared<GameObject>("HUD_PipBg_" + std::to_string(i));
@@ -185,10 +261,10 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
         scene->AddGameObject(bgObj);
         rootContainerObj_->AddChild(bgObj);
         if (auto t = bgObj->GetTransform()) {
-            t->SetPosition({pipX + kPipW * 0.5f, kDebrisY, 1.5f});
+            t->SetPosition({pipX + pipW * 0.5f, kDebrisY, 1.5f});
         }
         auto bgSprite = bgObj->AddComponent<SpriteRendererComponent>();
-        bgSprite->SetBaseSize({kPipW, kPipH});
+        bgSprite->SetBaseSize({pipW, kPipH});
         bgSprite->SetAnchor({0.5f, 0.5f});
         bgSprite->SetColor({0.03f, 0.07f, 0.12f, 0.75f});
         bgSprite->SetTopMost(true);
@@ -201,10 +277,10 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
         scene->AddGameObject(fillObj);
         rootContainerObj_->AddChild(fillObj);
         if (auto t = fillObj->GetTransform()) {
-            t->SetPosition({pipX + kPipW * 0.5f, kDebrisY, 1.3f});
+            t->SetPosition({pipX + pipW * 0.5f, kDebrisY, 1.3f});
         }
         auto fillSprite = fillObj->AddComponent<SpriteRendererComponent>();
-        fillSprite->SetBaseSize({kPipW - 2.0f, kPipH - 2.0f});
+        fillSprite->SetBaseSize({(std::max)(1.0f, pipW - 2.0f), kPipH - 2.0f});
         fillSprite->SetAnchor({0.5f, 0.5f});
         fillSprite->SetColor({0.06f, 0.10f, 0.15f, 0.25f}); // 初期は空スロット
         fillSprite->SetTopMost(true);
@@ -214,26 +290,16 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
         pipPopScales_[i] = 1.0f;
     }
 
-    // 8. デブリカウントテキスト
-    constexpr float kCountX = kPipStartX + (kPipW + kPipSpacing) * 5.0f + 6.0f;
-    debrisCountObj_ = std::make_shared<GameObject>("HUD_DebrisCount");
-    debrisCountObj_->SetIsSerializable(false);
-    scene->AddGameObject(debrisCountObj_);
-    rootContainerObj_->AddChild(debrisCountObj_);
-    if (auto t = debrisCountObj_->GetTransform()) {
-        t->SetPosition({kCountX, kDebrisY - 5.0f, 1.5f});
+    // デブリカウントテキスト位置の更新（最後のスロットの右横）
+    float countX = kPipStartX + maxPipCount_ * (pipW + pipSpacing) + 5.0f;
+    if (debrisCountObj_) {
+        if (auto t = debrisCountObj_->GetTransform()) {
+            t->SetPosition({countX, kDebrisY - 5.0f, 1.5f});
+        }
     }
-    debrisCountText_ = debrisCountObj_->AddComponent<TextRendererComponent>().get();
-    debrisCountText_->SetFontId("toro_glitch");
-    debrisCountText_->SetAlignment(TextAlignment::Left);
-    debrisCountText_->SetBaseScale(10.0f);
-    debrisCountText_->SetTopMost(true);
-    debrisCountText_->SetColor({0.60f, 0.85f, 1.0f, 0.75f});
-    debrisCountText_->SetText(L"(0/5)");
-    debrisCountObj_->Initialize();
-
-    rootContainerObj_->Initialize();
-    isElementsCreated_ = true;
+    if (debrisCountText_) {
+        debrisCountText_->SetText(L"(0/" + std::to_wstring(maxPipCount_) + L")");
+    }
 }
 
 void PlayerStatusHUDComponent::BindPlayerComponents() {
@@ -250,6 +316,10 @@ void PlayerStatusHUDComponent::BindPlayerComponents() {
 
     cachedHealthComp_ = player->GetComponent<PlayerHealthComponent>();
     cachedGravityComp_ = player->GetComponent<GravityPlayerComponent>();
+
+    if (cachedGravityComp_) {
+        SetupDebrisPips(cachedGravityComp_->GetMaxOrbitCount());
+    }
 
     if (cachedHealthComp_) {
         int maxHp = cachedHealthComp_->GetMaxHp();
@@ -373,23 +443,25 @@ void PlayerStatusHUDComponent::UpdateDebrisPips(float dt) {
         return;
     }
 
+    int maxCount = cachedGravityComp_->GetMaxOrbitCount();
+    if (maxCount != maxPipCount_ || debrisPipBgObjs_.empty()) {
+        SetupDebrisPips(maxCount);
+    }
+
     int currentCount = cachedGravityComp_->GetOrbitingDebrisCount();
-    currentCount = std::clamp(currentCount, 0, kMaxPipCount);
+    currentCount = std::clamp(currentCount, 0, maxPipCount_);
 
     // 新たにガレキをキャッチしたスロットに Pop-in アニメーションを付与
     if (currentCount > lastDebrisCount_) {
         for (int i = lastDebrisCount_; i < currentCount; ++i) {
-            if (i < kMaxPipCount) {
+            if (i < maxPipCount_) {
                 pipPopScales_[i] = 1.35f; // 1.35倍からスナップ
             }
         }
     }
     lastDebrisCount_ = currentCount;
 
-    constexpr float kPipW = 18.0f;
-    constexpr float kPipH = 8.0f;
-
-    for (int i = 0; i < kMaxPipCount; ++i) {
+    for (int i = 0; i < maxPipCount_; ++i) {
         // Pop スケールの減衰
         if (pipPopScales_[i] > 1.0f) {
             pipPopScales_[i] = std::lerp(pipPopScales_[i], 1.0f, (std::min)(1.0f, dt * 14.0f));
@@ -400,7 +472,9 @@ void PlayerStatusHUDComponent::UpdateDebrisPips(float dt) {
 
         if (debrisPipFillSprites_[i]) {
             float s = pipPopScales_[i];
-            debrisPipFillSprites_[i]->SetBaseSize({(kPipW - 2.0f) * s, (kPipH - 2.0f) * s});
+            float fillW = (std::max)(1.0f, pipWidth_ - 2.0f);
+            float fillH = (std::max)(1.0f, pipHeight_ - 2.0f);
+            debrisPipFillSprites_[i]->SetBaseSize({fillW * s, fillH * s});
 
             if (i < currentCount) {
                 // 保持中：発光ネオンシアン
@@ -413,7 +487,7 @@ void PlayerStatusHUDComponent::UpdateDebrisPips(float dt) {
     }
 
     if (debrisCountText_) {
-        std::wstring countStr = L"(" + std::to_wstring(currentCount) + L"/" + std::to_wstring(kMaxPipCount) + L")";
+        std::wstring countStr = L"(" + std::to_wstring(currentCount) + L"/" + std::to_wstring(maxPipCount_) + L")";
         debrisCountText_->SetText(countStr);
     }
 }

@@ -195,6 +195,15 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         // 直撃の重厚感を演出するヒットストップ（約2〜3フレーム）
         if (auto engine = GetEngine()) {
             engine->TriggerHitStop(0.04f);
+
+            // 【Juice】衝突のインパクトを演出するカメラシェイク
+            if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
+                if (auto mainCam = scene->FindGameObject("MainCamera")) {
+                    if (auto shake = mainCam->GetComponent<CameraShakeComponent>()) {
+                        shake->PlayShake(GetCameraShakeIntensity(), GetCameraShakeDurationFrames());
+                    }
+                }
+            }
         }
 
         if (auto t = GetTransform()) {

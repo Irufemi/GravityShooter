@@ -1,6 +1,8 @@
 #include "Combat/Boss/BossStateCoreExposed.h"
 #include "Combat/Boss/BossStateDestroyed.h"
 #include "Combat/Boss/BossComponent.h"
+#include "Combat/ScoreManagerComponent.h"
+#include "Audio/SoundHelper.h"
 #include "Environment/DebrisManagerComponent.h"
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
@@ -30,6 +32,13 @@ EffectMaskComponent* BossStateCoreExposed::GetCoreEffectMask(BossComponent* boss
 
 void BossStateCoreExposed::Enter(BossComponent* boss) {
     Log::OutPutLog(std::cout, "Boss entered CoreExposed State (Vulnerable)\n");
+
+    // 【Juice】画面中央に SHIELD BREAK! 特大バナーを通知 ＆ スナップSE
+    if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+        scoreMgr->TriggerCenterBanner(L"SHIELD BREAK!", L"CORE EXPOSED - ATTACK NOW!",
+                                      Irufemi::Vector4{1.0f, 0.85f, 0.2f, 1.0f}, 1.5f);
+    }
+    SoundHelper::Play(GameSE::HudSnap);
 
     // ボスコアのEffectMaskComponentを解決・キャッシュ（毎フレーム線形探索を完全排除）
     cachedCoreMask_ = nullptr;

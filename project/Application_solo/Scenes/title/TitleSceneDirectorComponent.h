@@ -277,6 +277,7 @@ private:
     void CacheEntities();
     void UpdateIdling(float deltaTime);
     void UpdateLaunchSequence(float deltaTime);
+    void UpdateAsteroidSimulation(float deltaTime);
     void SetupThrusterEffect();
     void SpawnAsteroidBelt();
     void CleanupAsteroidBelt();

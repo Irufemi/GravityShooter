@@ -25,7 +25,8 @@ void ScoreManagerComponent::Initialize() {
     currentScore_ = 0;
     multiKillWindowTimer_ = 0.0f;
     pendingBatchKills_ = 0;
-    currentPopup_ = MultiKillPopupData{};
+    currentPopup_ = CombatPopupData{};
+    centerBanner_ = CenterBannerData{};
     stats_ = GameplaySessionStats{};
 }
 
@@ -92,6 +93,15 @@ void ScoreManagerComponent::Update() {
         currentPopup_.remainingDisplayTime -= dt;
         if (currentPopup_.remainingDisplayTime <= 0.0f) {
             currentPopup_.remainingDisplayTime = 0.0f;
+            currentPopup_.type = CombatPopupType::None;
+        }
+    }
+
+    // 画面中央バナー残時間の減衰
+    if (centerBanner_.remainingDisplayTime > 0.0f) {
+        centerBanner_.remainingDisplayTime -= dt;
+        if (centerBanner_.remainingDisplayTime <= 0.0f) {
+            centerBanner_.remainingDisplayTime = 0.0f;
         }
     }
 
@@ -120,6 +130,7 @@ void ScoreManagerComponent::NotifyEnemyKilled(int baseScore, bool isMultiLock, i
     } else {
         // 撃破の瞬間にリアルタイムで暫定ポップを表示（即時フィードバック）
         int currentGained = CalculateMultiKillScore(pendingBatchKills_);
+        currentPopup_.type = CombatPopupType::Kill;
         currentPopup_.killCount = pendingBatchKills_;
         currentPopup_.scoreGained = currentGained;
         currentPopup_.remainingDisplayTime = 0.85f;
@@ -149,6 +160,7 @@ void ScoreManagerComponent::FinalizeMultiKillBatch() {
     }
 
     // 確定ポップアップ（0.85秒表示）
+    currentPopup_.type = CombatPopupType::Kill;
     currentPopup_.killCount = finalCount;
     currentPopup_.scoreGained = scoreGained;
     currentPopup_.remainingDisplayTime = 0.85f;
@@ -159,6 +171,15 @@ void ScoreManagerComponent::NotifyBulletBlocked() {
     stats_.bulletsBlocked++;
     currentScore_ += 50; // ガレキシールド防御ボーナス
     stats_.totalScore = currentScore_;
+
+    // キル演出中（残り時間が十分ある場合）でなければ GUARD! ポップを発生
+    if (currentPopup_.type != CombatPopupType::Kill || currentPopup_.remainingDisplayTime <= 0.35f) {
+        currentPopup_.type = CombatPopupType::Guard;
+        currentPopup_.killCount = 0;
+        currentPopup_.scoreGained = 50;
+        currentPopup_.remainingDisplayTime = 0.65f;
+        currentPopup_.isNew = true;
+    }
 }
 
 void ScoreManagerComponent::NotifyBossCoreDamaged(float damage) {
@@ -174,4 +195,34 @@ void ScoreManagerComponent::NotifyPlayerDamaged() {
     stats_.damageTakenCount++;
     currentScore_ = (std::max)(0, currentScore_ - 500); // 被弾ペナルティ
     stats_.totalScore = currentScore_;
+
+    // 被弾時は即座に DAMAGE! ポップを表示
+    currentPopup_.type = CombatPopupType::DamagePenalty;
+    currentPopup_.killCount = 0;
+    currentPopup_.scoreGained = -500;
+    currentPopup_.remainingDisplayTime = 0.85f;
+    currentPopup_.isNew = true;
+}
+
+void ScoreManagerComponent::TriggerPopup(CombatPopupType type, int scoreDelta, float duration) {
+    // 撃破演出中（残り時間0.3秒超）の場合は撃破演出を優先保護
+    if (currentPopup_.type == CombatPopupType::Kill && currentPopup_.remainingDisplayTime > 0.30f) {
+        return;
+    }
+
+    currentPopup_.type = type;
+    currentPopup_.killCount = 0;
+    currentPopup_.scoreGained = scoreDelta;
+    currentPopup_.remainingDisplayTime = duration;
+    currentPopup_.isNew = true;
+}
+
+void ScoreManagerComponent::TriggerCenterBanner(const std::wstring& title, const std::wstring& subTitle,
+                                                const Irufemi::Vector4& color, float duration) {
+    centerBanner_.title = title;
+    centerBanner_.subTitle = subTitle;
+    centerBanner_.remainingDisplayTime = duration;
+    centerBanner_.maxDisplayTime = duration;
+    centerBanner_.color = color;
+    centerBanner_.isNew = true;
 }

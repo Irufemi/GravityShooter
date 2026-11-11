@@ -124,6 +124,31 @@ void ScoreHUDComponent::EnsureUIElements() {
     popScoreText_->SetText(L"");
     popScoreObj_->Initialize();
 
+    // 画面中央：特大バナー通知（SHIELD BREAK! 等）
+    centerBannerObj_ = std::make_shared<GameObject>("HUD_CenterBanner");
+    centerBannerObj_->SetIsSerializable(false);
+    scene->AddGameObject(centerBannerObj_);
+    centerBannerText_ = centerBannerObj_->AddComponent<TextRendererComponent>().get();
+    centerBannerText_->SetFontId("toro_glitch");
+    centerBannerText_->SetAlignment(TextAlignment::Center);
+    centerBannerText_->SetBaseScale(36.0f);
+    centerBannerText_->SetTopMost(true);
+    centerBannerText_->SetColor({1.0f, 0.85f, 0.2f, 1.0f});
+    centerBannerText_->SetText(L"");
+    centerBannerObj_->Initialize();
+
+    centerSubBannerObj_ = std::make_shared<GameObject>("HUD_CenterSubBanner");
+    centerSubBannerObj_->SetIsSerializable(false);
+    scene->AddGameObject(centerSubBannerObj_);
+    centerSubBannerText_ = centerSubBannerObj_->AddComponent<TextRendererComponent>().get();
+    centerSubBannerText_->SetFontId("toro_glitch");
+    centerSubBannerText_->SetAlignment(TextAlignment::Center);
+    centerSubBannerText_->SetBaseScale(18.0f);
+    centerSubBannerText_->SetTopMost(true);
+    centerSubBannerText_->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+    centerSubBannerText_->SetText(L"");
+    centerSubBannerObj_->Initialize();
+
     isElementsCreated_ = true;
 }
 
@@ -149,6 +174,8 @@ void ScoreHUDComponent::Update() {
         if (killsObj_) killsObj_->SetIsActive(active);
         if (popObj_) popObj_->SetIsActive(active);
         if (popScoreObj_) popScoreObj_->SetIsActive(active);
+        if (centerBannerObj_) centerBannerObj_->SetIsActive(active);
+        if (centerSubBannerObj_) centerSubBannerObj_->SetIsActive(active);
     };
 
     if (!isCurrentSceneActive) {
@@ -190,10 +217,10 @@ void ScoreHUDComponent::Update() {
         killsText_->SetText(wkStr);
     }
 
-    // --- B. 撃破時ポップアップ演出（レティクル位置の取得と動的ポップ） ---
+    // --- B. 戦闘ポップアップ演出（レティクル位置の取得と動的ポップ） ---
     const auto& popup = scoreMgr->GetPopupData();
 
-    if (popup.remainingDisplayTime > 0.0f) {
+    if (popup.remainingDisplayTime > 0.0f && popup.type != CombatPopupType::None) {
         // 仮想カーソル（照準）の現在座標を取得
         Irufemi::Vector2 cursorPos = {640.0f, 360.0f};
         if (auto inputManager = engine->GetInputManager()) {
@@ -216,31 +243,87 @@ void ScoreHUDComponent::Update() {
         int count = popup.killCount;
         int pts = popup.scoreGained;
 
-        if (popText_) {
-            if (count >= 5) {
-                popText_->SetText(L"MULTI KILL x5!! (MAX)");
-                popText_->SetBaseScale(24.0f);
-                popText_->SetColor({1.0f, 0.25f, 0.55f, alpha}); // ネオンピンク
-            } else if (count >= 3) {
-                popText_->SetText(L"MULTI KILL x" + std::to_wstring(count) + L"!");
-                popText_->SetBaseScale(22.0f);
-                popText_->SetColor({1.0f, 0.85f, 0.2f, alpha}); // ゴールド
-            } else if (count == 2) {
-                popText_->SetText(L"MULTI KILL x2!");
+        switch (popup.type) {
+        case CombatPopupType::Guard:
+            if (popText_) {
+                popText_->SetText(L"GUARD!");
                 popText_->SetBaseScale(20.0f);
-                popText_->SetColor({0.3f, 1.0f, 0.6f, alpha}); // ネオングリーン
-            } else {
-                popText_->SetText(L"HIT!");
-                popText_->SetBaseScale(17.0f);
-                popText_->SetColor({0.3f, 0.85f, 1.0f, alpha}); // シアン
+                popText_->SetColor({0.3f, 0.9f, 1.0f, alpha}); // シールドシアン
             }
-        }
+            if (popScoreText_) {
+                popScoreText_->SetText(L"+50 pts");
+                popScoreText_->SetBaseScale(15.0f);
+                popScoreText_->SetColor({0.8f, 1.0f, 1.0f, alpha});
+            }
+            break;
 
-        if (popScoreText_) {
-            std::wstring scorePts = L"+" + std::to_wstring(pts) + L" pts";
-            popScoreText_->SetText(scorePts);
-            popScoreText_->SetBaseScale((count >= 3) ? 17.0f : 15.0f);
-            popScoreText_->SetColor({1.0f, 1.0f, 1.0f, alpha});
+        case CombatPopupType::DamagePenalty:
+            if (popText_) {
+                popText_->SetText(L"DAMAGE!");
+                popText_->SetBaseScale(21.0f);
+                popText_->SetColor({1.0f, 0.25f, 0.25f, alpha}); // 警告レッド
+            }
+            if (popScoreText_) {
+                popScoreText_->SetText(L"-500 pts");
+                popScoreText_->SetBaseScale(15.0f);
+                popScoreText_->SetColor({1.0f, 0.4f, 0.4f, alpha});
+            }
+            break;
+
+        case CombatPopupType::NoDebris:
+            if (popText_) {
+                popText_->SetText(L"NO DEBRIS!");
+                popText_->SetBaseScale(19.0f);
+                popText_->SetColor({1.0f, 0.35f, 0.2f, alpha}); // オレンジレッド
+            }
+            if (popScoreText_) {
+                popScoreText_->SetText(L"PULL [R-CLICK]");
+                popScoreText_->SetBaseScale(14.0f);
+                popScoreText_->SetColor({1.0f, 0.9f, 0.5f, alpha});
+            }
+            break;
+
+        case CombatPopupType::MaxStock:
+            if (popText_) {
+                popText_->SetText(L"MAX STOCK!");
+                popText_->SetBaseScale(20.0f);
+                popText_->SetColor({0.3f, 1.0f, 0.7f, alpha}); // ネオングリーン
+            }
+            if (popScoreText_) {
+                popScoreText_->SetText(L"READY TO FIRE");
+                popScoreText_->SetBaseScale(14.0f);
+                popScoreText_->SetColor({1.0f, 1.0f, 1.0f, alpha});
+            }
+            break;
+
+        case CombatPopupType::Kill:
+        default:
+            if (popText_) {
+                if (count >= 5) {
+                    popText_->SetText(L"MULTI KILL x5!! (MAX)");
+                    popText_->SetBaseScale(24.0f);
+                    popText_->SetColor({1.0f, 0.25f, 0.55f, alpha}); // ネオンピンク
+                } else if (count >= 3) {
+                    popText_->SetText(L"MULTI KILL x" + std::to_wstring(count) + L"!");
+                    popText_->SetBaseScale(22.0f);
+                    popText_->SetColor({1.0f, 0.85f, 0.2f, alpha}); // ゴールド
+                } else if (count == 2) {
+                    popText_->SetText(L"MULTI KILL x2!");
+                    popText_->SetBaseScale(20.0f);
+                    popText_->SetColor({0.3f, 1.0f, 0.6f, alpha}); // ネオングリーン
+                } else {
+                    popText_->SetText(L"HIT!");
+                    popText_->SetBaseScale(17.0f);
+                    popText_->SetColor({0.3f, 0.85f, 1.0f, alpha}); // シアン
+                }
+            }
+            if (popScoreText_) {
+                std::wstring scorePts = L"+" + std::to_wstring(pts) + L" pts";
+                popScoreText_->SetText(scorePts);
+                popScoreText_->SetBaseScale((count >= 3) ? 17.0f : 15.0f);
+                popScoreText_->SetColor({1.0f, 1.0f, 1.0f, alpha});
+            }
+            break;
         }
     } else {
         // 表示時間終了時は照準まわりを完全非表示（普段は100%クリアな視界）
@@ -249,6 +332,45 @@ void ScoreHUDComponent::Update() {
         }
         if (popScoreText_) {
             popScoreText_->SetText(L"");
+        }
+    }
+
+    // --- C. 画面中央バナー演出（SHIELD BREAK! 等） ---
+    const auto& banner = scoreMgr->GetCenterBanner();
+    if (banner.remainingDisplayTime > 0.0f && !banner.title.empty()) {
+        float maxTime = (banner.maxDisplayTime > 0.0f) ? banner.maxDisplayTime : 1.2f;
+        float progress = std::clamp(banner.remainingDisplayTime / maxTime, 0.0f, 1.0f);
+        float alpha = std::clamp(progress * 2.0f, 0.0f, 1.0f);
+
+        // 出現初期にスケールスナップ (1.30 -> 1.00)
+        float snapT = 1.0f - std::clamp((maxTime - banner.remainingDisplayTime) / 0.20f, 0.0f, 1.0f);
+        float scaleMultiplier = 1.0f + snapT * 0.30f;
+
+        Irufemi::Vector2 screenCenter = {640.0f, 260.0f};
+        if (centerBannerObj_ && centerBannerObj_->GetTransform()) {
+            centerBannerObj_->GetTransform()->SetPosition({screenCenter.x, screenCenter.y, 0.0f});
+        }
+        if (centerSubBannerObj_ && centerSubBannerObj_->GetTransform()) {
+            centerSubBannerObj_->GetTransform()->SetPosition({screenCenter.x, screenCenter.y + 44.0f, 0.0f});
+        }
+
+        if (centerBannerText_) {
+            centerBannerText_->SetText(banner.title);
+            centerBannerText_->SetBaseScale(34.0f * scaleMultiplier);
+            centerBannerText_->SetColor({banner.color.x, banner.color.y, banner.color.z, alpha});
+        }
+
+        if (centerSubBannerText_) {
+            centerSubBannerText_->SetText(banner.subTitle);
+            centerSubBannerText_->SetBaseScale(17.0f);
+            centerSubBannerText_->SetColor({1.0f, 1.0f, 1.0f, alpha});
+        }
+    } else {
+        if (centerBannerText_) {
+            centerBannerText_->SetText(L"");
+        }
+        if (centerSubBannerText_) {
+            centerSubBannerText_->SetText(L"");
         }
     }
 }

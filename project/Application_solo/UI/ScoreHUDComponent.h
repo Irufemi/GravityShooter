@@ -35,11 +35,17 @@ private:
     TextRendererComponent* scoreText_ = nullptr;
     TextRendererComponent* killsText_ = nullptr;
 
-    // 照準周辺：撃破時ポップアップ（普段は完全非表示）
+    // 照準周辺：戦闘ポップアップ（普段は完全非表示）
     std::shared_ptr<GameObject> popObj_;
     std::shared_ptr<GameObject> popScoreObj_;
     TextRendererComponent* popText_ = nullptr;
     TextRendererComponent* popScoreText_ = nullptr;
+
+    // 画面中央：特大バナー通知（SHIELD BREAK! 等）
+    std::shared_ptr<GameObject> centerBannerObj_;
+    std::shared_ptr<GameObject> centerSubBannerObj_;
+    TextRendererComponent* centerBannerText_ = nullptr;
+    TextRendererComponent* centerSubBannerText_ = nullptr;
 
     float displayedScore_ = 0.0f;
     float popAnimT_ = 0.0f; // 0.0f 〜 1.0f (浮き上がり＆フェード用)

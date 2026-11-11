@@ -14,11 +14,32 @@ struct GameplaySessionStats {
     float clearTimeSeconds = 0.0f;
 };
 
-/// @brief 撃破時のポップアップ通知データ
-struct MultiKillPopupData {
-    int killCount = 0;          //!< 1〜5
-    int scoreGained = 0;        //!< 今回の獲得スコア
+/// @brief 戦闘ポップアップ通知の種類
+enum class CombatPopupType {
+    None,
+    Kill,           //!< 撃破 (HIT! / MULTI KILL)
+    Guard,          //!< ガレキ防御 (GUARD! +50 PTS)
+    DamagePenalty,  //!< 被弾減点 (DAMAGE! -500 PTS)
+    NoDebris,       //!< 弾切れ空撃ち警告 (NO DEBRIS - PULL!)
+    MaxStock        //!< ガレキ満タン (MAX STOCK!)
+};
+
+/// @brief 戦闘ポップアップ通知データ
+struct CombatPopupData {
+    CombatPopupType type = CombatPopupType::None;
+    int killCount = 0;          //!< 1〜5 (Kill用)
+    int scoreGained = 0;        //!< 今回の獲得スコア / 変動量
     float remainingDisplayTime = 0.0f; //!< ポップ表示残時間（秒）
+    bool isNew = false;
+};
+
+/// @brief 画面中央の特大バナー通知データ（ボスシールド破壊等）
+struct CenterBannerData {
+    std::wstring title;
+    std::wstring subTitle;
+    float remainingDisplayTime = 0.0f;
+    float maxDisplayTime = 1.2f;
+    Irufemi::Vector4 color = {1.0f, 0.85f, 0.2f, 1.0f};
     bool isNew = false;
 };
 
@@ -48,8 +69,18 @@ public:
     int GetMaxMultiKill() const { return stats_.maxMultiKill; }
     const GameplaySessionStats& GetStats() const { return stats_; }
 
-    /// @brief 直近の撃破ポップアップデータを取得
-    const MultiKillPopupData& GetPopupData() const { return currentPopup_; }
+    /// @brief 直近の戦闘ポップアップデータを取得
+    const CombatPopupData& GetPopupData() const { return currentPopup_; }
+
+    /// @brief 画面中央バナー通知データを取得
+    const CenterBannerData& GetCenterBanner() const { return centerBanner_; }
+
+    /// @brief 汎用戦闘ポップアップを発生させる
+    void TriggerPopup(CombatPopupType type, int scoreDelta = 0, float duration = 0.65f);
+
+    /// @brief 画面中央の特大バナー通知を発生させる
+    void TriggerCenterBanner(const std::wstring& title, const std::wstring& subTitle = L"",
+                             const Irufemi::Vector4& color = {1.0f, 0.85f, 0.2f, 1.0f}, float duration = 1.2f);
 
     static ScoreManagerComponent* GetInstance();
     static ScoreManagerComponent* GetOrCreate(class BaseScene* scene);
@@ -67,6 +98,7 @@ private:
     int pendingBatchKills_ = 0;
     const float kMultiKillWindowDuration_ = 0.50f;
 
-    MultiKillPopupData currentPopup_{};
+    CombatPopupData currentPopup_{};
+    CenterBannerData centerBanner_{};
     GameplaySessionStats stats_{};
 };
