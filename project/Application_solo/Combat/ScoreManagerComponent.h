@@ -105,10 +105,16 @@ private:
 
     int currentScore_ = 0;
 
-    // 時間差投擲（0.15秒間隔）を吸収する0.5秒のマルチキル集計ウィンドウ
+    // 時間差投擲（0.15秒間隔）を吸収するマルチキル集計ウィンドウ
     float multiKillWindowTimer_ = 0.0f;
     int pendingBatchKills_ = 0;
-    const float kMultiKillWindowDuration_ = 0.50f;
+    float multiKillWindowDuration_ = 0.50f;
+
+    // ゲームバランス・スコア配点パラメータ（外部化・エディタ調整対応）
+    int guardBonusScore_ = 50;
+    int damagePenaltyScore_ = 500;
+    float bossCoreDamageMultiplier_ = 10.0f;
+    std::vector<int> multiKillScores_ = {100, 300, 700, 1500, 3500};
 
     CombatPopupData currentPopup_{};
     CenterBannerData centerBanner_{};

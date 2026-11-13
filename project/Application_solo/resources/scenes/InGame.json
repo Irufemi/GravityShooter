@@ -275,19 +275,33 @@
             },
             {
               "data": {
+                "Max Orbit Count": 10,
                 "No Lock Throw Dist": 1000.0,
                 "Orbit Angle Max": 6.28000020980835,
-                "Status Data Path": "resources/GameData/PlayerStatus.json"
+                "Orbit Radius Max": 4.0,
+                "Orbit Radius Min": 2.0,
+                "Pull Radius": 100.0,
+                "Status Data Path": "resources/GameData/PlayerStatus.json",
+                "Throw Interval": 0.15000000596046448
               },
               "type": "GravityPlayerComponent"
             },
             {
+              "data": {
+                "Lockon Radius 2D": 200.0,
+                "Max Lockon Count": 1,
+                "Weight 2D": 1.0,
+                "Weight 3D": 10.0
+              },
               "type": "PlayerTargetingComponent"
             },
             {
               "data": {
+                "Current HP": 100,
                 "Death Sequence Duration": 3.0,
                 "God Mode": false,
+                "Invincibility Time": 1.0,
+                "Max HP": 100,
                 "Status Data Path": "resources/GameData/PlayerStatus.json"
               },
               "type": "PlayerHealthComponent"
@@ -339,13 +353,13 @@
                 "targetGlitchParams": {
                   "blockSizeX": 16.0,
                   "blockSizeY": 32.0,
-                  "edgeMaskStrength": 1.0,
-                  "glitchColor": [
+                  "color": [
                     1.0,
                     0.10000000149011612,
                     0.30000001192092896,
                     0.800000011920929
                   ],
+                  "edgeMaskStrength": 1.0,
                   "intensity": 4.0,
                   "offsetBase": 0.029999999329447746,
                   "offsetMax": 0.15000000596046448,
@@ -2652,7 +2666,13 @@
                   1.0,
                   1.0
                 ],
+                "Bullet Model Path": "resources/model/BossDroneBullet/BossDroneBullet.obj",
                 "Bullet Prefab Path": "resources/prefabs/BossBullet.json",
+                "Bullet Scale": [
+                  0.5,
+                  0.5,
+                  0.5
+                ],
                 "Default Life Time": 5.0,
                 "Hit Effect Key": "Dust",
                 "Hit Radius": 0.5,

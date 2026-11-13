@@ -30,6 +30,9 @@ void PlayerHealthComponent::LoadStatusFromJson() {
 void PlayerHealthComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     RegisterProperty("Status Data Path", &statusDataPath_);
+    RegisterProperty("Max HP", &maxHp_);
+    RegisterProperty("Current HP", &hp_);
+    RegisterPropertyRange("Invincibility Time", &maxInvincibilityTime_, 0.0f, 5.0f);
     RegisterProperty("God Mode", &isGodMode_);
     RegisterPropertyRange("Death Sequence Duration", &deathSequenceDuration_, 0.5f, 10.0f);
 }

@@ -19,6 +19,10 @@ void ScoreManagerComponent::OnRegisterProperties() {
     RegisterProperty("Current Score", &currentScore_);
     RegisterProperty("Total Kills", &stats_.enemiesKilled);
     RegisterProperty("Max Multi Kill", &stats_.maxMultiKill);
+    RegisterProperty("Guard Bonus Score", &guardBonusScore_);
+    RegisterProperty("Damage Penalty Score", &damagePenaltyScore_);
+    RegisterPropertyRange("Boss Core Multiplier", &bossCoreDamageMultiplier_, 1.0f, 100.0f);
+    RegisterPropertyRange("MultiKill Window", &multiKillWindowDuration_, 0.1f, 3.0f);
 }
 
 void ScoreManagerComponent::Initialize() {
@@ -61,19 +65,14 @@ ScoreManagerComponent* ScoreManagerComponent::GetOrCreate(BaseScene* scene) {
 }
 
 int ScoreManagerComponent::CalculateMultiKillScore(int count) const {
-    switch (count) {
-    case 1:
-        return 100;
-    case 2:
-        return 300;
-    case 3:
-        return 700;
-    case 4:
-        return 1500;
-    default:
-        // 5機以上 (MAX)
-        return 3500;
+    if (count <= 0 || multiKillScores_.empty()) {
+        return 0;
     }
+    size_t idx = static_cast<size_t>(count - 1);
+    if (idx >= multiKillScores_.size()) {
+        return multiKillScores_.back();
+    }
+    return multiKillScores_[idx];
 }
 
 void ScoreManagerComponent::Update() {
@@ -121,8 +120,8 @@ void ScoreManagerComponent::NotifyEnemyKilled(int baseScore, bool isMultiLock, i
     stats_.enemiesKilled++;
     pendingBatchKills_++;
 
-    // 0.5秒の集計ウィンドウをリセット（連鎖中キープ）
-    multiKillWindowTimer_ = kMultiKillWindowDuration_;
+    // 集計ウィンドウをリセット（連鎖中キープ）
+    multiKillWindowTimer_ = multiKillWindowDuration_;
 
     // GDD仕様上の最大所持数5機に達した場合は即座にバッチ確定！
     if (pendingBatchKills_ >= 5) {
@@ -169,14 +168,14 @@ void ScoreManagerComponent::FinalizeMultiKillBatch() {
 
 void ScoreManagerComponent::NotifyBulletBlocked() {
     stats_.bulletsBlocked++;
-    currentScore_ += 50; // ガレキシールド防御ボーナス
+    currentScore_ += guardBonusScore_; // ガレキシールド防御ボーナス
     stats_.totalScore = currentScore_;
 
     // キル演出中（残り時間が十分ある場合）でなければ GUARD! ポップを発生
     if (currentPopup_.type != CombatPopupType::Kill || currentPopup_.remainingDisplayTime <= 0.35f) {
         currentPopup_.type = CombatPopupType::Guard;
         currentPopup_.killCount = 0;
-        currentPopup_.scoreGained = 50;
+        currentPopup_.scoreGained = guardBonusScore_;
         currentPopup_.remainingDisplayTime = 0.65f;
         currentPopup_.isNew = true;
     }
@@ -186,20 +185,20 @@ void ScoreManagerComponent::NotifyBossCoreDamaged(float damage) {
     if (damage <= 0.0f) {
         return;
     }
-    int gained = static_cast<int>(damage * 10.0f);
+    int gained = static_cast<int>(damage * bossCoreDamageMultiplier_);
     currentScore_ += gained;
     stats_.totalScore = currentScore_;
 }
 
 void ScoreManagerComponent::NotifyPlayerDamaged() {
     stats_.damageTakenCount++;
-    currentScore_ = (std::max)(0, currentScore_ - 500); // 被弾ペナルティ
+    currentScore_ = (std::max)(0, currentScore_ - damagePenaltyScore_); // 被弾ペナルティ
     stats_.totalScore = currentScore_;
 
     // 被弾時は即座に DAMAGE! ポップを表示
     currentPopup_.type = CombatPopupType::DamagePenalty;
     currentPopup_.killCount = 0;
-    currentPopup_.scoreGained = -500;
+    currentPopup_.scoreGained = -damagePenaltyScore_;
     currentPopup_.remainingDisplayTime = 0.85f;
     currentPopup_.isNew = true;
 }

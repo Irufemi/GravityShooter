@@ -121,7 +121,13 @@ void PlayerTargetingComponent::Update() {
     UpdateOutlineHighlights();
 }
 
-void PlayerTargetingComponent::OnRegisterProperties() {}
+void PlayerTargetingComponent::OnRegisterProperties() {
+    Component::OnRegisterProperties();
+    RegisterPropertyRange("Lockon Radius 2D", &lockonRadius2D_, 10.0f, 1000.0f);
+    RegisterPropertyRange("Weight 2D", &weight2D_, 0.0f, 100.0f);
+    RegisterPropertyRange("Weight 3D", &weight3D_, 0.0f, 100.0f);
+    RegisterProperty("Max Lockon Count", &maxLockonCount_);
+}
 
 void PlayerTargetingComponent::UpdateHoverTarget() {
     hoverTarget_ = nullptr;

@@ -75,6 +75,11 @@ void GravityPlayerComponent::AbsorbOrbitingDebrisToSingularity() {
 void GravityPlayerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     RegisterProperty("Status Data Path", &statusDataPath_);
+    RegisterProperty("Max Orbit Count", &maxOrbitCount_);
+    RegisterPropertyRange("Pull Radius", &pullRadius_, 10.0f, 500.0f);
+    RegisterPropertyRange("Throw Interval", &throwInterval_, 0.05f, 1.0f);
+    RegisterPropertyRange("Orbit Radius Min", &orbitRadiusMin_, 0.5f, 10.0f);
+    RegisterPropertyRange("Orbit Radius Max", &orbitRadiusMax_, 1.0f, 20.0f);
     RegisterProperty("No Lock Throw Dist", &noLockThrowDistance_);
     RegisterProperty("Orbit Angle Max", &orbitAngleRandomMax_);
 }
