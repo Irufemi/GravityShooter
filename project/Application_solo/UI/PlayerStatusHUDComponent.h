@@ -98,4 +98,3 @@ private:
     bool isElementsCreated_ = false;
     bool isVisible_ = true;
 };
-

@@ -399,8 +399,8 @@ std::shared_ptr<Component> DebrisComponent::Clone() {
     return clone;
 }
 
-bool DebrisComponent::UpdatePullMovement(const TransformComponent* targetTransform, float pullSpeed,
-                                         float catchDistSq, float deltaTime) {
+bool DebrisComponent::UpdatePullMovement(const TransformComponent* targetTransform, float pullSpeed, float catchDistSq,
+                                         float deltaTime) {
     auto transform = GetTransform();
     if (!transform || !targetTransform) {
         return false;

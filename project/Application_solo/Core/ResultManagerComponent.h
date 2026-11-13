@@ -53,11 +53,11 @@ private:
 
     // --- リザルト集計・統計＆ランク演出用 ---
     enum class ResultPhase {
-        TitleSnap,   //!< 0.0s〜0.45s: タイトル文字スナップ出現
-        RollStats,   //!< 0.45s〜1.45s: 統計行が順次カウントアップ開示 (se_data_sync)
-        PreStamp,    //!< 1.45s〜1.60s: 一瞬の静寂・タメ
-        StampRank,   //!< 1.60s〜2.00s: ランク巨大スタンプ着弾 (se_rank_stamp)
-        Ready        //!< 2.00s〜: リターン待機 (SPACE/Aでタイトルへ)
+        TitleSnap, //!< 0.0s〜0.45s: タイトル文字スナップ出現
+        RollStats, //!< 0.45s〜1.45s: 統計行が順次カウントアップ開示 (se_data_sync)
+        PreStamp,  //!< 1.45s〜1.60s: 一瞬の静寂・タメ
+        StampRank, //!< 1.60s〜2.00s: ランク巨大スタンプ着弾 (se_rank_stamp)
+        Ready      //!< 2.00s〜: リターン待機 (SPACE/Aでタイトルへ)
     };
     ResultPhase phase_ = ResultPhase::TitleSnap;
     float phaseTimer_ = 0.0f;

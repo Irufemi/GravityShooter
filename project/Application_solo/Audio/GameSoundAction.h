@@ -41,9 +41,8 @@ enum class GameBGM : uint32_t {
  */
 inline constexpr const char* GameSEToString(GameSE se) noexcept {
     constexpr std::array<const char*, static_cast<size_t>(GameSE::Count)> kNames = {
-        "DebrisShatter", "FcsOnline",  "GravityWarp", "HudSnap",      "LaunchCharge", "MenuCancel",
-        "MenuCursor",    "MenuDecide", "PlayerBoost", "ResultImpact", "WaterBreach",  "DataSync",
-        "RankStamp"};
+        "DebrisShatter", "FcsOnline",   "GravityWarp",  "HudSnap",     "LaunchCharge", "MenuCancel", "MenuCursor",
+        "MenuDecide",    "PlayerBoost", "ResultImpact", "WaterBreach", "DataSync",     "RankStamp"};
     const auto idx = static_cast<size_t>(se);
     return idx < kNames.size() ? kNames[idx] : "Unknown";
 }

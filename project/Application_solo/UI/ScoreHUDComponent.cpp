@@ -169,13 +169,27 @@ void ScoreHUDComponent::Update() {
     }
 
     auto setAllActive = [this](bool active) {
-        if (scoreHeaderObj_) scoreHeaderObj_->SetIsActive(active);
-        if (scoreObj_) scoreObj_->SetIsActive(active);
-        if (killsObj_) killsObj_->SetIsActive(active);
-        if (popObj_) popObj_->SetIsActive(active);
-        if (popScoreObj_) popScoreObj_->SetIsActive(active);
-        if (centerBannerObj_) centerBannerObj_->SetIsActive(active);
-        if (centerSubBannerObj_) centerSubBannerObj_->SetIsActive(active);
+        if (scoreHeaderObj_) {
+            scoreHeaderObj_->SetIsActive(active);
+        }
+        if (scoreObj_) {
+            scoreObj_->SetIsActive(active);
+        }
+        if (killsObj_) {
+            killsObj_->SetIsActive(active);
+        }
+        if (popObj_) {
+            popObj_->SetIsActive(active);
+        }
+        if (popScoreObj_) {
+            popScoreObj_->SetIsActive(active);
+        }
+        if (centerBannerObj_) {
+            centerBannerObj_->SetIsActive(active);
+        }
+        if (centerSubBannerObj_) {
+            centerSubBannerObj_->SetIsActive(active);
+        }
     };
 
     if (!isCurrentSceneActive) {

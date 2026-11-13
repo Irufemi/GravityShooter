@@ -296,9 +296,9 @@ private:
     float baseIdleY_ = 0.0f;
     float idleTimeY_ = 0.0f;
     float orbitAngle_ = 0.0f;
-    float pullTimer_ = 0.0f;          ///< 引き寄せ経過時間（大手ゲーム標準のタイムアウト保証用）
+    float pullTimer_ = 0.0f;                              ///< 引き寄せ経過時間（大手ゲーム標準のタイムアウト保証用）
     Irufemi::Vector3 lastTargetPos_ = {0.0f, 0.0f, 0.0f}; ///< 自機移動量の結合用
-    bool hasLastTargetPos_ = false;   ///< 前フレーム自機位置キャッシュの有効フラグ
+    bool hasLastTargetPos_ = false;                       ///< 前フレーム自機位置キャッシュの有効フラグ
     Irufemi::Vector3 throwDirection_ = {0, 0, 0};
     Irufemi::Vector3 throwOrigin_ = {0, 0, 0};
 

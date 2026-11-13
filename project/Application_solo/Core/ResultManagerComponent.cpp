@@ -328,7 +328,7 @@ void ResultManagerComponent::SetupStatsUI() {
 
     // 4. ヘッダー装飾テキスト (SF端末記号論)
     auto createHeaderTxt = [&](const std::string& name, const std::wstring& str, float posX, float posY,
-                              TextAlignment align, const Irufemi::Vector4& col, float baseAlpha) {
+                               TextAlignment align, const Irufemi::Vector4& col, float baseAlpha) {
         auto obj = std::make_shared<GameObject>(name);
         scene->AddGameObject(obj);
         panelContainer->AddChild(obj);
@@ -364,7 +364,8 @@ void ResultManagerComponent::SetupStatsUI() {
     swprintf_s(scoreBuf, L"%08d pts", stats_.totalScore);
     rows.push_back({L"[01] TOTAL SCORE", scoreBuf});
 
-    std::wstring multiStr = stats_.maxMultiKill >= 5 ? L"x5 (MAX)" : (L"x" + std::to_wstring((std::max)(1, stats_.maxMultiKill)));
+    std::wstring multiStr =
+        stats_.maxMultiKill >= 5 ? L"x5 (MAX)" : (L"x" + std::to_wstring((std::max)(1, stats_.maxMultiKill)));
     rows.push_back({L"[02] MAX MULTI-LOCK", multiStr});
 
     rows.push_back({L"[03] PURGED ENEMIES", std::to_wstring(stats_.enemiesKilled) + L" UNITS"});

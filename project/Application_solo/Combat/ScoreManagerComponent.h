@@ -6,29 +6,29 @@
 /// @brief セッション全体のゲームプレイ統計（ResultSceneへの引き渡しデータ）
 struct GameplaySessionStats {
     int totalScore = 0;
-    int maxMultiKill = 0;       //!< 最大同時撃破数 (1〜5)
-    int multiKillCount = 0;     //!< マルチキル(2機以上一斉)を達成した総回数
-    int enemiesKilled = 0;      //!< 撃破総数
-    int bulletsBlocked = 0;     //!< ガレキで防御した敵弾数
-    int damageTakenCount = 0;   //!< 被弾回数
+    int maxMultiKill = 0;     //!< 最大同時撃破数 (1〜5)
+    int multiKillCount = 0;   //!< マルチキル(2機以上一斉)を達成した総回数
+    int enemiesKilled = 0;    //!< 撃破総数
+    int bulletsBlocked = 0;   //!< ガレキで防御した敵弾数
+    int damageTakenCount = 0; //!< 被弾回数
     float clearTimeSeconds = 0.0f;
 };
 
 /// @brief 戦闘ポップアップ通知の種類
 enum class CombatPopupType {
     None,
-    Kill,           //!< 撃破 (HIT! / MULTI KILL)
-    Guard,          //!< ガレキ防御 (GUARD! +50 PTS)
-    DamagePenalty,  //!< 被弾減点 (DAMAGE! -500 PTS)
-    NoDebris,       //!< 弾切れ空撃ち警告 (NO DEBRIS - PULL!)
-    MaxStock        //!< ガレキ満タン (MAX STOCK!)
+    Kill,          //!< 撃破 (HIT! / MULTI KILL)
+    Guard,         //!< ガレキ防御 (GUARD! +50 PTS)
+    DamagePenalty, //!< 被弾減点 (DAMAGE! -500 PTS)
+    NoDebris,      //!< 弾切れ空撃ち警告 (NO DEBRIS - PULL!)
+    MaxStock       //!< ガレキ満タン (MAX STOCK!)
 };
 
 /// @brief 戦闘ポップアップ通知データ
 struct CombatPopupData {
     CombatPopupType type = CombatPopupType::None;
-    int killCount = 0;          //!< 1〜5 (Kill用)
-    int scoreGained = 0;        //!< 今回の獲得スコア / 変動量
+    int killCount = 0;                 //!< 1〜5 (Kill用)
+    int scoreGained = 0;               //!< 今回の獲得スコア / 変動量
     float remainingDisplayTime = 0.0f; //!< ポップ表示残時間（秒）
     bool isNew = false;
 };
@@ -64,16 +64,28 @@ public:
     void NotifyPlayerDamaged();
 
     // --- ゲッター（HUD表示およびリザルト集計用） ---
-    int GetCurrentScore() const { return currentScore_; }
-    int GetTotalKills() const { return stats_.enemiesKilled; }
-    int GetMaxMultiKill() const { return stats_.maxMultiKill; }
-    const GameplaySessionStats& GetStats() const { return stats_; }
+    int GetCurrentScore() const {
+        return currentScore_;
+    }
+    int GetTotalKills() const {
+        return stats_.enemiesKilled;
+    }
+    int GetMaxMultiKill() const {
+        return stats_.maxMultiKill;
+    }
+    const GameplaySessionStats& GetStats() const {
+        return stats_;
+    }
 
     /// @brief 直近の戦闘ポップアップデータを取得
-    const CombatPopupData& GetPopupData() const { return currentPopup_; }
+    const CombatPopupData& GetPopupData() const {
+        return currentPopup_;
+    }
 
     /// @brief 画面中央バナー通知データを取得
-    const CenterBannerData& GetCenterBanner() const { return centerBanner_; }
+    const CenterBannerData& GetCenterBanner() const {
+        return centerBanner_;
+    }
 
     /// @brief 汎用戦闘ポップアップを発生させる
     void TriggerPopup(CombatPopupType type, int scoreDelta = 0, float duration = 0.65f);

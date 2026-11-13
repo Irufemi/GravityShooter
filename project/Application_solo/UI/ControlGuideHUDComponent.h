@@ -47,4 +47,3 @@ private:
     bool isVisible_ = true;
     std::string fontId_ = "toro_glitch";
 };
-

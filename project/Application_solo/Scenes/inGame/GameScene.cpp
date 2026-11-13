@@ -33,16 +33,20 @@ void GameScene::Initialize(IrufemiEngine* engine) {
             const std::string fontId = "toro_glitch";
             // 1. 操作ガイドHUD（日本語・記号）
             fm->PrecacheTextSync(fontId, L"// FCS 操作システム (CONTROLS)");
-            fm->PrecacheTextSync(fontId, L"[E / LT] ガレキ引寄  [右クリック / RB] ロックオン  [左クリック / RT] 一斉射撃");
+            fm->PrecacheTextSync(fontId,
+                                 L"[E / LT] ガレキ引寄  [右クリック / RB] ロックオン  [左クリック / RT] 一斉射撃");
             fm->PrecacheTextSync(fontId, L"[R / B] ロック解除  [WASD / Lスティック] 機体移動  [ESC / START] ポーズ");
 
             // 2. スコアHUD & ポップアップ
             fm->PrecacheTextSync(fontId, L"// DATA: SCORE 0123456789 KILLS: +pts CHAIN x HIT!!");
 
             // 3. リザルト画面 & ゲームオーバー
-            fm->PrecacheTextSync(fontId, L"STAGE CLEAR GAME OVER Press SPACE to Return MISSION RESULT FINAL EVALUATION");
+            fm->PrecacheTextSync(fontId,
+                                 L"STAGE CLEAR GAME OVER Press SPACE to Return MISSION RESULT FINAL EVALUATION");
             fm->PrecacheTextSync(fontId, L"RANK: S A B C D [SYS: ONLINE]");
-            fm->PrecacheTextSync(fontId, L"[01] TOTAL SCORE [02] ENEMIES DESTROYED [03] DEBRIS SHATTERED [04] MAX COMBO [05] CLEAR TIME");
+            fm->PrecacheTextSync(
+                fontId,
+                L"[01] TOTAL SCORE [02] ENEMIES DESTROYED [03] DEBRIS SHATTERED [04] MAX COMBO [05] CLEAR TIME");
             fm->PrecacheTextSync(fontId, L"0123456789:.,/%+-");
         }
     }
@@ -87,10 +91,8 @@ void GameScene::SetHUDActive(bool active) {
     if (auto lockon = FindGameObject("LockonMarkerUI")) {
         lockon->SetActive(active);
     }
-    const char* kScoreHudObjects[] = {
-        "HUD_ScoreHeader", "HUD_ScoreText", "HUD_KillsText", "HUD_HitPopText", "HUD_HitPopScore",
-        "HUD_ControlGuideContainer"
-    };
+    const char* kScoreHudObjects[] = {"HUD_ScoreHeader", "HUD_ScoreText",   "HUD_KillsText",
+                                      "HUD_HitPopText",  "HUD_HitPopScore", "HUD_ControlGuideContainer"};
     for (const char* name : kScoreHudObjects) {
         if (auto obj = FindGameObject(name)) {
             obj->SetActive(active);

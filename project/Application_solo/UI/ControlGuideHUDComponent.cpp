@@ -141,8 +141,7 @@ void ControlGuideHUDComponent::EnsureUIElements() {
     isElementsCreated_ = true;
 }
 
-void ControlGuideHUDComponent::Update() {
-}
+void ControlGuideHUDComponent::Update() {}
 
 void ControlGuideHUDComponent::SetVisible(bool visible) {
     isVisible_ = visible;
