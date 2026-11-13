@@ -265,6 +265,14 @@ bool DrawOpenPrefabButton(const std::string& prefabPath, const char* label = nul
  */
 bool DrawPrefabHeaderBanner(const std::string& prefabPath);
 
+/**
+ * @brief コンポーネントヘッダー用の標準右クリックコンテキストメニュー（Remove Component等）を描画する
+ * @param comp 対象コンポーネント
+ * @param actionManager Undo/Redoアクションマネージャー
+ * @return コンポーネントが削除された場合 true（呼び出し元は直ちに描画を終了すべき）
+ */
+bool DrawComponentContextMenu(Component* comp, EditorActionManager* actionManager);
+
 } // namespace Irufemi::Editor::UI
 
 // 後方互換性エイリアス（既存の ComponentUIHelpers:: 呼び出しを 100% 維持）

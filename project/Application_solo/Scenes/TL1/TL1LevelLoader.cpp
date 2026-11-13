@@ -8,6 +8,44 @@
 
 using json = nlohmann::json;
 
+namespace {
+
+/**
+ * @brief Blender座標系(Z-up)からエンジン座標系(Y-up)へTransformをパースする共通関数
+ */
+bool ParseBlenderTransform(const json& blenderNode, Irufemi::Vector3& outPos, Irufemi::Vector3& outRot,
+                           Irufemi::Vector3* outScale = nullptr) {
+    if (!blenderNode.contains("transform")) {
+        return false;
+    }
+    const auto& t = blenderNode["transform"];
+    if (t.contains("translation") && t["translation"].size() == 3) {
+        outPos = {
+            t["translation"][0].get<float>(),
+            t["translation"][2].get<float>(), // Y <- Z
+            t["translation"][1].get<float>()  // Z <- Y
+        };
+    }
+    if (t.contains("rotation") && t["rotation"].size() == 3) {
+        constexpr float kDegToRad = Irufemi::Math::PI / 180.0f;
+        outRot = {
+            t["rotation"][0].get<float>() * kDegToRad,
+            t["rotation"][2].get<float>() * kDegToRad, // Y <- Z
+            t["rotation"][1].get<float>() * kDegToRad  // Z <- Y
+        };
+    }
+    if (outScale && t.contains("scaling") && t["scaling"].size() == 3) {
+        *outScale = {
+            t["scaling"][0].get<float>(),
+            t["scaling"][2].get<float>(), // Y <- Z
+            t["scaling"][1].get<float>()  // Z <- Y
+        };
+    }
+    return true;
+}
+
+} // namespace
+
 LevelData TL1LevelLoader::Load(const std::string& filepath, BaseScene* scene) {
     LevelData levelData;
 
@@ -39,48 +77,12 @@ LevelData TL1LevelLoader::Load(const std::string& filepath, BaseScene* scene) {
         std::string type = blenderNode.value("type", "");
         if (type == "PlayerSpawn") {
             PlayerSpawnData spawnData;
-            // 座標と回転の読み取り
-            if (blenderNode.contains("transform")) {
-                const auto& t = blenderNode["transform"];
-                if (t.contains("translation") && t["translation"].size() == 3) {
-                    spawnData.translation = {
-                        t["translation"][0].get<float>(),
-                        t["translation"][2].get<float>(), // Y <- Z
-                        t["translation"][1].get<float>()  // Z <- Y
-                    };
-                }
-                if (t.contains("rotation") && t["rotation"].size() == 3) {
-                    float degToRad = Irufemi::Math::PI / 180.0f;
-                    spawnData.rotation = {
-                        t["rotation"][0].get<float>() * degToRad,
-                        t["rotation"][2].get<float>() * degToRad, // Y <- Z
-                        t["rotation"][1].get<float>() * degToRad  // Z <- Y
-                    };
-                }
-            }
+            ParseBlenderTransform(blenderNode, spawnData.translation, spawnData.rotation);
             levelData.players.push_back(spawnData);
             continue; // 背景オブジェクトとしてはシーンに追加しない
         } else if (type == "EnemySpawn") {
             EnemySpawnData spawnData;
-            // 座標と回転の読み取り
-            if (blenderNode.contains("transform")) {
-                const auto& t = blenderNode["transform"];
-                if (t.contains("translation") && t["translation"].size() == 3) {
-                    spawnData.translation = {
-                        t["translation"][0].get<float>(),
-                        t["translation"][2].get<float>(), // Y <- Z
-                        t["translation"][1].get<float>()  // Z <- Y
-                    };
-                }
-                if (t.contains("rotation") && t["rotation"].size() == 3) {
-                    float degToRad = Irufemi::Math::PI / 180.0f;
-                    spawnData.rotation = {
-                        t["rotation"][0].get<float>() * degToRad,
-                        t["rotation"][2].get<float>() * degToRad, // Y <- Z
-                        t["rotation"][1].get<float>() * degToRad  // Z <- Y
-                    };
-                }
-            }
+            ParseBlenderTransform(blenderNode, spawnData.translation, spawnData.rotation);
             if (blenderNode.contains("file_name")) {
                 spawnData.fileName = blenderNode["file_name"].get<std::string>();
             }
@@ -110,36 +112,14 @@ nlohmann::json TL1LevelLoader::ConvertBlenderJsonToEngineJson(const nlohmann::js
     engineJson["components"] = json::array();
 
     // 1. TransformComponent の変換
-    if (blenderNode.contains("transform")) {
-        const auto& t = blenderNode["transform"];
+    Irufemi::Vector3 pos{0.0f, 0.0f, 0.0f};
+    Irufemi::Vector3 rot{0.0f, 0.0f, 0.0f};
+    Irufemi::Vector3 scale{1.0f, 1.0f, 1.0f};
+    if (ParseBlenderTransform(blenderNode, pos, rot, &scale)) {
         json transformData;
-
-        // Blender(X, Y, Z) -> Engine(X, Z, Y) への変換
-        if (t.contains("translation") && t["translation"].size() == 3) {
-            transformData["position"] = {
-                t["translation"][0].get<float>(),
-                t["translation"][2].get<float>(), // Y <- Z
-                t["translation"][1].get<float>()  // Z <- Y
-            };
-        }
-
-        if (t.contains("rotation") && t["rotation"].size() == 3) {
-            // Blenderのオイラー角(度)からラジアンへ変換し、軸を入れ替える
-            float degToRad = Irufemi::Math::PI / 180.0f;
-            transformData["rotation"] = {
-                t["rotation"][0].get<float>() * degToRad,
-                t["rotation"][2].get<float>() * degToRad, // Y <- Z
-                t["rotation"][1].get<float>() * degToRad  // Z <- Y
-            };
-        }
-
-        if (t.contains("scaling") && t["scaling"].size() == 3) {
-            transformData["scale"] = {
-                t["scaling"][0].get<float>(),
-                t["scaling"][2].get<float>(), // Y <- Z
-                t["scaling"][1].get<float>()  // Z <- Y
-            };
-        }
+        transformData["position"] = {pos.x, pos.y, pos.z};
+        transformData["rotation"] = {rot.x, rot.y, rot.z};
+        transformData["scale"] = {scale.x, scale.y, scale.z};
 
         json transformComp;
         transformComp["type"] = "TransformComponent";

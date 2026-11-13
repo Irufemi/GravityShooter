@@ -73,16 +73,14 @@ void OptionsScene::Initialize(IrufemiEngine* engine) {
     lastHoveredTarget_ = nullptr;
     openCooldownTimer_ = 0.15f; // 前画面からのクリック残存をガード
     uiBound_ = false;
-    transitionState_ = TransitionState::Opening;
-    transitionTimer_ = 0.0f;
+    transition_.StartOpen();
     uiCached_ = false;
 }
 
 void OptionsScene::OnEnter() {
     BaseScene::OnEnter();
     openCooldownTimer_ = 0.15f;
-    transitionState_ = TransitionState::Opening;
-    transitionTimer_ = 0.0f;
+    transition_.StartOpen();
     uiCached_ = false;
 }
 
@@ -184,35 +182,16 @@ void OptionsScene::Update() {
         ApplyTransition(0.0f);
     }
 
-    // --- オープニング演出 (Fade & Scale In) ---
-    if (transitionState_ == TransitionState::Opening) {
-        transitionTimer_ += dt;
-        float progress = std::clamp(transitionTimer_ / kOpenDuration_, 0.0f, 1.0f);
-        // EaseOutCubic
-        float ease = 1.0f - std::pow(1.0f - progress, 3.0f);
-        ApplyTransition(ease);
-
-        if (progress >= 1.0f) {
-            transitionState_ = TransitionState::Open;
-            ApplyTransition(1.0f);
-        }
-        return; // オープン途中は操作入力をガード
-    }
-
-    // --- クロージング演出 (Fade & Scale Out) ---
-    if (transitionState_ == TransitionState::Closing) {
-        transitionTimer_ += dt;
-        float progress = std::clamp(transitionTimer_ / kCloseDuration_, 0.0f, 1.0f);
-        // EaseInQuad
-        float ease = 1.0f - (progress * progress);
-        ApplyTransition(ease);
-
-        if (progress >= 1.0f) {
-            if (auto sm = engine->GetSceneManager()) {
-                sm->PopScene();
-            }
-        }
-        return;
+    // --- トランジション演出更新 (Opening: Fade&Scale In / Closing: Fade&Scale Out) ---
+    if (transition_.Update(
+            dt,
+            [this](float progress) { ApplyTransition(progress); },
+            [engine]() {
+                if (auto sm = engine->GetSceneManager()) {
+                    sm->PopScene();
+                }
+            })) {
+        return; // オープン/クローズ途中は入力をガード
     }
 
     if (openCooldownTimer_ > 0.0f) {
@@ -225,8 +204,7 @@ void OptionsScene::Update() {
     // =========================================================================
     if (input->IsCancelPressed()) {
         UISound::PlayCancel();
-        transitionState_ = TransitionState::Closing;
-        transitionTimer_ = 0.0f;
+        transition_.StartClose();
         return;
     }
 
@@ -245,8 +223,7 @@ void OptionsScene::Update() {
 
     if (isOverCloseButton && isDecidePressed && !isDraggingSlider_) {
         UISound::PlayDecide();
-        transitionState_ = TransitionState::Closing;
-        transitionTimer_ = 0.0f;
+        transition_.StartClose();
         return;
     }
 

@@ -16,17 +16,11 @@ void MeshRendererComponentEditor::Draw(Component* component, EditorActionManager
     auto* comp = static_cast<MeshRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("MeshRenderer", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
+    if (ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager)) {
+        if (headerOpen) {
+            ImGui::TreePop();
         }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
+        return;
     }
 
     if (headerOpen) {

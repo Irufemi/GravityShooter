@@ -66,8 +66,7 @@ void PauseScene::Initialize(IrufemiEngine* engine) {
 void PauseScene::OnEnter() {
     BaseScene::OnEnter();
     openCooldownTimer_ = 0.2f;
-    transitionState_ = TransitionState::Opening;
-    transitionTimer_ = 0.0f;
+    transition_.StartOpen();
 
     ApplyPausePostProcess();
     ApplyTransition(0.0f); // 初回フレームは非表示・スケール収束から開始
@@ -99,7 +98,7 @@ void PauseScene::OnResume() {
     SetUIVisible(true);
     openCooldownTimer_ = 0.2f; // OptionsSceneを閉じた直後の誤入力防止
 
-    transitionState_ = TransitionState::Open;
+    transition_.state = ModalTransition::State::Open;
     ApplyPausePostProcess(); // ポーズ画面復帰時にPreUIブラーを再適用
     ApplyTransition(1.0f);
 
@@ -176,8 +175,7 @@ void PauseScene::CreateUIElements() {
         {L"RESUME", MenuItem::Resume,
          [this]() {
              UISound::PlayCancel();
-             transitionState_ = TransitionState::Closing;
-             transitionTimer_ = 0.0f;
+             transition_.StartClose();
          }},
         {L"RETRY", MenuItem::Retry,
          [this]() {
@@ -263,35 +261,16 @@ void PauseScene::Update() {
 
     float dt = engine_->GetDeltaTime();
 
-    // --- オープニング演出 (Fade & Scale In) ---
-    if (transitionState_ == TransitionState::Opening) {
-        transitionTimer_ += dt;
-        float progress = std::clamp(transitionTimer_ / kOpenDuration_, 0.0f, 1.0f);
-        // EaseOutCubic
-        float ease = 1.0f - std::pow(1.0f - progress, 3.0f);
-        ApplyTransition(ease);
-
-        if (progress >= 1.0f) {
-            transitionState_ = TransitionState::Open;
-            ApplyTransition(1.0f);
-        }
-        return; // オープン途中は操作入力をガード
-    }
-
-    // --- クロージング演出 (Fade & Scale Out) ---
-    if (transitionState_ == TransitionState::Closing) {
-        transitionTimer_ += dt;
-        float progress = std::clamp(transitionTimer_ / kCloseDuration_, 0.0f, 1.0f);
-        // EaseInQuad
-        float ease = 1.0f - (progress * progress);
-        ApplyTransition(ease);
-
-        if (progress >= 1.0f) {
-            if (auto sm = engine_->GetSceneManager()) {
-                sm->PopScene();
-            }
-        }
-        return; // クローズ途中は操作入力をガード
+    // --- トランジション演出更新 (Opening: Fade&Scale In / Closing: Fade&Scale Out) ---
+    if (transition_.Update(
+            dt,
+            [this](float progress) { ApplyTransition(progress); },
+            [this]() {
+                if (auto sm = engine_->GetSceneManager()) {
+                    sm->PopScene();
+                }
+            })) {
+        return; // オープン/クローズ途中は操作入力をガード
     }
 
     if (openCooldownTimer_ > 0.0f) {
@@ -320,8 +299,7 @@ void PauseScene::UpdateInput(float deltaTime) {
     // 1. 即時ポーズ解除判定（ESCキー / Bボタン / STARTボタン）
     if (input->IsCancelPressed() || input->StartPressed()) {
         UISound::PlayCancel();
-        transitionState_ = TransitionState::Closing;
-        transitionTimer_ = 0.0f;
+        transition_.StartClose();
         return;
     }
 

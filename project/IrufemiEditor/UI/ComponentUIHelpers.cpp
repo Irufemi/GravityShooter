@@ -188,16 +188,9 @@ void DrawFallbackPropertiesGUI(Component* component, EditorActionManager* action
     ImGui::PushID(component);
     bool headerOpen = ImGui::CollapsingHeader(component->GetComponentName().c_str(), ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            component->GetGameObject()->shared_from_this(), GetSharedComponent(component->GetGameObject(), component)));
+    if (DrawComponentContextMenu(component, actionManager)) {
+        ImGui::PopID();
+        return;
     }
 
     if (headerOpen) {
@@ -699,6 +692,28 @@ bool DrawPrefabHeaderBanner(const std::string& prefabPath) {
     ImGui::Spacing();
 
     return clicked;
+}
+
+bool DrawComponentContextMenu(Component* comp, EditorActionManager* actionManager) {
+    if (!comp || !actionManager) {
+        return false;
+    }
+
+    bool pendingRemove = false;
+    if (ImGui::BeginPopupContextItem()) {
+        if (ImGui::MenuItem("Remove Component")) {
+            pendingRemove = true;
+        }
+        ImGui::EndPopup();
+    }
+
+    if (pendingRemove) {
+        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
+            comp->GetGameObject()->shared_from_this(),
+            GetSharedComponent(comp->GetGameObject(), comp)));
+        return true;
+    }
+    return false;
 }
 
 } // namespace Irufemi::Editor::UI

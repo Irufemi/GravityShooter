@@ -15,17 +15,9 @@ void AABBColliderComponentEditor::Draw(Component* component, EditorActionManager
     ImGui::PushID(comp);
     bool headerOpen = ImGui::CollapsingHeader("AABB Collider", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
+    if (ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager)) {
+        ImGui::PopID();
+        return;
     }
 
     if (headerOpen) {
@@ -39,17 +31,9 @@ void OBBColliderComponentEditor::Draw(Component* component, EditorActionManager*
     ImGui::PushID(comp);
     bool headerOpen = ImGui::CollapsingHeader("OBB Collider", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
+    if (ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager)) {
+        ImGui::PopID();
+        return;
     }
 
     if (headerOpen) {
@@ -63,17 +47,9 @@ void SphereColliderComponentEditor::Draw(Component* component, EditorActionManag
     ImGui::PushID(comp);
     bool headerOpen = ImGui::CollapsingHeader("Sphere Collider", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
+    if (ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager)) {
+        ImGui::PopID();
+        return;
     }
 
     if (headerOpen) {

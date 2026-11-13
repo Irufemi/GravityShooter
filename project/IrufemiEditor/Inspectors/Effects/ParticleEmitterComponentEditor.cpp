@@ -17,17 +17,9 @@ void ParticleEmitterComponentEditor::Draw(Component* component, EditorActionMana
     ImGui::PushID(compWrapper);
     bool headerOpen = ImGui::CollapsingHeader("Particle Emitter", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            component->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(component->GetGameObject(), component)));
+    if (ComponentUIHelpers::DrawComponentContextMenu(component, actionManager)) {
+        ImGui::PopID();
+        return;
     }
 
     if (headerOpen) {

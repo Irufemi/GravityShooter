@@ -3,6 +3,7 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/UI/UINavigationController.h"
 #include "Core/Math/Vector2.h"
+#include "Scenes/Common/ModalTransitionHelper.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -93,11 +94,7 @@ private:
     void RemovePausePostProcess();
     void ApplyTransition(float progress);
 
-    enum class TransitionState { Opening, Open, Closing };
-    TransitionState transitionState_ = TransitionState::Opening;
-    float transitionTimer_ = 0.0f;
-    static constexpr float kOpenDuration_ = 0.14f;
-    static constexpr float kCloseDuration_ = 0.09f;
+    ModalTransition::Controller transition_{.openDuration = 0.14f, .closeDuration = 0.09f};
 
     bool isPostProcessActive_ = false;
     std::weak_ptr<GameObject> darkOverlayObj_;

@@ -15,12 +15,11 @@ void EffectMaskComponentEditor::Draw(Component* component, EditorActionManager* 
 
     bool headerOpen = ImGui::TreeNodeEx("EffectMask", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
+    if (ComponentUIHelpers::DrawComponentContextMenu(component, actionManager)) {
+        if (headerOpen) {
+            ImGui::TreePop();
         }
-        ImGui::EndPopup();
+        return;
     }
 
     if (headerOpen) {
@@ -197,10 +196,6 @@ void EffectMaskComponentEditor::Draw(Component* component, EditorActionManager* 
         ImGui::TreePop();
     }
 
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            maskComp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(maskComp->GetGameObject(), maskComp)));
-    }
+
 }
 #endif // EditorMode

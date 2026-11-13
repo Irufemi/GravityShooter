@@ -15,16 +15,14 @@
 void HowToPlayScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
     openCooldownTimer_ = 0.15f;
-    state_ = TransitionState::Opening;
-    transitionTimer_ = 0.0f;
+    transition_.StartOpen();
     uiCached_ = false;
 }
 
 void HowToPlayScene::OnEnter() {
     BaseScene::OnEnter();
     openCooldownTimer_ = 0.15f;
-    state_ = TransitionState::Opening;
-    transitionTimer_ = 0.0f;
+    transition_.StartOpen();
     uiCached_ = false;
 }
 
@@ -115,35 +113,16 @@ void HowToPlayScene::Update() {
         ApplyTransition(0.0f); // 初回フレームで非表示から開始
     }
 
-    // --- オープニング演出 (Fade & Scale In) ---
-    if (state_ == TransitionState::Opening) {
-        transitionTimer_ += dt;
-        float progress = std::clamp(transitionTimer_ / kOpenDuration_, 0.0f, 1.0f);
-        // EaseOutCubic
-        float ease = 1.0f - std::pow(1.0f - progress, 3.0f);
-        ApplyTransition(ease);
-
-        if (progress >= 1.0f) {
-            state_ = TransitionState::Open;
-            ApplyTransition(1.0f);
-        }
-        return; // オープン途中は閉じる入力をガード
-    }
-
-    // --- クロージング演出 (Fade & Scale Out) ---
-    if (state_ == TransitionState::Closing) {
-        transitionTimer_ += dt;
-        float progress = std::clamp(transitionTimer_ / kCloseDuration_, 0.0f, 1.0f);
-        // EaseInQuad
-        float ease = 1.0f - (progress * progress);
-        ApplyTransition(ease);
-
-        if (progress >= 1.0f) {
-            if (auto sm = engine_->GetSceneManager()) {
-                sm->PopScene();
-            }
-        }
-        return;
+    // --- トランジション演出更新 (Opening: Fade&Scale In / Closing: Fade&Scale Out) ---
+    if (transition_.Update(
+            dt,
+            [this](float progress) { ApplyTransition(progress); },
+            [this]() {
+                if (auto sm = engine_->GetSceneManager()) {
+                    sm->PopScene();
+                }
+            })) {
+        return; // オープン/クローズ途中は入力をガード
     }
 
     // --- 通常表示状態 (Open) 入力判定 ---
@@ -168,8 +147,7 @@ void HowToPlayScene::Update() {
 
     if (closeTrigger) {
         UISound::PlayCancel();
-        state_ = TransitionState::Closing;
-        transitionTimer_ = 0.0f;
+        transition_.StartClose();
     }
 }
 
