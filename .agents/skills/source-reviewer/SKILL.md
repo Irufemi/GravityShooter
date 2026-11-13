@@ -20,6 +20,7 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 | **`01_03`** | **State Pattern (状態遷移パターン)** | [01_03_state_pattern.md](references/01_03_state_pattern.md) | 先生・AI診断4大合格要件、switch-caseベタ書き脱却、ポリモーフィズム呼び出し |
 | **`01_04`** | **デザインパターン (Design Patterns)** | [01_04_design_patterns.md](references/01_04_design_patterns.md) | State/Singleton以外の各種パターン活用（Object Pool, Dirty Flag, Observer, Command, Factory等） |
 | **`02_01`** | **データドリブン (Data-driven)** | [02_01_data_driven.md](references/02_01_data_driven.md) | 余分なif-else/switch排除、構造体・データテーブル化、共通初期化・処理の関数化 |
+| **`02_02`** | **調整データの外部ファイル化 (External Data & Tooling)** | [02_02_external_data.md](references/02_02_external_data.md) | 配置・敵出現・ゲームバランス値の外部ファイル化（JSON/CSV）、エディタ/ツールの提供 |
 
 
 ---
@@ -57,6 +58,9 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 
   # 02_01 データドリブン (Data-driven) 診断
   py -3 .agents\skills\source-reviewer\scripts\scan_data_driven.py
+
+  # 02_02 調整データの外部ファイル化 (External Data & Tooling) 診断
+  py -3 .agents\skills\source-reviewer\scripts\scan_external_data.py
   ```
 - スキャン結果に加え、直近の Git 変更差分（`git status -s`, `git diff`）も精査し、直近作業でアンチパターンが混入していないかを確認する。
 
