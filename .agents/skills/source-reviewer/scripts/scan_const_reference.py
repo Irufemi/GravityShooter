@@ -65,10 +65,15 @@ def is_likely_function_decl_or_def(line_prefix: str) -> bool:
     tokens = re.findall(r'\b[A-Za-z0-9_:]+\b', prefix)
     if not tokens:
         return False
-    if tokens[-1] in control_keywords:
+    if tokens[-1] in control_keywords or tokens[0] in control_keywords:
         return False
-    # 呼び出し文（=, ->, . で始まっているもの等）を簡易除外
-    if prefix.endswith('='):
+    # 代入文（= を含む）やメンバ呼び出し（-> や .）を除外
+    if '=' in prefix or '->' in prefix or '.' in prefix:
+        return False
+    # 式・文としての関数呼び出し（例: Base::Func(arg);）を除外
+    # 関数定義なら末尾が { か、クラス宣言内のプロトタイプ型指定があるはず
+    if line_prefix.strip().endswith(';') and '::' in line_prefix:
+        # クラス外でのプロトタイプ再宣言は通常ないため呼び出し文とみなす
         return False
     return True
 
@@ -104,7 +109,14 @@ def scan_file(file_path: Path) -> Tuple[List[Dict], List[Dict]]:
             continue
 
         prefix = m.group("prefix")
+        ending = m.group("ending")
         if not is_likely_function_decl_or_def(prefix):
+            continue
+
+        # 例: Component::Deserialize(json); のような基底呼び出し文を除外
+        # （戻り値の型がなく、いきなり Scope::Func で始まってセミコロンで終わる文）
+        prefix_tokens = prefix.split()
+        if ending == ';' and len(prefix_tokens) == 1 and '::' in prefix_tokens[0]:
             continue
 
         params_str = m.group("params").strip()

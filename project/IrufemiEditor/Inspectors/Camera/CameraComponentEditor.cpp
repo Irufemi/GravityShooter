@@ -30,7 +30,7 @@ void CameraComponentEditor::Draw(Component* component, EditorActionManager* acti
     if (ImGui::SliderFloat("FOV (Degree)", &fovDeg, 10.0f, 170.0f)) {
         cameraComp->SetFovAngleY(fovDeg * Irufemi::Math::PI / 180.0f);
     }
-    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &fovDeg, [cameraComp](const float& val) {
+    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &fovDeg, [cameraComp](float val) {
         cameraComp->SetFovAngleY(val * Irufemi::Math::PI / 180.0f);
     });
 
@@ -40,7 +40,7 @@ void CameraComponentEditor::Draw(Component* component, EditorActionManager* acti
         cameraComp->SetNearZ(nearZ);
     }
     ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &nearZ,
-                                          [cameraComp](const float& val) { cameraComp->SetNearZ(val); });
+                                          [cameraComp](float val) { cameraComp->SetNearZ(val); });
 
     // Far Z
     float farZ = cameraComp->GetFarZ();
@@ -48,7 +48,7 @@ void CameraComponentEditor::Draw(Component* component, EditorActionManager* acti
         cameraComp->SetFarZ(farZ);
     }
     ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &farZ,
-                                          [cameraComp](const float& val) { cameraComp->SetFarZ(val); });
+                                          [cameraComp](float val) { cameraComp->SetFarZ(val); });
 
     // --- Frustum Gizmo Draw ---
     auto transform = cameraComp->GetTransform();

@@ -104,67 +104,67 @@ Vector2 CatmullRom(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t);
 /**
  * @brief 加算 (推奨: a + b)
  */
-Vector3 Add(Vector3 a, Vector3 b);
+Vector3 Add(const Vector3& a, const Vector3& b);
 
 /**
  * @brief 減算 (推奨: a - b)
  */
-Vector3 Subtract(Vector3 a, Vector3 b);
+Vector3 Subtract(const Vector3& a, const Vector3& b);
 
 /**
  * @brief スカラー倍 (推奨: scalar * vector)
  */
-Vector3 Multiply(float scalar, Vector3 vector);
+Vector3 Multiply(float scalar, const Vector3& vector);
 
 /**
  * @brief 内積
  */
-float Dot(Vector3 a, Vector3 b);
+float Dot(const Vector3& a, const Vector3& b);
 
 /**
  * @brief ノルム (長さ)
  */
-float Length(Vector3 vector);
+float Length(const Vector3& vector);
 
 /**
  * @brief 正規化
  */
-Vector3 Normalize(Vector3 vector);
+Vector3 Normalize(const Vector3& vector);
 
 /**
  * @brief クロス積 (外積)
  */
-Vector3 Cross(Vector3 a, Vector3 b);
+Vector3 Cross(const Vector3& a, const Vector3& b);
 
 /**
  * @brief 正射影ベクトル
  */
-Vector3 Project(Vector3 v1, Vector3 v2);
+Vector3 Project(const Vector3& v1, const Vector3& v2);
 
 /**
  * @brief 点と線分の最近接点
  */
-Vector3 ClosestPoint(Vector3 point, const Segment& segment);
+Vector3 ClosestPoint(const Vector3& point, const Segment& segment);
 
 /**
  * @brief 点と直線の最近接点
  */
-Vector3 ClosestPoint(Vector3 point, const Ray& ray);
+Vector3 ClosestPoint(const Vector3& point, const Ray& ray);
 
 /**
  * @brief 点と半直線の最近接点
  */
-Vector3 ClosestPoint(Vector3 point, const Line& line);
+Vector3 ClosestPoint(const Vector3& point, const Line& line);
 
 /**
  * @brief 2次ベジェ曲線
  */
-Vector3 Bezier(Vector3 p0, Vector3 p1, Vector3 p2, float t);
+Vector3 Bezier(const Vector3& p0, const Vector3& p1, const Vector3& p2, float t);
 
 /**
  * @brief Catmull-Rom スプライン
  */
-Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t);
+Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
 
 /** @} */
 #pragma endregion
@@ -176,32 +176,32 @@ Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t);
 /**
  * @brief 加算 (推奨: a + b)
  */
-Vector4 Add(Vector4 a, Vector4 b);
+Vector4 Add(const Vector4& a, const Vector4& b);
 
 /**
  * @brief 減算 (推奨: a - b)
  */
-Vector4 Subtract(Vector4 a, Vector4 b);
+Vector4 Subtract(const Vector4& a, const Vector4& b);
 
 /**
  * @brief スカラー倍 (推奨: scalar * vector)
  */
-Vector4 Multiply(float s, Vector4 v);
+Vector4 Multiply(float s, const Vector4& v);
 
 /**
  * @brief 内積
  */
-float Dot(Vector4 a, Vector4 b);
+float Dot(const Vector4& a, const Vector4& b);
 
 /**
  * @brief ノルム (長さ)
  */
-float Length(Vector4 v);
+float Length(const Vector4& v);
 
 /**
  * @brief 正規化
  */
-Vector4 Normalize(Vector4 v);
+Vector4 Normalize(const Vector4& v);
 
 /** @} */
 #pragma endregion

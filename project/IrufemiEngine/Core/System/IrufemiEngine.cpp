@@ -99,7 +99,7 @@ IrufemiEngine::~IrufemiEngine() {
 }
 
 // 初期化
-void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientWidth, const int32_t& clientHeight) {
+void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight) {
     // パス解決機能の初期化 (一番最初に呼ぶ)
     FileSystem::Initialize();
 
@@ -496,7 +496,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
 }
 
 // クリアカラーをfloat配列で持つ初期化
-void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientWidth, const int32_t& clientHeight,
+void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight,
                                float r, float g, float b, float a) {
     clearColor_ = {r, g, b, a};
     // 既存の Initialize を呼ぶ(互換性維持)
@@ -504,7 +504,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
 }
 
 // クリアカラーをstd::arrayで持つ初期化
-void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientWidth, const int32_t& clientHeight,
+void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight,
                                const std::array<float, 4>& clearColor) {
     clearColor_ = clearColor;
     // 既存の Initialize を呼ぶ(互換性維持)
@@ -512,7 +512,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientW
 }
 
 // Irufemi::Vector4 版 Initialize
-void IrufemiEngine::Initialize(const std::wstring& title, const int32_t& clientWidth, const int32_t& clientHeight,
+void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight,
                                const Irufemi::Vector4& clearColor) {
     clearColor_ = {clearColor.x, clearColor.y, clearColor.z, clearColor.w};
     Initialize(title, clientWidth, clientHeight);

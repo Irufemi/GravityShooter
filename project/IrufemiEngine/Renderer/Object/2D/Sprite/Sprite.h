@@ -327,7 +327,7 @@ public: // メンバ関数
 
     /** @name 便利エイリアス */
     ///@{
-    void SetPositionTopLeft(const float& x, const float& y) {
+    void SetPositionTopLeft(float x, float y) {
         SetAnchor(0.0f, 0.0f);
         SetPosition(x, y);
     }
@@ -336,7 +336,7 @@ public: // メンバ関数
      * @param[in] x 設定する PositionCenter の値
      * @param[in] y 設定する PositionCenter の値
      */
-    void SetPositionCenter(const float& x, const float& y) {
+    void SetPositionCenter(float x, float y) {
         SetAnchor(0.5f, 0.5f);
         SetPosition(x, y);
     }

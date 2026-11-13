@@ -68,27 +68,27 @@ Vector2 ClosestPoint(Vector2 point, const Segment2D& segment) {
 #pragma endregion
 #pragma region 3次元ベクトル関数
 
-Vector3 Add(Vector3 a, Vector3 b) {
+Vector3 Add(const Vector3& a, const Vector3& b) {
     return a + b;
 }
 
-Vector3 Subtract(Vector3 a, Vector3 b) {
+Vector3 Subtract(const Vector3& a, const Vector3& b) {
     return a - b;
 }
 
-Vector3 Multiply(float scalar, Vector3 vector) {
+Vector3 Multiply(float scalar, const Vector3& vector) {
     return scalar * vector;
 }
 
-float Dot(Vector3 a, Vector3 b) {
+float Dot(const Vector3& a, const Vector3& b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-float Length(Vector3 vector) {
+float Length(const Vector3& vector) {
     return std::sqrt(Dot(vector, vector));
 }
 
-Vector3 Normalize(Vector3 vector) {
+Vector3 Normalize(const Vector3& vector) {
     float len = Length(vector);
     if (len < 1e-6f) {
         return {0.0f, 0.0f, 0.0f};
@@ -96,15 +96,15 @@ Vector3 Normalize(Vector3 vector) {
     return vector / len;
 }
 
-Vector3 Cross(Vector3 a, Vector3 b) {
+Vector3 Cross(const Vector3& a, const Vector3& b) {
     return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
 }
 
-Vector3 Project(Vector3 v1, Vector3 v2) {
+Vector3 Project(const Vector3& v1, const Vector3& v2) {
     return (Dot(v1, v2) / Dot(v2, v2)) * v2;
 }
 
-Vector3 ClosestPoint(Vector3 point, const Segment& segment) {
+Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
     float diffSq = Dot(segment.diff, segment.diff);
     if (diffSq < 1e-6f) {
         return segment.origin;
@@ -115,7 +115,7 @@ Vector3 ClosestPoint(Vector3 point, const Segment& segment) {
     return segment.origin + t * segment.diff;
 }
 
-Vector3 ClosestPoint(Vector3 point, const Ray& ray) {
+Vector3 ClosestPoint(const Vector3& point, const Ray& ray) {
     float diffSq = Dot(ray.diff, ray.diff);
     if (diffSq < 1e-6f) {
         return ray.origin;
@@ -126,7 +126,7 @@ Vector3 ClosestPoint(Vector3 point, const Ray& ray) {
     return ray.origin + t * ray.diff;
 }
 
-Vector3 ClosestPoint(Vector3 point, const Line& line) {
+Vector3 ClosestPoint(const Vector3& point, const Line& line) {
     float diffSq = Dot(line.diff, line.diff);
     if (diffSq < 1e-6f) {
         return line.origin;
@@ -153,13 +153,13 @@ Vector2 CatmullRom(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t) {
     return p;
 }
 
-Vector3 Bezier(Vector3 p0, Vector3 p1, Vector3 p2, float t) {
+Vector3 Bezier(const Vector3& p0, const Vector3& p1, const Vector3& p2, float t) {
     Vector3 p0p1 = Lerp(p0, p1, t);
     Vector3 p1p2 = Lerp(p1, p2, t);
     return Lerp(p0p1, p1p2, t);
 }
 
-Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
+Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t) {
     Vector3 p;
     float t2 = t * t;
     float t3 = t2 * t;
@@ -175,27 +175,27 @@ Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
 #pragma endregion
 
 #pragma region 4次元ベクトル関数
-Vector4 Add(Vector4 a, Vector4 b) {
+Vector4 Add(const Vector4& a, const Vector4& b) {
     return a + b;
 }
 
-Vector4 Subtract(Vector4 a, Vector4 b) {
+Vector4 Subtract(const Vector4& a, const Vector4& b) {
     return a - b;
 }
 
-Vector4 Multiply(float s, Vector4 v) {
+Vector4 Multiply(float s, const Vector4& v) {
     return s * v;
 }
 
-float Dot(Vector4 a, Vector4 b) {
+float Dot(const Vector4& a, const Vector4& b) {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-float Length(Vector4 v) {
+float Length(const Vector4& v) {
     return std::sqrt(Dot(v, v));
 }
 
-Vector4 Normalize(Vector4 v) {
+Vector4 Normalize(const Vector4& v) {
     float len = Length(v);
     if (len > 1e-6f) {
         return v / len;

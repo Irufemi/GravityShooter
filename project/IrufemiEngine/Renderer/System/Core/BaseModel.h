@@ -165,7 +165,7 @@ public: // ゲッター・セッター
      * @brief RotateX を設定する。
      * @param[in] rotate 設定する RotateX の値
      */
-    void SetRotateX(const float& rotate) {
+    void SetRotateX(float rotate) {
         transform_.rotate.x = rotate;
         MarkAsDirty();
     }
@@ -173,7 +173,7 @@ public: // ゲッター・セッター
      * @brief RotateY を設定する。
      * @param[in] rotate 設定する RotateY の値
      */
-    void SetRotateY(const float& rotate) {
+    void SetRotateY(float rotate) {
         transform_.rotate.y = rotate;
         MarkAsDirty();
     }
@@ -181,7 +181,7 @@ public: // ゲッター・セッター
      * @brief RotateZ を設定する。
      * @param[in] rotate 設定する RotateZ の値
      */
-    void SetRotateZ(const float& rotate) {
+    void SetRotateZ(float rotate) {
         transform_.rotate.z = rotate;
         MarkAsDirty();
     }

@@ -95,7 +95,7 @@ public: // メンバ関数
      * @param[in] clientWidth 画面横幅 (デフォルト: 1280)
      * @param[in] clientHeight 画面縦幅 (デフォルト: 720)
      */
-    void Initialize(const std::wstring& title, const int32_t& clientWidth = 1280, const int32_t& clientHeight = 720);
+    void Initialize(const std::wstring& title, int32_t clientWidth = 1280, int32_t clientHeight = 720);
 
     /**
      * @brief エンジンの初期化（クリアカラー指定付き）
@@ -107,19 +107,19 @@ public: // メンバ関数
      * @param[in] b クリアカラー（青）
      * @param[in] a クリアカラー（アルファ）
      */
-    void Initialize(const std::wstring& title, const int32_t& clientWidth, const int32_t& clientHeight, float r,
+    void Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight, float r,
                     float g, float b, float a = 1.0f);
 
     /**
      * @brief エンジンの初期化（クリアカラー指定付き - std::array版）
      */
-    void Initialize(const std::wstring& title, const int32_t& clientWidth, const int32_t& clientHeight,
+    void Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight,
                     const std::array<float, 4>& clearColor);
 
     /**
      * @brief エンジンの初期化（クリアカラー指定付き - Vector4版）
      */
-    void Initialize(const std::wstring& title, const int32_t& clientWidth, const int32_t& clientHeight,
+    void Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight,
                     const Irufemi::Vector4& clearColor);
 
     /**

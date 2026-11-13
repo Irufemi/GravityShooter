@@ -68,7 +68,7 @@ CollisionResult GetCollisionResult(const OBB& obb, const AABB& aabb);
 /// <param name="s2_center"></param>
 /// <param name="s2_radius"></param>
 /// <returns></returns>
-bool IsCollision(const Vector3& s1_center, const float& s1_radius, const Vector3& s2_center, const float& s2_radius);
+bool IsCollision(const Vector3& s1_center, float s1_radius, const Vector3& s2_center, float s2_radius);
 
 /// <summary>
 /// 球と球の衝突判定

@@ -246,7 +246,7 @@ CollisionResult GetCollisionResult(const OBB& obb, const AABB& aabb) {
 }
 
 // 球と球の衝突判定
-bool IsCollision(Vector3 s1_center, float s1_radius, Vector3 s2_center, float s2_radius) {
+bool IsCollision(const Vector3& s1_center, float s1_radius, const Vector3& s2_center, float s2_radius) {
     float distance = Math::Length(s2_center - s1_center);
     return distance <= s1_radius + s2_radius;
 }
