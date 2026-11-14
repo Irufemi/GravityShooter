@@ -24,6 +24,7 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 | **`02_03`** | **関数化 (Functionalization & OAOO)** | [02_03_functionalization.md](references/02_03_functionalization.md) | OAOO原則、コピペ実装の根絶、重複ロジックの関数・ラムダ式抽出 |
 | **`02_04`** | **引数のconst参照 (Pass by const-Reference)** | [02_04_const_reference.md](references/02_04_const_reference.md) | 64bit超の型のconst参照化、64bit以下プリミティブの無意味なconst参照排除、ダングリング参照防止 |
 | **`02_05`** | **new / delete 禁止 (Smart Pointer & RAII)** | [02_05_no_new_delete.md](references/02_05_no_new_delete.md) | 生new/deleteの完全排除、unique_ptr優先、shared_ptr無意味濫用の抑制、Persistent Mapping理解 |
+| **`02_06`** | **マジックナンバー撲滅 (Eliminate Magic Numbers)** | [02_06_magic_numbers.md](references/02_06_magic_numbers.md) | 3段階解消法（定数化/外部ファイル化/エディタ化）、許されるマジックナンバーの厳格適用、ロジック直書き排除 |
 
 
 ---
@@ -73,6 +74,9 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 
   # 02_05 new / delete 禁止 (Smart Pointer & RAII) 診断
   py -3 .agents\skills\source-reviewer\scripts\scan_new_delete.py
+
+  # 02_06 マジックナンバー撲滅 (Eliminate Magic Numbers) 診断
+  py -3 .agents\skills\source-reviewer\scripts\scan_magic_numbers.py
   ```
 - スキャン結果に加え、直近の Git 変更差分（`git status -s`, `git diff`）も精査し、直近作業でアンチパターンが混入していないかを確認する。
 
