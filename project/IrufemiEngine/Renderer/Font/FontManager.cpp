@@ -30,6 +30,8 @@
 #include <filesystem>
 #include <algorithm>
 
+using namespace Irufemi;
+
 // 内部実装の定義
 struct FontManager::Impl {
     msdfgen::FreetypeHandle* ftLibrary = nullptr;

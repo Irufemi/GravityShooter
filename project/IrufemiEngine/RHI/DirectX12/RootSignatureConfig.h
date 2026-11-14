@@ -1,6 +1,8 @@
 #pragma once
 #include <d3d12.h>
 
+namespace Irufemi {
+
 /**
  * @enum RootSlot
  * @brief ルートパラメータのスロットインデックスを定義します。
@@ -42,3 +44,5 @@ enum class ComputeRootSlot : UINT {
     Constants_b2 = 9, ///< register(b2) - 32-bit Constants (Num: 2)
     SRV_t3 = 10,      ///< register(t3) - Root SRV (Buffer)
 };
+
+} // namespace Irufemi

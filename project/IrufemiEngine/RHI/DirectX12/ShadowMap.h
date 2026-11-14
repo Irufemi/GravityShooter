@@ -6,6 +6,8 @@
 #include "Core/Math/Matrix4x4.h"
 #include "Core/Math/Vector3.h"
 
+namespace Irufemi {
+
 class DirectXCommon;
 
 /**
@@ -109,3 +111,5 @@ private:
     // 行列
     Irufemi::Matrix4x4 viewProjection_{};
 };
+
+} // namespace Irufemi

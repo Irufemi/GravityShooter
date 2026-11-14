@@ -12,6 +12,8 @@
 #endif
 #include "Renderer/Object/PrimitiveManager.h"
 
+using namespace Irufemi;
+
 IrufemiEngine* Skybox::engine_ = nullptr;
 
 Skybox::Skybox() {}

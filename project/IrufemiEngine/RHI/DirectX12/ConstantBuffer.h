@@ -8,6 +8,8 @@
 #include <cassert>
 #include "RHI/DirectX12/DirectXCommon.h"
 
+namespace Irufemi {
+
 // マルチバッファリング対応 汎用定数バッファ管理クラステンプレート
 template <typename T> class ConstantBuffer {
 public:
@@ -132,3 +134,5 @@ private:
     std::array<T*, kMaxFramesInFlight> mappedData_ = {nullptr};
     DirectXCommon* dxCommon_ = nullptr;
 };
+
+} // namespace Irufemi

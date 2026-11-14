@@ -11,6 +11,8 @@
 #include <string>
 #include "RHI/DirectX12/DirectXCommon.h"
 
+namespace Irufemi {
+
 /**
  * @class DynamicConstantBuffer
  * @brief エンジン全体で共有される巨大な定数バッファを管理するクラス
@@ -200,3 +202,5 @@ private:
     DirectXCommon* dxCommon_ = nullptr;
     bool warnedHighUsage_ = false;
 };
+
+} // namespace Irufemi

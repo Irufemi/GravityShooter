@@ -9,6 +9,8 @@
 #include <string>
 #include "Core/Utility/StringUtility.h"
 
+using namespace Irufemi;
+
 void RenderGraph::AddPass(std::unique_ptr<IRenderPass> pass) {
     if (pass) {
         passes_.push_back(std::move(pass));

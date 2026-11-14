@@ -5,6 +5,8 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include "Renderer/Data/RenderContext.h"
 
+using namespace Irufemi;
+
 void ShadowPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     if (rc.drawManager) {
         if (auto shadowMap = rc.drawManager->GetShadowMap()) {

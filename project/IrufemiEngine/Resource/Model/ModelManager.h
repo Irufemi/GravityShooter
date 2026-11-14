@@ -28,7 +28,9 @@
 #include "Core/System/DirectoryWatcher.h"
 
 struct Node;
+namespace Irufemi {
 class DirectXCommon;
+}
 class TextureManager;
 
 /**
@@ -47,7 +49,7 @@ struct GpuMesh {
     D3D12_GPU_DESCRIPTOR_HANDLE vertexSrvHandle{};
     uint32_t srvIndex = 0xFFFFFFFF;
 
-    static DirectXCommon* dxCommon_;
+    static Irufemi::DirectXCommon* dxCommon_;
 };
 
 /**
@@ -117,7 +119,7 @@ public:
      * @param dxCommon DirectXコンポーネントへのポインタ
      * @param textureManager テクスチャマネージャへのポインタ（マテリアルのテクスチャロードに使用）
      */
-    void Initialize(DirectXCommon* dxCommon, TextureManager* textureManager);
+    void Initialize(Irufemi::DirectXCommon* dxCommon, TextureManager* textureManager);
 
     /**
      * @brief モデル検索のルートディレクトリを設定
@@ -291,7 +293,7 @@ private:
     // --- 内部ユーティリティ ---
 
 private:
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     TextureManager* textureManager_ = nullptr;
     std::string rootDir_;
     mutable std::recursive_mutex mutex_;

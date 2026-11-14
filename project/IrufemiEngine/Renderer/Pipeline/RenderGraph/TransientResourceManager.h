@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <vector>
 
+namespace Irufemi {
 class DirectXCommon;
+}
 
 /**
  * @class TransientResourceManager
@@ -21,7 +23,7 @@ public:
      * @param dxCommon DirectX基盤
      * @param heapSizeInBytes ヒープサイズ（デフォルトは64MB）
      */
-    void Initialize(DirectXCommon* dxCommon, uint64_t heapSizeInBytes = 1024 * 1024 * 64);
+    void Initialize(Irufemi::DirectXCommon* dxCommon, uint64_t heapSizeInBytes = 1024 * 1024 * 64);
 
     /**
      * @brief 解放
@@ -75,7 +77,7 @@ public:
 
 private:
     Microsoft::WRL::ComPtr<ID3D12Heap> heap_;
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     uint64_t heapSize_ = 0;
 
     // フレーム内で作成した PlacedResource の保持（キャッシュとして再利用）

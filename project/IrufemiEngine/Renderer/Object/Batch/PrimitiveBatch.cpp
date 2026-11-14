@@ -6,6 +6,8 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Renderer/DrawManager.h"
 
+using namespace Irufemi;
+
 void PrimitiveBatch::Initialize(Irufemi::PrimitiveType type, const std::string& textureName) {
     type_ = type;
     isCustomPrimitive_ = false;

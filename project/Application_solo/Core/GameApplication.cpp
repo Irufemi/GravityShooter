@@ -74,6 +74,8 @@
 #include "Editor/BossComponentEditor.h"
 #endif
 
+using namespace Irufemi;
+
 namespace {
 // --- ゲーム固有の定数 ---
 const int32_t kClientWidth = 1280;

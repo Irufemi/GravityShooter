@@ -8,6 +8,8 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Renderer/DrawManager.h"
 
+using namespace Irufemi;
+
 ModelManager* ModelBatch::modelManager_ = nullptr;
 
 void ModelBatch::Initialize(const std::string& objFilename) {

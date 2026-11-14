@@ -17,8 +17,6 @@
 // 前方宣言
 class Camera;
 class DrawManager;
-class DirectXCommon;
-class DescriptorPool;
 
 // 3Dラインのインスタンス描画用クラス
 class Line3DBatch : public IRenderable {
@@ -115,7 +113,7 @@ public:
      * @brief DirectXCommon インスタンスを設定する
      * @param[in] dx DirectXCommon ポインタ
      */
-    static void SetDirectXCommon(DirectXCommon* dx) {
+    static void SetDirectXCommon(Irufemi::DirectXCommon* dx) {
         dx_ = dx;
     }
 
@@ -123,7 +121,7 @@ public:
      * @brief SRV用デスクリプタプールを設定する
      * @param[in] alloc DescriptorPool ポインタ
      */
-    static void SetSrvAllocator(DescriptorPool* alloc) {
+    static void SetSrvAllocator(Irufemi::DescriptorPool* alloc) {
         srvAllocator_ = alloc;
     }
 
@@ -172,9 +170,9 @@ private:
 
 private:
     // 静的依存
-    static DirectXCommon* dx_;
+    static Irufemi::DirectXCommon* dx_;
     static DrawManager* drawManager_;
-    static DescriptorPool* srvAllocator_;
+    static Irufemi::DescriptorPool* srvAllocator_;
     static class IrufemiEngine* engine_;
 
     std::unique_ptr<LineResource> baseLineResource_ = nullptr;
@@ -184,16 +182,16 @@ private:
     size_t maxInstances_ = 65535;
 
     // インスタンシング用 StructuredBuffer と SRV
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> instanceBuffer_;
-    std::array<InstanceData*, kMaxFramesInFlight> instanceData_{};
-    std::array<uint32_t, kMaxFramesInFlight> instanceCapacity_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> instanceBuffer_;
+    std::array<InstanceData*, Irufemi::kMaxFramesInFlight> instanceData_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instanceCapacity_{};
 
     uint32_t lastUpdateFrameIndex_ = 0;
     bool isDirty_ = true;
 
-    std::array<uint32_t, kMaxFramesInFlight> instancingSrvIndex_{};
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvGPU_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instancingSrvIndex_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvGPU_{};
 
     PSOManager::DepthWrite depthWrite_ = PSOManager::DepthWrite::Enable;
 };

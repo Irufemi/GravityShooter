@@ -9,6 +9,8 @@
 #include "Core/Utility/Log.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 namespace {
 // ユーティリティ: UAVテクスチャの作成
 Microsoft::WRL::ComPtr<ID3D12Resource> CreateUAVTexture(ID3D12Device* device, uint32_t width, uint32_t height,

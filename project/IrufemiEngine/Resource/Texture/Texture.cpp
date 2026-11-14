@@ -8,9 +8,11 @@
 #include <iostream>
 #include <cassert>
 
-DirectXCommon* Texture::dxCommon_ = nullptr;
+using namespace Irufemi;
+
+Irufemi::DirectXCommon* Texture::dxCommon_ = nullptr;
 uint32_t Texture::index_ = 0;
-DescriptorPool* Texture::srvPool_ = nullptr;
+Irufemi::DescriptorPool* Texture::srvPool_ = nullptr;
 ID3D12Resource* Texture::whiteResource_ = nullptr;
 
 Texture::Texture() {

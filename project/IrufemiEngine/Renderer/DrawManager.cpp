@@ -52,6 +52,8 @@ using namespace RenderPackets;
 #include "RHI/DirectX12/ShadowMap.h"
 #include "Resource/Texture/TextureManager.h"
 
+using namespace Irufemi;
+
 namespace {
 // cpp内限定のヌルCBV
 Microsoft::WRL::ComPtr<ID3D12Resource> gNullPointLight;
@@ -59,7 +61,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> gNullSpotLight;
 D3D12_GPU_VIRTUAL_ADDRESS gNullPointLightVA = 0;
 D3D12_GPU_VIRTUAL_ADDRESS gNullSpotLightVA = 0;
 
-void EnsureNullPointLight(DirectXCommon* dx) {
+void EnsureNullPointLight(Irufemi::DirectXCommon* dx) {
     if (gNullPointLight) {
         return;
     }
@@ -72,7 +74,7 @@ void EnsureNullPointLight(DirectXCommon* dx) {
     gNullPointLightVA = gNullPointLight->GetGPUVirtualAddress();
 }
 
-void EnsureNullSpotLight(DirectXCommon* dx) {
+void EnsureNullSpotLight(Irufemi::DirectXCommon* dx) {
     if (gNullSpotLight) {
         return;
     }
@@ -202,7 +204,7 @@ void DrawManager::SubmitPostRender(std::function<void()> drawFunc) {
     SubmitCustomPass(Irufemi::RenderStage::AfterUI, std::move(drawFunc));
 }
 
-void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
+void DrawManager::Initialize(IrufemiEngine* engine, Irufemi::DirectXCommon* dx) {
     engine_ = engine;
     dxCommon_ = dx;
     commandList_ = dx->GetCommandList();
@@ -216,7 +218,7 @@ void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
                                  ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
     const uint32_t kMaxLights = 1024;
 
-    for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
+    for (uint32_t i = 0; i < Irufemi::kMaxFramesInFlight; ++i) {
         auto& fr = frameResources_[i];
 
         // フレーム定数バッファ (PerFrameData + LightCommonData + FogParams)
@@ -257,8 +259,8 @@ void DrawManager::Initialize(IrufemiEngine* engine, DirectXCommon* dx) {
     BuildRenderGraph(engine_);
 
     // シャドウマップの初期化 (2048x2048) - 全フレーム分
-    for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
-        shadowMaps_[i] = std::make_unique<ShadowMap>();
+    for (uint32_t i = 0; i < Irufemi::kMaxFramesInFlight; ++i) {
+        shadowMaps_[i] = std::make_unique<Irufemi::ShadowMap>();
         shadowMaps_[i]->Initialize(dxCommon_, 2048, 2048);
 
         // RenderGraph にリソースの初期ステートを登録
@@ -311,7 +313,7 @@ void DrawManager::Finalize() {
     gNullSpotLightVA = 0;
 
     auto* srvPool = dxCommon_->GetSrvPool();
-    for (uint32_t i = 0; i < kMaxFramesInFlight; ++i) {
+    for (uint32_t i = 0; i < Irufemi::kMaxFramesInFlight; ++i) {
         auto& fr = frameResources_[i];
         if (fr.frameResource && fr.perFrameData) {
             fr.frameResource->Unmap(0, nullptr);
@@ -1282,7 +1284,7 @@ void DrawManager::DrawVoxelParticle(const RenderPackets::VoxelParticlePacket& pa
     }
 }
 
-void DrawManager::BeginRenderTextures(const std::vector<class RenderTexture*>& renderTargets,
+void DrawManager::BeginRenderTextures(const std::vector<Irufemi::RenderTexture*>& renderTargets,
                                       const std::vector<Irufemi::Vector4>& clearColors) {
     if (renderTargets.empty()) {
         return;
@@ -1336,7 +1338,7 @@ void DrawManager::BeginRenderTextures(const std::vector<class RenderTexture*>& r
     commandList_->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 }
 
-void DrawManager::EndRenderTextures(const std::vector<class RenderTexture*>& renderTargets) {
+void DrawManager::EndRenderTextures(const std::vector<Irufemi::RenderTexture*>& renderTargets) {
     // 1. Transition Barrier (RenderTarget -> SRV)
     for (auto* rt : renderTargets) {
         if (rt) {
@@ -1346,7 +1348,7 @@ void DrawManager::EndRenderTextures(const std::vector<class RenderTexture*>& ren
     }
 }
 
-void DrawManager::BeginRenderTexture(RenderTexture* rt, const Irufemi::Vector4& clearColor, RenderTexture* rt2,
+void DrawManager::BeginRenderTexture(Irufemi::RenderTexture* rt, const Irufemi::Vector4& clearColor, Irufemi::RenderTexture* rt2,
                                      const Irufemi::Vector4& clearColor2) {
     // 1. Transition Barrier (SRV -> RenderTarget)
     DirectXUtils::TransitionBarrier(commandList_, rt->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
@@ -1390,7 +1392,7 @@ void DrawManager::BeginRenderTexture(RenderTexture* rt, const Irufemi::Vector4& 
     commandList_->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 }
 
-void DrawManager::EndRenderTexture(RenderTexture* rt, RenderTexture* rt2) {
+void DrawManager::EndRenderTexture(Irufemi::RenderTexture* rt, Irufemi::RenderTexture* rt2) {
     // 1. Transition Barrier (RenderTarget -> SRV)
     DirectXUtils::TransitionBarrier(commandList_, rt->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET,
                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -1439,7 +1441,7 @@ void DrawManager::SetRenderTargetToBackBuffer(bool useDepth) {
     currentRenderTexture2_ = nullptr;
 }
 
-void DrawManager::DrawRenderTexture(RenderTexture* renderTexture, ID3D12PipelineState* pso,
+void DrawManager::DrawRenderTexture(Irufemi::RenderTexture* renderTexture, ID3D12PipelineState* pso,
                                     D3D12_GPU_VIRTUAL_ADDRESS cbvAddress, D3D12_GPU_DESCRIPTOR_HANDLE depthSrvHandle) {
     if (!renderTexture) {
         return;

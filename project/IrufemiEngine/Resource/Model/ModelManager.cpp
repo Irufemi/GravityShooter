@@ -26,6 +26,8 @@
 #include <limits>
 #include <unordered_set>
 
+using namespace Irufemi;
+
 //======================
 // キャッシュ系(インスタンス)
 //======================

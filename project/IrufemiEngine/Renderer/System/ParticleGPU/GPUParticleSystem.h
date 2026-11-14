@@ -572,7 +572,7 @@ public:
 
     /** @name 静的マネージャ設定 */
     ///@{
-    static void SetDXCommon(DirectXCommon* dxCommon) {
+    static void SetDXCommon(Irufemi::DirectXCommon* dxCommon) {
         dxCommon_ = dxCommon;
     }
     /**
@@ -654,7 +654,7 @@ private:
 
     ///@}
 
-    static DirectXCommon* dxCommon_;
+    static Irufemi::DirectXCommon* dxCommon_;
     static DrawManager* drawManager_;
     static TextureManager* textureManager_;
     static IrufemiEngine* engine_;
@@ -674,24 +674,24 @@ private:
     std::vector<D3D12_GPU_VIRTUAL_ADDRESS> meshVertexBuffers_;
 
     // CPU-GPU共有用バッファ（kMaxFramesInFlight個）
-    Microsoft::WRL::ComPtr<ID3D12Resource> emittersResource_[kMaxFramesInFlight];
-    GPUParticleEmitter* emittersMappedData_[kMaxFramesInFlight] = {};
-    uint32_t emittersSrvIndex_[kMaxFramesInFlight] = {};
-    D3D12_GPU_DESCRIPTOR_HANDLE emittersSrvHandleGPU_[kMaxFramesInFlight]{};
+    Microsoft::WRL::ComPtr<ID3D12Resource> emittersResource_[Irufemi::kMaxFramesInFlight];
+    GPUParticleEmitter* emittersMappedData_[Irufemi::kMaxFramesInFlight] = {};
+    uint32_t emittersSrvIndex_[Irufemi::kMaxFramesInFlight] = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE emittersSrvHandleGPU_[Irufemi::kMaxFramesInFlight]{};
 
     /** @name Fieldリソース */
     const std::vector<ParticleField>* globalFields_ = nullptr;
-    Microsoft::WRL::ComPtr<ID3D12Resource> fieldsResource_[kMaxFramesInFlight];
-    ParticleField* fieldsMappedData_[kMaxFramesInFlight] = {};
-    uint32_t fieldsSrvIndex_[kMaxFramesInFlight] = {};
-    D3D12_GPU_DESCRIPTOR_HANDLE fieldsSrvHandleGPU_[kMaxFramesInFlight]{};
+    Microsoft::WRL::ComPtr<ID3D12Resource> fieldsResource_[Irufemi::kMaxFramesInFlight];
+    ParticleField* fieldsMappedData_[Irufemi::kMaxFramesInFlight] = {};
+    uint32_t fieldsSrvIndex_[Irufemi::kMaxFramesInFlight] = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE fieldsSrvHandleGPU_[Irufemi::kMaxFramesInFlight]{};
     ///@}
 
     /** @name 各種リソース */
     ///@{
     Irufemi::PerFrame perFrameDataStruct_{};
     Irufemi::PerFrame* perFrameData_ = &perFrameDataStruct_; // CPU側のマスターへのポインタ
-    ConstantBuffer<Irufemi::PerFrame> perFrameBuffer_;
+    Irufemi::ConstantBuffer<Irufemi::PerFrame> perFrameBuffer_;
     D3D12_CPU_DESCRIPTOR_HANDLE perFrameSrvHandleCPU_{};
     D3D12_GPU_DESCRIPTOR_HANDLE perFrameSrvHandleGPU_{};
 
@@ -724,14 +724,14 @@ private:
     uint32_t sortIndex_ = 0xFFFFFFFF;
     uint32_t sortSrvIndex_ = 0xFFFFFFFF;
 
-    ConstantBuffer<Irufemi::PerView> perViewBuffer_;
+    Irufemi::ConstantBuffer<Irufemi::PerView> perViewBuffer_;
     Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
     D3D12_INDEX_BUFFER_VIEW indexBufferView_{};                            // NEW: インデックスバッファ
     uint32_t indexCount_ = 0;                                              // NEW: インデックス数
     Irufemi::PrimitiveType primitiveType_ = Irufemi::PrimitiveType::Plane; // 現在の形状
 
-    ConstantBuffer<Material> materialBuffer_;
+    Irufemi::ConstantBuffer<Material> materialBuffer_;
     Material cpuMaterialData_{
         {1.0f, 1.0f, 1.0f, 1.0f},                         // color
         0,                                                // enableLighting

@@ -4,6 +4,8 @@
 #include <initializer_list>
 #include <vector>
 
+namespace Irufemi {
+
 /**
  * @namespace DirectXUtils
  * @brief DirectX 12の低レイヤAPI操作（リソースバリア設定やバッファ生成等）を支援する名前空間
@@ -91,3 +93,4 @@ inline void UAVBarriers(ID3D12GraphicsCommandList* cmdList, std::initializer_lis
 }
 
 } // namespace DirectXUtils
+} // namespace Irufemi

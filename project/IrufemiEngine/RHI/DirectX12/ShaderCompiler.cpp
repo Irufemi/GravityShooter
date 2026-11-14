@@ -10,6 +10,9 @@
 #include <algorithm>
 #include <fstream>
 #include <vector>
+
+namespace Irufemi {
+
 /**
  * @brief 初期化
  */
@@ -182,3 +185,5 @@ std::wstring ShaderCompiler::GetInferredProfile(const std::wstring& filePath) {
     // デフォルト
     return L"ps_6_0";
 }
+
+} // namespace Irufemi

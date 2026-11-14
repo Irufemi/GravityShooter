@@ -19,7 +19,6 @@
 class Camera;
 class TextureManager;
 class DrawManager;
-class DescriptorPool;
 
 class BaseBatch : public IRenderable {
 public:
@@ -30,7 +29,7 @@ public:
      * @brief バッチ描画システム全体で共有する DirectXCommon インスタンスを設定する
      * @param[in] dx 設定する DirectXCommon のポインタ
      */
-    static void SetDirectXCommon(DirectXCommon* dx) {
+    static void SetDirectXCommon(Irufemi::DirectXCommon* dx) {
         dx_ = dx;
     }
 
@@ -54,7 +53,7 @@ public:
      * @brief バッチ描画用の SRV ディスクリプタプールを設定する
      * @param[in] alloc 設定する DescriptorPool のポインタ
      */
-    static void SetSrvAllocator(DescriptorPool* alloc) {
+    static void SetSrvAllocator(Irufemi::DescriptorPool* alloc) {
         srvPool_ = alloc;
     }
 
@@ -402,20 +401,20 @@ protected:
     virtual float GetBoundingSphereRadius() const = 0; // for culling
 
 protected:
-    static DirectXCommon* dx_;
+    static Irufemi::DirectXCommon* dx_;
     static TextureManager* textureManager_;
     static DrawManager* drawManager_;
-    static DescriptorPool* srvPool_;
+    static Irufemi::DescriptorPool* srvPool_;
 
     uint32_t materialCbIndex_ = static_cast<uint32_t>(-1);
     Material cpuMaterialData_{};
     bool hasCustomColor_ = false;
     ResourceHandle textureHandle_{};
 
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> instanceBuffer_{};
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvGPU_{};
-    std::array<uint32_t, kMaxFramesInFlight> instancingSrvIndex_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> instanceBuffer_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvGPU_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instancingSrvIndex_{};
 
     std::vector<Irufemi::Transform> instances_;
     std::vector<Irufemi::Vector4> instanceColors_;
@@ -431,23 +430,23 @@ protected:
     uint32_t visibleInstanceCount_ = 0;
 
     // --- GPU Culling Resources ---
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> outputInstanceBuffer_{};
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> outputInstanceSrvCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> outputInstanceSrvGPU_{};
-    std::array<uint32_t, kMaxFramesInFlight> outputInstanceSrvIndex_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> outputInstanceBuffer_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> outputInstanceSrvCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> outputInstanceSrvGPU_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> outputInstanceSrvIndex_{};
 
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> outputInstanceUavCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> outputInstanceUavGPU_{};
-    std::array<uint32_t, kMaxFramesInFlight> outputInstanceUavIndex_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> outputInstanceUavCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> outputInstanceUavGPU_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> outputInstanceUavIndex_{};
 
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> indirectCommandBuffer_{};
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> indirectCommandUploadBuffer_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> indirectCommandBuffer_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> indirectCommandUploadBuffer_{};
 
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> indirectCommandUavCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> indirectCommandUavGPU_{};
-    std::array<uint32_t, kMaxFramesInFlight> indirectCommandUavIndex_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> indirectCommandUavCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> indirectCommandUavGPU_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> indirectCommandUavIndex_{};
 
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> cullingDataBuffer_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> cullingDataBuffer_{};
 
     uint32_t lastUpdateFrameIndex_ = 0;
     bool isDirty_ = true;

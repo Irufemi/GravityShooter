@@ -6,9 +6,9 @@
 #include <d3d12.h>
 #include <wrl/client.h>
 
-class DirectXCommon;
-
 namespace Irufemi {
+
+class DirectXCommon;
 
 /**
  * @class LightShaftsEffect

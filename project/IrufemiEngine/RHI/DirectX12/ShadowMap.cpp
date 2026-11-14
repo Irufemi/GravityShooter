@@ -7,6 +7,8 @@
 #include <cassert>
 #include <cmath>
 
+namespace Irufemi {
+
 namespace {
 // シャドウマップのパラメータ定数
 const float kLightDistance = 200.0f; // ライトの距離
@@ -174,3 +176,5 @@ void ShadowMap::UpdateMatrix(const Irufemi::Vector3& lightDir, const Irufemi::Ve
     // 合成
     viewProjection_ = Irufemi::Math::Multiply(view, proj);
 }
+
+} // namespace Irufemi

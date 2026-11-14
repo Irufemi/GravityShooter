@@ -9,6 +9,8 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraph.h"
 #include "Renderer/Data/RenderContext.h"
 
+using namespace Irufemi;
+
 void PostProcessPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     auto* drawManager = rc.drawManager;
     auto* engine = rc.engine;

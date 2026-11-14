@@ -4,6 +4,8 @@
 #include "Renderer/DrawManager.h"
 #include <cassert>
 
+namespace Irufemi {
+
 RenderTexture::~RenderTexture() {
     if (dxCommon_) {
         if (dxCommon_->GetSrvPool() && srvIndex_ != DescriptorAllocator::kInvalid) {
@@ -147,3 +149,5 @@ void RenderTexture::Draw(DrawManager* drawManager, ID3D12PipelineState* pso, D3D
     }
     drawManager->DrawRenderTexture(this, pso, cbvAddress, depthSrvHandle);
 }
+
+} // namespace Irufemi

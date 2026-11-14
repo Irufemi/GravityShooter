@@ -17,10 +17,12 @@
 #include <string>
 #include <wrl/client.h>
 
+using namespace Irufemi;
+
 PostProcessManager::PostProcessManager() : runner_(std::make_unique<PostProcessRunner>()) {}
 PostProcessManager::~PostProcessManager() = default;
 
-void PostProcessManager::Initialize(IrufemiEngine* engine, DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat) {
+void PostProcessManager::Initialize(IrufemiEngine* engine, Irufemi::DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat) {
     engine_ = engine;
     dxCommon_ = dxCommon;
     device_ = dxCommon->GetDevice();

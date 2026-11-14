@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+namespace Irufemi {
+
 /**
  * @class FrameRateController
  * @brief FPS（フレームレート）を一定に保つための制御クラス
@@ -25,3 +27,5 @@ private:
      */
     std::chrono::steady_clock::time_point reference_;
 };
+
+} // namespace Irufemi

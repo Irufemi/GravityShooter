@@ -8,6 +8,8 @@
 #include "RHI/DirectX12/DescriptorPool.h"
 #include "../../../../../externals/DirectXTex/d3dx12.h"
 
+using namespace Irufemi;
+
 TextureManager* SpriteBatch::textureManager_ = nullptr;
 DrawManager* SpriteBatch::drawManager_ = nullptr;
 CameraManager* SpriteBatch::cameraManager_ = nullptr;

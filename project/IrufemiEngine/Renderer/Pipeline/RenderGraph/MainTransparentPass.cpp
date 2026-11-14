@@ -9,6 +9,8 @@
 #include "Renderer/Data/RenderContext.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 void MainTransparentPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     auto* drawManager = rc.drawManager;
     auto* engine = rc.engine;

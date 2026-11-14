@@ -18,6 +18,8 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+using namespace Irufemi;
+
 void AnimationManager::Initialize(DirectXCommon* dxCommon) {
     dxCommon_ = dxCommon;
     if (rootDir_.empty()) {

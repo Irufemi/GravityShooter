@@ -7,6 +7,8 @@
 #include "Core/Math/Math.h"
 #include "Core/System/IrufemiEngine.h"
 
+using namespace Irufemi;
+
 DebugPrimitiveRenderer::~DebugPrimitiveRenderer() {
     if (srvAllocator_ && dx_) {
         for (uint32_t& idx : sphereSrvIndex_) {

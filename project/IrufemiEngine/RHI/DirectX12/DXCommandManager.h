@@ -7,6 +7,8 @@
 #include <atomic>
 #include <functional>
 
+namespace Irufemi {
+
 // 前方宣言
 class DirectXCommon;
 
@@ -132,3 +134,5 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Fence> uploadFence_ = nullptr;
     uint64_t uploadFenceValue_ = 0;
 };
+
+} // namespace Irufemi

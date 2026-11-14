@@ -4,10 +4,11 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include <d3d12.h>
 
-class RenderTexture;
 class RenderGraph;
 
 namespace Irufemi {
+
+class RenderTexture;
 
 /**
  * @struct PostProcessRenderContext

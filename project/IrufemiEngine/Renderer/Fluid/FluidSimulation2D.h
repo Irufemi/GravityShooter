@@ -8,7 +8,9 @@
 #include <memory>
 #include <vector>
 
+namespace Irufemi {
 class DirectXCommon;
+}
 
 /**
  * @class FluidSimulation2D
@@ -76,7 +78,7 @@ public: // メンバ関数
      * @param[in] width グリッド横解像度 (推奨: 256)
      * @param[in] height グリッド縦解像度 (推奨: 256)
      */
-    void Initialize(DirectXCommon* dxCommon, uint32_t width = 256, uint32_t height = 256);
+    void Initialize(Irufemi::DirectXCommon* dxCommon, uint32_t width = 256, uint32_t height = 256);
 
     /**
      * @brief 毎フレームの更新（パラメータ更新・外力キュー管理）
@@ -164,7 +166,7 @@ private: // 内部ヘルパー
     void CreatePipelines();
 
 private: // メンバ変数
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     uint32_t width_ = 256;
     uint32_t height_ = 256;
     float deltaTime_ = 1.0f / 60.0f;

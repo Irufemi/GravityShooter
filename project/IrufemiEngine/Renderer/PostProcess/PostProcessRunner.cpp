@@ -9,6 +9,8 @@
 #include "RHI/DirectX12/DirectXUtils.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 using Mode = PostProcessManager::Mode;
 
 PostProcessRunner::PostProcessRunner()
@@ -26,7 +28,7 @@ PostProcessRunner::PostProcessRunner()
 
 PostProcessRunner::~PostProcessRunner() = default;
 
-void PostProcessRunner::InitializeEffects(ID3D12Device* device, DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
+void PostProcessRunner::InitializeEffects(ID3D12Device* device, Irufemi::DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
                                           D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat) {
     if (kawaseBlurEffect_) {
         kawaseBlurEffect_->Initialize(device, dxCommon, rootSig, vsBytecode, rtvFormat);

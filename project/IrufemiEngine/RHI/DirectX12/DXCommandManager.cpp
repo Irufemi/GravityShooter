@@ -3,6 +3,8 @@
 #include "RHI/DirectX12/DirectXCommon.h" // kMaxFramesInFlight を使用するため
 #include <cassert>
 
+namespace Irufemi {
+
 void DXCommandManager::Initialize(ID3D12Device* device) {
     IRUFEMI_ASSERT(device != nullptr);
     device_ = device;
@@ -136,3 +138,5 @@ void DXCommandManager::AdvanceFenceValue(uint32_t frameIndex, uint64_t delta) {
         fenceValues_[frameIndex] += delta;
     }
 }
+
+} // namespace Irufemi

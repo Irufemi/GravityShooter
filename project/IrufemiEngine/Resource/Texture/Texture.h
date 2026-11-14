@@ -7,8 +7,10 @@
 #include <atomic>
 #include "../../../externals/DirectXTex/DirectXTex.h"
 
+namespace Irufemi {
 class DirectXCommon;
 class DescriptorPool;
+}
 
 /**
  * @class Texture
@@ -21,21 +23,21 @@ public:
 
     /** @name 静的メンバ設定 */
     ///@{
-    static void SetDirectXCommon(DirectXCommon* dxCommon) {
+    static void SetDirectXCommon(Irufemi::DirectXCommon* dxCommon) {
         dxCommon_ = dxCommon;
     }
     /**
      * @brief SRV用ディスクリプタプールを設定する
      * @param[in] pool 設定する DescriptorPool のポインタ
      */
-    static void SetDescriptorPool(DescriptorPool* pool) {
+    static void SetDescriptorPool(Irufemi::DescriptorPool* pool) {
         srvPool_ = pool;
     }
     /**
      * @brief SRV用ディスクリプタプールを取得する
      * @return 取得された DescriptorPool ポインタ
      */
-    static DescriptorPool* GetDescriptorPool() {
+    static Irufemi::DescriptorPool* GetDescriptorPool() {
         return srvPool_;
     }
     /**
@@ -177,8 +179,8 @@ protected:
 
     bool isCubemap_ = false;
 
-    static DirectXCommon* dxCommon_;
-    static DescriptorPool* srvPool_;
+    static Irufemi::DirectXCommon* dxCommon_;
+    static Irufemi::DescriptorPool* srvPool_;
     static ID3D12Resource* whiteResource_;
 
     uint32_t width_ = 0;

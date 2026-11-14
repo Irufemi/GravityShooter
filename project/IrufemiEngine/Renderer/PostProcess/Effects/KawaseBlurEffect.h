@@ -7,9 +7,9 @@
 #include <wrl/client.h>
 #include <array>
 
-class DirectXCommon;
-
 namespace Irufemi {
+
+class DirectXCommon;
 
 /**
  * @class KawaseBlurEffect

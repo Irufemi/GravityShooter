@@ -5,6 +5,8 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include "Renderer/Data/RenderContext.h"
 
+using namespace Irufemi;
+
 void UIPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     if (rc.engine && rc.engine->GetMainRenderTexture()) {
         builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);

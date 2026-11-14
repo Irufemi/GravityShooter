@@ -33,8 +33,8 @@ public:
      * @return ダーティだった場合は true（範囲外の場合は false）
      */
     bool CheckAndClearDirty(uint32_t frameIndex) {
-        assert(frameIndex < kMaxFramesInFlight && "frameIndex exceeds kMaxFramesInFlight!");
-        if (frameIndex >= kMaxFramesInFlight) {
+        assert(frameIndex < Irufemi::kMaxFramesInFlight && "frameIndex exceeds kMaxFramesInFlight!");
+        if (frameIndex >= Irufemi::kMaxFramesInFlight) {
             return false;
         }
 
@@ -46,5 +46,5 @@ public:
     }
 
 protected:
-    std::array<bool, kMaxFramesInFlight> isDirtyBuffer_{};
+    std::array<bool, Irufemi::kMaxFramesInFlight> isDirtyBuffer_{};
 };

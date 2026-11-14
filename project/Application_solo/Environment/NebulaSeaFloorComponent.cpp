@@ -15,6 +15,8 @@
 #include <cmath>
 #include <vector>
 
+using namespace Irufemi;
+
 namespace {
 // グリッドメッシュ生成用定数
 constexpr int kGridResolution = 64;        //!< グリッド分割数 (64 x 64)

@@ -12,9 +12,7 @@
 #include <mutex>
 
 // 前方宣言
-class DirectXCommon;
 class DrawManager;
-class DescriptorPool;
 
 enum class DebugCategory : uint32_t {
     None = 0,
@@ -54,7 +52,7 @@ public:
     /**
      * @brief Initialize を実行する。
      */
-    void Initialize(DirectXCommon* dx, DrawManager* drawM, DescriptorPool* srvAlloc);
+    void Initialize(Irufemi::DirectXCommon* dx, DrawManager* drawM, Irufemi::DescriptorPool* srvAlloc);
 
     /**
      * @brief Update を実行する。
@@ -179,9 +177,9 @@ private:
      */
     void EnsureInstancingSRVs();
 
-    DirectXCommon* dx_ = nullptr;
+    Irufemi::DirectXCommon* dx_ = nullptr;
     DrawManager* drawManager_ = nullptr;
-    DescriptorPool* srvAllocator_ = nullptr;
+    Irufemi::DescriptorPool* srvAllocator_ = nullptr;
 
     // --- Irufemi::Sphere Data ---
     Microsoft::WRL::ComPtr<ID3D12Resource> sphereVertexResource_;
@@ -200,12 +198,12 @@ private:
 
     size_t maxSphereInstances_ = 65535;
 
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> sphereInstanceBuffer_;
-    std::array<GPUInstanceData*, kMaxFramesInFlight> sphereInstanceDataMap_{};
-    std::array<uint32_t, kMaxFramesInFlight> sphereInstanceCapacity_{};
-    std::array<uint32_t, kMaxFramesInFlight> sphereSrvIndex_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> sphereSrvGPU_{};
-    std::array<size_t, kMaxFramesInFlight> visibleSphereCount_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> sphereInstanceBuffer_;
+    std::array<GPUInstanceData*, Irufemi::kMaxFramesInFlight> sphereInstanceDataMap_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> sphereInstanceCapacity_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> sphereSrvIndex_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> sphereSrvGPU_{};
+    std::array<size_t, Irufemi::kMaxFramesInFlight> visibleSphereCount_{};
 
     // --- Cube Data ---
     Microsoft::WRL::ComPtr<ID3D12Resource> cubeVertexResource_;
@@ -224,12 +222,12 @@ private:
 
     size_t maxCubeInstances_ = 65535;
 
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> cubeInstanceBuffer_;
-    std::array<GPUInstanceData*, kMaxFramesInFlight> cubeInstanceDataMap_{};
-    std::array<uint32_t, kMaxFramesInFlight> cubeInstanceCapacity_{};
-    std::array<uint32_t, kMaxFramesInFlight> cubeSrvIndex_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> cubeSrvGPU_{};
-    std::array<size_t, kMaxFramesInFlight> visibleCubeCount_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> cubeInstanceBuffer_;
+    std::array<GPUInstanceData*, Irufemi::kMaxFramesInFlight> cubeInstanceDataMap_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> cubeInstanceCapacity_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> cubeSrvIndex_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> cubeSrvGPU_{};
+    std::array<size_t, Irufemi::kMaxFramesInFlight> visibleCubeCount_{};
 
     uint32_t lastUpdateFrameIndex_ = 0;
 

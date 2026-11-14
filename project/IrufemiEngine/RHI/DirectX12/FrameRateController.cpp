@@ -2,6 +2,8 @@
 #include <thread>
 #include <Windows.h>
 
+namespace Irufemi {
+
 /**
  * @brief 初期化
  * @details フレーム計測の基準時間を現在に設定します。
@@ -55,3 +57,5 @@ void FrameRateController::Update() {
         reference_ = nextReference;
     }
 }
+
+} // namespace Irufemi

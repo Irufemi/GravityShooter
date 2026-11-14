@@ -7,9 +7,13 @@
 #include "Core/Math/Vector4.h"
 #include "RHI/DirectX12/DescriptorAllocator.h"
 
-class DirectXCommon;
+// 前方宣言 (グローバル)
 class DrawManager;
 class Camera;
+
+namespace Irufemi {
+
+class DirectXCommon;
 
 class RenderTexture {
 public:
@@ -113,3 +117,5 @@ private:
     DXGI_FORMAT format_ = DXGI_FORMAT_UNKNOWN;
     DirectXCommon* dxCommon_ = nullptr;
 };
+
+} // namespace Irufemi

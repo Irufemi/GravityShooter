@@ -27,6 +27,8 @@
 #include <cassert>
 #include <vector>
 
+using namespace Irufemi;
+
 // 静的メンバ変数の実体定義
 DirectXCommon* GPUParticleSystem::dxCommon_ = nullptr;
 DrawManager* GPUParticleSystem::drawManager_ = nullptr;

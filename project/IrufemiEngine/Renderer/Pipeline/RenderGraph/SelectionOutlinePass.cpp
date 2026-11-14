@@ -9,6 +9,8 @@
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Renderer/Data/RenderContext.h"
 
+using namespace Irufemi;
+
 void SelectionOutlinePass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     if (!rc.isEditorMode) {
         return;

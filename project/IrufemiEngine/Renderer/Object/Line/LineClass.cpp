@@ -8,6 +8,8 @@
 #include "Core/Math/Math.h"
 #include "Core/System/IrufemiEngine.h"
 
+using namespace Irufemi;
+
 DirectXCommon* Line3DBatch::dx_ = nullptr;
 DrawManager* Line3DBatch::drawManager_ = nullptr;
 DescriptorPool* Line3DBatch::srvAllocator_ = nullptr;

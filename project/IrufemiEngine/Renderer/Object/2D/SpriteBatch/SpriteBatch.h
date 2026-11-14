@@ -20,7 +20,6 @@ class TextureManager;
 class DrawManager;
 class CameraManager;
 class Object2DResource;
-class DescriptorPool;
 class Camera;
 
 /**
@@ -170,14 +169,14 @@ public:
      * @brief DirectXCommon を設定する。
      * @param[in] dx 設定する DirectXCommon の値
      */
-    static void SetDirectXCommon(DirectXCommon* dx) {
+    static void SetDirectXCommon(Irufemi::DirectXCommon* dx) {
         dx_ = dx;
     }
     /**
      * @brief SrvAllocator を設定する。
      * @param[in] pool 設定する SrvAllocator の値
      */
-    static void SetSrvAllocator(DescriptorPool* pool) {
+    static void SetSrvAllocator(Irufemi::DescriptorPool* pool) {
         srvPool_ = pool;
     }
 
@@ -226,16 +225,16 @@ private:
     D3D12_GPU_VIRTUAL_ADDRESS customCBVAddress_ = 0;
 
     // インスタンシング用バッファ
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> instanceBuffer_;
-    std::array<InstanceData*, kMaxFramesInFlight> instanceData_{};
-    std::array<uint32_t, kMaxFramesInFlight> instanceCapacity_{};
-    std::array<uint32_t, kMaxFramesInFlight> instancingSrvIndex_{};
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvGPU_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> instanceBuffer_;
+    std::array<InstanceData*, Irufemi::kMaxFramesInFlight> instanceData_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instanceCapacity_{};
+    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instancingSrvIndex_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvGPU_{};
 
     static TextureManager* textureManager_;
     static DrawManager* drawManager_;
     static CameraManager* cameraManager_;
-    static DirectXCommon* dx_;
-    static DescriptorPool* srvPool_;
+    static Irufemi::DirectXCommon* dx_;
+    static Irufemi::DescriptorPool* srvPool_;
 };

@@ -3,13 +3,14 @@
 #include <cstdint>
 
 class IrufemiEngine;
-class DirectXCommon;
 class DrawManager;
 class TextureManager;
 class FontManager;
 class PSOManager;
 
 namespace Irufemi {
+
+class DirectXCommon;
 
 /**
  * @struct RenderContext

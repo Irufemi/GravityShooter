@@ -8,6 +8,8 @@
 #include "Renderer/Data/RenderContext.h"
 #include "Renderer/Data/FogParams.h"
 
+using namespace Irufemi;
+
 void FogPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     auto* drawManager = rc.drawManager;
     auto* engine = rc.engine;

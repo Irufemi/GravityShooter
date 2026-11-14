@@ -7,6 +7,8 @@
 #include <vector>
 #include <utility>
 
+namespace Irufemi {
+
 /**
  * @struct ShaderCompileOptions
  * @brief シェーダーコンパイル時の詳細設定を保持する構造体
@@ -52,3 +54,5 @@ private:
     Microsoft::WRL::ComPtr<IDxcCompiler3> dxcCompiler_;
     Microsoft::WRL::ComPtr<IDxcIncludeHandler> includeHandler_;
 };
+
+} // namespace Irufemi

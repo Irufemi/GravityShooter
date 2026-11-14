@@ -4,6 +4,8 @@
 #include <wrl.h>
 #include "RHI/DirectX12/RootSignatureConfig.h"
 
+namespace Irufemi {
+
 class DXRootSignatureManager {
 public:
     DXRootSignatureManager() = default;
@@ -40,3 +42,5 @@ private:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> graphicsRootSignature_ = nullptr;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> computeRootSignature_ = nullptr;
 };
+
+} // namespace Irufemi

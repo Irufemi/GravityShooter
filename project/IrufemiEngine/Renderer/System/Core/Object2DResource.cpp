@@ -5,6 +5,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Resource/Texture/TextureManager.h"
 
+using namespace Irufemi;
+
 Object2DResource::~Object2DResource() {
     Unmap();
     if (auto dxCommon = BaseResource::GetDirectXCommon()) {

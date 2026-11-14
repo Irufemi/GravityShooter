@@ -9,6 +9,8 @@
 #include <vector>
 #include <filesystem>
 
+namespace Irufemi {
+
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
 #define RUNTIME_SHADER_COMPILE 1
 #endif
@@ -154,3 +156,5 @@ std::wstring ShaderManager::ResolveSourcePath(const std::wstring& filename) cons
     }
     return filename; // 見つからない場合はそのまま返す
 }
+
+} // namespace Irufemi

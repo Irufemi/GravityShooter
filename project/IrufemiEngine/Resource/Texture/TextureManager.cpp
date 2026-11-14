@@ -16,6 +16,8 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+using namespace Irufemi;
+
 static bool IsImageExtImpl(const std::string& ext) {
     static const char* exts[] = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".dds"};
     for (auto* e : exts) {

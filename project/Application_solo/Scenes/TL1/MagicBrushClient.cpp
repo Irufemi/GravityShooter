@@ -11,6 +11,8 @@
 #include <array>
 #include <string_view>
 
+using namespace Irufemi;
+
 MagicBrushClient::MagicBrushClient() : state_(State::Idle) {}
 
 MagicBrushClient::~MagicBrushClient() {
@@ -27,7 +29,7 @@ std::vector<std::string> MagicBrushClient::GetServerLogs() const {
 
 void MagicBrushClient::StartGeneration(const std::string& prompt, const std::string& referenceImagePath,
                                        const std::string& shaderName, const std::string& outputDirectory,
-                                       ShaderManager* shaderManager) {
+                                       Irufemi::ShaderManager* shaderManager) {
     if (state_ == State::Generating || state_ == State::Compiling || state_ == State::Fixing) {
         return; // 既に実行中
     }
@@ -311,7 +313,7 @@ std::string MagicBrushClient::SendPostRequest(const std::string& endpoint, const
     return ExecuteCommandHidden(command);
 }
 
-bool MagicBrushClient::RestoreHistory(size_t index, ShaderManager* shaderManager) {
+bool MagicBrushClient::RestoreHistory(size_t index, Irufemi::ShaderManager* shaderManager) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (index >= history_.size()) {
         return false;
@@ -349,7 +351,7 @@ bool MagicBrushClient::RestoreHistory(size_t index, ShaderManager* shaderManager
 }
 
 void MagicBrushClient::ProcessThread(std::string prompt, std::string referenceImagePath, std::string shaderName,
-                                     std::string outputDirectory, ShaderManager* shaderManager) {
+                                     std::string outputDirectory, Irufemi::ShaderManager* shaderManager) {
     std::string currentHlsl = "";
 
     // 1. 初回リクエストの作成
@@ -431,7 +433,7 @@ void MagicBrushClient::ProcessThread(std::string prompt, std::string referenceIm
 
 void MagicBrushClient::StartVisualFix(const std::string& referenceImagePath, const std::string& screenshotPath,
                                       const std::string& currentHlslCode, const std::string& shaderName,
-                                      ShaderManager* shaderManager) {
+                                      Irufemi::ShaderManager* shaderManager) {
     if (state_ == State::VisualEvaluating || state_ == State::Compiling || state_ == State::Generating ||
         state_ == State::Fixing) {
         return;
@@ -447,7 +449,7 @@ void MagicBrushClient::StartVisualFix(const std::string& referenceImagePath, con
 
 void MagicBrushClient::VisualFixThread(std::string referenceImagePath, std::string screenshotPath,
                                        std::string currentHlslCode, std::string shaderName,
-                                       ShaderManager* shaderManager) {
+                                       Irufemi::ShaderManager* shaderManager) {
     std::string jsonReq = "{ \"reference_image_path\": \"" + EscapeJSON(referenceImagePath) + "\", " +
                           "\"current_output_image_path\": \"" + EscapeJSON(screenshotPath) + "\", " + "\"code\": \"" +
                           EscapeJSON(currentHlslCode) + "\" }";

@@ -26,7 +26,9 @@ namespace DirectX {
 class ScratchImage;
 }
 
+namespace Irufemi {
 class DirectXCommon;
+}
 
 /**
  * @class TextureManager
@@ -49,7 +51,7 @@ public:
      * @brief 初期化
      * @param[in] dxCommon DirectX 12 基礎クラスのポインタ
      */
-    void Initialize(DirectXCommon* dxCommon);
+    void Initialize(Irufemi::DirectXCommon* dxCommon);
 
     /**
      * @brief 指定フォルダ内のすべての画像をロードする
@@ -230,7 +232,7 @@ public:
 
 private:
     bool IsCurrentSceneInitializing() const;
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     // NOTE: 非同期テクスチャロードタスク（ThreadPool）とメインスレッドからのテクスチャ検索・参照カウント更新の
     // 排他制御を低レイヤーで行うため、生の std::mutex を意図して維持しています。
     mutable std::mutex mutex_;

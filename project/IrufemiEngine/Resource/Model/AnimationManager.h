@@ -18,11 +18,11 @@
 #include "Core/System/DirectoryWatcher.h"
 
 // 前方宣言
-class DirectXCommon;
-struct ModelData;
 namespace Irufemi {
+class DirectXCommon;
 struct ObjModel;
 }
+struct ModelData;
 
 /**
  * @class AnimationManager
@@ -39,7 +39,7 @@ public:
      * @brief 初期化処理
      * @param[in] dxCommon DirectX基盤クラスのポインタ
      */
-    void Initialize(DirectXCommon* dxCommon);
+    void Initialize(Irufemi::DirectXCommon* dxCommon);
 
     /**
      * @brief アニメーション検索のルートディレクトリを設定する
@@ -192,7 +192,7 @@ private: // 内部ヘルパ
     std::string FindFileRecursive(const std::string& filename) const;
 
 private:
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     std::string rootDir_;
     mutable std::mutex mutex_;
 

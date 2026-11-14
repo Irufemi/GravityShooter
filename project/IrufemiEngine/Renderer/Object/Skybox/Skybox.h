@@ -146,7 +146,7 @@ private: // メンバ変数(resource)
         Irufemi::Matrix4x4 WorldInverseTranspose;
     };
     SkyboxTransformationMatrix transformationMatrix_{};
-    ConstantBuffer<SkyboxTransformationMatrix> transformationBuffer_;
+    Irufemi::ConstantBuffer<SkyboxTransformationMatrix> transformationBuffer_;
 
     // Material
     struct SkyboxMaterial {
@@ -155,7 +155,7 @@ private: // メンバ変数(resource)
         uint32_t textureIndex; // [Bindless]
         uint32_t padding[2];
     };
-    ConstantBuffer<SkyboxMaterial> materialBuffer_;
+    Irufemi::ConstantBuffer<SkyboxMaterial> materialBuffer_;
 
     // texture
     ResourceHandle textureHandle_;

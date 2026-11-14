@@ -4,6 +4,8 @@
 #include <cassert>
 #include <iostream>
 
+namespace Irufemi {
+
 void DXRootSignatureManager::Initialize(ID3D12Device* device) {
     // --- 通常描画用 RootSignature ---
     {
@@ -376,3 +378,5 @@ void DXRootSignatureManager::Finalize() {
     graphicsRootSignature_.Reset();
     computeRootSignature_.Reset();
 }
+
+} // namespace Irufemi

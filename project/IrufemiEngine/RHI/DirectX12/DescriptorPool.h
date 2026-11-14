@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <limits>
 
+namespace Irufemi {
+
 class DescriptorPool {
 public:
     static constexpr uint32_t kMaxSRVCount = 16384;
@@ -124,3 +126,5 @@ private:
     // 排他制御するための低レイヤー生ミューテックスです。
     mutable std::mutex mutex_;
 };
+
+} // namespace Irufemi

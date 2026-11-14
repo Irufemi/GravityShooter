@@ -2,6 +2,8 @@
 #include "RHI/DirectX12/DescriptorPool.h"
 #include <cassert>
 
+namespace Irufemi {
+
 void DescriptorPool::Initialize(ID3D12Device* device) {
     IRUFEMI_ASSERT(device);
     device_ = device;
@@ -146,3 +148,5 @@ void DescriptorPool::CreateSRVForStructuredBuffer(uint32_t srvIndex, ID3D12Resou
 
     device_->CreateShaderResourceView(pResource, &srvDesc, GetCPUHandle(srvIndex));
 }
+
+} // namespace Irufemi

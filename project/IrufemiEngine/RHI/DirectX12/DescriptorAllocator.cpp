@@ -2,6 +2,8 @@
 #include "RHI/DirectX12/DescriptorAllocator.h"
 #include "Core/Utility/ErrorUtility.h"
 
+namespace Irufemi {
+
 DescriptorAllocator::DescriptorAllocator(ID3D12DescriptorHeap* heap, uint32_t descriptorSize, uint32_t baseIndex)
     : descriptorSize_(descriptorSize), baseIndex_(baseIndex) {
     heap_ = heap;
@@ -118,3 +120,5 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorAllocator::GetGPUHandle(uint32_t index) co
     h.ptr += static_cast<UINT64>(descriptorSize_) * index;
     return h;
 }
+
+} // namespace Irufemi

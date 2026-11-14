@@ -7,6 +7,8 @@
 #include <vector>
 #include <mutex>
 
+namespace Irufemi {
+
 /**
  * @class DXSwapChainManager
  * @brief スワップチェーンおよび付随するレンダーターゲット・深度バッファを管理するクラス
@@ -227,3 +229,5 @@ private:
     // 競合を防ぐための低レイヤー排他制御用ミューテックスです。
     std::mutex descriptorMutex_;
 };
+
+} // namespace Irufemi

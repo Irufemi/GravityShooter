@@ -248,14 +248,14 @@ private:
         float pad[2] = {};
     };
     static_assert(sizeof(VoxelPerFrame) == 16, "VoxelPerFrame size must be 16 bytes for ConstantBuffer alignment.");
-    ConstantBuffer<VoxelPerFrame> perFrameBuffer_;
+    Irufemi::ConstantBuffer<VoxelPerFrame> perFrameBuffer_;
     VoxelPerFrame perFrameData_{};
 
     struct VoxelSystemCb {
         uint32_t voxelCount;
         uint32_t pad[3];
     };
-    ConstantBuffer<VoxelSystemCb> voxelSystemCbBuffer_;
+    Irufemi::ConstantBuffer<VoxelSystemCb> voxelSystemCbBuffer_;
     VoxelSystemCb voxelSystemCbData_{};
 
     uint32_t voxelCount_ = 0;

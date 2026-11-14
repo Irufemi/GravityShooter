@@ -13,12 +13,12 @@
 class TextureManager;
 class SceneManager;
 class IrufemiEngine;
-class DirectXCommon;
 class ThreadPool;
 class Object3DResource;
 class Object2DResource;
 struct Material;
 namespace Irufemi {
+class DirectXCommon;
 struct ObjMaterial;
 struct Transform;
 struct Matrix4x4;
@@ -49,7 +49,7 @@ class DebugUI {
 private: // メンバ変数
     // ポインタ参照(非所有)
 
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
 
     TextureManager* textureManager_ = nullptr;
 
@@ -61,7 +61,7 @@ public: // メンバ関数
     /**
      * @brief 初期化
      */
-    void Initialize(HWND hwnd, DirectXCommon* dxCommon);
+    void Initialize(HWND hwnd, Irufemi::DirectXCommon* dxCommon);
 
     /**
      * @brief TextureManagerをセットする

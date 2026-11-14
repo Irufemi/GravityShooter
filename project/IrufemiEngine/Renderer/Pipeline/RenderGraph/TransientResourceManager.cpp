@@ -8,6 +8,8 @@
 #include <string>
 #endif
 
+using namespace Irufemi;
+
 void TransientResourceManager::Initialize(DirectXCommon* dxCommon, uint64_t heapSizeInBytes) {
     dxCommon_ = dxCommon;
     heapSize_ = heapSizeInBytes;

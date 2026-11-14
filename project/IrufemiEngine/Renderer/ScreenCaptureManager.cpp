@@ -19,6 +19,8 @@
 
 #pragma comment(lib, "Pathcch.lib")
 
+using namespace Irufemi;
+
 ScreenCaptureManager::ScreenCaptureManager() {}
 
 ScreenCaptureManager::~ScreenCaptureManager() {

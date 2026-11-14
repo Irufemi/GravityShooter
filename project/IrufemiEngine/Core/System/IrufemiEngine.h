@@ -360,42 +360,42 @@ public: // ゲッター
      * @brief MainRenderTexture を取得する。
      * @return 取得された MainRenderTexture
      */
-    RenderTexture* GetMainRenderTexture() const {
+    Irufemi::RenderTexture* GetMainRenderTexture() const {
         return mainRenderTexture_.get();
     }
     /**
      * @brief EffectMaskTexture を取得する。
      * @return 取得された EffectMaskTexture
      */
-    RenderTexture* GetEffectMaskTexture() const {
+    Irufemi::RenderTexture* GetEffectMaskTexture() const {
         return effectMaskTexture_.get();
     }
     /**
      * @brief NormalTexture を取得する。
      * @return 取得された NormalTexture
      */
-    RenderTexture* GetNormalTexture() const {
+    Irufemi::RenderTexture* GetNormalTexture() const {
         return normalTexture_.get();
     }
     /**
      * @brief MaterialTexture を取得する。
      * @return 取得された MaterialTexture
      */
-    RenderTexture* GetMaterialTexture() const {
+    Irufemi::RenderTexture* GetMaterialTexture() const {
         return materialTexture_.get();
     }
     /**
      * @brief VelocityTexture を取得する。
      * @return 取得された VelocityTexture
      */
-    RenderTexture* GetVelocityTexture() const {
+    Irufemi::RenderTexture* GetVelocityTexture() const {
         return velocityTexture_.get();
     }
     ///@}
 
     /** @name マネージャ類の取得 */
     ///@{
-    DirectXCommon* GetDirectXCommon() {
+    Irufemi::DirectXCommon* GetDirectXCommon() {
         return this->dxCommon_.get();
     }
     /**
@@ -711,14 +711,14 @@ public: // ゲッター
      * @brief MaterialBufferManager を取得する。
      * @return 取得された MaterialBufferManager
      */
-    DynamicConstantBuffer<Material>* GetMaterialBufferManager() {
+    Irufemi::DynamicConstantBuffer<Material>* GetMaterialBufferManager() {
         return materialBufferManager_.get();
     }
     /**
      * @brief TransformBufferManager を取得する。
      * @return 取得された TransformBufferManager
      */
-    DynamicConstantBuffer<TransformationMatrix>* GetTransformBufferManager() {
+    Irufemi::DynamicConstantBuffer<TransformationMatrix>* GetTransformBufferManager() {
         return transformBufferManager_.get();
     }
 
@@ -727,7 +727,7 @@ public: // ゲッター
      * @brief SrvPool を取得する。
      * @return 取得された SrvPool
      */
-    DescriptorPool* GetSrvPool() const {
+    Irufemi::DescriptorPool* GetSrvPool() const {
         return dxCommon_->GetSrvPool();
     }
 
@@ -925,7 +925,7 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::WinApp> winApp_ = nullptr;
 
     // DirectX基盤
-    std::unique_ptr<DirectXCommon> dxCommon_ = nullptr;
+    std::unique_ptr<Irufemi::DirectXCommon> dxCommon_ = nullptr;
 
     // --- Manager ---
 
@@ -1011,15 +1011,15 @@ private: // メンバ変数
     float emaFps_ = 60.0f;
 
     // --- Dynamic Constant Buffer ---
-    std::unique_ptr<DynamicConstantBuffer<Material>> materialBufferManager_ = nullptr;
-    std::unique_ptr<DynamicConstantBuffer<TransformationMatrix>> transformBufferManager_ = nullptr;
+    std::unique_ptr<Irufemi::DynamicConstantBuffer<Material>> materialBufferManager_ = nullptr;
+    std::unique_ptr<Irufemi::DynamicConstantBuffer<TransformationMatrix>> transformBufferManager_ = nullptr;
 
     // --- 全画面用 RenderTexture ---
-    std::unique_ptr<RenderTexture> mainRenderTexture_ = nullptr;
-    std::unique_ptr<RenderTexture> effectMaskTexture_ = nullptr; ///< MRT対応: マスク用
-    std::unique_ptr<RenderTexture> normalTexture_ = nullptr;     ///< MRT対応: 法線/深度用
-    std::unique_ptr<RenderTexture> materialTexture_ = nullptr;   ///< MRT対応: マテリアル用
-    std::unique_ptr<RenderTexture> velocityTexture_ = nullptr;   ///< MRT対応: モーションベクトル用
+    std::unique_ptr<Irufemi::RenderTexture> mainRenderTexture_ = nullptr;
+    std::unique_ptr<Irufemi::RenderTexture> effectMaskTexture_ = nullptr; ///< MRT対応: マスク用
+    std::unique_ptr<Irufemi::RenderTexture> normalTexture_ = nullptr;     ///< MRT対応: 法線/深度用
+    std::unique_ptr<Irufemi::RenderTexture> materialTexture_ = nullptr;   ///< MRT対応: マテリアル用
+    std::unique_ptr<Irufemi::RenderTexture> velocityTexture_ = nullptr;   ///< MRT対応: モーションベクトル用
     std::unique_ptr<PostProcessManager> postProcessManager_ = nullptr;
     std::unique_ptr<SceneTransition> sceneTransition_ = nullptr;
     std::unique_ptr<FluidSimulation2D> fluidSimulation_ = nullptr;

@@ -17,12 +17,12 @@
 #include <wrl/client.h>
 
 class IrufemiEngine;
-class DirectXCommon;
-class RenderTexture;
 class RenderGraph;
 class PostProcessRunner;
 
 namespace Irufemi {
+class DirectXCommon;
+class RenderTexture;
 class BloomEffect;
 class LightShaftsEffect;
 class SeparableBlurEffect;
@@ -87,12 +87,12 @@ public:
     static constexpr uint32_t kMaxPostProcessBufferEntries = 256; ///< 動的定数バッファの最大リング要素数
 
     struct PostProcessWorkspace {
-        class RenderTexture* workTextures[2] = {nullptr, nullptr};
-        class RenderTexture* bloomExtract = nullptr;
-        class RenderTexture* bloomBlur = nullptr;
-        class RenderTexture* lsExtract = nullptr;
-        class RenderTexture* lsBlur = nullptr;
-        class RenderTexture* kawaseTextures[kMaxKawaseIterations] = {nullptr};
+        Irufemi::RenderTexture* workTextures[2] = {nullptr, nullptr};
+        Irufemi::RenderTexture* bloomExtract = nullptr;
+        Irufemi::RenderTexture* bloomBlur = nullptr;
+        Irufemi::RenderTexture* lsExtract = nullptr;
+        Irufemi::RenderTexture* lsBlur = nullptr;
+        Irufemi::RenderTexture* kawaseTextures[kMaxKawaseIterations] = {nullptr};
     };
 
     using CustomEffectParams = Irufemi::CustomEffectParams;
@@ -135,7 +135,7 @@ public:
      * @param dxCommon DirectX基盤クラス
      * @param rtvFormat 最終的な出力先のRTVフォーマット
      */
-    void Initialize(IrufemiEngine* engine, DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat);
+    void Initialize(IrufemiEngine* engine, Irufemi::DirectXCommon* dxCommon, DXGI_FORMAT rtvFormat);
 
     /**
      * @brief 型安全なエフェクト取得インターフェース（エフェクトレジストリ）
@@ -180,7 +180,7 @@ public:
     /**
      * @brief DirectXCommonへの参照を取得
      */
-    DirectXCommon* GetDxCommon() const {
+    Irufemi::DirectXCommon* GetDxCommon() const {
         return dxCommon_;
     }
 
@@ -303,7 +303,7 @@ public:
     /**
      * @brief 描画実行（マルチパスおよび単一パス対応）
      */
-    void Draw(ID3D12GraphicsCommandList* commandList, class RenderTexture* srcTexture,
+    void Draw(ID3D12GraphicsCommandList* commandList, Irufemi::RenderTexture* srcTexture,
               D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, Layer layer = Layer::PreUI, bool isBackBufferTarget = false,
               const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
 
@@ -486,7 +486,7 @@ public:
     /**
      * @brief 単一のポストプロセスマルチパス描画を実行する
      */
-    void DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, RenderTexture* srcTexture,
+    void DrawSinglePass(ID3D12GraphicsCommandList* commandList, Mode mode, Irufemi::RenderTexture* srcTexture,
                         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, bool isFinalPass = false,
                         ID3D12PipelineState* psoOverride = nullptr, D3D12_GPU_VIRTUAL_ADDRESS cbvOverride = 0);
 
@@ -497,7 +497,7 @@ public:
 
 private:
     IrufemiEngine* engine_ = nullptr;
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     ID3D12Device* device_ = nullptr;
     ID3D12RootSignature* rootSig_ = nullptr;
     DXGI_FORMAT rtvFormat_ = DXGI_FORMAT_UNKNOWN;

@@ -4,6 +4,8 @@
 #include "Core/Math/Math.h"
 #include "Core/System/IrufemiEngine.h"
 
+using namespace Irufemi;
+
 LineResource::~LineResource() {
     Unmap();
     if (auto dxCommon = BaseResource::GetDirectXCommon()) {

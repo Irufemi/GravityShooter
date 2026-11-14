@@ -24,6 +24,8 @@
 #include <Windows.h>
 #include <algorithm>
 
+using namespace Irufemi;
+
 IrufemiEngine* VoxelParticleSystem::engine_ = nullptr;
 
 VoxelParticleSystem::~VoxelParticleSystem() {

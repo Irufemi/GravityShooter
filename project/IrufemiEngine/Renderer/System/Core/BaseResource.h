@@ -5,19 +5,21 @@
 
 #include "Renderer/System/Core/MultiBufferSyncState.h"
 
+namespace Irufemi {
 class DirectXCommon;
+}
 
 class BaseResource : public MultiBufferSyncState {
 public:
     BaseResource() = default;
-    explicit BaseResource(DirectXCommon* dxCommon) : dxCommon_(dxCommon) {}
+    explicit BaseResource(Irufemi::DirectXCommon* dxCommon) : dxCommon_(dxCommon) {}
     virtual ~BaseResource() = default;
 
     /**
      * @brief 個別インスタンス用の DirectXCommon を設定する
      * @param[in] dxCommon 設定する DirectXCommon インスタンスのポインタ
      */
-    void SetDirectXCommonInstance(DirectXCommon* dxCommon) {
+    void SetDirectXCommonInstance(Irufemi::DirectXCommon* dxCommon) {
         dxCommon_ = dxCommon;
     }
 
@@ -25,7 +27,7 @@ public:
      * @brief DirectXCommon を取得する（個別インスタンス優先、未設定時はデフォルトの静的インスタンスへフォールバック）
      * @return 利用可能な DirectXCommon のポインタ
      */
-    DirectXCommon* GetDxCommon() const {
+    Irufemi::DirectXCommon* GetDxCommon() const {
         return dxCommon_ ? dxCommon_ : defaultDxCommon_;
     }
 
@@ -33,7 +35,7 @@ public:
      * @brief 全リソース共通のデフォルト DirectXCommon を設定する
      * @param[in] dxCommon 設定する DirectXCommon インスタンスのポインタ
      */
-    static void SetDirectXCommon(DirectXCommon* dxCommon) {
+    static void SetDirectXCommon(Irufemi::DirectXCommon* dxCommon) {
         defaultDxCommon_ = dxCommon;
     }
 
@@ -41,7 +43,7 @@ public:
      * @brief 全リソース共通のデフォルト DirectXCommon を取得する
      * @return デフォルトの DirectXCommon ポインタ
      */
-    static DirectXCommon* GetDirectXCommon() {
+    static Irufemi::DirectXCommon* GetDirectXCommon() {
         return defaultDxCommon_;
     }
 
@@ -61,6 +63,6 @@ public:
     virtual void Unmap() = 0;
 
 protected:
-    DirectXCommon* dxCommon_ = nullptr;
-    static DirectXCommon* defaultDxCommon_;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
+    static Irufemi::DirectXCommon* defaultDxCommon_;
 };

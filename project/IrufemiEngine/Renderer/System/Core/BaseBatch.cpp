@@ -10,6 +10,9 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 #include "Resource/Texture/TextureManager.h"
+
+using namespace Irufemi;
+
 DirectXCommon* BaseBatch::dx_ = nullptr;
 TextureManager* BaseBatch::textureManager_ = nullptr;
 DrawManager* BaseBatch::drawManager_ = nullptr;

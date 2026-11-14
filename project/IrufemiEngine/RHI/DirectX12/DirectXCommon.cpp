@@ -21,6 +21,8 @@
 #include "RHI/DirectX12/DirectXUtils.h"
 #include "Core/Profiler/GpuProfiler.h"
 
+namespace Irufemi {
+
 ID3D12CommandQueue* DirectXCommon::GetCommandQueue() {
     return commandManager_->GetCommandQueue();
 }
@@ -1074,3 +1076,5 @@ void DirectXCommon::FlushPendingSRVUpdates() {
     }
     pendingSRVUpdates_.clear();
 }
+
+} // namespace Irufemi

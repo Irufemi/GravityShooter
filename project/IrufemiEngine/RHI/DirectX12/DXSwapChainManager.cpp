@@ -3,6 +3,8 @@
 #include <cassert>
 #include <algorithm>
 
+namespace Irufemi {
+
 void DXSwapChainManager::Initialize(ID3D12Device* device, IDXGIFactory7* dxgiFactory, ID3D12CommandQueue* commandQueue,
                                     HWND hwnd, int32_t width, int32_t height) {
     descriptorSizeRTV_ = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -263,3 +265,5 @@ void DXSwapChainManager::FlushPendingDescriptors(uint64_t completedFenceValue) {
         [completedFenceValue](const PendingDescriptor& d) { return d.fenceValue <= completedFenceValue; });
     pendingFreeDsvs_.erase(dsvIt, pendingFreeDsvs_.end());
 }
+
+} // namespace Irufemi

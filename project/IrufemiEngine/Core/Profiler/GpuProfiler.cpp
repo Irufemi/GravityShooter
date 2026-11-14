@@ -4,6 +4,8 @@
 
 #pragma comment(lib, "d3d12.lib")
 
+using namespace Irufemi;
+
 void GpuProfiler::Initialize(DirectXCommon* dxCommon) {
     dxCommon_ = dxCommon;
 

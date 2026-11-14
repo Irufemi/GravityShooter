@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <limits>
 
+namespace Irufemi {
+
 class DescriptorAllocator {
 public:
     static constexpr uint32_t kInvalid = 0xFFFFFFFFu; // std::numeric_limits<uint32_t>::max() の代用
@@ -86,3 +88,5 @@ private:
     std::priority_queue<Pending> pending_;
     mutable std::mutex mutex_;
 };
+
+} // namespace Irufemi

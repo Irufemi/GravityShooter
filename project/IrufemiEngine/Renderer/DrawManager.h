@@ -26,11 +26,12 @@
 #include "Renderer/Data/RenderStage.h"
 #include "Renderer/Data/FogParams.h"
 
+namespace Irufemi {
 class ShadowMap;
+}
 
 // 前方宣言
 class TextureManager;
-class DirectXCommon;
 class BaseParticle;
 class BaseGPU_Particle;
 class Primitive3DObject;
@@ -341,7 +342,7 @@ public: // メンバ関数
     /**
      * @brief Initialize を実行する。
      */
-    void Initialize(class IrufemiEngine* engine, DirectXCommon* dx);
+    void Initialize(class IrufemiEngine* engine, Irufemi::DirectXCommon* dx);
     /**
      * @brief Finalize を実行する。
      */
@@ -471,28 +472,28 @@ public: // メンバ関数
      * @param[in] renderTargets 出力先の RenderTexture のリスト
      * @param[in] clearColors 各 RenderTexture の背景クリア色
      */
-    void BeginRenderTextures(const std::vector<class RenderTexture*>& renderTargets,
+    void BeginRenderTextures(const std::vector<Irufemi::RenderTexture*>& renderTargets,
                              const std::vector<Irufemi::Vector4>& clearColors);
 
     /**
      * @brief 複数の RenderTexture への描画を終了する
      */
-    void EndRenderTextures(const std::vector<class RenderTexture*>& renderTargets);
+    void EndRenderTextures(const std::vector<Irufemi::RenderTexture*>& renderTargets);
 
     /**
      * @brief 指定した RenderTexture への描画を開始する
      * @param[in] rt 出力先の RenderTexture
      * @param[in] clearColor 背景クリア色
      */
-    void BeginRenderTexture(class RenderTexture* rt, const Irufemi::Vector4& clearColor,
-                            class RenderTexture* rt2 = nullptr,
+    void BeginRenderTexture(Irufemi::RenderTexture* rt, const Irufemi::Vector4& clearColor,
+                            Irufemi::RenderTexture* rt2 = nullptr,
                             const Irufemi::Vector4& clearColor2 = Irufemi::Vector4{0.0f, 0.0f, 0.0f, 0.0f});
 
     /**
      * @brief RenderTexture への描画を終了する
      * @param[in] rt 描画していた RenderTexture
      */
-    void EndRenderTexture(class RenderTexture* rt, class RenderTexture* rt2 = nullptr);
+    void EndRenderTexture(Irufemi::RenderTexture* rt, Irufemi::RenderTexture* rt2 = nullptr);
 
     /**
      * @brief レンダーターゲットをバックバッファ（画面）に戻す
@@ -507,7 +508,7 @@ public: // メンバ関数
      * @param[in] cbvAddress 追加の定数バッファアドレス（オプション）
      * @param[in] depthSrvHandle 深度テクスチャのハンドル（オプション）
      */
-    void DrawRenderTexture(class RenderTexture* renderTexture, ID3D12PipelineState* pso = nullptr,
+    void DrawRenderTexture(Irufemi::RenderTexture* renderTexture, ID3D12PipelineState* pso = nullptr,
                            D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = 0, D3D12_GPU_DESCRIPTOR_HANDLE depthSrvHandle = {0});
     ///@}
 
@@ -799,14 +800,14 @@ public:
      * @brief DxCommon を取得する。
      * @return 取得された DxCommon
      */
-    DirectXCommon* GetDxCommon() const {
+    Irufemi::DirectXCommon* GetDxCommon() const {
         return dxCommon_;
     }
     /**
      * @brief ShadowMap を取得する。
      * @return 取得された ShadowMap
      */
-    ShadowMap* GetShadowMap() const {
+    Irufemi::ShadowMap* GetShadowMap() const {
         return shadowMaps_[dxCommon_->GetFrameIndex()].get();
     }
 
@@ -827,7 +828,7 @@ public:
 
 private:
     class IrufemiEngine* engine_ = nullptr;
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     ID3D12GraphicsCommandList* commandList_ = nullptr; // コマンドリストをキャッシュ
 
     std::vector<IComputeTask*> computeTasks_;
@@ -853,15 +854,15 @@ private:
             D3D12_GPU_VIRTUAL_ADDRESS fog;         // register b0 (FogPass)
         } frameData{};
     };
-    std::array<FrameResource, kMaxFramesInFlight> frameResources_;
+    std::array<FrameResource, Irufemi::kMaxFramesInFlight> frameResources_;
 
     D3D12_GPU_DESCRIPTOR_HANDLE environmentMapHandle_{}; // 環境マップ用SRVハンドル
 
     // シャドウマップ・レンダーターゲット関連
-    std::array<std::unique_ptr<ShadowMap>, kMaxFramesInFlight> shadowMaps_;
+    std::array<std::unique_ptr<Irufemi::ShadowMap>, Irufemi::kMaxFramesInFlight> shadowMaps_;
     bool isShadowPass_ = false;
-    class RenderTexture* currentRenderTexture_ = nullptr;
-    RenderTexture* currentRenderTexture2_ = nullptr;
+    Irufemi::RenderTexture* currentRenderTexture_ = nullptr;
+    Irufemi::RenderTexture* currentRenderTexture2_ = nullptr;
 
     Microsoft::WRL::ComPtr<ID3D12CommandSignature> commandSignature_;
     bool vSyncEnabled_ = true;

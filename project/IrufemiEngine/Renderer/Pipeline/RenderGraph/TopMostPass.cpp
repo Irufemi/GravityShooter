@@ -7,6 +7,8 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include "Renderer/Data/RenderContext.h"
 
+using namespace Irufemi;
+
 void TopMostPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
     if (rc.outputResource) {
         builder.RequireState(rc.outputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);

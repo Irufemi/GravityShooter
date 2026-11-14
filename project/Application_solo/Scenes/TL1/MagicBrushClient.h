@@ -8,8 +8,10 @@
 #include <wrl.h>
 #include <dxcapi.h>
 
+namespace Irufemi {
 class ShaderCompiler; // 前方宣言
 class ShaderManager;
+}
 
 /**
  * @class MagicBrushClient
@@ -33,14 +35,14 @@ public:
      */
     void StartGeneration(const std::string& prompt, const std::string& referenceImagePath,
                          const std::string& shaderName, const std::string& outputDirectory,
-                         ShaderManager* shaderManager);
+                         Irufemi::ShaderManager* shaderManager);
 
     /**
      * @brief スクリーンショット撮影完了後、AIによる視覚的自己修復（フィードバックループ）を開始する
      */
     void StartVisualFix(const std::string& referenceImagePath, const std::string& screenshotPath,
                         const std::string& currentHlslCode, const std::string& shaderName,
-                        ShaderManager* shaderManager);
+                        Irufemi::ShaderManager* shaderManager);
 
     // サーバープロセス管理
     bool StartPythonServer();
@@ -80,13 +82,13 @@ public:
     /**
      * @brief 指定したインデックスの履歴からHLSLを復元・再コンパイルする
      */
-    bool RestoreHistory(size_t index, ShaderManager* shaderManager);
+    bool RestoreHistory(size_t index, Irufemi::ShaderManager* shaderManager);
 
 private:
     void ProcessThread(std::string prompt, std::string referenceImagePath, std::string shaderName,
-                       std::string outputDirectory, ShaderManager* shaderManager);
+                       std::string outputDirectory, Irufemi::ShaderManager* shaderManager);
     void VisualFixThread(std::string referenceImagePath, std::string screenshotPath, std::string currentHlslCode,
-                         std::string shaderName, ShaderManager* shaderManager);
+                         std::string shaderName, Irufemi::ShaderManager* shaderManager);
     void LogReadThread();
 
     // HTTPリクエスト（curl.exe をプロセスとして呼び出す簡易実装）

@@ -21,12 +21,15 @@
 #include "Core/Math/Vector4.h"
 #include "RHI/DirectX12/DXRootSignatureManager.h"
 
-class DXCommandManager;
-class DXSwapChainManager;
+// 前方宣言 (グローバル)
 class GpuProfiler;
-
 class Log;
 class IrufemiEngine;
+
+namespace Irufemi {
+
+class DXCommandManager;
+class DXSwapChainManager;
 
 /**
  * @brief 同時実行フレーム数 (トリプルバッファリング)
@@ -606,3 +609,5 @@ private: // メンバ変数
     // エンジン本体への参照
     IrufemiEngine* engine_ = nullptr;
 };
+
+} // namespace Irufemi

@@ -6,6 +6,8 @@
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "RHI/DirectX12/RenderTexture.h"
 
+using namespace Irufemi;
+
 PostProcessCopyPass::PostProcessCopyPass(const std::string& targetName, TransientResourceHandle dstHandle)
     : targetName_(targetName), dstHandle_(dstHandle) {}
 

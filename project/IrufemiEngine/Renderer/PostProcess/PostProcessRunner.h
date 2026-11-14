@@ -11,6 +11,8 @@
 class RenderGraph;
 
 namespace Irufemi {
+class DirectXCommon;
+class RenderTexture;
 class IPostProcessEffect;
 class BloomEffect;
 class LightShaftsEffect;
@@ -44,9 +46,9 @@ public:
     /**
      * @brief Ping-Pong方式で指定されたエフェクト配列を順次ディスパッチする
      */
-    class RenderTexture* Run(PostProcessManager* manager, ID3D12GraphicsCommandList* commandList,
-                             const std::vector<PostProcessManager::Mode>& modes, class RenderTexture* srcTexture,
-                             D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
+    Irufemi::RenderTexture* Run(PostProcessManager* manager, ID3D12GraphicsCommandList* commandList,
+                                const std::vector<PostProcessManager::Mode>& modes, Irufemi::RenderTexture* srcTexture,
+                                D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
                              PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI,
                              bool isFinalOutput = true, bool isBackBufferTarget = false,
                              const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
@@ -62,7 +64,7 @@ public:
     /**
      * @brief 各分離エフェクトの専用PSOおよび定数バッファを初期化する
      */
-    void InitializeEffects(ID3D12Device* device, class DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
+    void InitializeEffects(ID3D12Device* device, Irufemi::DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
                            D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat);
 
     /**
@@ -96,7 +98,7 @@ private:
     std::unordered_map<std::type_index, Irufemi::IPostProcessEffect*> effectRegistry_;
 
     TransientResourceHandle workHandles_[2][2] = {{kInvalidHandle, kInvalidHandle}, {kInvalidHandle, kInvalidHandle}};
-    class RenderTexture* workTextures_[2][2] = {{nullptr, nullptr}, {nullptr, nullptr}};
+    Irufemi::RenderTexture* workTextures_[2][2] = {{nullptr, nullptr}, {nullptr, nullptr}};
 
     std::unique_ptr<Irufemi::BloomEffect> bloomEffect_;
     std::unique_ptr<Irufemi::LightShaftsEffect> lightShaftsEffect_;

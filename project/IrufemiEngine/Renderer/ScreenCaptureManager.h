@@ -11,9 +11,11 @@
 #include "Core/Utility/Synchronized.h"
 
 // 前方宣言
-class DirectXCommon;
 class IrufemiEngine;
+namespace Irufemi {
+class DirectXCommon;
 class RenderTexture;
+}
 
 enum class ScreenCaptureType {
     SceneOnly, // ポストプロセス後、UI描画前の純粋なシーン
@@ -37,7 +39,7 @@ public:
     /**
      * @brief Initialize を実行する。
      */
-    void Initialize(DirectXCommon* dxCommon, ThreadPool* threadPool);
+    void Initialize(Irufemi::DirectXCommon* dxCommon, ThreadPool* threadPool);
     /**
      * @brief Finalize を実行する。
      */
@@ -60,7 +62,7 @@ public:
     /**
      * @brief OnPreUIDraw を実行する。
      */
-    void OnPreUIDraw(ID3D12GraphicsCommandList* commandList, RenderTexture* mainRenderTexture);
+    void OnPreUIDraw(ID3D12GraphicsCommandList* commandList, Irufemi::RenderTexture* mainRenderTexture);
     /**
      * @brief OnPostUIDraw を実行する。
      */
@@ -101,7 +103,7 @@ private:
                           DXGI_FORMAT overrideFormat = DXGI_FORMAT_UNKNOWN);
 
 private:
-    DirectXCommon* dxCommon_ = nullptr;
+    Irufemi::DirectXCommon* dxCommon_ = nullptr;
     ThreadPool* threadPool_ = nullptr;
 
     Irufemi::Synchronized<std::vector<ScreenCaptureRequest>> pendingRequests_;

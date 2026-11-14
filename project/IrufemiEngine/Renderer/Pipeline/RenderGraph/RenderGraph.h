@@ -11,6 +11,10 @@
 
 class DrawManager;
 class IrufemiEngine;
+namespace Irufemi {
+class DirectXCommon;
+class RenderTexture;
+}
 
 /**
  * @class RenderGraph
@@ -113,7 +117,7 @@ public:
     /**
      * @brief 一時リソースの RenderTexture ラッパーを取得する（RTVやSRVが必要な場合）
      */
-    class RenderTexture* GetTransientRenderTexture(TransientResourceHandle handle) {
+    Irufemi::RenderTexture* GetTransientRenderTexture(TransientResourceHandle handle) {
         if (handle < transientRenderTextures_.size()) {
             return transientRenderTextures_[handle].get();
         }
@@ -123,7 +127,7 @@ public:
     /**
      * @brief TransientResourceManagerの初期化
      */
-    void InitializeTransientResourceManager(class DirectXCommon* dxCommon);
+    void InitializeTransientResourceManager(Irufemi::DirectXCommon* dxCommon);
     /**
      * @brief TransientResourceManager を取得する。
      * @return 取得された TransientResourceManager
@@ -161,5 +165,5 @@ private:
 
     std::unique_ptr<TransientResourceManager> transientResourceManager_;
     std::vector<ID3D12Resource*> transientPhysicalResources_;
-    std::vector<std::unique_ptr<class RenderTexture>> transientRenderTextures_;
+    std::vector<std::unique_ptr<Irufemi::RenderTexture>> transientRenderTextures_;
 };

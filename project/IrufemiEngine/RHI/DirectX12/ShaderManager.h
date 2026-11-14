@@ -8,6 +8,8 @@
 #include <tuple>
 #include "Core/Utility/Synchronized.h"
 
+namespace Irufemi {
+
 /**
  * @class ShaderManager
  * @brief シェーダーのコンパイル結果を管理・キャッシュするクラス
@@ -83,3 +85,5 @@ private:
      */
     std::wstring ResolveSourcePath(const std::wstring& filename) const;
 };
+
+} // namespace Irufemi
