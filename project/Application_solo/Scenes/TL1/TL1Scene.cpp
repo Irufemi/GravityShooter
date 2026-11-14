@@ -24,6 +24,8 @@
 #include <iostream>
 #include <unordered_map>
 
+using namespace Irufemi;
+
 #ifdef USE_IMGUI
 
 #include "imgui.h"

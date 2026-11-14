@@ -2,6 +2,8 @@
 
 #include <unordered_map>
 
+namespace Irufemi {
+
 void Keyboard::Initialize() {
     currentKeys_.fill(0);
     previousKeys_.fill(0);
@@ -188,3 +190,5 @@ bool Keyboard::IsKeyReleasedDIK(uint8_t dik) const {
     uint8_t vk = DIKToVK(dik);
     return vk ? IsKeyReleased(vk) : false;
 }
+
+} // namespace Irufemi

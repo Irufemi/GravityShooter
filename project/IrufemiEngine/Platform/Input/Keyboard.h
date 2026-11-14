@@ -3,6 +3,8 @@
 #include <array>
 #include <cstdint>
 
+namespace Irufemi {
+
 /**
  * @class Keyboard
  * @brief キーボード入力を管理するクラス
@@ -84,3 +86,5 @@ private:
      */
     static uint8_t DIKToVK(uint8_t dik);
 };
+
+} // namespace Irufemi

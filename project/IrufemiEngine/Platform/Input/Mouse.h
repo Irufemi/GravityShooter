@@ -3,6 +3,8 @@
 #include <array>
 #include "Core/Math/Vector2.h"
 
+namespace Irufemi {
+
 /**
  * @class Mouse
  * @brief マウス入力を管理するクラス
@@ -120,3 +122,5 @@ private:
     float gameResWidth_ = 1280.0f;
     float gameResHeight_ = 720.0f;
 };
+
+} // namespace Irufemi

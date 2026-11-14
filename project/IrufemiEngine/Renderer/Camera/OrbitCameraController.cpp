@@ -4,7 +4,9 @@
 #include "Core/Math/MathFunction.h"
 #include <algorithm>
 
-void OrbitCameraController::UpdateCameraInput(Camera* camera, InputManager* input) {
+using namespace Irufemi;
+
+void OrbitCameraController::UpdateCameraInput(Camera* camera, Irufemi::InputManager* input) {
     if (!camera || !input) {
         return;
     }

@@ -88,6 +88,8 @@ namespace Irufemi {
 extern void ReferenceEngineCVars();
 }
 
+using namespace Irufemi;
+
 namespace {
 static float s_gpuWaitTimeMs = 0.0f;
 }

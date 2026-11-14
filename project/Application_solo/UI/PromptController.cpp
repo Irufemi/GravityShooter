@@ -4,6 +4,8 @@
 #include "Renderer/Object/2D/Sprite/Sprite.h"
 #include "Engine/Irufemi.h"
 
+using namespace Irufemi;
+
 PromptController::PromptController() {
     animator_.Reset();
 }
@@ -16,7 +18,7 @@ void PromptController::SetTarget(Sprite* targetSprite) {
     targetSprite_ = targetSprite;
 }
 
-void PromptController::Update(InputManager* input, float dt) {
+void PromptController::Update(Irufemi::InputManager* input, float dt) {
     animator_.Update(dt);
 
     if (!isDecided_) {

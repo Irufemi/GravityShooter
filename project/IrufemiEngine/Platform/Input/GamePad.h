@@ -4,6 +4,8 @@
 #include <utility>
 #pragma comment(lib, "Xinput.lib")
 
+namespace Irufemi {
+
 enum class Stick8 { Neutral, Up, UpRight, Right, DownRight, Down, DownLeft, Left, UpLeft };
 
 /**
@@ -318,3 +320,5 @@ private:
     bool invertY_ = false;
     uint32_t retryCountdown_ = 0;
 };
+
+} // namespace Irufemi

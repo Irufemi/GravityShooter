@@ -5,6 +5,8 @@
 #include <cmath>
 #include <unordered_set>
 
+namespace Irufemi {
+
 void InputManager::Initialize(HWND hwnd) {
     hwnd_ = hwnd;
     keyboard_ = std::make_unique<Keyboard>();
@@ -981,3 +983,5 @@ bool InputManager::HasAnyInput() const {
 
     return false;
 }
+
+} // namespace Irufemi

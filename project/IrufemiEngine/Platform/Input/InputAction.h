@@ -4,6 +4,8 @@
 #include <string>
 #include "Core/Math/Vector2.h"
 
+namespace Irufemi {
+
 /**
  * @enum InputDeviceType
  * @brief 入力デバイスの種類
@@ -202,3 +204,5 @@ bool StringToInputBinding(const std::string& name, InputId& outId, InputModifier
  * @brief InputId から標準文字列表現を取得する
  */
 const char* InputIdToString(InputId id);
+
+} // namespace Irufemi

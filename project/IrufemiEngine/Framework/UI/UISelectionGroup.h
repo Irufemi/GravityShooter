@@ -6,7 +6,9 @@
 
 class Sprite;
 class StaticModelObject;
+namespace Irufemi {
 class InputManager;
+}
 
 /**
  * @class UISelectionGroup
@@ -57,7 +59,7 @@ public:
      * @param input InputManagerへのポインタ
      * @param deltaTime デルタタイム（秒、デフォルトは 1.0f / 60.0f）
      */
-    void Update(InputManager* input, float deltaTime = 1.0f / 60.0f);
+    void Update(Irufemi::InputManager* input, float deltaTime = 1.0f / 60.0f);
 
     /**
      * @brief 描画処理（標準の描画を行う場合に使用）

@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <string>
 
+namespace Irufemi {
+
 void Mouse::Initialize(HWND hwnd) {
     hwnd_ = hwnd;
     // 初期位置を取得
@@ -156,3 +158,5 @@ float Mouse::GetWheelDelta() const {
     // このクラスのメンバー変数 wheelDelta_ を更新します。
     return wheelDelta_;
 }
+
+} // namespace Irufemi

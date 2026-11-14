@@ -9,6 +9,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace Irufemi {
+
 // 役割：具体実装(Keyboard/GamePad/Mouse)を保持し、旧APIをフォワードして互換を維持するファサード
 /**
  * @class InputManager
@@ -415,3 +417,5 @@ private:
     bool isUsingGamepadCursor_ = false;
     float virtualCursorBaseSpeed_ = 650.0f;
 };
+
+} // namespace Irufemi

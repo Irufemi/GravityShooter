@@ -37,9 +37,6 @@ namespace Irufemi {}
 #include <algorithm>
 
 // --- 前方宣言 ---
-class InputManager;
-class WinApp;
-enum class DisplayMode;
 class DrawManager;
 class DebugPrimitiveRenderer;
 class DebugUI;
@@ -47,6 +44,9 @@ class IEngineExtension;
 class TextureManager;
 namespace Irufemi {
 class AudioManager;
+class InputManager;
+class WinApp;
+enum class DisplayMode;
 }
 class ModelManager;
 class AnimationManager;
@@ -170,7 +170,7 @@ public: // メンバ関数
     /**
      * @brief ディスプレイモード（ウィンドウ/仮想フルスクリーン）を変更する
      */
-    void SetDisplayMode(DisplayMode mode);
+    void SetDisplayMode(Irufemi::DisplayMode mode);
 
     /**
      * @brief ディスプレイモード（ウィンドウ/仮想フルスクリーン）を切り替える
@@ -402,7 +402,7 @@ public: // ゲッター
      * @brief InputManager を取得する。
      * @return 取得された InputManager
      */
-    InputManager* GetInputManager() {
+    Irufemi::InputManager* GetInputManager() {
         return this->inputManager_.get();
     }
     /**
@@ -560,7 +560,7 @@ public: // ゲッター
     }
 
     /** @brief WinApp を取得 */
-    WinApp* GetWinApp() const {
+    Irufemi::WinApp* GetWinApp() const {
         return winApp_.get();
     }
     ///@}
@@ -922,7 +922,7 @@ private: // メンバ変数
     std::unique_ptr<Log> log_ = nullptr;
 
     // WinApp
-    std::unique_ptr<WinApp> winApp_ = nullptr;
+    std::unique_ptr<Irufemi::WinApp> winApp_ = nullptr;
 
     // DirectX基盤
     std::unique_ptr<DirectXCommon> dxCommon_ = nullptr;
@@ -930,7 +930,7 @@ private: // メンバ変数
     // --- Manager ---
 
     // InputManager
-    std::unique_ptr<InputManager> inputManager_ = nullptr;
+    std::unique_ptr<Irufemi::InputManager> inputManager_ = nullptr;
 
     // DrawManager
     std::unique_ptr<DrawManager> drawManager_ = nullptr;

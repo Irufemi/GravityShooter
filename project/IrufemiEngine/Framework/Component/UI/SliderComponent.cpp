@@ -10,6 +10,8 @@
 #include "Renderer/Camera/Camera.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 void SliderComponent::OnRegisterProperties() {
     RegisterProperty("Hitbox Scale", &hitboxScale_);
     RegisterProperty("Value", &value_);

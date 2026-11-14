@@ -12,6 +12,8 @@
 #include <cmath>
 #include <algorithm>
 
+using namespace Irufemi;
+
 void HowToPlayScene::Initialize(IrufemiEngine* engine) {
     BaseScene::Initialize(engine);
     openCooldownTimer_ = 0.15f;

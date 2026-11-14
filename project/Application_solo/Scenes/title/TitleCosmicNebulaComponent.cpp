@@ -11,6 +11,8 @@
 #include "Core/Math/MathFunction.h"
 #include "Core/Utility/ErrorUtility.h"
 
+using namespace Irufemi;
+
 TitleCosmicNebulaComponent::~TitleCosmicNebulaComponent() {
     if (constantBuffer_ && mappedParams_) {
         constantBuffer_->Unmap(0, nullptr);

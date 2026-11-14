@@ -21,6 +21,8 @@
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "Dbghelp.lib")
 
+namespace Irufemi {
+
 WinApp::~WinApp() {
     Finalize();
 }
@@ -430,3 +432,5 @@ LRESULT CALLBACK WinApp::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM l
     }
     return CallNextHookEx(keyboardHook_, nCode, wParam, lParam);
 }
+
+} // namespace Irufemi

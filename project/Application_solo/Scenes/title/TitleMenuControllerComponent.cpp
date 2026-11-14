@@ -29,6 +29,8 @@
 #include <cmath>
 #include <algorithm>
 
+using namespace Irufemi;
+
 void TitleMenuControllerComponent::Initialize() {
     currentIndex_ = 0;
     pressedButtonIndex_ = -1;

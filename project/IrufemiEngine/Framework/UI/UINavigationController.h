@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <cmath>
 
+namespace Irufemi {
 class InputManager;
+}
 
 /**
  * @enum NavigationInputMode
@@ -100,7 +102,7 @@ public:
      * @param deltaTime フレーム経過時間（秒）
      * @return 選択インデックスが変更された場合は true
      */
-    bool Update(InputManager* input, float deltaTime);
+    bool Update(Irufemi::InputManager* input, float deltaTime);
 
     /**
      * @brief マウスホバーによるインデックス更新を試みる
@@ -109,7 +111,7 @@ public:
      * @param input InputManager へのポインタ
      * @return 選択が更新された場合は true
      */
-    bool TrySetHoveredIndex(int hoveredIndex, InputManager* input);
+    bool TrySetHoveredIndex(int hoveredIndex, Irufemi::InputManager* input);
 
     /**
      * @brief 現在マウスホバーによる選択が許可されている状態か判定

@@ -1,5 +1,7 @@
 #include "Platform/Input/InputMappingContext.h"
 
+namespace Irufemi {
+
 void InputMappingContext::AddBinding(const std::string& actionName, const InputBinding& binding) {
     mappings_[actionName].push_back(binding);
 }
@@ -25,3 +27,5 @@ std::vector<std::string> InputMappingContext::GetAllActionNames() const {
 void InputMappingContext::Clear() {
     mappings_.clear();
 }
+
+} // namespace Irufemi

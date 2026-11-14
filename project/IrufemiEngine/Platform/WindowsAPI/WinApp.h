@@ -4,11 +4,15 @@
 #include <string>
 #include <cstdint>
 
+// 前方宣言 (グローバル)
+class IrufemiEngine;
+
+namespace Irufemi {
+
 enum class DisplayMode { Windowed, Borderless };
 
 // 前方宣言
 class InputManager;
-class IrufemiEngine;
 
 /**
  * @class WinApp
@@ -200,3 +204,5 @@ private:
     static inline HWND activeHwnd_ = nullptr;
     static inline bool globalKeyLockEnabled_ = false;
 };
+
+} // namespace Irufemi

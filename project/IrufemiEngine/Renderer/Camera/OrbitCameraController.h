@@ -15,7 +15,7 @@ public:
      * @param camera 操作対象のカメラ
      * @param input 入力マネージャ
      */
-    void UpdateCameraInput(Camera* camera, InputManager* input);
+    void UpdateCameraInput(Camera* camera, Irufemi::InputManager* input);
 
     /**
      * @brief 指定したワールド座標をカメラの中心に収めるよう移動・注視します。

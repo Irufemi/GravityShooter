@@ -16,6 +16,9 @@ class TextRendererComponent;
 class Primitive2DRendererComponent;
 class Component;
 class GameObject;
+namespace Irufemi {
+class InputManager;
+}
 
 /**
  * @class OptionsScene
@@ -90,7 +93,7 @@ private:
         TextRendererComponent*& textRef;
 
         std::function<float()> initialValueGetter;
-        std::function<void(float, InputManager*)> applyValue;
+        std::function<void(float, Irufemi::InputManager*)> applyValue;
     };
 
     std::vector<SliderBinding> GetSliderBindings();

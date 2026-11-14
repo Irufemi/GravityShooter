@@ -67,16 +67,16 @@ inline constexpr const char* GameAxisToString(GameAxis axis) noexcept {
  * @brief ゲーム固有のアクションマッピング（キー・マウス・パッド）判定を簡潔に行うヘルパー名前空間
  */
 namespace InputHelper {
-inline bool IsActionDown(const InputManager* input, GameAction action) {
+inline bool IsActionDown(const Irufemi::InputManager* input, GameAction action) {
     return input ? input->IsActionDown(GameActionToString(action)) : false;
 }
-inline bool IsActionPressed(const InputManager* input, GameAction action) {
+inline bool IsActionPressed(const Irufemi::InputManager* input, GameAction action) {
     return input ? input->IsActionTriggered(GameActionToString(action)) : false;
 }
-inline bool IsActionReleased(const InputManager* input, GameAction action) {
+inline bool IsActionReleased(const Irufemi::InputManager* input, GameAction action) {
     return input ? input->IsActionReleased(GameActionToString(action)) : false;
 }
-inline float GetAxisValue(const InputManager* input, GameAxis axis) {
+inline float GetAxisValue(const Irufemi::InputManager* input, GameAxis axis) {
     return input ? input->GetActionValue(GameAxisToString(axis)).x : 0.0f;
 }
 } // namespace InputHelper

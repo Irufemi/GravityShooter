@@ -21,6 +21,8 @@
 #include <cmath>
 #include <functional>
 
+using namespace Irufemi;
+
 namespace {
 // 感度マッピング定数（250.0f 〜 1250.0f、基準 650.0f = 0.4x）
 constexpr float kMinCursorSpeed = 250.0f;

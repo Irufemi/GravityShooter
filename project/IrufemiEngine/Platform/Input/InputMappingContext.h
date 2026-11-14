@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace Irufemi {
+
 /**
  * @class InputMappingContext
  * @brief アクションと物理入力（バインディング）の対応付けを管理するクラス
@@ -66,3 +68,5 @@ private:
     std::string name_{"Default"};
     std::unordered_map<std::string, std::vector<InputBinding>> mappings_{};
 };
+
+} // namespace Irufemi

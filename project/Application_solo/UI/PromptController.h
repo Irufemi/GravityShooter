@@ -5,7 +5,9 @@
 // 前方宣言
 class StaticModelObject;
 class Sprite;
+namespace Irufemi {
 class InputManager;
+}
 
 /**
  * @class PromptController
@@ -41,7 +43,7 @@ public:
      * @param input InputManagerへのポインタ
      * @param dt デルタ時間（秒）
      */
-    void Update(InputManager* input, float dt = 1.0f / 60.0f);
+    void Update(Irufemi::InputManager* input, float dt = 1.0f / 60.0f);
 
     /**
      * @brief 描画処理（対象オブジェクトの Draw を呼び出す。フラッシュ時のスキップも行う）

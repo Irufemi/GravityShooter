@@ -3,6 +3,8 @@
 #include "Core/Math/MathFunction.h"
 #include <cmath>
 
+namespace Irufemi {
+
 void GamePad::Initialize() {
     ZeroMemory(&state_, sizeof(state_));
     ZeroMemory(&prev_, sizeof(prev_));
@@ -345,3 +347,5 @@ bool GamePad::StartPressed() const {
 bool GamePad::StartReleased() const {
     return IsButtonReleased(XINPUT_GAMEPAD_START);
 }
+
+} // namespace Irufemi
