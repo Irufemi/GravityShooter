@@ -148,7 +148,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, i
     Irufemi::Random::SeedEngine();
 
     // AudioManagerの生成と初期化(Media Foundation含む)
-    audioManager_ = std::make_unique<AudioManager>();
+    audioManager_ = std::make_unique<Irufemi::AudioManager>();
     audioManager_->Initialize();
     audioManager_->LoadAllSoundsFromFolder("resources/audio", threadPool_.get());
 

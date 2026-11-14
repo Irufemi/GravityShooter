@@ -25,6 +25,7 @@ description: 学校の授業資料・レビュー基準（単元別カリキュ�
 | **`02_04`** | **引数のconst参照 (Pass by const-Reference)** | [02_04_const_reference.md](references/02_04_const_reference.md) | 64bit超の型のconst参照化、64bit以下プリミティブの無意味なconst参照排除、ダングリング参照防止 |
 | **`02_05`** | **new / delete 禁止 (Smart Pointer & RAII)** | [02_05_no_new_delete.md](references/02_05_no_new_delete.md) | 生new/deleteの完全排除、unique_ptr優先、shared_ptr無意味濫用の抑制、Persistent Mapping理解 |
 | **`02_06`** | **マジックナンバー撲滅 (Eliminate Magic Numbers)** | [02_06_magic_numbers.md](references/02_06_magic_numbers.md) | 3段階解消法（定数化/外部ファイル化/エディタ化）、許されるマジックナンバーの厳格適用、ロジック直書き排除 |
+| **`02_07`** | **エンジンnamespace (Engine Namespace)** | [02_07_engine_namespace.md](references/02_07_engine_namespace.md) | ヘッダーでのusing namespace完全禁止（名前空間汚染防止）、エンジン層のnamespace Irufemi囲み、無名名前空間の活用 |
 
 
 ---

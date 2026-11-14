@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace Irufemi;
+
 ResultManagerComponent::~ResultManagerComponent() {
     RemoveEntryPostProcess(); // ポストプロセスの確実な解除
 

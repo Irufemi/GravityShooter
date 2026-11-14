@@ -28,6 +28,8 @@
 #include "Platform/Input/InputManager.h"
 #include <cmath>
 #include <algorithm>
+
+using namespace Irufemi;
 #include <random>
 
 TitleSceneDirectorComponent::~TitleSceneDirectorComponent() {

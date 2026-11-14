@@ -2,6 +2,8 @@
 #include <cassert>
 #include <propvarutil.h>
 
+namespace Irufemi {
+
 // ~Sound() は default のため、ここの定義は不要です
 
 bool Sound::Load(const std::wstring& filePath) {
@@ -111,3 +113,5 @@ bool Sound::Load(const std::wstring& filePath) {
 
     return true;
 }
+
+} // namespace Irufemi

@@ -7,6 +7,8 @@
 #include <string>
 #include <unordered_map>
 
+using namespace Irufemi;
+
 namespace {
 // UIサウンドの論理キーとデフォルト音量定義
 constexpr const char* kNameCursor = "se_menu_cursor";

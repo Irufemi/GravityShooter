@@ -23,6 +23,8 @@
 #include <filesystem>
 #include <iostream>
 
+using namespace Irufemi;
+
 std::vector<Irufemi::Vector3> SpawnEnemyHandler::CalculateSpawnPositions(WaveManagerComponent* manager,
                                                                          const WaveEventData& data,
                                                                          const Irufemi::Vector3& railPos,

@@ -7,6 +7,8 @@
 #include <shared_mutex>
 #include <iostream>
 
+using namespace Irufemi;
+
 namespace {
 
 AudioManager* s_audioManager = nullptr;

@@ -12,6 +12,8 @@
 #pragma comment(lib, "mfplat.lib")
 #pragma comment(lib, "mfuuid.lib")
 
+namespace Irufemi {
+
 /**
  * @brief CoTaskMemFree を用いてメモリを解放するカスタムデリータ
  */
@@ -68,3 +70,5 @@ private:
     std::unique_ptr<WAVEFORMATEX, CoTaskMemDeleter> pWaveFormat_; ///< 波形フォーマット情報。RAIIで自動解放
     std::vector<BYTE> mediaData_;                                 ///< 読み込まれたオーディオデータ本体
 };
+
+} // namespace Irufemi

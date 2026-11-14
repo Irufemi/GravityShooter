@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Irufemi {
+
 /**
  * @enum AudioType
  * @brief 音の種類（BGMかSEかなど）を表す列挙型
@@ -9,3 +11,5 @@ enum class AudioType {
     BGM, ///< バックグラウンドミュージック（通常ループ再生）
     SE   ///< サウンドエフェクト（通常単発再生）
 };
+
+} // namespace Irufemi

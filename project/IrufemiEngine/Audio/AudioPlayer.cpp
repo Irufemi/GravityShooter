@@ -1,5 +1,7 @@
 #include "Audio/AudioPlayer.h"
 
+namespace Irufemi {
+
 AudioPlayer::AudioPlayer(AudioManager* audioManager, AudioType type) : audioManager_(audioManager), type_(type) {
     // BGMの場合はデフォルト音量を少し下げるなどの調整も可能ですが、
     // ここでは1.0fをベースとして扱います。
@@ -67,3 +69,5 @@ void AudioPlayer::SetVolume(float volume) {
         v->SetVolume(volume_);
     }
 }
+
+} // namespace Irufemi

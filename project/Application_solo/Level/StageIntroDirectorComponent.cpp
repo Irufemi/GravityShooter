@@ -26,6 +26,8 @@
 #include <cmath>
 #include <unordered_map>
 
+using namespace Irufemi;
+
 StageIntroDirectorComponent::~StageIntroDirectorComponent() {
     CleanupWarpVisuals();
     DestroyMembraneObject();

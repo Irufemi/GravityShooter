@@ -36,6 +36,8 @@
 #include <cmath>
 #include <iostream>
 
+using namespace Irufemi;
+
 void PlayerDamageVisualizerComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     RegisterProperty("Flash Interval", &flashInterval_);

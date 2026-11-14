@@ -61,9 +61,9 @@ void AudioSourceComponent::InitializeAudio() {
     auto audioManager = engine->GetAudioManager();
     if (audioManager) {
         if (!player_) {
-            player_ = std::make_unique<AudioPlayer>(audioManager, static_cast<AudioType>(audioType_));
+            player_ = std::make_unique<Irufemi::AudioPlayer>(audioManager, static_cast<Irufemi::AudioType>(audioType_));
         } else {
-            player_->SetAudioType(static_cast<AudioType>(audioType_));
+            player_->SetAudioType(static_cast<Irufemi::AudioType>(audioType_));
         }
 
         std::string fullPath = "resources/" + audioPath_;
@@ -134,7 +134,7 @@ void AudioSourceComponent::SetLoop(bool loop) {
     loop_ = loop;
 }
 
-void AudioSourceComponent::SetAudioType(AudioType type) {
+void AudioSourceComponent::SetAudioType(Irufemi::AudioType type) {
     audioType_ = static_cast<int>(type);
     if (player_) {
         player_->SetAudioType(type);

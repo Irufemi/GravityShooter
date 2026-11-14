@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace Irufemi;
+
 void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
     if (!director) {
         return;

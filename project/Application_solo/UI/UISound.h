@@ -6,7 +6,9 @@
  * @details 階層型サブミックス・バス（UIBus）へのルーティング、スティック連続操作時の
  *          マシンガン鳴り防止（スロットリング）、およびアセットの一元管理を提供します。
  */
+namespace Irufemi {
 class AudioManager;
+}
 
 namespace UISound {
 
@@ -14,7 +16,7 @@ namespace UISound {
  * @brief UISound システムを初期化します
  * @param[in] audioManager エンジンのAudioManagerポインタ
  */
-void Initialize(AudioManager* audioManager);
+void Initialize(Irufemi::AudioManager* audioManager);
 
 /**
  * @brief UIサウンドリソースの事前ロードを行います

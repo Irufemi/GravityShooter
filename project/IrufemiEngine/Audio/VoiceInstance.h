@@ -3,6 +3,8 @@
 #include <memory>
 #include "Audio/VoiceCallback.h"
 
+namespace Irufemi {
+
 enum class AudioCategory {
     Master, // 特殊な用途
     BGM,
@@ -115,3 +117,5 @@ private:
     std::unique_ptr<VoiceCallback> callback_;
     AudioCategory category_;
 };
+
+} // namespace Irufemi

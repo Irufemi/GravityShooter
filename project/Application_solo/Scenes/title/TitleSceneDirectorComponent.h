@@ -10,7 +10,9 @@
 
 class TransformComponent;
 class TitleCosmicNebulaComponent;
+namespace Irufemi {
 class VoiceInstance;
+}
 
 /**
  * @class TitleSceneDirectorComponent
@@ -264,7 +266,7 @@ public:
     /**
      * @brief チャージ音のボイスインスタンスを設定します
      */
-    void SetChargeVoiceInstance(std::weak_ptr<VoiceInstance> voice) {
+    void SetChargeVoiceInstance(std::weak_ptr<Irufemi::VoiceInstance> voice) {
         chargeVoiceInstance_ = voice;
     }
 
@@ -329,7 +331,7 @@ private: // メンバ変数
     std::string debrisShatterSePath_;
     std::string playerBoostSePath_;
     std::string gravityWarpSePath_;
-    std::weak_ptr<VoiceInstance> chargeVoiceInstance_; ///< チャージ音のボイス弱参照（真空の静寂制御用）
+    std::weak_ptr<Irufemi::VoiceInstance> chargeVoiceInstance_; ///< チャージ音のボイス弱参照（真空の静寂制御用）
     float transitionDuration_ =
         0.22f; ///< シーン遷移（暗転・明転）にかける時間（秒: 0.22sの鋭い暗転・明転でインゲーム演出との重複を排除）
 

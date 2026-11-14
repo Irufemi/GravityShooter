@@ -5,6 +5,8 @@
 #include <memory>
 #include <optional>
 
+namespace Irufemi {
+
 /**
  * @class AudioPlayer
  * @brief プログラマーが直接コードから再生命令を出せるAudio Objectクラス
@@ -98,3 +100,5 @@ private:
     float volume_{1.0f};   ///< 設定音量
     std::string soundKey_; ///< キャッシュ用キー
 };
+
+} // namespace Irufemi

@@ -4,7 +4,9 @@
 #include <string_view>
 #include <optional>
 
+namespace Irufemi {
 class AudioManager;
+}
 
 /**
  * @struct SoundActionDescriptor
@@ -29,7 +31,7 @@ namespace SoundHelper {
  * @param configPath 設定JSONファイルのパス
  * @return 読み込み成功時 true
  */
-bool Initialize(AudioManager* audioManager, const std::string& configPath = "resources/config/sound_actions.json");
+bool Initialize(Irufemi::AudioManager* audioManager, const std::string& configPath = "resources/config/sound_actions.json");
 
 /**
  * @brief 定義済みの全サウンドアセットをメモリに事前ロード（キャッシュ）します

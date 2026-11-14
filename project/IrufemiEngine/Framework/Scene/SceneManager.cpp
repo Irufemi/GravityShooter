@@ -548,7 +548,7 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     if (engine_->GetAudioManager()) {
         bool isTitleLaunchToInGame = (previousScene == "Title" && next == "InGame");
         if (!isTitleLaunchToInGame) {
-            engine_->GetAudioManager()->StopCategory(AudioCategory::SE);
+            engine_->GetAudioManager()->StopCategory(Irufemi::AudioCategory::SE);
         }
     }
 

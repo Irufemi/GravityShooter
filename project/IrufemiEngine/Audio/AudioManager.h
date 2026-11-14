@@ -16,6 +16,8 @@ struct IXAudio2SubmixVoice;
 class ThreadPool;
 class TaskGroup;
 
+namespace Irufemi {
+
 /**
  * @class AudioManager
  * @brief XAudio2 を使用した音声再生とリソース管理を行うマネージャクラス
@@ -318,3 +320,5 @@ public:
      */
     bool HasSound(const std::string& key) const;
 };
+
+} // namespace Irufemi

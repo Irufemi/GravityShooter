@@ -2,6 +2,8 @@
 #include <xaudio2.h>
 #include <atomic>
 
+namespace Irufemi {
+
 // SourceVoiceの再生が完了したことを受け取り、自身を破棄するためのコールバック
 class VoiceCallback : public IXAudio2VoiceCallback {
 public:
@@ -48,3 +50,5 @@ public:
 private:
     std::atomic<bool> finished_{false};
 };
+
+} // namespace Irufemi

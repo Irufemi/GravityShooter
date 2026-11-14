@@ -36,6 +36,8 @@ std::string NormalizePath(const std::string& path) {
 }
 } // namespace
 
+namespace Irufemi {
+
 AudioManager::~AudioManager() {
     Finalize();
 }
@@ -779,3 +781,5 @@ void AudioManager::FadeVoice(std::weak_ptr<VoiceInstance> voice, float targetVol
         state.fadeTasks.push_back(task);
     });
 }
+
+} // namespace Irufemi

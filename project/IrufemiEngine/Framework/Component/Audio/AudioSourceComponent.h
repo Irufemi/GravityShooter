@@ -82,18 +82,18 @@ public:
      * @brief オーディオカテゴリ種別を設定する
      * @param[in] type オーディオ種別 (BGM or SE)
      */
-    void SetAudioType(AudioType type);
+    void SetAudioType(Irufemi::AudioType type);
 
 private:
     void InitializeAudio();
 
-    std::string audioPath_ = "";                      // デフォルト
-    std::string loadedAudioPath_ = "";                ///< 現在ロードされている音源パス
-    int audioType_ = static_cast<int>(AudioType::SE); // シリアライズ用
+    std::string audioPath_ = "";                               // デフォルト
+    std::string loadedAudioPath_ = "";                         ///< 現在ロードされている音源パス
+    int audioType_ = static_cast<int>(Irufemi::AudioType::SE); // シリアライズ用
     bool playOnAwake_ = false;
     bool loop_ = false;
     float volume_ = 1.0f;
     float lastVolume_ = -1.0f; ///< 不要な音量再設定を抑止するためのキャッシュ値
 
-    std::unique_ptr<AudioPlayer> player_; ///< 実際の再生を担うObject層のインスタンス
+    std::unique_ptr<Irufemi::AudioPlayer> player_; ///< 実際の再生を担うObject層のインスタンス
 };

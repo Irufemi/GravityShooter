@@ -45,7 +45,9 @@ class DebugPrimitiveRenderer;
 class DebugUI;
 class IEngineExtension;
 class TextureManager;
+namespace Irufemi {
 class AudioManager;
+}
 class ModelManager;
 class AnimationManager;
 class Log;
@@ -428,7 +430,7 @@ public: // ゲッター
      * @brief AudioManager を取得する。
      * @return 取得された AudioManager
      */
-    AudioManager* GetAudioManager() {
+    Irufemi::AudioManager* GetAudioManager() {
         return this->audioManager_.get();
     }
     /**
@@ -946,7 +948,7 @@ private: // メンバ変数
     std::unique_ptr<TextureManager> textureManager_ = nullptr;
 
     // AudioManager
-    std::unique_ptr<AudioManager> audioManager_ = nullptr;
+    std::unique_ptr<Irufemi::AudioManager> audioManager_ = nullptr;
 
     // SceneManager
     std::unique_ptr<SceneManager> sceneManager_ = nullptr;

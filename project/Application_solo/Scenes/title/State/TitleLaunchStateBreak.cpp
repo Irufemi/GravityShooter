@@ -10,6 +10,8 @@
 #include "Core/Math/MathFunction.h"
 #include "Audio/AudioManager.h"
 
+using namespace Irufemi;
+
 void TitleLaunchStateBreak::Enter(TitleSceneDirectorComponent* director) {
     if (!director) {
         return;

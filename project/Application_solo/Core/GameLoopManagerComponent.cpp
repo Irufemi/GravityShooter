@@ -23,6 +23,8 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+using namespace Irufemi;
+
 GameLoopManagerComponent::~GameLoopManagerComponent() {
     if (auto player = playerObj_.lock()) {
         if (auto health = player->GetComponent<PlayerHealthComponent>()) {

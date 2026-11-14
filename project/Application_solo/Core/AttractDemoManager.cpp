@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace Irufemi;
+
 namespace {
 // 2次ベジェ曲線補間
 inline Irufemi::Vector2 EvaluateQuadraticBezier(const Irufemi::Vector2& p0, const Irufemi::Vector2& p1,

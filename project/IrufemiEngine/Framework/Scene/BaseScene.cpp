@@ -754,7 +754,7 @@ void BaseScene::AddAreaLight(std::unique_ptr<AreaLight> light) {
 void BaseScene::OnSuspendAudio(IrufemiEngine* engine) {
     if (IsAudioBlocking() && engine) {
         if (auto am = engine->GetAudioManager()) {
-            am->PauseCategory(AudioCategory::SE);
+            am->PauseCategory(Irufemi::AudioCategory::SE);
         }
     }
 }
@@ -762,7 +762,7 @@ void BaseScene::OnSuspendAudio(IrufemiEngine* engine) {
 void BaseScene::OnResumeAudio(IrufemiEngine* engine) {
     if (IsAudioBlocking() && engine) {
         if (auto am = engine->GetAudioManager()) {
-            am->ResumeCategory(AudioCategory::SE);
+            am->ResumeCategory(Irufemi::AudioCategory::SE);
         }
     }
 }
