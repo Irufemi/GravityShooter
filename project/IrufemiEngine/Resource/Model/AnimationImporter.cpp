@@ -6,6 +6,8 @@
 #include <filesystem>
 #include "Resource/Model/AssimpMutex.h"
 
+using namespace Irufemi;
+
 Animation AnimationImporter::Import(const std::string& fullPath) {
     Animation animation;
     if (!std::filesystem::exists(fullPath)) {

@@ -121,7 +121,7 @@ private:
     uint32_t subdivision_ = 16;
     float thickness_ = 0.1f;
     bool isMeshDirty_ = true;
-    ResourceHandle textureHandle_;
+    Irufemi::ResourceHandle textureHandle_;
 
     // メッシュデータ
     std::vector<VertexData> vertexDataList_;

@@ -9,6 +9,8 @@
 #include "Commands/EditorCommands.h"
 #include "UI/ComponentUIHelpers.h"
 
+using namespace Irufemi;
+
 void SkinnedMeshRendererComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto comp = static_cast<SkinnedMeshRendererComponent*>(component);
     if (!comp) {

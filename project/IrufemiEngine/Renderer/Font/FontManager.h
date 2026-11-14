@@ -87,7 +87,7 @@ public:
      * @brief AtlasHandle を取得する。
      * @return 取得された AtlasHandle
      */
-    ResourceHandle GetAtlasHandle() const;
+    Irufemi::ResourceHandle GetAtlasHandle() const;
 
     // 非同期生成タスクがすべて完了しているかを取得
     /**

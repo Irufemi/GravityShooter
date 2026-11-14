@@ -12,7 +12,9 @@
 #include "Core/Math/Vector3.h"
 
 // 前方宣言
+namespace Irufemi {
 class TextureManager;
+}
 class DrawManager;
 class DebugUI;
 
@@ -137,8 +139,8 @@ public:
      * @brief TextureHandle を取得する。
      * @return 取得された TextureHandle
      */
-    ResourceHandle GetTextureHandle() const {
-        return resource_ ? resource_->GetTextureHandle() : ResourceHandle();
+    Irufemi::ResourceHandle GetTextureHandle() const {
+        return resource_ ? resource_->GetTextureHandle() : Irufemi::ResourceHandle();
     }
 
     // --- プロパティのセッター ---
@@ -220,7 +222,7 @@ public:
      * @brief TextureManager を設定する。
      * @param[in] texM 設定する TextureManager の値
      */
-    static void SetTextureManager(TextureManager* texM) {
+    static void SetTextureManager(Irufemi::TextureManager* texM) {
         textureManager_ = texM;
     }
     /**
@@ -289,7 +291,7 @@ private:
     int selectedTextureIndex_ = 0; //!< デバッグUI用
 
     // 静的マネージャ参照
-    static TextureManager* textureManager_;
+    static Irufemi::TextureManager* textureManager_;
     static DrawManager* drawManager_;
     static DebugUI* ui_;
     static class IrufemiEngine* engine_;

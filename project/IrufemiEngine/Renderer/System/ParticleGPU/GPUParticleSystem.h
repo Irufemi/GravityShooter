@@ -19,7 +19,9 @@
 
 // 前方宣言
 class DrawManager;
+namespace Irufemi {
 class TextureManager;
+}
 class Camera;
 class IrufemiEngine;
 class Line3DBatch;
@@ -586,7 +588,7 @@ public:
      * @brief TextureManager を設定する。
      * @param[in] textureManager 設定する TextureManager の値
      */
-    static void SetTextureManager(TextureManager* textureManager) {
+    static void SetTextureManager(Irufemi::TextureManager* textureManager) {
         textureManager_ = textureManager;
     }
     /**
@@ -608,7 +610,7 @@ public:
      * @brief TextureManager を取得する。
      * @return 取得された TextureManager
      */
-    static TextureManager* GetTextureManager() {
+    static Irufemi::TextureManager* GetTextureManager() {
         return textureManager_;
     }
     ///@}
@@ -656,7 +658,7 @@ private:
 
     static Irufemi::DirectXCommon* dxCommon_;
     static DrawManager* drawManager_;
-    static TextureManager* textureManager_;
+    static Irufemi::TextureManager* textureManager_;
     static IrufemiEngine* engine_;
 
     static const uint32_t kMaxParticles = 32768;
@@ -745,7 +747,7 @@ private:
         0.0f                                              // alphaReference
     };
 
-    ResourceHandle textureHandle_;
+    Irufemi::ResourceHandle textureHandle_;
     int selectedTextureIndex_ = 0;
 
     uint32_t perFrameSrvIndex_ = 0xFFFFFFFF;

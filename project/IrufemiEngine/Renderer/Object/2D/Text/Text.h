@@ -324,5 +324,5 @@ private:
 
     Irufemi::Matrix4x4 lastViewMatrix_ = {};
     Irufemi::Matrix4x4 lastProjectionMatrix_ = {};
-    ResourceHandle lastAtlasHandle_ = {};
+    Irufemi::ResourceHandle lastAtlasHandle_ = {};
 };

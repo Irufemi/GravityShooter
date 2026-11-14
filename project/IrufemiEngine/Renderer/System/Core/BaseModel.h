@@ -20,8 +20,9 @@
 // 前方宣言
 class Camera;
 class IrufemiEngine;
+namespace Irufemi {
 struct ManagedModel;
-struct ObjMaterial;
+}
 
 /**
  * @class BaseModel
@@ -57,13 +58,13 @@ public: // ゲッター・セッター
      * @brief Material を取得する。
      * @return 取得された Material
      */
-    const ObjMaterial* GetMaterial(size_t meshIndex) const;
+    const Irufemi::ObjMaterial* GetMaterial(size_t meshIndex) const;
     // 指定したインデックスのメッシュのマテリアルを取得(書き込み可能)
     /**
      * @brief Material を取得する。
      * @return 取得された Material
      */
-    ObjMaterial* GetMaterial(size_t meshIndex);
+    Irufemi::ObjMaterial* GetMaterial(size_t meshIndex);
 
     /**
      * @brief Color を設定する。
@@ -85,15 +86,15 @@ public: // ゲッター・セッター
      * @brief MaterialOverrides を設定する（安全な実体保持方式）。
      * @param[in] overrides 設定する MaterialOverrides（メッシュインデックスごとのマテリアルオーバーライド）
      */
-    void SetMaterialOverrides(const std::unordered_map<size_t, ObjMaterial>& overrides) {
+    void SetMaterialOverrides(const std::unordered_map<size_t, Irufemi::ObjMaterial>& overrides) {
         materialOverrides_ = overrides;
         MarkAsDirty();
     }
-    void SetMaterialOverrides(std::unordered_map<size_t, ObjMaterial>&& overrides) {
+    void SetMaterialOverrides(std::unordered_map<size_t, Irufemi::ObjMaterial>&& overrides) {
         materialOverrides_ = std::move(overrides);
         MarkAsDirty();
     }
-    void SetMaterialOverride(size_t meshIndex, const ObjMaterial& material) {
+    void SetMaterialOverride(size_t meshIndex, const Irufemi::ObjMaterial& material) {
         materialOverrides_[meshIndex] = material;
         MarkAsDirty();
     }
@@ -101,7 +102,7 @@ public: // ゲッター・セッター
         materialOverrides_.clear();
         MarkAsDirty();
     }
-    const std::unordered_map<size_t, ObjMaterial>& GetMaterialOverrides() const {
+    const std::unordered_map<size_t, Irufemi::ObjMaterial>& GetMaterialOverrides() const {
         return materialOverrides_;
     }
 
@@ -134,7 +135,7 @@ public: // ゲッター・セッター
      * @brief CpuModel を取得する。
      * @return 取得された CpuModel
      */
-    std::shared_ptr<ObjModel> GetCpuModel() const;
+    std::shared_ptr<Irufemi::ObjModel> GetCpuModel() const;
 
     /**
      * @brief Translate を設定する。
@@ -303,7 +304,7 @@ public: // ゲッター・セッター
      * @brief 全メッシュリソースに環境マップ（CubeMap）を設定する
      * @param[in] handle 環境マップテクスチャハンドル
      */
-    void SetEnvironmentMap(ResourceHandle handle) {
+    void SetEnvironmentMap(Irufemi::ResourceHandle handle) {
         for (auto& res : meshResources_) {
             if (res) {
                 res->SetEnvironmentMapHandle(handle);
@@ -418,8 +419,8 @@ public: // ゲッター・セッター
 
 protected: // メンバ変数
     // 共有モデルデータ(CPU/GPU)
-    ResourceHandle modelHandle_;
-    ResourceHandle nextModelHandle_; // 次フレームで切り替えるためのモデル
+    Irufemi::ResourceHandle modelHandle_;
+    Irufemi::ResourceHandle nextModelHandle_; // 次フレームで切り替えるためのモデル
     bool isModelChanged_ = false;    // モデル切り替えフラグ
 
     // オブジェクト全体のTransform
@@ -432,7 +433,7 @@ protected: // メンバ変数
     int32_t enableLightingOverride_ = -1;               // -1:使用しない, 0以上:上書き
 
     // マテリアル個別上書き
-    std::unordered_map<size_t, ObjMaterial> materialOverrides_;
+    std::unordered_map<size_t, Irufemi::ObjMaterial> materialOverrides_;
 
     // リソース (メッシュごとの頂点/インデックスなど)
     bool enableEffectMask_ = false;  // エフェクトから保護するかどうか

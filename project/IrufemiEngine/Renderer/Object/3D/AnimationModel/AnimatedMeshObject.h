@@ -32,7 +32,7 @@ public:
     void Initialize(const std::string& filename);
 
     /// @brief 外部からポーズを渡して更新。nullptrの場合は内部のバインドポーズまたは前回状態を維持。
-    void Update(const SkeletonPose* externalPose = nullptr);
+    void Update(const Irufemi::SkeletonPose* externalPose = nullptr);
 
     /**
      * @brief SyncBeforeDraw を実行する。
@@ -55,12 +55,12 @@ public:
      * @brief SkeletonData を取得する。
      * @return 取得された SkeletonData
      */
-    const SkeletonData* GetSkeletonData() const;
+    const Irufemi::SkeletonData* GetSkeletonData() const;
     /**
      * @brief InternalSkeletonPose を取得する。
      * @return 取得された InternalSkeletonPose
      */
-    SkeletonPose* GetInternalSkeletonPose(); // プログラマの手動制御用
+    Irufemi::SkeletonPose* GetInternalSkeletonPose(); // プログラマの手動制御用
 
 private:
     /**
@@ -69,11 +69,11 @@ private:
     void InitializeResources();
 
 private:
-    SkeletonData skeletonData_;
-    SkeletonPose internalPose_;
-    const SkeletonPose* currentPose_ = nullptr; // 描画に使用するポーズ
+    Irufemi::SkeletonData skeletonData_;
+    Irufemi::SkeletonPose internalPose_;
+    const Irufemi::SkeletonPose* currentPose_ = nullptr; // 描画に使用するポーズ
 
-    SkinCluster skinCluster_;
+    Irufemi::SkinCluster skinCluster_;
     std::vector<D3D12_VERTEX_BUFFER_VIEW> drawVbvs_;
     std::vector<D3D12_VERTEX_BUFFER_VIEW> outlineVbvs_;
 

@@ -8,6 +8,8 @@
 #include "Core/Utility/StringUtility.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 FontManager* Text::fontManager_ = nullptr;
 DrawManager* Text::drawManager_ = nullptr;
 CameraManager* Text::cameraManager_ = nullptr;

@@ -11,6 +11,8 @@
 #include <imgui.h>
 #endif
 
+using namespace Irufemi;
+
 Animator::Animator() {}
 Animator::~Animator() {}
 

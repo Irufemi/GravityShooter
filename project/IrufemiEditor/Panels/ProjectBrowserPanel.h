@@ -9,7 +9,10 @@
 #include <atomic>
 
 struct ImGuiTextFilter;
+
+namespace Irufemi {
 class DirectoryWatcher;
+}
 
 /**
  * @struct FileEntry
@@ -77,7 +80,7 @@ private:
     bool isCreatingFolder_ = false;
 
     // 自動ファイル監視
-    std::unique_ptr<DirectoryWatcher> directoryWatcher_;
+    std::unique_ptr<Irufemi::DirectoryWatcher> directoryWatcher_;
     std::atomic<bool> isCacheDirty_ = false;
 };
 

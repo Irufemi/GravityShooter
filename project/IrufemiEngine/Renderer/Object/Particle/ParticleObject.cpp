@@ -7,7 +7,9 @@
 #include "Core/Utility/Log.h"
 #include "Core/Utility/JsonUtility.h"
 
-TextureManager* ParticleObject::textureManager_ = nullptr;
+using namespace Irufemi;
+
+Irufemi::TextureManager* ParticleObject::textureManager_ = nullptr;
 
 ParticleObject::ParticleObject() {}
 

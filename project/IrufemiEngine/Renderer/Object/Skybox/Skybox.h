@@ -90,7 +90,7 @@ public: // メンバ関数(セッター/ゲッター)
      * @brief キューブマップテクスチャのハンドルを取得する
      * @return テクスチャリソースハンドル
      */
-    ResourceHandle GetTextureHandle() const {
+    Irufemi::ResourceHandle GetTextureHandle() const {
         return textureHandle_;
     }
 
@@ -158,7 +158,7 @@ private: // メンバ変数(resource)
     Irufemi::ConstantBuffer<SkyboxMaterial> materialBuffer_;
 
     // texture
-    ResourceHandle textureHandle_;
+    Irufemi::ResourceHandle textureHandle_;
     int selectedTextureIndex_ = 0;
 
     // カメラ(ポインタ参照)

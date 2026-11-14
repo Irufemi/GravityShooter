@@ -2,6 +2,8 @@
 #include <string>
 #include "Resource/Model/Data/Animation.h"
 
+namespace Irufemi {
+
 class AnimationImporter {
 public:
     /**
@@ -12,3 +14,5 @@ public:
      */
     static Animation Import(const std::string& fullPath);
 };
+
+} // namespace Irufemi

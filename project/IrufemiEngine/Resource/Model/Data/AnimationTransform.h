@@ -16,5 +16,3 @@ struct AnimationTransform {
 };
 
 } // namespace Irufemi
-
-using Irufemi::AnimationTransform;

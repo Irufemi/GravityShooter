@@ -11,7 +11,9 @@
 
 // 前方宣言
 class Camera;
+namespace Irufemi {
 class TextureManager;
+}
 class DrawManager;
 class DebugUI;
 struct PrimitiveData;
@@ -314,7 +316,7 @@ public:
      * @brief インスタンス固有の TextureManager を設定する。
      * @param[in] tm 設定する TextureManager のポインタ
      */
-    void SetTextureManagerInstance(TextureManager* tm) {
+    void SetTextureManagerInstance(Irufemi::TextureManager* tm) {
         instTextureManager_ = tm;
     }
 
@@ -338,7 +340,7 @@ public:
      * @brief 使用する TextureManager を取得する（インスタンスメンバ優先）。
      * @return TextureManager のポインタ
      */
-    TextureManager* GetTextureManagerInstance() const {
+    Irufemi::TextureManager* GetTextureManagerInstance() const {
         return instTextureManager_ ? instTextureManager_ : textureManager_;
     }
 
@@ -363,14 +365,14 @@ public:
      * @brief TextureManager を設定する。
      * @param[in] texM 設定する TextureManager の値
      */
-    static void SetTextureManager(TextureManager* texM) {
+    static void SetTextureManager(Irufemi::TextureManager* texM) {
         textureManager_ = texM;
     }
     /**
      * @brief TextureManager を取得する。
      * @return 取得された TextureManager
      */
-    static TextureManager* GetTextureManager() {
+    static Irufemi::TextureManager* GetTextureManager() {
         return textureManager_;
     }
     /**
@@ -406,12 +408,12 @@ private:
     Irufemi::Matrix4x4 lastCameraViewProj_{}; //!< 前回同期時のカメラ行列キャッシュ
 
     // インスタンスポインタ（優先）
-    TextureManager* instTextureManager_ = nullptr;
+    Irufemi::TextureManager* instTextureManager_ = nullptr;
     DrawManager* instDrawManager_ = nullptr;
     class IrufemiEngine* instEngine_ = nullptr;
 
     // 静的ポインタ（既存の設計パターンを継承）
-    static TextureManager* textureManager_;
+    static Irufemi::TextureManager* textureManager_;
     static DrawManager* drawManager_;
     static DebugUI* ui_;
     static class IrufemiEngine* engine_;

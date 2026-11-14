@@ -11,7 +11,9 @@
 #include <memory>
 
 // 前方宣言
+namespace Irufemi {
 class TextureManager;
+}
 class DrawManager;
 class DebugUI;
 class CameraManager;
@@ -25,14 +27,14 @@ class CameraManager;
 class Sprite : public IRenderable {
 public:
     Sprite() = default;
-    explicit Sprite(TextureManager* tm, DrawManager* dm = nullptr, CameraManager* cm = nullptr)
+    explicit Sprite(Irufemi::TextureManager* tm, DrawManager* dm = nullptr, CameraManager* cm = nullptr)
         : instTextureManager_(tm), instDrawManager_(dm), instCameraManager_(cm) {}
 
     /**
      * @brief インスタンス固有の TextureManager を設定する。
      * @param[in] tm 設定する TextureManager のポインタ
      */
-    void SetTextureManagerInstance(TextureManager* tm) {
+    void SetTextureManagerInstance(Irufemi::TextureManager* tm) {
         instTextureManager_ = tm;
     }
 
@@ -56,7 +58,7 @@ public:
      * @brief 使用する TextureManager を取得する（インスタンスメンバ優先）。
      * @return TextureManager のポインタ
      */
-    TextureManager* GetTextureManagerInstance() const {
+    Irufemi::TextureManager* GetTextureManagerInstance() const {
         return instTextureManager_ ? instTextureManager_ : textureManager_;
     }
 
@@ -84,13 +86,13 @@ private:
     int selectedTextureIndex_ = 0;
 
     // インスタンス依存ポインタ（優先）
-    TextureManager* instTextureManager_ = nullptr;
+    Irufemi::TextureManager* instTextureManager_ = nullptr;
     DrawManager* instDrawManager_ = nullptr;
     CameraManager* instCameraManager_ = nullptr;
 
     // 静的フォールバックポインタ
     static CameraManager* cameraManager_;
-    static TextureManager* textureManager_;
+    static Irufemi::TextureManager* textureManager_;
     static DrawManager* drawManager_;
     static DebugUI* ui_;
 
@@ -355,14 +357,14 @@ public: // メンバ関数
 
     /** @name 静的メンバ設定（エンジン内部用） */
     ///@{
-    static void SetTextureManager(TextureManager* texM) {
+    static void SetTextureManager(Irufemi::TextureManager* texM) {
         textureManager_ = texM;
     }
     /**
      * @brief TextureManager を取得する。
      * @return 取得された TextureManager
      */
-    static TextureManager* GetTextureManager() {
+    static Irufemi::TextureManager* GetTextureManager() {
         return textureManager_;
     }
     /**

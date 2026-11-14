@@ -13,6 +13,8 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
+using namespace Irufemi;
+
 struct TelemetryReceiver::NetworkData {
     SOCKET listenSocket_ = INVALID_SOCKET;
     sockaddr_in listenAddr_{};

@@ -3,6 +3,8 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Renderer/Camera/Camera.h"
 
+using namespace Irufemi;
+
 // --- TransformComponent ---
 
 void PrimitiveTransform::UpdateTransform(Object3DResource* resource, const Camera& camera) {
@@ -65,7 +67,7 @@ void MeshDesc::ChangeMesh(const PrimitiveData& data) {
 
 // --- MaterialComponent ---
 
-void MaterialDesc::UpdateMaterial(Object3DResource* resource, TextureManager* textureManager) {
+void MaterialDesc::UpdateMaterial(Object3DResource* resource, Irufemi::TextureManager* textureManager) {
     if (!resource || !resource->GetMaterialData()) {
         return;
     }
@@ -108,7 +110,7 @@ void MaterialDesc::UpdateMaterial(Object3DResource* resource, TextureManager* te
     resource->MarkAsDirty();
 }
 
-void MaterialDesc::Release(TextureManager* textureManager) {
+void MaterialDesc::Release(Irufemi::TextureManager* textureManager) {
     if (textureManager && textureHandle.IsValid()) {
         textureManager->ReleaseTexture(textureHandle);
         textureHandle = ResourceHandle();

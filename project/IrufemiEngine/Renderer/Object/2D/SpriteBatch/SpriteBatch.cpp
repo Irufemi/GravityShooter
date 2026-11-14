@@ -10,7 +10,7 @@
 
 using namespace Irufemi;
 
-TextureManager* SpriteBatch::textureManager_ = nullptr;
+Irufemi::TextureManager* SpriteBatch::textureManager_ = nullptr;
 DrawManager* SpriteBatch::drawManager_ = nullptr;
 CameraManager* SpriteBatch::cameraManager_ = nullptr;
 DirectXCommon* SpriteBatch::dx_ = nullptr;

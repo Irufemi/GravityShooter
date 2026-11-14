@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "Resource/Model/Data/Animation.h"
 
+namespace Irufemi {
+
 class AnimationSerializer {
 public:
     static constexpr uint32_t kMagicNumber = 0x4D4E4149; // "IANM"
@@ -29,3 +31,5 @@ public:
      */
     static bool ReadHeader(const std::string& filepath, Header& outHeader);
 };
+
+} // namespace Irufemi

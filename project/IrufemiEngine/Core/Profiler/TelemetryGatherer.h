@@ -5,6 +5,9 @@
 #include <functional>
 
 class IrufemiEngine;
+
+namespace Irufemi {
+
 class TelemetrySender;
 
 /**
@@ -19,7 +22,7 @@ public:
      * @brief エンジンの各システムから送るプロファイル項目をバインド（登録）する
      * @param engine IrufemiEngine本体のポインタ
      */
-    void Initialize(IrufemiEngine* engine);
+    void Initialize(::IrufemiEngine* engine);
 
     /**
      * @brief 登録されたすべてのラムダ式を評価し、TelemetrySenderに一括送信する
@@ -43,3 +46,5 @@ private:
     std::vector<MetricBinding> metrics_;
     TelemetrySender* sender_ = nullptr;
 };
+
+} // namespace Irufemi

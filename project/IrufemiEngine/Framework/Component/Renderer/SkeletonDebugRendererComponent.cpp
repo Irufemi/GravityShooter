@@ -10,6 +10,8 @@
 #include "Resource/Model/Data/SkeletonPose.h"
 #include <cmath>
 
+using namespace Irufemi;
+
 namespace {
 /**
  * @brief 色相(Hue 0~360度)からRGBAカラーを生成するヘルパー関数

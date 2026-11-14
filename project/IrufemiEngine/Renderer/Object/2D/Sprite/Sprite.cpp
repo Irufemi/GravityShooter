@@ -9,7 +9,9 @@
 
 #include <algorithm>
 
-TextureManager* Sprite::textureManager_ = nullptr;
+using namespace Irufemi;
+
+Irufemi::TextureManager* Sprite::textureManager_ = nullptr;
 DrawManager* Sprite::drawManager_ = nullptr;
 DebugUI* Sprite::ui_ = nullptr;
 CameraManager* Sprite::cameraManager_ = nullptr;

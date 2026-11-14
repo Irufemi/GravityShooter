@@ -16,5 +16,3 @@ struct WellForGPU {
 };
 
 } // namespace Irufemi
-
-using Irufemi::WellForGPU;

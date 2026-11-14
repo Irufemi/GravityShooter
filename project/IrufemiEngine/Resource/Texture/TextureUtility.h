@@ -5,7 +5,7 @@
  * @namespace TextureUtility
  * @brief テクスチャ関連のユーティリティ関数群
  */
-namespace TextureUtility {
+namespace Irufemi::TextureUtility {
 
 /**
  * @enum TextureFileType
@@ -32,4 +32,4 @@ std::wstring GetExtension(const std::wstring& filePath);
  */
 TextureFileType GetTextureFileType(const std::wstring& filePath);
 
-} // namespace TextureUtility
+} // namespace Irufemi::TextureUtility

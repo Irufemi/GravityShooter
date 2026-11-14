@@ -10,7 +10,7 @@
 
 using namespace Irufemi;
 
-ModelManager* ModelBatch::modelManager_ = nullptr;
+Irufemi::ModelManager* ModelBatch::modelManager_ = nullptr;
 
 void ModelBatch::Initialize(const std::string& objFilename) {
     IRUFEMI_ASSERT(modelManager_ && "ModelBatch::Initialize: ModelManager is not set.");
@@ -43,7 +43,7 @@ void ModelBatch::InitializeResources() {
     isResourcesInitialized_ = true;
 }
 
-const GpuMesh* ModelBatch::GetGpuMesh() const {
+const Irufemi::GpuMesh* ModelBatch::GetGpuMesh() const {
     auto m = modelManager_ ? modelManager_->Resolve(modelHandle_) : nullptr;
     if (m && !m->gpuMeshes.empty()) {
         return m->gpuMeshes.front().get();

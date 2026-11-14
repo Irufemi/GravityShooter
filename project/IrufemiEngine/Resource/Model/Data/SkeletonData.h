@@ -36,6 +36,3 @@ struct SkeletonData {
 };
 
 } // namespace Irufemi
-
-using Irufemi::JointData;
-using Irufemi::SkeletonData;

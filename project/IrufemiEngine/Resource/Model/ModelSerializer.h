@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "Resource/Model/Data/ObjModel.h"
 
+namespace Irufemi {
+
 class ModelSerializer {
 public:
     static constexpr uint32_t kMagicNumber = 0x4C444D49; // "IMDL"
@@ -40,3 +42,5 @@ public:
      */
     static bool ReadHeader(const std::string& filepath, Header& outHeader);
 };
+
+} // namespace Irufemi

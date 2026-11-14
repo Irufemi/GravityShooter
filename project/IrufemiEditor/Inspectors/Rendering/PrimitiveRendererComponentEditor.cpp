@@ -14,6 +14,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/Object/3D/Primitive/Primitive3DObject.h"
 
+using namespace Irufemi;
+
 void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<PrimitiveRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("PrimitiveRenderer", ImGuiTreeNodeFlags_DefaultOpen);

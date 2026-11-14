@@ -19,5 +19,3 @@ struct VoxelizedModel {
 };
 
 } // namespace Irufemi
-
-using Irufemi::VoxelizedModel;

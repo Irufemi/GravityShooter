@@ -6,6 +6,8 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Core/Math/MathFunction.h"
 
+using namespace Irufemi;
+
 AnimatorComponent::AnimatorComponent() {
     animator_ = std::make_unique<Animator>();
 }

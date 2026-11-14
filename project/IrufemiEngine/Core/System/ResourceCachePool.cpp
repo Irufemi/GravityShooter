@@ -1,5 +1,7 @@
 #include "Core/System/ResourceCachePool.h"
 
+using namespace Irufemi;
+
 ResourceCachePool::ResourceCachePool(size_t maxMemoryBytes, size_t initialCapacity)
     : maxMemoryBytes_(maxMemoryBytes), currentMemoryUsage_(0), currentTimeCounter_(0) {
     slots_.resize(initialCapacity);

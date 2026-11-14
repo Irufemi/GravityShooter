@@ -17,5 +17,3 @@ struct MaterialData {
 };
 
 } // namespace Irufemi
-
-using Irufemi::MaterialData;

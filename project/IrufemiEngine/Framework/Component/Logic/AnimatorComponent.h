@@ -54,7 +54,7 @@ public:
      * @brief RawAnimator を取得する。
      * @return 取得された RawAnimator
      */
-    Animator* GetRawAnimator() {
+    Irufemi::Animator* GetRawAnimator() {
         return animator_.get();
     }
 
@@ -74,7 +74,7 @@ public:
     }
 
 private:
-    std::unique_ptr<Animator> animator_;
+    std::unique_ptr<Irufemi::Animator> animator_;
     std::string defaultAnimation_ = "";
     std::string currentLoadedAnimation_ = "";
     float playbackSpeed_ = 1.0f;

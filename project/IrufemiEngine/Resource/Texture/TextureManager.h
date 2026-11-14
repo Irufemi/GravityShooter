@@ -27,8 +27,8 @@ class ScratchImage;
 }
 
 namespace Irufemi {
+
 class DirectXCommon;
-}
 
 /**
  * @class TextureManager
@@ -51,7 +51,7 @@ public:
      * @brief 初期化
      * @param[in] dxCommon DirectX 12 基礎クラスのポインタ
      */
-    void Initialize(Irufemi::DirectXCommon* dxCommon);
+    void Initialize(DirectXCommon* dxCommon);
 
     /**
      * @brief 指定フォルダ内のすべての画像をロードする
@@ -232,7 +232,7 @@ public:
 
 private:
     bool IsCurrentSceneInitializing() const;
-    Irufemi::DirectXCommon* dxCommon_ = nullptr;
+    DirectXCommon* dxCommon_ = nullptr;
     // NOTE: 非同期テクスチャロードタスク（ThreadPool）とメインスレッドからのテクスチャ検索・参照カウント更新の
     // 排他制御を低レイヤーで行うため、生の std::mutex を意図して維持しています。
     mutable std::mutex mutex_;
@@ -241,9 +241,9 @@ private:
     mutable std::unordered_map<std::string, ResourceHandle> nameToHandleMap_;
     std::vector<std::shared_ptr<Texture>> textureResources_;
 
-    std::unique_ptr<ThreadPool> threadPool_;
-    std::shared_ptr<TaskGroup> taskGroup_;           ///< 重要タスク用
-    std::shared_ptr<TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用
+    std::unique_ptr<::ThreadPool> threadPool_;
+    std::shared_ptr<::TaskGroup> taskGroup_;           ///< 重要タスク用
+    std::shared_ptr<::TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用
 
     // フォールバック白テクスチャ
     std::unique_ptr<Texture> whiteTexture_;
@@ -255,3 +255,5 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> whiteCubeMapResource_;
     D3D12_GPU_DESCRIPTOR_HANDLE whiteCubeMapHandle_{0};
 };
+
+} // namespace Irufemi

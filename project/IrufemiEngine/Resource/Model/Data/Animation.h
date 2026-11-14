@@ -28,5 +28,3 @@ struct Animation {
 };
 
 } // namespace Irufemi
-
-using Irufemi::Animation;

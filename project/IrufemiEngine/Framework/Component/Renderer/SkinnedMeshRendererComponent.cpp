@@ -8,6 +8,8 @@
 #include "Core/Utility/JsonUtility.h"
 #include <cmath>
 
+using namespace Irufemi;
+
 SkinnedMeshRendererComponent::SkinnedMeshRendererComponent() {
     animatedMesh_ = std::make_unique<AnimatedMeshObject>();
 }

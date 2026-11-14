@@ -5,7 +5,10 @@
 #include "Renderer/Object/3D/StaticModelObject/StaticModelObject.h"
 #include "Physics/Collision/Collision.h"
 #include "Core/Math/Geometry/OBB.h"
+#include "Resource/Model/Data/ObjModel.h"
 #include <cmath>
+
+using namespace Irufemi;
 
 MeshRendererComponent::MeshRendererComponent() {}
 MeshRendererComponent::~MeshRendererComponent() {}

@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+namespace Irufemi {
+
 /**
  * @struct ResourceHandle
  * @brief リソースを一意に識別するための軽量なハンドル。
@@ -26,3 +28,5 @@ struct ResourceHandle {
         return !(*this == other);
     }
 };
+
+} // namespace Irufemi

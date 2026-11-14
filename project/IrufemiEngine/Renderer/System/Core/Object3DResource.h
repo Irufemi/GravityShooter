@@ -14,6 +14,10 @@
 
 class Camera;
 
+namespace Irufemi {
+class TextureManager;
+}
+
 class Object3DResource : public BaseResource {
 public:
     virtual ~Object3DResource();
@@ -182,28 +186,28 @@ public:
     }
 
     // --- テクスチャアクセサ ---
-    ResourceHandle GetTextureHandle() const {
+    Irufemi::ResourceHandle GetTextureHandle() const {
         return textureHandle_;
     }
-    void SetTextureHandle(ResourceHandle handle) {
+    void SetTextureHandle(Irufemi::ResourceHandle handle) {
         textureHandle_ = handle;
     }
 
-    void SetTextureManager(class TextureManager* tm) {
+    void SetTextureManager(Irufemi::TextureManager* tm) {
         textureManager_ = tm;
     }
-    class TextureManager* GetTextureManager() const {
+    Irufemi::TextureManager* GetTextureManager() const {
         return textureManager_;
     }
 
     /**
      * @brief 環境マップ（CubeMap）のテクスチャハンドルを設定
      */
-    void SetEnvironmentMapHandle(ResourceHandle handle) {
+    void SetEnvironmentMapHandle(Irufemi::ResourceHandle handle) {
         envMapHandle_ = handle;
         MarkAsDirty();
     }
-    ResourceHandle GetEnvironmentMapHandle() const {
+    Irufemi::ResourceHandle GetEnvironmentMapHandle() const {
         return envMapHandle_;
     }
 
@@ -280,9 +284,9 @@ protected:
     uint32_t* externalTransformCbIndex_ = nullptr;
 
     // --- テクスチャ ---
-    ResourceHandle textureHandle_;
-    ResourceHandle envMapHandle_;
-    class TextureManager* textureManager_ = nullptr;
+    Irufemi::ResourceHandle textureHandle_;
+    Irufemi::ResourceHandle envMapHandle_;
+    Irufemi::TextureManager* textureManager_ = nullptr;
 
     // --- カスタム描画設定 ---
     mutable std::atomic<ID3D12PipelineState*> customPSO_{nullptr};

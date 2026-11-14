@@ -5,8 +5,8 @@
 #include <cstdint>
 
 namespace Irufemi {
+
 class DirectXCommon;
-}
 
 /**
  * @class GpuProfiler
@@ -25,7 +25,7 @@ public:
      * @brief 初期化処理。クエリヒープと結果格納用バッファを作成する
      * @param dxCommon DirectX共通基盤
      */
-    void Initialize(Irufemi::DirectXCommon* dxCommon);
+    void Initialize(DirectXCommon* dxCommon);
 
     /**
      * @brief 終了処理。クエリヒープおよびリードバックバッファを明示的に解放する
@@ -55,7 +55,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> queryResultBuffer_;
     uint64_t* mappedData_ = nullptr; ///< 永続マップ (Persistent Mapping) されたCPUポインタ
 
-    Irufemi::DirectXCommon* dxCommon_ = nullptr;
+    DirectXCommon* dxCommon_ = nullptr;
 
     uint64_t gpuFrequency_ = 0;
     float lastGpuTimeMs_ = 0.0f;
@@ -63,3 +63,5 @@ private:
 
     static const uint32_t kMaxFramesInFlight = 3;
 };
+
+} // namespace Irufemi

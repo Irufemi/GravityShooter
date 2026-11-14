@@ -14,6 +14,8 @@
 #include "Resource/Model/AnimationManager.h"
 #include "Renderer/Compute/IComputeTask.h"
 
+using namespace Irufemi;
+
 // 静的メンバ定義
 
 StaticModelObject::~StaticModelObject() {}

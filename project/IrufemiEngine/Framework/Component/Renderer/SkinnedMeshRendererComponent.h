@@ -105,7 +105,7 @@ public:
      * @brief PoseOverride を設定する。
      * @param[in] pose 設定する PoseOverride の値
      */
-    void SetPoseOverride(const struct SkeletonPose* pose) {
+    void SetPoseOverride(const Irufemi::SkeletonPose* pose) {
         poseOverride_ = pose;
     }
 
@@ -145,10 +145,10 @@ private:
     std::string modelFilename_ = "";
     std::string currentLoadedFilename_ = "";
 
-    const struct SkeletonPose* poseOverride_ = nullptr;
+    const Irufemi::SkeletonPose* poseOverride_ = nullptr;
     bool isVisible_ = true;
 
-    std::unordered_map<size_t, ObjMaterial> materialOverrides_;
+    std::unordered_map<size_t, Irufemi::ObjMaterial> materialOverrides_;
     bool materialOverridesDirty_ = false;
 
 public:
@@ -163,7 +163,7 @@ public:
      * @brief MaterialOverride を取得する。
      * @return 取得された MaterialOverride
      */
-    const ObjMaterial* GetMaterialOverride(size_t meshIndex) const {
+    const Irufemi::ObjMaterial* GetMaterialOverride(size_t meshIndex) const {
         auto it = materialOverrides_.find(meshIndex);
         return it != materialOverrides_.end() ? &it->second : nullptr;
     }
@@ -171,7 +171,7 @@ public:
      * @brief MaterialOverrideMutable を取得する。
      * @return 取得された MaterialOverrideMutable
      */
-    ObjMaterial* GetMaterialOverrideMutable(size_t meshIndex) {
+    Irufemi::ObjMaterial* GetMaterialOverrideMutable(size_t meshIndex) {
         auto it = materialOverrides_.find(meshIndex);
         return it != materialOverrides_.end() ? &it->second : nullptr;
     }
@@ -180,7 +180,7 @@ public:
      * @param[in] meshIndex 設定する MaterialOverride の値
      * @param[in] material 設定する MaterialOverride の値
      */
-    void SetMaterialOverride(size_t meshIndex, const ObjMaterial& material) {
+    void SetMaterialOverride(size_t meshIndex, const Irufemi::ObjMaterial& material) {
         materialOverrides_[meshIndex] = material;
         materialOverridesDirty_ = true;
     }
@@ -191,7 +191,7 @@ public:
         materialOverrides_.erase(meshIndex);
         materialOverridesDirty_ = true;
     }
-    const std::unordered_map<size_t, ObjMaterial>& GetAllMaterialOverrides() const {
+    const std::unordered_map<size_t, Irufemi::ObjMaterial>& GetAllMaterialOverrides() const {
         return materialOverrides_;
     }
 };

@@ -201,7 +201,7 @@ private:
     bool IsInFrustum(uint32_t index) const;
 
 private:
-    std::shared_ptr<VoxelizedModel> voxelModel_;
+    std::shared_ptr<Irufemi::VoxelizedModel> voxelModel_;
 
     // GPUリソース
     Microsoft::WRL::ComPtr<ID3D12Resource> voxelBuffer_;
@@ -263,7 +263,7 @@ private:
 
     struct AsyncLoadData {
         std::string modelName;
-        std::shared_ptr<VoxelizedModel> voxelModel;
+        std::shared_ptr<Irufemi::VoxelizedModel> voxelModel;
         uint32_t voxelCount = 0;
         std::atomic<LoadingStatus> status{LoadingStatus::Loading};
     };

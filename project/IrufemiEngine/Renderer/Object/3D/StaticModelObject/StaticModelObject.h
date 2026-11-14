@@ -21,10 +21,12 @@
 #include "Resource/Model/Data/SkinCluster.h"
 #include "Renderer/Compute/IComputeTask.h"
 
+namespace Irufemi {
 class TextureManager;
+class ModelManager;
+}
 class DrawManager;
 class DebugUI;
-class ModelManager;
 
 //==========================
 // objが配布されているサイト
@@ -52,7 +54,7 @@ private:
      * @param node 現在処理中のノード
      * @param parentMatrix 親ノードのグローバル行列（初期呼び出し時は単位行列）
      */
-    void CalculateNodeTransforms(const Node& node, const Irufemi::Matrix4x4& parentMatrix);
+    void CalculateNodeTransforms(const Irufemi::Node& node, const Irufemi::Matrix4x4& parentMatrix);
 
     /**
      * @brief ロード完了後にメッシュ等のリソースを構築する（遅延初期化）
@@ -106,9 +108,9 @@ public: // メンバ関数
     void DispatchCompute() override;
 
 private:
-    SkeletonData skeletonData_;
-    SkeletonPose skeletonPose_;
-    SkinCluster skinCluster_;
+    Irufemi::SkeletonData skeletonData_;
+    Irufemi::SkeletonPose skeletonPose_;
+    Irufemi::SkinCluster skinCluster_;
     uint32_t lastSkinnedFrameIndex_ = 0;
     bool isResourceInitialized_ = false;
 };

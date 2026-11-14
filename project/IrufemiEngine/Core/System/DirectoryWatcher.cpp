@@ -2,6 +2,8 @@
 #include "Core/Utility/ErrorUtility.h"
 #include <windows.h>
 
+using namespace Irufemi;
+
 DirectoryWatcher::DirectoryWatcher(const std::filesystem::path& targetDirectory, std::function<void()> onChangeCallback)
     : targetDirectory_(targetDirectory), onChangeCallback_(onChangeCallback), isRunning_(true) {
 

@@ -17,6 +17,3 @@ struct VertexInfluence {
 };
 
 } // namespace Irufemi
-
-using Irufemi::kNumMaxInfluence;
-using Irufemi::VertexInfluence;

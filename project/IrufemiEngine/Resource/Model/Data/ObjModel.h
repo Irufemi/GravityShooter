@@ -87,7 +87,3 @@ struct ObjModel {
 };
 
 } // namespace Irufemi
-
-using Irufemi::ObjMaterial;
-using Irufemi::ObjMesh;
-using Irufemi::ObjModel;

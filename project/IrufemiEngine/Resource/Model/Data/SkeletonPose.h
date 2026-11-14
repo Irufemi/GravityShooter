@@ -43,6 +43,3 @@ struct SkeletonPose {
 };
 
 } // namespace Irufemi
-
-using Irufemi::JointPose;
-using Irufemi::SkeletonPose;

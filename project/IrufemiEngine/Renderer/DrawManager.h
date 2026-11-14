@@ -28,24 +28,22 @@
 
 namespace Irufemi {
 class ShadowMap;
+class TextureManager;
+struct GpuMesh;
+struct ManagedModel;
+struct GpuMaterial;
+struct SkinCluster;
 }
 
 // 前方宣言
-class TextureManager;
 class BaseParticle;
 class BaseGPU_Particle;
 class Primitive3DObject;
 class PrimitiveBatch;
-struct GpuMesh;
-struct ManagedModel;
 class Line2DClass;
 class Line3DClass;
 class Line3DBatch;
 class Skybox;
-namespace Irufemi {
-struct SkinCluster;
-}
-struct GpuMaterial;
 
 // 構造体を前方宣言
 
@@ -543,7 +541,7 @@ private:
     // フォグパラメータ
     FogParams fogParams_{};
 
-    TextureManager* textureManager_ = nullptr; ///< 環境マップフォールバック等に使用するテクスチャマネージャー
+    Irufemi::TextureManager* textureManager_ = nullptr; ///< 環境マップフォールバック等に使用するテクスチャマネージャー
 
 public:
     /**
@@ -568,7 +566,7 @@ public:
      * @brief テクスチャマネージャーのポインタを設定する
      * @param[in] textureManager 依存注入するテクスチャマネージャーへのポインタ
      */
-    void SetTextureManager(TextureManager* textureManager) {
+    void SetTextureManager(Irufemi::TextureManager* textureManager) {
         textureManager_ = textureManager;
     }
 
@@ -764,7 +762,7 @@ public:
     /**
      * @brief スキニング計算（Compute Shader）の実行
      */
-    void DispatchSkinning(const Irufemi::SkinCluster& skinCluster, const ManagedModel* model, uint32_t numVertices);
+    void DispatchSkinning(const Irufemi::SkinCluster& skinCluster, const Irufemi::ManagedModel* model, uint32_t numVertices);
 
     /**
      * @brief UAVバリアの実行（リソース競合の解決）

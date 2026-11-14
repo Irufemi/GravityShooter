@@ -18,7 +18,9 @@
 class Object3DResource;
 class Object2DResource;
 class LineResource;
+namespace Irufemi {
 struct GpuMesh;
+}
 
 /**
  * @namespace RenderPackets
@@ -118,7 +120,7 @@ struct PrimitiveBatchPacket {
 };
 
 struct ModelBatchPacket {
-    const struct GpuMesh* gpuMesh;
+    const Irufemi::GpuMesh* gpuMesh;
     D3D12_GPU_VIRTUAL_ADDRESS materialAddress;
     D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU;
     UINT instanceCount;

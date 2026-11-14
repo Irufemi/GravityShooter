@@ -11,6 +11,8 @@
 #include "Core/System/DirectoryWatcher.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 ProjectBrowserPanel::ProjectBrowserPanel() {
     projectBrowserFilter_ = std::make_unique<ImGuiTextFilter>();
 }
@@ -27,7 +29,7 @@ void ProjectBrowserPanel::Initialize(EditorManager* editorManager) {
     RefreshCache();
 
     // バックグラウンドでの自動監視を開始
-    directoryWatcher_ = std::make_unique<DirectoryWatcher>(projectRootPath_, [this]() { isCacheDirty_ = true; });
+    directoryWatcher_ = std::make_unique<Irufemi::DirectoryWatcher>(projectRootPath_, [this]() { isCacheDirty_ = true; });
 }
 
 void ProjectBrowserPanel::BuildDirectoryTree(DirectoryNode* node) {

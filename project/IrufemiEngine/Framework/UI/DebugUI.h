@@ -10,7 +10,6 @@
 #include "Renderer/Pipeline/PSOManager.h"
 
 // 前方宣言
-class TextureManager;
 class SceneManager;
 class IrufemiEngine;
 class ThreadPool;
@@ -18,6 +17,7 @@ class Object3DResource;
 class Object2DResource;
 struct Material;
 namespace Irufemi {
+class TextureManager;
 class DirectXCommon;
 struct ObjMaterial;
 struct Transform;
@@ -51,7 +51,7 @@ private: // メンバ変数
 
     Irufemi::DirectXCommon* dxCommon_ = nullptr;
 
-    TextureManager* textureManager_ = nullptr;
+    Irufemi::TextureManager* textureManager_ = nullptr;
 
     uint32_t srvIndex_ = 0xFFFFFFFF;
 
@@ -66,7 +66,7 @@ public: // メンバ関数
     /**
      * @brief TextureManagerをセットする
      */
-    void SetTextureManager(TextureManager* textureManager) {
+    void SetTextureManager(Irufemi::TextureManager* textureManager) {
         this->textureManager_ = textureManager;
     }
 

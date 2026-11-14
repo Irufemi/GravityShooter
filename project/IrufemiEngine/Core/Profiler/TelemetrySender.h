@@ -9,6 +9,8 @@
 #include "Core/Utility/JsonUtility.h"
 #include <memory>
 
+namespace Irufemi {
+
 /**
  * @class TelemetrySender
  * @brief ゲーム内の各種データ（FPS, CPU/GPU負荷, 任意の変数）を
@@ -75,3 +77,5 @@ private:
 
     bool isWsaInitialized_ = false;
 };
+
+} // namespace Irufemi

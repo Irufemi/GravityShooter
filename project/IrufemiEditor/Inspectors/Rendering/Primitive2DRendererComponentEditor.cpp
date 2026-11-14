@@ -14,6 +14,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Renderer/Object/3D/Primitive/Primitive3DObject.h" // TextureManager取得用（共通）
 
+using namespace Irufemi;
+
 void Primitive2DRendererComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<Primitive2DRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("Primitive2DRenderer", ImGuiTreeNodeFlags_DefaultOpen);

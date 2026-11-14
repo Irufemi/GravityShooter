@@ -13,6 +13,8 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Core/System/IrufemiEngine.h"
 
+using namespace Irufemi;
+
 void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<SpriteRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("SpriteRenderer", ImGuiTreeNodeFlags_DefaultOpen);

@@ -12,6 +12,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Resource/Model/ModelManager.h"
 
+using namespace Irufemi;
+
 void MeshRendererComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<MeshRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("MeshRenderer", ImGuiTreeNodeFlags_DefaultOpen);

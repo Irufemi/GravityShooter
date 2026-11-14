@@ -4,13 +4,13 @@
 
 class IrufemiEngine;
 class DrawManager;
-class TextureManager;
 class FontManager;
 class PSOManager;
 
 namespace Irufemi {
 
 class DirectXCommon;
+class TextureManager;
 
 /**
  * @struct RenderContext

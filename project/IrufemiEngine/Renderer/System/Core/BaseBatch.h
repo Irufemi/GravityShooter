@@ -17,7 +17,9 @@
 #include "Core/System/ResourceHandle.h"
 
 class Camera;
+namespace Irufemi {
 class TextureManager;
+}
 class DrawManager;
 
 class BaseBatch : public IRenderable {
@@ -37,7 +39,7 @@ public:
      * @brief バッチ描画で使用するテクスチャマネージャーを設定する
      * @param[in] tm 設定する TextureManager のポインタ
      */
-    static void SetTextureManager(TextureManager* tm) {
+    static void SetTextureManager(Irufemi::TextureManager* tm) {
         textureManager_ = tm;
     }
 
@@ -402,14 +404,14 @@ protected:
 
 protected:
     static Irufemi::DirectXCommon* dx_;
-    static TextureManager* textureManager_;
+    static Irufemi::TextureManager* textureManager_;
     static DrawManager* drawManager_;
     static Irufemi::DescriptorPool* srvPool_;
 
     uint32_t materialCbIndex_ = static_cast<uint32_t>(-1);
     Material cpuMaterialData_{};
     bool hasCustomColor_ = false;
-    ResourceHandle textureHandle_{};
+    Irufemi::ResourceHandle textureHandle_{};
 
     std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> instanceBuffer_{};
     std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvCPU_{};

@@ -8,6 +8,8 @@
 #include <memory>
 #include <vector>
 
+namespace Irufemi {
+
 /**
  * @class TelemetryReceiver
  * @brief 外部ツール（TelemetryMonitorなど）からTCP経由で送られてくるコマンドを受信・実行し、結果を返信するクラス
@@ -65,3 +67,5 @@ private:
     struct NetworkData;
     std::unique_ptr<NetworkData> networkData_;
 };
+
+} // namespace Irufemi

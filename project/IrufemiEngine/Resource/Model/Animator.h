@@ -5,12 +5,11 @@
 #include "Resource/Model/Data/Animation.h"
 #include "Resource/Model/Data/SkeletonPose.h"
 
-namespace Irufemi {
-struct SkeletonData;
-}
-using Irufemi::SkeletonData;
-
 class IrufemiEngine;
+
+namespace Irufemi {
+
+struct SkeletonData;
 
 /**
  * @class Animator
@@ -25,7 +24,7 @@ public:
     /**
      * @brief Initialize を実行する。
      */
-    void Initialize(IrufemiEngine* engine);
+    void Initialize(::IrufemiEngine* engine);
 
     /// @brief アニメーションをロードして再生する
     void Play(const std::string& filename, bool loop = true, float fadeDuration = 0.0f);
@@ -34,14 +33,14 @@ public:
     void Update(SkeletonPose& targetPose);
 
     /// @brief ルートモーション用の移動量（1フレーム間の差分）を取得する
-    Irufemi::Vector3 GetDeltaRootTranslation() const {
+    Vector3 GetDeltaRootTranslation() const {
         return deltaRootTranslation_;
     }
     /**
      * @brief DeltaRootRotation を取得する。
      * @return 取得された DeltaRootRotation
      */
-    Irufemi::Quaternion GetDeltaRootRotation() const {
+    Quaternion GetDeltaRootRotation() const {
         return deltaRootRotation_;
     }
 
@@ -72,7 +71,7 @@ public:
     }
 
 private:
-    IrufemiEngine* engine_ = nullptr;
+    ::IrufemiEngine* engine_ = nullptr;
 
     // 現在のアニメーション
     std::shared_ptr<Animation> currentAnimation_;
@@ -91,13 +90,15 @@ private:
     bool previousIsLooping_ = false;
 
     // ルートモーション用
-    Irufemi::Vector3 deltaRootTranslation_ = {0.0f, 0.0f, 0.0f};
-    Irufemi::Quaternion deltaRootRotation_ = {0.0f, 0.0f, 0.0f, 1.0f};
+    Vector3 deltaRootTranslation_ = {0.0f, 0.0f, 0.0f};
+    Quaternion deltaRootRotation_ = {0.0f, 0.0f, 0.0f, 1.0f};
 
     // ヘルパ
     /**
      * @brief ExtractRootMotion を実行する。
      */
     void ExtractRootMotion(const Animation* anim, const SkeletonData* skeleton, float prevTime, float currTime,
-                           Irufemi::Vector3& outDeltaTrans, Irufemi::Quaternion& outDeltaRot);
+                           Vector3& outDeltaTrans, Quaternion& outDeltaRot);
 };
+
+} // namespace Irufemi

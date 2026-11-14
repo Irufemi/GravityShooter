@@ -17,6 +17,8 @@
 #include <cmath>
 #include <cassert>
 
+using namespace Irufemi;
+
 AnimatedMeshObject::AnimatedMeshObject() {}
 AnimatedMeshObject::~AnimatedMeshObject() {}
 

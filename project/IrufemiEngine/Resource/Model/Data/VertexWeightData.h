@@ -14,5 +14,3 @@ struct VertexWeightData {
 };
 
 } // namespace Irufemi
-
-using Irufemi::VertexWeightData;

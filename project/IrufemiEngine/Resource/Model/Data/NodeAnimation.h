@@ -27,6 +27,3 @@ struct NodeAnimation {
 };
 
 } // namespace Irufemi
-
-using Irufemi::AnimationCurve;
-using Irufemi::NodeAnimation;

@@ -41,15 +41,19 @@ class DrawManager;
 class DebugPrimitiveRenderer;
 class DebugUI;
 class IEngineExtension;
-class TextureManager;
 namespace Irufemi {
 class AudioManager;
 class InputManager;
 class WinApp;
 enum class DisplayMode;
-}
+class DirectXCommon;
+class TextureManager;
 class ModelManager;
 class AnimationManager;
+class TelemetrySender;
+class TelemetryGatherer;
+class TelemetryReceiver;
+}
 class Log;
 class SceneManager;
 class SceneTransition;
@@ -60,7 +64,6 @@ class CameraManager;
 class CollisionManager;
 class GPUParticleManager;
 class PrimitiveManager;
-class TelemetrySender;
 class PrefabManager;
 class FluidSimulation2D;
 
@@ -444,21 +447,21 @@ public: // ゲッター
      * @brief TextureManager を取得する。
      * @return 取得された TextureManager
      */
-    TextureManager* GetTextureManager() {
+    Irufemi::TextureManager* GetTextureManager() {
         return this->textureManager_.get();
     }
     /**
      * @brief ObjModelManager を取得する。
      * @return 取得された ObjModelManager
      */
-    ModelManager* GetObjModelManager() {
+    Irufemi::ModelManager* GetObjModelManager() {
         return modelManager_.get();
     }
     /**
      * @brief AnimationManager を取得する。
      * @return 取得された AnimationManager
      */
-    AnimationManager* GetAnimationManager() {
+    Irufemi::AnimationManager* GetAnimationManager() {
         return animationManager_.get();
     }
     /**
@@ -486,14 +489,14 @@ public: // ゲッター
      * @brief TelemetrySender を取得する。
      * @return 取得された TelemetrySender
      */
-    TelemetrySender* GetTelemetrySender() const {
+    Irufemi::TelemetrySender* GetTelemetrySender() const {
         return telemetrySender_.get();
     }
     /**
      * @brief TelemetryReceiver を取得する。
      * @return 取得された TelemetryReceiver
      */
-    TelemetryReceiver* GetTelemetryReceiver() const {
+    Irufemi::TelemetryReceiver* GetTelemetryReceiver() const {
         return telemetryReceiver_.get();
     }
     /**
@@ -945,7 +948,7 @@ private: // メンバ変数
     std::vector<std::shared_ptr<IEngineExtension>> extensions_;
 
     // TextureManager
-    std::unique_ptr<TextureManager> textureManager_ = nullptr;
+    std::unique_ptr<Irufemi::TextureManager> textureManager_ = nullptr;
 
     // AudioManager
     std::unique_ptr<Irufemi::AudioManager> audioManager_ = nullptr;
@@ -960,10 +963,10 @@ private: // メンバ変数
     std::unique_ptr<FontManager> fontManager_ = nullptr;
 
     // ModelManager
-    std::unique_ptr<ModelManager> modelManager_ = nullptr;
+    std::unique_ptr<Irufemi::ModelManager> modelManager_ = nullptr;
 
     // AnimationManager
-    std::unique_ptr<AnimationManager> animationManager_ = nullptr;
+    std::unique_ptr<Irufemi::AnimationManager> animationManager_ = nullptr;
 
     // CameraManager
     std::unique_ptr<CameraManager> cameraManager_ = nullptr;
@@ -1025,9 +1028,9 @@ private: // メンバ変数
     std::unique_ptr<FluidSimulation2D> fluidSimulation_ = nullptr;
 
     // Telemetry
-    std::unique_ptr<TelemetrySender> telemetrySender_ = nullptr;
-    std::unique_ptr<TelemetryGatherer> telemetryGatherer_ = nullptr;
-    std::unique_ptr<TelemetryReceiver> telemetryReceiver_ = nullptr;
+    std::unique_ptr<Irufemi::TelemetrySender> telemetrySender_ = nullptr;
+    std::unique_ptr<Irufemi::TelemetryGatherer> telemetryGatherer_ = nullptr;
+    std::unique_ptr<Irufemi::TelemetryReceiver> telemetryReceiver_ = nullptr;
 
     // In-game Developer Console
     std::unique_ptr<Irufemi::DebugConsole> debugConsole_ = nullptr;
@@ -1042,8 +1045,8 @@ private: // メンバ変数
     uint32_t gameResWidth_ = 1280;
     uint32_t gameResHeight_ = 720;
 
-    ResourceHandle noise0Handle_;
-    ResourceHandle noise1Handle_;
+    Irufemi::ResourceHandle noise0Handle_;
+    Irufemi::ResourceHandle noise1Handle_;
 
     bool sceneRequestedCursorLock_ = false;
     bool isPlayMode_ = true;

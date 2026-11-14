@@ -12,6 +12,8 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+using namespace Irufemi;
+
 namespace {
 // ノードとメッシュの関連を解析するヘルパー関数
 void ProcessNode(aiNode* node, const aiScene* scene, std::vector<ObjMesh>& meshes) {

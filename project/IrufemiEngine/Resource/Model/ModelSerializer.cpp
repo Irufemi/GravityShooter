@@ -5,6 +5,8 @@
 #include "Core/Utility/Log.h"
 #include <vector>
 
+using namespace Irufemi;
+
 namespace {
 template <typename T> void WritePOD(std::ofstream& ofs, const T& value) {
     ofs.write(reinterpret_cast<const char*>(&value), sizeof(T));

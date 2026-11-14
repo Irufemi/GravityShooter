@@ -27,11 +27,11 @@
 #include <atomic>
 #include "Core/System/DirectoryWatcher.h"
 
-struct Node;
 namespace Irufemi {
+
 class DirectXCommon;
-}
 class TextureManager;
+struct Node;
 
 /**
  * @struct GpuMesh
@@ -49,7 +49,7 @@ struct GpuMesh {
     D3D12_GPU_DESCRIPTOR_HANDLE vertexSrvHandle{};
     uint32_t srvIndex = 0xFFFFFFFF;
 
-    static Irufemi::DirectXCommon* dxCommon_;
+    static DirectXCommon* dxCommon_;
 };
 
 /**
@@ -293,7 +293,7 @@ private:
     // --- 内部ユーティリティ ---
 
 private:
-    Irufemi::DirectXCommon* dxCommon_ = nullptr;
+    DirectXCommon* dxCommon_ = nullptr;
     TextureManager* textureManager_ = nullptr;
     std::string rootDir_;
     mutable std::recursive_mutex mutex_;
@@ -304,9 +304,9 @@ private:
 
     mutable std::vector<std::string> availableModelsCache_;
     mutable bool isAvailableModelsCached_ = false;
-    std::unique_ptr<ThreadPool> threadPool_;
-    std::shared_ptr<TaskGroup> taskGroup_;           ///< 重要タスク用（シーンを止める）
-    std::shared_ptr<TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用（シーンを止めない）
+    std::unique_ptr<::ThreadPool> threadPool_;
+    std::shared_ptr<::TaskGroup> taskGroup_;           ///< 重要タスク用（シーンを止める）
+    std::shared_ptr<::TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用（シーンを止めない）
 
     std::unique_ptr<DirectoryWatcher> directoryWatcher_;
     /**
@@ -314,3 +314,5 @@ private:
      */
     void OnDirectoryChanged();
 };
+
+} // namespace Irufemi

@@ -22,12 +22,12 @@
 #include "RHI/DirectX12/DXRootSignatureManager.h"
 
 // 前方宣言 (グローバル)
-class GpuProfiler;
 class Log;
 class IrufemiEngine;
 
 namespace Irufemi {
 
+class GpuProfiler;
 class DXCommandManager;
 class DXSwapChainManager;
 

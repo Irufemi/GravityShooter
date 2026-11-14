@@ -68,6 +68,3 @@ struct SkinCluster {
 };
 
 } // namespace Irufemi
-
-using Irufemi::SkinCluster;
-using Irufemi::SkinningInformation;

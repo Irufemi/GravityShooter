@@ -7,6 +7,8 @@
 #include "Resource/Model/Data/SkeletonData.h"
 #include "Core/Math/MathFunction.h"
 
+using namespace Irufemi;
+
 BoneAttachmentComponent::BoneAttachmentComponent() = default;
 BoneAttachmentComponent::~BoneAttachmentComponent() = default;
 

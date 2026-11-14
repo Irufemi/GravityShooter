@@ -8,6 +8,8 @@
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "Framework/Component/VirtualEntity/VirtualEntityManagerComponent.h"
 
+using namespace Irufemi;
+
 void TelemetryGatherer::RegisterMetric(const std::string& name, std::function<float()> fetcher) {
     metrics_.push_back({name, std::move(fetcher)});
 }

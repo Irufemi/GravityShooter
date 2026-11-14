@@ -5,6 +5,8 @@
 #include <functional>
 #include <filesystem>
 
+namespace Irufemi {
+
 /**
  * @class DirectoryWatcher
  * @brief 指定したディレクトリ（サブディレクトリ含む）のファイル変更を監視するクラス
@@ -42,3 +44,5 @@ private:
         nullptr;                ///< ディレクトリハンドル (HANDLE, windows.hのインクルード漏れを防ぐためvoid*で保持)
     void* stopEvent_ = nullptr; ///< 終了通知用イベントハンドル (HANDLE)
 };
+
+} // namespace Irufemi

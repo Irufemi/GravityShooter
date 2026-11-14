@@ -10,7 +10,9 @@
 
 class Camera;
 class PrimitiveManager;
+namespace Irufemi {
 class TextureManager;
+}
 struct PrimitiveData;
 
 /**
@@ -68,7 +70,7 @@ private:
 struct MaterialDesc {
     std::string texturePath;                           //!< テクスチャパス
     std::string loadedTexturePath;                     //!< 前回ロードしたパス（変更検知用）
-    ResourceHandle textureHandle;                      //!< テクスチャキャッシュ用ハンドル
+    Irufemi::ResourceHandle textureHandle;             //!< テクスチャキャッシュ用ハンドル
     int selectedTextureIndex = 0;                      //!< ImGui選択用インデックス
     Irufemi::Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; //!< ベースカラー
     bool enableLighting = true;                        //!< ライティングの有無
@@ -95,10 +97,10 @@ struct MaterialDesc {
      * @param[out] resource 反映先のリソース
      * @param[in] textureManager テクスチャハンドル取得用
      */
-    void UpdateMaterial(Object3DResource* resource, TextureManager* textureManager);
+    void UpdateMaterial(Object3DResource* resource, Irufemi::TextureManager* textureManager);
 
     /**
      * @brief 保持しているハンドルを解放する（破棄時に呼ぶ）
      */
-    void Release(TextureManager* textureManager);
+    void Release(Irufemi::TextureManager* textureManager);
 };

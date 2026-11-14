@@ -21,8 +21,6 @@
 namespace Irufemi {
 class DirectXCommon;
 struct ObjModel;
-}
-struct ModelData;
 
 /**
  * @class AnimationManager
@@ -39,7 +37,7 @@ public:
      * @brief 初期化処理
      * @param[in] dxCommon DirectX基盤クラスのポインタ
      */
-    void Initialize(Irufemi::DirectXCommon* dxCommon);
+    void Initialize(DirectXCommon* dxCommon);
 
     /**
      * @brief アニメーション検索のルートディレクトリを設定する
@@ -60,7 +58,7 @@ public:
      * @param[in] objModel モデルデータ
      * @return 生成された SkinCluster
      */
-    SkinCluster CreateSkinCluster(const SkeletonData& skeleton, const Irufemi::ObjModel& objModel);
+    SkinCluster CreateSkinCluster(const SkeletonData& skeleton, const ObjModel& objModel);
 
     // アニメーションファイルの列挙用
     /**
@@ -192,7 +190,7 @@ private: // 内部ヘルパ
     std::string FindFileRecursive(const std::string& filename) const;
 
 private:
-    Irufemi::DirectXCommon* dxCommon_ = nullptr;
+    DirectXCommon* dxCommon_ = nullptr;
     std::string rootDir_;
     mutable std::mutex mutex_;
 
@@ -211,3 +209,5 @@ private:
      */
     void OnDirectoryChanged();
 };
+
+} // namespace Irufemi

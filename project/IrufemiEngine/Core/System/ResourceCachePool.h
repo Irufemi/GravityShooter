@@ -5,6 +5,8 @@
 #include <functional>
 #include "Core/System/ResourceHandle.h"
 
+namespace Irufemi {
+
 /**
  * @struct ResourceSlotMeta
  * @brief 各リソーススロットの管理用メタデータ
@@ -121,3 +123,5 @@ private:
     std::vector<uint32_t> freeIndices_;
     mutable std::mutex mutex_;
 };
+
+} // namespace Irufemi

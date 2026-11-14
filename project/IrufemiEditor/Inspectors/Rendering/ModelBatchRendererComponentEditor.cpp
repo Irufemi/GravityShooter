@@ -12,6 +12,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Resource/Model/ModelManager.h"
 
+using namespace Irufemi;
+
 void ModelBatchRendererComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<ModelBatchRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("ModelBatchRenderer", ImGuiTreeNodeFlags_DefaultOpen);

@@ -4,6 +4,8 @@
 #include "Renderer/System/Core/BaseResource.h"
 #include "Resource/Model/ModelManager.h"
 
+using namespace Irufemi;
+
 IrufemiEngine* BaseModel::engine_ = nullptr;
 
 BaseModel::~BaseModel() {

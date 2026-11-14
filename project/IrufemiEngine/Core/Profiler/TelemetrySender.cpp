@@ -8,6 +8,8 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
+using namespace Irufemi;
+
 struct TelemetrySender::NetworkData {
     SOCKET udpSocket_ = INVALID_SOCKET;
     sockaddr_in targetAddr_{};

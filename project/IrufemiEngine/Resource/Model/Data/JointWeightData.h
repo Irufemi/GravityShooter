@@ -11,5 +11,3 @@ struct JointWeightData {
 };
 
 } // namespace Irufemi
-
-using Irufemi::JointWeightData;

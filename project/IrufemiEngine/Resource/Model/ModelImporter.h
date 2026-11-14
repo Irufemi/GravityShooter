@@ -2,6 +2,8 @@
 #include <string>
 #include "Resource/Model/Data/ObjModel.h"
 
+namespace Irufemi {
+
 class ModelImporter {
 public:
     /**
@@ -12,3 +14,5 @@ public:
      */
     static ObjModel Import(const std::string& fullPath);
 };
+
+} // namespace Irufemi

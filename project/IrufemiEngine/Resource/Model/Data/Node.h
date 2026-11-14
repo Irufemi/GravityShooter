@@ -27,5 +27,3 @@ struct Node {
 };
 
 } // namespace Irufemi
-
-using Irufemi::Node;

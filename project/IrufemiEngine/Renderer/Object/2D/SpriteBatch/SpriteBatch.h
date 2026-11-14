@@ -16,7 +16,9 @@
 #include "Renderer/Data/RenderPackets.h"
 
 // 前方宣言
+namespace Irufemi {
 class TextureManager;
+}
 class DrawManager;
 class CameraManager;
 class Object2DResource;
@@ -148,7 +150,7 @@ public:
      * @brief TextureManager を設定する。
      * @param[in] tm 設定する TextureManager の値
      */
-    static void SetTextureManager(TextureManager* tm) {
+    static void SetTextureManager(Irufemi::TextureManager* tm) {
         textureManager_ = tm;
     }
     /**
@@ -232,7 +234,7 @@ private:
     std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvCPU_{};
     std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvGPU_{};
 
-    static TextureManager* textureManager_;
+    static Irufemi::TextureManager* textureManager_;
     static DrawManager* drawManager_;
     static CameraManager* cameraManager_;
     static Irufemi::DirectXCommon* dx_;

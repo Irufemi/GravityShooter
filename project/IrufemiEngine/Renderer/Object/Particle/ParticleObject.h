@@ -8,7 +8,9 @@
 #include "Core/Type/BlendMode.h"
 #include "Core/Utility/JsonUtility.h"
 
+namespace Irufemi {
 class TextureManager;
+}
 
 /**
  * @class ParticleObject
@@ -69,13 +71,13 @@ public:
      * @brief ModelManager を設定する。
      * @param[in] manager 設定する ModelManager の値
      */
-    static void SetModelManager(ModelManager* manager) {
+    static void SetModelManager(Irufemi::ModelManager* manager) {
         modelManager_ = manager;
     }
 
 private:
     inline static GPUParticleManager* gpuParticleManager_ = nullptr;
-    inline static ModelManager* modelManager_ = nullptr;
+    inline static Irufemi::ModelManager* modelManager_ = nullptr;
 
 public:
     /**
@@ -770,14 +772,14 @@ public:
      * @brief TextureManager を設定する。
      * @param[in] tm 設定する TextureManager の値
      */
-    static void SetTextureManager(TextureManager* tm) {
+    static void SetTextureManager(Irufemi::TextureManager* tm) {
         textureManager_ = tm;
     }
     /**
      * @brief TextureManager を取得する。
      * @return 取得された TextureManager
      */
-    static TextureManager* GetTextureManager() {
+    static Irufemi::TextureManager* GetTextureManager() {
         return textureManager_;
     }
 
@@ -807,7 +809,7 @@ private:
     int burstCountOnAwake_ = 0;
 
     std::string emitterModelPath_;
-    ResourceHandle emitterModelHandle_;
+    Irufemi::ResourceHandle emitterModelHandle_;
 
     // エミッターの基本パラメータ
     int emitType_ = 0;           // 0: Irufemi::Sphere, 1: Beam, 2: Box, 3: Irufemi::Cylinder
@@ -854,7 +856,7 @@ private:
      */
     void UpdateSystem();
 
-    static TextureManager* textureManager_;
+    static Irufemi::TextureManager* textureManager_;
     GPUParticleManager::EmitterHandle emitterHandle_;
     bool isPlaying_ = false;
     int burstCountPending_ = 0;
