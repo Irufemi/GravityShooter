@@ -1,7 +1,8 @@
 #include "RHI/DirectX12/ShaderManager.h"
 #include "Core/Utility/ErrorUtility.h"
 #include "Core/Utility/Log.h"
-#include <atomic>
+#include <wrl/client.h>
+#include <wrl/implements.h>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -13,35 +14,15 @@
 #endif
 
 #ifndef RUNTIME_SHADER_COMPILE
-// IDxcBlob を自作して dxcompiler.dll への依存を無くす
-class CustomBlob : public IDxcBlob {
+// IDxcBlob を WRL::RuntimeClass で実装（IUnknownのAddRef/Release/QueryInterfaceを自動管理）
+class CustomBlob : public Microsoft::WRL::RuntimeClass<
+                       Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+                       IDxcBlob> {
     std::vector<uint8_t> data_;
-    std::atomic<ULONG> refCount_{1};
 
 public:
     CustomBlob(std::vector<uint8_t>&& data) : data_(std::move(data)) {}
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        if (!ppv) {
-            return E_POINTER;
-        }
-        if (riid == __uuidof(IUnknown) || riid == __uuidof(IDxcBlob)) {
-            *ppv = this;
-            AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return ++refCount_;
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG r = --refCount_;
-        if (r == 0) {
-            delete this;
-        }
-        return r;
-    }
+
     LPVOID STDMETHODCALLTYPE GetBufferPointer() override {
         return data_.data();
     }
@@ -99,7 +80,7 @@ Microsoft::WRL::ComPtr<IDxcBlob> ShaderManager::GetOrCompile(const std::wstring&
         file.seekg(0, std::ios::beg);
         std::vector<uint8_t> buffer(size);
         if (file.read(reinterpret_cast<char*>(buffer.data()), size)) {
-            blob.Attach(new CustomBlob(std::move(buffer)));
+            blob = Microsoft::WRL::Make<CustomBlob>(std::move(buffer));
         }
     } else {
         std::string err = "[ShaderManager] Failed to open compiled shader (.cso) file: " + compiledPath.string() + "\n";
