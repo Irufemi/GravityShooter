@@ -279,9 +279,12 @@ void EnemyBeamComponent::Update() {
     UpdateParameters();
 
     auto engine = GetEngine();
-    float deltaTime = engine ? engine->GetGameDeltaTime() : (1.0f / 60.0f);
+    if (!engine) {
+        return;
+    }
+    float deltaTime = engine->GetGameDeltaTime();
     if (deltaTime <= 0.0f) {
-        deltaTime = 1.0f / 60.0f;
+        return;
     }
 
     currentState_->OnUpdate(*this, deltaTime);

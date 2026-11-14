@@ -100,7 +100,11 @@ void DroneManagerComponent::Update() {
         }
     }
 
-    float deltaTime = GetEngine() ? GetEngine()->GetGameDeltaTime() : (1.0f / 60.0f);
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
+    }
+    float deltaTime = engine->GetGameDeltaTime();
 
     // エフェクトマスク情報の事前キャッシュ（ループ内での重複コンポーネント走査を排除）
     int32_t effectType = 0;

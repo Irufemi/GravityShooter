@@ -54,7 +54,7 @@ void BeamChargingState::OnUpdate(EnemyBeamComponent& owner, float deltaTime) {
 
     // AOE パラメータの更新 (warningRatio)
     auto& aoeData = owner.GetAOEParamsData();
-    aoeData.shapeType = 2; // Cylinder
+    aoeData.shapeType = config.aoeShapeType;
     aoeData.warningRatio = t;
     if (engine && engine->GetDirectXCommon()) {
         uint32_t frameIndex = engine->GetDirectXCommon()->GetCurrentBackBufferIndex();
@@ -75,9 +75,8 @@ void BeamChargingState::OnUpdate(EnemyBeamComponent& owner, float deltaTime) {
 
         // ロック中は激しく明滅させて危険度を最大化
         if (isAimLocked_) {
-            float pulse = std::sin(stateTimer_ * 40.0f);
-            Irufemi::Vector4 c =
-                (pulse > 0.0f) ? Irufemi::Vector4{1.0f, 0.2f, 0.2f, 0.9f} : Irufemi::Vector4{1.0f, 1.0f, 1.0f, 0.95f};
+            float pulse = std::sin(stateTimer_ * config.lockPulseFrequency);
+            Irufemi::Vector4 c = (pulse > 0.0f) ? config.lockPulseColorA : config.lockPulseColorB;
             telegraph->SetColor(c);
         } else {
             telegraph->SetColor(config.telegraphColor);
@@ -87,8 +86,8 @@ void BeamChargingState::OnUpdate(EnemyBeamComponent& owner, float deltaTime) {
 
     // チャージ球のアニメーション（収縮エネルギー凝縮表現 + 明滅）
     float easeT = t * t * t;
-    float baseScale = std::lerp(0.1f, 4.0f, easeT);
-    float pulse = 1.0f + 0.3f * std::sin(t * 50.0f);
+    float baseScale = std::lerp(config.chargeMinScale, config.chargeMaxScale, easeT);
+    float pulse = 1.0f + config.chargePulseAmplitude * std::sin(t * config.chargePulseFrequency);
     float currentScale = baseScale * pulse;
 
     if (auto chargeSphere = owner.GetChargeSphere()) {

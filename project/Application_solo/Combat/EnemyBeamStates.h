@@ -33,6 +33,15 @@ struct BeamConfig {
     Irufemi::Vector4 auraCoreColor = {0.8f, 0.0f, 1.0f, 1.0f}; //!< オーラコア色
     float auraIntensity = 12.0f;
     float auraSpeed = 0.8f;
+
+    uint32_t aoeShapeType = 2;                                     //!< AOE形状タイプ (2: Cylinder)
+    float lockPulseFrequency = 40.0f;                              //!< 射線ロック時の警告点滅周波数
+    Irufemi::Vector4 lockPulseColorA = {1.0f, 0.2f, 0.2f, 0.9f};  //!< ロック中点滅色A
+    Irufemi::Vector4 lockPulseColorB = {1.0f, 1.0f, 1.0f, 0.95f}; //!< ロック中点滅色B
+    float chargeMinScale = 0.1f;                                   //!< チャージ球の最小スケール
+    float chargeMaxScale = 4.0f;                                   //!< チャージ球の最大スケール
+    float chargePulseAmplitude = 0.3f;                             //!< チャージ球のパルス振動幅
+    float chargePulseFrequency = 50.0f;                            //!< チャージ球のパルス振動周波数
 };
 
 /**

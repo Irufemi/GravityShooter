@@ -141,7 +141,7 @@ void BossComponent::Start() {
                 isShieldsInitialized_ = true;
 
                 if (droneManager_ && bulletManager_) {
-                    droneManager_->DeployDrones(gameObject_->shared_from_this(), 10, bulletManager_);
+                    droneManager_->DeployDrones(gameObject_->shared_from_this(), initialDroneCount_, bulletManager_);
                 }
             }
         }
@@ -162,6 +162,7 @@ void BossComponent::OnRegisterProperties() {
     RegisterProperty("Status Data Path", &statusDataPath_);
     RegisterProperty("Beam Offset Z", &beamOffsetZ_);
     RegisterProperty("Beam Offset Y", &beamOffsetY_);
+    RegisterProperty("Initial Drone Count", &initialDroneCount_);
 }
 
 std::shared_ptr<GameObject> BossComponent::ExtractDebris() {

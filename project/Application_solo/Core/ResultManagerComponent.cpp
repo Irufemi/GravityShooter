@@ -44,23 +44,23 @@ void ResultManagerComponent::Initialize() {
 
     // 1. 退廃世界の空気感を引き締めるダーク暗幕オーバーレイの配置
     if (gameObject_ && gameObject_->GetScene()) {
-        auto bgObj = std::make_shared<GameObject>("Result_DarkBackdrop");
-        gameObject_->GetScene()->AddGameObject(bgObj);
-        Irufemi::Vector2 gameRes = {1280.0f, 720.0f};
-        if (auto engine = GetEngine()) {
-            gameRes = engine->GetGameResolution();
+        auto engine = GetEngine();
+        if (engine) {
+            auto bgObj = std::make_shared<GameObject>("Result_DarkBackdrop");
+            gameObject_->GetScene()->AddGameObject(bgObj);
+            Irufemi::Vector2 gameRes = engine->GetGameResolution();
+            if (auto t = bgObj->GetTransform()) {
+                t->SetPosition({gameRes.x * 0.5f, gameRes.y * 0.5f, 5.0f});
+            }
+            auto sprite = bgObj->AddComponent<SpriteRendererComponent>();
+            if (sprite) {
+                sprite->SetBaseSize(gameRes);
+                sprite->SetAnchor({0.5f, 0.5f});
+                sprite->SetColor({0.02f, 0.03f, 0.05f, 0.0f}); // 初期アルファ0
+            }
+            bgObj->Initialize();
+            darkBackdropObj_ = bgObj;
         }
-        if (auto t = bgObj->GetTransform()) {
-            t->SetPosition({gameRes.x * 0.5f, gameRes.y * 0.5f, 5.0f});
-        }
-        auto sprite = bgObj->AddComponent<SpriteRendererComponent>();
-        if (sprite) {
-            sprite->SetBaseSize(gameRes);
-            sprite->SetAnchor({0.5f, 0.5f});
-            sprite->SetColor({0.02f, 0.03f, 0.05f, 0.0f}); // 初期アルファ0
-        }
-        bgObj->Initialize();
-        darkBackdropObj_ = bgObj;
     }
 
     // 2. 自分自身のGameObjectに TextRendererComponent を追加（または既存のものを取得）

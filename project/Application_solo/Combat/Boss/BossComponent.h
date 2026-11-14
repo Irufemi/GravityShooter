@@ -230,6 +230,7 @@ private:
 
     bool isShieldsInitialized_ = false;
     int initialShieldsSpawned_ = 0;
+    int initialDroneCount_ = 10;
 
     // --- ビーム攻撃用 ---
     EnemyBeamComponent* beamComponent_ = nullptr;
