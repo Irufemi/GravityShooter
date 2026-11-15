@@ -128,7 +128,7 @@ private: // メンバ変数(ゲーム)
     bool isActiveLightningCrawl_ = false;
     std::unique_ptr<Primitive3DObject> lightningCylinder_ = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> lightningParamsResource_ = nullptr;
-    LightningParams* lightningParamsData_ = nullptr;
+    Irufemi::LightningParams* lightningParamsData_ = nullptr;
 
 private: // メンバ変数(システム)
 #ifdef USE_IMGUI

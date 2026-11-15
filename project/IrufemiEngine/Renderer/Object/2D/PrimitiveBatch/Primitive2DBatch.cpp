@@ -5,6 +5,8 @@
 #include <cmath>
 #include <algorithm>
 
+using namespace Irufemi;
+
 Primitive2DBatch::Primitive2DBatch() {}
 
 Primitive2DBatch::~Primitive2DBatch() {

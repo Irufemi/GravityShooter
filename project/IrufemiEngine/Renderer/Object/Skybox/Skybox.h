@@ -120,8 +120,8 @@ private: // メンバ関数(内部ヘルパ)
 
 private: // メンバ変数(resource)
     /// vertex
-    std::vector<VertexData> vertexDataList_{};
-    VertexData* vertexData_ = nullptr;
+    std::vector<Irufemi::VertexData> vertexDataList_{};
+    Irufemi::VertexData* vertexData_ = nullptr;
     // 頂点データバッファ
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
     Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_ = nullptr;

@@ -3,6 +3,8 @@
 #include "Renderer/DrawManager.h"
 #include "Renderer/Data/FogParams.h"
 
+using namespace Irufemi;
+
 void FogComponent::OnRegisterProperties() {
     RegisterProperty("Enabled", &enabled_).OnChanged([this]() { isDirty_ = true; });
     RegisterProperty("Color", &fogColor_).OnChanged([this]() { isDirty_ = true; });

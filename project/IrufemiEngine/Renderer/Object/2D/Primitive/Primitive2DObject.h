@@ -14,8 +14,8 @@
 // 前方宣言
 namespace Irufemi {
 class TextureManager;
-}
 class DrawManager;
+}
 class DebugUI;
 
 /**
@@ -229,7 +229,7 @@ public:
      * @brief DrawManager を設定する。
      * @param[in] drawM 設定する DrawManager の値
      */
-    static void SetDrawManager(DrawManager* drawM) {
+    static void SetDrawManager(Irufemi::DrawManager* drawM) {
         drawManager_ = drawM;
     }
     /**
@@ -292,7 +292,7 @@ private:
 
     // 静的マネージャ参照
     static Irufemi::TextureManager* textureManager_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static DebugUI* ui_;
     static class IrufemiEngine* engine_;
 };

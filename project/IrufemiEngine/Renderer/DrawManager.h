@@ -33,19 +33,6 @@ struct GpuMesh;
 struct ManagedModel;
 struct GpuMaterial;
 struct SkinCluster;
-}
-
-// 前方宣言
-class BaseParticle;
-class BaseGPU_Particle;
-class Primitive3DObject;
-class PrimitiveBatch;
-class Line2DClass;
-class Line3DClass;
-class Line3DBatch;
-class Skybox;
-
-// 構造体を前方宣言
 
 // 描画のCommandListを積む順番
 // Viewport → RootSignature → Pipeline → Topology → Buffers → CBV → SRV → Draw
@@ -865,3 +852,5 @@ private:
     Microsoft::WRL::ComPtr<ID3D12CommandSignature> commandSignature_;
     bool vSyncEnabled_ = true;
 };
+
+} // namespace Irufemi

@@ -6,7 +6,9 @@
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include "Renderer/Data/RenderContext.h"
 
-void MainOpaquePass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
+using namespace Irufemi;
+
+void MainOpaquePass::Setup(RenderGraphBuilder& builder, const RenderContext& rc) {
     auto* drawManager = rc.drawManager;
     auto* engine = rc.engine;
 
@@ -39,7 +41,7 @@ void MainOpaquePass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderCon
     }
 }
 
-void MainOpaquePass::Execute(const Irufemi::RenderContext& rc) {
+void MainOpaquePass::Execute(const RenderContext& rc) {
     auto* drawManager = rc.drawManager;
     auto* engine = rc.engine;
     if (!drawManager || !engine) {

@@ -6,6 +6,8 @@
 #include "Core/Math/MathFunction.h"
 #include "Core/Utility/ErrorUtility.h"
 
+using namespace Irufemi;
+
 SkyDomeComponent::~SkyDomeComponent() {
     if (materialResource_ && mappedMaterialData_) {
         materialResource_->Unmap(0, nullptr);

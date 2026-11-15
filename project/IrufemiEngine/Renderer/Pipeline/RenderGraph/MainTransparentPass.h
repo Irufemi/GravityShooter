@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace Irufemi {
+
 class MainTransparentPass : public IRenderPass {
 public:
     /**
@@ -10,13 +12,13 @@ public:
      * @param[in,out] builder リソース使用状態を記録するビルダー
      * @param[in] rc 描画コンテキスト
      */
-    void Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) override;
+    void Setup(RenderGraphBuilder& builder, const RenderContext& rc) override;
 
     /**
      * @brief パスの実行処理（カメラ距離による奥から手前のソートおよび半透明描画）
      * @param[in] rc 描画コンテキスト
      */
-    void Execute(const Irufemi::RenderContext& rc) override;
+    void Execute(const RenderContext& rc) override;
 
 private:
     /// @brief 半透明描画のインデックスソート用軽量キー (8 bytes)
@@ -28,3 +30,5 @@ private:
     /// @brief 毎フレームのヒープアロケーションを防ぐための再利用ソートキーバッファ
     std::vector<TransparentSortKey> sortKeys_;
 };
+
+} // namespace Irufemi

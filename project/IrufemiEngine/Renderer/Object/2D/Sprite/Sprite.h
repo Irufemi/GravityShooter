@@ -13,8 +13,8 @@
 // 前方宣言
 namespace Irufemi {
 class TextureManager;
-}
 class DrawManager;
+}
 class DebugUI;
 class CameraManager;
 
@@ -27,7 +27,7 @@ class CameraManager;
 class Sprite : public IRenderable {
 public:
     Sprite() = default;
-    explicit Sprite(Irufemi::TextureManager* tm, DrawManager* dm = nullptr, CameraManager* cm = nullptr)
+    explicit Sprite(Irufemi::TextureManager* tm, Irufemi::DrawManager* dm = nullptr, CameraManager* cm = nullptr)
         : instTextureManager_(tm), instDrawManager_(dm), instCameraManager_(cm) {}
 
     /**
@@ -42,7 +42,7 @@ public:
      * @brief インスタンス固有の DrawManager を設定する。
      * @param[in] dm 設定する DrawManager のポインタ
      */
-    void SetDrawManagerInstance(DrawManager* dm) {
+    void SetDrawManagerInstance(Irufemi::DrawManager* dm) {
         instDrawManager_ = dm;
     }
 
@@ -66,7 +66,7 @@ public:
      * @brief 使用する DrawManager を取得する（インスタンスメンバ優先）。
      * @return DrawManager のポインタ
      */
-    DrawManager* GetDrawManagerInstance() const {
+    Irufemi::DrawManager* GetDrawManagerInstance() const {
         return instDrawManager_ ? instDrawManager_ : drawManager_;
     }
 
@@ -87,13 +87,13 @@ private:
 
     // インスタンス依存ポインタ（優先）
     Irufemi::TextureManager* instTextureManager_ = nullptr;
-    DrawManager* instDrawManager_ = nullptr;
+    Irufemi::DrawManager* instDrawManager_ = nullptr;
     CameraManager* instCameraManager_ = nullptr;
 
     // 静的フォールバックポインタ
     static CameraManager* cameraManager_;
     static Irufemi::TextureManager* textureManager_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static DebugUI* ui_;
 
     // サイズとアンカー
@@ -371,7 +371,7 @@ public: // メンバ関数
      * @brief DrawManager を設定する。
      * @param[in] drawM 設定する DrawManager の値
      */
-    static void SetDrawManager(DrawManager* drawM) {
+    static void SetDrawManager(Irufemi::DrawManager* drawM) {
         drawManager_ = drawM;
     }
     /**

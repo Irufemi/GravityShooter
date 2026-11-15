@@ -9,12 +9,13 @@
 
 #include "Renderer/Pipeline/RenderGraph/LambdaRenderPass.h"
 
-class DrawManager;
 class IrufemiEngine;
+
 namespace Irufemi {
+
+class DrawManager;
 class DirectXCommon;
 class RenderTexture;
-}
 
 /**
  * @class RenderGraph
@@ -46,7 +47,7 @@ public:
      * @param[in] drawManager 描画コマンドを発行するための DrawManager
      * @param[in] engine エンジン本体
      */
-    void Execute(DrawManager* drawManager, IrufemiEngine* engine);
+    void Execute(Irufemi::DrawManager* drawManager, IrufemiEngine* engine);
 
     /**
      * @brief 登録されているすべてのパスを破棄する
@@ -167,3 +168,5 @@ private:
     std::vector<ID3D12Resource*> transientPhysicalResources_;
     std::vector<std::unique_ptr<Irufemi::RenderTexture>> transientRenderTextures_;
 };
+
+} // namespace Irufemi

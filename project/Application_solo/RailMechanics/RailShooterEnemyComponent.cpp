@@ -261,7 +261,7 @@ void RailShooterEnemyComponent::EnsureTelegraphResources() {
     auto dxCommon = engine->GetDirectXCommon();
     if (dxCommon) {
         aoeParamsBuffer_.Initialize(dxCommon);
-        aoeParamsData_ = AOEParams();
+        aoeParamsData_ = Irufemi::AOEParams();
         aoeParamsData_.shapeType = 2; // Cylinder用
         aoeParamsData_.warningRatio = 0.0f;
         aoeParamsBuffer_.UpdateAll(aoeParamsData_);

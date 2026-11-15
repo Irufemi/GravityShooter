@@ -18,9 +18,10 @@
 #include "Core/System/ResourceHandle.h"
 
 // 前方宣言
-class DrawManager;
 namespace Irufemi {
+class DrawManager;
 class TextureManager;
+class RenderGraphBuilder;
 }
 class Camera;
 class IrufemiEngine;
@@ -185,7 +186,7 @@ struct ParticleField {
  * @class GPUParticleSystem
  * @brief Compute Shader を使用した、大量の粒子を GPU 上でシミュレーション・描画するクラス
  */
-class GPUParticleSystem : public IComputeTask, public IRenderable {
+class GPUParticleSystem : public Irufemi::IComputeTask, public IRenderable {
 public:
     friend class GPUParticleManager;
     static const uint32_t kMaxEmitters = 2048;
@@ -205,7 +206,7 @@ public:
     /** @name 初期化・更新・描画 */
     ///@{
     void DispatchCompute() override;
-    void Setup(class RenderGraphBuilder& builder) override;
+    void Setup(Irufemi::RenderGraphBuilder& builder) override;
     /**
      * @brief Initialize を実行する。
      */
@@ -581,7 +582,7 @@ public:
      * @brief DrawManager を設定する。
      * @param[in] drawManager 設定する DrawManager の値
      */
-    static void SetDrawManager(DrawManager* drawManager) {
+    static void SetDrawManager(Irufemi::DrawManager* drawManager) {
         drawManager_ = drawManager;
     }
     /**
@@ -657,7 +658,7 @@ private:
     ///@}
 
     static Irufemi::DirectXCommon* dxCommon_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static Irufemi::TextureManager* textureManager_;
     static IrufemiEngine* engine_;
 
@@ -733,8 +734,8 @@ private:
     uint32_t indexCount_ = 0;                                              // NEW: インデックス数
     Irufemi::PrimitiveType primitiveType_ = Irufemi::PrimitiveType::Plane; // 現在の形状
 
-    Irufemi::ConstantBuffer<Material> materialBuffer_;
-    Material cpuMaterialData_{
+    Irufemi::ConstantBuffer<Irufemi::Material> materialBuffer_;
+    Irufemi::Material cpuMaterialData_{
         {1.0f, 1.0f, 1.0f, 1.0f},                         // color
         0,                                                // enableLighting
         1,                                                // hasTexture

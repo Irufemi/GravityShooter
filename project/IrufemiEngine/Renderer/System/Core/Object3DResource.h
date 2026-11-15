@@ -170,18 +170,18 @@ public:
         uvTransform_ = uvTransform;
     }
 
-    const TransformationMatrix& GetTransformationMatrix() const {
+    const Irufemi::TransformationMatrix& GetTransformationMatrix() const {
         return transformationMatrix_;
     }
-    TransformationMatrix& GetTransformationMatrix() {
+    Irufemi::TransformationMatrix& GetTransformationMatrix() {
         return transformationMatrix_;
     }
 
     // --- マテリアルアクセサ ---
-    Material* GetMaterialData() {
+    Irufemi::Material* GetMaterialData() {
         return &cpuMaterialData_;
     }
-    const Material* GetMaterialData() const {
+    const Irufemi::Material* GetMaterialData() const {
         return &cpuMaterialData_;
     }
 
@@ -212,13 +212,13 @@ public:
     }
 
     // --- 頂点・インデックス配列アクセサ ---
-    std::vector<VertexData>& GetVertexDataList() {
+    std::vector<Irufemi::VertexData>& GetVertexDataList() {
         return vertexDataList_;
     }
-    const std::vector<VertexData>& GetVertexDataList() const {
+    const std::vector<Irufemi::VertexData>& GetVertexDataList() const {
         return vertexDataList_;
     }
-    VertexData* GetVertexData() {
+    Irufemi::VertexData* GetVertexData() {
         return vertexData_;
     }
 
@@ -260,8 +260,8 @@ public:
 
 protected:
     // --- 頂点バッファ ---
-    std::vector<VertexData> vertexDataList_{};
-    VertexData* vertexData_ = nullptr;
+    std::vector<Irufemi::VertexData> vertexDataList_{};
+    Irufemi::VertexData* vertexData_ = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_ = nullptr;
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
 
@@ -274,12 +274,12 @@ protected:
 
     // --- マテリアル ---
     Irufemi::Transform uvTransform_{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
-    Material cpuMaterialData_{};
+    Irufemi::Material cpuMaterialData_{};
     uint32_t materialCbIndex_ = static_cast<uint32_t>(-1);
 
     // --- トランスフォーム ---
     Irufemi::Transform transform_{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
-    TransformationMatrix transformationMatrix_{};
+    Irufemi::TransformationMatrix transformationMatrix_{};
     uint32_t transformCbIndex_ = static_cast<uint32_t>(-1);
     uint32_t* externalTransformCbIndex_ = nullptr;
 

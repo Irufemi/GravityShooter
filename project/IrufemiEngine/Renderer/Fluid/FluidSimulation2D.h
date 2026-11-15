@@ -20,7 +20,7 @@ class DirectXCommon;
  *          および Jacobi 反復による圧力ポアソン方程式の求解を毎フレーム実行し、
  *          高品位な流速場（Velocity Field）と濃度場（Density/Color Field）を提供します。
  */
-class FluidSimulation2D : public IComputeTask {
+class FluidSimulation2D : public Irufemi::IComputeTask {
 public: // 内部定数・構造体
     /**
      * @struct InjectionRequest

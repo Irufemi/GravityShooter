@@ -73,7 +73,7 @@ struct VoxelEmitter {
     float swayAmplitude = 10.0f;
 };
 
-class VoxelParticleSystem : public IComputeTask, public IRenderable {
+class VoxelParticleSystem : public Irufemi::IComputeTask, public IRenderable {
 public:
     enum class LoadingStatus { Pending, Loading, ReadyToCreateResources, Loaded, Failed };
 

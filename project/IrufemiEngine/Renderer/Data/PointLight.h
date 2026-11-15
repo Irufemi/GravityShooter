@@ -4,11 +4,13 @@
 #include "Core/Math/Vector4.h"
 #include <cstdint>
 
+namespace Irufemi {
+
 struct PointLight {
     //!< ライトの色
-    Irufemi::Vector4 color;
+    Vector4 color;
     //!< ライトの位置
-    Irufemi::Vector3 position;
+    Vector3 position;
     //!< 輝度
     float intensity;
     //!< ライトの影響範囲
@@ -23,3 +25,5 @@ private:
 };
 
 static_assert(sizeof(PointLight) == 48, "PointLight size mismatch with HLSL");
+
+} // namespace Irufemi

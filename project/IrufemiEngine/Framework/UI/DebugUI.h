@@ -15,7 +15,6 @@ class IrufemiEngine;
 class ThreadPool;
 class Object3DResource;
 class Object2DResource;
-struct Material;
 namespace Irufemi {
 class TextureManager;
 class DirectXCommon;
@@ -24,13 +23,13 @@ struct Transform;
 struct Matrix4x4;
 struct Sphere;
 struct Animation;
-} // namespace Irufemi
-
+struct Material;
 struct DirectionalLight;
 struct PointLight;
 struct SpotLight;
 struct AreaLight;
 struct LightningParams;
+} // namespace Irufemi
 
 #ifdef USE_IMGUI
 
@@ -106,9 +105,9 @@ public: // メンバ関数
     /**
      * @brief ライト全体の編集UIを表示する
      */
-    static void DebugLights(DirectionalLight* directionalLight, std::vector<std::unique_ptr<PointLight>>& pointLights,
-                            std::vector<std::unique_ptr<SpotLight>>& spotLights,
-                            std::vector<std::unique_ptr<AreaLight>>& areaLights);
+    static void DebugLights(Irufemi::DirectionalLight* directionalLight, std::vector<std::unique_ptr<Irufemi::PointLight>>& pointLights,
+                            std::vector<std::unique_ptr<Irufemi::SpotLight>>& spotLights,
+                            std::vector<std::unique_ptr<Irufemi::AreaLight>>& areaLights);
 
     /**
      * @brief 3Dトランスフォームの編集
@@ -128,13 +127,13 @@ public: // メンバ関数
 
     /** @name マテリアル・テクスチャのデバッグ */
     ///@{
-    static void DebugMaterialBy3D(Material* material);
+    static void DebugMaterialBy3D(Irufemi::Material* material);
 
     /**
      * @brief 2Dスプライト用マテリアルのプロパティ（カラー、UVタイリング等）を編集するImGui UIを表示する
      * @param[in,out] material 編集対象のマテリアル
      */
-    static void DebugMaterialBy2D(Material* material);
+    static void DebugMaterialBy2D(Irufemi::Material* material);
 
     /**
      * @brief OBJモデル用マテリアルのプロパティ（環境光・拡散反射光・鏡面反射光等）を編集するImGui UIを表示する
@@ -147,7 +146,7 @@ public: // メンバ関数
      * @brief パーティクル用マテリアルのブレンドモード・カラー設定を編集するImGui UIを表示する
      * @param[in,out] material 編集対象のマテリアル
      */
-    static void DebugMaterialByParticle(Material* material);
+    static void DebugMaterialByParticle(Irufemi::Material* material);
 
     /**
      * @brief 3Dオブジェクト用テクスチャの選択・差し替えUIを表示する
@@ -166,7 +165,7 @@ public: // メンバ関数
      * @brief 平行光源（DirectionalLight）の向き・色・強度を編集するImGui UIを表示する
      * @param[in,out] directionalLightData 編集対象のディレクショナルライトデータ
      */
-    static void DebugDirectionalLight(DirectionalLight* directionalLightData);
+    static void DebugDirectionalLight(Irufemi::DirectionalLight* directionalLightData);
 
     /**
      * @brief UV座標変換（Transform形式：スケール・回転・移動）を編集するImGui UIを表示する
@@ -189,7 +188,7 @@ public: // メンバ関数
     /**
      * @brief 電撃エフェクト調整UI
      */
-    static void DebugLightning(LightningParams* params);
+    static void DebugLightning(Irufemi::LightningParams* params);
 
     /**
      * @brief アニメーション制御UI

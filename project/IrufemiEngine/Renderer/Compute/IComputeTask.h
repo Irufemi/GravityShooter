@@ -1,5 +1,9 @@
 #pragma once
 
+namespace Irufemi {
+
+class RenderGraphBuilder;
+
 /**
  * @class IComputeTask
  * @brief エンジン側で一括実行するためのCompute Shaderタスクのインターフェース
@@ -18,5 +22,7 @@ public:
     /**
      * @brief 描画前（RenderGraph構築時）にリソースの依存状態を宣言する
      */
-    virtual void Setup(class RenderGraphBuilder& builder) {}
+    virtual void Setup(RenderGraphBuilder& builder) {}
 };
+
+} // namespace Irufemi

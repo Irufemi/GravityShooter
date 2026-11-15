@@ -8,9 +8,8 @@
 #include <unordered_map>
 #include <typeindex>
 
-class RenderGraph;
-
 namespace Irufemi {
+class RenderGraph;
 class DirectXCommon;
 class RenderTexture;
 class IPostProcessEffect;
@@ -33,14 +32,14 @@ public:
     /**
      * @brief 有効なエフェクト群およびピンポンバッファに必要な一時リソースを申告する
      */
-    void DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,
+    void DeclareResources(Irufemi::RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,
                           const std::vector<PostProcessManager::Mode>& modes,
                           PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI);
 
     /**
      * @brief RenderGraphから一時リソースを解決する
      */
-    void ResolveResources(RenderGraph* renderGraph, const std::vector<PostProcessManager::Mode>& modes,
+    void ResolveResources(Irufemi::RenderGraph* renderGraph, const std::vector<PostProcessManager::Mode>& modes,
                           PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI);
 
     /**
@@ -56,9 +55,9 @@ public:
     /**
      * @brief RenderGraphにポストプロセスの全サブパスを展開・登録する (Zero-Manual-Barriers)
      */
-    void PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
-                        const std::vector<PostProcessManager::Mode>& modes, TransientResourceHandle srcHandle,
-                        TransientResourceHandle dstHandle,
+    void PopulatePasses(Irufemi::RenderGraph* renderGraph, PostProcessManager* manager,
+                        const std::vector<PostProcessManager::Mode>& modes, Irufemi::TransientResourceHandle srcHandle,
+                        Irufemi::TransientResourceHandle dstHandle,
                         PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI, bool isFinalOutput = true);
 
     /**
@@ -97,7 +96,7 @@ private:
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> localResourceStates_;
     std::unordered_map<std::type_index, Irufemi::IPostProcessEffect*> effectRegistry_;
 
-    TransientResourceHandle workHandles_[2][2] = {{kInvalidHandle, kInvalidHandle}, {kInvalidHandle, kInvalidHandle}};
+    Irufemi::TransientResourceHandle workHandles_[2][2] = {{Irufemi::kInvalidHandle, Irufemi::kInvalidHandle}, {Irufemi::kInvalidHandle, Irufemi::kInvalidHandle}};
     Irufemi::RenderTexture* workTextures_[2][2] = {{nullptr, nullptr}, {nullptr, nullptr}};
 
     std::unique_ptr<Irufemi::BloomEffect> bloomEffect_;

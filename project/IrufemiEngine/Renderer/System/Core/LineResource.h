@@ -70,10 +70,10 @@ public:
         indexResource_ = res;
     }
 
-    VertexData* GetVertexData() {
+    Irufemi::VertexData* GetVertexData() {
         return vertexData_;
     }
-    const VertexData* GetVertexData() const {
+    const Irufemi::VertexData* GetVertexData() const {
         return vertexData_;
     }
     uint32_t* GetIndexData() {
@@ -94,18 +94,18 @@ public:
         transform_ = transform;
     }
 
-    const TransformationMatrix& GetTransformationMatrix() const {
+    const Irufemi::TransformationMatrix& GetTransformationMatrix() const {
         return transformationMatrix_;
     }
-    TransformationMatrix& GetTransformationMatrix() {
+    Irufemi::TransformationMatrix& GetTransformationMatrix() {
         return transformationMatrix_;
     }
 
     // --- マテリアルアクセサ ---
-    Material* GetMaterialData() {
+    Irufemi::Material* GetMaterialData() {
         return &cpuMaterialData_;
     }
-    const Material* GetMaterialData() const {
+    const Irufemi::Material* GetMaterialData() const {
         return &cpuMaterialData_;
     }
 
@@ -127,7 +127,7 @@ public:
 
 protected:
     // --- 頂点バッファ ---
-    VertexData* vertexData_ = nullptr;
+    Irufemi::VertexData* vertexData_ = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_ = nullptr;
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
 
@@ -138,11 +138,11 @@ protected:
     uint32_t indexCount_ = 0;
 
     // --- マテリアル ---
-    Material cpuMaterialData_{};
+    Irufemi::Material cpuMaterialData_{};
     uint32_t materialCbIndex_ = static_cast<uint32_t>(-1);
 
     // --- トランスフォーム ---
     Irufemi::Transform transform_{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
-    TransformationMatrix transformationMatrix_{};
+    Irufemi::TransformationMatrix transformationMatrix_{};
     uint32_t transformCbIndex_ = static_cast<uint32_t>(-1);
 };

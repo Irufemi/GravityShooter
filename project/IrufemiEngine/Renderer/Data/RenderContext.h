@@ -3,12 +3,12 @@
 #include <cstdint>
 
 class IrufemiEngine;
-class DrawManager;
 class FontManager;
 class PSOManager;
 
 namespace Irufemi {
 
+class DrawManager;
 class DirectXCommon;
 class TextureManager;
 

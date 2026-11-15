@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Irufemi {
+
 /**
  * @struct AOEParams
  * @brief AOEWarning シェーダーへ渡す専用パラメータ構造体
@@ -11,3 +13,5 @@ struct AOEParams {
 };
 
 static_assert(sizeof(AOEParams) % 16 == 0, "AOEParams must be 16-byte aligned for HLSL constant buffer");
+
+} // namespace Irufemi

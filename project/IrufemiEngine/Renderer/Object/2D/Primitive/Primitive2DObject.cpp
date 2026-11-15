@@ -20,7 +20,7 @@ using namespace Irufemi;
 
 // --- 外部依存マネージャの静的初期化 ---
 Irufemi::TextureManager* Primitive2DObject::textureManager_ = nullptr;
-DrawManager* Primitive2DObject::drawManager_ = nullptr;
+Irufemi::DrawManager* Primitive2DObject::drawManager_ = nullptr;
 DebugUI* Primitive2DObject::ui_ = nullptr;
 IrufemiEngine* Primitive2DObject::engine_ = nullptr;
 

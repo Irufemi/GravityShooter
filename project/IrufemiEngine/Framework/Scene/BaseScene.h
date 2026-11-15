@@ -13,10 +13,12 @@
 class IrufemiEngine;
 class CameraManager;
 class DebugCamera;
+namespace Irufemi {
 struct DirectionalLight;
 struct PointLight;
 struct SpotLight;
 struct AreaLight;
+}
 class GameObject;
 class Camera;
 class SceneObjectRegistry;
@@ -202,42 +204,42 @@ public:
     /**
      * @brief 平行光源を取得する
      */
-    DirectionalLight* GetDirectionalLight() const;
+    Irufemi::DirectionalLight* GetDirectionalLight() const;
 
     /**
      * @brief 平行光源を設定する
      */
-    void SetDirectionalLight(std::unique_ptr<DirectionalLight> light);
+    void SetDirectionalLight(std::unique_ptr<Irufemi::DirectionalLight> light);
 
     /**
      * @brief ポイントライトリストを取得する
      */
-    const std::vector<std::unique_ptr<PointLight>>& GetPointLights() const;
+    const std::vector<std::unique_ptr<Irufemi::PointLight>>& GetPointLights() const;
 
     /**
      * @brief ポイントライトを追加する
      */
-    void AddPointLight(std::unique_ptr<PointLight> light);
+    void AddPointLight(std::unique_ptr<Irufemi::PointLight> light);
 
     /**
      * @brief スポットライトリストを取得する
      */
-    const std::vector<std::unique_ptr<SpotLight>>& GetSpotLights() const;
+    const std::vector<std::unique_ptr<Irufemi::SpotLight>>& GetSpotLights() const;
 
     /**
      * @brief スポットライトを追加する
      */
-    void AddSpotLight(std::unique_ptr<SpotLight> light);
+    void AddSpotLight(std::unique_ptr<Irufemi::SpotLight> light);
 
     /**
      * @brief エリアライトリストを取得する
      */
-    const std::vector<std::unique_ptr<AreaLight>>& GetAreaLights() const;
+    const std::vector<std::unique_ptr<Irufemi::AreaLight>>& GetAreaLights() const;
 
     /**
      * @brief エリアライトを追加する
      */
-    void AddAreaLight(std::unique_ptr<AreaLight> light);
+    void AddAreaLight(std::unique_ptr<Irufemi::AreaLight> light);
 
 protected:
     IrufemiEngine* engine_ = nullptr;
@@ -263,10 +265,10 @@ private:
     std::unique_ptr<OrbitCameraController> debugCameraController_;
 
     // --- ライティング ---
-    std::unique_ptr<DirectionalLight> directionalLight_;
-    std::vector<std::unique_ptr<PointLight>> pointLights_;
-    std::vector<std::unique_ptr<SpotLight>> spotLights_;
-    std::vector<std::unique_ptr<AreaLight>> areaLights_;
+    std::unique_ptr<Irufemi::DirectionalLight> directionalLight_;
+    std::vector<std::unique_ptr<Irufemi::PointLight>> pointLights_;
+    std::vector<std::unique_ptr<Irufemi::SpotLight>> spotLights_;
+    std::vector<std::unique_ptr<Irufemi::AreaLight>> areaLights_;
 
     // --- フレームデータの自動送信 ---
     void SubmitFrameData();

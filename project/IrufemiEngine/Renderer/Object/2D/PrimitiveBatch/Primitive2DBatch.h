@@ -124,7 +124,7 @@ private:
     Irufemi::ResourceHandle textureHandle_;
 
     // メッシュデータ
-    std::vector<VertexData> vertexDataList_;
+    std::vector<Irufemi::VertexData> vertexDataList_;
     std::vector<uint32_t> indexDataList_;
 
     // GPUリソース

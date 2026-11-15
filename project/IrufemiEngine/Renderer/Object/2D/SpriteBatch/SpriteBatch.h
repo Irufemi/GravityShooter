@@ -18,8 +18,8 @@
 // 前方宣言
 namespace Irufemi {
 class TextureManager;
-}
 class DrawManager;
+}
 class CameraManager;
 class Object2DResource;
 class Camera;
@@ -157,7 +157,7 @@ public:
      * @brief DrawManager を設定する。
      * @param[in] dm 設定する DrawManager の値
      */
-    static void SetDrawManager(DrawManager* dm) {
+    static void SetDrawManager(Irufemi::DrawManager* dm) {
         drawManager_ = dm;
     }
     /**
@@ -235,7 +235,7 @@ private:
     std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvGPU_{};
 
     static Irufemi::TextureManager* textureManager_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static CameraManager* cameraManager_;
     static Irufemi::DirectXCommon* dx_;
     static Irufemi::DescriptorPool* srvPool_;

@@ -11,9 +11,12 @@
 #include <memory>
 
 class FontManager;
-class DrawManager;
 class DebugUI;
 class CameraManager;
+
+namespace Irufemi {
+class DrawManager;
+}
 
 enum class TextAlignment { Left, Center, Right };
 enum class TextVerticalAlignment { Top, Middle, Bottom };
@@ -223,7 +226,7 @@ public:
      * @brief インスタンス固有の DrawManager を設定する。
      * @param[in] dm 設定する DrawManager のポインタ
      */
-    void SetDrawManagerInstance(DrawManager* dm) {
+    void SetDrawManagerInstance(Irufemi::DrawManager* dm) {
         instDrawManager_ = dm;
     }
 
@@ -247,7 +250,7 @@ public:
      * @brief 使用する DrawManager を取得する（インスタンスメンバ優先）。
      * @return DrawManager のポインタ
      */
-    DrawManager* GetDrawManagerInstance() const {
+    Irufemi::DrawManager* GetDrawManagerInstance() const {
         return instDrawManager_ ? instDrawManager_ : drawManager_;
     }
 
@@ -273,7 +276,7 @@ public:
      * @brief DrawManager を設定する。
      * @param[in] dm 設定する DrawManager の値
      */
-    static void SetDrawManager(DrawManager* dm) {
+    static void SetDrawManager(Irufemi::DrawManager* dm) {
         drawManager_ = dm;
     }
     /**
@@ -293,7 +296,7 @@ public:
 
 private:
     FontManager* instFontManager_ = nullptr;
-    DrawManager* instDrawManager_ = nullptr;
+    Irufemi::DrawManager* instDrawManager_ = nullptr;
     CameraManager* instCameraManager_ = nullptr;
     /**
      * @brief GenerateVertices を実行する。
@@ -318,7 +321,7 @@ private:
     uint64_t lastAtlasVersion_ = 0;
 
     static FontManager* fontManager_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static CameraManager* cameraManager_;
     static DebugUI* ui_;
 

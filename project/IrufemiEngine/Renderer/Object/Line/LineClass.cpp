@@ -11,7 +11,7 @@
 using namespace Irufemi;
 
 DirectXCommon* Line3DBatch::dx_ = nullptr;
-DrawManager* Line3DBatch::drawManager_ = nullptr;
+Irufemi::DrawManager* Line3DBatch::drawManager_ = nullptr;
 DescriptorPool* Line3DBatch::srvAllocator_ = nullptr;
 IrufemiEngine* Line3DBatch::engine_ = nullptr;
 

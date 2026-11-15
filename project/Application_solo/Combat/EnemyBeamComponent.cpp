@@ -85,13 +85,13 @@ void EnemyBeamComponent::Initialize() {
     auto dxCommon = engine->GetDirectXCommon();
     if (dxCommon) {
         aoeParamsBuffer_.Initialize(dxCommon);
-        aoeParamsData_ = AOEParams();
+        aoeParamsData_ = Irufemi::AOEParams();
         aoeParamsData_.shapeType = 2; // Cylinder用
         aoeParamsData_.warningRatio = 0.0f;
         aoeParamsBuffer_.UpdateAll(aoeParamsData_);
 
         beamParamsBuffer_.Initialize(dxCommon);
-        beamParamsData_ = LightningParams();
+        beamParamsData_ = Irufemi::LightningParams();
         beamParamsData_.color = config_.beamColor;
         beamParamsData_.coreColor = config_.beamCoreColor;
         beamParamsData_.intensity = config_.beamIntensity;
@@ -100,7 +100,7 @@ void EnemyBeamComponent::Initialize() {
         beamParamsBuffer_.UpdateAll(beamParamsData_);
 
         auraParamsBuffer_.Initialize(dxCommon);
-        auraParamsData_ = LightningParams();
+        auraParamsData_ = Irufemi::LightningParams();
         auraParamsData_.color = config_.auraColor;
         auraParamsData_.coreColor = config_.auraCoreColor;
         auraParamsData_.intensity = config_.auraIntensity;

@@ -62,7 +62,7 @@ bool PostProcessRunner::RequiresSeparatePass(Mode mode) const {
     return PostProcessManager::GetPassType(mode) == Irufemi::PostProcessPassType::Separate;
 }
 
-void PostProcessRunner::DeclareResources(RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,
+void PostProcessRunner::DeclareResources(Irufemi::RenderGraphBuilder& builder, const D3D12_RESOURCE_DESC& baseDesc,
                                          const std::vector<Mode>& modes, PostProcessManager::Layer layer) {
     if (modes.empty()) {
         return;
@@ -121,7 +121,7 @@ void PostProcessRunner::DeclareResources(RenderGraphBuilder& builder, const D3D1
     }
 }
 
-void PostProcessRunner::ResolveResources(RenderGraph* renderGraph, const std::vector<Mode>& modes,
+void PostProcessRunner::ResolveResources(Irufemi::RenderGraph* renderGraph, const std::vector<Mode>& modes,
                                          PostProcessManager::Layer layer) {
     if (!renderGraph || modes.empty()) {
         return;
@@ -355,7 +355,7 @@ RenderTexture* PostProcessRunner::Run(PostProcessManager* manager, ID3D12Graphic
     return finalWrittenTexture;
 }
 
-void PostProcessRunner::PopulatePasses(RenderGraph* renderGraph, PostProcessManager* manager,
+void PostProcessRunner::PopulatePasses(Irufemi::RenderGraph* renderGraph, PostProcessManager* manager,
                                        const std::vector<Mode>& modes, TransientResourceHandle srcHandle,
                                        TransientResourceHandle dstHandle, PostProcessManager::Layer layer,
                                        bool isFinalOutput) {

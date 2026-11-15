@@ -40,7 +40,7 @@ DebugPrimitiveRenderer::~DebugPrimitiveRenderer() {
     }
 }
 
-void DebugPrimitiveRenderer::Initialize(DirectXCommon* dx, DrawManager* drawM, DescriptorPool* srvAlloc) {
+void DebugPrimitiveRenderer::Initialize(DirectXCommon* dx, Irufemi::DrawManager* drawM, DescriptorPool* srvAlloc) {
     dx_ = dx;
     drawManager_ = drawM;
     srvAllocator_ = srvAlloc;

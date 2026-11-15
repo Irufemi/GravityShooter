@@ -15,7 +15,7 @@ using namespace Irufemi;
 
 DirectXCommon* BaseBatch::dx_ = nullptr;
 Irufemi::TextureManager* BaseBatch::textureManager_ = nullptr;
-DrawManager* BaseBatch::drawManager_ = nullptr;
+Irufemi::DrawManager* BaseBatch::drawManager_ = nullptr;
 DescriptorPool* BaseBatch::srvPool_ = nullptr;
 
 BaseBatch::BaseBatch() {

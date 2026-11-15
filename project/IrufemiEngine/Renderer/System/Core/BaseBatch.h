@@ -19,8 +19,8 @@
 class Camera;
 namespace Irufemi {
 class TextureManager;
-}
 class DrawManager;
+}
 
 class BaseBatch : public IRenderable {
 public:
@@ -47,7 +47,7 @@ public:
      * @brief バッチ描画の描画マネージャーを設定する
      * @param[in] dm 設定する DrawManager のポインタ
      */
-    static void SetDrawManager(DrawManager* dm) {
+    static void SetDrawManager(Irufemi::DrawManager* dm) {
         drawManager_ = dm;
     }
 
@@ -405,11 +405,11 @@ protected:
 protected:
     static Irufemi::DirectXCommon* dx_;
     static Irufemi::TextureManager* textureManager_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static Irufemi::DescriptorPool* srvPool_;
 
     uint32_t materialCbIndex_ = static_cast<uint32_t>(-1);
-    Material cpuMaterialData_{};
+    Irufemi::Material cpuMaterialData_{};
     bool hasCustomColor_ = false;
     Irufemi::ResourceHandle textureHandle_{};
 

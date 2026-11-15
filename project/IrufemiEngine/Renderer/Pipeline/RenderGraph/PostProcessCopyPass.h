@@ -3,6 +3,8 @@
 #include "Renderer/Pipeline/RenderGraph/IRenderPass.h"
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 
+namespace Irufemi {
+
 /**
  * @class PostProcessCopyPass
  * @brief メインレンダーテクスチャをポストプロセス入力用の一時テクスチャへ安全に複製するパス
@@ -14,8 +16,8 @@ public:
                                  TransientResourceHandle dstHandle = kInvalidHandle);
     ~PostProcessCopyPass() override = default;
 
-    void Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) override;
-    void Execute(const Irufemi::RenderContext& rc) override;
+    void Setup(RenderGraphBuilder& builder, const RenderContext& rc) override;
+    void Execute(const RenderContext& rc) override;
 
     TransientResourceHandle GetOutputHandle() const {
         return dstHandle_;
@@ -25,3 +27,5 @@ private:
     std::string targetName_;
     TransientResourceHandle dstHandle_ = kInvalidHandle;
 };
+
+} // namespace Irufemi

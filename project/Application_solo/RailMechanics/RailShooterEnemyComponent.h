@@ -344,8 +344,8 @@ private:
 
     // 描画リソース（スナイパー時のみ遅延初期化）
     std::unique_ptr<Primitive3DObject> telegraphCylinder_ = nullptr;
-    Irufemi::ConstantBuffer<AOEParams> aoeParamsBuffer_;
-    AOEParams aoeParamsData_{};
+    Irufemi::ConstantBuffer<Irufemi::AOEParams> aoeParamsBuffer_;
+    Irufemi::AOEParams aoeParamsData_{};
 
     int behaviorType_ = 0; //!< 戦術行動タイプ (0: Standard, 1: DiveBomber, 2: PredictiveSniper)
     std::unique_ptr<IEnemyAttackStrategy> attackStrategy_ = nullptr; //!< 攻撃戦略（Strategy Pattern）

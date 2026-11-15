@@ -13,8 +13,8 @@
 class Camera;
 namespace Irufemi {
 class TextureManager;
-}
 class DrawManager;
+}
 class DebugUI;
 struct PrimitiveData;
 
@@ -324,7 +324,7 @@ public:
      * @brief インスタンス固有の DrawManager を設定する。
      * @param[in] dm 設定する DrawManager のポインタ
      */
-    void SetDrawManagerInstance(DrawManager* dm) {
+    void SetDrawManagerInstance(Irufemi::DrawManager* dm) {
         instDrawManager_ = dm;
     }
 
@@ -348,7 +348,7 @@ public:
      * @brief 使用する DrawManager を取得する（インスタンスメンバ優先）。
      * @return DrawManager のポインタ
      */
-    DrawManager* GetDrawManagerInstance() const {
+    Irufemi::DrawManager* GetDrawManagerInstance() const {
         return instDrawManager_ ? instDrawManager_ : drawManager_;
     }
 
@@ -379,7 +379,7 @@ public:
      * @brief DrawManager を設定する。
      * @param[in] drawM 設定する DrawManager の値
      */
-    static void SetDrawManager(DrawManager* drawM) {
+    static void SetDrawManager(Irufemi::DrawManager* drawM) {
         drawManager_ = drawM;
     }
     /**
@@ -409,12 +409,12 @@ private:
 
     // インスタンスポインタ（優先）
     Irufemi::TextureManager* instTextureManager_ = nullptr;
-    DrawManager* instDrawManager_ = nullptr;
+    Irufemi::DrawManager* instDrawManager_ = nullptr;
     class IrufemiEngine* instEngine_ = nullptr;
 
     // 静的ポインタ（既存の設計パターンを継承）
     static Irufemi::TextureManager* textureManager_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static DebugUI* ui_;
     static class IrufemiEngine* engine_;
 };

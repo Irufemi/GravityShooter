@@ -365,14 +365,14 @@ public: // ゲッター・セッター
      * @brief TransformationMatrix を取得する。
      * @return 取得された TransformationMatrix
      */
-    const TransformationMatrix& GetTransformationMatrix() const {
+    const Irufemi::TransformationMatrix& GetTransformationMatrix() const {
         return transformationMatrix_;
     }
     /**
      * @brief TransformationMatrix を設定する。
      * @param[in] transformationMatrix 設定する TransformationMatrix の値
      */
-    void SetTransformationMatrix(const TransformationMatrix& transformationMatrix) {
+    void SetTransformationMatrix(const Irufemi::TransformationMatrix& transformationMatrix) {
         transformationMatrix_ = transformationMatrix;
     }
 
@@ -425,7 +425,7 @@ protected: // メンバ変数
 
     // オブジェクト全体のTransform
     Irufemi::Transform transform_{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
-    TransformationMatrix transformationMatrix_{};
+    Irufemi::TransformationMatrix transformationMatrix_{};
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f}; // インスタンスカラー
     float environmentCoefficient_ = 1.0f;               // インスタンス環境マップ係数
     int32_t lightingModeOverride_ = -1;                 // -1:使用しない, 0以上:上書き

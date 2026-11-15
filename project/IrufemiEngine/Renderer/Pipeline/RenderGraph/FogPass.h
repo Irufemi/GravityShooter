@@ -2,6 +2,8 @@
 
 #include "Renderer/Pipeline/RenderGraph/IRenderPass.h"
 
+namespace Irufemi {
+
 /**
  * @class FogPass
  * @brief 不透明オブジェクト描画後に大気・距離フォグを合成する独立レンダーパス
@@ -13,6 +15,8 @@ public:
     FogPass() = default;
     ~FogPass() override = default;
 
-    void Setup(class RenderGraphBuilder& builder, const struct Irufemi::RenderContext& rc) override;
-    void Execute(const struct Irufemi::RenderContext& rc) override;
+    void Setup(RenderGraphBuilder& builder, const RenderContext& rc) override;
+    void Execute(const RenderContext& rc) override;
 };
+
+} // namespace Irufemi

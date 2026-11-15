@@ -22,7 +22,7 @@ void RenderGraph::InitializeTransientResourceManager(DirectXCommon* dxCommon) {
     transientResourceManager_->Initialize(dxCommon, 512 * 1024 * 1024); // 512MBへ拡大してOOMを防止
 }
 
-void RenderGraph::Execute(DrawManager* drawManager, IrufemiEngine* engine) {
+void RenderGraph::Execute(Irufemi::DrawManager* drawManager, IrufemiEngine* engine) {
     auto* dxCommon = drawManager ? drawManager->GetDxCommon() : nullptr;
     auto* cmdList = dxCommon ? dxCommon->GetCommandList() : nullptr;
     auto* device = dxCommon ? dxCommon->GetDevice() : nullptr;

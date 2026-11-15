@@ -13,6 +13,8 @@
 #include "Framework/Component/Renderer/SkeletonDebugRendererComponent.h"
 #include "Core/System/IrufemiEngine.h"
 
+using namespace Irufemi;
+
 // デストラクタ
 DebugScene::~DebugScene() {
     if (lightningParamsResource_ && lightningParamsData_) {

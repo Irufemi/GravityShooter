@@ -17,7 +17,7 @@ class PrimitiveBatch;
  * @brief スキニングアニメーション付きのメッシュ描画に特化した純粋な低レイヤークラス。
  * GameObjectに依存せず、外部から与えられたポーズ（SkeletonPose）を元に描画・コンピュート処理を行います。
  */
-class AnimatedMeshObject : public IComputeTask, public BaseModel {
+class AnimatedMeshObject : public Irufemi::IComputeTask, public BaseModel {
 public:
     AnimatedMeshObject();
     ~AnimatedMeshObject() override;

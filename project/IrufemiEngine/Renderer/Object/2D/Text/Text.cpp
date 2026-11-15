@@ -11,7 +11,7 @@
 using namespace Irufemi;
 
 FontManager* Text::fontManager_ = nullptr;
-DrawManager* Text::drawManager_ = nullptr;
+Irufemi::DrawManager* Text::drawManager_ = nullptr;
 CameraManager* Text::cameraManager_ = nullptr;
 DebugUI* Text::ui_ = nullptr;
 

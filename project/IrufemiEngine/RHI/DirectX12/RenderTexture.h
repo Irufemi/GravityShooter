@@ -8,11 +8,11 @@
 #include "RHI/DirectX12/DescriptorAllocator.h"
 
 // 前方宣言 (グローバル)
-class DrawManager;
 class Camera;
 
 namespace Irufemi {
 
+class DrawManager;
 class DirectXCommon;
 
 class RenderTexture {

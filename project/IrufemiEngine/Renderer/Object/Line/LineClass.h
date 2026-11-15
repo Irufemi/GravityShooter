@@ -16,7 +16,9 @@
 
 // 前方宣言
 class Camera;
+namespace Irufemi {
 class DrawManager;
+}
 
 // 3Dラインのインスタンス描画用クラス
 class Line3DBatch : public IRenderable {
@@ -129,7 +131,7 @@ public:
      * @brief DrawManager インスタンスを設定する
      * @param[in] drawM DrawManager ポインタ
      */
-    static void SetDrawManager(DrawManager* drawM) {
+    static void SetDrawManager(Irufemi::DrawManager* drawM) {
         drawManager_ = drawM;
     }
 
@@ -171,7 +173,7 @@ private:
 private:
     // 静的依存
     static Irufemi::DirectXCommon* dx_;
-    static DrawManager* drawManager_;
+    static Irufemi::DrawManager* drawManager_;
     static Irufemi::DescriptorPool* srvAllocator_;
     static class IrufemiEngine* engine_;
 

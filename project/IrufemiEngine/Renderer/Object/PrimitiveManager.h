@@ -12,7 +12,7 @@
 #include <wrl.h>
 
 struct PrimitiveData {
-    std::vector<VertexData> vertices;
+    std::vector<Irufemi::VertexData> vertices;
     std::vector<uint32_t> indices;
 };
 
@@ -64,7 +64,7 @@ public:
     /**
      * @brief 指定した形状の頂点データのみを取得する
      */
-    const std::vector<VertexData>& GetVertices(Irufemi::PrimitiveType type);
+    const std::vector<Irufemi::VertexData>& GetVertices(Irufemi::PrimitiveType type);
 
     /**
      * @brief 指定した形状の GPU リソース（BufferView）を取得する（GPUキャッシュ）

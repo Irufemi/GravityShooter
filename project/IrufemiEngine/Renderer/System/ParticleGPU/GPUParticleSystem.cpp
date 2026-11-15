@@ -31,7 +31,7 @@ using namespace Irufemi;
 
 // 静的メンバ変数の実体定義
 DirectXCommon* GPUParticleSystem::dxCommon_ = nullptr;
-DrawManager* GPUParticleSystem::drawManager_ = nullptr;
+Irufemi::DrawManager* GPUParticleSystem::drawManager_ = nullptr;
 Irufemi::TextureManager* GPUParticleSystem::textureManager_ = nullptr;
 IrufemiEngine* GPUParticleSystem::engine_ = nullptr;
 

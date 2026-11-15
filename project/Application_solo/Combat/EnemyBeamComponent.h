@@ -89,24 +89,24 @@ public:
         return attackCylinderOuter_.get();
     }
 
-    Irufemi::ConstantBuffer<AOEParams>& GetAOEParamsBuffer() {
+    Irufemi::ConstantBuffer<Irufemi::AOEParams>& GetAOEParamsBuffer() {
         return aoeParamsBuffer_;
     }
-    AOEParams& GetAOEParamsData() {
+    Irufemi::AOEParams& GetAOEParamsData() {
         return aoeParamsData_;
     }
 
-    Irufemi::ConstantBuffer<LightningParams>& GetBeamParamsBuffer() {
+    Irufemi::ConstantBuffer<Irufemi::LightningParams>& GetBeamParamsBuffer() {
         return beamParamsBuffer_;
     }
-    LightningParams& GetBeamParamsData() {
+    Irufemi::LightningParams& GetBeamParamsData() {
         return beamParamsData_;
     }
 
-    Irufemi::ConstantBuffer<LightningParams>& GetAuraParamsBuffer() {
+    Irufemi::ConstantBuffer<Irufemi::LightningParams>& GetAuraParamsBuffer() {
         return auraParamsBuffer_;
     }
-    LightningParams& GetAuraParamsData() {
+    Irufemi::LightningParams& GetAuraParamsData() {
         return auraParamsData_;
     }
 
@@ -138,14 +138,14 @@ private:
     std::unique_ptr<Primitive3DObject> attackCylinderOuter_ = nullptr; // 外側の電撃オーラ
 
     // シェーダーパラメータ定数バッファ
-    Irufemi::ConstantBuffer<AOEParams> aoeParamsBuffer_;
-    AOEParams aoeParamsData_{};
+    Irufemi::ConstantBuffer<Irufemi::AOEParams> aoeParamsBuffer_;
+    Irufemi::AOEParams aoeParamsData_{};
 
-    Irufemi::ConstantBuffer<LightningParams> beamParamsBuffer_;
-    LightningParams beamParamsData_{};
+    Irufemi::ConstantBuffer<Irufemi::LightningParams> beamParamsBuffer_;
+    Irufemi::LightningParams beamParamsData_{};
 
-    Irufemi::ConstantBuffer<LightningParams> auraParamsBuffer_;
-    LightningParams auraParamsData_{};
+    Irufemi::ConstantBuffer<Irufemi::LightningParams> auraParamsBuffer_;
+    Irufemi::LightningParams auraParamsData_{};
 
     // プレイヤーオブジェクトのキャッシュ
     std::weak_ptr<GameObject> playerObj_;

@@ -37,11 +37,11 @@ namespace Irufemi {}
 #include <algorithm>
 
 // --- 前方宣言 ---
-class DrawManager;
 class DebugPrimitiveRenderer;
 class DebugUI;
 class IEngineExtension;
 namespace Irufemi {
+class DrawManager;
 class AudioManager;
 class InputManager;
 class WinApp;
@@ -412,7 +412,7 @@ public: // ゲッター
      * @brief DrawManager を取得する。
      * @return 取得された DrawManager
      */
-    DrawManager* GetDrawManager() {
+    Irufemi::DrawManager* GetDrawManager() {
         return this->drawManager_.get();
     }
     /**
@@ -714,14 +714,14 @@ public: // ゲッター
      * @brief MaterialBufferManager を取得する。
      * @return 取得された MaterialBufferManager
      */
-    Irufemi::DynamicConstantBuffer<Material>* GetMaterialBufferManager() {
+    Irufemi::DynamicConstantBuffer<Irufemi::Material>* GetMaterialBufferManager() {
         return materialBufferManager_.get();
     }
     /**
      * @brief TransformBufferManager を取得する。
      * @return 取得された TransformBufferManager
      */
-    Irufemi::DynamicConstantBuffer<TransformationMatrix>* GetTransformBufferManager() {
+    Irufemi::DynamicConstantBuffer<Irufemi::TransformationMatrix>* GetTransformBufferManager() {
         return transformBufferManager_.get();
     }
 
@@ -936,7 +936,7 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::InputManager> inputManager_ = nullptr;
 
     // DrawManager
-    std::unique_ptr<DrawManager> drawManager_ = nullptr;
+    std::unique_ptr<Irufemi::DrawManager> drawManager_ = nullptr;
 
     // DebugPrimitiveRenderer
     std::unique_ptr<DebugPrimitiveRenderer> debugPrimitiveRenderer_ = nullptr;
@@ -1014,8 +1014,8 @@ private: // メンバ変数
     float emaFps_ = 60.0f;
 
     // --- Dynamic Constant Buffer ---
-    std::unique_ptr<Irufemi::DynamicConstantBuffer<Material>> materialBufferManager_ = nullptr;
-    std::unique_ptr<Irufemi::DynamicConstantBuffer<TransformationMatrix>> transformBufferManager_ = nullptr;
+    std::unique_ptr<Irufemi::DynamicConstantBuffer<Irufemi::Material>> materialBufferManager_ = nullptr;
+    std::unique_ptr<Irufemi::DynamicConstantBuffer<Irufemi::TransformationMatrix>> transformBufferManager_ = nullptr;
 
     // --- 全画面用 RenderTexture ---
     std::unique_ptr<Irufemi::RenderTexture> mainRenderTexture_ = nullptr;

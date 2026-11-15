@@ -12,7 +12,9 @@
 #include <mutex>
 
 // 前方宣言
+namespace Irufemi {
 class DrawManager;
+}
 
 enum class DebugCategory : uint32_t {
     None = 0,
@@ -52,7 +54,7 @@ public:
     /**
      * @brief Initialize を実行する。
      */
-    void Initialize(Irufemi::DirectXCommon* dx, DrawManager* drawM, Irufemi::DescriptorPool* srvAlloc);
+    void Initialize(Irufemi::DirectXCommon* dx, Irufemi::DrawManager* drawM, Irufemi::DescriptorPool* srvAlloc);
 
     /**
      * @brief Update を実行する。
@@ -178,7 +180,7 @@ private:
     void EnsureInstancingSRVs();
 
     Irufemi::DirectXCommon* dx_ = nullptr;
-    DrawManager* drawManager_ = nullptr;
+    Irufemi::DrawManager* drawManager_ = nullptr;
     Irufemi::DescriptorPool* srvAllocator_ = nullptr;
 
     // --- Irufemi::Sphere Data ---

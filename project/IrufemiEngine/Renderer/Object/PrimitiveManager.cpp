@@ -9,6 +9,8 @@
 #include <utility>
 #include <unordered_map>
 
+using namespace Irufemi;
+
 const PrimitiveData& PrimitiveManager::GetPrimitiveData(Irufemi::PrimitiveType type) {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = cpuCache_.find(type);

@@ -5,6 +5,8 @@
 #include <string>
 #include <utility>
 
+namespace Irufemi {
+
 /**
  * @class LambdaRenderPass
  * @brief ラムダ式で Setup と Execute をインライン記述できる軽量 RenderPass
@@ -12,21 +14,21 @@
  */
 class LambdaRenderPass : public IRenderPass {
 public:
-    using SetupFunc = std::function<void(RenderGraphBuilder&, const Irufemi::RenderContext&)>;
-    using ExecuteFunc = std::function<void(const Irufemi::RenderContext&)>;
+    using SetupFunc = std::function<void(RenderGraphBuilder&, const RenderContext&)>;
+    using ExecuteFunc = std::function<void(const RenderContext&)>;
 
     LambdaRenderPass(std::string name, SetupFunc setup, ExecuteFunc execute)
         : name_(std::move(name)), setup_(std::move(setup)), execute_(std::move(execute)) {}
 
     ~LambdaRenderPass() override = default;
 
-    void Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) override {
+    void Setup(RenderGraphBuilder& builder, const RenderContext& rc) override {
         if (setup_) {
             setup_(builder, rc);
         }
     }
 
-    void Execute(const Irufemi::RenderContext& rc) override {
+    void Execute(const RenderContext& rc) override {
         if (execute_) {
             execute_(rc);
         }
@@ -41,3 +43,5 @@ private:
     SetupFunc setup_;
     ExecuteFunc execute_;
 };
+
+} // namespace Irufemi

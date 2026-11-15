@@ -17,10 +17,10 @@
 #include <wrl/client.h>
 
 class IrufemiEngine;
-class RenderGraph;
 class PostProcessRunner;
 
 namespace Irufemi {
+class RenderGraph;
 class DirectXCommon;
 class RenderTexture;
 class BloomEffect;

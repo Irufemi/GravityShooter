@@ -35,6 +35,8 @@
 #include "Framework/UI/DebugUI.h"
 #endif
 
+using namespace Irufemi;
+
 BaseScene::BaseScene() {
     objectRegistry_ = std::make_unique<SceneObjectRegistry>();
 }

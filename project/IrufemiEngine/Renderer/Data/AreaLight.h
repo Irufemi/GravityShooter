@@ -5,19 +5,21 @@
 #include "Core/Math/Vector4.h"
 #include <cstdint>
 
+namespace Irufemi {
+
 struct AreaLight {
     //!< ライトの色
-    Irufemi::Vector4 color;
+    Vector4 color;
     //!< ライトの位置
-    Irufemi::Vector3 position;
+    Vector3 position;
     //!< 輝度
     float intensity;
     //!< ライトの向き
-    Irufemi::Vector3 direction;
+    Vector3 direction;
     //!< ライトの届く最大距離
     float range;
     //!< 矩形のサイズ(幅、高さ)
-    Irufemi::Vector2 size;
+    Vector2 size;
     //!< 有効フラグ
     int32_t isActive;
 
@@ -26,3 +28,5 @@ private:
 };
 
 static_assert(sizeof(AreaLight) % 16 == 0, "AreaLight must be 16-byte aligned for HLSL constant buffer");
+
+} // namespace Irufemi

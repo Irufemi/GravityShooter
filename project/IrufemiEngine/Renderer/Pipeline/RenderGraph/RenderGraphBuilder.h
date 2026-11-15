@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+namespace Irufemi {
+
 // 一時リソースの仮想ハンドル
 typedef uint32_t TransientResourceHandle;
 constexpr TransientResourceHandle kInvalidHandle = 0xFFFFFFFF;
@@ -159,3 +161,5 @@ private:
     std::vector<TransientResourceUsage> transientUsages_;
     size_t currentPassIndex_ = 0;
 };
+
+} // namespace Irufemi
