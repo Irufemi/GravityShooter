@@ -3,6 +3,8 @@
 #include "Framework/Component/Component.h"
 #include "Core/Math/Vector3.h"
 
+namespace Irufemi {
+
 /**
  * @class FogComponent
  * @brief シーンの大気・距離フォグを制御するコンポーネント
@@ -92,3 +94,5 @@ private:
     bool enabled_ = true;                               ///< 有効/無効フラグ
     bool isDirty_ = true;                               ///< エンジン同期フラグ
 };
+
+} // namespace Irufemi

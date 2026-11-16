@@ -3,6 +3,8 @@
 #include "Renderer/PostProcess/Effects/BloomEffect.h"
 #include "Renderer/PostProcess/Effects/CombinedPostEffect.h"
 
+namespace Irufemi {
+
 // ---------------------------------------------------------
 // Bloom Settings
 // ---------------------------------------------------------
@@ -239,3 +241,6 @@ std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(const s
 
     return nullptr;
 }
+
+} // namespace Irufemi
+

@@ -25,7 +25,7 @@
 EnemySpawnerComponent::~EnemySpawnerComponent() {
     for (auto& pair : prefabPools_) {
         if (pair.second && pair.second->pool) {
-            pair.second->pool->ForEach([](const std::shared_ptr<GameObject>& enemy) {
+            pair.second->pool->ForEach([](const std::shared_ptr<Irufemi::GameObject>& enemy) {
                 if (enemy) {
                     if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {
                         enemyComp->SetOnDeathCallback(nullptr);
@@ -39,7 +39,7 @@ EnemySpawnerComponent::~EnemySpawnerComponent() {
 
 void EnemySpawnerComponent::Initialize() {}
 
-std::shared_ptr<GameObject> EnemySpawnerComponent::GetPlayerCartObject() {
+std::shared_ptr<Irufemi::GameObject> EnemySpawnerComponent::GetPlayerCartObject() {
     auto obj = playerCartObj_.lock();
     if (!obj) {
         if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
@@ -55,7 +55,7 @@ std::shared_ptr<GameObject> EnemySpawnerComponent::GetPlayerCartObject() {
     return obj;
 }
 
-std::shared_ptr<GameObject> EnemySpawnerComponent::GetDebrisManagerObject() {
+std::shared_ptr<Irufemi::GameObject> EnemySpawnerComponent::GetDebrisManagerObject() {
     auto obj = debrisManagerObj_.lock();
     if (!obj) {
         if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
@@ -131,7 +131,7 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
     poolData->prefabPath = prefabPath;
 
     // プレハブ（Archetype）からモデル・基本スケール・当たり判定半径を自動解決
-    auto metrics = PrefabUtility::ExtractMetrics(prefabPath);
+    auto metrics = Irufemi::PrefabUtility::ExtractMetrics(prefabPath);
     if (!metrics.modelPath.empty()) {
         poolData->modelPath = metrics.modelPath;
     } else {
@@ -150,13 +150,13 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
     // プレハブ専用の子 GameObject を作成して ModelBatchRendererComponent をアタッチ（1オブジェクト1コンポーネント原則）
     if (gameObject_) {
-        auto batchChild = std::make_shared<GameObject>("BatchRenderer_" + prefabPath);
+        auto batchChild = std::make_shared<Irufemi::GameObject>("BatchRenderer_" + prefabPath);
         gameObject_->AddChild(batchChild);
-        poolData->batchRenderer = batchChild->AddComponent<ModelBatchRendererComponent>();
+        poolData->batchRenderer = batchChild->AddComponent<Irufemi::ModelBatchRendererComponent>();
         poolData->batchRenderer->LoadModel(poolData->modelPath);
     }
 
-    auto weakObj = gameObject_ ? gameObject_->weak_from_this() : std::weak_ptr<GameObject>();
+    auto weakObj = gameObject_ ? gameObject_->weak_from_this() : std::weak_ptr<Irufemi::GameObject>();
     std::string capturedPrefabPath = prefabPath;
     std::string capturedModelPath = poolData->modelPath;
     Irufemi::Vector3 capturedBaseScale = poolData->baseScale;
@@ -165,16 +165,16 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
     uint32_t effectivePoolSize = (poolSize > 0) ? poolSize : static_cast<uint32_t>(maxEnemies_);
 
-    poolData->pool = std::make_unique<Irufemi::ObjectPool<GameObject>>(effectivePoolSize, [weakObj, capturedPrefabPath,
+    poolData->pool = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(effectivePoolSize, [weakObj, capturedPrefabPath,
                                                                                   capturedModelPath, capturedBaseScale,
                                                                                   capturedColliderRadius,
                                                                                   capturedOBBSize]() {
-        std::shared_ptr<GameObject> enemy = nullptr;
+        std::shared_ptr<Irufemi::GameObject> enemy = nullptr;
         if (auto spawnerObj = weakObj.lock()) {
             enemy = spawnerObj->Instantiate(capturedPrefabPath);
         }
         if (!enemy) {
-            enemy = std::make_shared<GameObject>("Enemy");
+            enemy = std::make_shared<Irufemi::GameObject>("Enemy");
             enemy->AddComponent<RailShooterEnemyComponent>();
         }
 
@@ -185,7 +185,7 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
         }
 
         // プレハブ個別の MeshRenderer は削除し、Spawner側の ModelBatchRenderer（GPU Instancing）で一括描画
-        if (auto meshRenderer = enemy->GetComponent<MeshRendererComponent>()) {
+        if (auto meshRenderer = enemy->GetComponent<Irufemi::MeshRendererComponent>()) {
             enemy->RemoveComponent(meshRenderer);
         }
 
@@ -193,15 +193,15 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
             transform->SetScale(capturedBaseScale);
         }
 
-        if (auto collider = enemy->GetComponent<SphereColliderComponent>()) {
+        if (auto collider = enemy->GetComponent<Irufemi::SphereColliderComponent>()) {
             collider->SetLocalRadius(capturedColliderRadius);
-        } else if (auto obb = enemy->GetComponent<OBBColliderComponent>()) {
+        } else if (auto obb = enemy->GetComponent<Irufemi::OBBColliderComponent>()) {
             obb->SetLocalSize(capturedOBBSize);
         }
 
         if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {
             enemyComp->Initialize(); // ロード画面中にGPUリソースや事前コンポーネントを先行確立
-            enemyComp->SetOnDespawnListener([weakObj, capturedModelPath](GameObject* deadObj, DespawnReason reason) {
+            enemyComp->SetOnDespawnListener([weakObj, capturedModelPath](Irufemi::GameObject* deadObj, DespawnReason reason) {
                 if (!deadObj) {
                     return;
                 }
@@ -218,8 +218,8 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                     if (scene) {
                         // 1. プレイヤー位置の取得（キャッシュ優先）
                         Irufemi::Vector3 playerPos = deadPos;
-                        std::shared_ptr<GameObject> playerObj = nullptr;
-                        std::shared_ptr<GameObject> debrisMgrObj = nullptr;
+                        std::shared_ptr<Irufemi::GameObject> playerObj = nullptr;
+                        std::shared_ptr<Irufemi::GameObject> debrisMgrObj = nullptr;
                         if (auto spawnerObj = weakObj.lock()) {
                             if (auto spawner = spawnerObj->GetComponent<EnemySpawnerComponent>()) {
                                 playerObj = spawner->GetPlayerCartObject();
@@ -359,7 +359,7 @@ void EnemySpawnerComponent::Update() {
         if (scene) {
             auto playerObj = scene->FindGameObject("Player");
             if (playerObj) {
-                if (auto transform = playerObj->GetComponent<TransformComponent>()) {
+                if (auto transform = playerObj->GetComponent<Irufemi::TransformComponent>()) {
                     spawnPos = transform->GetWorldPosition();
                     auto forward = transform->GetWorldForward();
                     spawnPos.x += forward.x * 50.0f;
@@ -387,12 +387,12 @@ void EnemySpawnerComponent::Update() {
 #endif
 }
 
-GameObject* EnemySpawnerComponent::SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
+Irufemi::GameObject* EnemySpawnerComponent::SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
                                               float scaleMultiplier) {
     return SpawnEnemyByPrefab(enemyPrefabPath_, position, rotation, scaleMultiplier);
 }
 
-GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
+Irufemi::GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
                                                       const Irufemi::Vector3& rotation, float scaleMultiplier) {
     auto poolData = GetOrCreatePrefabPool(prefabPath);
     if (!poolData || !poolData->pool) {
@@ -406,8 +406,8 @@ GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabP
 
     auto enemy = poolData->pool->Resolve(handle);
     if (enemy) {
-        auto transform = enemy->GetComponent<TransformComponent>();
-        auto effectMask = enemy->GetComponent<EffectMaskComponent>();
+        auto transform = enemy->GetComponent<Irufemi::TransformComponent>();
+        auto effectMask = enemy->GetComponent<Irufemi::EffectMaskComponent>();
         activeEnemyHandles_[enemy->GetInstanceID()] = {enemy.get(), transform, effectMask, prefabPath, handle};
 
         if (transform) {
@@ -419,9 +419,9 @@ GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabP
         // コライダーのローカルサイズ設定（プレハブアセットの設定値を忠実に維持）
         // スケーリングは上記 TransformComponent::SetScale により、GetWorldSphere() / GetWorldOBB() で
         // 自動的に worldScale が乗算されるため、ローカル値への scaleMultiplier 二重掛けは行わない
-        if (auto collider = enemy->GetComponent<SphereColliderComponent>()) {
+        if (auto collider = enemy->GetComponent<Irufemi::SphereColliderComponent>()) {
             collider->SetLocalRadius(poolData->baseColliderRadius);
-        } else if (auto obb = enemy->GetComponent<OBBColliderComponent>()) {
+        } else if (auto obb = enemy->GetComponent<Irufemi::OBBColliderComponent>()) {
             obb->SetLocalSize(poolData->baseOBBSize);
         }
 

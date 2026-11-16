@@ -41,7 +41,7 @@ void DebrisManagerComponent::OnDestroy() {
 }
 
 void DebrisManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Debris Pull Speed", &debrisPullSpeed_);
     RegisterProperty("Debris Throw Speed", &debrisThrowSpeed_);
     RegisterProperty("Debris Orbit Speed", &debrisOrbitSpeed_);
@@ -88,15 +88,15 @@ void DebrisManagerComponent::Initialize() {
         var.maxPoolSize = v["maxPoolSize"].get<int>();
         var.spawnWeight = v["spawnWeight"].get<int>();
 
-        var.poolObject = std::make_shared<GameObject>("DebrisPool_" + var.id);
+        var.poolObject = std::make_shared<Irufemi::GameObject>("DebrisPool_" + var.id);
 
-        auto batchRenderer = var.poolObject->AddComponent<ModelBatchRendererComponent>();
+        auto batchRenderer = var.poolObject->AddComponent<Irufemi::ModelBatchRendererComponent>();
         batchRenderer->LoadModel(var.modelPath);
 
-        var.virtualManager = var.poolObject->AddComponent<VirtualEntityManagerComponent>().get();
+        var.virtualManager = var.poolObject->AddComponent<Irufemi::VirtualEntityManagerComponent>().get();
 
-        auto debrisFactory = [this, varIndex, modelPath = var.modelPath]() -> std::shared_ptr<GameObject> {
-            auto obj = std::make_shared<GameObject>("Debris");
+        auto debrisFactory = [this, varIndex, modelPath = var.modelPath]() -> std::shared_ptr<Irufemi::GameObject> {
+            auto obj = std::make_shared<Irufemi::GameObject>("Debris");
             auto transform = obj->GetTransform();
             transform->SetScale(debrisBaseScale_);
 
@@ -106,16 +106,16 @@ void DebrisManagerComponent::Initialize() {
 
             obj->AddComponent<TargetableComponent>();
 
-            auto collider = obj->AddComponent<SphereColliderComponent>();
+            auto collider = obj->AddComponent<Irufemi::SphereColliderComponent>();
             collider->SetTrigger(true);
             collider->SetLocalRadius(colliderRadius_);
 
             // --- Aura (EnergyCore) ---
-            auto aura = std::make_shared<GameObject>("DebrisAura");
+            auto aura = std::make_shared<Irufemi::GameObject>("DebrisAura");
             auto auraTransform = aura->GetTransform();
             auraTransform->SetScale(auraScale_);
 
-            auto auraModel = aura->AddComponent<PrimitiveRendererComponent>();
+            auto auraModel = aura->AddComponent<Irufemi::PrimitiveRendererComponent>();
             auraModel->Initialize();
             auraModel->SetShape(Irufemi::PrimitiveType::Sphere);
 
@@ -219,7 +219,7 @@ void DebrisManagerComponent::SpawnDebrisInFrontOfPlayer(int count) {
     if (scene) {
         auto playerObj = scene->FindGameObject("Player");
         if (playerObj) {
-            if (auto t = playerObj->GetComponent<TransformComponent>()) {
+            if (auto t = playerObj->GetComponent<Irufemi::TransformComponent>()) {
                 spawnBase = t->GetWorldPosition();
                 float yaw = t->GetWorldRotation().y;
                 forward = {std::sin(yaw), 0.0f, std::cos(yaw)};
@@ -401,7 +401,7 @@ void DebrisManagerComponent::Update() {
 
             auto playerObj = scene->FindGameObject("Player");
             if (playerObj) {
-                if (auto pt = playerObj->GetComponent<TransformComponent>()) {
+                if (auto pt = playerObj->GetComponent<Irufemi::TransformComponent>()) {
                     Irufemi::Vector3 playerPos = pt->GetWorldPosition();
 
                     // 1. 自機後方に外れたガレキをリサイクル
@@ -475,7 +475,7 @@ void DebrisManagerComponent::Update() {
     pendingDestroys_.clear();
 }
 
-std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris(int variationIndex) {
+std::shared_ptr<Irufemi::GameObject> DebrisManagerComponent::GetDebris(int variationIndex) {
     if (variations_.empty()) {
         return nullptr;
     }
@@ -506,7 +506,7 @@ std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris(int variationIndex
     return obj;
 }
 
-std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris(const std::string& variationId) {
+std::shared_ptr<Irufemi::GameObject> DebrisManagerComponent::GetDebris(const std::string& variationId) {
     if (variationId.empty() || variations_.empty()) {
         return GetDebris(0);
     }
@@ -519,7 +519,7 @@ std::shared_ptr<GameObject> DebrisManagerComponent::GetDebris(const std::string&
     return GetDebris(0); // 未検出時はフォールバック
 }
 
-void DebrisManagerComponent::ReleaseDebris(std::shared_ptr<GameObject> debris) {
+void DebrisManagerComponent::ReleaseDebris(std::shared_ptr<Irufemi::GameObject> debris) {
     if (!debris) {
         return;
     }
@@ -539,16 +539,16 @@ void DebrisManagerComponent::ReleaseDebris(std::shared_ptr<GameObject> debris) {
     }
 }
 
-void DebrisManagerComponent::MarkForRelease(std::shared_ptr<GameObject> debris) {
+void DebrisManagerComponent::MarkForRelease(std::shared_ptr<Irufemi::GameObject> debris) {
     if (debris) {
         pendingReleases_.push_back(debris);
     }
 }
 
-std::shared_ptr<GameObject> DebrisManagerComponent::ExtractNearestIdleDebris(const Irufemi::Vector3& pos,
+std::shared_ptr<Irufemi::GameObject> DebrisManagerComponent::ExtractNearestIdleDebris(const Irufemi::Vector3& pos,
                                                                              float radius) {
     float bestDistSq = radius * radius;
-    std::shared_ptr<GameObject> bestObj = nullptr;
+    std::shared_ptr<Irufemi::GameObject> bestObj = nullptr;
 
     // 1. 実体化されている Idle がれき（環境物破壊等で発生したもの）を最優先で探索
     // 無効になった要素を std::erase_if で一括クリーンアップ (O(N))
@@ -698,7 +698,7 @@ void DebrisManagerComponent::UpdatePulledDebris(float deltaTime) {
         }
 
         if (auto target = debris->GetTarget().lock()) {
-            if (auto targetTransform = target->GetComponent<TransformComponent>()) {
+            if (auto targetTransform = target->GetComponent<Irufemi::TransformComponent>()) {
                 if (debris->UpdatePullMovement(targetTransform, pullSpeed, catchDistSq, deltaTime)) {
                     caughtDebris.push_back(debris);
                 }
@@ -708,7 +708,7 @@ void DebrisManagerComponent::UpdatePulledDebris(float deltaTime) {
 
     for (auto* debris : caughtDebris) {
         if (auto target = debris->GetTarget().lock()) {
-            if (auto targetTransform = target->GetComponent<TransformComponent>()) {
+            if (auto targetTransform = target->GetComponent<Irufemi::TransformComponent>()) {
                 debris->InitializeOrbitTransition(targetTransform);
             }
         }
@@ -726,7 +726,7 @@ void DebrisManagerComponent::UpdateOrbitingDebris(float deltaTime) {
         }
 
         if (auto target = debris->GetTarget().lock()) {
-            if (auto targetTransform = target->GetComponent<TransformComponent>()) {
+            if (auto targetTransform = target->GetComponent<Irufemi::TransformComponent>()) {
                 debris->UpdatePlayerOrbit(targetTransform, orbitSpeed, deltaTime);
             }
         }
@@ -744,7 +744,7 @@ void DebrisManagerComponent::UpdateBossOrbitingDebris(float deltaTime) {
         }
 
         if (auto target = debris->GetTarget().lock()) {
-            if (auto targetTransform = target->GetComponent<TransformComponent>()) {
+            if (auto targetTransform = target->GetComponent<Irufemi::TransformComponent>()) {
                 debris->UpdateBossShieldOrbit(targetTransform->GetWorldPosition(), currentRadiusBase,
                                               shieldRotationSpeed, deltaTime);
             }
@@ -777,7 +777,7 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
 
         if (auto target = debris->GetTarget().lock()) {
             if (target->GetIsActive()) {
-                auto targetTransform = target->GetComponent<TransformComponent>();
+                auto targetTransform = target->GetComponent<Irufemi::TransformComponent>();
                 if (targetTransform) {
                     Irufemi::Vector3 targetPos = targetTransform->GetWorldPosition();
                     Irufemi::Vector3 pos = transform->GetWorldPosition();

@@ -5,7 +5,7 @@
 #include "Renderer/Object/2D/Sprite/Sprite.h"
 #include "Renderer/Object/3D/StaticModelObject/StaticModelObject.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 UISelectionGroup::UISelectionGroup() {
     animator_.Reset();
@@ -176,3 +176,5 @@ void UISelectionGroup::Draw() {
 bool UISelectionGroup::ShouldTransition() const {
     return isDecided_ && (transitionDelayTimer_ >= kTransitionDelayLimit);
 }
+
+} // namespace Irufemi

@@ -13,7 +13,7 @@ class IrufemiEngine;
 /**
  * @brief ツール開発・検証用の専用シーン
  */
-class TL1Scene : public BaseScene {
+class TL1Scene : public Irufemi::BaseScene {
 public: // メンバ関数
     TL1Scene() = default;
     ~TL1Scene() override;

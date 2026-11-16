@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 void SplineComponent::OnRegisterProperties() {
     // 拡張した Float3Array を使ってウェイポイントをプロパティに登録
@@ -293,3 +293,5 @@ Irufemi::Vector3 SplineComponent::GetTangentAtDistance(float distance) const {
     }
     return GetTangentAt(t);
 }
+
+} // namespace Irufemi

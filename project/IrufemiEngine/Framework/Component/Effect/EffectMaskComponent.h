@@ -3,6 +3,8 @@
 #include <string>
 #include "Renderer/PostProcess/PostProcessManager.h"
 
+namespace Irufemi {
+
 class MeshRendererComponent;
 class SkinnedMeshRendererComponent;
 
@@ -144,3 +146,5 @@ private:
     bool isParamsDirty_ = true;
     PostProcessManager* cachedPostProcessManager_ = nullptr;
 };
+
+} // namespace Irufemi

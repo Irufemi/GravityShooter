@@ -4,15 +4,15 @@
 #include <string>
 #include <memory>
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class SplineFollowerComponent;
-class SplineComponent;
+namespace Irufemi { class SplineComponent; }
 
 /**
  * @brief レール上の指定ターゲット（Player等）から、一定の距離（Zオフセット）を保って追従するコンポーネント。
  *        ボスなどがプレイヤーの前方を一定距離保ったまま並走・逃走する挙動を実現する。
  */
-class RailRelativeFollowerComponent : public Component {
+class RailRelativeFollowerComponent : public Irufemi::Component {
 public:
     RailRelativeFollowerComponent() = default;
     ~RailRelativeFollowerComponent() override = default;
@@ -36,8 +36,8 @@ private:
     float distanceOffset_ = kDefaultDistanceOffset;     ///< ターゲットからどれだけ前方に離れるか (m)
     Irufemi::Vector3 localOffset_ = {0.0f, 0.0f, 0.0f}; ///< レール中心からのXYローカルオフセット
 
-    std::weak_ptr<GameObject> targetObject_;
+    std::weak_ptr<Irufemi::GameObject> targetObject_;
     SplineFollowerComponent* targetFollower_ = nullptr;
-    SplineComponent* cachedPath_ = nullptr; ///< ターゲットが乗っているレール（スプライン）
+    Irufemi::SplineComponent* cachedPath_ = nullptr; ///< ターゲットが乗っているレール（スプライン）
     int retryCounter_ = 0;                  ///< シーン検索リトライ用カウンター
 };

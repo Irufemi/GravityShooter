@@ -4,15 +4,15 @@
 #include "Framework/UI/UIAnimator.h"
 #include "Core/Math/Vector3.h"
 
-class ButtonComponent;
-class TransformComponent;
-class SpriteRendererComponent;
+namespace Irufemi { class ButtonComponent; }
+namespace Irufemi { class TransformComponent; }
+namespace Irufemi { class SpriteRendererComponent; }
 
 /**
  * @class SceneTransitionButtonComponent
  * @brief ButtonComponentのクリックを検知し、アニメーションとシーン遷移を行うゲーム固有コンポーネント
  */
-class SceneTransitionButtonComponent : public Component {
+class SceneTransitionButtonComponent : public Irufemi::Component {
 public:
     SceneTransitionButtonComponent() = default;
     ~SceneTransitionButtonComponent() override = default;
@@ -40,12 +40,12 @@ private:
     float clickAnimDuration_ = 0.8f;  // クリックアニメーションの長さ（フラッシュなど）
 
     // --- 内部状態 ---
-    UIAnimator animator_;
+    Irufemi::UIAnimator animator_;
 
     bool isTransitionPending_ = false;
     float transitionTimer_ = 0.0f;
     Irufemi::Vector3 originalScale_ = {1.0f, 1.0f, 1.0f};
 
-    ButtonComponent* button_ = nullptr;
-    SpriteRendererComponent* sprite_ = nullptr;
+    Irufemi::ButtonComponent* button_ = nullptr;
+    Irufemi::SpriteRendererComponent* sprite_ = nullptr;
 };

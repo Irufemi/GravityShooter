@@ -65,7 +65,7 @@ void EnemyBulletComponent::Update() {
     }
 }
 
-void EnemyBulletComponent::OnCollisionEnter(GameObject* other) {
+void EnemyBulletComponent::OnCollisionEnter(Irufemi::GameObject* other) {
     if (!other || !gameObject_) {
         return;
     }
@@ -115,7 +115,7 @@ void EnemyBulletComponent::OnCollisionEnter(GameObject* other) {
     }
 
     // 3. 環境遮蔽（壁や障害物への着弾消滅）
-    if (auto collider = other->GetComponent<ColliderComponent>()) {
+    if (auto collider = other->GetComponent<Irufemi::ColliderComponent>()) {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
                 uint32_t envMask = cm->GetLayerMask("Environment");

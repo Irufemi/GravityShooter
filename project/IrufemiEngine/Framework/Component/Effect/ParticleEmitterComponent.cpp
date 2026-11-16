@@ -4,7 +4,7 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 ParticleEmitterComponent::ParticleEmitterComponent() {
     particleObj_ = std::make_unique<ParticleObject>();
@@ -115,3 +115,6 @@ std::shared_ptr<Component> ParticleEmitterComponent::Clone() {
     }
     return clone;
 }
+
+} // namespace Irufemi
+

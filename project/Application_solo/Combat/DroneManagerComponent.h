@@ -5,12 +5,13 @@
 #include <unordered_map>
 #include <vector>
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class BossBulletManagerComponent;
-class EffectMaskComponent;
+namespace Irufemi { class EffectMaskComponent; }
+namespace Irufemi { class ModelBatchRendererComponent; }
 #include "Renderer/Object/Batch/ModelBatch.h"
 
-class DroneManagerComponent : public Component {
+class DroneManagerComponent : public Irufemi::Component {
 public:
     DroneManagerComponent();
     ~DroneManagerComponent() override;
@@ -32,7 +33,7 @@ public:
     /**
      * @brief ボスの周囲にドローンを一斉展開する
      */
-    void DeployDrones(std::weak_ptr<GameObject> boss, int count, BossBulletManagerComponent* bulletMgr);
+    void DeployDrones(std::weak_ptr<Irufemi::GameObject> boss, int count, BossBulletManagerComponent* bulletMgr);
 
     /**
      * @brief ドローンを全回収する
@@ -41,7 +42,7 @@ public:
 
 private:
     int maxDrones_ = 50;
-    std::unique_ptr<Irufemi::ObjectPool<GameObject>> dronePool_;
+    std::unique_ptr<Irufemi::ObjectPool<Irufemi::GameObject>> dronePool_;
 
     struct DroneAnimData {
         float orbitAngle = 0.0f;
@@ -49,15 +50,15 @@ private:
     };
 
     struct ActiveDrone {
-        Irufemi::ObjectPool<GameObject>::Handle handle;
-        std::shared_ptr<GameObject> gameObject;
+        Irufemi::ObjectPool<Irufemi::GameObject>::Handle handle;
+        std::shared_ptr<Irufemi::GameObject> gameObject;
     };
 
     std::vector<ActiveDrone> activeDrones_;
     std::vector<DroneAnimData> animDataList_;
 
-    class ModelBatchRendererComponent* batchRenderer_ = nullptr;
-    EffectMaskComponent* effectMask_ = nullptr;
+    Irufemi::ModelBatchRendererComponent* batchRenderer_ = nullptr;
+    Irufemi::EffectMaskComponent* effectMask_ = nullptr;
     int activeDroneCount_ = 0;
 
     // 定数パラメーター（インスペクターで調整可能にすることも可）
@@ -67,7 +68,7 @@ private:
     float bulletSpeed_ = 45.0f;
     std::string dronePrefabPath_ = "resources/prefabs/BossDrone.json";
 
-    std::weak_ptr<GameObject> boss_;
-    std::weak_ptr<GameObject> player_;
+    std::weak_ptr<Irufemi::GameObject> boss_;
+    std::weak_ptr<Irufemi::GameObject> player_;
     BossBulletManagerComponent* bulletManager_ = nullptr;
 };

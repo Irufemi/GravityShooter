@@ -14,7 +14,7 @@
 #include <sstream>
 
 void EnvironmentManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
 
     RegisterProperty("Target Prefabs", &targetPrefabNames_)
         .SetTooltip("Comma separated list of prefab names to manage (e.g. Env_Pillar,Env_Arch,Env_Wall)");
@@ -86,7 +86,7 @@ void EnvironmentManagerComponent::Start() {
             if (child->GetName().find(setting.prefabPath) != std::string::npos) {
                 // 初回のみプレハブからデフォルトのサイズを取得する
                 if (setting.collisionSize.x < 0.0f) {
-                    if (auto obb = child->GetComponent<OBBColliderComponent>()) {
+                    if (auto obb = child->GetComponent<Irufemi::OBBColliderComponent>()) {
                         setting.collisionSize = obb->GetLocalSize();
                         setting.previousSize = setting.collisionSize;
                         setting.collisionOffset = obb->GetLocalOffset();
@@ -95,7 +95,7 @@ void EnvironmentManagerComponent::Start() {
                 }
 
                 Irufemi::Vector3 origPos, origRot, origScale;
-                if (auto transform = child->GetComponent<TransformComponent>()) {
+                if (auto transform = child->GetComponent<Irufemi::TransformComponent>()) {
                     origPos = transform->GetPosition();
                     origRot = transform->GetRotation();
                     origScale = transform->GetScale();
@@ -124,7 +124,7 @@ void EnvironmentManagerComponent::Start() {
     // 最初のバッチ設定を適用
     for (const auto& info : spawnedObjects_) {
         if (auto obj = info.obj.lock()) {
-            if (auto obb = obj->GetComponent<OBBColliderComponent>()) {
+            if (auto obb = obj->GetComponent<Irufemi::OBBColliderComponent>()) {
                 for (const auto& setting : batchCollisionSettings_) {
                     if (setting.prefabPath == info.prefabPath) {
                         obb->SetLocalSize(setting.collisionSize);
@@ -140,7 +140,7 @@ void EnvironmentManagerComponent::Start() {
     // 環境オブジェクトのモデルバッチレンダラーを事前ロード・初期化
     for (const auto& info : spawnedObjects_) {
         if (auto obj = info.obj.lock()) {
-            if (auto meshRenderer = obj->GetComponent<MeshRendererComponent>()) {
+            if (auto meshRenderer = obj->GetComponent<Irufemi::MeshRendererComponent>()) {
                 meshRenderer->SetVisible(false); // 個別の描画を停止
                 std::string modelName = meshRenderer->GetModelName();
                 if (!modelName.empty()) {
@@ -170,7 +170,7 @@ void EnvironmentManagerComponent::Update() {
     if (anyChanged) {
         for (const auto& info : spawnedObjects_) {
             if (auto obj = info.obj.lock()) {
-                if (auto obb = obj->GetComponent<OBBColliderComponent>()) {
+                if (auto obb = obj->GetComponent<Irufemi::OBBColliderComponent>()) {
                     for (const auto& setting : batchCollisionSettings_) {
                         if (setting.prefabPath == info.prefabPath) {
                             obb->SetLocalSize(setting.collisionSize);
@@ -199,7 +199,7 @@ void EnvironmentManagerComponent::Draw() {
             if (!obj->GetIsActive()) {
                 continue; // 破壊された環境物は描画しない
             }
-            if (auto meshRenderer = obj->GetComponent<MeshRendererComponent>()) {
+            if (auto meshRenderer = obj->GetComponent<Irufemi::MeshRendererComponent>()) {
                 // 個別の描画をストップ（Raycast判定などは生きたまま）
                 meshRenderer->SetVisible(false);
 
@@ -212,14 +212,14 @@ void EnvironmentManagerComponent::Draw() {
                 int32_t effectType = 0;
                 float effectParam = 0.0f;
                 bool enableMask = false;
-                if (auto effectMask = obj->GetComponent<EffectMaskComponent>()) {
+                if (auto effectMask = obj->GetComponent<Irufemi::EffectMaskComponent>()) {
                     enableMask = effectMask->GetEnableEffectMask();
                     effectType = effectMask->GetCustomEffectType();
                     effectParam = effectMask->GetCachedEffectParam();
                 }
 
                 // ワールド行列を取得してバッチにインスタンスを追加
-                if (auto transform = obj->GetComponent<TransformComponent>()) {
+                if (auto transform = obj->GetComponent<Irufemi::TransformComponent>()) {
                     batchRenderer->AddInstanceWorld(transform->GetWorldMatrix(), effectType, effectParam, enableMask);
                 }
             }
@@ -234,7 +234,7 @@ void EnvironmentManagerComponent::Draw() {
     }
 }
 
-ModelBatchRendererComponent* EnvironmentManagerComponent::GetOrCreateBatchRenderer(const std::string& modelName) {
+Irufemi::ModelBatchRendererComponent* EnvironmentManagerComponent::GetOrCreateBatchRenderer(const std::string& modelName) {
     if (modelName.empty()) {
         return nullptr;
     }
@@ -244,11 +244,11 @@ ModelBatchRendererComponent* EnvironmentManagerComponent::GetOrCreateBatchRender
         return it->second.get();
     }
 
-    std::shared_ptr<ModelBatchRendererComponent> batchRenderer;
+    std::shared_ptr<Irufemi::ModelBatchRendererComponent> batchRenderer;
     if (gameObject_) {
-        batchRenderer = gameObject_->AddComponent<ModelBatchRendererComponent>();
+        batchRenderer = gameObject_->AddComponent<Irufemi::ModelBatchRendererComponent>();
     } else {
-        batchRenderer = std::make_shared<ModelBatchRendererComponent>();
+        batchRenderer = std::make_shared<Irufemi::ModelBatchRendererComponent>();
     }
     batchRenderer->LoadModel(modelName);
     batchRenderer->Initialize();

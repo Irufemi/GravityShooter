@@ -183,7 +183,7 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
     if (f6Triggered) {
         auto sm = engine_->GetSceneManager();
         if (sm && sm->GetCurrent() == GameScenes::InGame) {
-            if (auto baseScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene())) {
+            if (auto baseScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene())) {
                 if (auto player = baseScene->FindGameObject("Player")) {
                     if (auto health = player->GetComponent<PlayerHealthComponent>()) {
                         health->TakeDamage(99999);
@@ -229,7 +229,7 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
         if (sm && sm->GetCurrent() == GameScenes::Title) {
             StartTitleDemo();
         } else if (sm) {
-            sm->TransitionTo(GameScenes::Title, SceneTransition::Type::Fade, 0.3f);
+            sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::Fade, 0.3f);
         }
     }
 }
@@ -246,7 +246,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
     }
 
     auto sm = engine_->GetSceneManager();
-    auto currentScenePtr = sm ? dynamic_cast<BaseScene*>(sm->GetCurrentScene()) : nullptr;
+    auto currentScenePtr = sm ? dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene()) : nullptr;
 
     // 出撃演出中かどうかをチェック
     TitleSceneDirectorComponent* dirComp = nullptr;
@@ -452,7 +452,7 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
 
     // ゲームオーバー演出実演モードの場合：イントロ閃光をスキップし、通常飛行を1.50秒見せた後に自機を撃破
     if (demoMode_ == DemoMode::GameOverShowcase) {
-        auto currentScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene());
+        auto currentScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());
         if (currentScene) {
             // ワープイントロ演出（2.8秒）をスキップし、自機とカメラを即座に通常戦闘姿勢にスタンバイ
             if (auto introObj = currentScene->FindGameObject("StageIntroDirector")) {
@@ -485,7 +485,7 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         SoundHelper::Play(GameSE::GravityWarp);
 
         // 単なる黒フェードから、事象の地平線への空間吸い込み・重力色収差遷移へ昇華
-        sm->TransitionTo(GameScenes::Title, SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,
+        sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,
                          Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     }
 }
@@ -522,11 +522,11 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
 
         if (demoMode_ == DemoMode::GameOverShowcase) {
             // ゲームオーバー実演デモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
-            sm->TransitionTo(GameScenes::InGame, SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
+            sm->TransitionTo(GameScenes::InGame, Irufemi::SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
                              Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         } else {
             // 通常アトラクトデモなら Title へ帰還
-            sm->TransitionTo(GameScenes::Title, SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
+            sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
                              Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
@@ -547,7 +547,7 @@ void AttractDemoManager::StartTitleDemo() {
     // 画面手前にいるガレキの最新スクリーン座標を取得し、必中かすめポイントとして動的設定
     posSweepRight_ = {820.0f, 310.0f};
     if (auto sm = engine_->GetSceneManager()) {
-        if (auto currentScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene())) {
+        if (auto currentScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene())) {
             TitleSceneDirectorComponent* dirComp = nullptr;
             if (auto menuMgr = currentScene->FindGameObject("MenuManager")) {
                 dirComp = menuMgr->GetComponent<TitleSceneDirectorComponent>();
@@ -634,18 +634,18 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     if (currentScene != GameScenes::Title) {
         hasTriggeredReturn_ = true;
         // 即時スキップ時も空間収束でテンポよく（0.35秒）Titleへ帰還
-        sm->TransitionTo(GameScenes::Title, SceneTransition::Type::GravitySingularity, 0.35f, EaseType::EaseInQuad,
+        sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::GravitySingularity, 0.35f, EaseType::EaseInQuad,
                          Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     } else {
         // タイトル画面で出撃中にデモ停止された場合、タイトルを再初期化して通常待機に戻す
-        auto currentScenePtr = dynamic_cast<BaseScene*>(sm->GetCurrentScene());
+        auto currentScenePtr = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());
         if (currentScenePtr) {
             TitleSceneDirectorComponent* dirComp = nullptr;
             if (auto menuMgr = currentScenePtr->FindGameObject("MenuManager")) {
                 dirComp = menuMgr->GetComponent<TitleSceneDirectorComponent>();
             }
             if (dirComp && dirComp->IsLaunching()) {
-                sm->TransitionTo(GameScenes::Title, SceneTransition::Type::Fade, 0.2f);
+                sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::Fade, 0.2f);
             }
         }
     }
@@ -657,9 +657,9 @@ Irufemi::Vector2 AttractDemoManager::GetButtonCenter(const std::string& btnName,
         return fallbackPos;
     }
     if (auto sm = engine_->GetSceneManager()) {
-        if (auto scene = dynamic_cast<BaseScene*>(sm->GetCurrentScene())) {
+        if (auto scene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene())) {
             if (auto btnObj = scene->FindGameObject(btnName)) {
-                if (auto t = btnObj->GetComponent<TransformComponent>()) {
+                if (auto t = btnObj->GetComponent<Irufemi::TransformComponent>()) {
                     const auto& pos = t->GetPosition();
                     return {pos.x, pos.y};
                 }
@@ -677,7 +677,7 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
     if (!sm) {
         return;
     }
-    auto baseScene = dynamic_cast<BaseScene*>(sm->GetCurrentScene());
+    auto baseScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());
     if (!baseScene) {
         return;
     }
@@ -696,9 +696,9 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
     if (!demoHudObj_ || demoHudObj_->GetScene() != baseScene) {
         if (auto existing = baseScene->FindGameObject("DemoAttractHUD")) {
             demoHudObj_ = existing;
-            demoHudText_ = existing->GetComponent<TextRendererComponent>();
+            demoHudText_ = existing->GetComponent<Irufemi::TextRendererComponent>();
         } else {
-            auto hudObj = std::make_shared<GameObject>("DemoAttractHUD");
+            auto hudObj = std::make_shared<Irufemi::GameObject>("DemoAttractHUD");
             baseScene->AddGameObject(hudObj);
             hudObj->SetIsSerializable(false); // シーン保存汚染を防止
             hudObj->SetHideInHierarchy(true);
@@ -708,7 +708,7 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
                 t->SetPosition({1225.0f, 42.0f, 0.0f});
             }
 
-            auto textComp = hudObj->AddComponent<TextRendererComponent>();
+            auto textComp = hudObj->AddComponent<Irufemi::TextRendererComponent>();
             if (textComp) {
                 textComp->SetFontId("toro_glitch");
                 textComp->SetText(L"AUTO DEMO   |   PRESS ANY KEY");

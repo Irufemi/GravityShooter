@@ -8,7 +8,7 @@ class IrufemiEngine;
  * @class ClearScene
  * @brief クリア画面を管理するクラス
  */
-class ClearScene : public BaseScene {
+class ClearScene : public Irufemi::BaseScene {
 public: // メンバ関数(システム)
     ~ClearScene() override;
 

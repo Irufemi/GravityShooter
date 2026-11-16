@@ -12,10 +12,10 @@ class IrufemiEngine;
 /**
  * @class HowToPlayScene
  * @brief 操作説明(How To Play)をスタック重畳表示するシーン
- * @details SceneManager::PushScene で呼び出され、背景のタイトル画面を描画し続けたまま
+ * @details Irufemi::SceneManager::PushScene で呼び出され、背景のタイトル画面を描画し続けたまま
  *          半透明オーバーレイでキーボード/パッドの操作図解を表示し、B/ESC/クリックで PopScene します。
  */
-class HowToPlayScene : public BaseScene {
+class HowToPlayScene : public Irufemi::BaseScene {
 public: // メンバ関数(システム)
     HowToPlayScene() = default;
     ~HowToPlayScene() override = default;
@@ -66,7 +66,7 @@ public: // メンバ関数(システム)
 private:
 
     struct UIElementState {
-        std::shared_ptr<GameObject> obj;
+        std::shared_ptr<Irufemi::GameObject> obj;
         Irufemi::Vector3 basePos{};
         Irufemi::Vector3 baseScale{};
         Irufemi::Vector4 baseColor{};

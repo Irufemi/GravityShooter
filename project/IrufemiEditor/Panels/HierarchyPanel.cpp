@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <filesystem>
 
+using namespace Irufemi;
+
 void HierarchyPanel::Initialize(EditorManager* editorManager) {
     editorManager_ = editorManager;
 }

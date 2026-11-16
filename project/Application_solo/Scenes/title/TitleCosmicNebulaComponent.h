@@ -12,7 +12,7 @@
  * @details 漆黒の深宇宙に広がるエメラルド〜シアン〜パープルの有機的星雲ガスと重力渦、
  *          瞬く星屑を最奥深度(Z=1.0)全画面パスで描画します。
  */
-class TitleCosmicNebulaComponent : public Component {
+class TitleCosmicNebulaComponent : public Irufemi::Component {
 public: // 定数バッファ構造体 (HLSL: register b6 / RootSlot::Special)
     struct alignas(256) CosmicNebulaParams {
         float pulseIntensity = 0.0f;                        //!< 出撃・決定パルス [0.0 - 1.0]

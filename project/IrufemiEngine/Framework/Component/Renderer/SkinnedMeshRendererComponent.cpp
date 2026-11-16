@@ -8,7 +8,7 @@
 #include "Core/Utility/JsonUtility.h"
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 SkinnedMeshRendererComponent::SkinnedMeshRendererComponent() {
     animatedMesh_ = std::make_unique<AnimatedMeshObject>();
@@ -288,3 +288,6 @@ void SkinnedMeshRendererComponent::SetCustomEffectParam(float param) {
         animatedMesh_->SetCustomEffectParam(param);
     }
 }
+
+} // namespace Irufemi
+

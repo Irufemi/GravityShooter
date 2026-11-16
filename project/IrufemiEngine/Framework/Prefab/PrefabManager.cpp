@@ -2,6 +2,8 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Core/Utility/JsonUtility.h"
 
+namespace Irufemi {
+
 std::shared_ptr<const nlohmann::json> PrefabManager::GetPrefabJson(const std::string& filepath) {
     auto existing = cache_.WithRead([&](const PrefabCacheData& data) -> std::shared_ptr<nlohmann::json> {
         auto it = data.jsonCache.find(filepath);
@@ -77,3 +79,6 @@ void PrefabManager::ClearCache() {
         data.templateCache.clear();
     });
 }
+
+} // namespace Irufemi
+

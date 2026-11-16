@@ -7,10 +7,9 @@
 #include "Core/Math/Transform.h"
 #include "Core/Math/Vector4.h"
 
-// 前方宣言
 namespace Irufemi {
+
 class ModelBatch;
-}
 class TransformComponent;
 
 /**
@@ -198,3 +197,6 @@ private:
     bool useGPUCulling_ = false;                        ///< GPUカリングの有効フラグ
     bool autoClearEveryFrame_ = true;                   ///< 描画後にインスタンスを自動クリアするかどうか
 };
+
+} // namespace Irufemi
+

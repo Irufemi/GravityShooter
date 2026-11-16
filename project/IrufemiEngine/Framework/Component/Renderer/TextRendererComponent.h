@@ -5,6 +5,8 @@
 #include <string>
 #include "Core/Math/Vector4.h"
 
+namespace Irufemi {
+
 class TransformComponent;
 
 /**
@@ -242,3 +244,6 @@ private:
     int verticalAlignmentInt_ = 0; // For Reflection (0:Top, 1:Middle, 2:Bottom)
     bool isTopMost_ = false;
 };
+
+} // namespace Irufemi
+

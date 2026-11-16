@@ -8,6 +8,8 @@
 #include <optional>
 #include "Core/Utility/Ease.h"
 
+namespace Irufemi {
+
 /**
  * @class SceneTransition
  * @brief シーン遷移の演出（フェード等）を管理するクラス
@@ -130,3 +132,6 @@ private:
 
     // 前回のポストプロセスモードを復元するための保存用（必要に応じて）
 };
+
+} // namespace Irufemi
+

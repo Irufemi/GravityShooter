@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 
+namespace Irufemi {
+
 class GameObject;
 class TransformComponent;
 
@@ -59,3 +61,5 @@ private:
 
     std::weak_ptr<GameObject> targetObj_; ///< 追従対象オブジェクトへの安全な弱参照
 };
+
+} // namespace Irufemi

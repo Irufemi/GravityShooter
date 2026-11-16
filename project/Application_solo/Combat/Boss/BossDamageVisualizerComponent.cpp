@@ -6,7 +6,7 @@
 #include <algorithm>
 
 void BossDamageVisualizerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Damage Shake Intensity", &damageShakeIntensity_);
     RegisterProperty("Damage Shake Duration", &damageShakeDuration_);
     RegisterProperty("Damage Shake Frequency", &damageShakeFrequency_);
@@ -45,7 +45,7 @@ void BossDamageVisualizerComponent::Start() {
 
     bossComp_ = gameObject_->GetComponent<BossComponent>();
     if (bossComp_) {
-        std::weak_ptr<GameObject> weakObj = gameObject_->shared_from_this();
+        std::weak_ptr<Irufemi::GameObject> weakObj = gameObject_->shared_from_this();
 
         // 被弾イベントリスナーを登録
         damageListenerId_ = bossComp_->AddOnDamageTakenListener([weakObj](float damage) {
@@ -67,7 +67,7 @@ void BossDamageVisualizerComponent::Start() {
     }
 }
 
-std::shared_ptr<GameObject> BossDamageVisualizerComponent::GetMainCamera() const {
+std::shared_ptr<Irufemi::GameObject> BossDamageVisualizerComponent::GetMainCamera() const {
     if (auto cam = mainCameraObj_.lock()) {
         return cam;
     }
@@ -82,9 +82,9 @@ std::shared_ptr<GameObject> BossDamageVisualizerComponent::GetMainCamera() const
     return nullptr;
 }
 
-CameraShakeComponent* BossDamageVisualizerComponent::GetCameraShake() const {
+Irufemi::CameraShakeComponent* BossDamageVisualizerComponent::GetCameraShake() const {
     if (auto cam = GetMainCamera()) {
-        return cam->GetComponent<CameraShakeComponent>();
+        return cam->GetComponent<Irufemi::CameraShakeComponent>();
     }
     return nullptr;
 }

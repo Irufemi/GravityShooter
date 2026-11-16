@@ -3,6 +3,8 @@
 #include <string>
 #include "Core/Math/Vector3.h"
 
+namespace Irufemi {
+
 /**
  * @struct PrefabMetrics
  * @brief プレハブアセットから抽出された基準寸法・当たり判定・モデル情報
@@ -29,3 +31,6 @@ public:
      */
     static PrefabMetrics ExtractMetrics(const std::string& prefabPath);
 };
+
+} // namespace Irufemi
+

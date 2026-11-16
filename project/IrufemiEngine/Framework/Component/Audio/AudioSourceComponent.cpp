@@ -4,6 +4,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Audio/AudioManager.h"
 
+namespace Irufemi {
+
 AudioSourceComponent::~AudioSourceComponent() {
     OnDestroy();
 }
@@ -140,3 +142,5 @@ void AudioSourceComponent::SetAudioType(Irufemi::AudioType type) {
         player_->SetAudioType(type);
     }
 }
+
+} // namespace Irufemi

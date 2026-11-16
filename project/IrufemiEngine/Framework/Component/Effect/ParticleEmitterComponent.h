@@ -4,6 +4,8 @@
 #include <memory>
 #include "Renderer/Object/Particle/ParticleObject.h"
 
+namespace Irufemi {
+
 class TransformComponent;
 
 /**
@@ -116,3 +118,6 @@ public:
 private:
     std::unique_ptr<Irufemi::ParticleObject> particleObj_;
 };
+
+} // namespace Irufemi
+

@@ -42,7 +42,7 @@ void TitleLaunchStateCharge::Enter(TitleSceneDirectorComponent* director) {
     // タイトルBGMの音量をキャッシュ（即座に停止せず、Charge進行に合わせて対数フェードアウト）
     if (auto scene = director->GetScene()) {
         if (auto bgmObj = scene->FindGameObject("BGMPlayer")) {
-            if (auto audioSource = bgmObj->GetComponent<AudioSourceComponent>()) {
+            if (auto audioSource = bgmObj->GetComponent<Irufemi::AudioSourceComponent>()) {
                 director->SetInitialBgmVolume(0.70f);
             }
         }
@@ -87,7 +87,7 @@ void TitleLaunchStateCharge::Update(TitleSceneDirectorComponent* director, float
     // BGMシネマティック・フェードアウト（1.5乗の対数減衰で美しく消去）
     if (auto scene = director->GetScene()) {
         if (auto bgmObj = scene->FindGameObject("BGMPlayer")) {
-            if (auto audioSource = bgmObj->GetComponent<AudioSourceComponent>()) {
+            if (auto audioSource = bgmObj->GetComponent<Irufemi::AudioSourceComponent>()) {
                 float fadeT = std::pow(1.0f - p1, 1.5f);
                 audioSource->SetVolume(director->GetInitialBgmVolume() * fadeT);
                 if (p1 >= 1.0f) {

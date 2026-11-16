@@ -44,7 +44,7 @@ const char kInitialScene[]
 #endif
 
 // --- シーン登録処理 ---
-void RegisterScenes(SceneManager& sm) {
+void RegisterScenes(Irufemi::SceneManager& sm) {
     sm.Register("Title", [] { return std::make_unique<TitleScene>(); });
     sm.Register("Select", [] { return std::make_unique<SelectScene>(); });
     sm.Register("InGame", [] { return std::make_unique<GameScene>(); });
@@ -74,7 +74,7 @@ void GameApplication::Run() {
 
     // 独自コンポーネントの登録
 
-    ComponentFactory::Register("SceneTransitionButtonComponent", "Game",
+    Irufemi::ComponentFactory::Register("SceneTransitionButtonComponent", "Game",
                                []() { return std::make_shared<SceneTransitionButtonComponent>(); });
     // UIの登録
     auto loadingScreen = std::make_shared<LoadingScreen>();

@@ -46,7 +46,7 @@ bool ParseBlenderTransform(const json& blenderNode, Irufemi::Vector3& outPos, Ir
 
 } // namespace
 
-LevelData TL1LevelLoader::Load(const std::string& filepath, BaseScene* scene) {
+LevelData TL1LevelLoader::Load(const std::string& filepath, Irufemi::BaseScene* scene) {
     LevelData levelData;
 
     if (!scene) {
@@ -92,7 +92,7 @@ LevelData TL1LevelLoader::Load(const std::string& filepath, BaseScene* scene) {
 
         json engineJson = ConvertBlenderJsonToEngineJson(blenderNode);
 
-        auto obj = std::make_shared<GameObject>();
+        auto obj = std::make_shared<Irufemi::GameObject>();
         obj->SetScene(scene);
         try {
             obj->Deserialize(engineJson);

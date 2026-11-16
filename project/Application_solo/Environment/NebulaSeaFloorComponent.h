@@ -16,7 +16,7 @@
  *          3D Beer-Lambert
  * 則による体積光吸収、柱などの環境物接地ソフト交差、およびスカイドーム大気フォグ同調を行います。
  */
-class NebulaSeaFloorComponent : public Component {
+class NebulaSeaFloorComponent : public Irufemi::Component {
 public: // 定数バッファ構造体 (HLSL: register b6 / RootSlot::Special)
     struct alignas(256) NebulaSeaParams {
         float time = 0.0f;         //!< 経過時間

@@ -4,6 +4,8 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 
+namespace Irufemi {
+
 void GlobalPostProcessComponent::OnRegisterProperties() {
     // GUIはGlobalPostProcessComponentEditorによって描画されるため、
     // RegisterPropertyは使用しない。
@@ -89,3 +91,5 @@ void GlobalPostProcessComponent::Deserialize(const nlohmann::json& j) {
         }
     }
 }
+
+} // namespace Irufemi

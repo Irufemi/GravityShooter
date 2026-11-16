@@ -4,6 +4,8 @@
 #include "Core/Math/Vector3.h"
 #include <string>
 
+namespace Irufemi {
+
 class TransformComponent;
 
 /**
@@ -124,3 +126,6 @@ private:
     Irufemi::Vector3 localOffset_ = {0.0f, 0.0f, 0.0f};
     Irufemi::Vector3 localSize_ = {1.0f, 1.0f, 1.0f}; // Extents
 };
+
+} // namespace Irufemi
+

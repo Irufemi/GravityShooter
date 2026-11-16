@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <utility>
 
+namespace Irufemi {
+
 class GameObject;
 class ModelBatchRendererComponent;
 
@@ -191,3 +193,5 @@ private:
     ModelBatchRendererComponent* batchRenderer_ = nullptr;
     std::unordered_map<GameObject*, Irufemi::ObjectPool<GameObject>::Handle> activeHandles_;
 };
+
+} // namespace Irufemi

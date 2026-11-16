@@ -5,9 +5,9 @@
 #include <memory>
 #include <string>
 
-class TransformComponent;
+namespace Irufemi { class TransformComponent; }
 class RailShooterPlayerComponent;
-class CameraComponent;
+namespace Irufemi { class CameraComponent; }
 
 /**
  * @class StageIntroDirectorComponent
@@ -15,7 +15,7 @@ class CameraComponent;
  * @details 出撃シーンからの余韻を受け継ぎ、カメラ後方から自機が超高速で飛来・滑らかに急減速して
  *          定位置へスナップし、HUD点灯と同時にプレイヤーへ操作権を委譲するFSM演出をデータ駆動で管理します。
  */
-class StageIntroDirectorComponent : public Component {
+class StageIntroDirectorComponent : public Irufemi::Component {
 public:
     /**
      * @enum StageIntroState
@@ -114,15 +114,15 @@ private:
     bool hasTriggeredBreach_ = false; ///< 重力の壁突破インパルス発火済みフラグ
     float breachTimer_ = 0.0f;        ///< 突破フラッシュの経過タイマー
 
-    std::weak_ptr<GameObject> shipObj_;
-    std::weak_ptr<GameObject> playerCartObj_; ///< レール追従を行っている親オブジェクト（PlayerCart）
-    std::shared_ptr<GameObject> membraneObj_; ///< 空間に物理配置される重力水面膜オブジェクト
+    std::weak_ptr<Irufemi::GameObject> shipObj_;
+    std::weak_ptr<Irufemi::GameObject> playerCartObj_; ///< レール追従を行っている親オブジェクト（PlayerCart）
+    std::shared_ptr<Irufemi::GameObject> membraneObj_; ///< 空間に物理配置される重力水面膜オブジェクト
     Irufemi::Vector3 initialShipLocalPos_{0.0f, 0.0f, 0.0f};
     Irufemi::Vector3 initialShipLocalRot_{0.0f, 0.0f, 0.0f};
 
     // カメラFOV & ポストプロセス管理
-    CameraComponent* GetCameraComponent() const;
-    std::weak_ptr<GameObject> cameraObj_;
+    Irufemi::CameraComponent* GetCameraComponent() const;
+    std::weak_ptr<Irufemi::GameObject> cameraObj_;
     float baseCameraFov_ = 0.785398f;
     bool isRadialBlurActive_ = false;
     bool isChromaticActive_ = false;

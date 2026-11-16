@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Irufemi {
+
 /**
  * @class UIAnimator
  * @brief UI演出（明滅、高速点滅、浮遊）のための数学的なアニメーション計算を行うユーティリティクラス
@@ -52,3 +54,6 @@ public:
 private:
     float time_ = 0.0f;
 };
+
+} // namespace Irufemi
+

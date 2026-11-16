@@ -5,10 +5,10 @@
 #include "Core/Math/Vector4.h"
 
 namespace Irufemi {
+
 class Sprite;
 class StaticModelObject;
 class InputManager;
-}
 
 /**
  * @class UISelectionGroup
@@ -109,3 +109,5 @@ private:
 
     static constexpr float kTransitionDelayLimit = 0.8f;
 };
+
+} // namespace Irufemi

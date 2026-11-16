@@ -101,7 +101,7 @@ void StageIntroDirectorComponent::Start() {
 }
 
 void StageIntroDirectorComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("WarpIn Duration", &warpInDuration_);
     RegisterProperty("Arrival Duration", &arrivalDuration_);
     RegisterProperty("Bootup Duration", &bootupDuration_);
@@ -136,7 +136,7 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
 
     // --- 一線級エンジンのオブジェクト参照解決プラクティス ---
     // 階層構造（PlayerCartの子オブジェクト）やPrefab Linkingに対応するため多重フォールバックで探索
-    std::shared_ptr<GameObject> ship = scene->FindGameObject(targetShipName_);
+    std::shared_ptr<Irufemi::GameObject> ship = scene->FindGameObject(targetShipName_);
     if (!ship) {
         // フォールバック 1: 親オブジェクト PlayerCart の子オブジェクト群から探索
         if (auto cart = scene->FindGameObject("PlayerCart")) {
@@ -184,10 +184,10 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
 
     // カメラの取得とベースFOVのキャッシュ（型安全フォールバック対応）
     if (cameraObj_.expired()) {
-        std::shared_ptr<GameObject> camObj = scene->FindGameObject("MainCamera");
+        std::shared_ptr<Irufemi::GameObject> camObj = scene->FindGameObject("MainCamera");
         if (!camObj) {
             for (const auto& obj : scene->GetGameObjects()) {
-                if (obj && obj->GetComponentInChildren<CameraComponent>()) {
+                if (obj && obj->GetComponentInChildren<Irufemi::CameraComponent>()) {
                     camObj = obj;
                     break;
                 }
@@ -195,7 +195,7 @@ bool StageIntroDirectorComponent::EnsureShipInitialized() {
         }
         if (camObj) {
             cameraObj_ = camObj;
-            if (auto cam = camObj->GetComponent<CameraComponent>()) {
+            if (auto cam = camObj->GetComponent<Irufemi::CameraComponent>()) {
                 baseCameraFov_ = cam->GetFovAngleY();
             }
         }
@@ -259,7 +259,7 @@ bool StageIntroDirectorComponent::EnsureMembraneInitialized() {
     }
 
     // 1. 物理的な重力エネルギー界面GameObjectを生成
-    auto membrane = std::make_shared<GameObject>("GravityMembrane");
+    auto membrane = std::make_shared<Irufemi::GameObject>("GravityMembrane");
     membrane->SetIsSerializable(false); // シーン保存への混入を遮断
     membrane->SetHideInHierarchy(true);
 
@@ -271,7 +271,7 @@ bool StageIntroDirectorComponent::EnsureMembraneInitialized() {
     }
 
     // 3. PrimitiveRendererComponent 設定（Plane板ポリゴン・Unlit・テクスチャなし・完全透過）
-    auto prim = membrane->AddComponent<PrimitiveRendererComponent>();
+    auto prim = membrane->AddComponent<Irufemi::PrimitiveRendererComponent>();
     prim->SetShape(Irufemi::PrimitiveType::Plane);
     prim->SetTexture("");                       // UVチェッカーのロードを完全遮断
     prim->SetEnableLighting(false);             // Unlit（重力エネルギー自己発光）
@@ -279,7 +279,7 @@ bool StageIntroDirectorComponent::EnsureMembraneInitialized() {
     prim->SetIsTransparent(true); // 深度書き込み（DepthWrite）を無効化し、背後の環境物や敵の描画遮断を完全根絶
 
     // 4. EffectMaskComponent 設定（膜の領域だけに局所的にSimplex Noise空間屈折・DisplacementMapを適用）
-    auto maskComp = membrane->AddComponent<EffectMaskComponent>();
+    auto maskComp = membrane->AddComponent<Irufemi::EffectMaskComponent>();
     maskComp->SetEnableEffectMask(true);
     maskComp->SetCustomEffectType(24); // kPostProcessMode_DisplacementMap
     PostProcessManager::CustomEffectParams cParams{};
@@ -304,8 +304,8 @@ void StageIntroDirectorComponent::UpdateMembraneVisuals(float progress) {
         return;
     }
 
-    auto prim = membraneObj_->GetComponent<PrimitiveRendererComponent>();
-    auto maskComp = membraneObj_->GetComponent<EffectMaskComponent>();
+    auto prim = membraneObj_->GetComponent<Irufemi::PrimitiveRendererComponent>();
+    auto maskComp = membraneObj_->GetComponent<Irufemi::EffectMaskComponent>();
 
     if (progress < breachProgressThreshold_) {
         // 境界界面の微細な重力脈動
@@ -490,7 +490,7 @@ void StageIntroDirectorComponent::Update() {
                 transform->SetScale({membraneScaleX_, membraneScaleY_, 1.0f});
                 transform->CheckAndComputeMatrix();
             }
-            if (auto prim = membraneObj_->GetComponent<PrimitiveRendererComponent>()) {
+            if (auto prim = membraneObj_->GetComponent<Irufemi::PrimitiveRendererComponent>()) {
                 prim->SetTexture("");
                 prim->SetColor({0.15f, 0.85f, 1.0f, 0.0f});
                 prim->SetIsTransparent(true);
@@ -643,9 +643,9 @@ void StageIntroDirectorComponent::TriggerBreachImpulse() {
 
     // 1. 重力膜を突き破る空間インパルス（正面大激震）
     if (auto camObj = cameraObj_.lock()) {
-        auto shake = camObj->GetComponent<CameraShakeComponent>();
+        auto shake = camObj->GetComponent<Irufemi::CameraShakeComponent>();
         if (!shake) {
-            auto newShake = camObj->AddComponent<CameraShakeComponent>();
+            auto newShake = camObj->AddComponent<Irufemi::CameraShakeComponent>();
             shake = newShake.get();
         }
         if (shake) {
@@ -789,9 +789,9 @@ void StageIntroDirectorComponent::SetShipThrusterScale(float targetScaleZ, bool 
     }
 }
 
-CameraComponent* StageIntroDirectorComponent::GetCameraComponent() const {
+Irufemi::CameraComponent* StageIntroDirectorComponent::GetCameraComponent() const {
     if (auto cam = cameraObj_.lock()) {
-        return cam->GetComponent<CameraComponent>();
+        return cam->GetComponent<Irufemi::CameraComponent>();
     }
     return nullptr;
 }

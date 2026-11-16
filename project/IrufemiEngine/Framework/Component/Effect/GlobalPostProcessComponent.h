@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 
+namespace Irufemi {
+
 /**
  * @class GlobalPostProcessComponent
  * @brief 動的な Post Process Volume (Volume Framework 互換)
@@ -57,3 +59,5 @@ public:
 private:
     std::vector<std::shared_ptr<IPostProcessSettings>> overrides_;
 };
+
+} // namespace Irufemi

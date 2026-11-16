@@ -2,6 +2,8 @@
 #include "Framework/Component/Component.h"
 #include <string>
 
+namespace Irufemi {
+
 /**
  * @class BoneAttachmentComponent
  * @brief モデルの特定のボーン（関節）に追従するコンポーネント
@@ -98,3 +100,5 @@ private:
     class TransformComponent* cachedTargetTransform_ = nullptr;
     int cachedBoneIndex_ = -1;
 };
+
+} // namespace Irufemi

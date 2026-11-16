@@ -274,7 +274,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, i
     winApp_->SetInputManager(inputManager_.get());
 
     // UI
-    ui_ = std::make_unique<DebugUI>();
+    ui_ = std::make_unique<Irufemi::DebugUI>();
     ui_->Initialize(dxCommon_->GetHwnd(), dxCommon_.get());
 
     for (auto& ext : extensions_) {
@@ -304,7 +304,7 @@ void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, i
     // コリジョン管理 (デバッグ描画に依存するためここで初期化)
     collisionManager_ = std::make_unique<CollisionManager>();
     collisionManager_->Initialize(debugPrimitiveRenderer_.get());
-    ColliderComponent::SetCollisionManager(collisionManager_.get());
+    Irufemi::ColliderComponent::SetCollisionManager(collisionManager_.get());
 
     Sprite::SetDrawManager(drawManager_.get());
     Text::SetDrawManager(drawManager_.get());

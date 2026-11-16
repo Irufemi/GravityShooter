@@ -5,6 +5,8 @@
 #include <functional>
 #include "Framework/Component/Component.h"
 
+namespace Irufemi {
+
 class ComponentFactory {
 public:
     using CreatorFunc = std::function<std::shared_ptr<Component>()>;
@@ -30,3 +32,6 @@ public:
 private:
     static std::unordered_map<std::string, ComponentRegistration>& GetMap();
 };
+
+} // namespace Irufemi
+

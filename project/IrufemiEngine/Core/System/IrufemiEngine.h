@@ -37,8 +37,8 @@ namespace Irufemi {}
 #include <algorithm>
 
 // --- 前方宣言 ---
-class DebugUI;
 namespace Irufemi {
+class DebugUI;
 class DebugPrimitiveRenderer;
 class IEngineExtension;
 class ILoadingScreen;
@@ -61,12 +61,12 @@ class GPUParticleManager;
 class PrimitiveManager;
 class PSOManager;
 class VoxelParticleManager;
-}
 class SceneManager;
 class SceneTransition;
-class GameObject;
-class CollisionManager;
 class PrefabManager;
+class GameObject;
+}
+class CollisionManager;
 class FluidSimulation2D;
 
 /**
@@ -137,7 +137,7 @@ public: // メンバ関数
     void OnResize(int32_t width, int32_t height);
 
     // --- Application からの注入用コールバック型とセッター ---
-    using SceneRegistrar = std::function<void(SceneManager&)>;
+    using SceneRegistrar = std::function<void(Irufemi::SceneManager&)>;
 
     /**
      * @brief シーン登録用コールバックの設定
@@ -428,7 +428,7 @@ public: // ゲッター
      * @brief DebugUI を取得する。
      * @return 取得された DebugUI
      */
-    DebugUI* GetDebugUI() {
+    Irufemi::DebugUI* GetDebugUI() {
         return this->ui_.get();
     }
     /**
@@ -512,7 +512,7 @@ public: // ゲッター
      * @brief PrefabManager を取得する。
      * @return 取得された PrefabManager
      */
-    PrefabManager* GetPrefabManager() const {
+    Irufemi::PrefabManager* GetPrefabManager() const {
         return prefabManager_.get();
     }
     /**
@@ -552,7 +552,7 @@ public: // ゲッター
     }
 
     /** @brief 画面遷移管理者を取得 */
-    SceneTransition* GetSceneTransition() {
+    Irufemi::SceneTransition* GetSceneTransition() {
         return sceneTransition_.get();
     }
 
@@ -741,7 +741,7 @@ public: // ゲッター
      * @brief SceneManager を取得する。
      * @return 取得された SceneManager
      */
-    SceneManager* GetSceneManager() const {
+    Irufemi::SceneManager* GetSceneManager() const {
         return sceneManager_.get();
     }
 
@@ -805,14 +805,14 @@ public: // ゲッター
      * @brief SelectedObject を取得する。
      * @return 取得された SelectedObject
      */
-    std::shared_ptr<GameObject> GetSelectedObject() const {
+    std::shared_ptr<Irufemi::GameObject> GetSelectedObject() const {
         return selectedObject_.lock();
     }
     /**
      * @brief SelectedObject を設定する。
      * @param[in] obj 設定する SelectedObject の値
      */
-    void SetSelectedObject(std::shared_ptr<GameObject> obj) {
+    void SetSelectedObject(std::shared_ptr<Irufemi::GameObject> obj) {
         selectedObject_ = obj;
     }
 
@@ -944,7 +944,7 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::DebugPrimitiveRenderer> debugPrimitiveRenderer_ = nullptr;
 
     // DebugUI
-    std::unique_ptr<DebugUI> ui_ = nullptr;
+    std::unique_ptr<Irufemi::DebugUI> ui_ = nullptr;
 
     // Extensions
     std::vector<std::shared_ptr<Irufemi::IEngineExtension>> extensions_;
@@ -956,7 +956,7 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::AudioManager> audioManager_ = nullptr;
 
     // SceneManager
-    std::unique_ptr<SceneManager> sceneManager_ = nullptr;
+    std::unique_ptr<Irufemi::SceneManager> sceneManager_ = nullptr;
 
     // LoadingScreen (Application側から注入)
     std::shared_ptr<Irufemi::ILoadingScreen> loadingScreen_ = nullptr;
@@ -1026,7 +1026,7 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::RenderTexture> materialTexture_ = nullptr;   ///< MRT対応: マテリアル用
     std::unique_ptr<Irufemi::RenderTexture> velocityTexture_ = nullptr;   ///< MRT対応: モーションベクトル用
     std::unique_ptr<PostProcessManager> postProcessManager_ = nullptr;
-    std::unique_ptr<SceneTransition> sceneTransition_ = nullptr;
+    std::unique_ptr<Irufemi::SceneTransition> sceneTransition_ = nullptr;
     std::unique_ptr<FluidSimulation2D> fluidSimulation_ = nullptr;
 
     // Telemetry
@@ -1038,7 +1038,7 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::DebugConsole> debugConsole_ = nullptr;
 
     // Prefab Manager
-    std::unique_ptr<PrefabManager> prefabManager_ = nullptr;
+    std::unique_ptr<Irufemi::PrefabManager> prefabManager_ = nullptr;
 
     uint32_t depthSrvIndex_ = 0xFFFFFFFF; // 深度SRVのインデックスを保持
     bool isFinalized_ = false;            // 終了処理済みフラグ
@@ -1052,7 +1052,7 @@ private: // メンバ変数
 
     bool sceneRequestedCursorLock_ = false;
     bool isPlayMode_ = true;
-    std::weak_ptr<GameObject> selectedObject_;
+    std::weak_ptr<Irufemi::GameObject> selectedObject_;
 
     // --- 遅延リサイズ（Deferred Resize）管理 ---
     bool isResizePending_ = false;

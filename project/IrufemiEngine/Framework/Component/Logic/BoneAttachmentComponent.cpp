@@ -7,7 +7,7 @@
 #include "Resource/Model/Data/SkeletonData.h"
 #include "Core/Math/MathFunction.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 BoneAttachmentComponent::BoneAttachmentComponent() = default;
 BoneAttachmentComponent::~BoneAttachmentComponent() = default;
@@ -100,3 +100,5 @@ void BoneAttachmentComponent::Deserialize(const nlohmann::json& j) {
     }
     InvalidateCache();
 }
+
+} // namespace Irufemi

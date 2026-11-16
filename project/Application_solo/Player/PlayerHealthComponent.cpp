@@ -28,7 +28,7 @@ void PlayerHealthComponent::LoadStatusFromJson() {
 }
 
 void PlayerHealthComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Status Data Path", &statusDataPath_);
     RegisterProperty("Max HP", &maxHp_);
     RegisterProperty("Current HP", &hp_);
@@ -54,7 +54,7 @@ void PlayerHealthComponent::Start() {
             col->SetDebugCategory(Irufemi::DebugCategory::Combat);
             col->SetDebugCustomColor(Irufemi::Vector4{0.0f, 1.0f, 1.0f, 1.0f});
         }
-        effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+        effectMask_ = gameObject_->GetComponent<Irufemi::EffectMaskComponent>();
         if (effectMask_) {
             normalOutlineColor_ = effectMask_->GetCustomParams().color1;
             hasCachedNormalOutline_ = true;
@@ -104,7 +104,7 @@ void PlayerHealthComponent::Update() {
         invincibilityTimer_ -= dt;
 
         if (!effectMask_ && gameObject_) {
-            effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+            effectMask_ = gameObject_->GetComponent<Irufemi::EffectMaskComponent>();
         }
 
         if (effectMask_) {
@@ -205,9 +205,9 @@ void PlayerHealthComponent::NotifyDeathSequenceFinished() {
     }
 }
 
-ColliderComponent* PlayerHealthComponent::GetCollider() const {
+Irufemi::ColliderComponent* PlayerHealthComponent::GetCollider() const {
     if (gameObject_) {
-        return gameObject_->GetComponentByInterface<ColliderComponent>();
+        return gameObject_->GetComponentByInterface<Irufemi::ColliderComponent>();
     }
     return nullptr;
 }

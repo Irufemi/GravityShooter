@@ -2,7 +2,7 @@
 #include "Core/Utility/Ease.h"
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 void UIAnimator::Update(float deltaTime) {
     time_ += deltaTime;
@@ -24,3 +24,6 @@ bool UIAnimator::GetFlashVisibility(float speed) const {
 float UIAnimator::GetFloatOffset(float amplitude, float speed, float phaseOffset) const {
     return std::sin(time_ * speed + phaseOffset) * amplitude;
 }
+
+} // namespace Irufemi
+

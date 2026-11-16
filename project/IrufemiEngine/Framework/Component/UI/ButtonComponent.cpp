@@ -12,6 +12,8 @@
 #include "Renderer/Camera/Camera.h"
 #include <algorithm>
 
+namespace Irufemi {
+
 void ButtonComponent::OnRegisterProperties() {
     RegisterProperty("Normal Color", &normalColor_);
     RegisterProperty("Hover Color", &hoverColor_);
@@ -166,3 +168,5 @@ void ButtonComponent::Update() {
         isPressedOnButton_ = false;
     }
 }
+
+} // namespace Irufemi

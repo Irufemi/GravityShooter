@@ -67,7 +67,7 @@ private:
     Irufemi::StaticModelObject* targetObj_ = nullptr;
     Irufemi::Sprite* targetSprite_ = nullptr;
 
-    UIAnimator animator_;
+    Irufemi::UIAnimator animator_;
     uint8_t triggerKey_ = 0x20; // VK_SPACE のデフォルト値 (0x20)
 
     bool isDecided_ = false;

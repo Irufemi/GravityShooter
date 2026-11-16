@@ -82,7 +82,7 @@ void PlayerTargetingComponent::Update() {
     }
 
     // 死んだオブジェクトやターゲット不可になったオブジェクトをキューから削除する (C++20 std::erase_if)
-    std::erase_if(queuedTargets_, [this](const std::shared_ptr<GameObject>& obj) {
+    std::erase_if(queuedTargets_, [this](const std::shared_ptr<Irufemi::GameObject>& obj) {
         if (!obj || !obj->GetIsActive() || obj->IsDestroyed()) {
             return true;
         }
@@ -110,7 +110,7 @@ void PlayerTargetingComponent::Update() {
 
     if (auto markerUI = lockonMarkerUI_.lock()) {
         markerUI->SetMaxLockonCount(maxLockonCount_);
-        std::vector<std::shared_ptr<GameObject>> displayTargets(queuedTargets_.begin(), queuedTargets_.end());
+        std::vector<std::shared_ptr<Irufemi::GameObject>> displayTargets(queuedTargets_.begin(), queuedTargets_.end());
         if (hoverTarget_) {
             displayTargets.push_back(hoverTarget_);
         }
@@ -122,7 +122,7 @@ void PlayerTargetingComponent::Update() {
 }
 
 void PlayerTargetingComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterPropertyRange("Lockon Radius 2D", &lockonRadius2D_, 10.0f, 1000.0f);
     RegisterPropertyRange("Weight 2D", &weight2D_, 0.0f, 100.0f);
     RegisterPropertyRange("Weight 3D", &weight3D_, 0.0f, 100.0f);
@@ -169,7 +169,7 @@ void PlayerTargetingComponent::UpdateHoverTarget() {
                 RaycastHit hitInfo = result.second;
 
                 bool canSee = true;
-                auto transform = targetObj->GetComponent<TransformComponent>();
+                auto transform = targetObj->GetComponent<Irufemi::TransformComponent>();
                 if (transform) {
                     Irufemi::Vector3 targetPos = transform->GetWorldPosition();
                     Irufemi::Vector3 cameraPos = camera->GetTranslate();
@@ -189,7 +189,7 @@ void PlayerTargetingComponent::UpdateHoverTarget() {
         ++it;
     }
 
-    std::shared_ptr<GameObject> bestTarget = nullptr;
+    std::shared_ptr<Irufemi::GameObject> bestTarget = nullptr;
     float bestScore = (std::numeric_limits<float>::max)();
 
     auto scene = gameObject_->GetScene();
@@ -209,7 +209,7 @@ void PlayerTargetingComponent::UpdateHoverTarget() {
             continue;
         }
 
-        auto transform = obj->GetComponent<TransformComponent>();
+        auto transform = obj->GetComponent<Irufemi::TransformComponent>();
         if (transform) {
 
             Irufemi::Vector3 worldPos = transform->GetWorldPosition();
@@ -297,7 +297,7 @@ void PlayerTargetingComponent::ClearTargets() {
     queuedTargets_.clear();
 }
 
-std::shared_ptr<GameObject> PlayerTargetingComponent::PopTarget() {
+std::shared_ptr<Irufemi::GameObject> PlayerTargetingComponent::PopTarget() {
     if (queuedTargets_.empty()) {
         return nullptr;
     }
@@ -356,7 +356,7 @@ void PlayerTargetingComponent::UpdateOutlineHighlights() {
         if (currentTargetIds.find(id) == currentTargetIds.end()) {
             if (scene) {
                 if (auto obj = scene->FindGameObjectByID(id)) {
-                    if (auto maskComp = obj->GetComponent<EffectMaskComponent>()) {
+                    if (auto maskComp = obj->GetComponent<Irufemi::EffectMaskComponent>()) {
                         auto params = maskComp->GetCustomParams();
                         params.color1 = it->second;
                         maskComp->SetCustomParams(params);
@@ -371,11 +371,11 @@ void PlayerTargetingComponent::UpdateOutlineHighlights() {
 
     // 2. 確定ロックオン中のターゲットを警告レモンイエローにハイライト
     const Irufemi::Vector4 lockonYellow = {1.0f, 1.0f, 0.0f, 1.0f};
-    auto applyHighlight = [&](const std::shared_ptr<GameObject>& obj) {
+    auto applyHighlight = [&](const std::shared_ptr<Irufemi::GameObject>& obj) {
         if (!obj || !obj->GetIsActive() || obj->IsDestroyed()) {
             return;
         }
-        if (auto maskComp = obj->GetComponent<EffectMaskComponent>()) {
+        if (auto maskComp = obj->GetComponent<Irufemi::EffectMaskComponent>()) {
             uint64_t id = obj->GetInstanceID();
             if (originalOutlineColors_.find(id) == originalOutlineColors_.end()) {
                 originalOutlineColors_[id] = maskComp->GetCustomParams().color1;
@@ -396,7 +396,7 @@ void PlayerTargetingComponent::RestoreAllOutlineHighlights() {
     if (scene) {
         for (const auto& [id, color] : originalOutlineColors_) {
             if (auto obj = scene->FindGameObjectByID(id)) {
-                if (auto maskComp = obj->GetComponent<EffectMaskComponent>()) {
+                if (auto maskComp = obj->GetComponent<Irufemi::EffectMaskComponent>()) {
                     auto params = maskComp->GetCustomParams();
                     params.color1 = color;
                     maskComp->SetCustomParams(params);

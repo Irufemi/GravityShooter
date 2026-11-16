@@ -10,11 +10,9 @@
 #include <wrl.h>
 #include <memory>
 
-// 前方宣言
-class DebugUI;
-
 namespace Irufemi {
 
+class DebugUI;
 class TextureManager;
 class DrawManager;
 class CameraManager;
@@ -95,7 +93,7 @@ private:
     static CameraManager* cameraManager_;
     static TextureManager* textureManager_;
     static DrawManager* drawManager_;
-    static ::DebugUI* ui_;
+    static DebugUI* ui_;
 
     // サイズとアンカー
     Irufemi::Vector2 size_{640.0f, 360.0f}; // 既存の見た目互換のため初期値を640x360に
@@ -379,7 +377,7 @@ public: // メンバ関数
      * @brief DebugUI を設定する。
      * @param[in] ui 設定する DebugUI の値
      */
-    static void SetDebugUI(::DebugUI* ui) {
+    static void SetDebugUI(DebugUI* ui) {
         ui_ = ui;
     }
     /**

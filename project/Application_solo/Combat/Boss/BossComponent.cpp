@@ -66,9 +66,9 @@ void BossComponent::Initialize() {
     isShieldsInitialized_ = false;
 
     if (gameObject_) {
-        auto collider = gameObject_->GetComponent<SphereColliderComponent>();
+        auto collider = gameObject_->GetComponent<Irufemi::SphereColliderComponent>();
         if (!collider) {
-            collider = gameObject_->AddComponent<SphereColliderComponent>().get();
+            collider = gameObject_->AddComponent<Irufemi::SphereColliderComponent>().get();
         }
         if (collider) {
             collider->SetTrigger(true);
@@ -98,7 +98,7 @@ void BossComponent::Start() {
         return;
     }
 
-    if (auto col = gameObject_->GetComponent<SphereColliderComponent>()) {
+    if (auto col = gameObject_->GetComponent<Irufemi::SphereColliderComponent>()) {
         col->SetDebugCategory(Irufemi::DebugCategory::Combat);
         col->SetDebugCustomColor(Irufemi::Vector4{1.0f, 0.0f, 1.0f, 1.0f});
     }
@@ -122,7 +122,7 @@ void BossComponent::Start() {
         if (managerObj) {
             debrisManager_ = managerObj->GetComponent<DebrisManagerComponent>();
             if (debrisManager_) {
-                auto setupDebris = [this](std::shared_ptr<GameObject> debrisObj) {
+                auto setupDebris = [this](std::shared_ptr<Irufemi::GameObject> debrisObj) {
                     auto debrisComp = debrisObj->GetComponent<DebrisComponent>();
                     if (debrisComp) {
                         debrisComp->SetTarget(gameObject_->shared_from_this());
@@ -165,7 +165,7 @@ void BossComponent::OnRegisterProperties() {
     RegisterProperty("Initial Drone Count", &initialDroneCount_);
 }
 
-std::shared_ptr<GameObject> BossComponent::ExtractDebris() {
+std::shared_ptr<Irufemi::GameObject> BossComponent::ExtractDebris() {
     while (!shields_.empty()) {
         auto debrisWeak = shields_.back();
         shields_.pop_back();
@@ -174,7 +174,7 @@ std::shared_ptr<GameObject> BossComponent::ExtractDebris() {
             auto debrisComp = debris->GetComponent<DebrisComponent>();
             if (debrisComp) {
                 debrisComp->SetState(DebrisState::Idle);
-                debrisComp->SetTarget(std::weak_ptr<GameObject>());
+                debrisComp->SetTarget(std::weak_ptr<Irufemi::GameObject>());
             }
             return debris;
         }
@@ -182,11 +182,11 @@ std::shared_ptr<GameObject> BossComponent::ExtractDebris() {
     return nullptr;
 }
 
-void BossComponent::RemoveShield(std::shared_ptr<GameObject> shield) {
+void BossComponent::RemoveShield(std::shared_ptr<Irufemi::GameObject> shield) {
     if (!shield) {
         return;
     }
-    auto it = std::remove_if(shields_.begin(), shields_.end(), [&shield](const std::weak_ptr<GameObject>& w) {
+    auto it = std::remove_if(shields_.begin(), shields_.end(), [&shield](const std::weak_ptr<Irufemi::GameObject>& w) {
         auto s = w.lock();
         return !s || s == shield;
     });

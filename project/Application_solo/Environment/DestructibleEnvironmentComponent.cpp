@@ -82,7 +82,7 @@ void DestructibleEnvironmentComponent::TakeDamage(int damage) {
 
                     if (auto comp = debris->GetComponent<DebrisComponent>()) {
                         comp->SetState(DebrisState::Idle, true); // オーラ消灯・状態同期を強制
-                        comp->SetTarget(std::weak_ptr<GameObject>());
+                        comp->SetTarget(std::weak_ptr<Irufemi::GameObject>());
                     }
                 }
             }

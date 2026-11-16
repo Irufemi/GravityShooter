@@ -7,6 +7,8 @@
 #include "Commands/EditorCommands.h"
 #include "UI/ComponentUIHelpers.h"
 
+using namespace Irufemi;
+
 void EffectMaskComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* maskComp = static_cast<EffectMaskComponent*>(component);
     if (!maskComp) {

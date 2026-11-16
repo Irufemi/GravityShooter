@@ -7,7 +7,7 @@
 #include <string>
 #include <algorithm>
 
-void WaveManagerComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
+void WaveManagerComponentEditor::Draw(Irufemi::Component* component, EditorActionManager* actionManager) {
     auto waveManager = dynamic_cast<WaveManagerComponent*>(component);
     if (!waveManager) {
         return;

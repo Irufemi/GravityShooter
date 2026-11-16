@@ -8,7 +8,7 @@ class IrufemiEngine;
  * @class GameOverScene
  * @brief ゲームオーバー画面を管理するクラス
  */
-class GameOverScene : public BaseScene {
+class GameOverScene : public Irufemi::BaseScene {
 public: // メンバ関数(システム)
     ~GameOverScene() override;
 

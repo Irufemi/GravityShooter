@@ -577,7 +577,7 @@ void ParticleObject::CopyFrom(const ParticleObject& other) {
     isDirty_ = true;
 }
 
-void ParticleObject::RegisterProperties(::Component* comp) {
+void ParticleObject::RegisterProperties(Component* comp) {
     if (!comp) {
         return;
     }

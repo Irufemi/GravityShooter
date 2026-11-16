@@ -5,11 +5,16 @@
 #include <string>
 #include <vector>
 
+namespace Irufemi {
+class ColliderComponent;
+class EffectMaskComponent;
+}
+
 /**
  * @class PlayerHealthComponent
  * @brief プレイヤーの体力、被弾ダメージ、無敵時間、死亡状態を管理するコンポーネント
  */
-class PlayerHealthComponent : public Component {
+class PlayerHealthComponent : public Irufemi::Component {
 public:
     PlayerHealthComponent() = default;
     ~PlayerHealthComponent() override = default;
@@ -145,7 +150,7 @@ private:
         std::function<void()> callback;
     };
 
-    class ColliderComponent* GetCollider() const;
+    Irufemi::ColliderComponent* GetCollider() const;
 
     std::vector<std::function<void(int damage)>> onDamageTakenListeners_;
     std::vector<std::function<void(int currentHp, int maxHp)>> onHealthChangedListeners_;
@@ -153,7 +158,7 @@ private:
     ListenerId nextPlayerDiedListenerId_ = 0;
     std::function<void()> onDeathSequenceFinished_;
 
-    class EffectMaskComponent* effectMask_ = nullptr;
+    Irufemi::EffectMaskComponent* effectMask_ = nullptr;
 
     // 無敵ブリンク演出 (Juice)
     Irufemi::Vector4 normalOutlineColor_ = {0.15f, 0.9f, 1.0f, 1.0f}; //!< 通常時の自機ネオンシアン色

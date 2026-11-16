@@ -13,7 +13,7 @@
 #include "Framework/Component/Renderer/SkeletonDebugRendererComponent.h"
 #include "Core/System/IrufemiEngine.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // デストラクタ
 DebugScene::~DebugScene() {
@@ -615,3 +615,6 @@ void DebugScene::DrawStandaloneDebugWindows() {
     }
 #endif
 }
+
+} // namespace Irufemi
+

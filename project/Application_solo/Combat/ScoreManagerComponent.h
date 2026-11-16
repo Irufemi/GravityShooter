@@ -3,6 +3,10 @@
 #include "Core/Math/Vector3.h"
 #include <string>
 
+namespace Irufemi {
+class BaseScene;
+}
+
 /// @brief セッション全体のゲームプレイ統計（ResultSceneへの引き渡しデータ）
 struct GameplaySessionStats {
     int totalScore = 0;
@@ -47,7 +51,7 @@ struct CenterBannerData {
  * @class ScoreManagerComponent
  * @brief マルチロック一斉撃破ボーナス（Rez思想）とスコア統計を一元管理するモデルコンポーネント
  */
-class ScoreManagerComponent : public Component {
+class ScoreManagerComponent : public Irufemi::Component {
 public:
     ScoreManagerComponent();
     ~ScoreManagerComponent() override;
@@ -95,7 +99,7 @@ public:
                              const Irufemi::Vector4& color = {1.0f, 0.85f, 0.2f, 1.0f}, float duration = 1.2f);
 
     static ScoreManagerComponent* GetInstance();
-    static ScoreManagerComponent* GetOrCreate(class BaseScene* scene);
+    static ScoreManagerComponent* GetOrCreate(Irufemi::BaseScene* scene);
 
 private:
     void FinalizeMultiKillBatch();

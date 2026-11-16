@@ -8,7 +8,7 @@ class IrufemiEngine;
  * @class SelectScene
  * @brief セレクト画面を管理するクラス
  */
-class SelectScene : public BaseScene {
+class SelectScene : public Irufemi::BaseScene {
 public: // メンバ関数(システム)
     ~SelectScene() override;
 

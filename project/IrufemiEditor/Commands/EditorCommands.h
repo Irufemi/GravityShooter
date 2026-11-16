@@ -9,6 +9,10 @@
 #include <memory>
 #include <limits>
 
+using Irufemi::GameObject;
+using Irufemi::Component;
+using Irufemi::BaseScene;
+
 /**
  * @class ChangeValueCommand
  * @brief 値の変更を記録し、Undo/Redo を行う汎用コマンド

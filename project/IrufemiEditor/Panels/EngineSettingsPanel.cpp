@@ -6,6 +6,8 @@
 #include "Framework/UI/DebugUI.h"
 #include "imgui/imgui.h"
 
+using namespace Irufemi;
+
 void EngineSettingsPanel::Initialize(EditorManager* editorManager) {
     editorManager_ = editorManager;
 }

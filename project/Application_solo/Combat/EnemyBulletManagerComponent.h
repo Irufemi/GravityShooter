@@ -5,15 +5,15 @@
 #include <memory>
 #include <string>
 
-class GameObject;
-class BaseScene;
+namespace Irufemi { class GameObject; }
+namespace Irufemi { class BaseScene; }
 class EnemyBulletComponent;
 
 /**
  * @class EnemyBulletManagerComponent
  * @brief 雑魚敵が発射する弾を一元プール管理（ゼロアロケーション）するマネージャーコンポーネント
  */
-class EnemyBulletManagerComponent : public Component {
+class EnemyBulletManagerComponent : public Irufemi::Component {
 public:
     EnemyBulletManagerComponent();
     ~EnemyBulletManagerComponent() override = default;
@@ -40,7 +40,7 @@ public:
      * @param scene 検索・生成先のシーン
      * @return EnemyBulletManagerComponent のポインタ（失敗時は nullptr）
      */
-    static EnemyBulletManagerComponent* GetOrCreate(BaseScene* scene);
+    static EnemyBulletManagerComponent* GetOrCreate(Irufemi::BaseScene* scene);
 
     /**
      * @brief プールから弾を取得し、指定のパラメータで射出する
@@ -49,9 +49,9 @@ public:
      * @param speed 飛翔速度
      * @param damage 被弾ダメージ
      * @param scale 弾のスケール・コライダー半径
-     * @return 射出された弾の GameObject ポインタ（プール枯渇時は nullptr）
+     * @return 射出された弾の Irufemi::GameObject ポインタ（プール枯渇時は nullptr）
      */
-    GameObject* FireBullet(const Irufemi::Vector3& origin, const Irufemi::Vector3& direction, float speed = 30.0f,
+    Irufemi::GameObject* FireBullet(const Irufemi::Vector3& origin, const Irufemi::Vector3& direction, float speed = 30.0f,
                            int damage = 10, float scale = 0.4f);
 
     /**
@@ -62,9 +62,9 @@ public:
 
     /**
      * @brief 寿命終了または衝突した弾オブジェクトを受け取り、プールへ返却する（互換用）
-     * @param bullet 返却する弾の GameObject
+     * @param bullet 返却する弾の Irufemi::GameObject
      */
-    void ReturnBullet(GameObject* bullet);
+    void ReturnBullet(Irufemi::GameObject* bullet);
 
     /**
      * @brief 自機撃破時、空間内の全敵弾を特異点へ吸収・一括回収する
@@ -81,6 +81,6 @@ private:
 
     int maxBullets_ = 64;                                                         //!< プール最大容量
     std::string bulletModelPath_ = "resources/model/EnemyBullet/EnemyBullet.obj"; //!< 弾の3Dモデルパス
-    std::unique_ptr<Irufemi::ObjectPool<GameObject>> bulletPool_;                          //!< 弾のオブジェクトプール
+    std::unique_ptr<Irufemi::ObjectPool<Irufemi::GameObject>> bulletPool_;                          //!< 弾のオブジェクトプール
     bool isWarmedUp_ = false;                                                     //!< 事前ウォームアップ完了フラグ
 };

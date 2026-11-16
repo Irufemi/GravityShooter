@@ -4,7 +4,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Core/System/IrufemiEngine.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 CameraComponent::CameraComponent() = default;
 CameraComponent::~CameraComponent() {
@@ -92,3 +92,5 @@ void CameraComponent::Update() {
 
     camera_->UpdateMatrix();
 }
+
+} // namespace Irufemi

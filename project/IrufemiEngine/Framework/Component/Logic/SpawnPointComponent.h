@@ -2,6 +2,8 @@
 #include "Framework/Component/Component.h"
 #include <string>
 
+namespace Irufemi {
+
 /**
  * @class SpawnPointComponent
  * @brief オブジェクトの生成位置（起点マーカー）を示す汎用コンポーネント。
@@ -57,3 +59,5 @@ private:
     std::string groupId_ = "Wave1";          ///< スポーンのグループ・所属識別子（旧 waveId）
     std::string spawnType_ = "DefaultEnemy"; ///< 生成対象の種別・プレハブ名（旧 enemyType）
 };
+
+} // namespace Irufemi

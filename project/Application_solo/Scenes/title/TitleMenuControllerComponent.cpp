@@ -68,7 +68,7 @@ void TitleMenuControllerComponent::Initialize() {
     }
 }
 
-std::shared_ptr<GameObject> TitleMenuControllerComponent::GetButtonObject(size_t index) {
+std::shared_ptr<Irufemi::GameObject> TitleMenuControllerComponent::GetButtonObject(size_t index) {
     if (index >= buttonNames_.size()) {
         return nullptr;
     }
@@ -87,7 +87,7 @@ std::shared_ptr<GameObject> TitleMenuControllerComponent::GetButtonObject(size_t
     return obj;
 }
 
-std::shared_ptr<GameObject> TitleMenuControllerComponent::GetTitleTextObject() {
+std::shared_ptr<Irufemi::GameObject> TitleMenuControllerComponent::GetTitleTextObject() {
     auto obj = titleTextObj_.lock();
     if (!obj) {
         if (auto scene = GetScene()) {
@@ -205,7 +205,7 @@ void TitleMenuControllerComponent::PushPendingModalScene() {
 
 void TitleMenuControllerComponent::HideVirtualCursor() {
     if (auto obj = virtualCursorObj_.lock()) {
-        if (auto renderer = obj->GetComponent<Primitive2DRendererComponent>()) {
+        if (auto renderer = obj->GetComponent<Irufemi::Primitive2DRendererComponent>()) {
             renderer->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
         }
     }
@@ -222,7 +222,7 @@ void TitleMenuControllerComponent::TriggerLaunchSequence() {
     }
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
-            sm->TransitionTo(GameScenes::InGame, SceneTransition::Type::Fade, 0.9f);
+            sm->TransitionTo(GameScenes::InGame, Irufemi::SceneTransition::Type::Fade, 0.9f);
         }
     }
 }
@@ -244,8 +244,8 @@ void TitleMenuControllerComponent::UpdateOpeningModalAnimation(float deltaTime) 
         }
 
         auto transform = obj->GetTransform();
-        auto text = obj->GetComponent<TextRendererComponent>();
-        auto sprite = obj->GetComponent<SpriteRendererComponent>();
+        auto text = obj->GetComponent<Irufemi::TextRendererComponent>();
+        auto sprite = obj->GetComponent<Irufemi::SpriteRendererComponent>();
 
         if (static_cast<int>(i) == currentIndex_) {
             // 決定ボタン: 0.00〜0.055sで沈み込み(1.15->0.88)、0.055〜0.22sで弾性ポップ(0.88->1.15)
@@ -442,7 +442,7 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
         initialScales_.clear();
         for (size_t i = 0; i < buttonNames_.size(); ++i) {
             if (auto btnObj = GetButtonObject(i)) {
-                if (auto transform = btnObj->GetComponent<TransformComponent>()) {
+                if (auto transform = btnObj->GetComponent<Irufemi::TransformComponent>()) {
                     initialScales_.push_back(transform->GetScale());
                     continue;
                 }
@@ -463,7 +463,7 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
             continue;
         }
 
-        auto transform = btnObj->GetComponent<TransformComponent>();
+        auto transform = btnObj->GetComponent<Irufemi::TransformComponent>();
         if (transform && i < initialScales_.size()) {
             // エディタ設定の本来のスケール × 選択状態の乗率 (1.15倍 or 0.95倍)
             Irufemi::Vector3 baseScale = initialScales_[i];
@@ -472,7 +472,7 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
         }
 
         // テキストコンポーネントがある場合の色補正
-        auto text = btnObj->GetComponent<TextRendererComponent>();
+        auto text = btnObj->GetComponent<Irufemi::TextRendererComponent>();
         if (text) {
             if (static_cast<int>(i) == currentIndex_) {
                 // 選択中: ネオンシアン強発光
@@ -484,7 +484,7 @@ void TitleMenuControllerComponent::UpdateButtonVisuals(float deltaTime) {
         }
 
         // スプライトコンポーネントがある場合の色補正
-        auto sprite = btnObj->GetComponent<SpriteRendererComponent>();
+        auto sprite = btnObj->GetComponent<Irufemi::SpriteRendererComponent>();
         if (sprite) {
             if (static_cast<int>(i) == currentIndex_) {
                 sprite->SetColor({0.2f, 0.95f, 1.0f, 1.0f});
@@ -544,7 +544,7 @@ void TitleMenuControllerComponent::UpdateDismissAnimation(float deltaTime) {
         }
 
         auto transform = obj->GetTransform();
-        auto text = obj->GetComponent<TextRendererComponent>();
+        auto text = obj->GetComponent<Irufemi::TextRendererComponent>();
 
         if (static_cast<int>(i) == currentIndex_) {
             // 決定された GAME START: 白く純光フラッシュしながらスケール拡大
@@ -578,7 +578,7 @@ void TitleMenuControllerComponent::UpdateDismissAnimation(float deltaTime) {
 
     // 2. タイトルロゴのディゾルブ（上方へフワッと透過消退）
     if (auto titleObj = GetTitleTextObject()) {
-        if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
+        if (auto text = titleObj->GetComponent<Irufemi::TextRendererComponent>()) {
             text->SetColor({0.2f, 0.92f, 1.0f, alpha});
         }
         if (auto transform = titleObj->GetTransform()) {
@@ -602,7 +602,7 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
     if (auto titleObj = GetTitleTextObject()) {
         titleObj->SetActive(visible);
         if (visible) {
-            if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
+            if (auto text = titleObj->GetComponent<Irufemi::TextRendererComponent>()) {
                 text->SetColor({0.2f, 0.92f, 1.0f, 1.0f});
             }
             if (auto t = titleObj->GetTransform()) {
@@ -718,7 +718,7 @@ void TitleMenuControllerComponent::UpdateTitleTextVisual(float deltaTime) {
             glow = std::sin((pulsePhase / 0.25f) * Irufemi::Math::PI) * 0.35f;
         }
 
-        if (auto text = titleObj->GetComponent<TextRendererComponent>()) {
+        if (auto text = titleObj->GetComponent<Irufemi::TextRendererComponent>()) {
             text->SetColor({std::clamp(0.20f + glow * 0.40f, 0.0f, 1.0f), std::clamp(0.92f + glow * 0.08f, 0.0f, 1.0f),
                             1.0f, 1.0f});
         }
@@ -750,7 +750,7 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
     // 通常待機(Idle)時以外はカーソルを隠す
     if (GetState() != MenuState::Idle) {
         if (cursorObj) {
-            if (auto r = cursorObj->GetComponent<Primitive2DRendererComponent>()) {
+            if (auto r = cursorObj->GetComponent<Irufemi::Primitive2DRendererComponent>()) {
                 r->SetColor({0.0f, 0.0f, 0.0f, 0.0f});
             }
         }
@@ -793,7 +793,7 @@ void TitleMenuControllerComponent::UpdateVirtualCursor(float deltaTime) {
             trans->SetScale({smoothScale, smoothScale, 1.0f});
         }
 
-        if (auto renderer = cursorObj->GetComponent<Primitive2DRendererComponent>()) {
+        if (auto renderer = cursorObj->GetComponent<Irufemi::Primitive2DRendererComponent>()) {
             if (showCursor) {
                 // ゲームパッド操作中またはデモ実演中はリングカーソルを明瞭に表示
                 if (isHoveringAnyButton) {
@@ -819,7 +819,7 @@ bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::
         return false;
     }
 
-    auto transform = btnObj->GetComponent<TransformComponent>();
+    auto transform = btnObj->GetComponent<Irufemi::TransformComponent>();
     if (!transform) {
         return false;
     }
@@ -828,7 +828,7 @@ bool TitleMenuControllerComponent::IsCursorOverButton(int index, const Irufemi::
     const auto& scale = transform->GetScale();
 
     // 1. TextRendererComponent によるテキストメッシュ幾何バウンディングボックスの算出
-    auto textComp = btnObj->GetComponent<TextRendererComponent>();
+    auto textComp = btnObj->GetComponent<Irufemi::TextRendererComponent>();
     if (textComp) {
         const auto& minB = textComp->GetLocalBoundsMin();
         const auto& maxB = textComp->GetLocalBoundsMax();

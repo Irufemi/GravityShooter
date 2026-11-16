@@ -8,7 +8,7 @@
 #include "Resource/Model/Data/ObjModel.h"
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 MeshRendererComponent::MeshRendererComponent() {}
 MeshRendererComponent::~MeshRendererComponent() {}
@@ -270,3 +270,6 @@ std::shared_ptr<Component> MeshRendererComponent::Clone() {
     }
     return clone;
 }
+
+} // namespace Irufemi
+

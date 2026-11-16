@@ -17,6 +17,8 @@
 #include <map>
 #include <cstring>
 
+using namespace Irufemi;
+
 void InspectorPanel::Initialize(EditorManager* editorManager) {
     editorManager_ = editorManager;
 }

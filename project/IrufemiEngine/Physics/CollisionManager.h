@@ -13,8 +13,10 @@
 #include "Renderer/Object/Batch/DebugPrimitiveRenderer.h"
 #include "Core/Utility/Synchronized.h"
 
+namespace Irufemi {
 class ColliderComponent;
 class GameObject;
+} // namespace Irufemi
 
 /**
  * @namespace Irufemi::Collision
@@ -26,8 +28,8 @@ struct CollisionResult;
 
 struct RaycastHit {
     bool isHit = false;
-    GameObject* hitObject = nullptr;
-    ColliderComponent* hitCollider = nullptr;
+    Irufemi::GameObject* hitObject = nullptr;
+    Irufemi::ColliderComponent* hitCollider = nullptr;
     Irufemi::Vector3 hitPoint;
     float distance = 0.0f;
 };
@@ -56,10 +58,10 @@ public:
     void Clear();
 
     /// @brief コライダーを登録する
-    void RegisterCollider(ColliderComponent* collider);
+    void RegisterCollider(Irufemi::ColliderComponent* collider);
 
     /// @brief コライダーの登録を解除する
-    void UnregisterCollider(ColliderComponent* collider);
+    void UnregisterCollider(Irufemi::ColliderComponent* collider);
 
     /// @brief 溜まった追加・削除キューを処理する
     void FlushPendingCommands();
@@ -68,7 +70,7 @@ public:
     void CheckAllCollisions();
 
     /// @brief 全コライダーのデバッグ線を描画する
-    void DrawDebug(GameObject* selectedObject = nullptr);
+    void DrawDebug(Irufemi::GameObject* selectedObject = nullptr);
 
     /// @brief デバッグ描画フラグのポインタを取得する（ImGui用）
     bool* GetIsDrawDebugLinePtr() {
@@ -116,10 +118,10 @@ public:
     /// @param ignoreObject 判定から除外するオブジェクト（自分自身を無視するためなど）
     /// @return 何かに当たった場合はtrue
     bool Raycast(const Irufemi::Ray& ray, RaycastHit& hitInfo, float maxDistance = 1000.0f,
-                 uint32_t layerMask = 0xFFFFFFFF, GameObject* ignoreObject = nullptr);
+                 uint32_t layerMask = 0xFFFFFFFF, Irufemi::GameObject* ignoreObject = nullptr);
 
     /// @brief BVHに対してAABBのクエリを行い、交差するコライダーを取得する
-    void QueryAABB(const Irufemi::AABB& aabb, std::vector<ColliderComponent*>& outHits) const;
+    void QueryAABB(const Irufemi::AABB& aabb, std::vector<Irufemi::ColliderComponent*>& outHits) const;
 
     /**
      * @brief スレッドプールを利用した非同期レイキャスト
@@ -128,7 +130,7 @@ public:
      */
     std::future<std::pair<bool, RaycastHit>> RaycastAsync(Irufemi::ThreadPool* pool, const Irufemi::Ray& ray,
                                                           float maxDistance = 1000.0f, uint32_t layerMask = 0xFFFFFFFF,
-                                                          GameObject* ignoreObject = nullptr);
+                                                          Irufemi::GameObject* ignoreObject = nullptr);
 
     /// @brief デバッグ用のレイを描画キューに追加する
     void DrawDebugRay(const Irufemi::Ray& ray, float distance, const Irufemi::Vector4& color = {1, 0, 0, 1});
@@ -143,15 +145,15 @@ private:
 
     /** @brief マルチスレッドからの物理クエリを安全に行うためのRead-Writeロック */
     mutable std::shared_mutex collidersMutex_;
-    std::vector<ColliderComponent*> colliders_;
+    std::vector<Irufemi::ColliderComponent*> colliders_;
 
     // --- 遅延登録用キュー ---
     struct PendingRemove {
-        ColliderComponent* collider;
+        Irufemi::ColliderComponent* collider;
         int bvhNodeId;
     };
     struct PendingCommands {
-        std::vector<ColliderComponent*> adds;
+        std::vector<Irufemi::ColliderComponent*> adds;
         std::vector<PendingRemove> removes;
     };
     Irufemi::Synchronized<PendingCommands, std::mutex> pendingCommands_; ///< 遅延コマンド操作用（スレッドセーフ）
@@ -160,7 +162,7 @@ private:
     Irufemi::DebugPrimitiveRenderer* debugPrimitiveRenderer_ = nullptr;
 
     // --- デバッグ用キャッシュ ---
-    std::vector<ColliderComponent*> debugRemoveList_; ///< DrawDebug時の削除リスト（ヒープ割当回避用）
+    std::vector<Irufemi::ColliderComponent*> debugRemoveList_; ///< DrawDebug時の削除リスト（ヒープ割当回避用）
 
     // レイヤー名（最大32個）
     std::vector<std::string> layerNames_;
@@ -178,7 +180,7 @@ private:
 
     // 前フレームの衝突ペアを保持（Enter / Stay / Exit 用）
     struct ColliderPairHash {
-        size_t operator()(const std::pair<ColliderComponent*, ColliderComponent*>& pair) const noexcept {
+        size_t operator()(const std::pair<Irufemi::ColliderComponent*, Irufemi::ColliderComponent*>& pair) const noexcept {
             uint64_t a = reinterpret_cast<uintptr_t>(pair.first);
             uint64_t b = reinterpret_cast<uintptr_t>(pair.second);
             // 64-bit 整数ミックスハッシュ (SplitMix64)
@@ -186,7 +188,7 @@ private:
             return static_cast<size_t>(h);
         }
     };
-    using CollisionPairSet = std::unordered_set<std::pair<ColliderComponent*, ColliderComponent*>, ColliderPairHash>;
+    using CollisionPairSet = std::unordered_set<std::pair<Irufemi::ColliderComponent*, Irufemi::ColliderComponent*>, ColliderPairHash>;
 
     CollisionPairSet previousCollisions_;
     CollisionPairSet currentCollisions_;
@@ -199,7 +201,7 @@ private:
      * @param colB コライダーB
      * @param outResult 判定結果を出力する構造体
      */
-    void CheckNarrowPhase(ColliderComponent* colA, ColliderComponent* colB,
+    void CheckNarrowPhase(Irufemi::ColliderComponent* colA, Irufemi::ColliderComponent* colB,
                           Irufemi::Collision::CollisionResult& outResult) const;
 
     /**
@@ -209,7 +211,7 @@ private:
      * @param result 衝突結果
      * @param isNewHit 新規衝突(Enter)か継続衝突(Stay)か
      */
-    void DispatchCollisionEvents(ColliderComponent* colA, ColliderComponent* colB,
+    void DispatchCollisionEvents(Irufemi::ColliderComponent* colA, Irufemi::ColliderComponent* colB,
                                  const Irufemi::Collision::CollisionResult& result, bool isNewHit);
 
     /**
@@ -218,6 +220,6 @@ private:
      * @param colB コライダーB
      * @param result 衝突結果
      */
-    void ResolveKinematicCollision(ColliderComponent* colA, ColliderComponent* colB,
+    void ResolveKinematicCollision(Irufemi::ColliderComponent* colA, Irufemi::ColliderComponent* colB,
                                    const Irufemi::Collision::CollisionResult& result);
 };

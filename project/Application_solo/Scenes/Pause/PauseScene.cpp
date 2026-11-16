@@ -40,7 +40,7 @@ PauseScene::~PauseScene() {
 }
 
 void PauseScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
 
     // テキストキャッシュを事前生成
     if (engine) {
@@ -64,7 +64,7 @@ void PauseScene::Initialize(IrufemiEngine* engine) {
 }
 
 void PauseScene::OnEnter() {
-    BaseScene::OnEnter();
+    Irufemi::BaseScene::OnEnter();
     openCooldownTimer_ = 0.2f;
     transition_.StartOpen();
 
@@ -77,7 +77,7 @@ void PauseScene::OnEnter() {
 }
 
 void PauseScene::OnExit() {
-    BaseScene::OnExit();
+    Irufemi::BaseScene::OnExit();
 
     RemovePausePostProcess();
 
@@ -86,14 +86,14 @@ void PauseScene::OnExit() {
 }
 
 void PauseScene::OnSuspend() {
-    BaseScene::OnSuspend();
+    Irufemi::BaseScene::OnSuspend();
     isSuspended_ = true;
     RemovePausePostProcess(); // Options画面とのポストプロセス競合防止
     SetUIVisible(false);      // ポーズUIを非表示にしてOptionsSceneとの文字被りを完全防止
 }
 
 void PauseScene::OnResume() {
-    BaseScene::OnResume();
+    Irufemi::BaseScene::OnResume();
     isSuspended_ = false;
     SetUIVisible(true);
     openCooldownTimer_ = 0.2f; // OptionsSceneを閉じた直後の誤入力防止
@@ -127,14 +127,14 @@ void PauseScene::SetUIVisible(bool visible) {
 
 void PauseScene::CreateUIElements() {
     // 1. 半透明暗幕オーバーレイ (画面全域)
-    auto darkOverlayObj = std::make_shared<GameObject>("Pause_DarkOverlay");
+    auto darkOverlayObj = std::make_shared<Irufemi::GameObject>("Pause_DarkOverlay");
     AddGameObject(darkOverlayObj);
     darkOverlayObj_ = darkOverlayObj;
     Irufemi::Vector2 gameRes = engine_ ? engine_->GetGameResolution() : Irufemi::Vector2{1280.0f, 720.0f};
     if (auto t = darkOverlayObj->GetTransform()) {
         t->SetPosition({gameRes.x * 0.5f, gameRes.y * 0.5f, 5.0f});
     }
-    auto sprite = darkOverlayObj->AddComponent<SpriteRendererComponent>();
+    auto sprite = darkOverlayObj->AddComponent<Irufemi::SpriteRendererComponent>();
     if (sprite) {
         sprite->SetTexture("resources/whiteTexture.png");
         sprite->SetBaseSize(gameRes);
@@ -146,13 +146,13 @@ void PauseScene::CreateUIElements() {
     darkOverlayObj->Initialize();
 
     // 2. ヘッダータイトル "- PAUSE -"
-    auto titleObj = std::make_shared<GameObject>("Pause_HeaderTitle");
+    auto titleObj = std::make_shared<Irufemi::GameObject>("Pause_HeaderTitle");
     AddGameObject(titleObj);
     titleObj_ = titleObj;
     if (auto t = titleObj->GetTransform()) {
         t->SetPosition({640.0f, 150.0f, 0.0f});
     }
-    auto titleText = titleObj->AddComponent<TextRendererComponent>();
+    auto titleText = titleObj->AddComponent<Irufemi::TextRendererComponent>();
     if (titleText) {
         titleText->SetFontId("toro_glitch");
         titleText->SetText(L"- PAUSE -");
@@ -181,7 +181,7 @@ void PauseScene::CreateUIElements() {
          [this]() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->LoadScene(std::string(GameScenes::InGame), SceneTransition::Type::RadialBlur, 0.45f,
+                 sm->LoadScene(std::string(GameScenes::InGame), Irufemi::SceneTransition::Type::RadialBlur, 0.45f,
                                Irufemi::EaseType::EaseInOutQuad, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},
@@ -196,7 +196,7 @@ void PauseScene::CreateUIElements() {
          [this]() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->TransitionTo(GameScenes::Title, SceneTransition::Type::RadialBlur, 0.6f,
+                 sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::RadialBlur, 0.6f,
                                   Irufemi::EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},
@@ -213,13 +213,13 @@ void PauseScene::CreateUIElements() {
     for (size_t i = 0; i < entries.size(); ++i) {
         float y = kMenuStartY + static_cast<float>(i) * kMenuItemSpacing;
 
-        auto itemObj = std::make_shared<GameObject>("Pause_Item_" + std::to_string(i));
+        auto itemObj = std::make_shared<Irufemi::GameObject>("Pause_Item_" + std::to_string(i));
         AddGameObject(itemObj);
         if (auto t = itemObj->GetTransform()) {
             t->SetPosition({640.0f, y, 0.0f});
         }
 
-        auto textComp = itemObj->AddComponent<TextRendererComponent>();
+        auto textComp = itemObj->AddComponent<Irufemi::TextRendererComponent>();
         if (textComp) {
             textComp->SetFontId("toro_glitch");
             textComp->SetText(entries[i].text);
@@ -253,7 +253,7 @@ void PauseScene::Update() {
         return; // オプション画面表示中は更新しない
     }
 
-    BaseScene::Update();
+    Irufemi::BaseScene::Update();
 
     if (!engine_) {
         return;
@@ -287,7 +287,7 @@ void PauseScene::Draw() {
         return; // オプション画面表示中は描画しない（文字被りを完全防止）
     }
 
-    BaseScene::Draw();
+    Irufemi::BaseScene::Draw();
 }
 
 void PauseScene::UpdateInput(float deltaTime) {

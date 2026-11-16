@@ -35,7 +35,7 @@
 #include "Framework/UI/DebugUI.h"
 #endif
 
-using namespace Irufemi;
+namespace Irufemi {
 
 BaseScene::BaseScene() {
     objectRegistry_ = std::make_unique<SceneObjectRegistry>();
@@ -768,3 +768,6 @@ void BaseScene::OnResumeAudio(IrufemiEngine* engine) {
         }
     }
 }
+
+} // namespace Irufemi
+

@@ -18,7 +18,7 @@ void ReticleUIComponent::Initialize() {
     wasHovering_ = false;
 
     if (gameObject_) {
-        primitiveRenderer_ = gameObject_->GetComponent<Primitive2DRendererComponent>();
+        primitiveRenderer_ = gameObject_->GetComponent<Irufemi::Primitive2DRendererComponent>();
         if (primitiveRenderer_) {
             primitiveRenderer_->SetShape(Irufemi::Primitive2DType::Ring);
             primitiveRenderer_->SetSize({36.0f, 36.0f});
@@ -68,7 +68,7 @@ void ReticleUIComponent::Update() {
     }
 
     if (!primitiveRenderer_) {
-        primitiveRenderer_ = gameObject_->GetComponent<Primitive2DRendererComponent>();
+        primitiveRenderer_ = gameObject_->GetComponent<Irufemi::Primitive2DRendererComponent>();
         if (primitiveRenderer_) {
             primitiveRenderer_->SetShape(Irufemi::Primitive2DType::Ring);
             primitiveRenderer_->SetSize({36.0f, 36.0f});

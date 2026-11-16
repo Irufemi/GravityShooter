@@ -8,6 +8,8 @@
 #include "EngineResources/FontAwesome/IconsFontAwesome6.h"
 #include <imgui/imgui.h>
 
+using namespace Irufemi;
+
 namespace {
 
 /**

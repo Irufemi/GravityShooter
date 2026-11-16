@@ -5,7 +5,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include <cstring>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 ParticleFieldComponent::ParticleFieldComponent() {
     fieldData_.type = 1; // Default to Point Attractor
@@ -120,3 +120,6 @@ std::shared_ptr<Component> ParticleFieldComponent::Clone() {
     clone->fieldData_ = this->fieldData_;
     return clone;
 }
+
+} // namespace Irufemi
+

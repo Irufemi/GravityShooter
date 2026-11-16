@@ -5,10 +5,9 @@
 #include "Core/Type/PrimitiveType.h"
 #include "Core/Shape/Sphere.h"
 
-// 前方宣言
 namespace Irufemi {
+
 class Primitive3DObject;
-}
 class TransformComponent;
 
 /**
@@ -316,3 +315,6 @@ private:
     int torusMajorSegments_ = 32;
     int torusMinorSegments_ = 16;
 };
+
+} // namespace Irufemi
+

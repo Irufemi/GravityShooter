@@ -9,7 +9,10 @@
 #include "Framework/Component/Component.h"
 #include "Core/System/ComponentPool.h"
 
+namespace Irufemi {
+
 class BaseScene;
+class TransformComponent;
 
 /**
  * @brief GameObjectのライフサイクル状態
@@ -501,3 +504,6 @@ private:
         }
     }
 };
+
+} // namespace Irufemi
+

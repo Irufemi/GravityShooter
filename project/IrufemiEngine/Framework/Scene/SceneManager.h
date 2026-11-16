@@ -13,6 +13,10 @@
 #include "Framework/Scene/SceneTransition.h"
 
 class IrufemiEngine;
+
+namespace Irufemi {
+
+using ::IrufemiEngine;
 class IScene;
 
 /**
@@ -243,3 +247,6 @@ private:
      */
     void UpdateActiveScenes();
 };
+
+} // namespace Irufemi
+

@@ -10,7 +10,7 @@
 #include <cmath>
 
 void PlayerThrusterVisualizerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Nozzle Offset", &nozzleOffset_);
     RegisterProperty("Min Scale Z", &minScaleZ_);
     RegisterProperty("Max Scale Z", &maxScaleZ_);
@@ -38,7 +38,7 @@ void PlayerThrusterVisualizerComponent::Start() {
             thrusterObj_ = thruster;
             if (!isThrusterActive_) {
                 thruster->SetIsActive(false);
-                auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+                auto emitters = thruster->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
                 for (auto pe : emitters) {
                     pe->Stop();
                 }
@@ -48,7 +48,7 @@ void PlayerThrusterVisualizerComponent::Start() {
 
     // 2. RailShooterPlayerComponent のイベントを購読 (Observer パターン)
     if (auto playerComp = gameObject_->GetComponent<RailShooterPlayerComponent>()) {
-        std::weak_ptr<GameObject> weakSelf = gameObject_->shared_from_this();
+        std::weak_ptr<Irufemi::GameObject> weakSelf = gameObject_->shared_from_this();
         throttleListenerId_ = playerComp->AddOnThrottleChangeListener([this, weakSelf](float throttle) {
             if (!weakSelf.expired()) {
                 OnThrottleChanged(throttle);
@@ -79,7 +79,7 @@ void PlayerThrusterVisualizerComponent::OnDestroy() {
     }
     isThrusterActive_ = false;
     if (auto thruster = thrusterObj_.lock()) {
-        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+        auto emitters = thruster->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
         for (auto pe : emitters) {
             pe->Stop();
         }
@@ -93,17 +93,17 @@ void PlayerThrusterVisualizerComponent::SetThrusterActive(bool active) {
     if (auto thruster = thrusterObj_.lock()) {
         if (!active) {
             // 1. 全エミッターを停止（Stop()内で即座にGPUバッファへemit=0をフラッシュ）
-            auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+            auto emitters = thruster->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
             for (auto pe : emitters) {
                 pe->Stop();
             }
 
             // 2. スラスター本体および全子ノードのスケールを即座にゼロへ潰し、描画を視覚的にも完全遮断
-            if (auto t = thruster->GetComponent<TransformComponent>()) {
+            if (auto t = thruster->GetComponent<Irufemi::TransformComponent>()) {
                 t->SetScale({0.0f, 0.0f, 0.0f});
                 t->CheckAndComputeMatrix();
             }
-            auto allTransforms = thruster->GetComponentsInChildren<TransformComponent>();
+            auto allTransforms = thruster->GetComponentsInChildren<Irufemi::TransformComponent>();
             for (auto childT : allTransforms) {
                 if (childT) {
                     childT->SetScale({0.0f, 0.0f, 0.0f});
@@ -122,11 +122,11 @@ void PlayerThrusterVisualizerComponent::SetThrusterActive(bool active) {
             }
         } else {
             thruster->SetIsActive(true);
-            if (auto t = thruster->GetComponent<TransformComponent>()) {
+            if (auto t = thruster->GetComponent<Irufemi::TransformComponent>()) {
                 t->SetScale({1.0f, 1.0f, (std::max)(currentScaleZ_, minScaleZ_)});
                 t->CheckAndComputeMatrix();
             }
-            auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+            auto emitters = thruster->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
             for (auto pe : emitters) {
                 pe->Restart(false);
             }
@@ -184,7 +184,7 @@ void PlayerThrusterVisualizerComponent::Update() {
     currentScaleZ_ = std::lerp(currentScaleZ_, targetScaleZ_, lerpFactor);
 
     if (auto thruster = thrusterObj_.lock()) {
-        if (auto transform = thruster->GetComponent<TransformComponent>()) {
+        if (auto transform = thruster->GetComponent<Irufemi::TransformComponent>()) {
             // ノズル口径（XY）は機体にジャストフィットさせ、後方の噴流長（Z）のみをスロットル連動で伸縮
             transform->SetScale({1.0f, 1.0f, currentScaleZ_});
         }

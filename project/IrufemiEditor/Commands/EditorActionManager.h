@@ -7,7 +7,10 @@
 #include "Core/ICommand.h"
 #include "Core/Math/Vector3.h"
 
+namespace Irufemi {
 class GameObject;
+}
+using Irufemi::GameObject;
 class EditorManager;
 
 /**

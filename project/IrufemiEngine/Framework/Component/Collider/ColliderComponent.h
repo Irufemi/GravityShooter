@@ -5,14 +5,16 @@
 #include <functional>
 #include <optional>
 
+// 前方宣言
 class CollisionManager;
 
 namespace Irufemi {
+
+using ::CollisionManager;
 struct AABB;
 namespace Collision {
 struct CollisionResult;
 }
-} // namespace Irufemi
 
 class AABBColliderComponent;
 class SphereColliderComponent;
@@ -326,3 +328,6 @@ protected:
     Irufemi::DebugCategory debugCategory_ = Irufemi::DebugCategory::Collision;          //!< デバッグ描画カテゴリ (デフォルト: Collision)
     std::optional<Irufemi::Vector4> debugCustomColor_ = std::nullopt; //!< デバッグ描画カスタムカラー
 };
+
+} // namespace Irufemi
+

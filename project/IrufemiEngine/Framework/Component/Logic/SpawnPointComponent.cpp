@@ -2,6 +2,8 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Core/Utility/Log.h"
 
+namespace Irufemi {
+
 void SpawnPointComponent::OnRegisterProperties() {
     Component::OnRegisterProperties();
     // プロパティとしてエディタに公開（汎用名で登録）
@@ -42,3 +44,5 @@ void SpawnPointComponent::Deserialize(const nlohmann::json& json) {
         }
     }
 }
+
+} // namespace Irufemi

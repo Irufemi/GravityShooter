@@ -4,11 +4,10 @@
 #include "Core/Math/Vector3.h"
 #include <vector>
 
-class CameraComponent;
-
 namespace Irufemi {
+
+class CameraComponent;
 class PerlinNoise;
-}
 
 /**
  * @brief カメラシェイクの再生イベント情報
@@ -70,3 +69,5 @@ private:
 
     float globalIntensityMultiplier_ = 1.0f;
 };
+
+} // namespace Irufemi

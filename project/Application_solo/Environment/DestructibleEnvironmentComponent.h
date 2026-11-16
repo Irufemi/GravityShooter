@@ -12,7 +12,7 @@ class EffectManagerComponent;
  * @details
  * EnvironmentManagerComponentによって動的に付与され、瓦礫がヒットした際のダメージ判定と破壊イベント（瓦礫の飛散）を管理します。
  */
-class DestructibleEnvironmentComponent : public Component, public IDamageable {
+class DestructibleEnvironmentComponent : public Irufemi::Component, public IDamageable {
 public:
     DestructibleEnvironmentComponent() = default;
     ~DestructibleEnvironmentComponent() override = default;

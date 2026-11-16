@@ -5,7 +5,10 @@
 #include <typeindex>
 #include <memory>
 
+namespace Irufemi {
 class Component;
+}
+using Irufemi::Component;
 class IComponentEditor;
 class EditorActionManager;
 

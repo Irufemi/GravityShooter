@@ -1,7 +1,10 @@
 #pragma once
 
 #ifdef EditorMode
+namespace Irufemi {
 class Component;
+}
+using Irufemi::Component;
 class EditorActionManager;
 
 /**

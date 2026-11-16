@@ -5,7 +5,7 @@
 #include "Core/Utility/JsonUtility.h"
 #include "Core/Math/Vector3.h"
 
-class BaseScene;
+namespace Irufemi { class BaseScene; }
 
 // 自キャラの生成データ
 struct PlayerSpawnData {
@@ -46,7 +46,7 @@ public:
      * @param scene 配置先のシーン
      * @return 抽出されたレベルデータ（自キャラの座標など）
      */
-    static LevelData Load(const std::string& filepath, BaseScene* scene);
+    static LevelData Load(const std::string& filepath, Irufemi::BaseScene* scene);
 
 private:
     /**

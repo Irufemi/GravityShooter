@@ -13,7 +13,7 @@ namespace Irufemi {
 
 TextureManager* Sprite::textureManager_ = nullptr;
 DrawManager* Sprite::drawManager_ = nullptr;
-::DebugUI* Sprite::ui_ = nullptr;
+DebugUI* Sprite::ui_ = nullptr;
 CameraManager* Sprite::cameraManager_ = nullptr;
 
 void Sprite::Initialize(const std::string& textureName) {

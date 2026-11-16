@@ -79,7 +79,7 @@ void RailShooterEnemyComponent::Initialize() {
     }
 
     // コライダーのサイズ・形状およびレイヤー・マスクはプレハブ（アセット）側を最優先し、未設定時のみフォールバックを設定
-    if (auto collider = gameObject_->GetComponent<ColliderComponent>()) {
+    if (auto collider = gameObject_->GetComponent<Irufemi::ColliderComponent>()) {
         if (auto engine = GetEngine()) {
             if (auto cm = engine->GetCollisionManager()) {
                 if (collider->GetLayer() == 0) {
@@ -98,7 +98,7 @@ void RailShooterEnemyComponent::Initialize() {
     }
 }
 
-void RailShooterEnemyComponent::SetRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* follower,
+void RailShooterEnemyComponent::SetRailTrackingParams(Irufemi::SplineComponent* spline, SplineFollowerComponent* follower,
                                                       float initialDistOffset, float targetDistOffset,
                                                       const Irufemi::Vector2& formationOffset) {
     cachedSpline_ = spline;
@@ -115,7 +115,7 @@ void RailShooterEnemyComponent::Start() {
     }
 }
 
-GameObject* RailShooterEnemyComponent::GetPlayerObject() {
+Irufemi::GameObject* RailShooterEnemyComponent::GetPlayerObject() {
     if (!gameObject_) {
         return nullptr;
     }
@@ -150,7 +150,7 @@ void RailShooterEnemyComponent::Update() {
         hitFlashTimer_ -= dt;
         if (hitFlashTimer_ <= 0.0f) {
             hitFlashTimer_ = 0.0f;
-            if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
+            if (auto maskComp = gameObject_->GetComponent<Irufemi::EffectMaskComponent>()) {
                 auto params = maskComp->GetCustomParams();
                 params.color1 = originalOutlineColor_;
                 maskComp->SetCustomParams(params);
@@ -420,7 +420,7 @@ void RailShooterEnemyComponent::ShootAtPlayer(const Irufemi::Vector3& playerPos)
     }
 }
 
-void RailShooterEnemyComponent::OnCollisionEnter(GameObject* other) {
+void RailShooterEnemyComponent::OnCollisionEnter(Irufemi::GameObject* other) {
     if (!other || !gameObject_) {
         return;
     }
@@ -458,7 +458,7 @@ void RailShooterEnemyComponent::TakeDamage(int damage) {
     hp_ -= damage;
 
     // 被弾時の白熱ヒットフラッシュ演出 (Juice)
-    if (auto maskComp = gameObject_->GetComponent<EffectMaskComponent>()) {
+    if (auto maskComp = gameObject_->GetComponent<Irufemi::EffectMaskComponent>()) {
         if (!hasCachedOriginalOutline_) {
             originalOutlineColor_ = maskComp->GetCustomParams().color1;
             hasCachedOriginalOutline_ = true;

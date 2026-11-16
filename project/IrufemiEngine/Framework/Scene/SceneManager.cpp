@@ -17,7 +17,7 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 namespace {
 /**
@@ -585,3 +585,5 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
         isAsyncInitializing_.store(false);
     });
 }
+
+} // namespace Irufemi

@@ -8,11 +8,13 @@
 #include <string>
 #include <vector>
 
-class TransformComponent;
-class TitleCosmicNebulaComponent;
 namespace Irufemi {
+class TransformComponent;
+class CameraComponent;
+class ModelBatchRendererComponent;
 class VoiceInstance;
 }
+class TitleCosmicNebulaComponent;
 
 /**
  * @class TitleSceneDirectorComponent
@@ -21,7 +23,7 @@ class VoiceInstance;
  *          GAME START 決定時に重力パルス・ガレキ収束・スラスター急加速・ドリーインを経て
  *          InGame シーンへシームレスに突入する一連の演出タイムラインを管理します。
  */
-class TitleSceneDirectorComponent : public Component {
+class TitleSceneDirectorComponent : public Irufemi::Component {
 public:
     TitleSceneDirectorComponent() = default;
     ~TitleSceneDirectorComponent() override;
@@ -112,22 +114,22 @@ public:
     }
 
     /**
-     * @brief 自機オブジェクトの TransformComponent を取得します。
-     * @return TransformComponent* 存在しない場合は nullptr
+     * @brief 自機オブジェクトの Irufemi::TransformComponent を取得します。
+     * @return Irufemi::TransformComponent* 存在しない場合は nullptr
      */
-    TransformComponent* GetShipTransform() const;
+    Irufemi::TransformComponent* GetShipTransform() const;
 
     /**
-     * @brief カメラオブジェクトの TransformComponent を取得します。
-     * @return TransformComponent* 存在しない場合は nullptr
+     * @brief カメラオブジェクトの Irufemi::TransformComponent を取得します。
+     * @return Irufemi::TransformComponent* 存在しない場合は nullptr
      */
-    TransformComponent* GetCameraTransform() const;
+    Irufemi::TransformComponent* GetCameraTransform() const;
 
     /**
-     * @brief カメラオブジェクトの CameraComponent を取得します。
-     * @return CameraComponent* 存在しない場合は nullptr
+     * @brief カメラオブジェクトの Irufemi::CameraComponent を取得します。
+     * @return Irufemi::CameraComponent* 存在しない場合は nullptr
      */
-    class CameraComponent* GetCameraComponent() const;
+    Irufemi::CameraComponent* GetCameraComponent() const;
 
     /**
      * @brief 星雲コンポーネントを取得します。
@@ -192,13 +194,13 @@ public:
         return asteroidInstances_;
     }
 
-    std::weak_ptr<GameObject> GetShipObject() const {
+    std::weak_ptr<Irufemi::GameObject> GetShipObject() const {
         return shipObj_;
     }
-    std::weak_ptr<GameObject> GetCameraObject() const {
+    std::weak_ptr<Irufemi::GameObject> GetCameraObject() const {
         return cameraObj_;
     }
-    std::weak_ptr<GameObject> GetThrusterObject() const {
+    std::weak_ptr<Irufemi::GameObject> GetThrusterObject() const {
         return thrusterObj_;
     }
     void SetTargetThrusterScaleZ(float scale) {
@@ -310,17 +312,17 @@ private:
     /**
      * @brief 42基の小惑星を一括描画するGPUインスタンシングレンダラーを取得する（ライフサイクル安全）
      */
-    class ModelBatchRendererComponent* GetAsteroidBatchRenderer() const;
+    Irufemi::ModelBatchRendererComponent* GetAsteroidBatchRenderer() const;
 
 private: // メンバ変数
     // 対象エンティティの安全な弱参照（Dangling Pointer防止）
-    std::weak_ptr<GameObject> shipObj_;
-    std::weak_ptr<GameObject> cameraObj_;
+    std::weak_ptr<Irufemi::GameObject> shipObj_;
+    std::weak_ptr<Irufemi::GameObject> cameraObj_;
     std::vector<AsteroidInstanceData> asteroidInstances_; ///< プロシージャル生成した42基のアステロイド群
-    std::weak_ptr<GameObject> nebulaObj_;
+    std::weak_ptr<Irufemi::GameObject> nebulaObj_;
 
     // 自機スラスター演出（GameScene完全準拠のTransform Scale制御）
-    std::weak_ptr<GameObject> thrusterObj_;
+    std::weak_ptr<Irufemi::GameObject> thrusterObj_;
     Irufemi::Vector3 nozzleOffset_{0.0f, 0.0f, -0.48f};
     std::string thrusterEffectPrefabPath_ = "resources/prefabs/player_thruster_effect.json";
     float currentThrusterScaleZ_ = 0.85f;

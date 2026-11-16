@@ -99,7 +99,7 @@ void TitleSceneDirectorComponent::Initialize() {
 }
 
 void TitleSceneDirectorComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Thruster Prefab Path", &thrusterEffectPrefabPath_);
     RegisterProperty("Nozzle Offset", &nozzleOffset_);
     RegisterProperty("Charge SE Path", &chargeSePath_);
@@ -109,23 +109,23 @@ void TitleSceneDirectorComponent::OnRegisterProperties() {
     RegisterProperty("Transition Duration", &transitionDuration_);
 }
 
-TransformComponent* TitleSceneDirectorComponent::GetShipTransform() const {
+Irufemi::TransformComponent* TitleSceneDirectorComponent::GetShipTransform() const {
     if (auto ship = shipObj_.lock()) {
         return ship->GetTransform();
     }
     return nullptr;
 }
 
-TransformComponent* TitleSceneDirectorComponent::GetCameraTransform() const {
+Irufemi::TransformComponent* TitleSceneDirectorComponent::GetCameraTransform() const {
     if (auto cam = cameraObj_.lock()) {
         return cam->GetTransform();
     }
     return nullptr;
 }
 
-CameraComponent* TitleSceneDirectorComponent::GetCameraComponent() const {
+Irufemi::CameraComponent* TitleSceneDirectorComponent::GetCameraComponent() const {
     if (auto cam = cameraObj_.lock()) {
-        return cam->GetComponent<CameraComponent>();
+        return cam->GetComponent<Irufemi::CameraComponent>();
     }
     return nullptr;
 }
@@ -161,7 +161,7 @@ void TitleSceneDirectorComponent::CacheEntities() {
             if (auto t = camObj->GetTransform()) {
                 initialCameraPos_ = t->GetPosition();
             }
-            if (auto camComp = camObj->GetComponent<CameraComponent>()) {
+            if (auto camComp = camObj->GetComponent<Irufemi::CameraComponent>()) {
                 initialCameraFov_ = camComp->GetFovAngleY();
             }
         }
@@ -202,8 +202,8 @@ void TitleSceneDirectorComponent::SpawnAsteroidBelt() {
     auto* renderer = GetAsteroidBatchRenderer();
     if (!renderer) {
         if (auto myObj = GetGameObject()) {
-            myObj->AddComponent<ModelBatchRendererComponent>();
-            renderer = myObj->GetComponent<ModelBatchRendererComponent>();
+            myObj->AddComponent<Irufemi::ModelBatchRendererComponent>();
+            renderer = myObj->GetComponent<Irufemi::ModelBatchRendererComponent>();
         }
     }
     if (renderer) {
@@ -299,12 +299,12 @@ void TitleSceneDirectorComponent::RenderAsteroidBelt() {
     }
 }
 
-ModelBatchRendererComponent* TitleSceneDirectorComponent::GetAsteroidBatchRenderer() const {
+Irufemi::ModelBatchRendererComponent* TitleSceneDirectorComponent::GetAsteroidBatchRenderer() const {
     auto myObj = GetGameObject();
     if (!myObj || myObj->IsDestroyed()) {
         return nullptr;
     }
-    return myObj->GetComponent<ModelBatchRendererComponent>();
+    return myObj->GetComponent<Irufemi::ModelBatchRendererComponent>();
 }
 
 void TitleSceneDirectorComponent::SetupThrusterEffect() {
@@ -338,7 +338,7 @@ void TitleSceneDirectorComponent::SetupThrusterEffect() {
         }
 
         // タイトル画面で確実にスラスター粒子を点火
-        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+        auto emitters = thruster->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
         for (auto pe : emitters) {
             pe->Play();
         }
@@ -391,7 +391,7 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
 
     // 3. カメラの大激震シェイク発火（振幅 0.045m, 継続1.8秒, 22Hz）
     if (auto camObj = cameraObj_.lock()) {
-        if (auto shake = camObj->GetComponent<CameraShakeComponent>()) {
+        if (auto shake = camObj->GetComponent<Irufemi::CameraShakeComponent>()) {
             shake->PlayShakeSeconds(0.045f, kDurationAccelerate_, 22.0f);
         }
     }
@@ -537,7 +537,7 @@ void TitleSceneDirectorComponent::SkipLaunchSequence() {
         }
         if (auto sm = engine->GetSceneManager()) {
             // 世界観に合致した重力シアンブラックで空間を吸い込み暗転
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.35f, EaseType::EaseInQuad,
+            sm->TransitionTo(nextSceneName_, Irufemi::SceneTransition::Type::RadialBlur, 0.35f, EaseType::EaseInQuad,
                              Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
@@ -593,7 +593,7 @@ void TitleSceneDirectorComponent::TriggerSceneTransition(float fadeDuration) {
     if (auto engine = GetEngine()) {
         if (auto sm = engine->GetSceneManager()) {
             // 深遠な特異点ブラック（Fade）でスッと暗転・明転させ、インゲーム側の突入演出とのエフェクト二重重複を完全排除
-            sm->TransitionTo(nextSceneName_, SceneTransition::Type::Fade, duration, EaseType::EaseInOutQuad,
+            sm->TransitionTo(nextSceneName_, Irufemi::SceneTransition::Type::Fade, duration, EaseType::EaseInOutQuad,
                              Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
         }
     }

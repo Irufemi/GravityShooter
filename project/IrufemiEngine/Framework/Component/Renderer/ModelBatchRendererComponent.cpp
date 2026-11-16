@@ -7,7 +7,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 ModelBatchRendererComponent::ModelBatchRendererComponent() {}
 ModelBatchRendererComponent::~ModelBatchRendererComponent() {}
@@ -191,3 +191,6 @@ void ModelBatchRendererComponent::SetUseGPUCulling(bool use) {
         batch_->SetUseGPUCulling(use);
     }
 }
+
+} // namespace Irufemi
+

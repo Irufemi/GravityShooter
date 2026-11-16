@@ -46,7 +46,7 @@ std::vector<Irufemi::Vector3> SpawnEnemyHandler::CalculateSpawnPositions(WaveMan
         const auto& spawnPoints = manager->GetSpawnPoints(waveId);
         if (!spawnPoints.empty()) {
             // 見つかった最初のSpawnPointを基準座標として使用する
-            if (auto t = spawnPoints[0]->GetGameObject()->GetComponent<TransformComponent>()) {
+            if (auto t = spawnPoints[0]->GetGameObject()->GetComponent<Irufemi::TransformComponent>()) {
                 spawnPos = t->GetPosition();
             }
         } else if (waveId != "Unknown") {
@@ -125,7 +125,7 @@ void SpawnEnemyHandler::Execute(WaveManagerComponent* manager, const WaveEventDa
 
     // プレイヤーのSplineFollowerComponentおよびスプラインを取得
     SplineFollowerComponent* playerFollower = nullptr;
-    SplineComponent* spline = nullptr;
+    Irufemi::SplineComponent* spline = nullptr;
     if (manager && manager->GetGameObject()) {
         if (auto scene = manager->GetGameObject()->GetScene()) {
             auto cartObj = scene->FindGameObject("PlayerCart");
@@ -189,7 +189,7 @@ void SpawnEnemyHandler::Execute(WaveManagerComponent* manager, const WaveEventDa
                 builder.WithBehaviorType(static_cast<EnemyBehaviorType>(bt));
             }
 
-            GameObject* enemyObj = builder.Build(pos, spawnRot, scaleMultiplier);
+            Irufemi::GameObject* enemyObj = builder.Build(pos, spawnRot, scaleMultiplier);
             (void)enemyObj;
         }
         Log::OutPutLog(std::cout, "[WaveManager] Spawned " + std::to_string(positions.size()) +

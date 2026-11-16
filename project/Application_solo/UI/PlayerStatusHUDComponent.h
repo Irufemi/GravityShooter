@@ -5,17 +5,18 @@
 #include <vector>
 #include <string>
 
-class SpriteRendererComponent;
-class TextRendererComponent;
+namespace Irufemi { class SpriteRendererComponent; }
+namespace Irufemi { class TextRendererComponent; }
 class PlayerHealthComponent;
 class GravityPlayerComponent;
-class GameObject;
+namespace Irufemi { class GameObject; }
+namespace Irufemi { class BaseScene; }
 
 /**
  * @class PlayerStatusHUDComponent
  * @brief プレイヤーの耐久度（HPバー、Ghost後追い遅延バー）およびデブリ保持スロット（5連Pip）を描画するHUDコンポーネント
  */
-class PlayerStatusHUDComponent : public Component {
+class PlayerStatusHUDComponent : public Irufemi::Component {
 public:
     PlayerStatusHUDComponent();
     ~PlayerStatusHUDComponent() override;
@@ -35,7 +36,7 @@ public:
      * @param[in] scene 対象シーン
      * @return コンポーネントへのポインタ
      */
-    static PlayerStatusHUDComponent* GetOrCreate(class BaseScene* scene);
+    static PlayerStatusHUDComponent* GetOrCreate(Irufemi::BaseScene* scene);
 
 private:
     void EnsureUIElements();
@@ -47,37 +48,37 @@ private:
 
 private:
     // UI階層オブジェクト
-    std::shared_ptr<GameObject> rootContainerObj_;
+    std::shared_ptr<Irufemi::GameObject> rootContainerObj_;
 
     // HP表示
-    std::shared_ptr<GameObject> hpHeaderObj_;
-    std::shared_ptr<GameObject> hpBarBgObj_;
-    std::shared_ptr<GameObject> hpGhostBarObj_;
-    std::shared_ptr<GameObject> hpFrontBarObj_;
-    std::shared_ptr<GameObject> hpTextObj_;
+    std::shared_ptr<Irufemi::GameObject> hpHeaderObj_;
+    std::shared_ptr<Irufemi::GameObject> hpBarBgObj_;
+    std::shared_ptr<Irufemi::GameObject> hpGhostBarObj_;
+    std::shared_ptr<Irufemi::GameObject> hpFrontBarObj_;
+    std::shared_ptr<Irufemi::GameObject> hpTextObj_;
 
     // デブリPipスロット（動的スロット）
-    std::shared_ptr<GameObject> debrisHeaderObj_;
-    std::shared_ptr<GameObject> debrisCountObj_;
+    std::shared_ptr<Irufemi::GameObject> debrisHeaderObj_;
+    std::shared_ptr<Irufemi::GameObject> debrisCountObj_;
     int maxPipCount_ = 10;
     float pipWidth_ = 9.5f;
     float pipHeight_ = 8.0f;
-    std::vector<std::shared_ptr<GameObject>> debrisPipBgObjs_;
-    std::vector<std::shared_ptr<GameObject>> debrisPipFillObjs_;
-    std::vector<SpriteRendererComponent*> debrisPipFillSprites_;
+    std::vector<std::shared_ptr<Irufemi::GameObject>> debrisPipBgObjs_;
+    std::vector<std::shared_ptr<Irufemi::GameObject>> debrisPipFillObjs_;
+    std::vector<Irufemi::SpriteRendererComponent*> debrisPipFillSprites_;
     std::vector<float> pipPopScales_;
 
     // キャッシュされたレンダラー
-    SpriteRendererComponent* hpBarBgSprite_ = nullptr;
-    SpriteRendererComponent* hpGhostBarSprite_ = nullptr;
-    SpriteRendererComponent* hpFrontBarSprite_ = nullptr;
-    TextRendererComponent* hpHeaderText_ = nullptr;
-    TextRendererComponent* hpText_ = nullptr;
-    TextRendererComponent* debrisHeaderText_ = nullptr;
-    TextRendererComponent* debrisCountText_ = nullptr;
+    Irufemi::SpriteRendererComponent* hpBarBgSprite_ = nullptr;
+    Irufemi::SpriteRendererComponent* hpGhostBarSprite_ = nullptr;
+    Irufemi::SpriteRendererComponent* hpFrontBarSprite_ = nullptr;
+    Irufemi::TextRendererComponent* hpHeaderText_ = nullptr;
+    Irufemi::TextRendererComponent* hpText_ = nullptr;
+    Irufemi::TextRendererComponent* debrisHeaderText_ = nullptr;
+    Irufemi::TextRendererComponent* debrisCountText_ = nullptr;
 
     // プレイヤーコンポーネント参照
-    std::weak_ptr<GameObject> playerObj_;
+    std::weak_ptr<Irufemi::GameObject> playerObj_;
     PlayerHealthComponent* cachedHealthComp_ = nullptr;
     GravityPlayerComponent* cachedGravityComp_ = nullptr;
 

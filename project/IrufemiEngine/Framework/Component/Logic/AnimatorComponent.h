@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+namespace Irufemi {
+
 /**
  * @class AnimatorComponent
  * @brief エディタ対応のアニメーション制御コンポーネント。
@@ -83,3 +85,5 @@ private:
 
     class SkinnedMeshRendererComponent* cachedRenderer_ = nullptr;
 };
+
+} // namespace Irufemi

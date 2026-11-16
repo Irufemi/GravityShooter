@@ -14,7 +14,7 @@
  * @details State パターン（有限状態機械: FSM）に基づき、通常待機、モーダル決定演出、
  *          出撃シーケンス、背面待機を完全に分離して管理します。
  */
-class TitleMenuControllerComponent : public Component {
+class TitleMenuControllerComponent : public Irufemi::Component {
 public: // 状態定義
     using MenuState = TitleMenuStateType;
 
@@ -135,12 +135,12 @@ private: // 内部処理
     /**
      * @brief 指定インデックスのボタンGameObjectを取得する（キャッシュ付き）
      */
-    std::shared_ptr<GameObject> GetButtonObject(size_t index);
+    std::shared_ptr<Irufemi::GameObject> GetButtonObject(size_t index);
 
     /**
      * @brief タイトルロゴGameObjectを取得する（キャッシュ付き）
      */
-    std::shared_ptr<GameObject> GetTitleTextObject();
+    std::shared_ptr<Irufemi::GameObject> GetTitleTextObject();
 
     /**
      * @brief
@@ -160,7 +160,7 @@ private:                                                      // メンバ変数
 
     int currentIndex_ = 0;        //!< 選択中インデックス (0: Start, 1: HowToPlay, 2: Options, 3: Quit)
     int pressedButtonIndex_ = -1; //!< マウス/カーソル押下開始したボタンのインデックス（Drag-outキャンセル用）
-    UINavigationController nav_;
+    Irufemi::UINavigationController nav_;
 
     // 全画面インパクトフラッシュ用状態
     float flashTimer_ = 0.0f;
@@ -179,12 +179,12 @@ private:                                                      // メンバ変数
     const float kStickCooldown_ = 0.22f;
 
     // 仮想カーソル用
-    std::weak_ptr<GameObject> virtualCursorObj_;
+    std::weak_ptr<Irufemi::GameObject> virtualCursorObj_;
     const float kStickyFriction_ = 0.45f; //!< ボタンホバー時の減速倍率
 
     // キャッシュされた GameObject 参照
-    std::weak_ptr<GameObject> titleTextObj_;
-    std::vector<std::weak_ptr<GameObject>> buttonObjs_;
+    std::weak_ptr<Irufemi::GameObject> titleTextObj_;
+    std::vector<std::weak_ptr<Irufemi::GameObject>> buttonObjs_;
 
     // ボタンのスケール補間制御用
     std::vector<float> currentScales_ = {1.0f, 1.0f, 1.0f, 1.0f};

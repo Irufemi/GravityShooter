@@ -9,21 +9,21 @@ TitleScene::~TitleScene() {}
 
 // 初期化
 void TitleScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
 
     // JSONからのロードは SceneManager が自動で行うため、ここでは手動で呼ばない
 }
 
 // 更新
 void TitleScene::Update() {
-    BaseScene::Update();
+    Irufemi::BaseScene::Update();
 
     // BackSpaceキーで遷移テスト
     if (IsKeyPressed(VK_F8)) {
-        engine_->GetSceneManager()->TransitionTo("InGame", SceneTransition::Type::Slide, 1.0f);
+        engine_->GetSceneManager()->TransitionTo("InGame", Irufemi::SceneTransition::Type::Slide, 1.0f);
     }
 }
 
 void TitleScene::Draw() {
-    BaseScene::Draw();
+    Irufemi::BaseScene::Draw();
 }

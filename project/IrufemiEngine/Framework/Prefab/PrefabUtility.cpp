@@ -1,6 +1,8 @@
 #include "Framework/Prefab/PrefabUtility.h"
 #include "Core/Utility/JsonUtility.h"
 
+namespace Irufemi {
+
 PrefabMetrics PrefabUtility::ExtractMetrics(const std::string& prefabPath) {
     PrefabMetrics metrics;
     if (prefabPath.empty()) {
@@ -65,3 +67,6 @@ PrefabMetrics PrefabUtility::ExtractMetrics(const std::string& prefabPath) {
 
     return metrics;
 }
+
+} // namespace Irufemi
+

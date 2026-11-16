@@ -11,8 +11,11 @@
 
 // 前方宣言
 class IrufemiEngine;
-class DebugCamera;
+
 namespace Irufemi {
+
+using ::IrufemiEngine;
+class DebugCamera;
 class Camera;
 class CameraManager;
 class OrbitCameraController;
@@ -20,7 +23,6 @@ struct DirectionalLight;
 struct PointLight;
 struct SpotLight;
 struct AreaLight;
-}
 class GameObject;
 class SceneObjectRegistry;
 
@@ -329,3 +331,6 @@ protected:
      */
     bool IsButtonPressed(unsigned short button) const;
 };
+
+} // namespace Irufemi
+

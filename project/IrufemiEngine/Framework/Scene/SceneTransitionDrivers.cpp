@@ -3,6 +3,8 @@
 #include "Renderer/Fluid/FluidSimulation2D.h"
 #include <cmath>
 
+namespace Irufemi {
+
 // ============================================================================
 // FadeTransitionDriver
 // ============================================================================
@@ -119,3 +121,6 @@ void GravitySingularityTransitionDriver::OnUpdate(PostProcessManager* ppm, float
         ppm->GetFadeParams().intensity = std::pow(factor, 2.0f);
     }
 }
+
+} // namespace Irufemi
+

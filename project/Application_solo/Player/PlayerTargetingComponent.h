@@ -12,14 +12,14 @@
 
 #include "Physics/CollisionManager.h"
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class LockonMarkerUIComponent;
 
 /**
  * @class PlayerTargetingComponent
  * @brief プレイヤーのマルチロックオン、手動マーキング、レイキャスト遮蔽判定を行うコンポーネント
  */
-class PlayerTargetingComponent : public Component {
+class PlayerTargetingComponent : public Irufemi::Component {
 public:
     PlayerTargetingComponent() = default;
     ~PlayerTargetingComponent() override;
@@ -44,21 +44,21 @@ public:
      */
     void ClearTargets();
 
-    const std::deque<std::shared_ptr<GameObject>>& GetQueuedTargets() const {
+    const std::deque<std::shared_ptr<Irufemi::GameObject>>& GetQueuedTargets() const {
         return queuedTargets_;
     }
 
     /**
      * @brief 現在レティクルが合っているホバー中のターゲットを取得する
      */
-    std::shared_ptr<GameObject> GetHoverTarget() const {
+    std::shared_ptr<Irufemi::GameObject> GetHoverTarget() const {
         return hoverTarget_;
     }
 
     /**
      * @brief キューの先頭を取り出して返す（発射用）
      */
-    std::shared_ptr<GameObject> PopTarget();
+    std::shared_ptr<Irufemi::GameObject> PopTarget();
 
     void SetMaxLockonCount(size_t count) {
         maxLockonCount_ = static_cast<int>(count);
@@ -120,15 +120,15 @@ public:
 private:
     bool isEnabled_ = true;
     int maxLockonCount_ = 1;
-    std::deque<std::shared_ptr<GameObject>> queuedTargets_;
-    std::shared_ptr<GameObject> hoverTarget_ = nullptr;
+    std::deque<std::shared_ptr<Irufemi::GameObject>> queuedTargets_;
+    std::shared_ptr<Irufemi::GameObject> hoverTarget_ = nullptr;
 
     // ロックオン許可マスク（デフォルトは敵とボスのシールドのみ許可、環境物は除外）
     uint32_t targetTypeMask_ = static_cast<uint32_t>(TargetType::Enemy) | static_cast<uint32_t>(TargetType::BossShield);
 
     /** @brief 非同期レイキャストの結果待機用と時間間引き(Amortization)用キャッシュ構造体 */
     struct TargetVisibilityCache {
-        std::weak_ptr<GameObject> targetObject; ///< 生存確認用ポインタ（UAF防止）
+        std::weak_ptr<Irufemi::GameObject> targetObject; ///< 生存確認用ポインタ（UAF防止）
         bool canSee = false;                    ///< 壁裏チェック完了前はfalse（透過防止）
         bool hasCheckedOnce = false;            ///< 初回判定が実行されたかどうか
         float lastCheckTime = -1.0f;

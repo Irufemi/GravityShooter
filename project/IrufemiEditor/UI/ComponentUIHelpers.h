@@ -15,6 +15,10 @@
 #include "Framework/Component/Collider/AABBColliderComponent.h"
 #include "Framework/Component/Collider/OBBColliderComponent.h"
 
+using Irufemi::Component;
+using Irufemi::GameObject;
+using Irufemi::ColliderComponent;
+
 namespace Irufemi::Editor::UI {
 
 std::shared_ptr<Component> GetSharedComponent(GameObject* go, Component* comp);

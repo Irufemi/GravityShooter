@@ -4,7 +4,7 @@
 #include <memory>
 #include <functional>
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class PlayerTargetingComponent;
 class PlayerHealthComponent;
 class IPlayerCommand;
@@ -13,7 +13,7 @@ class IPlayerCommand;
  * @class GravityPlayerComponent
  * @brief ガレキを引き寄せて投げる「重力スロー」アクションを制御するコンポーネント
  */
-class GravityPlayerComponent : public Component {
+class GravityPlayerComponent : public Irufemi::Component {
 public:
     GravityPlayerComponent() = default;
     ~GravityPlayerComponent() override = default;
@@ -129,12 +129,12 @@ private:
     void UpdateThrowing();
 
 private:
-    std::vector<std::shared_ptr<GameObject>> orbitingDebris_; ///< 現在プレイヤーの周囲を回転しているガレキのリスト
+    std::vector<std::shared_ptr<Irufemi::GameObject>> orbitingDebris_; ///< 現在プレイヤーの周囲を回転しているガレキのリスト
     int maxOrbitCount_ = 5;                                   ///< 最大保持数
     float pullRadius_ = 100.0f;                               ///< 引き寄せ検知半径
 
     PlayerTargetingComponent* targetingComp_ = nullptr; ///< 敵ターゲティングコンポーネントの参照
-    std::weak_ptr<GameObject> debrisManagerObj_;        ///< ガレキマネージャーオブジェクトの弱参照
+    std::weak_ptr<Irufemi::GameObject> debrisManagerObj_;        ///< ガレキマネージャーオブジェクトの弱参照
 
     // Orbit parameters for pulled debris
     float orbitRadiusMin_ = 2.0f;       ///< ガレキ回転半径（最小）

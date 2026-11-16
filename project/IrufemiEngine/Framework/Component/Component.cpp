@@ -4,7 +4,9 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Core/System/IrufemiEngine.h"
 
-class TransformComponent* Component::GetTransform() const {
+namespace Irufemi {
+
+TransformComponent* Component::GetTransform() const {
     if (gameObject_) {
         return gameObject_->GetTransform();
     }
@@ -33,3 +35,6 @@ std::shared_ptr<Component> Component::Clone() {
     }
     return clone;
 }
+
+} // namespace Irufemi
+

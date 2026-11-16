@@ -6,6 +6,8 @@
 #include "Physics/CollisionManager.h"
 #include "Core/Math/MathFunction.h"
 
+namespace Irufemi {
+
 AABBColliderComponent::AABBColliderComponent() {}
 
 void AABBColliderComponent::DrawDebug() {}
@@ -133,3 +135,6 @@ bool AABBColliderComponent::TestCollisionWithOBB(const OBBColliderComponent* obb
     outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
     return outResult.isHit;
 }
+
+} // namespace Irufemi
+

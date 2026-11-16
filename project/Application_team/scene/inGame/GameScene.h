@@ -10,7 +10,7 @@ class IrufemiEngine;
  * @class GameScene
  * @brief ゲーム本編を管理するクラス
  */
-class GameScene : public BaseScene {
+class GameScene : public Irufemi::BaseScene {
 public: // メンバ関数(システム)
     ~GameScene() override;
 

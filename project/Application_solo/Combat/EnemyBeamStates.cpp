@@ -37,11 +37,11 @@ void BeamChargingState::OnUpdate(EnemyBeamComponent& owner, float deltaTime) {
     // 射線追従とロック判定
     float timeLeft = config.chargeDuration - stateTimer_;
     auto player = owner.GetPlayerObject();
-    if (player && player->GetComponent<TransformComponent>()) {
+    if (player && player->GetComponent<Irufemi::TransformComponent>()) {
         if (timeLeft > config.lockLeadTime) {
             // 発射前（追尾フェーズ）: 自機座標を滑らかに追尾
             isAimLocked_ = false;
-            Irufemi::Vector3 playerPos = player->GetComponent<TransformComponent>()->GetWorldPosition();
+            Irufemi::Vector3 playerPos = player->GetComponent<Irufemi::TransformComponent>()->GetWorldPosition();
             Irufemi::Vector3 diff = playerPos - startPos;
             if (diff.x * diff.x + diff.y * diff.y + diff.z * diff.z > 1e-4f) {
                 owner.SetDirection(Irufemi::Math::Normalize(diff));

@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <cmath>
 
+namespace Irufemi {
+
 SphereColliderComponent::SphereColliderComponent() {}
 
 void SphereColliderComponent::OnRegisterProperties() {
@@ -129,3 +131,6 @@ bool SphereColliderComponent::TestCollisionWithOBB(const OBBColliderComponent* o
     outResult.normal = Irufemi::Math::Multiply(-1.0f, outResult.normal);
     return outResult.isHit;
 }
+
+} // namespace Irufemi
+

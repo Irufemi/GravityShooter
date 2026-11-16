@@ -2,6 +2,8 @@
 #include "Framework/Component/Component.h"
 #include <string>
 
+namespace Irufemi {
+
 /**
  * @enum TimeoutAction
  * @brief 寿命を迎えた際のオブジェクトの振る舞い
@@ -95,3 +97,5 @@ private:
     TimeoutAction timeoutAction_ = TimeoutAction::Destroy;
     int timeoutActionInt_ = 0; // プロパティ登録用の安全な整数メンバ
 };
+
+} // namespace Irufemi

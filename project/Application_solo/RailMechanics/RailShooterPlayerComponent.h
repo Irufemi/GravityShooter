@@ -21,7 +21,7 @@ enum class PlayerFlightState {
  * @class RailShooterPlayerComponent
  * @brief レールシューティング用のプレイヤー制御コンポーネント（3軸姿勢制御・Stateパターン対応）
  */
-class RailShooterPlayerComponent : public Component {
+class RailShooterPlayerComponent : public Irufemi::Component {
 public:
     using StateChangeCallback = std::function<void(PlayerFlightState newState, PlayerFlightState oldState)>;
     using ThrottleChangeCallback = std::function<void(float throttle01)>;

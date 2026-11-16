@@ -3,6 +3,8 @@
 #include "Core/Math/Vector3.h"
 #include "Core/Math/Vector4.h"
 
+namespace Irufemi {
+
 /**
  * @class SplineNodeComponent
  * @brief スプラインの制御点を視覚化し、エディタ上で選択可能にするためのコンポーネント
@@ -38,3 +40,5 @@ private:
     Irufemi::Vector4 color_ = {0.0f, 1.0f, 1.0f, 1.0f}; ///< 球の色 (Cyan)
     bool drawDebug_ = true;                             ///< デバッグ描画を行うかどうか
 };
+
+} // namespace Irufemi

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <functional>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 SceneTransition::SceneTransition()
     : fadeDriver_(std::make_unique<FadeTransitionDriver>()),
@@ -130,3 +130,6 @@ void SceneTransition::Update(float deltaTime) {
         activeDriver_->OnUpdate(ppManager_, factor);
     }
 }
+
+} // namespace Irufemi
+

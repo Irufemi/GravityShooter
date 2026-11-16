@@ -9,13 +9,13 @@
 #include "RHI/DirectX12/ConstantBuffer.h"
 #include <memory>
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 
 /**
  * @class EnemyBeamComponent
  * @brief 敵が発射するビーム演出および当たり判定を管理するコンポーネント (State Pattern)
  */
-class EnemyBeamComponent : public Component {
+class EnemyBeamComponent : public Irufemi::Component {
 public:
     EnemyBeamComponent() = default;
     ~EnemyBeamComponent() override;
@@ -32,7 +32,7 @@ public:
     /**
      * @brief クローンを作成する
      */
-    std::shared_ptr<Component> Clone() override;
+    std::shared_ptr<Irufemi::Component> Clone() override;
 
     /**
      * @brief ビーム発射シーケンスを開始する
@@ -117,7 +117,7 @@ public:
         return hasHitCurrentBeam_;
     }
 
-    GameObject* GetPlayerObject();
+    Irufemi::GameObject* GetPlayerObject();
     Irufemi::Vector3 GetCurrentMuzzlePosition() const;
     void CheckBeamCollision();
 
@@ -148,8 +148,8 @@ private:
     Irufemi::LightningParams auraParamsData_{};
 
     // プレイヤーオブジェクトのキャッシュ
-    std::weak_ptr<GameObject> playerObj_;
-    std::weak_ptr<GameObject> mainCameraObj_;
+    std::weak_ptr<Irufemi::GameObject> playerObj_;
+    std::weak_ptr<Irufemi::GameObject> mainCameraObj_;
 
     Irufemi::Vector3 muzzleLocalOffset_ = {0.0f, 0.0f, 0.0f};
     bool hasHitCurrentBeam_ = false;

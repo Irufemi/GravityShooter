@@ -7,6 +7,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include <atomic>
 
+namespace Irufemi {
+
 namespace {
 // GameObject 未紐付け時に使用する一意なフォールバックID生成器（ポインタキャストによる衝突防止）
 uint64_t GenerateFallbackOwnerId() {
@@ -194,3 +196,5 @@ std::shared_ptr<Component> EffectMaskComponent::Clone() {
     clone->cachedEffectParam_ = this->cachedEffectParam_;
     return clone;
 }
+
+} // namespace Irufemi

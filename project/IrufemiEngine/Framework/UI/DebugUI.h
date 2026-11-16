@@ -10,9 +10,12 @@
 #include "Renderer/Pipeline/PSOManager.h"
 
 // 前方宣言
-class SceneManager;
 class IrufemiEngine;
+
 namespace Irufemi {
+
+using ::IrufemiEngine;
+class SceneManager;
 class Object3DResource;
 class Object2DResource;
 class ThreadPool;
@@ -38,6 +41,8 @@ class ScreenCaptureManager;
 #include "imgui/ImGuizmo.h"
 
 #endif // USE_IMGUI
+
+namespace Irufemi {
 
 /**
  * @class DebugUI
@@ -245,3 +250,5 @@ public: // メンバ関数
                                  Irufemi::PSOManager::CullMode* cullMode, const char* unique_id = "##PsoSettings");
     ///@}
 };
+
+} // namespace Irufemi

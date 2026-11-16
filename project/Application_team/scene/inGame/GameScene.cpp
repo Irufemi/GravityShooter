@@ -13,21 +13,21 @@ GameScene::~GameScene() = default;
 
 // 初期化
 void GameScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
 
     // JSONからのロードは SceneManager が自動で行うため、ここでは手動で呼ばない
 }
 
 // 更新
 void GameScene::Update() {
-    BaseScene::Update(); // これにより GameObject 群の Update が呼ばれる
+    Irufemi::BaseScene::Update(); // これにより GameObject 群の Update が呼ばれる
 
     // BackSpaceキーで遷移テスト
     if (IsKeyPressed(VK_F8)) {
-        engine_->GetSceneManager()->TransitionTo("Pause", SceneTransition::Type::Slide, 1.0f);
+        engine_->GetSceneManager()->TransitionTo("Pause", Irufemi::SceneTransition::Type::Slide, 1.0f);
     }
 }
 
 void GameScene::Draw() {
-    BaseScene::Draw(); // これにより GameObject 群の Draw が呼ばれる
+    Irufemi::BaseScene::Draw(); // これにより GameObject 群の Draw が呼ばれる
 }

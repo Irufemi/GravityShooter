@@ -40,7 +40,7 @@ EnemyBuilder& EnemyBuilder::WithBehaviorType(EnemyBehaviorType type) {
     return *this;
 }
 
-EnemyBuilder& EnemyBuilder::WithRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* playerFollower,
+EnemyBuilder& EnemyBuilder::WithRailTrackingParams(Irufemi::SplineComponent* spline, SplineFollowerComponent* playerFollower,
                                                    float initialDistOffset, float targetDistance,
                                                    const Irufemi::Vector2& formationOffset) {
     spline_ = spline;
@@ -52,13 +52,13 @@ EnemyBuilder& EnemyBuilder::WithRailTrackingParams(SplineComponent* spline, Spli
     return *this;
 }
 
-GameObject* EnemyBuilder::Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
+Irufemi::GameObject* EnemyBuilder::Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
                                 float scaleMultiplier) {
     if (!spawner_) {
         return nullptr;
     }
 
-    GameObject* enemyObj = nullptr;
+    Irufemi::GameObject* enemyObj = nullptr;
     if (!prefabPath_.empty()) {
         enemyObj = spawner_->SpawnEnemyByPrefab(prefabPath_, position, rotation, scaleMultiplier);
     } else {

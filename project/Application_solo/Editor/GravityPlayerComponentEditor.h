@@ -7,7 +7,7 @@
 
 class GravityPlayerComponentEditor : public IComponentEditor {
 public:
-    void Draw(Component* component, EditorActionManager* actionManager) override;
+    void Draw(Irufemi::Component* component, EditorActionManager* actionManager) override;
 
 private:
     nlohmann::json cachedJson_;

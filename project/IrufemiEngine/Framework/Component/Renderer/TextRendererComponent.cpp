@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 TextRendererComponent::TextRendererComponent() {}
 
@@ -204,3 +204,6 @@ void TextRendererComponent::Deserialize(const nlohmann::json& j) {
         textObj_->SetVerticalAlignment(verticalAlignment_);
     }
 }
+
+} // namespace Irufemi
+

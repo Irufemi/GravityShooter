@@ -7,19 +7,19 @@ ClearScene::~ClearScene() = default;
 
 // 初期化
 void ClearScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
 }
 
 // 更新
 void ClearScene::Update() {
-    BaseScene::Update();
+    Irufemi::BaseScene::Update();
 
     // BackSpaceキーで遷移テスト
     if (IsKeyPressed(VK_F8)) {
-        engine_->GetSceneManager()->TransitionTo("Select", SceneTransition::Type::Slide, 1.0f);
+        engine_->GetSceneManager()->TransitionTo("Select", Irufemi::SceneTransition::Type::Slide, 1.0f);
     }
 }
 
 void ClearScene::Draw() {
-    BaseScene::Draw();
+    Irufemi::BaseScene::Draw();
 }

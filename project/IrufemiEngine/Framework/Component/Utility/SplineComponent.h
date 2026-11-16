@@ -5,8 +5,8 @@
 #include <string>
 
 namespace Irufemi {
+
 class Line3DBatch;
-}
 
 /**
  * @class SplineComponent
@@ -140,3 +140,5 @@ private:
     float nodeRadius_ = 0.5f;                 ///< ウェイポイント球体ギズモの描画半径
     std::unique_ptr<Irufemi::Line3DBatch> debugLineBatch_; ///< デバッグ描画用のラインバッチ
 };
+
+} // namespace Irufemi

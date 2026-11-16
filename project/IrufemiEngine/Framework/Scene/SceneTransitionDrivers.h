@@ -6,6 +6,8 @@
 #include <memory>
 #include <optional>
 
+namespace Irufemi {
+
 /**
  * @class ITransitionDriver
  * @brief シーン遷移演出の個別エフェクト制御を担当する戦略インターフェース (Strategy Pattern)
@@ -91,3 +93,6 @@ public:
 private:
     std::optional<Irufemi::Vector4> customColor_;
 };
+
+} // namespace Irufemi
+

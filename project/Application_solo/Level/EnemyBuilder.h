@@ -6,9 +6,9 @@
 #include <optional>
 
 class EnemySpawnerComponent;
-class SplineComponent;
+namespace Irufemi { class SplineComponent; }
 class SplineFollowerComponent;
-class GameObject;
+namespace Irufemi { class GameObject; }
 
 /**
  * @class EnemyBuilder
@@ -60,7 +60,7 @@ public:
     /**
      * @brief レール追従パラメータを一括設定
      */
-    EnemyBuilder& WithRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* playerFollower,
+    EnemyBuilder& WithRailTrackingParams(Irufemi::SplineComponent* spline, SplineFollowerComponent* playerFollower,
                                          float initialDistOffset, float targetDistance,
                                          const Irufemi::Vector2& formationOffset);
 
@@ -69,9 +69,9 @@ public:
      * @param[in] position ワールド座標
      * @param[in] rotation 回転角度
      * @param[in] scaleMultiplier スケール倍率
-     * @return 構築された敵の GameObject ポインタ
+     * @return 構築された敵の Irufemi::GameObject ポインタ
      */
-    GameObject* Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
+    Irufemi::GameObject* Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
 
 private:
     EnemySpawnerComponent* spawner_ = nullptr;
@@ -84,7 +84,7 @@ private:
     std::optional<EnemyBehaviorType> behaviorType_;
 
     // レール追従パラメータ
-    SplineComponent* spline_ = nullptr;
+    Irufemi::SplineComponent* spline_ = nullptr;
     SplineFollowerComponent* playerFollower_ = nullptr;
     float initialDistOffset_ = 0.0f;
     float trackingTargetDistance_ = 65.0f;

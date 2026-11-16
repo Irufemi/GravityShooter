@@ -8,6 +8,11 @@
 
 class IrufemiEngine;
 
+namespace Irufemi {
+class GameObject;
+class TextRendererComponent;
+}
+
 /**
  * @class AttractDemoManager
  * @brief アトラクトデモおよびF8キオスク固定展示ループを統括する単一エンジン拡張
@@ -179,8 +184,8 @@ private:
     bool hasTriggeredDemoPulse_ = false; ///< デモ中の重力光彩パルス発火済みフラグ
 
     // --- デモ案内HUD表示用 ---
-    std::shared_ptr<class GameObject> demoHudObj_;
-    class TextRendererComponent* demoHudText_ = nullptr;
+    std::shared_ptr<Irufemi::GameObject> demoHudObj_;
+    Irufemi::TextRendererComponent* demoHudText_ = nullptr;
     float demoHudBlinkTimer_ = 0.0f;
 };
 

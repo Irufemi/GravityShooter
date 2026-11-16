@@ -6,9 +6,10 @@
 #include "Core/Math/Geometry/AABB.h"
 #include "Physics/Collision/Collision.h"
 
+namespace Irufemi {
+
 class ColliderComponent;
 
-namespace Irufemi {
 /**
  * @struct BVHNode
  * @brief TLASを構成する動的AABBツリーのノード。

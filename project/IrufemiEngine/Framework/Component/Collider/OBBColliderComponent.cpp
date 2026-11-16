@@ -7,6 +7,8 @@
 #include "Core/Math/MathFunction.h"
 #include <cmath>
 
+namespace Irufemi {
+
 OBBColliderComponent::OBBColliderComponent() {}
 
 void OBBColliderComponent::DrawDebug() {}
@@ -137,3 +139,6 @@ bool OBBColliderComponent::TestCollisionWithOBB(const OBBColliderComponent* obb,
     outResult = Irufemi::Collision::GetCollisionResult(obb->GetWorldOBB(), GetWorldOBB());
     return outResult.isHit;
 }
+
+} // namespace Irufemi
+

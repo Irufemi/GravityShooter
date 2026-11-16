@@ -6,16 +6,16 @@
 #include <memory>
 #include <unordered_map>
 
-class TransformComponent;
-class EffectMaskComponent;
+namespace Irufemi { class TransformComponent; }
+namespace Irufemi { class EffectMaskComponent; }
 
 /**
  * @class EnemySpawnerComponent
  * @brief 敵キャラクターのオブジェクトプール管理およびインスタンシング一括描画制御を行うスポナー
  * @details 複数の敵プレハブ（通常敵、急降下ドローン、偏差スナイパー等）ごとに ObjectPool と
- *          ModelBatchRendererComponent を保持し、ゼロアロケーションでの生成とドローコール削減を実現します。
+ *          Irufemi::ModelBatchRendererComponent を保持し、ゼロアロケーションでの生成とドローコール削減を実現します。
  */
-class EnemySpawnerComponent : public Component {
+class EnemySpawnerComponent : public Irufemi::Component {
 public:
     EnemySpawnerComponent() = default;
     ~EnemySpawnerComponent() override;
@@ -49,9 +49,9 @@ public:
      * @param[in] position スポーンワールド座標
      * @param[in] rotation スポーン回転角度
      * @param[in] scaleMultiplier スケール倍率
-     * @return 生成またはプールから再利用された GameObject
+     * @return 生成またはプールから再利用された Irufemi::GameObject
      */
-    GameObject* SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
+    Irufemi::GameObject* SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
                            float scaleMultiplier = 1.0f);
 
     /**
@@ -60,9 +60,9 @@ public:
      * @param[in] position スポーンワールド座標
      * @param[in] rotation スポーン回転角度
      * @param[in] scaleMultiplier スケール倍率
-     * @return 生成またはプールから再利用された GameObject
+     * @return 生成またはプールから再利用された Irufemi::GameObject
      */
-    GameObject* SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
+    Irufemi::GameObject* SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
                                    const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
 
     /**
@@ -120,12 +120,12 @@ public:
     /**
      * @brief プレイヤー（自機カート）GameObjectを取得する（キャッシュ付き）
      */
-    std::shared_ptr<GameObject> GetPlayerCartObject();
+    std::shared_ptr<Irufemi::GameObject> GetPlayerCartObject();
 
     /**
      * @brief ガレキマネージャーGameObjectを取得する（キャッシュ付き）
      */
-    std::shared_ptr<GameObject> GetDebrisManagerObject();
+    std::shared_ptr<Irufemi::GameObject> GetDebrisManagerObject();
 
 private:
     struct PrefabPoolData {
@@ -135,8 +135,8 @@ private:
         float baseColliderRadius = 1.8f;
         Irufemi::Vector3 baseOBBSize = {1.0f, 1.0f, 1.0f};
         bool hasOBBCollider = false;
-        std::shared_ptr<ModelBatchRendererComponent> batchRenderer;
-        std::unique_ptr<Irufemi::ObjectPool<GameObject>> pool;
+        std::shared_ptr<Irufemi::ModelBatchRendererComponent> batchRenderer;
+        std::unique_ptr<Irufemi::ObjectPool<Irufemi::GameObject>> pool;
     };
 
     PrefabPoolData* GetOrCreatePrefabPool(const std::string& prefabPath, uint32_t poolSize = 0);
@@ -149,14 +149,14 @@ private:
     float baseColliderRadius_ = 2.0f;
 
     std::unordered_map<std::string, std::unique_ptr<PrefabPoolData>> prefabPools_;
-    std::weak_ptr<GameObject> playerCartObj_;
-    std::weak_ptr<GameObject> debrisManagerObj_;
+    std::weak_ptr<Irufemi::GameObject> playerCartObj_;
+    std::weak_ptr<Irufemi::GameObject> debrisManagerObj_;
     struct ActiveEnemyInfo {
-        GameObject* enemyObj = nullptr;
-        TransformComponent* transform = nullptr;
-        EffectMaskComponent* effectMask = nullptr;
+        Irufemi::GameObject* enemyObj = nullptr;
+        Irufemi::TransformComponent* transform = nullptr;
+        Irufemi::EffectMaskComponent* effectMask = nullptr;
         std::string prefabPath;
-        Irufemi::ObjectPool<GameObject>::Handle handle;
+        Irufemi::ObjectPool<Irufemi::GameObject>::Handle handle;
     };
     std::unordered_map<uint64_t, ActiveEnemyInfo> activeEnemyHandles_;
 };

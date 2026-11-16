@@ -3,7 +3,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Resource/Texture/TextureManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 Primitive2DRendererComponent::Primitive2DRendererComponent() {}
 Primitive2DRendererComponent::~Primitive2DRendererComponent() {}
@@ -182,3 +182,6 @@ void Primitive2DRendererComponent::Deserialize(const nlohmann::json& j) {
         primitive_->SetTopMost(isTopMost_);
     }
 }
+
+} // namespace Irufemi
+

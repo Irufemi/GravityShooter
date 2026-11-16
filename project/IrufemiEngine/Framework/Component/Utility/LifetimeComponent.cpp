@@ -2,6 +2,8 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Core/System/IrufemiEngine.h"
 
+namespace Irufemi {
+
 void LifetimeComponent::OnRegisterProperties() {
     timeoutActionInt_ = static_cast<int>(timeoutAction_);
     RegisterProperty("Life Time", &lifeTime_);
@@ -52,3 +54,5 @@ void LifetimeComponent::Deserialize(const nlohmann::json& j) {
         timeoutActionInt_ = static_cast<int>(timeoutAction_);
     }
 }
+
+} // namespace Irufemi

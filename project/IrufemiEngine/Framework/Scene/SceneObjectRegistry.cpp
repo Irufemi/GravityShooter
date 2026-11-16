@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <regex>
 
+namespace Irufemi {
+
 void SceneObjectRegistry::Register(const std::shared_ptr<GameObject>& obj) {
     if (!obj) {
         return;
@@ -233,3 +235,6 @@ std::string SceneObjectRegistry::GenerateUniqueName(const std::string& baseName,
 
     return candidate;
 }
+
+} // namespace Irufemi
+

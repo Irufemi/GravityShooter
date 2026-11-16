@@ -9,18 +9,18 @@
 #include <memory>
 #include <functional>
 
-class TextRendererComponent;
-class SpriteRendererComponent;
-class GameObject;
+namespace Irufemi { class TextRendererComponent; }
+namespace Irufemi { class SpriteRendererComponent; }
+namespace Irufemi { class GameObject; }
 
 /**
  * @class PauseScene
  * @brief ゲーム本編の一時停止画面を管理するシーン
- * @details SceneManager::PushScene で呼び出され、背景ゲームを静止・描画継続しつつ、
+ * @details Irufemi::SceneManager::PushScene で呼び出され、背景ゲームを静止・描画継続しつつ、
  *          半透明暗幕オーバーレイ・各種メニュー（Resume/Retry/Options/Title）を提供します。
  *          キーボード、マウス、ゲームパッドのハイブリッド入力に対応します。
  */
-class PauseScene : public BaseScene {
+class PauseScene : public Irufemi::BaseScene {
 public:
     enum class MenuItem { Resume = 0, Retry, Options, Title, Quit, Count };
 
@@ -75,8 +75,8 @@ private:
         std::wstring text;
         MenuItem itemType;
         float yPos = 0.0f;
-        std::weak_ptr<GameObject> gameObject;
-        std::weak_ptr<TextRendererComponent> textComp;
+        std::weak_ptr<Irufemi::GameObject> gameObject;
+        std::weak_ptr<Irufemi::TextRendererComponent> textComp;
         float currentScale = 1.0f;
         std::function<void()> action;
     };
@@ -85,7 +85,7 @@ private:
     int selectedIndex_ = 0;
     int lastHoveredIndex_ = -1;
     int pressedItemIndex_ = -1;
-    UINavigationController nav_;
+    Irufemi::UINavigationController nav_;
 
     float openCooldownTimer_ = 0.2f;
     float originalBGMVolume_ = 1.0f;
@@ -97,8 +97,8 @@ private:
     ModalTransition::Controller transition_{.openDuration = 0.14f, .closeDuration = 0.09f};
 
     bool isPostProcessActive_ = false;
-    std::weak_ptr<GameObject> darkOverlayObj_;
-    std::weak_ptr<GameObject> titleObj_;
-    std::weak_ptr<SpriteRendererComponent> darkOverlaySprite_;
-    std::weak_ptr<TextRendererComponent> titleTextComp_;
+    std::weak_ptr<Irufemi::GameObject> darkOverlayObj_;
+    std::weak_ptr<Irufemi::GameObject> titleObj_;
+    std::weak_ptr<Irufemi::SpriteRendererComponent> darkOverlaySprite_;
+    std::weak_ptr<Irufemi::TextRendererComponent> titleTextComp_;
 };

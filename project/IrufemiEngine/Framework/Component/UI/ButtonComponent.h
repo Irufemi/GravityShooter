@@ -5,6 +5,8 @@
 #include "Core/Math/Vector4.h"
 #include "Framework/UI/UIAnimator.h"
 
+namespace Irufemi {
+
 class TransformComponent;
 class SpriteRendererComponent;
 class TextRendererComponent;
@@ -91,3 +93,5 @@ private:
     TextRendererComponent* text_ = nullptr;
     std::function<void()> onClickCallback_;
 };
+
+} // namespace Irufemi

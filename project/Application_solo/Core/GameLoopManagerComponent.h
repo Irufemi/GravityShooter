@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class PlayerHealthComponent;
 class BossComponent;
 
@@ -13,7 +13,7 @@ class BossComponent;
  * @details
  * プレイヤーおよびボスの死亡イベントを購読し、演出用のタイムスケール変更およびリザルトシーンの呼び出しを制御する。
  */
-class GameLoopManagerComponent : public Component {
+class GameLoopManagerComponent : public Irufemi::Component {
 public:
     /**
      * @enum State
@@ -53,7 +53,7 @@ public:
 
 private:
     /**
-     * @brief 対象となるプレイヤーおよびボスの GameObject を検索してイベントをバインドする
+     * @brief 対象となるプレイヤーおよびボスの Irufemi::GameObject を検索してイベントをバインドする
      * @return 必要な対象がすべてバインドされた場合は true
      */
     bool BindTargets();
@@ -81,8 +81,8 @@ private:
     std::string targetBossName_ = "Boss";
 
     // 生ポインタを排除し、安全な参照追跡のために weak_ptr で管理
-    std::weak_ptr<GameObject> playerObj_;
-    std::weak_ptr<GameObject> bossObj_;
+    std::weak_ptr<Irufemi::GameObject> playerObj_;
+    std::weak_ptr<Irufemi::GameObject> bossObj_;
 
     uint32_t playerDiedListenerId_ = 0;
     uint32_t bossDiedListenerId_ = 0;

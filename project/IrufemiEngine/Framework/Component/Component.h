@@ -4,17 +4,21 @@
 #include <variant>
 #include <functional>
 
-class GameObject;
-class BaseScene;
-class IrufemiEngine;
 #include "Renderer/System/Core/IRenderable.h"
 #include "Core/Math/Vector2.h"
 #include "Core/Math/Vector3.h"
 #include "Core/Math/Vector4.h"
 #include "Core/Utility/JsonUtility.h"
+
+// 前方宣言
+class IrufemiEngine;
+
 namespace Irufemi {
+
+using ::IrufemiEngine;
+class GameObject;
+class BaseScene;
 struct Ray;
-}
 
 enum class ComponentPropertyType {
     Float,
@@ -591,3 +595,6 @@ protected:
 private:
     bool isInitialized_ = false; ///< 初期化済みフラグ
 };
+
+} // namespace Irufemi
+

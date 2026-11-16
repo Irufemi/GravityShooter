@@ -4,7 +4,10 @@
 #include "Core/IComponentEditor.h"
 #include <string>
 
+namespace Irufemi {
 class GlobalPostProcessComponent;
+}
+using Irufemi::GlobalPostProcessComponent;
 
 /**
  * @class GlobalPostProcessComponentEditor

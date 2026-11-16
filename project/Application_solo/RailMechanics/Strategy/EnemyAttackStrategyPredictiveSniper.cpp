@@ -20,7 +20,7 @@ void EnemyAttackStrategyPredictiveSniper::UpdateCombat(RailShooterEnemyComponent
     shootTimer_ -= dt;
     enemy->SetShootTimer(shootTimer_);
 
-    GameObject* playerObj = enemy->GetPlayerObject();
+    Irufemi::GameObject* playerObj = enemy->GetPlayerObject();
     Irufemi::Vector3 currentPlayerPos = {0.0f, 0.0f, 0.0f};
     if (playerObj && playerObj->GetTransform()) {
         currentPlayerPos = playerObj->GetTransform()->GetWorldPosition();

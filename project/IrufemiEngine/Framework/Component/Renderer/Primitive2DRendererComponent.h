@@ -7,6 +7,8 @@
 #include "Core/Math/Vector4.h"
 #include "Core/Math/Vector2.h"
 
+namespace Irufemi {
+
 class TransformComponent;
 
 /**
@@ -220,3 +222,6 @@ private:
     float thickness_ = 2.0f;
     int subdivision_ = 32;
 };
+
+} // namespace Irufemi
+

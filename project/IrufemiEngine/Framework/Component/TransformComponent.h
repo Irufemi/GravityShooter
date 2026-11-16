@@ -6,6 +6,8 @@
 #include "Core/Math/MathFunction.h"
 #include "Core/System/ComponentPool.h"
 
+namespace Irufemi {
+
 class TransformComponent : public Component {
 public:
     /**
@@ -278,3 +280,6 @@ private:
     mutable uint64_t parentTransformVersionLastComputed_ = 0;
     mutable uint64_t parentInstanceIdLastComputed_ = 0;
 };
+
+} // namespace Irufemi
+

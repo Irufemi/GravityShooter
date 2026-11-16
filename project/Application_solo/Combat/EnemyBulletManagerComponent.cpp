@@ -13,7 +13,7 @@ EnemyBulletManagerComponent::EnemyBulletManagerComponent() {
 }
 
 void EnemyBulletManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Max Bullets", &maxBullets_);
     RegisterProperty("Bullet Model Path", &bulletModelPath_);
 }
@@ -33,7 +33,7 @@ void EnemyBulletManagerComponent::OnDestroy() {
     bulletPool_.reset();
 }
 
-EnemyBulletManagerComponent* EnemyBulletManagerComponent::GetOrCreate(BaseScene* scene) {
+EnemyBulletManagerComponent* EnemyBulletManagerComponent::GetOrCreate(Irufemi::BaseScene* scene) {
     if (instance_) {
         return instance_;
     }
@@ -48,7 +48,7 @@ EnemyBulletManagerComponent* EnemyBulletManagerComponent::GetOrCreate(BaseScene*
     }
 
     // シーン上に存在しない場合は自動プロビジョニング
-    auto managerObj = std::make_shared<GameObject>("EnemyBulletManager");
+    auto managerObj = std::make_shared<Irufemi::GameObject>("EnemyBulletManager");
     managerObj->SetIsSerializable(false);
     auto mgr = managerObj->AddComponent<EnemyBulletManagerComponent>();
     scene->AddGameObject(managerObj);
@@ -68,23 +68,23 @@ void EnemyBulletManagerComponent::WarmupPool() {
     }
 
     // ラムダ式内では scene ポインタをキャプチャせず、gameObject_ から最新の有効なシーンを取得する（ダングリング防止）
-    bulletPool_ = std::make_unique<Irufemi::ObjectPool<GameObject>>(maxBullets_, [this]() {
+    bulletPool_ = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(maxBullets_, [this]() {
         auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
         if (!scene) {
-            return std::make_shared<GameObject>("EnemyBullet");
+            return std::make_shared<Irufemi::GameObject>("EnemyBullet");
         }
 
-        auto bullet = std::make_shared<GameObject>("EnemyBullet");
+        auto bullet = std::make_shared<Irufemi::GameObject>("EnemyBullet");
         bullet->SetIsSerializable(false);
         bullet->SetHideInHierarchy(true); // エディタのヒエラルキーを汚染しないよう非表示設定
 
         // レンダラー設定
-        auto meshRenderer = bullet->AddComponent<MeshRendererComponent>();
+        auto meshRenderer = bullet->AddComponent<Irufemi::MeshRendererComponent>();
         meshRenderer->LoadModel(bulletModelPath_);
         meshRenderer->Initialize();
 
         // コライダー設定
-        auto collider = bullet->AddComponent<SphereColliderComponent>();
+        auto collider = bullet->AddComponent<Irufemi::SphereColliderComponent>();
         collider->Initialize();
         collider->SetTrigger(true);
         collider->SetLocalRadius(0.4f);
@@ -118,7 +118,7 @@ void EnemyBulletManagerComponent::WarmupPool() {
     isWarmedUp_ = true;
 }
 
-GameObject* EnemyBulletManagerComponent::FireBullet(const Irufemi::Vector3& origin, const Irufemi::Vector3& direction,
+Irufemi::GameObject* EnemyBulletManagerComponent::FireBullet(const Irufemi::Vector3& origin, const Irufemi::Vector3& direction,
                                                     float speed, int damage, float scale) {
     if (!isWarmedUp_) {
         WarmupPool();
@@ -143,7 +143,7 @@ GameObject* EnemyBulletManagerComponent::FireBullet(const Irufemi::Vector3& orig
         transform->SetScale({scale, scale, scale});
     }
 
-    if (auto collider = bullet->GetComponent<SphereColliderComponent>()) {
+    if (auto collider = bullet->GetComponent<Irufemi::SphereColliderComponent>()) {
         collider->SetLocalRadius(scale);
     }
 
@@ -172,7 +172,7 @@ void EnemyBulletManagerComponent::ReturnBullet(EnemyBulletComponent* bulletComp)
     bulletPool_->Release(bulletComp->GetPoolHandle());
 }
 
-void EnemyBulletManagerComponent::ReturnBullet(GameObject* bullet) {
+void EnemyBulletManagerComponent::ReturnBullet(Irufemi::GameObject* bullet) {
     if (!bullet) {
         return;
     }
@@ -183,7 +183,7 @@ void EnemyBulletManagerComponent::AbsorbAndClearAllBullets() {
     if (!bulletPool_) {
         return;
     }
-    bulletPool_->ForEach([this](const std::shared_ptr<GameObject>& bullet) {
+    bulletPool_->ForEach([this](const std::shared_ptr<Irufemi::GameObject>& bullet) {
         if (bullet && bullet->GetIsActive()) {
             ReturnBullet(bullet.get());
         }

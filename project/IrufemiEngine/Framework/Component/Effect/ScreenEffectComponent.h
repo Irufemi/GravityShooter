@@ -6,6 +6,8 @@
 #include <memory>
 #include "Core/Utility/JsonUtility.h"
 
+namespace Irufemi {
+
 /**
  * @class ScreenEffectComponent
  * @brief 画面全体への一時的なポストエフェクト演出（Vignette, Glitch等）を管理・ブレンドするコンポーネント
@@ -80,3 +82,5 @@ private:
 
     void EnsureDriver();
 };
+
+} // namespace Irufemi

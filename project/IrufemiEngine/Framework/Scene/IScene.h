@@ -2,12 +2,17 @@
 
 #include <cstdint>
 
-// 前方宣言
-class IrufemiEngine;
-class GameObject;
 #include <memory>
 #include <vector>
 #include "Core/Utility/JsonUtility.h"
+
+// 前方宣言
+class IrufemiEngine;
+
+namespace Irufemi {
+
+using ::IrufemiEngine;
+class GameObject;
 
 /// <summary>
 /// Scene系クラスに継承する基底クラス
@@ -165,3 +170,5 @@ public:
         return false;
     }
 };
+
+} // namespace Irufemi

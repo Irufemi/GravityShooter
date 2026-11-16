@@ -30,20 +30,20 @@ enum class DespawnReason {
     CollisionSuicide //!< プレイヤーへの直接体当たりによる自爆
 };
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class EnemyBulletManagerComponent;
-class SplineComponent;
+namespace Irufemi { class SplineComponent; }
 class SplineFollowerComponent;
 class IEnemyAttackStrategy;
 
 /// @brief 敵退場通知リスナー（オブジェクト、退場理由）
-using EnemyDespawnListener = std::function<void(GameObject*, DespawnReason)>;
+using EnemyDespawnListener = std::function<void(Irufemi::GameObject*, DespawnReason)>;
 
 /**
  * @class RailShooterEnemyComponent
  * @brief レールシューティング用の敵キャラクター制御コンポーネント（AIステートマシン・自機狙い射撃対応）
  */
-class RailShooterEnemyComponent : public Component, public IDamageable {
+class RailShooterEnemyComponent : public Irufemi::Component, public IDamageable {
 public:
     RailShooterEnemyComponent();
     ~RailShooterEnemyComponent() override;
@@ -53,7 +53,7 @@ public:
     void Update() override;
     void Draw() override;
     void OnDisable() override;
-    void OnCollisionEnter(GameObject* other) override;
+    void OnCollisionEnter(Irufemi::GameObject* other) override;
     void OnRegisterProperties() override;
 
     std::string GetComponentName() const override {
@@ -74,7 +74,7 @@ public:
     /**
      * @brief 敵撃破・消滅時のコールバックを設定する（レガシー互換用）
      */
-    void SetOnDeathCallback(std::function<void(GameObject*)> callback) {
+    void SetOnDeathCallback(std::function<void(Irufemi::GameObject*)> callback) {
         onDeathCallback_ = std::move(callback);
     }
 
@@ -114,7 +114,7 @@ public:
      * @param targetDistOffset 交戦時に維持する目標レール距離 (m)
      * @param formationOffset フォーメーションによるローカルXYオフセット
      */
-    void SetRailTrackingParams(SplineComponent* spline, SplineFollowerComponent* follower, float initialDistOffset,
+    void SetRailTrackingParams(Irufemi::SplineComponent* spline, SplineFollowerComponent* follower, float initialDistOffset,
                                float targetDistOffset, const Irufemi::Vector2& formationOffset);
 
     /**
@@ -310,7 +310,7 @@ public:
      * @brief シーン上のプレイヤーオブジェクトを取得する
      * @return プレイヤーのGameObjectポインタ（存在しない場合nullptr）
      */
-    GameObject* GetPlayerObject();
+    Irufemi::GameObject* GetPlayerObject();
 
     /**
      * @brief 予兆（Telegraphing）描画用リソースの初期化を保証する
@@ -324,7 +324,7 @@ public:
 
 private:
     EnemyBulletManagerComponent* bulletManager_ = nullptr; //!< キャッシュされた弾マネージャー
-    SplineComponent* cachedSpline_ = nullptr;              //!< キャッシュされたレールスプライン
+    Irufemi::SplineComponent* cachedSpline_ = nullptr;              //!< キャッシュされたレールスプライン
     SplineFollowerComponent* playerFollower_ = nullptr;    //!< プレイヤーのスプライン追従情報
     float currentDistanceOffset_ = 85.0f;                  //!< レール上の自機からの現在相対距離 (m)
     Irufemi::Vector2 baseFormationOffset_ = {0.0f, 0.0f};  //!< フォーメーションによる基本XYオフセット
@@ -368,7 +368,7 @@ private:
     float speed_ = 15.0f;        //!< 敵の進入・離脱速度
     int hp_ = 100;               //!< 耐久力
 
-    std::function<void(GameObject*)> onDeathCallback_;
+    std::function<void(Irufemi::GameObject*)> onDeathCallback_;
     EnemyDespawnListener onDespawnListener_; //!< 退場理由付きライフサイクルリスナー
     float scaleMultiplier_ = 1.0f;           //!< 敵のサイズ倍率（Lootドロップ量等の算出基準）
 

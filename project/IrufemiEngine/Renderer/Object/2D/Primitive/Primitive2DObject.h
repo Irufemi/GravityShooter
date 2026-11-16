@@ -12,11 +12,11 @@
 #include "Core/Math/Vector3.h"
 
 // 前方宣言
-class DebugUI;
 class IrufemiEngine;
 
 namespace Irufemi {
 
+class DebugUI;
 class TextureManager;
 class DrawManager;
 
@@ -238,7 +238,7 @@ public:
      * @brief DebugUI を設定する。
      * @param[in] ui 設定する DebugUI の値
      */
-    static void SetDebugUI(::DebugUI* ui) {
+    static void SetDebugUI(DebugUI* ui) {
         ui_ = ui;
     }
     /**
@@ -295,7 +295,7 @@ private:
     // 静的マネージャ参照
     static TextureManager* textureManager_;
     static DrawManager* drawManager_;
-    static ::DebugUI* ui_;
+    static DebugUI* ui_;
     static ::IrufemiEngine* engine_;
 };
 

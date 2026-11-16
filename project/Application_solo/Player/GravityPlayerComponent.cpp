@@ -73,7 +73,7 @@ void GravityPlayerComponent::AbsorbOrbitingDebrisToSingularity() {
 }
 
 void GravityPlayerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Status Data Path", &statusDataPath_);
     RegisterProperty("Max Orbit Count", &maxOrbitCount_);
     RegisterPropertyRange("Pull Radius", &pullRadius_, 10.0f, 500.0f);
@@ -121,7 +121,7 @@ void GravityPlayerComponent::Update() {
     }
 
     // 無効になったガレキを除外 (C++20 std::erase_if による一括クリーンアップ)
-    std::erase_if(orbitingDebris_, [](const std::shared_ptr<GameObject>& obj) {
+    std::erase_if(orbitingDebris_, [](const std::shared_ptr<Irufemi::GameObject>& obj) {
         if (!obj || !obj->GetIsActive()) {
             return true;
         }
@@ -179,7 +179,7 @@ void GravityPlayerComponent::ExecutePullAction() {
     }
 
     // 1. ロックオン済み、またはホバー中のターゲットを取得
-    std::shared_ptr<GameObject> targetToSteal = nullptr;
+    std::shared_ptr<Irufemi::GameObject> targetToSteal = nullptr;
     bool isQueuedTarget = false;
 
     if (targetingComp_) {
@@ -368,19 +368,19 @@ void GravityPlayerComponent::UpdateThrowing() {
         if (debris) {
             auto comp = debris->GetComponent<DebrisComponent>();
             if (comp) {
-                std::shared_ptr<GameObject> throwTarget = nullptr;
+                std::shared_ptr<Irufemi::GameObject> throwTarget = nullptr;
                 if (targetingComp_) {
                     throwTarget = targetingComp_->PopTarget();
                 }
 
                 comp->SetOwnerObject(gameObject_->shared_from_this());
                 comp->SetState(DebrisState::Thrown);
-                Irufemi::Vector3 debrisPos = debris->GetComponent<TransformComponent>()->GetWorldPosition();
+                Irufemi::Vector3 debrisPos = debris->GetComponent<Irufemi::TransformComponent>()->GetWorldPosition();
 
                 if (throwTarget && throwTarget->GetIsActive()) {
                     comp->SetTarget(throwTarget);
                     // 射出初速ベクトルをターゲット方向へ正しく確立
-                    if (auto tt = throwTarget->GetComponent<TransformComponent>()) {
+                    if (auto tt = throwTarget->GetComponent<Irufemi::TransformComponent>()) {
                         Irufemi::Vector3 diff = Irufemi::Math::Subtract(tt->GetWorldPosition(), debrisPos);
                         float len = Irufemi::Math::Length(diff);
                         if (len > 0.001f) {
@@ -388,11 +388,11 @@ void GravityPlayerComponent::UpdateThrowing() {
                         }
                     }
                 } else {
-                    comp->SetTarget(std::weak_ptr<GameObject>());
+                    comp->SetTarget(std::weak_ptr<Irufemi::GameObject>());
 
                     if (throwTarget) {
                         // ターゲットはいたが死んでいた場合、その死んだ座標へ直進させる
-                        Irufemi::Vector3 deadPos = throwTarget->GetComponent<TransformComponent>()->GetWorldPosition();
+                        Irufemi::Vector3 deadPos = throwTarget->GetComponent<Irufemi::TransformComponent>()->GetWorldPosition();
                         Irufemi::Vector3 throwDir =
                             Irufemi::Math::Normalize(Irufemi::Math::Subtract(deadPos, debrisPos));
                         comp->SetThrowDirection(throwDir);

@@ -5,7 +5,7 @@
 #include "Core/Math/MathFunction.h"
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 std::vector<VirtualEntityManagerComponent*> VirtualEntityManagerComponent::instances_;
 
@@ -253,3 +253,5 @@ void VirtualEntityManagerComponent::Update() {
         }
     }
 }
+
+} // namespace Irufemi

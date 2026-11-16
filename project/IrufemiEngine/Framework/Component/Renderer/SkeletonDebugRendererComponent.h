@@ -5,9 +5,9 @@
 #include <string>
 
 namespace Irufemi {
+
 class PrimitiveBatch;
 class Line3DBatch;
-}
 
 /**
  * @class SkeletonDebugRendererComponent
@@ -88,3 +88,6 @@ private:
     bool showAxes_ = true;
     float axisScale_ = 1.0f;
 };
+
+} // namespace Irufemi
+

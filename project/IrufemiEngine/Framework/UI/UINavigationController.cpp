@@ -1,7 +1,7 @@
 #include "Framework/UI/UINavigationController.h"
 #include "Platform/Input/InputManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 bool UINavigationController::Update(Irufemi::InputManager* input, float deltaTime) {
     if (!input || itemCount_ <= 0) {
@@ -137,3 +137,5 @@ bool UINavigationController::TrySetHoveredIndex(int hoveredIndex, Irufemi::Input
     }
     return false;
 }
+
+} // namespace Irufemi

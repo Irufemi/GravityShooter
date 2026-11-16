@@ -20,8 +20,8 @@ void SceneTransitionButtonComponent::OnRegisterProperties() {
 
 void SceneTransitionButtonComponent::OnAwake() {
     if (gameObject_) {
-        button_ = gameObject_->GetComponent<ButtonComponent>();
-        sprite_ = gameObject_->GetComponent<SpriteRendererComponent>();
+        button_ = gameObject_->GetComponent<Irufemi::ButtonComponent>();
+        sprite_ = gameObject_->GetComponent<Irufemi::SpriteRendererComponent>();
     }
 }
 
@@ -75,10 +75,10 @@ void SceneTransitionButtonComponent::Update() {
             isTransitionPending_ = false;
 
             if (!onClickLoadScene_.empty()) {
-                constexpr std::array<SceneTransition::Type, 4> kTransitionTypes = {
-                    SceneTransition::Type::Fade, SceneTransition::Type::Dissolve, SceneTransition::Type::Slide,
-                    SceneTransition::Type::RadialBlur};
-                SceneTransition::Type type = SceneTransition::Type::Fade;
+                constexpr std::array<Irufemi::SceneTransition::Type, 4> kTransitionTypes = {
+                    Irufemi::SceneTransition::Type::Fade, Irufemi::SceneTransition::Type::Dissolve, Irufemi::SceneTransition::Type::Slide,
+                    Irufemi::SceneTransition::Type::RadialBlur};
+                Irufemi::SceneTransition::Type type = Irufemi::SceneTransition::Type::Fade;
                 if (transitionType_ >= 0 && static_cast<size_t>(transitionType_) < kTransitionTypes.size()) {
                     type = kTransitionTypes[static_cast<size_t>(transitionType_)];
                 }

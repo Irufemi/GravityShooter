@@ -22,13 +22,13 @@ DroneManagerComponent::~DroneManagerComponent() {
 
 void DroneManagerComponent::Initialize() {
     if (gameObject_) {
-        batchRenderer_ = gameObject_->GetComponent<ModelBatchRendererComponent>();
+        batchRenderer_ = gameObject_->GetComponent<Irufemi::ModelBatchRendererComponent>();
     }
 }
 
 void DroneManagerComponent::Start() {
     if (gameObject_) {
-        effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+        effectMask_ = gameObject_->GetComponent<Irufemi::EffectMaskComponent>();
     }
     if (auto scene = gameObject_->GetScene()) {
         player_ = scene->FindGameObject("Player");
@@ -39,7 +39,7 @@ void DroneManagerComponent::Start() {
 
 void DroneManagerComponent::Update() {
     if (!batchRenderer_) {
-        batchRenderer_ = gameObject_->GetComponent<ModelBatchRendererComponent>();
+        batchRenderer_ = gameObject_->GetComponent<Irufemi::ModelBatchRendererComponent>();
         if (!batchRenderer_) {
             return;
         }
@@ -57,7 +57,7 @@ void DroneManagerComponent::Update() {
         return;
     }
 
-    auto bossTransform = bossObj->GetComponent<TransformComponent>();
+    auto bossTransform = bossObj->GetComponent<Irufemi::TransformComponent>();
     if (!bossTransform) {
         return;
     }
@@ -82,7 +82,7 @@ void DroneManagerComponent::Update() {
 
     bool isCombatEngaged = true;
     if (auto player = player_.lock()) {
-        if (auto playerTransform = player->GetComponent<TransformComponent>()) {
+        if (auto playerTransform = player->GetComponent<Irufemi::TransformComponent>()) {
             playerPos = playerTransform->GetWorldPosition();
             hasPlayer = true;
         }
@@ -90,7 +90,7 @@ void DroneManagerComponent::Update() {
         // レール追従の走行速度ベクトルを抽出
         auto cart = player->GetParent() ? player->GetParent() : player;
         if (auto follower = cart->GetComponent<SplineFollowerComponent>()) {
-            if (auto cartTransform = cart->GetComponent<TransformComponent>()) {
+            if (auto cartTransform = cart->GetComponent<Irufemi::TransformComponent>()) {
                 railVelocity = cartTransform->GetWorldForward() * follower->GetSpeed();
             }
             // プレイヤーが演出中（負の距離、またはレール速度倍率が0.0f）の場合は戦闘未開戦として射撃を保留
@@ -111,7 +111,7 @@ void DroneManagerComponent::Update() {
     float effectParam = 0.0f;
     bool enableMask = false;
     if (!effectMask_ && gameObject_) {
-        effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
+        effectMask_ = gameObject_->GetComponent<Irufemi::EffectMaskComponent>();
     }
     if (effectMask_) {
         enableMask = effectMask_->GetEnableEffectMask();
@@ -167,7 +167,7 @@ void DroneManagerComponent::Update() {
         }
 
         // 4. 当たり判定（GameObject）のTransform更新（ワールド空間に明示設定）
-        auto t = droneObj->GetComponent<TransformComponent>();
+        auto t = droneObj->GetComponent<Irufemi::TransformComponent>();
         if (t) {
             t->SetWorldPosition(targetPos);
             t->SetWorldRotation(rot);
@@ -206,7 +206,7 @@ void DroneManagerComponent::Update() {
 }
 
 void DroneManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Drone Prefab Path", &dronePrefabPath_).SetPrefabFilter("SphereColliderComponent");
     RegisterProperty("Max Drones", &maxDrones_);
     RegisterPropertyRange("Orbit Radius", &orbitRadius_, 0.0f, 100.0f);
@@ -239,10 +239,10 @@ void DroneManagerComponent::WarmupPool() {
         }
         return obj;
     };
-    dronePool_ = std::make_unique<Irufemi::ObjectPool<GameObject>>(maxDrones_, factory);
+    dronePool_ = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(maxDrones_, factory);
 }
 
-void DroneManagerComponent::DeployDrones(std::weak_ptr<GameObject> boss, int count,
+void DroneManagerComponent::DeployDrones(std::weak_ptr<Irufemi::GameObject> boss, int count,
                                          BossBulletManagerComponent* bulletMgr) {
     if (count <= 0) {
         return;
@@ -263,7 +263,7 @@ void DroneManagerComponent::DeployDrones(std::weak_ptr<GameObject> boss, int cou
     for (int i = 0; i < count; ++i) {
         auto handle = dronePool_->Acquire();
         if (handle.IsValid()) {
-            std::shared_ptr<GameObject> droneObj = dronePool_->Resolve(handle);
+            std::shared_ptr<Irufemi::GameObject> droneObj = dronePool_->Resolve(handle);
             if (droneObj) {
                 droneObj->SetIsActive(true);
                 activeDrones_.push_back({handle, droneObj});

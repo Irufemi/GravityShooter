@@ -4,6 +4,8 @@
 #include <memory>
 #include "Core/Utility/JsonUtility.h"
 
+namespace Irufemi {
+
 /**
  * @class IScreenEffectDriver
  * @brief 個別ポストエフェクトのパラメータ管理・補間・シリアライズを担当する戦略インターフェース (Strategy Pattern)
@@ -153,3 +155,5 @@ class ScreenEffectDriverFactory {
 public:
     static std::unique_ptr<IScreenEffectDriver> CreateDriver(PostProcessMode mode);
 };
+
+} // namespace Irufemi

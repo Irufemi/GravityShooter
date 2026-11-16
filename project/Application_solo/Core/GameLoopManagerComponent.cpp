@@ -115,7 +115,7 @@ bool GameLoopManagerComponent::BindTargets() {
 }
 
 void GameLoopManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Result Time Scale", &timeScaleAtResult_);
     RegisterProperty("Target Player Name", &targetPlayerName_);
     RegisterProperty("Target Boss Name", &targetBossName_);

@@ -10,7 +10,7 @@
 #include <array>
 
 void SceneTransitionButtonComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Load Scene Name", &onClickLoadScene_);
     // 0:Fade, 1:Dissolve, 2:Slide, 3:RadialBlur
     RegisterPropertyRange("Transition Type(0-3)", reinterpret_cast<int*>(&transitionType_), 0, 3);
@@ -21,8 +21,8 @@ void SceneTransitionButtonComponent::OnRegisterProperties() {
 
 void SceneTransitionButtonComponent::OnAwake() {
     if (gameObject_) {
-        button_ = gameObject_->GetComponent<ButtonComponent>();
-        sprite_ = gameObject_->GetComponent<SpriteRendererComponent>();
+        button_ = gameObject_->GetComponent<Irufemi::ButtonComponent>();
+        sprite_ = gameObject_->GetComponent<Irufemi::SpriteRendererComponent>();
     }
 }
 
@@ -76,19 +76,19 @@ void SceneTransitionButtonComponent::Update() {
             isTransitionPending_ = false;
 
             if (!onClickLoadScene_.empty()) {
-                SceneTransition::Type type = SceneTransition::Type::Fade;
+                Irufemi::SceneTransition::Type type = Irufemi::SceneTransition::Type::Fade;
                 switch (transitionType_) {
                 case TransitionType::Fade:
-                    type = SceneTransition::Type::Fade;
+                    type = Irufemi::SceneTransition::Type::Fade;
                     break;
                 case TransitionType::Dissolve:
-                    type = SceneTransition::Type::Dissolve;
+                    type = Irufemi::SceneTransition::Type::Dissolve;
                     break;
                 case TransitionType::Slide:
-                    type = SceneTransition::Type::Slide;
+                    type = Irufemi::SceneTransition::Type::Slide;
                     break;
                 case TransitionType::RadialBlur:
-                    type = SceneTransition::Type::RadialBlur;
+                    type = Irufemi::SceneTransition::Type::RadialBlur;
                     break;
                 }
                 engine->GetSceneManager()->LoadScene(onClickLoadScene_, type, transitionDuration_);

@@ -9,11 +9,11 @@
 #include "Core/Type/PrimitiveType.h"
 #include "Renderer/System/Data/RenderData.h"
 
-class DebugUI;
 class IrufemiEngine;
 
 namespace Irufemi {
 
+class DebugUI;
 class TextureManager;
 class DrawManager;
 struct PrimitiveData;
@@ -386,7 +386,7 @@ public:
      * @brief DebugUI を設定する。
      * @param[in] ui 設定する DebugUI の値
      */
-    static void SetDebugUI(::DebugUI* ui) {
+    static void SetDebugUI(DebugUI* ui) {
         ui_ = ui;
     }
     /**
@@ -415,7 +415,7 @@ private:
     // 静的ポインタ（既存の設計パターンを継承）
     static Irufemi::TextureManager* textureManager_;
     static Irufemi::DrawManager* drawManager_;
-    static ::DebugUI* ui_;
+    static DebugUI* ui_;
     static ::IrufemiEngine* engine_;
 };
 

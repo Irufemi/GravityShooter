@@ -37,7 +37,7 @@ void NebulaSeaFloorComponent::Initialize() {
 }
 
 void NebulaSeaFloorComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Surface Y", &params_.surfaceY);
     RegisterProperty("Rail Speed", &params_.railSpeed);
     RegisterProperty("Volume Depth", &params_.volumeDepth);

@@ -10,7 +10,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 PrimitiveRendererComponent::PrimitiveRendererComponent() {}
 PrimitiveRendererComponent::~PrimitiveRendererComponent() {}
@@ -429,3 +429,6 @@ bool PrimitiveRendererComponent::Raycast(const Irufemi::Ray& ray, float& outDist
 
     return Irufemi::Collision::IsCollision(ray, obb, outDistance);
 }
+
+} // namespace Irufemi
+

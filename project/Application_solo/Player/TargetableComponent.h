@@ -24,7 +24,7 @@ enum class TargetType : uint32_t {
  *          敵や障害物など、ターゲット条件が動的に変化するオブジェクトは SetTargetablePredicate を用いて
  *          ターゲット可否の判定ロジックを登録できます。
  */
-class TargetableComponent : public Component {
+class TargetableComponent : public Irufemi::Component {
 public:
     using TargetablePredicate = std::function<bool()>;
 

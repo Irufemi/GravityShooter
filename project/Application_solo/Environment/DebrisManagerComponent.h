@@ -6,8 +6,8 @@
 #include <queue>
 #include <string>
 
-class GameObject;
-class VirtualEntityManagerComponent;
+namespace Irufemi { class GameObject; }
+namespace Irufemi { class VirtualEntityManagerComponent; }
 class DebrisComponent;
 enum class DebrisState;
 
@@ -21,7 +21,7 @@ struct DebrisAnimData {
  * @class DebrisManagerComponent
  * @brief ガレキの生成・プール管理・検索を行うコンポーネント
  */
-class DebrisManagerComponent : public Component {
+class DebrisManagerComponent : public Irufemi::Component {
 public:
     DebrisManagerComponent() = default;
     ~DebrisManagerComponent() override;
@@ -39,23 +39,23 @@ public:
      * @brief プールからガレキを1つ取り出す
      * @param[in] variationIndex バリエーションインデックス（デフォルト: 0）
      */
-    std::shared_ptr<GameObject> GetDebris(int variationIndex = 0);
+    std::shared_ptr<Irufemi::GameObject> GetDebris(int variationIndex = 0);
 
     /**
      * @brief プールから特定のバリエーションIDのガレキを1つ取り出す
      * @param[in] variationId バリエーションID文字列
      */
-    std::shared_ptr<GameObject> GetDebris(const std::string& variationId);
+    std::shared_ptr<Irufemi::GameObject> GetDebris(const std::string& variationId);
 
     /**
      * @brief ガレキをプールに返却する（即時）
      */
-    void ReleaseDebris(std::shared_ptr<GameObject> debris);
+    void ReleaseDebris(std::shared_ptr<Irufemi::GameObject> debris);
 
     /**
      * @brief ガレキをプール返却キューに積む（Update中の安全な削除用）
      */
-    void MarkForRelease(std::shared_ptr<GameObject> debris);
+    void MarkForRelease(std::shared_ptr<Irufemi::GameObject> debris);
 
     /**
      * @brief 仮想ガレキデータの完全削除をキューに積む（Update中の安全な削除用）
@@ -66,7 +66,7 @@ public:
     void UnregisterDebris(DebrisComponent* debris, DebrisState state);
 
     // プレイヤーからの引き寄せ処理用：指定座標から一番近い未昇格のがれきを実体化して返す
-    std::shared_ptr<GameObject> ExtractNearestIdleDebris(const Irufemi::Vector3& pos, float radius);
+    std::shared_ptr<Irufemi::GameObject> ExtractNearestIdleDebris(const Irufemi::Vector3& pos, float radius);
 
     // 破壊通知
     void NotifyDestroyed(int virtualId, int variationIndex);
@@ -177,10 +177,10 @@ private:
         int maxVirtualCount = 0;
         int maxPoolSize = 0;
         int spawnWeight = 1;
-        VirtualEntityManagerComponent* virtualManager = nullptr;
+        Irufemi::VirtualEntityManagerComponent* virtualManager = nullptr;
         std::vector<DebrisAnimData> animDataList;
         std::queue<int> activeIds;
-        std::shared_ptr<GameObject> poolObject;
+        std::shared_ptr<Irufemi::GameObject> poolObject;
     };
     std::vector<DebrisVariation> variations_;
 
@@ -212,7 +212,7 @@ private:
     float supplyTimer_ = 0.0f;            ///< 補充タイマー
     float recycleBehindDistance_ = 25.0f; ///< 自機後方何メートルで回収するか
 
-    std::vector<std::shared_ptr<GameObject>> pendingReleases_;
+    std::vector<std::shared_ptr<Irufemi::GameObject>> pendingReleases_;
     std::vector<std::pair<int, int>> pendingDestroys_;
 
     void UpdatePulledDebris(float deltaTime);

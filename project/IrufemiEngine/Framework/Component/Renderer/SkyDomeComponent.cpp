@@ -6,7 +6,7 @@
 #include "Core/Math/MathFunction.h"
 #include "Core/Utility/ErrorUtility.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 SkyDomeComponent::~SkyDomeComponent() {
     if (materialResource_ && mappedMaterialData_) {
@@ -145,3 +145,6 @@ void SkyDomeComponent::Deserialize(const nlohmann::json& j) {
     ReloadTexture();
     UpdateMaterialBuffer();
 }
+
+} // namespace Irufemi
+

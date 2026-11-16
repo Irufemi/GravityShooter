@@ -4,7 +4,7 @@
 #include "Core/System/ComponentPool.h"
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // Setters
 void TransformComponent::SetPosition(const Irufemi::Vector3& position) {
@@ -340,3 +340,6 @@ std::shared_ptr<Component> TransformComponent::Clone() {
     // 行列等は初期化後にDirtyフラグ経由で再計算される
     return clone;
 }
+
+} // namespace Irufemi
+

@@ -7,6 +7,8 @@
 #include <mutex>
 #include <cstdint>
 
+namespace Irufemi {
+
 class GameObject;
 
 /**
@@ -96,3 +98,6 @@ private:
     // インスタンスIDインデックス (IDは一意)
     std::unordered_map<uint64_t, std::weak_ptr<GameObject>> idIndex_;
 };
+
+} // namespace Irufemi
+

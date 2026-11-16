@@ -26,7 +26,7 @@ WaveManagerComponent::WaveManagerComponent() {
 }
 
 void WaveManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Level Data Path", &levelDataPath_);
     RegisterGameObjectRef("Target Spline", &targetSplineID_);
     RegisterGameObjectRef("Enemy Spawner", &targetEnemySpawnerID_);
@@ -34,7 +34,7 @@ void WaveManagerComponent::OnRegisterProperties() {
 }
 
 void WaveManagerComponent::Deserialize(const nlohmann::json& j) {
-    Component::Deserialize(j);
+    Irufemi::Component::Deserialize(j);
     ReloadLevelData();
 }
 
@@ -123,7 +123,7 @@ void WaveManagerComponent::PreloadWaveAssets() {
     }
 }
 
-std::shared_ptr<ModelBatchRendererComponent>
+std::shared_ptr<Irufemi::ModelBatchRendererComponent>
 WaveManagerComponent::GetPreviewBatchRenderer(const std::string& modelPath) {
     auto engine = GetEngine();
     if (!engine) {
@@ -133,7 +133,7 @@ WaveManagerComponent::GetPreviewBatchRenderer(const std::string& modelPath) {
     if (currentPreviewModelPath_ != modelPath || !previewBatch_) {
         currentPreviewModelPath_ = modelPath;
         if (!previewBatch_) {
-            previewBatch_ = std::make_shared<ModelBatchRendererComponent>();
+            previewBatch_ = std::make_shared<Irufemi::ModelBatchRendererComponent>();
             previewBatch_->SetGameObject(gameObject_);
             previewBatch_->SetUseGPUCulling(false); // プレビュー用なのでカリング無効化
             previewBatch_->Initialize();
@@ -159,11 +159,11 @@ void WaveManagerComponent::Draw() {
 
         // 1. レールスプラインの取得: インスペクターで設定された Target Spline を唯一の真実（Single Source of
         // Truth）として使用
-        SplineComponent* spline = nullptr;
+        Irufemi::SplineComponent* spline = nullptr;
         if (targetSplineID_ != 0) {
             auto splineObj = scene->FindGameObjectByID(targetSplineID_);
             if (splineObj) {
-                spline = splineObj->GetComponent<SplineComponent>();
+                spline = splineObj->GetComponent<Irufemi::SplineComponent>();
             }
         }
 
@@ -359,15 +359,15 @@ void WaveManagerComponent::CacheSpawnPoints() {
         if (!obj->GetIsActive()) {
             continue;
         }
-        auto sp = obj->GetComponent<SpawnPointComponent>();
+        auto sp = obj->GetComponent<Irufemi::SpawnPointComponent>();
         if (sp) {
             spawnPointsMap_[sp->GetWaveId()].push_back(sp);
         }
     }
 }
 
-const std::vector<SpawnPointComponent*>& WaveManagerComponent::GetSpawnPoints(const std::string& waveId) const {
-    static const std::vector<SpawnPointComponent*> emptyList;
+const std::vector<Irufemi::SpawnPointComponent*>& WaveManagerComponent::GetSpawnPoints(const std::string& waveId) const {
+    static const std::vector<Irufemi::SpawnPointComponent*> emptyList;
     auto it = spawnPointsMap_.find(waveId);
     if (it != spawnPointsMap_.end()) {
         return it->second;

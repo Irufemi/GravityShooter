@@ -24,7 +24,7 @@ ResultManagerComponent::~ResultManagerComponent() {
 }
 
 void ResultManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Result Delay Time", &resultDelayTime_);
     RegisterProperty("Time Scale Reset Delay", &timeScaleResetDelayTime_);
     RegisterProperty("Time Scale Recovery Duration", &timeScaleRecoveryDuration_);
@@ -48,13 +48,13 @@ void ResultManagerComponent::Initialize() {
     if (gameObject_ && gameObject_->GetScene()) {
         auto engine = GetEngine();
         if (engine) {
-            auto bgObj = std::make_shared<GameObject>("Result_DarkBackdrop");
+            auto bgObj = std::make_shared<Irufemi::GameObject>("Result_DarkBackdrop");
             gameObject_->GetScene()->AddGameObject(bgObj);
             Irufemi::Vector2 gameRes = engine->GetGameResolution();
             if (auto t = bgObj->GetTransform()) {
                 t->SetPosition({gameRes.x * 0.5f, gameRes.y * 0.5f, 5.0f});
             }
-            auto sprite = bgObj->AddComponent<SpriteRendererComponent>();
+            auto sprite = bgObj->AddComponent<Irufemi::SpriteRendererComponent>();
             if (sprite) {
                 sprite->SetBaseSize(gameRes);
                 sprite->SetAnchor({0.5f, 0.5f});
@@ -66,9 +66,9 @@ void ResultManagerComponent::Initialize() {
     }
 
     // 2. 自分自身のGameObjectに TextRendererComponent を追加（または既存のものを取得）
-    auto text = gameObject_->GetComponent<TextRendererComponent>();
+    auto text = gameObject_->GetComponent<Irufemi::TextRendererComponent>();
     if (!text) {
-        text = gameObject_->AddComponent<TextRendererComponent>().get();
+        text = gameObject_->AddComponent<Irufemi::TextRendererComponent>().get();
     }
 
     // ResultScene に渡された静的フラグを使って表示文字を決定
@@ -83,13 +83,13 @@ void ResultManagerComponent::Initialize() {
 
     // 3. "Press SPACE to Return" 用のテキストオブジェクトを事前に生成し非アクティブ化
     if (gameObject_ && gameObject_->GetScene()) {
-        auto uiObj = std::make_shared<GameObject>("ReturnText");
+        auto uiObj = std::make_shared<Irufemi::GameObject>("ReturnText");
         gameObject_->GetScene()->AddGameObject(uiObj);
         if (auto t = uiObj->GetTransform()) {
             t->SetPosition({640.0f, 635.0f, 0.0f});
         }
 
-        auto returnText = uiObj->AddComponent<TextRendererComponent>().get();
+        auto returnText = uiObj->AddComponent<Irufemi::TextRendererComponent>().get();
         returnText->SetFontId(fontId_);
         returnText->SetText(L"Press SPACE / A to Return");
         returnText->SetBaseScale(18.0f);
@@ -124,14 +124,14 @@ void ResultManagerComponent::Update() {
     UpdateEntryPostProcess(enterProgress);
 
     if (auto bgObj = darkBackdropObj_.lock()) {
-        if (auto sprite = bgObj->GetComponent<SpriteRendererComponent>()) {
+        if (auto sprite = bgObj->GetComponent<Irufemi::SpriteRendererComponent>()) {
             float bgAlpha = 0.78f * (enterProgress * enterProgress);
             sprite->SetColor({0.02f, 0.03f, 0.05f, bgAlpha});
         }
     }
 
     // タイトル文字のスケールスナップ演出 (1.35 -> 1.0)
-    if (auto text = gameObject_->GetComponent<TextRendererComponent>()) {
+    if (auto text = gameObject_->GetComponent<Irufemi::TextRendererComponent>()) {
         float scaleProgress = std::clamp(timer_ / 0.40f, 0.0f, 1.0f);
         float scaleOffset = 0.35f * std::pow(1.0f - scaleProgress, 3.0f);
         text->SetBaseScale(baseTitleScale_ * (1.0f + scaleOffset));
@@ -175,7 +175,7 @@ void ResultManagerComponent::Update() {
     // ガイドテキストの呼吸点滅 (Pulse)
     if (canReturnToTitle_ && !isExiting_) {
         if (auto uiObj = pressSpaceObj_.lock()) {
-            if (auto returnText = uiObj->GetComponent<TextRendererComponent>()) {
+            if (auto returnText = uiObj->GetComponent<Irufemi::TextRendererComponent>()) {
                 float pulse = 0.5f + 0.5f * std::sin((timer_ - resultDelayTime_) * 4.5f);
                 returnText->SetColor({0.85f, 0.9f, 1.0f, 0.35f + 0.65f * pulse});
             }
@@ -203,7 +203,7 @@ void ResultManagerComponent::Update() {
             }
 
             // 重力歪曲（RadialBlur）でタイトルへ帰還 (世界観に合致した重力シアンブラック指定)
-            engine->GetSceneManager()->TransitionTo(nextSceneName_, SceneTransition::Type::RadialBlur, 0.8f,
+            engine->GetSceneManager()->TransitionTo(nextSceneName_, Irufemi::SceneTransition::Type::RadialBlur, 0.8f,
                                                     EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         }
     }
@@ -242,7 +242,7 @@ void ResultManagerComponent::SetupStatsUI() {
     // =========================================================================
     // 大手AAA基準: 親パネルコンテナの生成（中心: 640.0f, 355.0f）
     // =========================================================================
-    auto panelContainer = std::make_shared<GameObject>("Result_PanelContainer");
+    auto panelContainer = std::make_shared<Irufemi::GameObject>("Result_PanelContainer");
     scene->AddGameObject(panelContainer);
     if (auto t = panelContainer->GetTransform()) {
         t->SetPosition({640.0f, 375.0f, 0.0f});
@@ -260,13 +260,13 @@ void ResultManagerComponent::SetupStatsUI() {
 
     // 1. 半透明ダークネイビー・バックプレート (Z: 2.0f)
     {
-        auto plateObj = std::make_shared<GameObject>("Panel_Backplate");
+        auto plateObj = std::make_shared<Irufemi::GameObject>("Panel_Backplate");
         scene->AddGameObject(plateObj);
         panelContainer->AddChild(plateObj);
         if (auto t = plateObj->GetTransform()) {
             t->SetPosition({0.0f, 0.0f, 2.0f});
         }
-        auto sprite = plateObj->AddComponent<SpriteRendererComponent>();
+        auto sprite = plateObj->AddComponent<Irufemi::SpriteRendererComponent>();
         sprite->SetBaseSize({panelW, panelH});
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor({0.02f, 0.04f, 0.07f, 0.0f}); // 初期非表示
@@ -277,13 +277,13 @@ void ResultManagerComponent::SetupStatsUI() {
     // 2. 上下ネオンシアン・アクセントボーダー (厚さ 2px, Z: 1.5f)
     auto createLine = [&](const std::string& name, float localY, float width, float height,
                           const Irufemi::Vector4& color, float baseAlpha) {
-        auto lineObj = std::make_shared<GameObject>(name);
+        auto lineObj = std::make_shared<Irufemi::GameObject>(name);
         scene->AddGameObject(lineObj);
         panelContainer->AddChild(lineObj);
         if (auto t = lineObj->GetTransform()) {
             t->SetPosition({0.0f, localY, 1.5f});
         }
-        auto sprite = lineObj->AddComponent<SpriteRendererComponent>();
+        auto sprite = lineObj->AddComponent<Irufemi::SpriteRendererComponent>();
         sprite->SetBaseSize({width, height});
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor({color.x, color.y, color.z, 0.0f});
@@ -298,13 +298,13 @@ void ResultManagerComponent::SetupStatsUI() {
 
     // 3. 四隅のL字コーナーブラケット (Corner Brackets, 各20px x 2px)
     auto createBracket = [&](const std::string& name, float posX, float posY, float w, float h) {
-        auto bObj = std::make_shared<GameObject>(name);
+        auto bObj = std::make_shared<Irufemi::GameObject>(name);
         scene->AddGameObject(bObj);
         panelContainer->AddChild(bObj);
         if (auto t = bObj->GetTransform()) {
             t->SetPosition({posX, posY, 1.5f});
         }
-        auto sprite = bObj->AddComponent<SpriteRendererComponent>();
+        auto sprite = bObj->AddComponent<Irufemi::SpriteRendererComponent>();
         sprite->SetBaseSize({w, h});
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor({0.40f, 0.95f, 1.00f, 0.0f});
@@ -331,13 +331,13 @@ void ResultManagerComponent::SetupStatsUI() {
     // 4. ヘッダー装飾テキスト (SF端末記号論)
     auto createHeaderTxt = [&](const std::string& name, const std::wstring& str, float posX, float posY,
                                TextAlignment align, const Irufemi::Vector4& col, float baseAlpha) {
-        auto obj = std::make_shared<GameObject>(name);
+        auto obj = std::make_shared<Irufemi::GameObject>(name);
         scene->AddGameObject(obj);
         panelContainer->AddChild(obj);
         if (auto t = obj->GetTransform()) {
             t->SetPosition({posX, posY, 0.0f});
         }
-        auto text = obj->AddComponent<TextRendererComponent>();
+        auto text = obj->AddComponent<Irufemi::TextRendererComponent>();
         text->SetFontId(fontId_);
         text->SetText(str);
         text->SetBaseScale(13.0f);
@@ -388,13 +388,13 @@ void ResultManagerComponent::SetupStatsUI() {
         float y = startLocalY + static_cast<float>(i) * stepLocalY;
 
         // ラベル列 (左揃え ローカル X: -halfW + 35)
-        auto labelObj = std::make_shared<GameObject>("StatLabel_" + std::to_string(i));
+        auto labelObj = std::make_shared<Irufemi::GameObject>("StatLabel_" + std::to_string(i));
         scene->AddGameObject(labelObj);
         panelContainer->AddChild(labelObj);
         if (auto t = labelObj->GetTransform()) {
             t->SetPosition({-halfW + 35.0f, y, 0.0f});
         }
-        auto labelText = labelObj->AddComponent<TextRendererComponent>();
+        auto labelText = labelObj->AddComponent<Irufemi::TextRendererComponent>();
         labelText->SetFontId(fontId_);
         labelText->SetText(rows[i].label);
         labelText->SetBaseScale(17.0f);
@@ -404,13 +404,13 @@ void ResultManagerComponent::SetupStatsUI() {
         labelObj->Initialize();
 
         // 値列 (右揃え ローカル X: halfW - 35)
-        auto valObj = std::make_shared<GameObject>("StatVal_" + std::to_string(i));
+        auto valObj = std::make_shared<Irufemi::GameObject>("StatVal_" + std::to_string(i));
         scene->AddGameObject(valObj);
         panelContainer->AddChild(valObj);
         if (auto t = valObj->GetTransform()) {
             t->SetPosition({halfW - 35.0f, y, 0.0f});
         }
-        auto valText = valObj->AddComponent<TextRendererComponent>();
+        auto valText = valObj->AddComponent<Irufemi::TextRendererComponent>();
         valText->SetFontId(fontId_);
         valText->SetText(rows[i].value);
         valText->SetBaseScale(19.0f);
@@ -423,13 +423,13 @@ void ResultManagerComponent::SetupStatsUI() {
     }
 
     // 6. ランクスタンプUI (ローカル中央 Y: 120.0f)
-    auto rankObj = std::make_shared<GameObject>("RankStampText");
+    auto rankObj = std::make_shared<Irufemi::GameObject>("RankStampText");
     scene->AddGameObject(rankObj);
     panelContainer->AddChild(rankObj);
     if (auto t = rankObj->GetTransform()) {
         t->SetPosition({0.0f, 120.0f, 0.0f});
     }
-    auto rankText = rankObj->AddComponent<TextRendererComponent>();
+    auto rankText = rankObj->AddComponent<Irufemi::TextRendererComponent>();
     rankText->SetFontId(fontId_);
     rankText->SetText(rankText_);
     rankText->SetBaseScale(46.0f);
@@ -481,12 +481,12 @@ void ResultManagerComponent::UpdateStatsRoll(float dt) {
             float rowAlpha = std::clamp((progress - rowThreshold) / 0.20f, 0.0f, 1.0f);
 
             if (auto label = statRows_[i].labelObj.lock()) {
-                if (auto text = label->GetComponent<TextRendererComponent>()) {
+                if (auto text = label->GetComponent<Irufemi::TextRendererComponent>()) {
                     text->SetColor({0.65f, 0.72f, 0.85f, rowAlpha});
                 }
             }
             if (auto val = statRows_[i].valueObj.lock()) {
-                if (auto text = val->GetComponent<TextRendererComponent>()) {
+                if (auto text = val->GetComponent<Irufemi::TextRendererComponent>()) {
                     text->SetColor({0.35f, 0.92f, 1.0f, rowAlpha});
                 }
             }
@@ -510,7 +510,7 @@ void ResultManagerComponent::UpdateStatsRoll(float dt) {
         float alpha = std::clamp(phaseTimer_ / 0.08f, 0.0f, 1.0f);
 
         if (auto rankObj = rankValueObj_.lock()) {
-            if (auto text = rankObj->GetComponent<TextRendererComponent>()) {
+            if (auto text = rankObj->GetComponent<Irufemi::TextRendererComponent>()) {
                 text->SetBaseScale(46.0f * (1.0f + scaleOffset));
                 text->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, alpha});
             }
@@ -532,7 +532,7 @@ void ResultManagerComponent::TriggerRankStamp() {
         SoundHelper::Play(GameSE::RankStamp);
     }
     if (auto rankObj = rankValueObj_.lock()) {
-        if (auto text = rankObj->GetComponent<TextRendererComponent>()) {
+        if (auto text = rankObj->GetComponent<Irufemi::TextRendererComponent>()) {
             text->SetBaseScale(46.0f * 2.0f);
             text->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, 1.0f});
         }
@@ -562,12 +562,12 @@ void ResultManagerComponent::SkipToReady() {
     // 全行をアルファ1.0で表示
     for (size_t i = 0; i < statRows_.size(); ++i) {
         if (auto label = statRows_[i].labelObj.lock()) {
-            if (auto text = label->GetComponent<TextRendererComponent>()) {
+            if (auto text = label->GetComponent<Irufemi::TextRendererComponent>()) {
                 text->SetColor({0.65f, 0.72f, 0.85f, 1.0f});
             }
         }
         if (auto val = statRows_[i].valueObj.lock()) {
-            if (auto text = val->GetComponent<TextRendererComponent>()) {
+            if (auto text = val->GetComponent<Irufemi::TextRendererComponent>()) {
                 text->SetColor({0.35f, 0.92f, 1.0f, 1.0f});
             }
         }
@@ -579,7 +579,7 @@ void ResultManagerComponent::SkipToReady() {
         SoundHelper::Play(GameSE::RankStamp);
     }
     if (auto rankObj = rankValueObj_.lock()) {
-        if (auto text = rankObj->GetComponent<TextRendererComponent>()) {
+        if (auto text = rankObj->GetComponent<Irufemi::TextRendererComponent>()) {
             text->SetBaseScale(46.0f);
             text->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, 1.0f});
         }

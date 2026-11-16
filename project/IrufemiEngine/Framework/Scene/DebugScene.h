@@ -23,6 +23,10 @@
 // 前方宣言
 class IrufemiEngine;
 
+namespace Irufemi {
+
+using ::IrufemiEngine;
+
 /**
  * @class DebugScene
  * @brief 各種オブジェクト（2D、3D、パーティクルなど）の描画テストや、機能の実装例を確認するためのシーン
@@ -136,3 +140,6 @@ private: // メンバ変数(システム)
     ImGuizmo::MODE gizmoMode_ = ImGuizmo::LOCAL;
 #endif
 };
+
+} // namespace Irufemi
+

@@ -51,7 +51,7 @@ void EffectManagerComponent::Start() {
     }
 }
 
-Irufemi::ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::string& effectKey,
+Irufemi::ObjectPool<Irufemi::GameObject>* EffectManagerComponent::GetOrCreatePool(const std::string& effectKey,
                                                                 const std::string& prefabPath) {
     auto it = effectPools_.find(effectKey);
     if (it != effectPools_.end()) {
@@ -62,7 +62,7 @@ Irufemi::ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const s
     }
 
     int poolCapacity = (effectKey == "Hit") ? maxHitEffects_ : maxDustEffects_;
-    auto pool = std::make_unique<Irufemi::ObjectPool<GameObject>>(poolCapacity, [this, prefabPath]() {
+    auto pool = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(poolCapacity, [this, prefabPath]() {
         // makeChild = true でマネージャーの子として生成し、ルート直置きを解消
         auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
         if (obj) {
@@ -71,19 +71,19 @@ Irufemi::ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const s
             obj->SetIsActive(false);       // Removeせずに非アクティブ状態で休眠させる
 
             // 寿命コンポーネントがあれば、プール運用のためにDestroyではなくDisableに変更する
-            if (auto lifetime = obj->GetComponent<LifetimeComponent>()) {
-                lifetime->SetTimeoutAction(TimeoutAction::Disable);
+            if (auto lifetime = obj->GetComponent<Irufemi::LifetimeComponent>()) {
+                lifetime->SetTimeoutAction(Irufemi::TimeoutAction::Disable);
             }
 
             // GPUパーティクルエミッターを先行初期化
-            for (auto pe : obj->GetComponentsInChildren<ParticleEmitterComponent>()) {
+            for (auto pe : obj->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>()) {
                 if (pe) {
                     pe->OnAwake();
                 }
             }
 
             // プール内のボクセルパーティクルコンポーネントを事前にウォームアップ（初回の破砕ヒッチを防止）
-            auto voxelEmitters = obj->GetComponentsInChildren<VoxelParticleComponent>();
+            auto voxelEmitters = obj->GetComponentsInChildren<Irufemi::VoxelParticleComponent>();
             for (auto ve : voxelEmitters) {
                 if (ve) {
                     ve->Start();
@@ -132,7 +132,7 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
         return;
     }
 
-    Irufemi::ObjectPool<GameObject>* targetPool = GetOrCreatePool(effectKey, it->second);
+    Irufemi::ObjectPool<Irufemi::GameObject>* targetPool = GetOrCreatePool(effectKey, it->second);
     if (targetPool) {
         auto handle = targetPool->Acquire();
 
@@ -157,24 +157,24 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
         if (handle.IsValid()) {
             auto obj = targetPool->Resolve(handle);
             if (obj) {
-                if (auto t = obj->GetComponent<TransformComponent>()) {
+                if (auto t = obj->GetComponent<Irufemi::TransformComponent>()) {
                     t->SetWorldPosition(worldPosition);
                 }
 
                 // アクティブ化して LifetimeComponent のタイマーをリセットする
                 obj->SetIsActive(true);
-                if (auto lifetime = obj->GetComponent<LifetimeComponent>()) {
+                if (auto lifetime = obj->GetComponent<Irufemi::LifetimeComponent>()) {
                     lifetime->Initialize();
                 }
 
                 // ツリー全体からすべての ParticleEmitterComponent を取得して再発火させる
-                auto emitters = obj->GetComponentsInChildren<ParticleEmitterComponent>();
+                auto emitters = obj->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
                 for (auto pe : emitters) {
                     pe->Restart(false);
                 }
 
                 // ツリー全体からすべての VoxelParticleComponent を取得して爆発させる
-                auto voxelEmitters = obj->GetComponentsInChildren<VoxelParticleComponent>();
+                auto voxelEmitters = obj->GetComponentsInChildren<Irufemi::VoxelParticleComponent>();
                 for (auto ve : voxelEmitters) {
                     ve->Explode();
                 }
@@ -185,8 +185,8 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
     }
 }
 
-std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(const std::string& effectKey,
-                                                                       std::shared_ptr<GameObject> parent,
+std::shared_ptr<Irufemi::GameObject> EffectManagerComponent::PlayAttachedEffect(const std::string& effectKey,
+                                                                       std::shared_ptr<Irufemi::GameObject> parent,
                                                                        const Irufemi::Vector3& localOffset) {
     if (!parent) {
         return nullptr;
@@ -205,12 +205,12 @@ std::shared_ptr<GameObject> EffectManagerComponent::PlayAttachedEffect(const std
         effectObj->SetIsActive(true);
 
         // 親（自機）の現在位置を即座に反映してTransform行列を最新化
-        if (auto t = effectObj->GetComponent<TransformComponent>()) {
+        if (auto t = effectObj->GetComponent<Irufemi::TransformComponent>()) {
             t->CheckAndComputeMatrix();
         }
 
         // 最新のワールド座標でパーティクルエミッターを安全に起動
-        auto emitters = effectObj->GetComponentsInChildren<ParticleEmitterComponent>();
+        auto emitters = effectObj->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
         for (auto pe : emitters) {
             pe->Restart(false);
         }

@@ -8,7 +8,7 @@ class IrufemiEngine;
  * @class TitleScene
  * @brief タイトル画面を管理するクラス
  */
-class TitleScene : public BaseScene {
+class TitleScene : public Irufemi::BaseScene {
 public: // メンバ関数(システム)
     ~TitleScene() override;
 

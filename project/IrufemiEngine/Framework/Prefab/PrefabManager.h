@@ -8,6 +8,8 @@
 
 #include "Core/Utility/Synchronized.h"
 
+namespace Irufemi {
+
 class GameObject;
 
 /**
@@ -57,3 +59,6 @@ private:
     };
     Irufemi::Synchronized<PrefabCacheData> cache_;
 };
+
+} // namespace Irufemi
+

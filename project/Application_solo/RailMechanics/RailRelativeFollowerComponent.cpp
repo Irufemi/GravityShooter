@@ -9,7 +9,7 @@
 #include <cmath>
 
 void RailRelativeFollowerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterGameObjectRef("Target Object", &targetObjectID_);
     RegisterProperty("Distance Offset", &distanceOffset_);
     RegisterProperty("Local Offset X", &localOffset_.x);

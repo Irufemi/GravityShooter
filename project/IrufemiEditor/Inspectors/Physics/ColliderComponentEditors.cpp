@@ -10,6 +10,8 @@
 #include "Commands/EditorActionManager.h"
 #include "Commands/EditorCommands.h"
 
+using namespace Irufemi;
+
 void AABBColliderComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<AABBColliderComponent*>(component);
     ImGui::PushID(comp);

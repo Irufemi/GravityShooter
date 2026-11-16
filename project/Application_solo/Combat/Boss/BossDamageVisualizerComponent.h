@@ -3,14 +3,14 @@
 #include <memory>
 
 class BossComponent;
-class GameObject;
-class CameraShakeComponent;
+namespace Irufemi { class GameObject; }
+namespace Irufemi { class CameraShakeComponent; }
 
 /**
  * @class BossDamageVisualizerComponent
  * @brief ボスの被弾演出（カメラシェイク）および撃破演出を管理するコンポーネント
  */
-class BossDamageVisualizerComponent : public Component {
+class BossDamageVisualizerComponent : public Irufemi::Component {
 public:
     BossDamageVisualizerComponent() = default;
     ~BossDamageVisualizerComponent() override;
@@ -148,12 +148,12 @@ private:
     /**
      * @brief メインカメラのゲームオブジェクトを取得する（弱参照キャッシュ付き）
      */
-    std::shared_ptr<GameObject> GetMainCamera() const;
+    std::shared_ptr<Irufemi::GameObject> GetMainCamera() const;
 
     /**
-     * @brief メインカメラの CameraShakeComponent を取得する
+     * @brief メインカメラの Irufemi::CameraShakeComponent を取得する
      */
-    CameraShakeComponent* GetCameraShake() const;
+    Irufemi::CameraShakeComponent* GetCameraShake() const;
 
     /**
      * @brief 登録済みのイベントリスナーを解除する
@@ -162,7 +162,7 @@ private:
 
 private:
     BossComponent* bossComp_ = nullptr;
-    mutable std::weak_ptr<GameObject> mainCameraObj_;
+    mutable std::weak_ptr<Irufemi::GameObject> mainCameraObj_;
 
     uint32_t damageListenerId_ = 0;
     uint32_t deathListenerId_ = 0;

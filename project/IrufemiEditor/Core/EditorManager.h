@@ -8,10 +8,11 @@
 #include "Core/System/IEngineExtension.h"
 
 class IrufemiEngine;
-class GameObject;
 namespace Irufemi {
+class GameObject;
 class Camera;
 }
+using Irufemi::GameObject;
 class IEditorPanel;
 class EditorActionManager;
 class EditorShortcutManager;

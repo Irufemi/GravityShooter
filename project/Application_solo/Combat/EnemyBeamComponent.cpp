@@ -161,7 +161,7 @@ Irufemi::Vector3 EnemyBeamComponent::GetCurrentMuzzlePosition() const {
     return startPos_;
 }
 
-GameObject* EnemyBeamComponent::GetPlayerObject() {
+Irufemi::GameObject* EnemyBeamComponent::GetPlayerObject() {
     auto cached = playerObj_.lock();
     if (cached && cached->GetIsActive()) {
         return cached.get();
@@ -189,7 +189,7 @@ void EnemyBeamComponent::CheckBeamCollision() {
     if (!health || health->IsDead() || health->IsInvincible()) {
         return;
     }
-    auto playerTransform = player->GetComponent<TransformComponent>();
+    auto playerTransform = player->GetComponent<Irufemi::TransformComponent>();
     if (!playerTransform) {
         return;
     }
@@ -240,7 +240,7 @@ void EnemyBeamComponent::CheckBeamCollision() {
             mainCameraObj_ = cam;
         }
         if (cam) {
-            if (auto shake = cam->GetComponent<CameraShakeComponent>()) {
+            if (auto shake = cam->GetComponent<Irufemi::CameraShakeComponent>()) {
                 shake->PlayShake(2.0f, 25);
             }
         }
@@ -306,7 +306,7 @@ void EnemyBeamComponent::Draw() {
     currentState_->OnDraw(*this, frameIndex);
 }
 
-std::shared_ptr<Component> EnemyBeamComponent::Clone() {
+std::shared_ptr<Irufemi::Component> EnemyBeamComponent::Clone() {
     auto clone = std::make_shared<EnemyBeamComponent>();
     clone->CopyPropertiesFrom(this);
     clone->config_ = this->config_;

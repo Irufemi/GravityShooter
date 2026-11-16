@@ -6,10 +6,10 @@
 #include <memory>
 #include <vector>
 
-class SpriteRendererComponent;
-class TextRendererComponent;
+namespace Irufemi { class SpriteRendererComponent; }
+namespace Irufemi { class TextRendererComponent; }
 
-class ResultManagerComponent : public Component {
+class ResultManagerComponent : public Irufemi::Component {
 public:
     ResultManagerComponent() = default;
     ~ResultManagerComponent() override;
@@ -48,8 +48,8 @@ private:
     bool isPostProcessActive_ = false;
     bool hasWhiteFlash_ = false;
 
-    std::weak_ptr<GameObject> darkBackdropObj_;
-    std::weak_ptr<GameObject> pressSpaceObj_;
+    std::weak_ptr<Irufemi::GameObject> darkBackdropObj_;
+    std::weak_ptr<Irufemi::GameObject> pressSpaceObj_;
 
     // --- リザルト集計・統計＆ランク演出用 ---
     enum class ResultPhase {
@@ -71,24 +71,24 @@ private:
 
     // 統計行UIのGameObject保持
     struct StatRowUI {
-        std::weak_ptr<GameObject> labelObj;
-        std::weak_ptr<GameObject> valueObj;
+        std::weak_ptr<Irufemi::GameObject> labelObj;
+        std::weak_ptr<Irufemi::GameObject> valueObj;
         std::wstring targetValueStr;
     };
     std::vector<StatRowUI> statRows_;
-    std::weak_ptr<GameObject> rankLabelObj_;
-    std::weak_ptr<GameObject> rankValueObj_;
+    std::weak_ptr<Irufemi::GameObject> rankLabelObj_;
+    std::weak_ptr<Irufemi::GameObject> rankValueObj_;
 
     // 大手AAA基準: パネル階層コンテナ＆装飾オブジェクト
-    std::weak_ptr<GameObject> panelContainerObj_;
+    std::weak_ptr<Irufemi::GameObject> panelContainerObj_;
     struct DecorSpriteUI {
-        std::weak_ptr<SpriteRendererComponent> sprite;
+        std::weak_ptr<Irufemi::SpriteRendererComponent> sprite;
         float baseAlpha = 1.0f;
     };
     std::vector<DecorSpriteUI> panelDecorSprites_;
 
     struct DecorTextUI {
-        std::weak_ptr<TextRendererComponent> text;
+        std::weak_ptr<Irufemi::TextRendererComponent> text;
         float baseAlpha = 1.0f;
     };
     std::vector<DecorTextUI> panelDecorTexts_;

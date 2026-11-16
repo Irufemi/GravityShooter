@@ -10,7 +10,7 @@
 #include "Resource/Model/Data/SkeletonPose.h"
 #include <cmath>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 namespace {
 /**
@@ -257,3 +257,6 @@ void SkeletonDebugRendererComponent::OnRegisterProperties() {
         .SetTooltip("Scale multiplier for the local XYZ axes (dynamically scaled by bone length)")
         .SetMinMax(0.01f, 5.0f);
 }
+
+} // namespace Irufemi
+

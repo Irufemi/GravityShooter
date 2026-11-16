@@ -19,7 +19,7 @@ void EnemyAttackStrategyNormal::UpdateCombat(RailShooterEnemyComponent* enemy, f
     enemy->SetShootTimer(shootTimer_);
 
     if (shootTimer_ <= 0.0f) {
-        GameObject* playerObj = enemy->GetPlayerObject();
+        Irufemi::GameObject* playerObj = enemy->GetPlayerObject();
         if (playerObj && playerObj->GetTransform()) {
             Irufemi::Vector3 playerPos = playerObj->GetTransform()->GetWorldPosition();
             enemy->ShootAtPlayer(playerPos);

@@ -23,7 +23,7 @@ namespace Irufemi {
 // 静的メンバの初期化
 TextureManager* Primitive3DObject::textureManager_ = nullptr;
 DrawManager* Primitive3DObject::drawManager_ = nullptr;
-::DebugUI* Primitive3DObject::ui_ = nullptr;
+DebugUI* Primitive3DObject::ui_ = nullptr;
 ::IrufemiEngine* Primitive3DObject::engine_ = nullptr;
 
 // --- Primitive3DObject ---

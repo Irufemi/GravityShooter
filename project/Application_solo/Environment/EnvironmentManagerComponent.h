@@ -9,7 +9,7 @@
 
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 
 /**
  * @class EnvironmentManagerComponent
@@ -17,7 +17,7 @@ class GameObject;
  * @details JSONプレハブを読み込み、シーンの初期化時に指定された座標へ一括でスポーンさせる役割を持つ。
  * 将来的にはデータ駆動による配置や、インスタンシング描画への移行を想定している。
  */
-class EnvironmentManagerComponent : public Component {
+class EnvironmentManagerComponent : public Irufemi::Component {
 public:
     EnvironmentManagerComponent() = default;
     ~EnvironmentManagerComponent() override = default;
@@ -37,7 +37,7 @@ public:
 
 private:
     struct SpawnedEnvInfo {
-        std::weak_ptr<GameObject> obj;
+        std::weak_ptr<Irufemi::GameObject> obj;
         std::string prefabPath;
         Irufemi::Vector3 originalPos;
         Irufemi::Vector3 originalRot;
@@ -63,12 +63,12 @@ private:
     std::list<BatchCollisionSetting> batchCollisionSettings_;
 
     // モデルごとのバッチレンダラー（GameObjectにアタッチされたコンポーネントの共有参照）
-    std::unordered_map<std::string, std::shared_ptr<ModelBatchRendererComponent>> batchRenderers_;
+    std::unordered_map<std::string, std::shared_ptr<Irufemi::ModelBatchRendererComponent>> batchRenderers_;
 
     /**
      * @brief 指定モデルのバッチレンダラーを取得（未生成なら生成して初期化・キャッシュ）
      * @param modelName 3Dモデル名
      * @return バッチレンダラーへのポインタ（生成失敗時は nullptr）
      */
-    ModelBatchRendererComponent* GetOrCreateBatchRenderer(const std::string& modelName);
+    Irufemi::ModelBatchRendererComponent* GetOrCreateBatchRenderer(const std::string& modelName);
 };

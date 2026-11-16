@@ -7,13 +7,13 @@
 #include <memory>
 #include "Core/Utility/ObjectPool.h"
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 
 /**
  * @brief 演出（エフェクト）のPrefabを一元管理し、再生（Instantiate または Poolからの取得）を行うマネージャー。
  *        シーン内に1つだけ配置されることを想定。
  */
-class EffectManagerComponent : public Component {
+class EffectManagerComponent : public Irufemi::Component {
 public:
     EffectManagerComponent();
     ~EffectManagerComponent() override = default;
@@ -46,11 +46,11 @@ public:
      * @brief 指定したGameObjectの子としてエフェクトをアタッチし、親の移動・3軸回転に自動追従させる (Niagara
      * SpawnAttached方式)
      * @param effectKey エフェクトプレハブの識別キー ("Thruster" 等)
-     * @param parent 追従先の親GameObject (自機、敵戦闘機等)
+     * @param parent 追従先の親Irufemi::GameObject (自機、敵戦闘機等)
      * @param localOffset 親ローカル空間での配置オフセット
      * @return 生成されたエフェクトGameObjectへの共有ポインタ
      */
-    std::shared_ptr<GameObject> PlayAttachedEffect(const std::string& effectKey, std::shared_ptr<GameObject> parent,
+    std::shared_ptr<Irufemi::GameObject> PlayAttachedEffect(const std::string& effectKey, std::shared_ptr<Irufemi::GameObject> parent,
                                                    const Irufemi::Vector3& localOffset = {0.0f, 0.0f, 0.0f});
 
 private:
@@ -69,15 +69,15 @@ private:
      * @param prefabPath プレハブパス
      * @return エフェクトプールへの生ポインタ
      */
-    Irufemi::ObjectPool<GameObject>* GetOrCreatePool(const std::string& effectKey, const std::string& prefabPath);
+    Irufemi::ObjectPool<Irufemi::GameObject>* GetOrCreatePool(const std::string& effectKey, const std::string& prefabPath);
 
     int maxHitEffects_ = 50;
     int maxDustEffects_ = 50;
     float effectDuration_ = 2.0f; // エフェクトの生存時間
-    std::unordered_map<std::string, std::unique_ptr<Irufemi::ObjectPool<GameObject>>> effectPools_;
+    std::unordered_map<std::string, std::unique_ptr<Irufemi::ObjectPool<Irufemi::GameObject>>> effectPools_;
 
     struct ActiveEffect {
-        Irufemi::ObjectPool<GameObject>::Handle handle;
+        Irufemi::ObjectPool<Irufemi::GameObject>::Handle handle;
         float timer;
         std::string effectKey;
     };

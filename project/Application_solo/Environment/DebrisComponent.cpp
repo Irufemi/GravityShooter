@@ -123,7 +123,7 @@ void DebrisComponent::DestroyAsShield() {
     }
 }
 
-void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
+void DebrisComponent::OnCollisionEnter(Irufemi::GameObject* otherObj) {
     if (state_ != DebrisState::Thrown) {
         return;
     }
@@ -141,7 +141,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
     // 2. 自機レイヤー（Player）に属するオブジェクト（自機パーツ・コライダー）との衝突も完全に除外
     if (auto engine = GetEngine()) {
         if (auto cm = engine->GetCollisionManager()) {
-            if (auto otherCol = otherObj->GetComponent<ColliderComponent>()) {
+            if (auto otherCol = otherObj->GetComponent<Irufemi::ColliderComponent>()) {
                 uint32_t playerMask = cm->GetLayerMask("Player");
                 if ((otherCol->GetLayer() & playerMask) != 0) {
                     return;
@@ -176,7 +176,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
         }
         damageable->TakeDamage(damage);
         hit = true;
-    } else if (auto collider = otherObj ? otherObj->GetComponent<ColliderComponent>() : nullptr) {
+    } else if (auto collider = otherObj ? otherObj->GetComponent<Irufemi::ColliderComponent>() : nullptr) {
         auto cm = GetEngine() ? GetEngine()->GetCollisionManager() : nullptr;
         // 建造物（Environmentレイヤー）との衝突検知
         // 衝突した場合は破砕エフェクトを再生し、プールへ返却（回収）する
@@ -199,7 +199,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
             // 【Juice】衝突のインパクトを演出するカメラシェイク
             if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
                 if (auto mainCam = scene->FindGameObject("MainCamera")) {
-                    if (auto shake = mainCam->GetComponent<CameraShakeComponent>()) {
+                    if (auto shake = mainCam->GetComponent<Irufemi::CameraShakeComponent>()) {
                         shake->PlayShake(GetCameraShakeIntensity(), GetCameraShakeDurationFrames());
                     }
                 }
@@ -285,7 +285,7 @@ void DebrisComponent::UpdateAuraVisuals() {
 
             child->SetIsActive(isActive);
 
-            if (auto auraModel = child->GetComponent<PrimitiveRendererComponent>()) {
+            if (auto auraModel = child->GetComponent<Irufemi::PrimitiveRendererComponent>()) {
                 if (auto primitive = dynamic_cast<Irufemi::Primitive3DObject*>(auraModel->GetRenderable())) {
                     primitive->SetColor(auraColor);
                 }
@@ -311,7 +311,7 @@ void DebrisComponent::ResetForPool() {
     ResetHitAuthority();
     UpdateAuraVisuals();
 
-    if (auto collider = gameObject_ ? gameObject_->GetComponent<ColliderComponent>() : nullptr) {
+    if (auto collider = gameObject_ ? gameObject_->GetComponent<Irufemi::ColliderComponent>() : nullptr) {
         auto* cm = GetEngine() ? GetEngine()->GetCollisionManager() : nullptr;
         if (cm) {
             uint32_t neutralLayer = cm->GetLayerMask("Debris_Neutral");
@@ -335,7 +335,7 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
 
     UpdateAuraVisuals();
 
-    if (auto collider = gameObject_ ? gameObject_->GetComponent<ColliderComponent>() : nullptr) {
+    if (auto collider = gameObject_ ? gameObject_->GetComponent<Irufemi::ColliderComponent>() : nullptr) {
         auto* cm = GetEngine() ? GetEngine()->GetCollisionManager() : nullptr;
         if (cm) {
             uint32_t neutralLayer = cm->GetLayerMask("Debris_Neutral");
@@ -387,7 +387,7 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
     }
 }
 
-std::shared_ptr<Component> DebrisComponent::Clone() {
+std::shared_ptr<Irufemi::Component> DebrisComponent::Clone() {
     auto clone = std::make_shared<DebrisComponent>();
     clone->CopyPropertiesFrom(this);
     clone->state_ = this->state_;
@@ -399,7 +399,7 @@ std::shared_ptr<Component> DebrisComponent::Clone() {
     return clone;
 }
 
-bool DebrisComponent::UpdatePullMovement(const TransformComponent* targetTransform, float pullSpeed, float catchDistSq,
+bool DebrisComponent::UpdatePullMovement(const Irufemi::TransformComponent* targetTransform, float pullSpeed, float catchDistSq,
                                          float deltaTime) {
     auto transform = GetTransform();
     if (!transform || !targetTransform) {
@@ -451,7 +451,7 @@ bool DebrisComponent::UpdatePullMovement(const TransformComponent* targetTransfo
     return false;
 }
 
-void DebrisComponent::InitializeOrbitTransition(const TransformComponent* targetTransform) {
+void DebrisComponent::InitializeOrbitTransition(const Irufemi::TransformComponent* targetTransform) {
     auto transform = GetTransform();
     if (!transform || !targetTransform) {
         return;
@@ -481,7 +481,7 @@ void DebrisComponent::InitializeOrbitTransition(const TransformComponent* target
     }
 }
 
-void DebrisComponent::UpdatePlayerOrbit(const TransformComponent* targetTransform, float orbitSpeed, float deltaTime) {
+void DebrisComponent::UpdatePlayerOrbit(const Irufemi::TransformComponent* targetTransform, float orbitSpeed, float deltaTime) {
     auto transform = GetTransform();
     if (!transform || !targetTransform) {
         return;

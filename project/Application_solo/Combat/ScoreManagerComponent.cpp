@@ -15,7 +15,7 @@ ScoreManagerComponent::~ScoreManagerComponent() {
 }
 
 void ScoreManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Current Score", &currentScore_);
     RegisterProperty("Total Kills", &stats_.enemiesKilled);
     RegisterProperty("Max Multi Kill", &stats_.maxMultiKill);
@@ -42,7 +42,7 @@ ScoreManagerComponent* ScoreManagerComponent::GetInstance() {
     return instance_;
 }
 
-ScoreManagerComponent* ScoreManagerComponent::GetOrCreate(BaseScene* scene) {
+ScoreManagerComponent* ScoreManagerComponent::GetOrCreate(Irufemi::BaseScene* scene) {
     if (instance_) {
         return instance_;
     }
@@ -56,7 +56,7 @@ ScoreManagerComponent* ScoreManagerComponent::GetOrCreate(BaseScene* scene) {
         }
     }
 
-    auto scoreObj = std::make_shared<GameObject>("ScoreManager");
+    auto scoreObj = std::make_shared<Irufemi::GameObject>("ScoreManager");
     scoreObj->SetIsSerializable(false);
     auto comp = scoreObj->AddComponent<ScoreManagerComponent>();
     scene->AddGameObject(scoreObj);

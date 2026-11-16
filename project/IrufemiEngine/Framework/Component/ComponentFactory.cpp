@@ -38,7 +38,7 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 std::unordered_map<std::string, ComponentFactory::ComponentRegistration>& ComponentFactory::GetMap() {
     static std::unordered_map<std::string, ComponentRegistration> factoryMap;
@@ -110,3 +110,6 @@ void ComponentFactory::RegisterAllCoreComponents() {
     Register("VirtualEntityManagerComponent", "Utility",
              []() { return std::make_shared<VirtualEntityManagerComponent>(); });
 }
+
+} // namespace Irufemi
+

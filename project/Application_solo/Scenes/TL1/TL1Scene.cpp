@@ -37,7 +37,7 @@ TL1Scene::~TL1Scene() = default;
  * @brief 初期化
  */
 void TL1Scene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
     magicBrushClient_ = std::make_unique<MagicBrushClient>();
 
     std::string errorLog;
@@ -55,7 +55,7 @@ void TL1Scene::Initialize(IrufemiEngine* engine) {
     // プレイヤー配置データからテスト用ダミープレイヤーを配置
     if (!levelData.players.empty()) {
         auto& playerData = levelData.players[0];
-        auto dummyPlayer = std::make_shared<GameObject>();
+        auto dummyPlayer = std::make_shared<Irufemi::GameObject>();
         dummyPlayer->SetName("Player");
         dummyPlayer->SetScene(this);
 
@@ -73,7 +73,7 @@ void TL1Scene::Initialize(IrufemiEngine* engine) {
 
     // 敵配置データから敵を配置
     for (const auto& enemyData : levelData.enemies) {
-        auto dummyEnemy = std::make_shared<GameObject>();
+        auto dummyEnemy = std::make_shared<Irufemi::GameObject>();
         dummyEnemy->SetName("Enemy");
         dummyEnemy->SetScene(this);
 
@@ -94,7 +94,7 @@ void TL1Scene::Initialize(IrufemiEngine* engine) {
  * @brief 更新
  */
 void TL1Scene::Update() {
-    BaseScene::Update();
+    Irufemi::BaseScene::Update();
 
     // 成功したシェーダーをPSOに登録する
     if (magicBrushClient_ && !isShaderRegistered_ && vsBlob_) {
@@ -112,7 +112,7 @@ void TL1Scene::Update() {
  * @brief 描画
  */
 void TL1Scene::Draw() {
-    BaseScene::Draw();
+    Irufemi::BaseScene::Draw();
 
     // プレビュー描画
     if (isShaderRegistered_) {

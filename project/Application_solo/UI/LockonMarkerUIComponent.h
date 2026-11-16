@@ -8,10 +8,10 @@
 #include <unordered_map>
 #include <cstdint>
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 
 struct LockonMarkerState {
-    std::weak_ptr<GameObject> target;
+    std::weak_ptr<Irufemi::GameObject> target;
     float currentScale = 2.0f; ///< 初期は大きく（シュッと縮小させるため）
     float targetScale = 1.0f;  ///< 最終的なスケール（距離に依存）
     float animationT = 0.0f;   ///< イージング用タイマー (0.0 ～ 1.0)
@@ -21,7 +21,7 @@ struct LockonMarkerState {
  * @class LockonMarkerUIComponent
  * @brief ロックオンマーカーのUI描画およびアニメーションを管理するコンポーネント
  */
-class LockonMarkerUIComponent : public Component, public std::enable_shared_from_this<LockonMarkerUIComponent> {
+class LockonMarkerUIComponent : public Irufemi::Component, public std::enable_shared_from_this<LockonMarkerUIComponent> {
 public:
     LockonMarkerUIComponent() = default;
     ~LockonMarkerUIComponent() override = default;
@@ -30,7 +30,7 @@ public:
     void Update() override;
 
     // ターゲットのリストを同期する（GravityPlayerComponent等から呼ばれる）
-    void SyncTargets(const std::vector<std::shared_ptr<GameObject>>& targets);
+    void SyncTargets(const std::vector<std::shared_ptr<Irufemi::GameObject>>& targets);
     void SetMaxLockonCount(size_t count) {
         maxLockonCount_ = count;
     }

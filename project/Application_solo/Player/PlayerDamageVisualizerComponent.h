@@ -9,14 +9,14 @@ class PlayerHealthComponent;
 namespace Irufemi {
 class BaseModel;
 }
-class CameraShakeComponent;
-class ScreenEffectComponent;
+namespace Irufemi { class CameraShakeComponent; }
+namespace Irufemi { class ScreenEffectComponent; }
 
 /**
  * @class PlayerDamageVisualizerComponent
  * @brief プレイヤーの被弾演出（モデル点滅、カメラシェイク、画面エフェクト）および死亡演出を担うコンポーネント
  */
-class PlayerDamageVisualizerComponent : public Component {
+class PlayerDamageVisualizerComponent : public Irufemi::Component {
 public:
     PlayerDamageVisualizerComponent() = default;
     ~PlayerDamageVisualizerComponent() override = default;
@@ -137,7 +137,7 @@ private:
     Irufemi::Vector2 CalculateWorldScreenUV(const Irufemi::Vector3& worldPos);
 
     /**
-     * @brief 画面内の敵オブジェクトのアウトライン（EffectMaskComponent）を消去する
+     * @brief 画面内の敵オブジェクトのアウトライン（Irufemi::EffectMaskComponent）を消去する
      */
     void ClearEnemyOutlines();
 
@@ -161,9 +161,9 @@ private:
     float shakeFrequency_ = 20.0f;
 
     // キャッシュ参照
-    std::weak_ptr<GameObject> mainCameraObj_;
-    CameraShakeComponent* cameraShakeComp_ = nullptr;
-    ScreenEffectComponent* screenEffectComp_ = nullptr;
+    std::weak_ptr<Irufemi::GameObject> mainCameraObj_;
+    Irufemi::CameraShakeComponent* cameraShakeComp_ = nullptr;
+    Irufemi::ScreenEffectComponent* screenEffectComp_ = nullptr;
     Irufemi::BaseModel* cachedTargetModel_ = nullptr;
 
     // --- 死亡シーケンス・ステートマシン（SSOT） ---

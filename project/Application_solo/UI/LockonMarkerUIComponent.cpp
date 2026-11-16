@@ -35,7 +35,7 @@ void LockonMarkerUIComponent::Initialize() {
     }
 }
 
-void LockonMarkerUIComponent::SyncTargets(const std::vector<std::shared_ptr<GameObject>>& targets) {
+void LockonMarkerUIComponent::SyncTargets(const std::vector<std::shared_ptr<Irufemi::GameObject>>& targets) {
     nextMarkersCache_.clear();
     targetCountsCache_.clear();
 
@@ -103,7 +103,7 @@ void LockonMarkerUIComponent::Update() {
             continue;
         }
 
-        auto transform = target->GetComponent<TransformComponent>();
+        auto transform = target->GetComponent<Irufemi::TransformComponent>();
         if (!transform) {
             continue;
         }

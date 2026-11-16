@@ -2,7 +2,7 @@
 #include "Core/Utility/Ease.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // ============================================================================
 // GlitchEffectDriver
@@ -294,3 +294,5 @@ std::unique_ptr<IScreenEffectDriver> ScreenEffectDriverFactory::CreateDriver(Pos
     }
     return nullptr;
 }
+
+} // namespace Irufemi

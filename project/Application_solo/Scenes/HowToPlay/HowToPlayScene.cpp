@@ -15,14 +15,14 @@
 using namespace Irufemi;
 
 void HowToPlayScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
     openCooldownTimer_ = 0.15f;
     transition_.StartOpen();
     uiCached_ = false;
 }
 
 void HowToPlayScene::OnEnter() {
-    BaseScene::OnEnter();
+    Irufemi::BaseScene::OnEnter();
     openCooldownTimer_ = 0.15f;
     transition_.StartOpen();
     uiCached_ = false;
@@ -35,7 +35,7 @@ void HowToPlayScene::CacheUIElements() {
         if (!obj) {
             continue;
         }
-        auto transform = obj->GetComponent<TransformComponent>();
+        auto transform = obj->GetComponent<Irufemi::TransformComponent>();
         if (!transform) {
             continue;
         }
@@ -46,11 +46,11 @@ void HowToPlayScene::CacheUIElements() {
         state.baseScale = transform->GetScale();
         state.isBackdrop = (obj->GetName() == "DarkBackdrop");
 
-        if (auto sprite = obj->GetComponent<SpriteRendererComponent>()) {
+        if (auto sprite = obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
             state.baseColor = sprite->GetColor();
             state.isSprite = true;
             cachedElements_.push_back(state);
-        } else if (auto text = obj->GetComponent<TextRendererComponent>()) {
+        } else if (auto text = obj->GetComponent<Irufemi::TextRendererComponent>()) {
             state.baseColor = text->GetColor();
             state.isSprite = false;
             cachedElements_.push_back(state);
@@ -70,14 +70,14 @@ void HowToPlayScene::ApplyTransition(float progress) {
         if (!elem.obj) {
             continue;
         }
-        auto transform = elem.obj->GetComponent<TransformComponent>();
+        auto transform = elem.obj->GetComponent<Irufemi::TransformComponent>();
         if (!transform) {
             continue;
         }
 
         if (elem.isBackdrop) {
             // 暗幕は位置・スケール固定、アルファのみフェード
-            if (auto sprite = elem.obj->GetComponent<SpriteRendererComponent>()) {
+            if (auto sprite = elem.obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
                 sprite->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
             }
         } else {
@@ -88,12 +88,12 @@ void HowToPlayScene::ApplyTransition(float progress) {
             transform->SetScale({elem.baseScale.x * scaleMul, elem.baseScale.y * scaleMul, elem.baseScale.z});
 
             if (elem.isSprite) {
-                if (auto sprite = elem.obj->GetComponent<SpriteRendererComponent>()) {
+                if (auto sprite = elem.obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
                     sprite->SetColor(
                         {elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
                 }
             } else {
-                if (auto text = elem.obj->GetComponent<TextRendererComponent>()) {
+                if (auto text = elem.obj->GetComponent<Irufemi::TextRendererComponent>()) {
                     text->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
                 }
             }
@@ -102,7 +102,7 @@ void HowToPlayScene::ApplyTransition(float progress) {
 }
 
 void HowToPlayScene::Update() {
-    BaseScene::Update();
+    Irufemi::BaseScene::Update();
 
     if (!engine_) {
         return;
@@ -154,5 +154,5 @@ void HowToPlayScene::Update() {
 }
 
 void HowToPlayScene::Draw() {
-    BaseScene::Draw();
+    Irufemi::BaseScene::Draw();
 }

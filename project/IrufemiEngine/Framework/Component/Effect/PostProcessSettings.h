@@ -4,6 +4,8 @@
 #include "Core/Utility/JsonUtility.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 
+namespace Irufemi {
+
 struct IPostProcessSettings {
     virtual ~IPostProcessSettings() = default;
 
@@ -121,3 +123,6 @@ public:
     static std::shared_ptr<IPostProcessSettings> Create(PostProcessMode mode);
     static std::shared_ptr<IPostProcessSettings> Create(const std::string& typeName);
 };
+
+} // namespace Irufemi
+

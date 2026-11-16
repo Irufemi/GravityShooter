@@ -4,7 +4,7 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Core/System/IrufemiEngine.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 SpriteRendererComponent::SpriteRendererComponent() {}
 SpriteRendererComponent::~SpriteRendererComponent() {}
@@ -160,3 +160,6 @@ void SpriteRendererComponent::Deserialize(const nlohmann::json& j) {
         // サイズの反映はUpdateでscaleを考慮して行われるが、ベースサイズとして保持
     }
 }
+
+} // namespace Irufemi
+

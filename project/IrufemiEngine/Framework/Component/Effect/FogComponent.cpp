@@ -3,7 +3,7 @@
 #include "Renderer/DrawManager.h"
 #include "Renderer/Data/FogParams.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 void FogComponent::OnRegisterProperties() {
     RegisterProperty("Enabled", &enabled_).OnChanged([this]() { isDirty_ = true; });
@@ -110,3 +110,5 @@ void FogComponent::Deserialize(const nlohmann::json& j) {
         fogType_ = j["fogType"].get<int>();
     }
 }
+
+} // namespace Irufemi

@@ -2,6 +2,8 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
 
+namespace Irufemi {
+
 void CanvasComponent::OnRegisterProperties() {
     RegisterProperty("Group Alpha", &groupAlpha_);
 }
@@ -38,3 +40,5 @@ void CanvasComponent::Update() {
         lastAppliedAlpha_ = groupAlpha_;
     }
 }
+
+} // namespace Irufemi

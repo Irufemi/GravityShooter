@@ -14,7 +14,7 @@
 #include <memory>
 #include <string>
 
-EffectMaskComponent* BossStateCoreExposed::GetCoreEffectMask(BossComponent* boss) {
+Irufemi::EffectMaskComponent* BossStateCoreExposed::GetCoreEffectMask(BossComponent* boss) {
     if (cachedCoreMask_) {
         return cachedCoreMask_;
     }
@@ -23,7 +23,7 @@ EffectMaskComponent* BossStateCoreExposed::GetCoreEffectMask(BossComponent* boss
     }
     if (auto scene = boss->GetGameObject()->GetScene()) {
         if (auto coreObj = scene->FindGameObject("BossCore")) {
-            cachedCoreMask_ = coreObj->GetComponent<EffectMaskComponent>();
+            cachedCoreMask_ = coreObj->GetComponent<Irufemi::EffectMaskComponent>();
             return cachedCoreMask_;
         }
     }

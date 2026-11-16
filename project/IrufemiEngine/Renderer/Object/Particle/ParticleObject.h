@@ -8,10 +8,9 @@
 #include "Core/Type/BlendMode.h"
 #include "Core/Utility/JsonUtility.h"
 
-class Component;
-
 namespace Irufemi {
 
+class Component;
 class TextureManager;
 
 /**
@@ -788,7 +787,7 @@ public:
     /**
      * @brief RegisterProperties を実行する。
      */
-    void RegisterProperties(::Component* comp);
+    void RegisterProperties(Component* comp);
 
     /**
      * @brief MarkDirty を実行する。

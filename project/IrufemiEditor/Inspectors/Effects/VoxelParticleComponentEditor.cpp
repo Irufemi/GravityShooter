@@ -9,6 +9,8 @@
 #include "Commands/EditorActionManager.h"
 #include "Commands/EditorCommands.h"
 
+using namespace Irufemi;
+
 void VoxelParticleComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto voxelComponent = dynamic_cast<VoxelParticleComponent*>(component);
     if (!voxelComponent) {

@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <climits>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 CameraShakeComponent::CameraShakeComponent() {
     perlinNoise_ = std::make_shared<Irufemi::PerlinNoise>(
@@ -99,3 +99,5 @@ void CameraShakeComponent::Update() {
 
     cameraComp_->SetPositionOffset(totalOffset);
 }
+
+} // namespace Irufemi

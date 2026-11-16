@@ -8,6 +8,8 @@
 #include "Core/Math/MathFunction.h"
 #include <cmath>
 
+namespace Irufemi {
+
 void SplineNodeComponent::OnRegisterProperties() {
     RegisterPropertyRange("Radius", &radius_, 0.1f, 10.0f);
     RegisterProperty("Draw Debug", &drawDebug_);
@@ -88,3 +90,5 @@ bool SplineNodeComponent::Raycast(const Irufemi::Ray& ray, float& outDistance) c
     outDistance = t;
     return true;
 }
+
+} // namespace Irufemi

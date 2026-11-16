@@ -7,15 +7,15 @@
 #include <string>
 
 class SplineFollowerComponent;
-class SpawnPointComponent;
-class ModelBatchRendererComponent;
+namespace Irufemi { class SpawnPointComponent; }
+namespace Irufemi { class ModelBatchRendererComponent; }
 class EnemySpawnerComponent;
 
 /**
  * @class WaveManagerComponent
  * @brief 外部JSONデータに基づき、レール上の進行距離に応じてイベントをディスパッチする
  */
-class WaveManagerComponent : public Component {
+class WaveManagerComponent : public Irufemi::Component {
 public:
     WaveManagerComponent();
     ~WaveManagerComponent() override = default;
@@ -42,7 +42,7 @@ public:
      */
     void PreloadWaveAssets();
 
-    std::shared_ptr<ModelBatchRendererComponent> GetPreviewBatchRenderer(const std::string& modelPath);
+    std::shared_ptr<Irufemi::ModelBatchRendererComponent> GetPreviewBatchRenderer(const std::string& modelPath);
 
     /**
      * @brief 特定のイベント種類に対するハンドラを登録する
@@ -50,10 +50,10 @@ public:
     void RegisterHandler(const std::string& eventType, std::shared_ptr<IWaveEventHandler> handler);
 
     /**
-     * @brief シーン内の SpawnPointComponent を取得してキャッシュする
+     * @brief シーン内の Irufemi::SpawnPointComponent を取得してキャッシュする
      */
     void CacheSpawnPoints();
-    const std::vector<SpawnPointComponent*>& GetSpawnPoints(const std::string& waveId) const;
+    const std::vector<Irufemi::SpawnPointComponent*>& GetSpawnPoints(const std::string& waveId) const;
 
     /**
      * @brief 登録済みまたはシーン内の EnemySpawnerComponent を取得する
@@ -99,16 +99,16 @@ private:
     std::unordered_map<std::string, std::shared_ptr<IWaveEventHandler>> handlers_;
 
     // キャッシュ
-    std::unordered_map<std::string, std::vector<SpawnPointComponent*>> spawnPointsMap_;
+    std::unordered_map<std::string, std::vector<Irufemi::SpawnPointComponent*>> spawnPointsMap_;
     bool hasCachedSpawnPoints_ = false;
 
-    std::weak_ptr<GameObject> cachedPlayerCart_;
+    std::weak_ptr<Irufemi::GameObject> cachedPlayerCart_;
     std::string levelDataPath_ = "resources/GameData/WaveData_Stage1.json";
 
     float editorPreviewDistance_ = 0.0f;
     int selectedEventIndex_ = -1;
     std::string currentPreviewModelPath_ = "";
-    std::shared_ptr<ModelBatchRendererComponent> previewBatch_;
+    std::shared_ptr<Irufemi::ModelBatchRendererComponent> previewBatch_;
     uint64_t targetSplineID_ = 0;
     uint64_t targetEnemySpawnerID_ = 0;
 };

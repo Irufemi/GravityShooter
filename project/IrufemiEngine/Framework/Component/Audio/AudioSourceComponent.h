@@ -4,6 +4,8 @@
 #include <memory>
 #include "Audio/AudioPlayer.h"
 
+namespace Irufemi {
+
 /**
  * @class AudioSourceComponent
  * @brief 音声再生（BGM/SE）を管理するコンポーネント
@@ -97,3 +99,5 @@ private:
 
     std::unique_ptr<Irufemi::AudioPlayer> player_; ///< 実際の再生を担うObject層のインスタンス
 };
+
+} // namespace Irufemi

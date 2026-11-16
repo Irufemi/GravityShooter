@@ -10,12 +10,12 @@
 #include <functional>
 
 class DebrisManagerComponent;
-class GameObject;
+namespace Irufemi { class GameObject; }
 class EnemyBeamComponent;
 class DroneManagerComponent;
 class BossBulletManagerComponent;
 
-class BossComponent : public Component, public IDamageable {
+class BossComponent : public Irufemi::Component, public IDamageable {
 public:
     BossComponent();
     ~BossComponent() override = default;
@@ -116,12 +116,12 @@ public:
     /**
      * @brief シールド（ガレキ）を1つ剥がし、本物のガレキとしてスポーンさせる
      */
-    std::shared_ptr<GameObject> ExtractDebris();
+    std::shared_ptr<Irufemi::GameObject> ExtractDebris();
 
     /**
      * @brief 特定のシールドをリストから除外する（破壊時など）
      */
-    void RemoveShield(std::shared_ptr<GameObject> shield);
+    void RemoveShield(std::shared_ptr<Irufemi::GameObject> shield);
 
     /**
      * @brief ボス撃破時、付随するドローン群・周回シールド・弾幕を一括回収・停止する
@@ -159,7 +159,7 @@ public:
     /**
      * @brief ボス関連の動的オブジェクト（ドローン、弾など）をまとめる汎用コンテナを取得する
      */
-    std::shared_ptr<GameObject> GetBossContainer() const {
+    std::shared_ptr<Irufemi::GameObject> GetBossContainer() const {
         return bossContainer_.lock();
     }
     /**
@@ -207,8 +207,8 @@ private:
 
     std::unique_ptr<IBossState> currentState_;
 
-    std::weak_ptr<GameObject> bossContainer_;
-    std::vector<std::weak_ptr<GameObject>> shields_;
+    std::weak_ptr<Irufemi::GameObject> bossContainer_;
+    std::vector<std::weak_ptr<Irufemi::GameObject>> shields_;
     struct DamageTakenListenerEntry {
         ListenerId id;
         std::function<void(float damage)> callback;

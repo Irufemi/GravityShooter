@@ -57,7 +57,7 @@ std::vector<OptionsScene::SliderBinding> OptionsScene::GetSliderBindings() {
 }
 
 void OptionsScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
 
     // スライダー数値で使用する文字を非同期（スレッドプール）でバックグラウンド生成
     // メインスレッドの初期ロードを阻害せず、操作時の文字飛びを防止
@@ -80,7 +80,7 @@ void OptionsScene::Initialize(IrufemiEngine* engine) {
 }
 
 void OptionsScene::OnEnter() {
-    BaseScene::OnEnter();
+    Irufemi::BaseScene::OnEnter();
     openCooldownTimer_ = 0.15f;
     transition_.StartOpen();
     uiCached_ = false;
@@ -93,7 +93,7 @@ void OptionsScene::CacheUIElements() {
         if (!obj || obj == virtualCursorObj_) {
             continue;
         }
-        auto transform = obj->GetComponent<TransformComponent>();
+        auto transform = obj->GetComponent<Irufemi::TransformComponent>();
         if (!transform) {
             continue;
         }
@@ -104,11 +104,11 @@ void OptionsScene::CacheUIElements() {
         state.baseScale = transform->GetScale();
         state.isBackdrop = (obj->GetName() == "OptionsUI_Root");
 
-        if (auto sprite = obj->GetComponent<SpriteRendererComponent>()) {
+        if (auto sprite = obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
             state.baseColor = sprite->GetColor();
             state.isSprite = true;
             cachedElements_.push_back(state);
-        } else if (auto text = obj->GetComponent<TextRendererComponent>()) {
+        } else if (auto text = obj->GetComponent<Irufemi::TextRendererComponent>()) {
             state.baseColor = text->GetColor();
             state.isSprite = false;
             cachedElements_.push_back(state);
@@ -128,14 +128,14 @@ void OptionsScene::ApplyTransition(float progress) {
         if (!elem.obj) {
             continue;
         }
-        auto transform = elem.obj->GetComponent<TransformComponent>();
+        auto transform = elem.obj->GetComponent<Irufemi::TransformComponent>();
         if (!transform) {
             continue;
         }
 
         if (elem.isBackdrop) {
             // 暗幕はアルファのみフェード
-            if (auto sprite = elem.obj->GetComponent<SpriteRendererComponent>()) {
+            if (auto sprite = elem.obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
                 sprite->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
             }
         } else {
@@ -146,12 +146,12 @@ void OptionsScene::ApplyTransition(float progress) {
             transform->SetScale({elem.baseScale.x * scaleMul, elem.baseScale.y * scaleMul, elem.baseScale.z});
 
             if (elem.isSprite) {
-                if (auto sprite = elem.obj->GetComponent<SpriteRendererComponent>()) {
+                if (auto sprite = elem.obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
                     sprite->SetColor(
                         {elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
                 }
             } else {
-                if (auto text = elem.obj->GetComponent<TextRendererComponent>()) {
+                if (auto text = elem.obj->GetComponent<Irufemi::TextRendererComponent>()) {
                     text->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
                 }
             }
@@ -160,7 +160,7 @@ void OptionsScene::ApplyTransition(float progress) {
 }
 
 void OptionsScene::Update() {
-    BaseScene::Update();
+    Irufemi::BaseScene::Update();
 
     if (!uiBound_) {
         BindUIComponents();
@@ -236,11 +236,11 @@ void OptionsScene::Update() {
 }
 
 void OptionsScene::Finalize() {
-    BaseScene::Finalize();
+    Irufemi::BaseScene::Finalize();
 }
 
 void OptionsScene::OnExit() {
-    BaseScene::OnExit();
+    Irufemi::BaseScene::OnExit();
 }
 
 void OptionsScene::BindUIComponents() {
@@ -252,19 +252,19 @@ void OptionsScene::BindUIComponents() {
     // スライダー群のバインド（データ駆動テーブルループ）
     for (auto& binding : GetSliderBindings()) {
         if (auto obj = FindGameObject(binding.objectName)) {
-            binding.sliderRef = obj->GetComponent<SliderComponent>();
+            binding.sliderRef = obj->GetComponent<Irufemi::SliderComponent>();
             if (binding.sliderRef) {
                 binding.sliderRef->SetValue(binding.initialValueGetter());
             }
         }
         if (auto textObj = FindGameObject(binding.textName)) {
-            binding.textRef = textObj->GetComponent<TextRendererComponent>();
+            binding.textRef = textObj->GetComponent<Irufemi::TextRendererComponent>();
         }
     }
 
     // CLOSE ボタン
     if (auto obj = FindGameObject("Button_Close")) {
-        buttonClose_ = obj->GetComponent<ButtonComponent>();
+        buttonClose_ = obj->GetComponent<Irufemi::ButtonComponent>();
         if (auto t = obj->GetTransform()) {
             (void)t;
 
@@ -277,7 +277,7 @@ void OptionsScene::BindUIComponents() {
     // 仮想カーソルオブジェクト
     virtualCursorObj_ = FindGameObject("VirtualCursor");
     if (virtualCursorObj_) {
-        virtualCursorRenderer_ = virtualCursorObj_->GetComponent<Primitive2DRendererComponent>();
+        virtualCursorRenderer_ = virtualCursorObj_->GetComponent<Irufemi::Primitive2DRendererComponent>();
         if (auto trans = virtualCursorObj_->GetTransform()) {
             if (auto input = engine->GetInputManager()) {
                 const auto& pos = input->GetVirtualCursorPosition();
@@ -304,7 +304,7 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
     const auto& cursorPos = input->GetVirtualCursorPosition();
 
     // 1. ホバー判定（データ駆動判定）
-    Component* currentHovered = nullptr;
+    Irufemi::Component* currentHovered = nullptr;
     for (const auto& binding : GetSliderBindings()) {
         if (binding.sliderRef && binding.sliderRef->CheckBounds(cursorPos)) {
             currentHovered = binding.sliderRef;
@@ -327,7 +327,7 @@ void OptionsScene::UpdateVirtualCursor(float deltaTime) {
     // CLOSEボタンのハイライト更新
     if (buttonClose_) {
         if (auto obj = buttonClose_->GetGameObject()) {
-            if (auto sprite = obj->GetComponent<SpriteRendererComponent>()) {
+            if (auto sprite = obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
                 sprite->SetColor(isOverClose ? Irufemi::Vector4{0.15f, 0.55f, 0.75f, 1.0f}
                                              : Irufemi::Vector4{0.08f, 0.25f, 0.35f, 0.9f});
             }

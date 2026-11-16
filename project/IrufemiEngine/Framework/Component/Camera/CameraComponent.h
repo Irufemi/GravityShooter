@@ -3,6 +3,8 @@
 #include "Renderer/Camera/Camera.h"
 #include <memory>
 
+namespace Irufemi {
+
 /**
  * @class CameraComponent
  * @brief 3D空間のカメラ（視点）をGameObjectとして管理するためのコンポーネント
@@ -136,3 +138,5 @@ private:
     Irufemi::Vector3 positionOffset_{0.0f, 0.0f, 0.0f}; ///< Shake等による座標オフセット
     Irufemi::Vector3 rotationOffset_{0.0f, 0.0f, 0.0f}; ///< Shake等による回転オフセット
 };
+
+} // namespace Irufemi

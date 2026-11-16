@@ -8,6 +8,8 @@
 #include <wrl/client.h>
 #include <string>
 
+namespace Irufemi {
+
 /**
  * @class SkyDomeComponent
  * @brief 3Dメッシュ不要で全画面プロシージャル天球を描画するコンポーネント
@@ -116,3 +118,6 @@ private:
     Irufemi::Material* mappedMaterialData_ = nullptr;                            ///< マップポインタ
     bool isDirty_ = true;                                               ///< マテリアル定数バッファ同期フラグ
 };
+
+} // namespace Irufemi
+

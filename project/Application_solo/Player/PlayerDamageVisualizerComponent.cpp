@@ -39,7 +39,7 @@
 using namespace Irufemi;
 
 void PlayerDamageVisualizerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Flash Interval", &flashInterval_);
     RegisterProperty("Flash Duration", &flashDuration_);
     RegisterProperty("Shake Intensity", &shakeIntensity_);
@@ -75,13 +75,13 @@ void PlayerDamageVisualizerComponent::Start() {
     }
 
     healthComp_ = gameObject_->GetComponent<PlayerHealthComponent>();
-    screenEffectComp_ = gameObject_->GetComponent<ScreenEffectComponent>();
+    screenEffectComp_ = gameObject_->GetComponent<Irufemi::ScreenEffectComponent>();
     cachedTargetModel_ = GetTargetModel();
 
     if (auto scene = gameObject_->GetScene()) {
         if (auto mainCam = scene->FindGameObject("MainCamera")) {
             mainCameraObj_ = mainCam;
-            cameraShakeComp_ = mainCam->GetComponent<CameraShakeComponent>();
+            cameraShakeComp_ = mainCam->GetComponent<Irufemi::CameraShakeComponent>();
         }
     }
 
@@ -108,12 +108,12 @@ BaseModel* PlayerDamageVisualizerComponent::GetTargetModel() {
     }
 
     // dynamic_cast による型安全なモデルポインタ取得
-    if (auto mesh = gameObject_->GetComponent<MeshRendererComponent>()) {
+    if (auto mesh = gameObject_->GetComponent<Irufemi::MeshRendererComponent>()) {
         if (auto renderable = mesh->GetRenderable()) {
             cachedTargetModel_ = dynamic_cast<BaseModel*>(renderable);
             return cachedTargetModel_;
         }
-    } else if (auto skinned = gameObject_->GetComponent<SkinnedMeshRendererComponent>()) {
+    } else if (auto skinned = gameObject_->GetComponent<Irufemi::SkinnedMeshRendererComponent>()) {
         if (auto renderable = skinned->GetRenderable()) {
             cachedTargetModel_ = dynamic_cast<BaseModel*>(renderable);
             return cachedTargetModel_;
@@ -147,7 +147,7 @@ void PlayerDamageVisualizerComponent::TriggerCameraShake() {
             if (auto scene = gameObject_->GetScene()) {
                 if (auto mainCam = scene->FindGameObject("MainCamera")) {
                     mainCameraObj_ = mainCam;
-                    cameraShakeComp_ = mainCam->GetComponent<CameraShakeComponent>();
+                    cameraShakeComp_ = mainCam->GetComponent<Irufemi::CameraShakeComponent>();
                 }
             }
         }
@@ -160,7 +160,7 @@ void PlayerDamageVisualizerComponent::TriggerCameraShake() {
 
 void PlayerDamageVisualizerComponent::TriggerScreenEffect() {
     if (!screenEffectComp_ && gameObject_) {
-        screenEffectComp_ = gameObject_->GetComponent<ScreenEffectComponent>();
+        screenEffectComp_ = gameObject_->GetComponent<Irufemi::ScreenEffectComponent>();
         cachedTargetModel_ = GetTargetModel();
     }
 
@@ -221,7 +221,7 @@ void PlayerDamageVisualizerComponent::ClearEnemyOutlines() {
 
         // 1. 当たり判定レイヤーによる判定（Collision Layer の "Enemy" カテゴライズ）
         if (enemyLayerMask != 0) {
-            if (auto col = obj->GetComponent<ColliderComponent>()) {
+            if (auto col = obj->GetComponent<Irufemi::ColliderComponent>()) {
                 if ((col->GetLayer() & enemyLayerMask) != 0) {
                     isEnemy = true;
                 }
@@ -238,7 +238,7 @@ void PlayerDamageVisualizerComponent::ClearEnemyOutlines() {
 
         if (isEnemy) {
             // 当該オブジェクトおよびその子階層に付与された EffectMaskComponent をすべて無効化
-            auto maskComps = obj->GetComponentsInChildren<EffectMaskComponent>();
+            auto maskComps = obj->GetComponentsInChildren<Irufemi::EffectMaskComponent>();
             for (auto mask : maskComps) {
                 if (mask) {
                     mask->SetEnableEffectMask(false);
@@ -296,7 +296,7 @@ void PlayerDamageVisualizerComponent::TriggerDeathVisuals() {
     }
 
     // 撃墜時のワールド座標・回転・ローカル座標・スクリーンUVを確定保存（以降の爆発中心として完全固定）
-    if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
+    if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
         transform->CheckAndComputeMatrix();
         deathWorldPos_ = transform->GetWorldPosition();
         deathWorldRot_ = transform->GetWorldRotation();
@@ -397,7 +397,7 @@ void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase)
 
     case DeathSequencePhase::VacuumFreeze: {
         // 極小スケールで完全固定（息を呑む完全な静寂・真空）
-        if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
+        if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
             transform->SetScale(originalScale_ * 0.01f);
         }
         break;
@@ -474,12 +474,12 @@ void PlayerDamageVisualizerComponent::TriggerSupernovaExplosion() {
     }
 
     // ⑤ 自機モデルの完全非表示化 ＆ Transformスケール物理0化 ＆ スラスター完全消火
-    if (auto mesh = gameObject_->GetComponent<MeshRendererComponent>()) {
+    if (auto mesh = gameObject_->GetComponent<Irufemi::MeshRendererComponent>()) {
         mesh->SetVisible(false);
-    } else if (auto skinned = gameObject_->GetComponent<SkinnedMeshRendererComponent>()) {
+    } else if (auto skinned = gameObject_->GetComponent<Irufemi::SkinnedMeshRendererComponent>()) {
         skinned->SetVisible(false);
     }
-    if (auto transformComp = gameObject_->GetComponent<TransformComponent>()) {
+    if (auto transformComp = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
         transformComp->SetScale({0.0f, 0.0f, 0.0f});
         transformComp->CheckAndComputeMatrix();
     }
@@ -491,7 +491,7 @@ void PlayerDamageVisualizerComponent::TriggerSupernovaExplosion() {
             child->Destroy();
         }
     }
-    auto allEmitters = gameObject_->GetComponentsInChildren<ParticleEmitterComponent>();
+    auto allEmitters = gameObject_->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
     for (auto pe : allEmitters) {
         if (pe) {
             pe->Stop();
@@ -520,7 +520,7 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
         // 【第1幕】0.00s〜0.40s: 装甲の過熱振動と微小Voxel剥離
         constexpr float kDuration = 0.40f;
         float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
-        if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
+        if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
             float jitter = (1.0f - t) * 0.08f;
             Irufemi::Vector3 shake{Irufemi::Random::GeneratorFloat(-jitter, jitter),
                                    Irufemi::Random::GeneratorFloat(-jitter, jitter),
@@ -546,7 +546,7 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
             bh.blackHolePullIntensity = 0.30f * tExpand;
 
             // 自機は特異点中心へ圧縮
-            if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
+            if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
                 float scaleFactor = std::pow(1.0f - tExpand * 0.8f, 2.0f);
                 transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.01f));
             }
@@ -560,7 +560,7 @@ void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
             bh.blackHolePullIntensity = 0.30f * implodeCurve;
 
             // 自機本体は完全に特異点へ吸い込まれて消滅
-            if (auto transform = gameObject_->GetComponent<TransformComponent>()) {
+            if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
                 float scaleFactor = (1.0f - tImplode) * 0.2f;
                 transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.001f));
             }

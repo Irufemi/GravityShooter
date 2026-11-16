@@ -6,6 +6,10 @@
 #include <unordered_map>
 #include "Framework/Component/Component.h"
 
+using Irufemi::Component;
+using Irufemi::ComponentProperty;
+using Irufemi::ComponentPropertyType;
+
 class EditorActionManager;
 
 /**

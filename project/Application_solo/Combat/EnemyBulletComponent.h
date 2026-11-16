@@ -3,21 +3,21 @@
 #include "Core/Math/Vector3.h"
 #include "Core/Utility/ObjectPool.h"
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class EnemyBulletManagerComponent;
 
 /**
  * @class EnemyBulletComponent
  * @brief 敵が発射する自機狙い弾の移動・寿命・プレイヤー衝突判定を制御するコンポーネント
  */
-class EnemyBulletComponent : public Component {
+class EnemyBulletComponent : public Irufemi::Component {
 public:
     EnemyBulletComponent() = default;
     ~EnemyBulletComponent() override = default;
 
     void Initialize() override;
     void Update() override;
-    void OnCollisionEnter(GameObject* other) override;
+    void OnCollisionEnter(Irufemi::GameObject* other) override;
 
     std::string GetComponentName() const override {
         return "EnemyBulletComponent";
@@ -48,7 +48,7 @@ public:
      * @brief プール管理用のハンドルを設定する
      * @param handle オブジェクトプールのハンドル
      */
-    void SetPoolHandle(Irufemi::ObjectPool<GameObject>::Handle handle) {
+    void SetPoolHandle(Irufemi::ObjectPool<Irufemi::GameObject>::Handle handle) {
         poolHandle_ = handle;
     }
 
@@ -56,7 +56,7 @@ public:
      * @brief プール管理用のハンドルを取得する
      * @return 保持しているオブジェクトプールハンドル
      */
-    Irufemi::ObjectPool<GameObject>::Handle GetPoolHandle() const {
+    Irufemi::ObjectPool<Irufemi::GameObject>::Handle GetPoolHandle() const {
         return poolHandle_;
     }
 
@@ -67,7 +67,7 @@ public:
      * @brief 着弾エフェクトマネージャーのGameObject参照を事前に設定する
      * @param effectManagerObj エフェクトマネージャーGameObjectの弱参照
      */
-    void SetEffectManagerObj(std::weak_ptr<GameObject> effectManagerObj) {
+    void SetEffectManagerObj(std::weak_ptr<Irufemi::GameObject> effectManagerObj) {
         effectManagerObj_ = effectManagerObj;
     }
 
@@ -75,10 +75,10 @@ public:
 
 private:
     EnemyBulletManagerComponent* manager_ = nullptr;     //!< 管理元マネージャー
-    Irufemi::ObjectPool<GameObject>::Handle poolHandle_;          //!< プール管理用ハンドル
+    Irufemi::ObjectPool<Irufemi::GameObject>::Handle poolHandle_;          //!< プール管理用ハンドル
     Irufemi::Vector3 velocity_{0.0f, 0.0f, 0.0f};        //!< 移動速度ベクトル
     int damage_ = 10;                                    //!< 命中時のダメージ量
     float lifeTimer_ = 0.0f;                             //!< 生存タイマー
     float maxLifeTime_ = 5.0f;                           //!< 最大寿命（秒）
-    mutable std::weak_ptr<GameObject> effectManagerObj_; //!< 着弾エフェクトマネージャーGameObjectへの弱参照キャッシュ
+    mutable std::weak_ptr<Irufemi::GameObject> effectManagerObj_; //!< 着弾エフェクトマネージャーGameObjectへの弱参照キャッシュ
 };

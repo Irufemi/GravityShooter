@@ -4,8 +4,8 @@
 #include <cmath>
 
 namespace Irufemi {
+
 class InputManager;
-}
 
 /**
  * @enum NavigationInputMode
@@ -170,3 +170,5 @@ private:
 
     std::function<void(int newIndex)> onSelectionChanged_;
 };
+
+} // namespace Irufemi

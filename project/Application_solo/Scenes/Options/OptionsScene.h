@@ -10,12 +10,12 @@
 #include <vector>
 #include <functional>
 
-class SliderComponent;
-class ButtonComponent;
-class TextRendererComponent;
-class Primitive2DRendererComponent;
-class Component;
-class GameObject;
+namespace Irufemi { class SliderComponent; }
+namespace Irufemi { class ButtonComponent; }
+namespace Irufemi { class TextRendererComponent; }
+namespace Irufemi { class Primitive2DRendererComponent; }
+namespace Irufemi { class Component; }
+namespace Irufemi { class GameObject; }
 namespace Irufemi {
 class InputManager;
 }
@@ -23,11 +23,11 @@ class InputManager;
 /**
  * @class OptionsScene
  * @brief ゲーム内設定(Options)を管理・表示するアプリケーションシーン
- * @details SceneManager::PushScene で呼び出され、背景ゲームをポーズしつつBGMやUI音を維持。
+ * @details Irufemi::SceneManager::PushScene で呼び出され、背景ゲームをポーズしつつBGMやUI音を維持。
  *          Apex Legends風の仮想カーソル（Virtual
  * Cursor）による左スティック操作とマウス操作のハイブリッド制御に対応します。
  */
-class OptionsScene : public BaseScene {
+class OptionsScene : public Irufemi::BaseScene {
 public:
     OptionsScene() = default;
     ~OptionsScene() override = default;
@@ -63,7 +63,7 @@ public:
 private:
 
     struct UIElementState {
-        std::shared_ptr<GameObject> obj;
+        std::shared_ptr<Irufemi::GameObject> obj;
         Irufemi::Vector3 basePos{};
         Irufemi::Vector3 baseScale{};
         Irufemi::Vector4 baseColor{};
@@ -89,8 +89,8 @@ private:
     struct SliderBinding {
         const char* objectName;
         const char* textName;
-        SliderComponent*& sliderRef;
-        TextRendererComponent*& textRef;
+        Irufemi::SliderComponent*& sliderRef;
+        Irufemi::TextRendererComponent*& textRef;
 
         std::function<float()> initialValueGetter;
         std::function<void(float, Irufemi::InputManager*)> applyValue;
@@ -111,24 +111,24 @@ private:
     std::vector<UIElementState> cachedElements_;
 
     // キャッシュしたUIコンポーネント参照
-    SliderComponent* sliderBGM_ = nullptr;
-    SliderComponent* sliderSE_ = nullptr;
-    SliderComponent* sliderSensitivity_ = nullptr;
-    ButtonComponent* buttonClose_ = nullptr;
-    TextRendererComponent* valueTextBGM_ = nullptr;
-    TextRendererComponent* valueTextSE_ = nullptr;
-    TextRendererComponent* valueTextSensitivity_ = nullptr;
+    Irufemi::SliderComponent* sliderBGM_ = nullptr;
+    Irufemi::SliderComponent* sliderSE_ = nullptr;
+    Irufemi::SliderComponent* sliderSensitivity_ = nullptr;
+    Irufemi::ButtonComponent* buttonClose_ = nullptr;
+    Irufemi::TextRendererComponent* valueTextBGM_ = nullptr;
+    Irufemi::TextRendererComponent* valueTextSE_ = nullptr;
+    Irufemi::TextRendererComponent* valueTextSensitivity_ = nullptr;
 
     // 仮想カーソルGameObject参照
-    std::shared_ptr<GameObject> virtualCursorObj_;
-    Primitive2DRendererComponent* virtualCursorRenderer_ = nullptr;
+    std::shared_ptr<Irufemi::GameObject> virtualCursorObj_;
+    Irufemi::Primitive2DRendererComponent* virtualCursorRenderer_ = nullptr;
 
     // ドラッグ状態
     bool isDraggingSlider_ = false;
-    SliderComponent* draggingSlider_ = nullptr;
+    Irufemi::SliderComponent* draggingSlider_ = nullptr;
 
     // ホバー検出＆SE用
-    Component* lastHoveredTarget_ = nullptr;
+    Irufemi::Component* lastHoveredTarget_ = nullptr;
 
     // カーソル設定定数
     const float kStickyFriction_ = 0.45f; // ホバー時の減速倍率

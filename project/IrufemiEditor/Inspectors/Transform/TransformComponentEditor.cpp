@@ -9,6 +9,8 @@
 #include "Commands/EditorActionManager.h"
 #include "Commands/EditorCommands.h"
 
+using namespace Irufemi;
+
 void TransformComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<TransformComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen);

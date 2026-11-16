@@ -25,7 +25,7 @@ void ScoreHUDComponent::Start() {
     EnsureUIElements();
 }
 
-ScoreHUDComponent* ScoreHUDComponent::GetOrCreate(BaseScene* scene) {
+ScoreHUDComponent* ScoreHUDComponent::GetOrCreate(Irufemi::BaseScene* scene) {
     if (!scene) {
         return nullptr;
     }
@@ -36,7 +36,7 @@ ScoreHUDComponent* ScoreHUDComponent::GetOrCreate(BaseScene* scene) {
         }
     }
 
-    auto hudObj = std::make_shared<GameObject>("ScoreHUD");
+    auto hudObj = std::make_shared<Irufemi::GameObject>("ScoreHUD");
     hudObj->SetIsSerializable(false);
     auto comp = hudObj->AddComponent<ScoreHUDComponent>();
     scene->AddGameObject(hudObj);
@@ -54,13 +54,13 @@ void ScoreHUDComponent::EnsureUIElements() {
     }
 
     // --- 1. 画面右上固定：トータルスコア ＆ 撃破総数 ---
-    scoreHeaderObj_ = std::make_shared<GameObject>("HUD_ScoreHeader");
+    scoreHeaderObj_ = std::make_shared<Irufemi::GameObject>("HUD_ScoreHeader");
     scoreHeaderObj_->SetIsSerializable(false);
     scene->AddGameObject(scoreHeaderObj_);
     if (auto t = scoreHeaderObj_->GetTransform()) {
         t->SetPosition({1240.0f, 22.0f, 0.0f});
     }
-    scoreHeaderText_ = scoreHeaderObj_->AddComponent<TextRendererComponent>().get();
+    scoreHeaderText_ = scoreHeaderObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     scoreHeaderText_->SetFontId("toro_glitch");
     scoreHeaderText_->SetAlignment(Irufemi::TextAlignment::Right);
     scoreHeaderText_->SetBaseScale(12.0f);
@@ -69,13 +69,13 @@ void ScoreHUDComponent::EnsureUIElements() {
     scoreHeaderText_->SetText(L"// DATA: SCORE");
     scoreHeaderObj_->Initialize();
 
-    scoreObj_ = std::make_shared<GameObject>("HUD_ScoreText");
+    scoreObj_ = std::make_shared<Irufemi::GameObject>("HUD_ScoreText");
     scoreObj_->SetIsSerializable(false);
     scene->AddGameObject(scoreObj_);
     if (auto t = scoreObj_->GetTransform()) {
         t->SetPosition({1240.0f, 44.0f, 0.0f});
     }
-    scoreText_ = scoreObj_->AddComponent<TextRendererComponent>().get();
+    scoreText_ = scoreObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     scoreText_->SetFontId("toro_glitch");
     scoreText_->SetAlignment(Irufemi::TextAlignment::Right);
     scoreText_->SetBaseScale(22.0f);
@@ -84,13 +84,13 @@ void ScoreHUDComponent::EnsureUIElements() {
     scoreText_->SetText(L"00000000");
     scoreObj_->Initialize();
 
-    killsObj_ = std::make_shared<GameObject>("HUD_KillsText");
+    killsObj_ = std::make_shared<Irufemi::GameObject>("HUD_KillsText");
     killsObj_->SetIsSerializable(false);
     scene->AddGameObject(killsObj_);
     if (auto t = killsObj_->GetTransform()) {
         t->SetPosition({1240.0f, 68.0f, 0.0f});
     }
-    killsText_ = killsObj_->AddComponent<TextRendererComponent>().get();
+    killsText_ = killsObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     killsText_->SetFontId("toro_glitch");
     killsText_->SetAlignment(Irufemi::TextAlignment::Right);
     killsText_->SetBaseScale(14.0f);
@@ -100,10 +100,10 @@ void ScoreHUDComponent::EnsureUIElements() {
     killsObj_->Initialize();
 
     // --- 2. 照準周辺ポップアップ（普段は完全非表示！） ---
-    popObj_ = std::make_shared<GameObject>("HUD_HitPopText");
+    popObj_ = std::make_shared<Irufemi::GameObject>("HUD_HitPopText");
     popObj_->SetIsSerializable(false);
     scene->AddGameObject(popObj_);
-    popText_ = popObj_->AddComponent<TextRendererComponent>().get();
+    popText_ = popObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     popText_->SetFontId("toro_glitch");
     popText_->SetAlignment(Irufemi::TextAlignment::Left);
     popText_->SetBaseScale(20.0f);
@@ -112,10 +112,10 @@ void ScoreHUDComponent::EnsureUIElements() {
     popText_->SetText(L"");
     popObj_->Initialize();
 
-    popScoreObj_ = std::make_shared<GameObject>("HUD_HitPopScore");
+    popScoreObj_ = std::make_shared<Irufemi::GameObject>("HUD_HitPopScore");
     popScoreObj_->SetIsSerializable(false);
     scene->AddGameObject(popScoreObj_);
-    popScoreText_ = popScoreObj_->AddComponent<TextRendererComponent>().get();
+    popScoreText_ = popScoreObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     popScoreText_->SetFontId("toro_glitch");
     popScoreText_->SetAlignment(Irufemi::TextAlignment::Left);
     popScoreText_->SetBaseScale(16.0f);
@@ -125,10 +125,10 @@ void ScoreHUDComponent::EnsureUIElements() {
     popScoreObj_->Initialize();
 
     // 画面中央：特大バナー通知（SHIELD BREAK! 等）
-    centerBannerObj_ = std::make_shared<GameObject>("HUD_CenterBanner");
+    centerBannerObj_ = std::make_shared<Irufemi::GameObject>("HUD_CenterBanner");
     centerBannerObj_->SetIsSerializable(false);
     scene->AddGameObject(centerBannerObj_);
-    centerBannerText_ = centerBannerObj_->AddComponent<TextRendererComponent>().get();
+    centerBannerText_ = centerBannerObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     centerBannerText_->SetFontId("toro_glitch");
     centerBannerText_->SetAlignment(Irufemi::TextAlignment::Center);
     centerBannerText_->SetBaseScale(36.0f);
@@ -137,10 +137,10 @@ void ScoreHUDComponent::EnsureUIElements() {
     centerBannerText_->SetText(L"");
     centerBannerObj_->Initialize();
 
-    centerSubBannerObj_ = std::make_shared<GameObject>("HUD_CenterSubBanner");
+    centerSubBannerObj_ = std::make_shared<Irufemi::GameObject>("HUD_CenterSubBanner");
     centerSubBannerObj_->SetIsSerializable(false);
     scene->AddGameObject(centerSubBannerObj_);
-    centerSubBannerText_ = centerSubBannerObj_->AddComponent<TextRendererComponent>().get();
+    centerSubBannerText_ = centerSubBannerObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     centerSubBannerText_->SetFontId("toro_glitch");
     centerSubBannerText_->SetAlignment(Irufemi::TextAlignment::Center);
     centerSubBannerText_->SetBaseScale(18.0f);

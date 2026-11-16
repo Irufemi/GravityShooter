@@ -14,7 +14,7 @@ TitleScene::~TitleScene() {}
 
 // 初期化
 void TitleScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
 
     // モーダル画面（HowToPlayScene, OptionsScene）で使用される全英数字・記号を先行ウォームアップ
     // 画面遷移時のFreeType走査・GPUアップロードによるメインスレッド阻害（フレームヒッチ）を根絶
@@ -32,15 +32,15 @@ void TitleScene::Initialize(IrufemiEngine* engine) {
 
 // 更新
 void TitleScene::Update() {
-    BaseScene::Update();
+    Irufemi::BaseScene::Update();
 }
 
 void TitleScene::Draw() {
-    BaseScene::Draw();
+    Irufemi::BaseScene::Draw();
 }
 
 void TitleScene::OnSuspend() {
-    BaseScene::OnSuspend();
+    Irufemi::BaseScene::OnSuspend();
 
     // 他のシーン（HowToPlayやOptions）が重なった時は、タイトル文字被りを防ぐためメニューUIを非表示化
     if (auto menuMgr = FindGameObject("MenuManager")) {
@@ -51,7 +51,7 @@ void TitleScene::OnSuspend() {
 }
 
 void TitleScene::OnResume() {
-    BaseScene::OnResume();
+    Irufemi::BaseScene::OnResume();
 
     // スタックから復帰した時はメニューUIを再表示し、カーソル位置を現在フォーカスボタンに同期
     if (auto menuMgr = FindGameObject("MenuManager")) {

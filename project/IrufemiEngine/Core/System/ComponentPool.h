@@ -131,10 +131,7 @@ private:
  */
 template <typename T> struct IsPooledComponent : std::false_type {};
 
-} // namespace Irufemi
-
 class TransformComponent;
+template <> struct IsPooledComponent<TransformComponent> : std::true_type {};
 
-namespace Irufemi {
-template <> struct IsPooledComponent<::TransformComponent> : std::true_type {};
 } // namespace Irufemi

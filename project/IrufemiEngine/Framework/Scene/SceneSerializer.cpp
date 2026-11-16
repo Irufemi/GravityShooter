@@ -12,7 +12,8 @@
 #include <filesystem>
 
 namespace fs = std::filesystem;
-using namespace Irufemi;
+
+namespace Irufemi {
 
 bool SceneSerializer::Save(IScene* scene, const std::string& sceneName) {
     if (!scene) {
@@ -97,3 +98,6 @@ std::string SceneSerializer::GetSceneFilePath(IScene* scene, const std::string& 
     fs::path filePath = dir / (sceneName + ".json");
     return filePath.generic_string();
 }
+
+} // namespace Irufemi
+

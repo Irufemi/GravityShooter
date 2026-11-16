@@ -24,17 +24,17 @@ public:
             boss->NotifyBossDied();
 
             // 演出エフェクトが始まったタイミングでボスのモデル描画およびアウトラインを1回の走査ですべて切る
-            auto hideRecursive = [](auto self, GameObject* obj) -> void {
+            auto hideRecursive = [](auto self, Irufemi::GameObject* obj) -> void {
                 if (!obj) {
                     return;
                 }
-                if (auto* r = obj->GetComponent<MeshRendererComponent>()) {
+                if (auto* r = obj->GetComponent<Irufemi::MeshRendererComponent>()) {
                     r->SetVisible(false);
                 }
-                if (auto* r = obj->GetComponent<SkinnedMeshRendererComponent>()) {
+                if (auto* r = obj->GetComponent<Irufemi::SkinnedMeshRendererComponent>()) {
                     r->SetVisible(false);
                 }
-                if (auto* em = obj->GetComponent<EffectMaskComponent>()) {
+                if (auto* em = obj->GetComponent<Irufemi::EffectMaskComponent>()) {
                     em->SetEnableEffectMask(false);
                 }
                 for (const auto& child : obj->GetChildren()) {

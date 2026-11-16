@@ -2,6 +2,8 @@
 #include "Framework/Component/Component.h"
 #include "Renderer/System/ParticleGPU/GPUParticleManager.h"
 
+namespace Irufemi {
+
 class TransformComponent;
 
 /**
@@ -121,3 +123,6 @@ private:
     int lastFieldType_ = -1;
     bool isFirstUpdate_ = true;
 };
+
+} // namespace Irufemi
+

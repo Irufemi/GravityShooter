@@ -35,7 +35,7 @@ void SplineFollowerComponent::Start() {
     auto* scene = gameObject_->GetScene();
     if (scene && targetPathID_ != 0) {
         if (auto obj = scene->FindGameObjectByID(targetPathID_)) {
-            cachedPath_ = obj->GetComponent<SplineComponent>();
+            cachedPath_ = obj->GetComponent<Irufemi::SplineComponent>();
         }
     }
 

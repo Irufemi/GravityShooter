@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include "Core/Utility/JsonUtility.h"
 
+namespace Irufemi {
+
 class IScene;
 class GameObject;
 class PrefabManager;
@@ -82,3 +84,6 @@ private:
 
     static inline PrefabManager* prefabManager_ = nullptr;
 };
+
+} // namespace Irufemi
+

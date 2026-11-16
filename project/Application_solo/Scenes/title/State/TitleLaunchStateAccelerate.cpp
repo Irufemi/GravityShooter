@@ -28,7 +28,7 @@ void TitleLaunchStateAccelerate::Enter(TitleSceneDirectorComponent* director) {
 
     // 自機スラスターノズル内のGPUパーティクルを瞬間オーバードライブ再点火
     if (auto thruster = director->GetThrusterObject().lock()) {
-        auto emitters = thruster->GetComponentsInChildren<ParticleEmitterComponent>();
+        auto emitters = thruster->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
         for (auto pe : emitters) {
             pe->Restart(false);
         }
@@ -36,7 +36,7 @@ void TitleLaunchStateAccelerate::Enter(TitleSceneDirectorComponent* director) {
 
     // 予兆としての単発衝撃インパルス（振幅 0.035m の瞬間シェイク）
     if (auto camObj = director->GetCameraObject().lock()) {
-        if (auto shake = camObj->GetComponent<CameraShakeComponent>()) {
+        if (auto shake = camObj->GetComponent<Irufemi::CameraShakeComponent>()) {
             shake->PlayShakeSeconds(0.035f, TitleSceneDirectorComponent::kDurationFreeze_, 28.0f);
         }
     }

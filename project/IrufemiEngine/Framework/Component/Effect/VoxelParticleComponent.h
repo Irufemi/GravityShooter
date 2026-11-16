@@ -4,6 +4,8 @@
 #include "Core/Math/Vector3Int.h"
 #include <string>
 
+namespace Irufemi {
+
 /**
  * @class VoxelParticleComponent
  * @brief 既存のレンダラーモデル等を利用してボクセルパーティクルを発生させるコンポーネント。
@@ -143,3 +145,6 @@ private:
      */
     std::string GetTargetModelName();
 };
+
+} // namespace Irufemi
+

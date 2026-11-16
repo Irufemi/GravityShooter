@@ -41,6 +41,8 @@
 #include "Framework/Component/Effect/GlobalPostProcessComponent.h"
 #include "Framework/Component/Camera/CameraComponent.h"
 
+using namespace Irufemi;
+
 // =======================================================================
 // ComponentEditorRegistry
 // =======================================================================

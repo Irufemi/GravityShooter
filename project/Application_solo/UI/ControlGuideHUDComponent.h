@@ -3,15 +3,16 @@
 #include <memory>
 #include <string>
 
-class SpriteRendererComponent;
-class TextRendererComponent;
-class GameObject;
+namespace Irufemi { class SpriteRendererComponent; }
+namespace Irufemi { class TextRendererComponent; }
+namespace Irufemi { class GameObject; }
+namespace Irufemi { class BaseScene; }
 
 /**
  * @class ControlGuideHUDComponent
  * @brief 画面左下にキーボード/マウスおよびゲームパッドの操作ガイドを日本語で常時表示するViewコンポーネント
  */
-class ControlGuideHUDComponent : public Component {
+class ControlGuideHUDComponent : public Irufemi::Component {
 public:
     ControlGuideHUDComponent();
     ~ControlGuideHUDComponent() override;
@@ -23,25 +24,25 @@ public:
     void SetVisible(bool visible);
 
     /// @brief シーン上に存在する ControlGuideHUDComponent を取得（未存在時は自動プロビジョニング）
-    static ControlGuideHUDComponent* GetOrCreate(class BaseScene* scene);
+    static ControlGuideHUDComponent* GetOrCreate(Irufemi::BaseScene* scene);
 
 private:
     void EnsureUIElements();
 
-    std::shared_ptr<GameObject> containerObj_;
-    std::shared_ptr<GameObject> plateObj_;
-    std::shared_ptr<GameObject> topBorderObj_;
-    std::shared_ptr<GameObject> leftBarObj_;
-    std::shared_ptr<GameObject> headerTextObj_;
-    std::shared_ptr<GameObject> row1TextObj_;
-    std::shared_ptr<GameObject> row2TextObj_;
+    std::shared_ptr<Irufemi::GameObject> containerObj_;
+    std::shared_ptr<Irufemi::GameObject> plateObj_;
+    std::shared_ptr<Irufemi::GameObject> topBorderObj_;
+    std::shared_ptr<Irufemi::GameObject> leftBarObj_;
+    std::shared_ptr<Irufemi::GameObject> headerTextObj_;
+    std::shared_ptr<Irufemi::GameObject> row1TextObj_;
+    std::shared_ptr<Irufemi::GameObject> row2TextObj_;
 
-    SpriteRendererComponent* plateSprite_ = nullptr;
-    SpriteRendererComponent* topBorderSprite_ = nullptr;
-    SpriteRendererComponent* leftBarSprite_ = nullptr;
-    TextRendererComponent* headerText_ = nullptr;
-    TextRendererComponent* row1Text_ = nullptr;
-    TextRendererComponent* row2Text_ = nullptr;
+    Irufemi::SpriteRendererComponent* plateSprite_ = nullptr;
+    Irufemi::SpriteRendererComponent* topBorderSprite_ = nullptr;
+    Irufemi::SpriteRendererComponent* leftBarSprite_ = nullptr;
+    Irufemi::TextRendererComponent* headerText_ = nullptr;
+    Irufemi::TextRendererComponent* row1Text_ = nullptr;
+    Irufemi::TextRendererComponent* row2Text_ = nullptr;
 
     bool isElementsCreated_ = false;
     bool isVisible_ = true;

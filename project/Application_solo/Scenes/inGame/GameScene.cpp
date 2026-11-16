@@ -18,7 +18,7 @@ GameScene::~GameScene() = default;
 
 // 初期化
 void GameScene::Initialize(IrufemiEngine* engine) {
-    BaseScene::Initialize(engine);
+    Irufemi::BaseScene::Initialize(engine);
 
     // スコア管理、敵弾プール管理、およびHUDコンポーネントを確実にプロビジョニング
     ScoreManagerComponent::GetOrCreate(this);
@@ -56,20 +56,20 @@ void GameScene::Initialize(IrufemiEngine* engine) {
 
 // 更新
 void GameScene::Update() {
-    BaseScene::Update(); // これにより GameObject 群の Update が呼ばれる
+    Irufemi::BaseScene::Update(); // これにより GameObject 群の Update が呼ばれる
 }
 
 void GameScene::Draw() {
-    BaseScene::Draw(); // これにより GameObject 群の Draw が呼ばれる
+    Irufemi::BaseScene::Draw(); // これにより GameObject 群の Draw が呼ばれる
 }
 
 void GameScene::OnSuspend() {
-    BaseScene::OnSuspend();
+    Irufemi::BaseScene::OnSuspend();
     SetHUDActive(false); // ポーズ中・オーバーレイ表示中は自機レティクル等のHUDを確実に非表示化
 }
 
 void GameScene::OnResume() {
-    BaseScene::OnResume();
+    Irufemi::BaseScene::OnResume();
     SetHUDActive(true); // ゲーム復帰時にHUDを再表示
 }
 

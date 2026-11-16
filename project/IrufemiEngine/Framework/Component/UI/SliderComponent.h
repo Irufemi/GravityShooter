@@ -6,6 +6,8 @@
 #include "Core/Math/Vector2.h"
 #include "Core/Math/Vector4.h"
 
+namespace Irufemi {
+
 class SpriteRendererComponent;
 class GameObject;
 
@@ -79,3 +81,5 @@ private:
 
     std::function<void(float)> onValueChangedCallback_;
 };
+
+} // namespace Irufemi

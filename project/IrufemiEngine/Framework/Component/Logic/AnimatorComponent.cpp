@@ -6,7 +6,7 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Core/Math/MathFunction.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 AnimatorComponent::AnimatorComponent() {
     animator_ = std::make_unique<Animator>();
@@ -93,3 +93,5 @@ void AnimatorComponent::OnRegisterProperties() {
 
     RegisterProperty("Fade Duration", &defaultFadeDuration_).SetTooltip("Crossfade transition duration in seconds");
 }
+
+} // namespace Irufemi

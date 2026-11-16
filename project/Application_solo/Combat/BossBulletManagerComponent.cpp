@@ -25,9 +25,9 @@ void BossBulletManagerComponent::Initialize() {
     if (!gameObject_) {
         return;
     }
-    virtualManager_ = gameObject_->GetComponent<VirtualEntityManagerComponent>();
+    virtualManager_ = gameObject_->GetComponent<Irufemi::VirtualEntityManagerComponent>();
     if (!virtualManager_) {
-        virtualManager_ = gameObject_->AddComponent<VirtualEntityManagerComponent>().get();
+        virtualManager_ = gameObject_->AddComponent<Irufemi::VirtualEntityManagerComponent>().get();
     }
 
     std::string modelToLoad = bulletModelPath_;
@@ -64,12 +64,12 @@ void BossBulletManagerComponent::Initialize() {
     }
 
     // バッチレンダラに弾モデルを設定し、弾色（紫色等）を反映
-    if (auto batchRenderer = gameObject_->GetComponent<ModelBatchRendererComponent>()) {
+    if (auto batchRenderer = gameObject_->GetComponent<Irufemi::ModelBatchRendererComponent>()) {
         batchRenderer->LoadModel(modelToLoad);
         batchRenderer->SetColor(bulletColor_);
     }
 
-    auto factory = [this]() -> std::shared_ptr<GameObject> {
+    auto factory = [this]() -> std::shared_ptr<Irufemi::GameObject> {
         return GetGameObject() ? GetGameObject()->Instantiate(bulletPrefabPath_) : nullptr;
     };
     virtualManager_->Setup(0, maxBullets_, factory);
@@ -86,7 +86,7 @@ void BossBulletManagerComponent::Start() {
             effectManager_ = go->GetComponent<EffectManagerComponent>();
         }
     }
-    if (auto batchRenderer = gameObject_->GetComponent<ModelBatchRendererComponent>()) {
+    if (auto batchRenderer = gameObject_->GetComponent<Irufemi::ModelBatchRendererComponent>()) {
         batchRenderer->SetColor(bulletColor_);
     }
 }
@@ -198,8 +198,8 @@ void BossBulletManagerComponent::Update() {
             proxy.debris = debrisComp;
             proxy.isEnvironment = isEnv;
 
-            if (col->GetColliderType() == ColliderComponent::ColliderType::Sphere) {
-                auto sphereCol = static_cast<SphereColliderComponent*>(col);
+            if (col->GetColliderType() == Irufemi::ColliderComponent::ColliderType::Sphere) {
+                auto sphereCol = static_cast<Irufemi::SphereColliderComponent*>(col);
                 proxy.isSphere = true;
                 proxy.sphere = sphereCol->GetWorldSphere();
                 float totalR = proxy.sphere.radius + hitRadius_;
@@ -295,7 +295,7 @@ void BossBulletManagerComponent::Update() {
 }
 
 void BossBulletManagerComponent::OnRegisterProperties() {
-    Component::OnRegisterProperties();
+    Irufemi::Component::OnRegisterProperties();
     RegisterProperty("Bullet Prefab Path", &bulletPrefabPath_).SetPrefabFilter("SphereColliderComponent");
     RegisterProperty("Bullet Model Path", &bulletModelPath_);
     RegisterProperty("Max Bullets", &maxBullets_);

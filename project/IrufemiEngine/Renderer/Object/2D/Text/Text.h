@@ -10,11 +10,9 @@
 #include <wrl.h>
 #include <memory>
 
-// 前方宣言
-class DebugUI;
-
 namespace Irufemi {
 
+class DebugUI;
 class FontManager;
 class CameraManager;
 class DrawManager;
@@ -324,7 +322,7 @@ private:
     static FontManager* fontManager_;
     static DrawManager* drawManager_;
     static CameraManager* cameraManager_;
-    static ::DebugUI* ui_;
+    static DebugUI* ui_;
 
     Matrix4x4 lastViewMatrix_ = {};
     Matrix4x4 lastProjectionMatrix_ = {};

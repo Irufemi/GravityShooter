@@ -2,7 +2,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Physics/CollisionManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 ColliderComponent::~ColliderComponent() {
     OnDestroy();
@@ -94,3 +94,6 @@ void ColliderComponent::CopyPropertiesFrom(const Component* other) {
         debugCustomColor_ = otherCol->debugCustomColor_;
     }
 }
+
+} // namespace Irufemi
+

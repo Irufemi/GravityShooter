@@ -62,7 +62,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include <chrono>
 #include <iomanip>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 namespace {
 #ifdef USE_IMGUI
@@ -1194,3 +1194,5 @@ void DebugUI::DrawCommonEngineTabs([[maybe_unused]] IrufemiEngine* engine) {
     }
 #endif
 }
+
+} // namespace Irufemi

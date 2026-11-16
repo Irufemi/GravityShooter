@@ -4,10 +4,9 @@
 #include <string>
 #include "Core/Shape/Sphere.h"
 
-// 前方宣言
 namespace Irufemi {
+
 class StaticModelObject;
-}
 class TransformComponent;
 
 class MeshRendererComponent : public Component {
@@ -168,3 +167,6 @@ private:
     bool castShadows_ = true;
     bool isVisible_ = true;
 };
+
+} // namespace Irufemi
+

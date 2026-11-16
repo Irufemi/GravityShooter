@@ -3,7 +3,7 @@
 #include "Core/Utility/Ease.h"
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 namespace {
 // 互換性フォールバック用ダミー静的インスタンス
@@ -252,3 +252,5 @@ const PostProcessManager::RadialBlurParams& ScreenEffectComponent::GetTargetRadi
     }
     return sDummyRadialBlur;
 }
+
+} // namespace Irufemi

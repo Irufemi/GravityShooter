@@ -7,14 +7,14 @@
 #include <memory>
 #include <vector>
 
-class GameObject;
-class VirtualEntityManagerComponent;
-class ColliderComponent;
+namespace Irufemi { class GameObject; }
+namespace Irufemi { class VirtualEntityManagerComponent; }
+namespace Irufemi { class ColliderComponent; }
 class PlayerHealthComponent;
 class DestructibleEnvironmentComponent;
 class DebrisComponent;
 
-class BossBulletManagerComponent : public Component {
+class BossBulletManagerComponent : public Irufemi::Component {
 public:
     BossBulletManagerComponent();
     ~BossBulletManagerComponent() override = default;
@@ -74,15 +74,15 @@ private:
     /// @brief 攻撃対象となるプレイヤーのGameObject ID
     uint64_t targetPlayerID_ = 0;
 
-    VirtualEntityManagerComponent* virtualManager_ = nullptr;
+    Irufemi::VirtualEntityManagerComponent* virtualManager_ = nullptr;
     std::vector<BossBulletData> bulletDataList_;
     std::vector<int> activeVirtualIds_;
-    std::vector<ColliderComponent*> prefetchedColliders_;
+    std::vector<Irufemi::ColliderComponent*> prefetchedColliders_;
     class EffectManagerComponent* effectManager_ = nullptr;
 
     struct CachedTargetProxy {
-        ColliderComponent* collider = nullptr;
-        GameObject* gameObject = nullptr;
+        Irufemi::ColliderComponent* collider = nullptr;
+        Irufemi::GameObject* gameObject = nullptr;
         PlayerHealthComponent* playerHealth = nullptr;
         DestructibleEnvironmentComponent* destructible = nullptr;
         DebrisComponent* debris = nullptr;

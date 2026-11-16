@@ -7,6 +7,8 @@
 #include "Core/Math/MathFunction.h"
 #include <cmath>
 
+namespace Irufemi {
+
 void TargetFollowComponent::OnRegisterProperties() {
     RegisterGameObjectRef("Target Object", &targetObjectID_);
     RegisterProperty("Offset", &offset_);
@@ -178,3 +180,5 @@ void TargetFollowComponent::Update() {
         camComp->Update();
     }
 }
+
+} // namespace Irufemi

@@ -89,7 +89,7 @@ constexpr std::string_view kInitialScene = GameScenes::Title;
 #endif
 
 // --- シーン登録処理 ---
-void RegisterScenes(SceneManager& sm) {
+void RegisterScenes(Irufemi::SceneManager& sm) {
     sm.Register(GameScenes::Title, [] { return std::make_unique<TitleScene>(); });
     sm.Register(GameScenes::Select, [] { return std::make_unique<SelectScene>(); });
     sm.Register(GameScenes::InGame, [] { return std::make_unique<GameScene>(); });
@@ -142,70 +142,70 @@ void RegisterShaders(IrufemiEngine& engine) {
 
 // --- コンポーネント登録処理 ---
 void RegisterComponents() {
-    ComponentFactory::Register("RailShooterPlayerComponent", "Game",
+    Irufemi::ComponentFactory::Register("RailShooterPlayerComponent", "Game",
                                []() { return std::make_shared<RailShooterPlayerComponent>(); });
-    ComponentFactory::Register("SplineFollowerComponent", "Game",
+    Irufemi::ComponentFactory::Register("SplineFollowerComponent", "Game",
                                []() { return std::make_shared<SplineFollowerComponent>(); });
-    ComponentFactory::Register("RailRelativeFollowerComponent", "Game",
+    Irufemi::ComponentFactory::Register("RailRelativeFollowerComponent", "Game",
                                []() { return std::make_shared<RailRelativeFollowerComponent>(); });
-    ComponentFactory::Register("RailShooterEnemyComponent", "Game",
+    Irufemi::ComponentFactory::Register("RailShooterEnemyComponent", "Game",
                                []() { return std::make_shared<RailShooterEnemyComponent>(); });
-    ComponentFactory::Register("DebrisComponent", "Game", []() { return std::make_shared<DebrisComponent>(); });
-    ComponentFactory::Register("TargetableComponent", "Game", []() { return std::make_shared<TargetableComponent>(); });
-    ComponentFactory::Register("DebrisManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("DebrisComponent", "Game", []() { return std::make_shared<DebrisComponent>(); });
+    Irufemi::ComponentFactory::Register("TargetableComponent", "Game", []() { return std::make_shared<TargetableComponent>(); });
+    Irufemi::ComponentFactory::Register("DebrisManagerComponent", "Game",
                                []() { return std::make_shared<DebrisManagerComponent>(); });
-    ComponentFactory::Register("WaveManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("WaveManagerComponent", "Game",
                                []() { return std::make_shared<WaveManagerComponent>(); });
-    ComponentFactory::Register("StageIntroDirectorComponent", "Game",
+    Irufemi::ComponentFactory::Register("StageIntroDirectorComponent", "Game",
                                []() { return std::make_shared<StageIntroDirectorComponent>(); });
-    ComponentFactory::Register("EnvironmentManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("EnvironmentManagerComponent", "Game",
                                []() { return std::make_shared<EnvironmentManagerComponent>(); });
-    ComponentFactory::Register("GravityPlayerComponent", "Game",
+    Irufemi::ComponentFactory::Register("GravityPlayerComponent", "Game",
                                []() { return std::make_shared<GravityPlayerComponent>(); });
-    ComponentFactory::Register("PlayerHealthComponent", "Game",
+    Irufemi::ComponentFactory::Register("PlayerHealthComponent", "Game",
                                []() { return std::make_shared<PlayerHealthComponent>(); });
-    ComponentFactory::Register("PlayerDamageVisualizerComponent", "Game",
+    Irufemi::ComponentFactory::Register("PlayerDamageVisualizerComponent", "Game",
                                []() { return std::make_shared<PlayerDamageVisualizerComponent>(); });
-    ComponentFactory::Register("PlayerThrusterVisualizerComponent", "Game",
+    Irufemi::ComponentFactory::Register("PlayerThrusterVisualizerComponent", "Game",
                                []() { return std::make_shared<PlayerThrusterVisualizerComponent>(); });
-    ComponentFactory::Register("PlayerTargetingComponent", "Game",
+    Irufemi::ComponentFactory::Register("PlayerTargetingComponent", "Game",
                                []() { return std::make_shared<PlayerTargetingComponent>(); });
-    ComponentFactory::Register("EnemySpawnerComponent", "Game",
+    Irufemi::ComponentFactory::Register("EnemySpawnerComponent", "Game",
                                []() { return std::make_shared<EnemySpawnerComponent>(); });
-    ComponentFactory::Register("BossComponent", "Game", []() { return std::make_shared<BossComponent>(); });
-    ComponentFactory::Register("BossDamageVisualizerComponent", "Game",
+    Irufemi::ComponentFactory::Register("BossComponent", "Game", []() { return std::make_shared<BossComponent>(); });
+    Irufemi::ComponentFactory::Register("BossDamageVisualizerComponent", "Game",
                                []() { return std::make_shared<BossDamageVisualizerComponent>(); });
-    ComponentFactory::Register("SceneTransitionButtonComponent", "Game",
+    Irufemi::ComponentFactory::Register("SceneTransitionButtonComponent", "Game",
                                []() { return std::make_shared<SceneTransitionButtonComponent>(); });
-    ComponentFactory::Register("EffectManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("EffectManagerComponent", "Game",
                                []() { return std::make_shared<EffectManagerComponent>(); });
-    ComponentFactory::Register("ReticleUIComponent", "UI", []() { return std::make_shared<ReticleUIComponent>(); });
-    ComponentFactory::Register("LockonMarkerUIComponent", "UI",
+    Irufemi::ComponentFactory::Register("ReticleUIComponent", "UI", []() { return std::make_shared<ReticleUIComponent>(); });
+    Irufemi::ComponentFactory::Register("LockonMarkerUIComponent", "UI",
                                []() { return std::make_shared<LockonMarkerUIComponent>(); });
-    ComponentFactory::Register("ScoreHUDComponent", "UI", []() { return std::make_shared<ScoreHUDComponent>(); });
-    ComponentFactory::Register("PlayerStatusHUDComponent", "UI",
+    Irufemi::ComponentFactory::Register("ScoreHUDComponent", "UI", []() { return std::make_shared<ScoreHUDComponent>(); });
+    Irufemi::ComponentFactory::Register("PlayerStatusHUDComponent", "UI",
                                []() { return std::make_shared<PlayerStatusHUDComponent>(); });
-    ComponentFactory::Register("DroneManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("DroneManagerComponent", "Game",
                                []() { return std::make_shared<DroneManagerComponent>(); });
-    ComponentFactory::Register("BossBulletManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("BossBulletManagerComponent", "Game",
                                []() { return std::make_shared<BossBulletManagerComponent>(); });
-    ComponentFactory::Register("EnemyBeamComponent", "Game", []() { return std::make_shared<EnemyBeamComponent>(); });
-    ComponentFactory::Register("EnemyBulletComponent", "Game",
+    Irufemi::ComponentFactory::Register("EnemyBeamComponent", "Game", []() { return std::make_shared<EnemyBeamComponent>(); });
+    Irufemi::ComponentFactory::Register("EnemyBulletComponent", "Game",
                                []() { return std::make_shared<EnemyBulletComponent>(); });
-    ComponentFactory::Register("EnemyBulletManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("EnemyBulletManagerComponent", "Game",
                                []() { return std::make_shared<EnemyBulletManagerComponent>(); });
 
-    ComponentFactory::Register("GameLoopManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("GameLoopManagerComponent", "Game",
                                []() { return std::make_shared<GameLoopManagerComponent>(); });
-    ComponentFactory::Register("ResultManagerComponent", "Game",
+    Irufemi::ComponentFactory::Register("ResultManagerComponent", "Game",
                                []() { return std::make_shared<ResultManagerComponent>(); });
-    ComponentFactory::Register("TitleMenuControllerComponent", "Game",
+    Irufemi::ComponentFactory::Register("TitleMenuControllerComponent", "Game",
                                []() { return std::make_shared<TitleMenuControllerComponent>(); });
-    ComponentFactory::Register("TitleCosmicNebulaComponent", "Game",
+    Irufemi::ComponentFactory::Register("TitleCosmicNebulaComponent", "Game",
                                []() { return std::make_shared<TitleCosmicNebulaComponent>(); });
-    ComponentFactory::Register("TitleSceneDirectorComponent", "Game",
+    Irufemi::ComponentFactory::Register("TitleSceneDirectorComponent", "Game",
                                []() { return std::make_shared<TitleSceneDirectorComponent>(); });
-    ComponentFactory::Register("NebulaSeaFloorComponent", "Environment",
+    Irufemi::ComponentFactory::Register("NebulaSeaFloorComponent", "Environment",
                                []() { return std::make_shared<NebulaSeaFloorComponent>(); });
 }
 } // namespace

@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 VoxelParticleComponent::VoxelParticleComponent() {}
 
@@ -172,3 +172,5 @@ void VoxelParticleComponent::Deserialize(const nlohmann::json& j) {
         emitterParams_.dissolveEdgeColor.w = j["dissolveEdgeColor"][3];
     }
 }
+
+} // namespace Irufemi

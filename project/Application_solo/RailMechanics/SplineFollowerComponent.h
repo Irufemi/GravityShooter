@@ -4,14 +4,14 @@
 #include <memory>
 #include <string>
 
-class SplineComponent;
+namespace Irufemi { class SplineComponent; }
 class Line3DBatch;
 
 /**
  * @class SplineFollowerComponent
  * @brief 指定されたスプラインレール上を移動し、自身のTransformを更新するコンポーネント
  */
-class SplineFollowerComponent : public Component {
+class SplineFollowerComponent : public Irufemi::Component {
 public:
     SplineFollowerComponent() = default;
     ~SplineFollowerComponent() override = default;
@@ -27,7 +27,7 @@ public:
     float GetCurrentDistance() const {
         return currentDistance_;
     }
-    SplineComponent* GetCachedPath() const {
+    Irufemi::SplineComponent* GetCachedPath() const {
         return cachedPath_;
     }
     uint64_t GetTargetPathID() const {
@@ -66,5 +66,5 @@ private:
     float speed_ = 10.0f;                   ///< 自動前進するスピード (m/s)
     float speedMultiplier_ = 1.0f;          ///< 演出用の一時的スピード倍率（標準: 1.0）
     uint64_t targetPathID_ = 0;             ///< 追従対象のオブジェクトID
-    SplineComponent* cachedPath_ = nullptr; ///< キャッシュされた対象のパス
+    Irufemi::SplineComponent* cachedPath_ = nullptr; ///< キャッシュされた対象のパス
 };

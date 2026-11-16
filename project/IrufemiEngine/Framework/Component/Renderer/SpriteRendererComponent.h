@@ -6,6 +6,8 @@
 #include "Core/Math/Vector2.h"
 #include "Core/Math/Vector4.h"
 
+namespace Irufemi {
+
 class TransformComponent;
 
 /**
@@ -205,3 +207,6 @@ private:
     Irufemi::Vector2 size_{640.0f, 360.0f};
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};
 };
+
+} // namespace Irufemi
+

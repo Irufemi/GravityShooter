@@ -10,7 +10,7 @@ public:
     WaveManagerComponentEditor() = default;
     ~WaveManagerComponentEditor() override = default;
 
-    void Draw(Component* component, class EditorActionManager* actionManager) override;
+    void Draw(Irufemi::Component* component, class EditorActionManager* actionManager) override;
 
 private:
     std::vector<WaveEventData> oldState_;

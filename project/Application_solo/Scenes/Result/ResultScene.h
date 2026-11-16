@@ -3,11 +3,11 @@
 
 /**
  * @brief ゲームクリアおよびゲームオーバー時の結果表示シーン
- * @details SceneManager の PushScene() を利用してインゲームシーンの上に被せる（オーバーレイする）設計。
+ * @details Irufemi::SceneManager の PushScene() を利用してインゲームシーンの上に被せる（オーバーレイする）設計。
  * IsUpdateBlocking = false, IsDrawBlocking = false
  * とすることで、背景でゲーム世界が等倍速で動き続ける余韻演出を実現します。
  */
-class ResultScene : public BaseScene {
+class ResultScene : public Irufemi::BaseScene {
 public:
     ResultScene() = default;
     ~ResultScene() override;

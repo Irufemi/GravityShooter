@@ -2,7 +2,7 @@
 #include "Framework/Component/Component.h"
 #include <memory>
 
-class GameObject;
+namespace Irufemi { class GameObject; }
 class PlayerHealthComponent;
 enum class PlayerFlightState;
 
@@ -10,7 +10,7 @@ enum class PlayerFlightState;
  * @class PlayerThrusterVisualizerComponent
  * @brief 自機の推進スラスター演出を制御するコンポーネント（Observerパターンによるスロットル・ステート連動）
  */
-class PlayerThrusterVisualizerComponent : public Component {
+class PlayerThrusterVisualizerComponent : public Irufemi::Component {
 public:
     PlayerThrusterVisualizerComponent() = default;
     ~PlayerThrusterVisualizerComponent() override = default;
@@ -62,7 +62,7 @@ private:
     void OnStateChanged(PlayerFlightState newState, PlayerFlightState oldState);
 
 private:
-    std::weak_ptr<GameObject> thrusterObj_; ///< アタッチされたスラスターGameObject
+    std::weak_ptr<Irufemi::GameObject> thrusterObj_; ///< アタッチされたスラスターGameObject
 
     Irufemi::Vector3 nozzleOffset_ = {0.0f, 0.0f, -0.48f}; ///< 機体ノズル相対座標
     float minScaleZ_ = 0.8f;                               ///< アイドル時のスケール

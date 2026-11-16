@@ -16,7 +16,7 @@
 PlayerStatusHUDComponent::PlayerStatusHUDComponent() = default;
 PlayerStatusHUDComponent::~PlayerStatusHUDComponent() = default;
 
-PlayerStatusHUDComponent* PlayerStatusHUDComponent::GetOrCreate(BaseScene* scene) {
+PlayerStatusHUDComponent* PlayerStatusHUDComponent::GetOrCreate(Irufemi::BaseScene* scene) {
     if (!scene) {
         return nullptr;
     }
@@ -26,7 +26,7 @@ PlayerStatusHUDComponent* PlayerStatusHUDComponent::GetOrCreate(BaseScene* scene
         }
     }
 
-    auto hudObj = std::make_shared<GameObject>("PlayerStatusHUD");
+    auto hudObj = std::make_shared<Irufemi::GameObject>("PlayerStatusHUD");
     hudObj->SetIsSerializable(false);
     auto comp = hudObj->AddComponent<PlayerStatusHUDComponent>();
     scene->AddGameObject(hudObj);
@@ -63,7 +63,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     constexpr float kBaseY = 32.0f;
 
     // 1. ルートコンテナ（透過フレームレスデザイン）
-    rootContainerObj_ = std::make_shared<GameObject>("HUD_PlayerStatusRoot");
+    rootContainerObj_ = std::make_shared<Irufemi::GameObject>("HUD_PlayerStatusRoot");
     rootContainerObj_->SetIsSerializable(false);
     scene->AddGameObject(rootContainerObj_);
     if (auto t = rootContainerObj_->GetTransform()) {
@@ -71,14 +71,14 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     }
 
     // 2. HPヘッダーテキスト
-    hpHeaderObj_ = std::make_shared<GameObject>("HUD_HPHeader");
+    hpHeaderObj_ = std::make_shared<Irufemi::GameObject>("HUD_HPHeader");
     hpHeaderObj_->SetIsSerializable(false);
     scene->AddGameObject(hpHeaderObj_);
     rootContainerObj_->AddChild(hpHeaderObj_);
     if (auto t = hpHeaderObj_->GetTransform()) {
         t->SetPosition({0.0f, 0.0f, 1.5f});
     }
-    hpHeaderText_ = hpHeaderObj_->AddComponent<TextRendererComponent>().get();
+    hpHeaderText_ = hpHeaderObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     hpHeaderText_->SetFontId("toro_glitch");
     hpHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpHeaderText_->SetBaseScale(11.0f);
@@ -92,14 +92,14 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     constexpr float kBarW = 180.0f;
     constexpr float kBarH = 10.0f;
 
-    hpBarBgObj_ = std::make_shared<GameObject>("HUD_HPBarBg");
+    hpBarBgObj_ = std::make_shared<Irufemi::GameObject>("HUD_HPBarBg");
     hpBarBgObj_->SetIsSerializable(false);
     scene->AddGameObject(hpBarBgObj_);
     rootContainerObj_->AddChild(hpBarBgObj_);
     if (auto t = hpBarBgObj_->GetTransform()) {
         t->SetPosition({0.0f, kBarY, 1.6f});
     }
-    hpBarBgSprite_ = hpBarBgObj_->AddComponent<SpriteRendererComponent>().get();
+    hpBarBgSprite_ = hpBarBgObj_->AddComponent<Irufemi::SpriteRendererComponent>().get();
     hpBarBgSprite_->SetBaseSize({kBarW, kBarH});
     hpBarBgSprite_->SetAnchor({0.0f, 0.5f});
     hpBarBgSprite_->SetColor({0.03f, 0.07f, 0.12f, 0.75f});
@@ -107,14 +107,14 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpBarBgObj_->Initialize();
 
     // 4. HP Ghost Bar（後追い遅延バー）
-    hpGhostBarObj_ = std::make_shared<GameObject>("HUD_HPGhostBar");
+    hpGhostBarObj_ = std::make_shared<Irufemi::GameObject>("HUD_HPGhostBar");
     hpGhostBarObj_->SetIsSerializable(false);
     scene->AddGameObject(hpGhostBarObj_);
     rootContainerObj_->AddChild(hpGhostBarObj_);
     if (auto t = hpGhostBarObj_->GetTransform()) {
         t->SetPosition({0.0f, kBarY, 1.4f});
     }
-    hpGhostBarSprite_ = hpGhostBarObj_->AddComponent<SpriteRendererComponent>().get();
+    hpGhostBarSprite_ = hpGhostBarObj_->AddComponent<Irufemi::SpriteRendererComponent>().get();
     hpGhostBarSprite_->SetBaseSize({kBarW, kBarH});
     hpGhostBarSprite_->SetAnchor({0.0f, 0.5f});
     hpGhostBarSprite_->SetColor({1.0f, 0.40f, 0.15f, 0.85f}); // オレンジ/白熱赤
@@ -122,14 +122,14 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpGhostBarObj_->Initialize();
 
     // 5. HP Front Bar（即時実HPバー）
-    hpFrontBarObj_ = std::make_shared<GameObject>("HUD_HPFrontBar");
+    hpFrontBarObj_ = std::make_shared<Irufemi::GameObject>("HUD_HPFrontBar");
     hpFrontBarObj_->SetIsSerializable(false);
     scene->AddGameObject(hpFrontBarObj_);
     rootContainerObj_->AddChild(hpFrontBarObj_);
     if (auto t = hpFrontBarObj_->GetTransform()) {
         t->SetPosition({0.0f, kBarY, 1.2f});
     }
-    hpFrontBarSprite_ = hpFrontBarObj_->AddComponent<SpriteRendererComponent>().get();
+    hpFrontBarSprite_ = hpFrontBarObj_->AddComponent<Irufemi::SpriteRendererComponent>().get();
     hpFrontBarSprite_->SetBaseSize({kBarW, kBarH});
     hpFrontBarSprite_->SetAnchor({0.0f, 0.5f});
     hpFrontBarSprite_->SetColor({0.15f, 0.95f, 0.85f, 0.95f}); // ネオンエメラルドシアン
@@ -137,14 +137,14 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpFrontBarObj_->Initialize();
 
     // 6. HPパーセントテキスト
-    hpTextObj_ = std::make_shared<GameObject>("HUD_HPText");
+    hpTextObj_ = std::make_shared<Irufemi::GameObject>("HUD_HPText");
     hpTextObj_->SetIsSerializable(false);
     scene->AddGameObject(hpTextObj_);
     rootContainerObj_->AddChild(hpTextObj_);
     if (auto t = hpTextObj_->GetTransform()) {
         t->SetPosition({kBarW + 10.0f, kBarY - 6.0f, 1.2f});
     }
-    hpText_ = hpTextObj_->AddComponent<TextRendererComponent>().get();
+    hpText_ = hpTextObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     hpText_->SetFontId("toro_glitch");
     hpText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpText_->SetBaseScale(11.0f);
@@ -156,14 +156,14 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     // 7. デブリヘッダー（HPバー直下、Y: 38px）
     constexpr float kDebrisY = 38.0f;
 
-    debrisHeaderObj_ = std::make_shared<GameObject>("HUD_DebrisHeader");
+    debrisHeaderObj_ = std::make_shared<Irufemi::GameObject>("HUD_DebrisHeader");
     debrisHeaderObj_->SetIsSerializable(false);
     scene->AddGameObject(debrisHeaderObj_);
     rootContainerObj_->AddChild(debrisHeaderObj_);
     if (auto t = debrisHeaderObj_->GetTransform()) {
         t->SetPosition({0.0f, kDebrisY - 5.0f, 1.5f});
     }
-    debrisHeaderText_ = debrisHeaderObj_->AddComponent<TextRendererComponent>().get();
+    debrisHeaderText_ = debrisHeaderObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     debrisHeaderText_->SetFontId("toro_glitch");
     debrisHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisHeaderText_->SetBaseScale(10.0f);
@@ -173,14 +173,14 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     debrisHeaderObj_->Initialize();
 
     // 8. デブリカウントテキスト
-    debrisCountObj_ = std::make_shared<GameObject>("HUD_DebrisCount");
+    debrisCountObj_ = std::make_shared<Irufemi::GameObject>("HUD_DebrisCount");
     debrisCountObj_->SetIsSerializable(false);
     scene->AddGameObject(debrisCountObj_);
     rootContainerObj_->AddChild(debrisCountObj_);
     if (auto t = debrisCountObj_->GetTransform()) {
         t->SetPosition({0.0f, kDebrisY - 5.0f, 1.5f});
     }
-    debrisCountText_ = debrisCountObj_->AddComponent<TextRendererComponent>().get();
+    debrisCountText_ = debrisCountObj_->AddComponent<Irufemi::TextRendererComponent>().get();
     debrisCountText_->SetFontId("toro_glitch");
     debrisCountText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisCountText_->SetBaseScale(10.0f);
@@ -256,14 +256,14 @@ void PlayerStatusHUDComponent::SetupDebrisPips(int maxCount) {
         float pipX = kPipStartX + i * (pipW + pipSpacing);
 
         // Pip背景枠
-        auto bgObj = std::make_shared<GameObject>("HUD_PipBg_" + std::to_string(i));
+        auto bgObj = std::make_shared<Irufemi::GameObject>("HUD_PipBg_" + std::to_string(i));
         bgObj->SetIsSerializable(false);
         scene->AddGameObject(bgObj);
         rootContainerObj_->AddChild(bgObj);
         if (auto t = bgObj->GetTransform()) {
             t->SetPosition({pipX + pipW * 0.5f, kDebrisY, 1.5f});
         }
-        auto bgSprite = bgObj->AddComponent<SpriteRendererComponent>();
+        auto bgSprite = bgObj->AddComponent<Irufemi::SpriteRendererComponent>();
         bgSprite->SetBaseSize({pipW, kPipH});
         bgSprite->SetAnchor({0.5f, 0.5f});
         bgSprite->SetColor({0.03f, 0.07f, 0.12f, 0.75f});
@@ -272,14 +272,14 @@ void PlayerStatusHUDComponent::SetupDebrisPips(int maxCount) {
         debrisPipBgObjs_[i] = bgObj;
 
         // Pip充填バー
-        auto fillObj = std::make_shared<GameObject>("HUD_PipFill_" + std::to_string(i));
+        auto fillObj = std::make_shared<Irufemi::GameObject>("HUD_PipFill_" + std::to_string(i));
         fillObj->SetIsSerializable(false);
         scene->AddGameObject(fillObj);
         rootContainerObj_->AddChild(fillObj);
         if (auto t = fillObj->GetTransform()) {
             t->SetPosition({pipX + pipW * 0.5f, kDebrisY, 1.3f});
         }
-        auto fillSprite = fillObj->AddComponent<SpriteRendererComponent>();
+        auto fillSprite = fillObj->AddComponent<Irufemi::SpriteRendererComponent>();
         fillSprite->SetBaseSize({(std::max)(1.0f, pipW - 2.0f), kPipH - 2.0f});
         fillSprite->SetAnchor({0.5f, 0.5f});
         fillSprite->SetColor({0.06f, 0.10f, 0.15f, 0.25f}); // 初期は空スロット

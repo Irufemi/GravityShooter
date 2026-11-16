@@ -16,7 +16,7 @@ enum class DebrisState {
  * @class DebrisComponent
  * @brief ガレキの振る舞い（状態遷移と位置の補間）を制御するコンポーネント
  */
-class DebrisComponent : public Component {
+class DebrisComponent : public Irufemi::Component {
 public:
     DebrisComponent() = default;
     ~DebrisComponent() override = default;
@@ -25,7 +25,7 @@ public:
     void OnEnable() override;
     void OnDisable() override;
     void OnDestroy() override;
-    void OnCollisionEnter(GameObject* hitObject) override;
+    void OnCollisionEnter(Irufemi::GameObject* hitObject) override;
 
     void OnRegisterProperties() override;
 
@@ -36,7 +36,7 @@ public:
     /**
      * @brief クローンを作成する
      */
-    std::shared_ptr<Component> Clone() override;
+    std::shared_ptr<Irufemi::Component> Clone() override;
 
     /**
      * @brief ガレキの状態を設定する
@@ -93,7 +93,7 @@ public:
      * @brief 追従対象のゲームオブジェクトを設定する
      * @param target 目標オブジェクトの弱参照
      */
-    void SetTarget(std::weak_ptr<GameObject> target) {
+    void SetTarget(std::weak_ptr<Irufemi::GameObject> target) {
         targetObject_ = target;
     }
 
@@ -101,7 +101,7 @@ public:
      * @brief 追従対象のゲームオブジェクトを取得する
      * @return 目標オブジェクトの弱参照
      */
-    std::weak_ptr<GameObject> GetTarget() const {
+    std::weak_ptr<Irufemi::GameObject> GetTarget() const {
         return targetObject_;
     }
 
@@ -109,7 +109,7 @@ public:
      * @brief 投擲元（オーナー/Instigator）のゲームオブジェクトを設定する
      * @param owner 発射元オブジェクトの弱参照
      */
-    void SetOwnerObject(std::weak_ptr<GameObject> owner) {
+    void SetOwnerObject(std::weak_ptr<Irufemi::GameObject> owner) {
         ownerObject_ = owner;
     }
 
@@ -117,7 +117,7 @@ public:
      * @brief 投擲元（オーナー/Instigator）のゲームオブジェクトを取得する
      * @return 発射元オブジェクトの弱参照
      */
-    std::weak_ptr<GameObject> GetOwnerObject() const {
+    std::weak_ptr<Irufemi::GameObject> GetOwnerObject() const {
         return ownerObject_;
     }
 
@@ -205,7 +205,7 @@ public:
      * @param deltaTime フレーム経過時間
      * @return キャッチ完了（オービットへ遷移すべき）なら true
      */
-    bool UpdatePullMovement(const TransformComponent* targetTransform, float pullSpeed, float catchDistSq,
+    bool UpdatePullMovement(const Irufemi::TransformComponent* targetTransform, float pullSpeed, float catchDistSq,
                             float deltaTime);
 
     /**
@@ -214,13 +214,13 @@ public:
      * @param orbitSpeed 公転角速度
      * @param deltaTime フレーム経過時間
      */
-    void UpdatePlayerOrbit(const TransformComponent* targetTransform, float orbitSpeed, float deltaTime);
+    void UpdatePlayerOrbit(const Irufemi::TransformComponent* targetTransform, float orbitSpeed, float deltaTime);
 
     /**
      * @brief 引き寄せ完了時に自機の現在相対位置から初期公転角度と半径を滑らかに接続する（ワープ防止）
      * @param targetTransform 自機のTransformコンポーネント
      */
-    void InitializeOrbitTransition(const TransformComponent* targetTransform);
+    void InitializeOrbitTransition(const Irufemi::TransformComponent* targetTransform);
 
     /**
      * @brief ボス周辺でのシールド公転位置・姿勢を更新する
@@ -272,9 +272,9 @@ private:
     DebrisManagerComponent* manager_ = nullptr;
 
     // 追従・目標用の対象
-    std::weak_ptr<GameObject> targetObject_;
+    std::weak_ptr<Irufemi::GameObject> targetObject_;
     // 投擲元（オーナー/Instigator）
-    std::weak_ptr<GameObject> ownerObject_;
+    std::weak_ptr<Irufemi::GameObject> ownerObject_;
 
     // パラメータ取得用ヘルパー（Managerから取得）
     float GetPullSpeed() const;
@@ -313,5 +313,5 @@ private:
 
     std::string hitEffectKey_ = "Dust";
     std::string explosionModelPath_ = "resources/model/Debris/Generic/Debris_Generic.obj";
-    std::weak_ptr<GameObject> effectManagerObj_;
+    std::weak_ptr<Irufemi::GameObject> effectManagerObj_;
 };

@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include "Resource/Model/Data/ObjModel.h"
 
+namespace Irufemi {
+
 /**
  * @class SkinnedMeshRendererComponent
  * @brief エディタ対応のスキニングメッシュ描画コンポーネント。
@@ -195,3 +197,6 @@ public:
         return materialOverrides_;
     }
 };
+
+} // namespace Irufemi
+
