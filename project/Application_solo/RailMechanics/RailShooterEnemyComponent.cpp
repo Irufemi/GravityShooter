@@ -64,7 +64,8 @@ void RailShooterEnemyComponent::Initialize() {
     cachedSpline_ = nullptr;
     baseFormationOffset_ = {0.0f, 0.0f};
     currentLocalOffset_ = {0.0f, 0.0f};
-    currentDistanceOffset_ = targetDistance_ + 20.0f;
+    constexpr float kSpawnDistanceOffset = 20.0f;
+    currentDistanceOffset_ = targetDistance_ + kSpawnDistanceOffset;
     isAimLocked_ = false;
     lockedAimDir_ = {0.0f, 0.0f, -1.0f};
     lockedTargetPos_ = {0.0f, 0.0f, 0.0f};
@@ -309,7 +310,8 @@ void RailShooterEnemyComponent::Draw() {
 
     // ロック固定中は赤と白の超高速パルス点滅で強烈に発射警告
     if (isAimLocked_) {
-        float pulse = std::sin(shootTimer_ * 55.0f);
+        constexpr float kShootWarningPulseFreq = 55.0f;
+        float pulse = std::sin(shootTimer_ * kShootWarningPulseFreq);
         Irufemi::Vector4 flashColor =
             (pulse > 0.0f) ? Irufemi::Vector4{1.0f, 0.15f, 0.15f, 0.95f} : Irufemi::Vector4{1.0f, 0.95f, 0.95f, 1.0f};
         telegraphCylinder_->SetColor(flashColor);
@@ -363,7 +365,8 @@ void RailShooterEnemyComponent::ShootPredictiveAtPlayer(const Irufemi::Vector3& 
         float dz = playerPos.z - myPos.z;
         float dist = std::sqrt(dx * dx + dy * dy + dz * dz);
         float travelTime = dist / (std::max)(bulletSpeed_, 1.0f);
-        travelTime = std::clamp(travelTime, 0.0f, 1.2f); // 過剰な未来予測の暴走を防止
+        constexpr float kMaxLeadPredictionTime = 1.2f;
+        travelTime = std::clamp(travelTime, 0.0f, kMaxLeadPredictionTime); // 過剰な未来予測の暴走を防止
 
         // 自機の未来予測座標
         Irufemi::Vector3 predictedTarget = {playerPos.x + playerVel.x * travelTime,
@@ -466,7 +469,8 @@ void RailShooterEnemyComponent::TakeDamage(int damage) {
         auto params = maskComp->GetCustomParams();
         params.color1 = Irufemi::Vector4{2.5f, 2.5f, 2.5f, 1.0f}; // 白熱閃光
         maskComp->SetCustomParams(params);
-        hitFlashTimer_ = 0.08f; // 約5フレーム閃光
+        constexpr float kHitFlashDuration = 0.08f; // 約5フレーム閃光
+        hitFlashTimer_ = kHitFlashDuration;
     }
 
     if (hp_ <= 0) {

@@ -241,7 +241,11 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                                 if (auto ec = deadObj->GetComponent<RailShooterEnemyComponent>()) {
                                     scaleMult = ec->GetScaleMultiplier();
                                 }
-                                int dropCount = (scaleMult >= 1.3f) ? 4 : 2;
+                                constexpr float kLargeEnemyScaleThreshold = 1.3f;
+                                constexpr int kLargeEnemyDropCount = 4;
+                                constexpr int kNormalEnemyDropCount = 2;
+                                int dropCount = (scaleMult >= kLargeEnemyScaleThreshold) ? kLargeEnemyDropCount
+                                                                                         : kNormalEnemyDropCount;
 
                                 // 3. 自機手前方向への物理バーストドロップ（キャッシュ優先）
                                 if (!debrisMgrObj) {
@@ -249,18 +253,25 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                                 }
                                 if (debrisMgrObj) {
                                     if (auto debrisMgr = debrisMgrObj->GetComponent<DebrisManagerComponent>()) {
-                                        debrisMgr->SpawnDebrisBurst(deadPos, playerPos, dropCount, 3.5f, 12.0f);
+                                        constexpr float kDebrisBurstSpreadMin = 3.5f;
+                                        constexpr float kDebrisBurstSpeed = 12.0f;
+                                        debrisMgr->SpawnDebrisBurst(deadPos, playerPos, dropCount,
+                                                                    kDebrisBurstSpreadMin, kDebrisBurstSpeed);
                                     }
                                 }
 
                                 // 4. 敵機体のVoxelメッシュ破砕演出（プレハブ固有のモデルメッシュから破砕）
                                 if (auto engine = scene->GetEngine()) {
                                     if (auto voxelMgr = engine->GetVoxelParticleManager()) {
+                                        constexpr float kVoxelParticleLifeTime = 1.2f;
+                                        constexpr float kVoxelParticleGravity = 4.0f;
+                                        constexpr float kVoxelParticleDispersion = 14.0f;
+
                                         Irufemi::VoxelEmitter p{};
                                         p.particleType = 5; // DebrisExplosive
-                                        p.lifeTime = 1.2f;
-                                        p.gravity = 4.0f;
-                                        p.dispersion = 14.0f;
+                                        p.lifeTime = kVoxelParticleLifeTime;
+                                        p.gravity = kVoxelParticleGravity;
+                                        p.dispersion = kVoxelParticleDispersion;
                                         p.scale = {0.5f, 0.5f, 0.5f};
                                         p.startColor = {1.8f, 1.3f, 0.9f, 1.0f};
                                         p.endColor = {0.1f, 0.1f, 0.1f, 1.0f};
@@ -353,7 +364,11 @@ void EnemySpawnerComponent::Update() {
 
     // '2'キーで敵をスポーン（デバッグ用）
     if (input->IsKeyPressed('2')) {
-        Irufemi::Vector3 spawnPos = {0.0f, 0.0f, 50.0f};
+        constexpr float kDefaultSpawnForwardDistance = 50.0f;
+        constexpr float kSpawnRangeX = 10.0f;
+        constexpr float kSpawnRangeY = 5.0f;
+
+        Irufemi::Vector3 spawnPos = {0.0f, 0.0f, kDefaultSpawnForwardDistance};
         Irufemi::Vector3 spawnRot = {0.0f, Irufemi::Math::PI, 0.0f};
 
         auto scene = gameObject_->GetScene();
@@ -363,15 +378,15 @@ void EnemySpawnerComponent::Update() {
                 if (auto transform = playerObj->GetComponent<Irufemi::TransformComponent>()) {
                     spawnPos = transform->GetWorldPosition();
                     auto forward = transform->GetWorldForward();
-                    spawnPos.x += forward.x * 50.0f;
-                    spawnPos.y += forward.y * 50.0f;
-                    spawnPos.z += forward.z * 50.0f;
+                    spawnPos.x += forward.x * kDefaultSpawnForwardDistance;
+                    spawnPos.y += forward.y * kDefaultSpawnForwardDistance;
+                    spawnPos.z += forward.z * kDefaultSpawnForwardDistance;
 
                     auto right = transform->GetWorldRight();
                     auto up = transform->GetWorldUp();
 
-                    float randX = Irufemi::Random::GeneratorFloat(-10.0f, 10.0f);
-                    float randY = Irufemi::Random::GeneratorFloat(-5.0f, 5.0f);
+                    float randX = Irufemi::Random::GeneratorFloat(-kSpawnRangeX, kSpawnRangeX);
+                    float randY = Irufemi::Random::GeneratorFloat(-kSpawnRangeY, kSpawnRangeY);
 
                     spawnPos.x += right.x * randX + up.x * randY;
                     spawnPos.y += right.y * randX + up.y * randY;

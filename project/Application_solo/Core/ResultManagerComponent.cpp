@@ -86,7 +86,8 @@ void ResultManagerComponent::Initialize() {
         auto uiObj = std::make_shared<Irufemi::GameObject>("ReturnText");
         gameObject_->GetScene()->AddGameObject(uiObj);
         if (auto t = uiObj->GetTransform()) {
-            t->SetPosition({640.0f, 635.0f, 0.0f});
+            float centerX = GetEngine() ? (GetEngine()->GetGameResolution().x * 0.5f) : 640.0f;
+            t->SetPosition({centerX, 635.0f, 0.0f});
         }
 
         auto returnText = uiObj->AddComponent<Irufemi::TextRendererComponent>().get();
@@ -245,7 +246,8 @@ void ResultManagerComponent::SetupStatsUI() {
     auto panelContainer = std::make_shared<Irufemi::GameObject>("Result_PanelContainer");
     scene->AddGameObject(panelContainer);
     if (auto t = panelContainer->GetTransform()) {
-        t->SetPosition({640.0f, 375.0f, 0.0f});
+        float centerX = GetEngine() ? (GetEngine()->GetGameResolution().x * 0.5f) : 640.0f;
+        t->SetPosition({centerX, 375.0f, 0.0f});
     }
     panelContainer->Initialize();
     panelContainerObj_ = panelContainer;

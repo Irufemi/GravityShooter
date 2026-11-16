@@ -512,7 +512,9 @@ void TitleMenuControllerComponent::StartDismissAnimation() {
                 continue;
             }
         }
-        dismissStartPositions_.push_back({640.0f, 360.0f, 0.0f});
+        Irufemi::Vector2 center =
+            GetEngine() ? (GetEngine()->GetGameResolution() * 0.5f) : Irufemi::Vector2{640.0f, 360.0f};
+        dismissStartPositions_.push_back({center.x, center.y, 0.0f});
     }
 
     // タイトルロゴの初期座標をキャッシュ
@@ -606,7 +608,8 @@ void TitleMenuControllerComponent::SetMenuVisible(bool visible) {
                 text->SetColor({0.2f, 0.92f, 1.0f, 1.0f});
             }
             if (auto t = titleObj->GetTransform()) {
-                t->SetPosition({640.0f, 150.0f, 0.0f});
+                float centerX = GetEngine() ? (GetEngine()->GetGameResolution().x * 0.5f) : 640.0f;
+                t->SetPosition({centerX, 150.0f, 0.0f});
             }
         }
     }

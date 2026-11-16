@@ -64,11 +64,17 @@ void RailShooterPlayerComponent::UpdateStateTransitions(float inputLen, float cu
     PlayerFlightState nextState = currentState_;
 
     // 入力および速度に基づくステートマシン遷移判定
-    if (inputLen > 0.8f && currentSpeed > maxSpeed_ * 0.80f) {
+    constexpr float kBoostInputThreshold = 0.8f;
+    constexpr float kBoostSpeedRatio = 0.80f;
+    constexpr float kBrakeInputMax = 0.1f;
+    constexpr float kBrakeSpeedMin = 3.0f;
+    constexpr float kCruiseSpeedMin = 0.3f;
+
+    if (inputLen > kBoostInputThreshold && currentSpeed > maxSpeed_ * kBoostSpeedRatio) {
         nextState = PlayerFlightState::Boost;
-    } else if (inputLen < 0.1f && currentSpeed > 3.0f) {
+    } else if (inputLen < kBrakeInputMax && currentSpeed > kBrakeSpeedMin) {
         nextState = PlayerFlightState::Brake;
-    } else if (currentSpeed > 0.3f) {
+    } else if (currentSpeed > kCruiseSpeedMin) {
         nextState = PlayerFlightState::Cruise;
     } else {
         nextState = PlayerFlightState::Idle;
@@ -137,12 +143,13 @@ void RailShooterPlayerComponent::Update() {
         }
 
         // ゲームパッド（左スティック）の入力
+        constexpr float kAnalogStickDeadZone = 0.1f;
         float padX = input->GetLeftStickX();
         float padY = input->GetLeftStickY();
-        if (std::abs(padX) > 0.1f) {
+        if (std::abs(padX) > kAnalogStickDeadZone) {
             moveDir.x += padX;
         }
-        if (std::abs(padY) > 0.1f) {
+        if (std::abs(padY) > kAnalogStickDeadZone) {
             moveDir.y += padY;
         }
     }
@@ -156,7 +163,8 @@ void RailShooterPlayerComponent::Update() {
     }
 
     // --- 慣性と速度の計算 ---
-    if (len > 0.1f) {
+    constexpr float kInputThreshold = 0.1f;
+    if (len > kInputThreshold) {
         // 入力がある場合、加速度を足して加速
         currentVelocity_.x += moveDir.x * acceleration_ * deltaTime;
         currentVelocity_.y += moveDir.y * acceleration_ * deltaTime;
@@ -205,24 +213,33 @@ void RailShooterPlayerComponent::Update() {
     float targetYaw = (currentVelocity_.x / maxSpeed_) * maxYawAngle_;
 
     // ブースト時は前傾姿勢を少し強調
+    constexpr float kBoostPitchForwardLean = 0.05f;
     if (currentState_ == PlayerFlightState::Boost) {
-        targetPitch += 0.05f;
+        targetPitch += kBoostPitchForwardLean;
     }
 
     // フレームレート非依存のLerp補間
-    float rollPitchLerpSpeed = (currentState_ == PlayerFlightState::Boost) ? 14.0f : 10.0f;
+    constexpr float kBoostRollPitchLerpSpeed = 14.0f;
+    constexpr float kNormalRollPitchLerpSpeed = 10.0f;
+    constexpr float kYawLerpSpeed = 8.0f;
+    float rollPitchLerpSpeed =
+        (currentState_ == PlayerFlightState::Boost) ? kBoostRollPitchLerpSpeed : kNormalRollPitchLerpSpeed;
     float rollPitchLerpFactor = 1.0f - std::exp(-rollPitchLerpSpeed * deltaTime);
-    float yawLerpFactor = 1.0f - std::exp(-8.0f * deltaTime);
+    float yawLerpFactor = 1.0f - std::exp(-kYawLerpSpeed * deltaTime);
 
     rollAngle_ = std::lerp(rollAngle_, targetRoll, rollPitchLerpFactor);
     pitchAngle_ = std::lerp(pitchAngle_, targetPitch, rollPitchLerpFactor);
     yawAngle_ = std::lerp(yawAngle_, targetYaw, yawLerpFactor);
 
     // --- 多軸ホバリング（リサージュ曲線による有機的な呼吸感） ---
+    constexpr float kHoverPitchFreq = 0.85f;
+    constexpr float kHoverPitchAmp = 0.02f;
+    constexpr float kHoverRollFreq = 0.65f;
+    constexpr float kHoverRollAmp = 0.025f;
     hoverTimer_ += deltaTime * hoverFrequency_;
     float hoverY = std::sin(hoverTimer_) * hoverAmplitude_;
-    float hoverPitchWobble = std::sin(hoverTimer_ * 0.85f) * 0.02f;
-    float hoverRollWobble = std::cos(hoverTimer_ * 0.65f) * 0.025f;
+    float hoverPitchWobble = std::sin(hoverTimer_ * kHoverPitchFreq) * kHoverPitchAmp;
+    float hoverRollWobble = std::cos(hoverTimer_ * kHoverRollFreq) * kHoverRollAmp;
 
     // --- ローカル座標・3軸回転の適用 ---
     float currentZ = transform->GetPosition().z;

@@ -33,7 +33,8 @@ void ResultScene::Initialize(IrufemiEngine* engine) {
 
     auto t = managerObj->GetTransform();
     if (t) {
-        t->SetPosition({640.0f, 85.0f, 0.0f});
+        float centerX = engine_ ? (engine_->GetGameResolution().x * 0.5f) : 640.0f;
+        t->SetPosition({centerX, 85.0f, 0.0f});
     }
 
     // ResultManagerComponent にすべてのロジックを委譲する
