@@ -57,9 +57,6 @@ public:
     void ChangeState(std::unique_ptr<IBeamState> newState);
 
     // --- 各種データ・オブジェクトアクセサ (State側から利用) ---
-    BeamConfig& GetConfig() {
-        return config_;
-    }
     const BeamConfig& GetConfig() const {
         return config_;
     }
@@ -91,25 +88,32 @@ public:
         return attackCylinderOuter_.get();
     }
 
-    Irufemi::ConstantBuffer<Irufemi::AOEParams>& GetAOEParamsBuffer() {
-        return aoeParamsBuffer_;
-    }
-    Irufemi::AOEParams& GetAOEParamsData() {
-        return aoeParamsData_;
+    /**
+     * @brief AOE予兆パラメータを更新しバッファへ反映
+     * @param warningRatio 溜め進行度 (0.0f～1.0f)
+     * @param frameIndex バックバッファインデックス
+     */
+    void UpdateAOEParams(float warningRatio, uint32_t frameIndex);
+
+    /**
+     * @brief AOE予兆定数バッファのGPU仮想アドレスを取得
+     */
+    D3D12_GPU_VIRTUAL_ADDRESS GetAOEParamsGPUAddress(uint32_t frameIndex) const {
+        return aoeParamsBuffer_.GetGPUVirtualAddress(frameIndex);
     }
 
-    Irufemi::ConstantBuffer<Irufemi::LightningParams>& GetBeamParamsBuffer() {
-        return beamParamsBuffer_;
-    }
-    Irufemi::LightningParams& GetBeamParamsData() {
-        return beamParamsData_;
+    /**
+     * @brief ビームコア定数バッファのGPU仮想アドレスを取得
+     */
+    D3D12_GPU_VIRTUAL_ADDRESS GetBeamParamsGPUAddress(uint32_t frameIndex) const {
+        return beamParamsBuffer_.GetGPUVirtualAddress(frameIndex);
     }
 
-    Irufemi::ConstantBuffer<Irufemi::LightningParams>& GetAuraParamsBuffer() {
-        return auraParamsBuffer_;
-    }
-    Irufemi::LightningParams& GetAuraParamsData() {
-        return auraParamsData_;
+    /**
+     * @brief オーラ定数バッファのGPU仮想アドレスを取得
+     */
+    D3D12_GPU_VIRTUAL_ADDRESS GetAuraParamsGPUAddress(uint32_t frameIndex) const {
+        return auraParamsBuffer_.GetGPUVirtualAddress(frameIndex);
     }
 
     void SetHasHitCurrentBeam(bool hit) {

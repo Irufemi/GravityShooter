@@ -53,12 +53,9 @@ void BeamChargingState::OnUpdate(EnemyBeamComponent& owner, float deltaTime) {
     }
 
     // AOE パラメータの更新 (warningRatio)
-    auto& aoeData = owner.GetAOEParamsData();
-    aoeData.shapeType = config.aoeShapeType;
-    aoeData.warningRatio = t;
     if (engine && engine->GetDirectXCommon()) {
         uint32_t frameIndex = engine->GetDirectXCommon()->GetCurrentBackBufferIndex();
-        owner.GetAOEParamsBuffer().Update(aoeData, frameIndex);
+        owner.UpdateAOEParams(t, frameIndex);
     }
 
     // 予兆シリンダーの姿勢・サイズ更新
@@ -130,7 +127,7 @@ void BeamChargingState::OnDraw(EnemyBeamComponent& owner, uint32_t frameIndex) {
     if (auto telegraph = owner.GetTelegraphCylinder()) {
         telegraph->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
                                 Irufemi::PSOManager::DepthWrite::Disable, Irufemi::PSOManager::CullMode::None);
-        telegraph->SetCustomCBVAddress(owner.GetAOEParamsBuffer().GetGPUVirtualAddress(frameIndex));
+        telegraph->SetCustomCBVAddress(owner.GetAOEParamsGPUAddress(frameIndex));
         telegraph->Draw();
     }
 
@@ -208,7 +205,7 @@ void BeamFiringState::OnDraw(EnemyBeamComponent& owner, uint32_t frameIndex) {
     if (auto attackOuter = owner.GetAttackCylinderOuter()) {
         attackOuter->SetCustomPSO("LightningCrawl", Irufemi::BlendMode::kBlendModeAdd,
                                   Irufemi::PSOManager::DepthWrite::Disable, Irufemi::PSOManager::CullMode::None);
-        attackOuter->SetCustomCBVAddress(owner.GetAuraParamsBuffer().GetGPUVirtualAddress(frameIndex));
+        attackOuter->SetCustomCBVAddress(owner.GetAuraParamsGPUAddress(frameIndex));
         attackOuter->Draw();
     }
 
@@ -216,7 +213,7 @@ void BeamFiringState::OnDraw(EnemyBeamComponent& owner, uint32_t frameIndex) {
     if (auto attackCore = owner.GetAttackCylinder()) {
         attackCore->SetCustomPSO("EnergyBeam", Irufemi::BlendMode::kBlendModeAdd,
                                  Irufemi::PSOManager::DepthWrite::Disable, Irufemi::PSOManager::CullMode::None);
-        attackCore->SetCustomCBVAddress(owner.GetBeamParamsBuffer().GetGPUVirtualAddress(frameIndex));
+        attackCore->SetCustomCBVAddress(owner.GetBeamParamsGPUAddress(frameIndex));
         attackCore->Draw();
     }
 }

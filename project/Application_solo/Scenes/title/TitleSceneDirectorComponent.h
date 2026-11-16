@@ -5,6 +5,7 @@
 #include "Core/Math/Vector3.h"
 #include "Scenes/title/State/ITitleLaunchState.h"
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -187,10 +188,13 @@ public:
         float orbitSpeed = 0.0f;  //!< 差動公転角速度 (rad/s)
     };
 
-    std::vector<AsteroidInstanceData>& GetAsteroidInstances() {
+    /**
+     * @brief 背景アステロイドのインスタンス配列を取得（C++20 span による安全な要素アクセス）
+     */
+    std::span<AsteroidInstanceData> GetAsteroidInstances() {
         return asteroidInstances_;
     }
-    const std::vector<AsteroidInstanceData>& GetAsteroidInstances() const {
+    std::span<const AsteroidInstanceData> GetAsteroidInstances() const {
         return asteroidInstances_;
     }
 

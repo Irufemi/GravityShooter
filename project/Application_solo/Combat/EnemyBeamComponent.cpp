@@ -247,6 +247,12 @@ void EnemyBeamComponent::CheckBeamCollision() {
     }
 }
 
+void EnemyBeamComponent::UpdateAOEParams(float warningRatio, uint32_t frameIndex) {
+    aoeParamsData_.shapeType = config_.aoeShapeType;
+    aoeParamsData_.warningRatio = warningRatio;
+    aoeParamsBuffer_.Update(aoeParamsData_, frameIndex);
+}
+
 void EnemyBeamComponent::UpdateParameters() {
     if (chargeSphere_) {
         chargeSphere_->SetColor(config_.chargeColor);

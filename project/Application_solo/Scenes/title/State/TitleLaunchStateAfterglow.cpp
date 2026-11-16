@@ -31,7 +31,7 @@ void TitleLaunchStateAfterglow::Update(TitleSceneDirectorComponent* director, fl
         return;
     }
 
-    auto& asteroids = director->GetAsteroidInstances();
+    auto asteroids = director->GetAsteroidInstances();
 
     // 暗転完了（シーン切り替え）までの短い余韻中、小惑星の自転を滑らかに維持
     for (size_t i = 0; i < asteroids.size(); ++i) {
