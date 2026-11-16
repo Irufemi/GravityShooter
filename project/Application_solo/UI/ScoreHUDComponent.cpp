@@ -236,8 +236,8 @@ void ScoreHUDComponent::Update() {
 
     if (popup.remainingDisplayTime > 0.0f && popup.type != CombatPopupType::None) {
         // 仮想カーソル（照準）の現在座標を取得
-        Irufemi::Vector2 cursorPos = {640.0f, 360.0f};
-        if (auto inputManager = engine->GetInputManager()) {
+        Irufemi::Vector2 cursorPos = engine ? engine->GetGameResolution() * 0.5f : Irufemi::Vector2{640.0f, 360.0f};
+        if (auto inputManager = engine ? engine->GetInputManager() : nullptr) {
             cursorPos = inputManager->GetVirtualCursorPosition();
         }
 
@@ -360,7 +360,8 @@ void ScoreHUDComponent::Update() {
         float snapT = 1.0f - std::clamp((maxTime - banner.remainingDisplayTime) / 0.20f, 0.0f, 1.0f);
         float scaleMultiplier = 1.0f + snapT * 0.30f;
 
-        Irufemi::Vector2 screenCenter = {640.0f, 260.0f};
+        float centerX = engine ? (engine->GetGameResolution().x * 0.5f) : 640.0f;
+        Irufemi::Vector2 screenCenter = {centerX, 260.0f};
         if (centerBannerObj_ && centerBannerObj_->GetTransform()) {
             centerBannerObj_->GetTransform()->SetPosition({screenCenter.x, screenCenter.y, 0.0f});
         }

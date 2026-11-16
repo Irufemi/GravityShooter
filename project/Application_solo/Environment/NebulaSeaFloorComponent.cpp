@@ -162,7 +162,7 @@ void NebulaSeaFloorComponent::Update() {
 
     float dt = engine->GetDeltaTime();
     if (dt <= 0.0f) {
-        dt = 1.0f / 60.0f;
+        return;
     }
     totalTime_ += dt;
 

@@ -70,7 +70,7 @@ void TitleCosmicNebulaComponent::Update() {
 
     float deltaTime = engine->GetDeltaTime();
     if (deltaTime <= 0.0f) {
-        deltaTime = 1.0f / 60.0f;
+        return;
     }
 
     totalTime_ += deltaTime;
@@ -102,8 +102,9 @@ void TitleCosmicNebulaComponent::Update() {
     }
 
     // ゲーム画面の解像度（SceneViewPanel の仮想マウス座標系と一致）
-    float gameWidth = static_cast<float>(engine ? engine->GetGameResolutionWidth() : 1280);
-    float gameHeight = static_cast<float>(engine ? engine->GetGameResolutionHeight() : 720);
+    Irufemi::Vector2 gameRes = engine->GetGameResolution();
+    float gameWidth = gameRes.x;
+    float gameHeight = gameRes.y;
 
     // 滑らかな追従補間 (Smooth Damp)
     float lerpFactor = std::clamp(deltaTime * 14.0f, 0.0f, 1.0f);
@@ -115,7 +116,8 @@ void TitleCosmicNebulaComponent::Update() {
     smoothedMouseUV_.y = std::clamp(smoothedMousePos_.y / gameHeight, 0.0f, 1.0f);
 
     // --- 速度ベクトルの算出と平滑化（Velocity-Aligned Wake Field） ---
-    float safeDeltaTime = (deltaTime > 0.0001f) ? deltaTime : (1.0f / 60.0f);
+    constexpr float kMinDeltaTime = 0.0001f;
+    float safeDeltaTime = (std::max)(deltaTime, kMinDeltaTime);
     Irufemi::Vector2 rawVelocity{(smoothedMouseUV_.x - prevRawMouseUV_.x) / safeDeltaTime,
                                  (smoothedMouseUV_.y - prevRawMouseUV_.y) / safeDeltaTime};
     prevRawMouseUV_ = smoothedMouseUV_;

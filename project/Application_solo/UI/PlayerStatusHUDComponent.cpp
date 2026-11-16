@@ -373,10 +373,11 @@ void PlayerStatusHUDComponent::Update() {
         BindPlayerComponents();
     }
 
-    float dt = 0.0166f;
-    if (auto engine = GetEngine()) {
-        dt = engine->GetDeltaTime();
+    auto engine = GetEngine();
+    if (!engine) {
+        return;
     }
+    float dt = engine->GetGameDeltaTime();
 
     UpdateHealthAnimation(dt);
     UpdateDebrisPips(dt);

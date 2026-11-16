@@ -98,11 +98,13 @@ void PlayerTargetingComponent::Update() {
     UpdateHoverTarget();
 
     if (lockonMarkerUI_.expired()) {
-        float dt = GetEngine() ? GetEngine()->GetGameDeltaTime() : (1.0f / 60.0f);
-        uiSearchTimer_ += dt;
-        if (uiSearchTimer_ >= kUISearchInterval) {
-            uiSearchTimer_ = 0.0f;
-            TryFindLockonMarkerUI();
+        if (auto engine = GetEngine()) {
+            float dt = engine->GetGameDeltaTime();
+            uiSearchTimer_ += dt;
+            if (uiSearchTimer_ >= kUISearchInterval) {
+                uiSearchTimer_ = 0.0f;
+                TryFindLockonMarkerUI();
+            }
         }
     } else {
         uiSearchTimer_ = 0.0f;

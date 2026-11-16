@@ -27,10 +27,10 @@ void ReticleUIComponent::Initialize() {
         }
     }
 
-    // ゲーム開始時は画面中央（640, 360）から照準を開始
+    // ゲーム開始時は画面中央から照準を開始
     if (auto engine = GetEngine()) {
         if (auto inputManager = engine->GetInputManager()) {
-            inputManager->SetVirtualCursorPosition({640.0f, 360.0f});
+            inputManager->SetVirtualCursorPosition(engine->GetGameResolution() * 0.5f);
         }
     }
 }

@@ -150,7 +150,7 @@ void PauseScene::CreateUIElements() {
     AddGameObject(titleObj);
     titleObj_ = titleObj;
     if (auto t = titleObj->GetTransform()) {
-        t->SetPosition({640.0f, 150.0f, 0.0f});
+        t->SetPosition({gameRes.x * 0.5f, 150.0f, 0.0f});
     }
     auto titleText = titleObj->AddComponent<Irufemi::TextRendererComponent>();
     if (titleText) {
@@ -210,13 +210,14 @@ void PauseScene::CreateUIElements() {
          }}};
 
     menuItems_.clear();
+    const float centerX = (engine_ ? engine_->GetGameResolution().x : 1280.0f) * 0.5f;
     for (size_t i = 0; i < entries.size(); ++i) {
         float y = kMenuStartY + static_cast<float>(i) * kMenuItemSpacing;
 
         auto itemObj = std::make_shared<Irufemi::GameObject>("Pause_Item_" + std::to_string(i));
         AddGameObject(itemObj);
         if (auto t = itemObj->GetTransform()) {
-            t->SetPosition({640.0f, y, 0.0f});
+            t->SetPosition({centerX, y, 0.0f});
         }
 
         auto textComp = itemObj->AddComponent<Irufemi::TextRendererComponent>();
@@ -506,15 +507,16 @@ void PauseScene::ApplyTransition(float progress) {
         }
     }
 
-    // 3. UIテキスト群を中心(640, 360)から弾性スケールイン/アウト (0.92 -> 1.0)
-    const Irufemi::Vector3 center{640.0f, 360.0f, 0.0f};
+    // 3. UIテキスト群を中心から弾性スケールイン/アウト (0.92 -> 1.0)
+    Irufemi::Vector2 gameRes = engine_ ? engine_->GetGameResolution() : Irufemi::Vector2{1280.0f, 720.0f};
+    const Irufemi::Vector3 center{gameRes.x * 0.5f, gameRes.y * 0.5f, 0.0f};
     float scaleMul = std::lerp(0.92f, 1.0f, progress);
 
     auto titleObj = titleObj_.lock();
     auto titleTextComp = titleTextComp_.lock();
     if (titleObj && titleTextComp) {
         if (auto t = titleObj->GetTransform()) {
-            Irufemi::Vector3 basePos{640.0f, 150.0f, 0.0f};
+            Irufemi::Vector3 basePos{center.x, 150.0f, 0.0f};
             Irufemi::Vector3 offset = basePos - center;
             t->SetPosition(center + offset * scaleMul);
         }
@@ -530,7 +532,7 @@ void PauseScene::ApplyTransition(float progress) {
             continue;
         }
         if (auto t = gameObj->GetTransform()) {
-            Irufemi::Vector3 basePos{640.0f, item.yPos, 0.0f};
+            Irufemi::Vector3 basePos{center.x, item.yPos, 0.0f};
             Irufemi::Vector3 offset = basePos - center;
             t->SetPosition(center + offset * scaleMul);
         }

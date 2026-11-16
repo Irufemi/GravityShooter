@@ -85,7 +85,7 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
 #endif
 
     if (deltaTime <= 0.0f) {
-        deltaTime = 1.0f / 60.0f;
+        return;
     }
 
     // 1. F8キーの監視（全シーン共通・最優先処理、多重発火防止クールダウン適用）

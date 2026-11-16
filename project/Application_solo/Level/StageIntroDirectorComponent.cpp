@@ -499,9 +499,13 @@ void StageIntroDirectorComponent::Update() {
         return;
     }
 
-    float deltaTime = engine ? engine->GetDeltaTime() : (1.0f / 60.0f);
+    if (!engine) {
+        return;
+    }
+
+    float deltaTime = engine->GetDeltaTime();
     if (deltaTime <= 0.0f) {
-        deltaTime = 1.0f / 60.0f;
+        return;
     }
 
     // プレイヤーによるクイックスキップ判定 (出撃クリックやチャタリングの即死誤爆防止)
@@ -818,12 +822,12 @@ void StageIntroDirectorComponent::UpdateWarpVisuals(float progress) {
 
     // 2. ポストプロセス重層駆動
     if (auto engine = GetEngine()) {
-        if (auto ppm = engine->GetPostProcessManager()) {
-            float deltaTime = engine->GetDeltaTime();
-            if (deltaTime <= 0.0f) {
-                deltaTime = 1.0f / 60.0f;
-            }
+        float deltaTime = engine->GetDeltaTime();
+        if (deltaTime <= 0.0f) {
+            return;
+        }
 
+        if (auto ppm = engine->GetPostProcessManager()) {
             // ラジアルブラー ＆ 色収差（超高速突入の速度線）
             float blurWidth = maxWarpBlurWidth_ * blurCurve;
             if (blurWidth > 0.0005f) {

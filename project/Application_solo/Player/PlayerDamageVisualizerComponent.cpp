@@ -265,18 +265,22 @@ Irufemi::Vector2 PlayerDamageVisualizerComponent::CalculateWorldScreenUV(const I
     }
 
     Irufemi::Matrix4x4 viewProj = camera->GetViewProjectionMatrix3D();
+    constexpr float kMinProjectionW = 0.001f;
+    constexpr float kScreenUVMarginMin = 0.05f;
+    constexpr float kScreenUVMarginMax = 0.95f;
+
     // カメラ背後（w <= 0）への反転逆投影（海面へのすっ飛び）を数学的に完全ガード
     float w = worldPos.x * viewProj.m[0][3] + worldPos.y * viewProj.m[1][3] + worldPos.z * viewProj.m[2][3] +
               viewProj.m[3][3];
-    if (w <= 0.001f) {
+    if (w <= kMinProjectionW) {
         return deathScreenUV_;
     }
 
     Irufemi::Vector3 clipPos = Irufemi::Math::Transform(worldPos, viewProj);
 
     // クリップ座標 (-1.0〜1.0) から スクリーンUV (0.0〜1.0) へ変換
-    float u = std::clamp((clipPos.x + 1.0f) * 0.5f, 0.05f, 0.95f);
-    float v = std::clamp((1.0f - clipPos.y) * 0.5f, 0.05f, 0.95f);
+    float u = std::clamp((clipPos.x + 1.0f) * 0.5f, kScreenUVMarginMin, kScreenUVMarginMax);
+    float v = std::clamp((1.0f - clipPos.y) * 0.5f, kScreenUVMarginMin, kScreenUVMarginMax);
     return {u, v};
 }
 

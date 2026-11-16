@@ -66,7 +66,7 @@ void OptionsScene::Initialize(IrufemiEngine* engine) {
             fm->PrecacheText("toro_glitch", L"0123456789%");
         }
         if (auto input = engine->GetInputManager()) {
-            input->SetVirtualCursorPosition({640.0f, 360.0f});
+            input->SetVirtualCursorPosition(engine->GetGameResolution() * 0.5f);
         }
     }
 
