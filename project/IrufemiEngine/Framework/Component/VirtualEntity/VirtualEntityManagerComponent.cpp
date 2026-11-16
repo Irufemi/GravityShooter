@@ -239,7 +239,8 @@ void VirtualEntityManagerComponent::Update() {
             t.translate = vi.position;
             t.rotate = vi.rotation;
             t.scale = vi.scale;
-            batchRenderer_->AddInstance(t);
+            batchRenderer_->AddInstance(t, static_cast<int32_t>(defaultEffectType_), defaultEffectParam_,
+                                        defaultEnableMask_);
         }
     }
 
@@ -248,7 +249,8 @@ void VirtualEntityManagerComponent::Update() {
         if (child && child->GetIsActive() && !child->IsDestroyed()) {
             auto t = child->GetComponent<TransformComponent>();
             if (t) {
-                batchRenderer_->AddInstanceWorld(t->GetWorldMatrix());
+                batchRenderer_->AddInstanceWorld(t->GetWorldMatrix(), static_cast<int32_t>(defaultEffectType_),
+                                                defaultEffectParam_, defaultEnableMask_);
             }
         }
     }

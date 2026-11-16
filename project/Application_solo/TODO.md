@@ -250,27 +250,27 @@
 
 ### 14.1 【Phase 1: 外郭分離】バンド・デシネ調 黒インク線アウトライン (Silhouette Ink Line)
 画面全体に線を引いて背景をノイズ化させるのではなく、ガレキが G-Buffer に書き込むマスクビット（`enableMask`）の外周境界のみを抽出し、背景（荒野・都市・建造物）との境界面にのみコミック原画のようなクッキリとした「黒インク線（乗算合成）」を引く。
-- [ ] **G-Buffer Mask（`output.mask`）へのガレキマスク書き込み連携**
-  - [ ] `VirtualEntityManagerComponent::SetDefaultCustomEffect` による `enableMask = true` のバッチ伝達
-  - [ ] 実体化ガレキ（Idle状態）の G-Buffer マスク書き込み保証
-- [ ] **ポストプロセスアウトライン拡張 (`DepthBasedOutline.PS.hlsl`)**
-  - [ ] `gMaskTexture` の 3x3 十字/Sobelサンプリングによるマスク不連続点（外周シルエット境界）の検出
-  - [ ] 背景（Mask=0）とガレキ（Mask=1）の境界にのみ黒インク線（Ink Black / Charcoal）を乗算合成
-- [ ] **自機引き寄せ（Eキー）操作との連動**
-  - [ ] 未回収時は無機質な岩石＋黒インク線とし、自機が引き寄せを開始した瞬間にプレイヤー固有のシアンオーラへシームレスに遷移
+- [x] **G-Buffer Mask（`output.mask`）へのガレキマスク書き込み連携**
+  - [x] `VirtualEntityManagerComponent::SetDefaultCustomEffect` による `enableMask = true` のバッチ伝達
+  - [x] 実体化ガレキ（Idle状態）の G-Buffer マスク書き込み保証
+- [x] **ポストプロセスアウトライン拡張 (`DepthBasedOutline.PS.hlsl`, `PostProcess.hlsli`)**
+  - [x] `gMaskTexture` の 3x3 十字/Sobelサンプリングによるマスク不連続点（外周シルエット境界）の検出
+  - [x] 背景（Mask=0）とガレキ（Mask=1）の境界にのみ黒インク線（Ink Black / Charcoal）を乗算合成
+- [x] **自機引き寄せ（Eキー）操作との連動**
+  - [x] 未回収時は無機質な岩石＋黒インク線とし、自機が引き寄せを開始した瞬間にプレイヤー固有のシアンオーラへシームレスに遷移
 
 ### 14.2 【Phase 2: 内部立体】バンド・デシネ調 白抜きハイライト (Stylized Rim Light)
 外郭線で背景から切り離した上で、ガレキ表面の岩石ディテールを活かしたまま、内側エッジにコミック調の白抜きハイライトを付与して暗所でも岩肌の凹凸を認知させる。
-- [ ] **ガレキ描画シェーダー (`Object3d.PS.hlsl`) へのスタイライズド・リムライト項の組み込み**
-  - [ ] 視線ベクトル $\vec{V}$ と頂点法線 $\vec{N}$ によるフレネル計算式:
+- [x] **ガレキ描画シェーダー (`Object3d.PS.hlsl`) へのスタイライズド・リムライト項の組み込み**
+  - [x] 視線ベクトル $\vec{V}$ と頂点法線 $\vec{N}$ によるフレネル計算式:
     $$\text{Rim} = \text{pow}(1.0 - \text{saturate}(\vec{N} \cdot \vec{V}), \text{RimPower})$$
-  - [ ] コミック調のパキッとした硬いエッジを作るための `smoothstep` / 閾値（Threshold）階調化処理
-  - [ ] リムカラー設定（ネオンではなく、紙の地色・強い反射光を模したオフホワイト）
+  - [x] コミック調のパキッとした硬いエッジを作るための `smoothstep` / 閾値（Threshold）階調化処理
+  - [x] リムカラー設定（ネオンではなく、紙の地色・強い反射光を模したオフホワイト）
 
 ### 14.3 【Phase 3: 動的認識】微細ホバリング＆タンブリング自転 (Micro Hovering & Tumbling Motion)
 静止した背景建造物・地面の岩との動体視力による完全分離（Gestalt: 共通の運命）。
-- [ ] **物理的な浮遊生命感の付与 (`DebrisManagerComponent`)**
-  - [ ] 非同期なサイン波ホバリング（振幅0.3m、周期1.8s）と微小3軸タンブリング自転（毎秒15〜30度）の適用
+- [x] **物理的な浮遊生命感の付与 (`DebrisManagerComponent`)**
+  - [x] 非同期なサイン波ホバリング（振幅0.25m、周期1.8s）と微小3軸タンブリング自転（毎秒15〜20度）の適用
 
 ---
 

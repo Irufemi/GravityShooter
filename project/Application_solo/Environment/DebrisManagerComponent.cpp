@@ -137,6 +137,9 @@ void DebrisManagerComponent::Initialize() {
         var.virtualManager->Setup(var.maxPoolSize, var.maxVirtualCount + 500, debrisFactory);
         var.animDataList.resize(var.maxVirtualCount + 500);
 
+        // バンド・デシネ表現の有効化 (effectType=1.0: 白抜きハイライト, intensity=1.2, enableMask=true: 黒インク線)
+        var.virtualManager->SetDefaultEffectAttributes(1.0f, 1.2f, true);
+
         if (gameObject_) {
             gameObject_->AddChild(var.poolObject);
         }
@@ -462,6 +465,28 @@ void DebrisManagerComponent::Update() {
         UpdateOrbitingDebris(deltaTime);
         UpdateBossOrbitingDebris(deltaTime);
         UpdateThrownDebris(deltaTime);
+
+        // --- 未回収（Idle状態）ガレキの微細ホバリング＆タンブリング自転 ---
+        for (auto& var : variations_) {
+            if (!var.virtualManager) {
+                continue;
+            }
+            auto& instances = var.virtualManager->GetDenseInstancesMutable();
+            for (auto& vi : instances) {
+                if (vi.isPromoted || vi.isDestroyed || vi.id < 0) {
+                    continue;
+                }
+                if (vi.id < static_cast<int>(var.animDataList.size())) {
+                    auto& anim = var.animDataList[vi.id];
+                    anim.idleTimeY += deltaTime * 1.8f;
+                    // サイン波による上下浮遊 (振幅 0.25m)
+                    vi.position.y = anim.baseIdleY + std::sin(anim.idleTimeY) * 0.25f;
+                    // 緩やかなタンブリング自転 (毎秒約 15度)
+                    vi.rotation.x += deltaTime * 0.25f;
+                    vi.rotation.y += deltaTime * 0.35f;
+                }
+            }
+        }
     }
 
     for (auto& debris : pendingReleases_) {

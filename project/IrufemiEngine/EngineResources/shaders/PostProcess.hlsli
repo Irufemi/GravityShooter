@@ -225,7 +225,21 @@ float32_t3 ApplyDepthBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uv
     float32_t depthWeight = length(difference) * 2.0f;
     float edgeThreshold = 0.5f / max(0.001f, intensity);
     float inkLine = smoothstep(edgeThreshold - 0.05f, edgeThreshold + 0.05f, depthWeight);
-    return lerp(color, float32_t3(0, 0, 0), inkLine);
+
+    // G-Buffer Mask (enableMask = gMaskTexture.b) による外郭シルエットインク線の検出
+    float centerMask = gMaskTexture.Sample(smp, uv).b;
+    float upMask     = gMaskTexture.Sample(smp, uv + float32_t2(0, -uvStepSize.y)).b;
+    float downMask   = gMaskTexture.Sample(smp, uv + float32_t2(0,  uvStepSize.y)).b;
+    float leftMask   = gMaskTexture.Sample(smp, uv + float32_t2(-uvStepSize.x, 0)).b;
+    float rightMask  = gMaskTexture.Sample(smp, uv + float32_t2( uvStepSize.x, 0)).b;
+    
+    float maskDiff = abs(upMask - centerMask) + abs(downMask - centerMask) +
+                     abs(leftMask - centerMask) + abs(rightMask - centerMask);
+    float maskSilhouette = smoothstep(0.1f, 0.3f, maskDiff);
+
+    float totalInk = saturate(inkLine + maskSilhouette);
+    float32_t3 inkColor = float32_t3(0.02f, 0.02f, 0.03f);
+    return lerp(color, inkColor, totalInk);
 }
 
 // 12. RadialBlur

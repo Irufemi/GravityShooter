@@ -104,6 +104,25 @@ public:
     }
 
     /**
+     * @brief データ配列（密配列・連続メモリ）を取得（変更可能）
+     */
+    std::vector<VirtualInstance>& GetDenseInstancesMutable() {
+        return dense_;
+    }
+
+    /**
+     * @brief 仮想インスタンス群のデフォルト描画属性を設定する
+     * @param effectType エフェクト種別（シェーダー側で解釈）
+     * @param effectParam エフェクトパラメータ
+     * @param enableMask G-Buffer マスクを有効化するか
+     */
+    void SetDefaultEffectAttributes(float effectType, float effectParam, bool enableMask) {
+        defaultEffectType_ = effectType;
+        defaultEffectParam_ = effectParam;
+        defaultEnableMask_ = enableMask;
+    }
+
+    /**
      * @brief 仮想IDからインスタンスを取得する（読み取り専用、存在しない場合はnullptr）
      * @param[in] virtualId 仮想ID
      * @return インスタンスポインタ
@@ -192,6 +211,10 @@ private:
 
     ModelBatchRendererComponent* batchRenderer_ = nullptr;
     std::unordered_map<GameObject*, Irufemi::ObjectPool<GameObject>::Handle> activeHandles_;
+
+    float defaultEffectType_ = 0.0f;
+    float defaultEffectParam_ = 0.0f;
+    bool defaultEnableMask_ = false;
 };
 
 } // namespace Irufemi

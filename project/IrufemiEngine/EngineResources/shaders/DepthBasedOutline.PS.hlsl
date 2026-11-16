@@ -71,9 +71,23 @@ PixelShaderOutput main(VertexShaderOutput input) {
     // 0.0(線なし) ~ 1.0(インク線)
     float inkLine = smoothstep(edgeThreshold - 0.05f, edgeThreshold + 0.05f, edgeVal);
 
+    // G-Buffer Mask (enableMask = gMaskTexture.b) による外郭シルエットインク線の検出
+    float centerMask = gMaskTexture.Sample(gSamplerPoint, input.texcoord).b;
+    float upMask     = gMaskTexture.Sample(gSamplerPoint, input.texcoord + float32_t2(0, -uvStepSize.y)).b;
+    float downMask   = gMaskTexture.Sample(gSamplerPoint, input.texcoord + float32_t2(0,  uvStepSize.y)).b;
+    float leftMask   = gMaskTexture.Sample(gSamplerPoint, input.texcoord + float32_t2(-uvStepSize.x, 0)).b;
+    float rightMask  = gMaskTexture.Sample(gSamplerPoint, input.texcoord + float32_t2( uvStepSize.x, 0)).b;
+    
+    float maskDiff = abs(upMask - centerMask) + abs(downMask - centerMask) +
+                     abs(leftMask - centerMask) + abs(rightMask - centerMask);
+    float maskSilhouette = smoothstep(0.1f, 0.3f, maskDiff);
+
+    float totalInk = saturate(inkLine + maskSilhouette);
+
     PixelShaderOutput output;
-    // エッジ部分を黒（インク色）で乗算合成
-    output.color.rgb = lerp(gTexture.Sample(gSampler, input.texcoord).rgb, float32_t3(0, 0, 0), inkLine);
+    // エッジ部分を深いチャコールインク色で乗算合成
+    float32_t3 inkColor = float32_t3(0.02f, 0.02f, 0.03f);
+    output.color.rgb = lerp(gTexture.Sample(gSampler, input.texcoord).rgb, inkColor, totalInk);
     output.color.a = 1.0f;
     
     return output;
