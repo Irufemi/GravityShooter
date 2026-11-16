@@ -4,9 +4,13 @@
 #include <string>
 #include <memory>
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class SplineFollowerComponent;
-namespace Irufemi { class SplineComponent; }
+namespace Irufemi {
+class SplineComponent;
+}
 
 /**
  * @brief レール上の指定ターゲット（Player等）から、一定の距離（Zオフセット）を保って追従するコンポーネント。
@@ -39,5 +43,5 @@ private:
     std::weak_ptr<Irufemi::GameObject> targetObject_;
     SplineFollowerComponent* targetFollower_ = nullptr;
     Irufemi::SplineComponent* cachedPath_ = nullptr; ///< ターゲットが乗っているレール（スプライン）
-    int retryCounter_ = 0;                  ///< シーン検索リトライ用カウンター
+    int retryCounter_ = 0;                           ///< シーン検索リトライ用カウンター
 };

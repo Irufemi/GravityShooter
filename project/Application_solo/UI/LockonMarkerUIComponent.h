@@ -8,7 +8,9 @@
 #include <unordered_map>
 #include <cstdint>
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 
 struct LockonMarkerState {
     std::weak_ptr<Irufemi::GameObject> target;
@@ -21,7 +23,8 @@ struct LockonMarkerState {
  * @class LockonMarkerUIComponent
  * @brief ロックオンマーカーのUI描画およびアニメーションを管理するコンポーネント
  */
-class LockonMarkerUIComponent : public Irufemi::Component, public std::enable_shared_from_this<LockonMarkerUIComponent> {
+class LockonMarkerUIComponent : public Irufemi::Component,
+                                public std::enable_shared_from_this<LockonMarkerUIComponent> {
 public:
     LockonMarkerUIComponent() = default;
     ~LockonMarkerUIComponent() override = default;

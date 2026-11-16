@@ -3,10 +3,18 @@
 #include <memory>
 #include <string>
 
-namespace Irufemi { class SpriteRendererComponent; }
-namespace Irufemi { class TextRendererComponent; }
-namespace Irufemi { class GameObject; }
-namespace Irufemi { class BaseScene; }
+namespace Irufemi {
+class SpriteRendererComponent;
+}
+namespace Irufemi {
+class TextRendererComponent;
+}
+namespace Irufemi {
+class GameObject;
+}
+namespace Irufemi {
+class BaseScene;
+}
 
 /**
  * @class ControlGuideHUDComponent

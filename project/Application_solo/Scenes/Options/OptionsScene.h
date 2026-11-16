@@ -10,12 +10,24 @@
 #include <vector>
 #include <functional>
 
-namespace Irufemi { class SliderComponent; }
-namespace Irufemi { class ButtonComponent; }
-namespace Irufemi { class TextRendererComponent; }
-namespace Irufemi { class Primitive2DRendererComponent; }
-namespace Irufemi { class Component; }
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class SliderComponent;
+}
+namespace Irufemi {
+class ButtonComponent;
+}
+namespace Irufemi {
+class TextRendererComponent;
+}
+namespace Irufemi {
+class Primitive2DRendererComponent;
+}
+namespace Irufemi {
+class Component;
+}
+namespace Irufemi {
+class GameObject;
+}
 namespace Irufemi {
 class InputManager;
 }
@@ -61,7 +73,6 @@ public:
     }
 
 private:
-
     struct UIElementState {
         std::shared_ptr<Irufemi::GameObject> obj;
         Irufemi::Vector3 basePos{};

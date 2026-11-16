@@ -11,7 +11,7 @@ class IrufemiEngine;
 namespace Irufemi {
 class GameObject;
 class Camera;
-}
+} // namespace Irufemi
 using Irufemi::GameObject;
 class IEditorPanel;
 class EditorActionManager;
@@ -179,7 +179,7 @@ private:
     std::string playModeStartSceneName_ = "";
     std::string editingPrefabPath_ = "";
     std::shared_ptr<GameObject> editingPrefabRoot_ = nullptr; ///< 編集中のプレハブルートオブジェクト（明示的保持）
-    std::shared_ptr<Irufemi::Camera> stageCamera_ = nullptr;           ///< ステージ専用エディタカメラ（純粋なViewport Camera）
+    std::shared_ptr<Irufemi::Camera> stageCamera_ = nullptr;  ///< ステージ専用エディタカメラ（純粋なViewport Camera）
     bool isStepRequested_ = false;                            // コマ送りの予約フラグ
     bool isPickingAllowedInPlayMode_ = false;                 // プレイ中のオブジェクト選択（ピッキング）許可フラグ
     bool isExitPlayModeRequested_ = false;                    // ゲーム内からのプレイモード終了遅延リクエストフラグ

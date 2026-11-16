@@ -7,9 +7,15 @@
 #include <memory>
 #include <vector>
 
-namespace Irufemi { class GameObject; }
-namespace Irufemi { class VirtualEntityManagerComponent; }
-namespace Irufemi { class ColliderComponent; }
+namespace Irufemi {
+class GameObject;
+}
+namespace Irufemi {
+class VirtualEntityManagerComponent;
+}
+namespace Irufemi {
+class ColliderComponent;
+}
 class PlayerHealthComponent;
 class DestructibleEnvironmentComponent;
 class DebrisComponent;

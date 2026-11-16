@@ -5,7 +5,9 @@
 #include "Core/Utility/JsonUtility.h"
 #include "Core/Math/Vector3.h"
 
-namespace Irufemi { class BaseScene; }
+namespace Irufemi {
+class BaseScene;
+}
 
 // 自キャラの生成データ
 struct PlayerSpawnData {

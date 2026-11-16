@@ -64,7 +64,6 @@ public: // メンバ関数(システム)
     void OnEnter() override;
 
 private:
-
     struct UIElementState {
         std::shared_ptr<Irufemi::GameObject> obj;
         Irufemi::Vector3 basePos{};

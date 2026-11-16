@@ -14,7 +14,7 @@ class Primitive2DObject;
 class Camera;
 class Text;
 class Object2DResource;
-}
+} // namespace Irufemi
 
 /**
  * @class LoadingScreen

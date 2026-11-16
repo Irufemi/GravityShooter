@@ -770,4 +770,3 @@ void BaseScene::OnResumeAudio(IrufemiEngine* engine) {
 }
 
 } // namespace Irufemi
-

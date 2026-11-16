@@ -49,8 +49,7 @@ void CameraComponentEditor::Draw(Component* component, EditorActionManager* acti
     if (ImGui::DragFloat("Far Z", &farZ, 1.0f, nearZ + 0.1f, 10000.0f)) {
         cameraComp->SetFarZ(farZ);
     }
-    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &farZ,
-                                          [cameraComp](float val) { cameraComp->SetFarZ(val); });
+    ComponentUIHelpers::CheckUndoRedoDrag(actionManager, &farZ, [cameraComp](float val) { cameraComp->SetFarZ(val); });
 
     // --- Frustum Gizmo Draw ---
     auto transform = cameraComp->GetTransform();

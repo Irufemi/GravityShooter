@@ -5,12 +5,20 @@
 #include <vector>
 #include <string>
 
-namespace Irufemi { class SpriteRendererComponent; }
-namespace Irufemi { class TextRendererComponent; }
+namespace Irufemi {
+class SpriteRendererComponent;
+}
+namespace Irufemi {
+class TextRendererComponent;
+}
 class PlayerHealthComponent;
 class GravityPlayerComponent;
-namespace Irufemi { class GameObject; }
-namespace Irufemi { class BaseScene; }
+namespace Irufemi {
+class GameObject;
+}
+namespace Irufemi {
+class BaseScene;
+}
 
 /**
  * @class PlayerStatusHUDComponent

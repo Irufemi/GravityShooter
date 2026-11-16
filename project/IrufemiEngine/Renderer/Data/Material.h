@@ -13,10 +13,10 @@ namespace Irufemi {
  */
 struct Material {
     Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; //!< ベースカラー
-    int32_t enableLighting = 0;                        //!< ライティング有効フラグ
-    int32_t hasTexture = 0;                            //!< テクスチャ有効フラグ
-    int32_t lightingMode = 1;                          //!< 0:None, 1:Lambert, 2:Half-Lambert, 3:PBR
-    float environmentCoefficient = 0.0f;               //!< 環境マップの映り込み係数
+    int32_t enableLighting = 0;               //!< ライティング有効フラグ
+    int32_t hasTexture = 0;                   //!< テクスチャ有効フラグ
+    int32_t lightingMode = 1;                 //!< 0:None, 1:Lambert, 2:Half-Lambert, 3:PBR
+    float environmentCoefficient = 0.0f;      //!< 環境マップの映り込み係数
 
     Matrix4x4 uvTransform = {{{1.0f, 0.0f, 0.0f, 0.0f},
                               {0.0f, 1.0f, 0.0f, 0.0f},

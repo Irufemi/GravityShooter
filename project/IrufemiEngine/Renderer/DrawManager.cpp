@@ -1348,8 +1348,8 @@ void DrawManager::EndRenderTextures(const std::vector<Irufemi::RenderTexture*>& 
     }
 }
 
-void DrawManager::BeginRenderTexture(Irufemi::RenderTexture* rt, const Irufemi::Vector4& clearColor, Irufemi::RenderTexture* rt2,
-                                     const Irufemi::Vector4& clearColor2) {
+void DrawManager::BeginRenderTexture(Irufemi::RenderTexture* rt, const Irufemi::Vector4& clearColor,
+                                     Irufemi::RenderTexture* rt2, const Irufemi::Vector4& clearColor2) {
     // 1. Transition Barrier (SRV -> RenderTarget)
     DirectXUtils::TransitionBarrier(commandList_, rt->GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                     D3D12_RESOURCE_STATE_RENDER_TARGET);

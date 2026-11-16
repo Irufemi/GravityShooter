@@ -115,9 +115,8 @@ private:
 
     uint32_t textureIndex_ = 0;                                         ///< [Bindless] テクスチャインデックス
     Microsoft::WRL::ComPtr<ID3D12Resource> materialResource_ = nullptr; ///< マテリアル定数バッファ
-    Irufemi::Material* mappedMaterialData_ = nullptr;                            ///< マップポインタ
+    Irufemi::Material* mappedMaterialData_ = nullptr;                   ///< マップポインタ
     bool isDirty_ = true;                                               ///< マテリアル定数バッファ同期フラグ
 };
 
 } // namespace Irufemi
-

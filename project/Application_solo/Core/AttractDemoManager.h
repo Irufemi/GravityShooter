@@ -11,7 +11,7 @@ class IrufemiEngine;
 namespace Irufemi {
 class GameObject;
 class TextRendererComponent;
-}
+} // namespace Irufemi
 
 /**
  * @class AttractDemoManager

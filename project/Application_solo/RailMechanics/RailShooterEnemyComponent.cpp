@@ -98,9 +98,9 @@ void RailShooterEnemyComponent::Initialize() {
     }
 }
 
-void RailShooterEnemyComponent::SetRailTrackingParams(Irufemi::SplineComponent* spline, SplineFollowerComponent* follower,
-                                                      float initialDistOffset, float targetDistOffset,
-                                                      const Irufemi::Vector2& formationOffset) {
+void RailShooterEnemyComponent::SetRailTrackingParams(Irufemi::SplineComponent* spline,
+                                                      SplineFollowerComponent* follower, float initialDistOffset,
+                                                      float targetDistOffset, const Irufemi::Vector2& formationOffset) {
     cachedSpline_ = spline;
     playerFollower_ = follower;
     currentDistanceOffset_ = initialDistOffset;

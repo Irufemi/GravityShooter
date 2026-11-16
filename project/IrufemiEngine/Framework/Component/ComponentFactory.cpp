@@ -112,4 +112,3 @@ void ComponentFactory::RegisterAllCoreComponents() {
 }
 
 } // namespace Irufemi
-

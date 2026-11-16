@@ -170,8 +170,8 @@ void DebrisManagerComponent::Initialize() {
     Irufemi::ConsoleCommandSystem::RegisterCommand("clear_debris", "フィールド上の未昇格ガレキを一括消去・返却します。",
                                                    [this](const std::vector<std::string>& /*args*/) {
                                                        ClearAllDebris();
-                                                       Irufemi::Log::OutPutLog(std::cout,
-                                                                      "[Command] Cleared all virtual debris.\n");
+                                                       Irufemi::Log::OutPutLog(
+                                                           std::cout, "[Command] Cleared all virtual debris.\n");
                                                    });
 }
 
@@ -546,7 +546,7 @@ void DebrisManagerComponent::MarkForRelease(std::shared_ptr<Irufemi::GameObject>
 }
 
 std::shared_ptr<Irufemi::GameObject> DebrisManagerComponent::ExtractNearestIdleDebris(const Irufemi::Vector3& pos,
-                                                                             float radius) {
+                                                                                      float radius) {
     float bestDistSq = radius * radius;
     std::shared_ptr<Irufemi::GameObject> bestObj = nullptr;
 

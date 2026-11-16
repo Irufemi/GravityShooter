@@ -3,7 +3,9 @@
 #include <string>
 #include <memory>
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class PlayerHealthComponent;
 class BossComponent;
 

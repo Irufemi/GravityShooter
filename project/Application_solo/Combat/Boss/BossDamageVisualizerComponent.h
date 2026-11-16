@@ -3,8 +3,12 @@
 #include <memory>
 
 class BossComponent;
-namespace Irufemi { class GameObject; }
-namespace Irufemi { class CameraShakeComponent; }
+namespace Irufemi {
+class GameObject;
+}
+namespace Irufemi {
+class CameraShakeComponent;
+}
 
 /**
  * @class BossDamageVisualizerComponent

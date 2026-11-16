@@ -21,7 +21,7 @@ struct PrimitiveData;
  */
 struct PrimitiveTransform {
     Transform transform; //!< トランスフォーム情報
-    bool isDirty = true;          //!< 行列再計算が必要な場合のフラグ
+    bool isDirty = true; //!< 行列再計算が必要な場合のフラグ
 
     /**
      * @brief トランスフォーム情報をリソースへ反映し、行列を更新する
@@ -36,7 +36,7 @@ struct PrimitiveTransform {
  * @brief メッシュ形状（頂点・インデックス情報）を管理するデータ
  */
 struct MeshDesc {
-    PrimitiveType type;                //!< 現在のプリミティブ形状タイプ
+    PrimitiveType type;                         //!< 現在のプリミティブ形状タイプ
     std::unique_ptr<Object3DResource> resource; //!< D3D12リソース
 
     /**
@@ -68,15 +68,15 @@ private:
  * @brief 色やテクスチャ、ライティング設定を管理するデータ
  */
 struct MaterialDesc {
-    std::string texturePath;                           //!< テクスチャパス
-    std::string loadedTexturePath;                     //!< 前回ロードしたパス（変更検知用）
+    std::string texturePath;                  //!< テクスチャパス
+    std::string loadedTexturePath;            //!< 前回ロードしたパス（変更検知用）
     ResourceHandle textureHandle;             //!< テクスチャキャッシュ用ハンドル
-    int selectedTextureIndex = 0;                      //!< ImGui選択用インデックス
+    int selectedTextureIndex = 0;             //!< ImGui選択用インデックス
     Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; //!< ベースカラー
-    bool enableLighting = true;                        //!< ライティングの有無
-    int lightingMode = 3;   //!< ライティングモード (0:None, 1:Lambert, 2:Half-Lambert, 3:PBR)
-    float metallic = 0.0f;  //!< 金属度
-    float roughness = 0.5f; //!< 粗さ
+    bool enableLighting = true;               //!< ライティングの有無
+    int lightingMode = 3;                     //!< ライティングモード (0:None, 1:Lambert, 2:Half-Lambert, 3:PBR)
+    float metallic = 0.0f;                    //!< 金属度
+    float roughness = 0.5f;                   //!< 粗さ
 
     // clang-format off
     Matrix4x4 uvTransform = {

@@ -9,9 +9,15 @@
 #include <memory>
 #include <functional>
 
-namespace Irufemi { class TextRendererComponent; }
-namespace Irufemi { class SpriteRendererComponent; }
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class TextRendererComponent;
+}
+namespace Irufemi {
+class SpriteRendererComponent;
+}
+namespace Irufemi {
+class GameObject;
+}
 
 /**
  * @class PauseScene

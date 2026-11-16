@@ -28,8 +28,9 @@ PostProcessRunner::PostProcessRunner()
 
 PostProcessRunner::~PostProcessRunner() = default;
 
-void PostProcessRunner::InitializeEffects(ID3D12Device* device, Irufemi::DirectXCommon* dxCommon, ID3D12RootSignature* rootSig,
-                                          D3D12_SHADER_BYTECODE vsBytecode, DXGI_FORMAT rtvFormat) {
+void PostProcessRunner::InitializeEffects(ID3D12Device* device, Irufemi::DirectXCommon* dxCommon,
+                                          ID3D12RootSignature* rootSig, D3D12_SHADER_BYTECODE vsBytecode,
+                                          DXGI_FORMAT rtvFormat) {
     if (kawaseBlurEffect_) {
         kawaseBlurEffect_->Initialize(device, dxCommon, rootSig, vsBytecode, rtvFormat);
     }

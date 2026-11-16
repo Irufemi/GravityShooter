@@ -39,7 +39,7 @@ class ThreadPool;
 class DebugPrimitiveRenderer;
 class Line3DBatch;
 enum class DebugCategory : uint32_t;
-}
+} // namespace Irufemi
 
 /**
  * @class CollisionManager
@@ -180,7 +180,8 @@ private:
 
     // 前フレームの衝突ペアを保持（Enter / Stay / Exit 用）
     struct ColliderPairHash {
-        size_t operator()(const std::pair<Irufemi::ColliderComponent*, Irufemi::ColliderComponent*>& pair) const noexcept {
+        size_t
+        operator()(const std::pair<Irufemi::ColliderComponent*, Irufemi::ColliderComponent*>& pair) const noexcept {
             uint64_t a = reinterpret_cast<uintptr_t>(pair.first);
             uint64_t b = reinterpret_cast<uintptr_t>(pair.second);
             // 64-bit 整数ミックスハッシュ (SplitMix64)
@@ -188,7 +189,8 @@ private:
             return static_cast<size_t>(h);
         }
     };
-    using CollisionPairSet = std::unordered_set<std::pair<Irufemi::ColliderComponent*, Irufemi::ColliderComponent*>, ColliderPairHash>;
+    using CollisionPairSet =
+        std::unordered_set<std::pair<Irufemi::ColliderComponent*, Irufemi::ColliderComponent*>, ColliderPairHash>;
 
     CollisionPairSet previousCollisions_;
     CollisionPairSet currentCollisions_;

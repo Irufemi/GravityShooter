@@ -193,4 +193,3 @@ void ModelBatchRendererComponent::SetUseGPUCulling(bool use) {
 }
 
 } // namespace Irufemi
-

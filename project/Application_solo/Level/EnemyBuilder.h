@@ -6,9 +6,13 @@
 #include <optional>
 
 class EnemySpawnerComponent;
-namespace Irufemi { class SplineComponent; }
+namespace Irufemi {
+class SplineComponent;
+}
 class SplineFollowerComponent;
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 
 /**
  * @class EnemyBuilder
@@ -71,7 +75,8 @@ public:
      * @param[in] scaleMultiplier スケール倍率
      * @return 構築された敵の Irufemi::GameObject ポインタ
      */
-    Irufemi::GameObject* Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
+    Irufemi::GameObject* Build(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
+                               float scaleMultiplier = 1.0f);
 
 private:
     EnemySpawnerComponent* spawner_ = nullptr;

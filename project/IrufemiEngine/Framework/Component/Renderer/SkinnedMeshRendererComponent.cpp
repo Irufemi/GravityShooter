@@ -290,4 +290,3 @@ void SkinnedMeshRendererComponent::SetCustomEffectParam(float param) {
 }
 
 } // namespace Irufemi
-

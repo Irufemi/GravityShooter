@@ -3,7 +3,9 @@
 #include "Core/Math/Vector3.h"
 #include "Core/Utility/ObjectPool.h"
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class EnemyBulletManagerComponent;
 
 /**
@@ -74,11 +76,12 @@ public:
     void Deactivate();
 
 private:
-    EnemyBulletManagerComponent* manager_ = nullptr;     //!< 管理元マネージャー
-    Irufemi::ObjectPool<Irufemi::GameObject>::Handle poolHandle_;          //!< プール管理用ハンドル
-    Irufemi::Vector3 velocity_{0.0f, 0.0f, 0.0f};        //!< 移動速度ベクトル
-    int damage_ = 10;                                    //!< 命中時のダメージ量
-    float lifeTimer_ = 0.0f;                             //!< 生存タイマー
-    float maxLifeTime_ = 5.0f;                           //!< 最大寿命（秒）
-    mutable std::weak_ptr<Irufemi::GameObject> effectManagerObj_; //!< 着弾エフェクトマネージャーGameObjectへの弱参照キャッシュ
+    EnemyBulletManagerComponent* manager_ = nullptr;              //!< 管理元マネージャー
+    Irufemi::ObjectPool<Irufemi::GameObject>::Handle poolHandle_; //!< プール管理用ハンドル
+    Irufemi::Vector3 velocity_{0.0f, 0.0f, 0.0f};                 //!< 移動速度ベクトル
+    int damage_ = 10;                                             //!< 命中時のダメージ量
+    float lifeTimer_ = 0.0f;                                      //!< 生存タイマー
+    float maxLifeTime_ = 5.0f;                                    //!< 最大寿命（秒）
+    mutable std::weak_ptr<Irufemi::GameObject>
+        effectManagerObj_; //!< 着弾エフェクトマネージャーGameObjectへの弱参照キャッシュ
 };

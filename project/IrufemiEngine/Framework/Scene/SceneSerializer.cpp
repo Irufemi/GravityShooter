@@ -100,4 +100,3 @@ std::string SceneSerializer::GetSceneFilePath(IScene* scene, const std::string& 
 }
 
 } // namespace Irufemi
-

@@ -7,7 +7,7 @@ namespace Irufemi {
 class StaticModelObject;
 class Sprite;
 class InputManager;
-}
+} // namespace Irufemi
 
 /**
  * @class PromptController

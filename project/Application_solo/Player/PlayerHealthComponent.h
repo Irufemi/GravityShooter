@@ -8,7 +8,7 @@
 namespace Irufemi {
 class ColliderComponent;
 class EffectMaskComponent;
-}
+} // namespace Irufemi
 
 /**
  * @class PlayerHealthComponent

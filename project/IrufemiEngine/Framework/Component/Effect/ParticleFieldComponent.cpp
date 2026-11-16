@@ -122,4 +122,3 @@ std::shared_ptr<Component> ParticleFieldComponent::Clone() {
 }
 
 } // namespace Irufemi
-

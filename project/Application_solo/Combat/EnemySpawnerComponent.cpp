@@ -165,143 +165,144 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
     uint32_t effectivePoolSize = (poolSize > 0) ? poolSize : static_cast<uint32_t>(maxEnemies_);
 
-    poolData->pool = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(effectivePoolSize, [weakObj, capturedPrefabPath,
-                                                                                  capturedModelPath, capturedBaseScale,
-                                                                                  capturedColliderRadius,
-                                                                                  capturedOBBSize]() {
-        std::shared_ptr<Irufemi::GameObject> enemy = nullptr;
-        if (auto spawnerObj = weakObj.lock()) {
-            enemy = spawnerObj->Instantiate(capturedPrefabPath);
-        }
-        if (!enemy) {
-            enemy = std::make_shared<Irufemi::GameObject>("Enemy");
-            enemy->AddComponent<RailShooterEnemyComponent>();
-        }
+    poolData->pool = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(
+        effectivePoolSize,
+        [weakObj, capturedPrefabPath, capturedModelPath, capturedBaseScale, capturedColliderRadius, capturedOBBSize]() {
+            std::shared_ptr<Irufemi::GameObject> enemy = nullptr;
+            if (auto spawnerObj = weakObj.lock()) {
+                enemy = spawnerObj->Instantiate(capturedPrefabPath);
+            }
+            if (!enemy) {
+                enemy = std::make_shared<Irufemi::GameObject>("Enemy");
+                enemy->AddComponent<RailShooterEnemyComponent>();
+            }
 
-        enemy->SetIsSerializable(false); // セーブデータへの混入を防止
+            enemy->SetIsSerializable(false); // セーブデータへの混入を防止
 
-        if (auto spawnerObj = weakObj.lock()) {
-            spawnerObj->AddChild(enemy);
-        }
+            if (auto spawnerObj = weakObj.lock()) {
+                spawnerObj->AddChild(enemy);
+            }
 
-        // プレハブ個別の MeshRenderer は削除し、Spawner側の ModelBatchRenderer（GPU Instancing）で一括描画
-        if (auto meshRenderer = enemy->GetComponent<Irufemi::MeshRendererComponent>()) {
-            enemy->RemoveComponent(meshRenderer);
-        }
+            // プレハブ個別の MeshRenderer は削除し、Spawner側の ModelBatchRenderer（GPU Instancing）で一括描画
+            if (auto meshRenderer = enemy->GetComponent<Irufemi::MeshRendererComponent>()) {
+                enemy->RemoveComponent(meshRenderer);
+            }
 
-        if (auto transform = enemy->GetTransform()) {
-            transform->SetScale(capturedBaseScale);
-        }
+            if (auto transform = enemy->GetTransform()) {
+                transform->SetScale(capturedBaseScale);
+            }
 
-        if (auto collider = enemy->GetComponent<Irufemi::SphereColliderComponent>()) {
-            collider->SetLocalRadius(capturedColliderRadius);
-        } else if (auto obb = enemy->GetComponent<Irufemi::OBBColliderComponent>()) {
-            obb->SetLocalSize(capturedOBBSize);
-        }
+            if (auto collider = enemy->GetComponent<Irufemi::SphereColliderComponent>()) {
+                collider->SetLocalRadius(capturedColliderRadius);
+            } else if (auto obb = enemy->GetComponent<Irufemi::OBBColliderComponent>()) {
+                obb->SetLocalSize(capturedOBBSize);
+            }
 
-        if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {
-            enemyComp->Initialize(); // ロード画面中にGPUリソースや事前コンポーネントを先行確立
-            enemyComp->SetOnDespawnListener([weakObj, capturedModelPath](Irufemi::GameObject* deadObj, DespawnReason reason) {
-                if (!deadObj) {
-                    return;
-                }
+            if (auto enemyComp = enemy->GetComponent<RailShooterEnemyComponent>()) {
+                enemyComp->Initialize(); // ロード画面中にGPUリソースや事前コンポーネントを先行確立
+                enemyComp->SetOnDespawnListener(
+                    [weakObj, capturedModelPath](Irufemi::GameObject* deadObj, DespawnReason reason) {
+                        if (!deadObj) {
+                            return;
+                        }
 
-                // プレイヤー撃破（または自爆体当たり）時のみ、残骸ガレキドロップ＆Voxel破砕演出を実行
-                if (reason == DespawnReason::KilledByPlayer || reason == DespawnReason::CollisionSuicide) {
-                    auto deadTrans = deadObj->GetTransform();
-                    Irufemi::Vector3 deadPos =
-                        deadTrans ? deadTrans->GetWorldPosition() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
-                    Irufemi::Vector3 currentScale =
-                        deadTrans ? deadTrans->GetScale() : Irufemi::Vector3{1.0f, 1.0f, 1.0f};
+                        // プレイヤー撃破（または自爆体当たり）時のみ、残骸ガレキドロップ＆Voxel破砕演出を実行
+                        if (reason == DespawnReason::KilledByPlayer || reason == DespawnReason::CollisionSuicide) {
+                            auto deadTrans = deadObj->GetTransform();
+                            Irufemi::Vector3 deadPos =
+                                deadTrans ? deadTrans->GetWorldPosition() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
+                            Irufemi::Vector3 currentScale =
+                                deadTrans ? deadTrans->GetScale() : Irufemi::Vector3{1.0f, 1.0f, 1.0f};
 
-                    auto scene = deadObj->GetScene();
-                    if (scene) {
-                        // 1. プレイヤー位置の取得（キャッシュ優先）
-                        Irufemi::Vector3 playerPos = deadPos;
-                        std::shared_ptr<Irufemi::GameObject> playerObj = nullptr;
-                        std::shared_ptr<Irufemi::GameObject> debrisMgrObj = nullptr;
+                            auto scene = deadObj->GetScene();
+                            if (scene) {
+                                // 1. プレイヤー位置の取得（キャッシュ優先）
+                                Irufemi::Vector3 playerPos = deadPos;
+                                std::shared_ptr<Irufemi::GameObject> playerObj = nullptr;
+                                std::shared_ptr<Irufemi::GameObject> debrisMgrObj = nullptr;
+                                if (auto spawnerObj = weakObj.lock()) {
+                                    if (auto spawner = spawnerObj->GetComponent<EnemySpawnerComponent>()) {
+                                        playerObj = spawner->GetPlayerCartObject();
+                                        debrisMgrObj = spawner->GetDebrisManagerObject();
+                                    }
+                                }
+                                if (!playerObj) {
+                                    playerObj = scene->FindGameObject("PlayerCart");
+                                    if (!playerObj) {
+                                        playerObj = scene->FindGameObject("Player");
+                                    }
+                                }
+                                if (playerObj && playerObj->GetTransform()) {
+                                    playerPos = playerObj->GetTransform()->GetWorldPosition();
+                                }
+
+                                // 2. スケール連動のドロップ個数決定（中型機は大量ドロップボーナス）
+                                float scaleMult = 1.0f;
+                                if (auto ec = deadObj->GetComponent<RailShooterEnemyComponent>()) {
+                                    scaleMult = ec->GetScaleMultiplier();
+                                }
+                                int dropCount = (scaleMult >= 1.3f) ? 4 : 2;
+
+                                // 3. 自機手前方向への物理バーストドロップ（キャッシュ優先）
+                                if (!debrisMgrObj) {
+                                    debrisMgrObj = scene->FindGameObject("DebrisManager");
+                                }
+                                if (debrisMgrObj) {
+                                    if (auto debrisMgr = debrisMgrObj->GetComponent<DebrisManagerComponent>()) {
+                                        debrisMgr->SpawnDebrisBurst(deadPos, playerPos, dropCount, 3.5f, 12.0f);
+                                    }
+                                }
+
+                                // 4. 敵機体のVoxelメッシュ破砕演出（プレハブ固有のモデルメッシュから破砕）
+                                if (auto engine = scene->GetEngine()) {
+                                    if (auto voxelMgr = engine->GetVoxelParticleManager()) {
+                                        Irufemi::VoxelEmitter p{};
+                                        p.particleType = 5; // DebrisExplosive
+                                        p.lifeTime = 1.2f;
+                                        p.gravity = 4.0f;
+                                        p.dispersion = 14.0f;
+                                        p.scale = {0.5f, 0.5f, 0.5f};
+                                        p.startColor = {1.8f, 1.3f, 0.9f, 1.0f};
+                                        p.endColor = {0.1f, 0.1f, 0.1f, 1.0f};
+                                        voxelMgr->PlayExplosion(capturedModelPath, deadPos, {0.0f, 0.0f, 0.0f},
+                                                                {0.0f, 0.0f, 0.0f}, currentScale, p, {3, 3, 3});
+                                    }
+                                }
+
+                                // 5. 撃破爆発エフェクトの再生
+                                if (auto effectMgr = EffectManagerComponent::GetInstance()) {
+                                    effectMgr->PlayEffect("debris_dust_effect", deadPos);
+                                }
+
+                                // 6. スコア＆マルチキル通知（基本点100pts）
+                                if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
+                                    scoreMgr->NotifyEnemyKilled(100);
+                                }
+                            }
+                        }
+
+                        // プールへの返却
+                        deadObj->SetIsActive(false);
                         if (auto spawnerObj = weakObj.lock()) {
                             if (auto spawner = spawnerObj->GetComponent<EnemySpawnerComponent>()) {
-                                playerObj = spawner->GetPlayerCartObject();
-                                debrisMgrObj = spawner->GetDebrisManagerObject();
+                                auto it = spawner->activeEnemyHandles_.find(deadObj->GetInstanceID());
+                                if (it != spawner->activeEnemyHandles_.end()) {
+                                    const std::string& pPath = it->second.prefabPath;
+                                    auto pPoolIt = spawner->prefabPools_.find(pPath);
+                                    if (pPoolIt != spawner->prefabPools_.end() && pPoolIt->second &&
+                                        pPoolIt->second->pool) {
+                                        pPoolIt->second->pool->Release(it->second.handle);
+                                    }
+                                    spawner->activeEnemyHandles_.erase(it);
+                                }
                             }
                         }
-                        if (!playerObj) {
-                            playerObj = scene->FindGameObject("PlayerCart");
-                            if (!playerObj) {
-                                playerObj = scene->FindGameObject("Player");
-                            }
-                        }
-                        if (playerObj && playerObj->GetTransform()) {
-                            playerPos = playerObj->GetTransform()->GetWorldPosition();
-                        }
+                    });
+            }
 
-                        // 2. スケール連動のドロップ個数決定（中型機は大量ドロップボーナス）
-                        float scaleMult = 1.0f;
-                        if (auto ec = deadObj->GetComponent<RailShooterEnemyComponent>()) {
-                            scaleMult = ec->GetScaleMultiplier();
-                        }
-                        int dropCount = (scaleMult >= 1.3f) ? 4 : 2;
-
-                        // 3. 自機手前方向への物理バーストドロップ（キャッシュ優先）
-                        if (!debrisMgrObj) {
-                            debrisMgrObj = scene->FindGameObject("DebrisManager");
-                        }
-                        if (debrisMgrObj) {
-                            if (auto debrisMgr = debrisMgrObj->GetComponent<DebrisManagerComponent>()) {
-                                debrisMgr->SpawnDebrisBurst(deadPos, playerPos, dropCount, 3.5f, 12.0f);
-                            }
-                        }
-
-                        // 4. 敵機体のVoxelメッシュ破砕演出（プレハブ固有のモデルメッシュから破砕）
-                        if (auto engine = scene->GetEngine()) {
-                            if (auto voxelMgr = engine->GetVoxelParticleManager()) {
-                                Irufemi::VoxelEmitter p{};
-                                p.particleType = 5; // DebrisExplosive
-                                p.lifeTime = 1.2f;
-                                p.gravity = 4.0f;
-                                p.dispersion = 14.0f;
-                                p.scale = {0.5f, 0.5f, 0.5f};
-                                p.startColor = {1.8f, 1.3f, 0.9f, 1.0f};
-                                p.endColor = {0.1f, 0.1f, 0.1f, 1.0f};
-                                voxelMgr->PlayExplosion(capturedModelPath, deadPos, {0.0f, 0.0f, 0.0f},
-                                                        {0.0f, 0.0f, 0.0f}, currentScale, p, {3, 3, 3});
-                            }
-                        }
-
-                        // 5. 撃破爆発エフェクトの再生
-                        if (auto effectMgr = EffectManagerComponent::GetInstance()) {
-                            effectMgr->PlayEffect("debris_dust_effect", deadPos);
-                        }
-
-                        // 6. スコア＆マルチキル通知（基本点100pts）
-                        if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
-                            scoreMgr->NotifyEnemyKilled(100);
-                        }
-                    }
-                }
-
-                // プールへの返却
-                deadObj->SetIsActive(false);
-                if (auto spawnerObj = weakObj.lock()) {
-                    if (auto spawner = spawnerObj->GetComponent<EnemySpawnerComponent>()) {
-                        auto it = spawner->activeEnemyHandles_.find(deadObj->GetInstanceID());
-                        if (it != spawner->activeEnemyHandles_.end()) {
-                            const std::string& pPath = it->second.prefabPath;
-                            auto pPoolIt = spawner->prefabPools_.find(pPath);
-                            if (pPoolIt != spawner->prefabPools_.end() && pPoolIt->second && pPoolIt->second->pool) {
-                                pPoolIt->second->pool->Release(it->second.handle);
-                            }
-                            spawner->activeEnemyHandles_.erase(it);
-                        }
-                    }
-                }
-            });
-        }
-
-        enemy->SetIsActive(false);
-        return enemy;
-    });
+            enemy->SetIsActive(false);
+            return enemy;
+        });
 
     PrefabPoolData* result = poolData.get();
     prefabPools_[prefabPath] = std::move(poolData);
@@ -387,13 +388,15 @@ void EnemySpawnerComponent::Update() {
 #endif
 }
 
-Irufemi::GameObject* EnemySpawnerComponent::SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
-                                              float scaleMultiplier) {
+Irufemi::GameObject* EnemySpawnerComponent::SpawnEnemy(const Irufemi::Vector3& position,
+                                                       const Irufemi::Vector3& rotation, float scaleMultiplier) {
     return SpawnEnemyByPrefab(enemyPrefabPath_, position, rotation, scaleMultiplier);
 }
 
-Irufemi::GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
-                                                      const Irufemi::Vector3& rotation, float scaleMultiplier) {
+Irufemi::GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string& prefabPath,
+                                                               const Irufemi::Vector3& position,
+                                                               const Irufemi::Vector3& rotation,
+                                                               float scaleMultiplier) {
     auto poolData = GetOrCreatePrefabPool(prefabPath);
     if (!poolData || !poolData->pool) {
         return nullptr;

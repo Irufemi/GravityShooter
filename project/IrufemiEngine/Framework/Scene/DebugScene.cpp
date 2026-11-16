@@ -617,4 +617,3 @@ void DebugScene::DrawStandaloneDebugWindows() {
 }
 
 } // namespace Irufemi
-

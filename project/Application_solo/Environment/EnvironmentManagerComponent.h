@@ -9,7 +9,9 @@
 
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 
 /**
  * @class EnvironmentManagerComponent

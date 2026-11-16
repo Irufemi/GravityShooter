@@ -142,4 +142,3 @@ private: // メンバ変数(システム)
 };
 
 } // namespace Irufemi
-

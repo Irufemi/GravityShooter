@@ -12,7 +12,9 @@
 
 #include "Physics/CollisionManager.h"
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class LockonMarkerUIComponent;
 
 /**
@@ -129,8 +131,8 @@ private:
     /** @brief 非同期レイキャストの結果待機用と時間間引き(Amortization)用キャッシュ構造体 */
     struct TargetVisibilityCache {
         std::weak_ptr<Irufemi::GameObject> targetObject; ///< 生存確認用ポインタ（UAF防止）
-        bool canSee = false;                    ///< 壁裏チェック完了前はfalse（透過防止）
-        bool hasCheckedOnce = false;            ///< 初回判定が実行されたかどうか
+        bool canSee = false;                             ///< 壁裏チェック完了前はfalse（透過防止）
+        bool hasCheckedOnce = false;                     ///< 初回判定が実行されたかどうか
         float lastCheckTime = -1.0f;
         std::unique_ptr<std::future<std::pair<bool, RaycastHit>>> pendingTask;
     };

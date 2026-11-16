@@ -132,4 +132,3 @@ void SceneTransition::Update(float deltaTime) {
 }
 
 } // namespace Irufemi
-

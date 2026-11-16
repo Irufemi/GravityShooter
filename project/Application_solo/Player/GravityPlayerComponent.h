@@ -4,7 +4,9 @@
 #include <memory>
 #include <functional>
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class PlayerTargetingComponent;
 class PlayerHealthComponent;
 class IPlayerCommand;
@@ -129,12 +131,13 @@ private:
     void UpdateThrowing();
 
 private:
-    std::vector<std::shared_ptr<Irufemi::GameObject>> orbitingDebris_; ///< 現在プレイヤーの周囲を回転しているガレキのリスト
-    int maxOrbitCount_ = 5;                                   ///< 最大保持数
-    float pullRadius_ = 100.0f;                               ///< 引き寄せ検知半径
+    std::vector<std::shared_ptr<Irufemi::GameObject>>
+        orbitingDebris_;        ///< 現在プレイヤーの周囲を回転しているガレキのリスト
+    int maxOrbitCount_ = 5;     ///< 最大保持数
+    float pullRadius_ = 100.0f; ///< 引き寄せ検知半径
 
-    PlayerTargetingComponent* targetingComp_ = nullptr; ///< 敵ターゲティングコンポーネントの参照
-    std::weak_ptr<Irufemi::GameObject> debrisManagerObj_;        ///< ガレキマネージャーオブジェクトの弱参照
+    PlayerTargetingComponent* targetingComp_ = nullptr;   ///< 敵ターゲティングコンポーネントの参照
+    std::weak_ptr<Irufemi::GameObject> debrisManagerObj_; ///< ガレキマネージャーオブジェクトの弱参照
 
     // Orbit parameters for pulled debris
     float orbitRadiusMin_ = 2.0f;       ///< ガレキ回転半径（最小）

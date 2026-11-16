@@ -259,4 +259,3 @@ void SkeletonDebugRendererComponent::OnRegisterProperties() {
 }
 
 } // namespace Irufemi
-

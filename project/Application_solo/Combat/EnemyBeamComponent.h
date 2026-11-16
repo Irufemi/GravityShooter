@@ -9,7 +9,9 @@
 #include "RHI/DirectX12/ConstantBuffer.h"
 #include <memory>
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 
 /**
  * @class EnemyBeamComponent

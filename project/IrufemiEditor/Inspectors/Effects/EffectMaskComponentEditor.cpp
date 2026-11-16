@@ -197,7 +197,5 @@ void EffectMaskComponentEditor::Draw(Component* component, EditorActionManager* 
         }
         ImGui::TreePop();
     }
-
-
 }
 #endif // EditorMode

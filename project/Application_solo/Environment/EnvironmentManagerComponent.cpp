@@ -234,7 +234,8 @@ void EnvironmentManagerComponent::Draw() {
     }
 }
 
-Irufemi::ModelBatchRendererComponent* EnvironmentManagerComponent::GetOrCreateBatchRenderer(const std::string& modelName) {
+Irufemi::ModelBatchRendererComponent*
+EnvironmentManagerComponent::GetOrCreateBatchRenderer(const std::string& modelName) {
     if (modelName.empty()) {
         return nullptr;
     }

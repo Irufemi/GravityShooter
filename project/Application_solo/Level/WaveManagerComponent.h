@@ -7,8 +7,12 @@
 #include <string>
 
 class SplineFollowerComponent;
-namespace Irufemi { class SpawnPointComponent; }
-namespace Irufemi { class ModelBatchRendererComponent; }
+namespace Irufemi {
+class SpawnPointComponent;
+}
+namespace Irufemi {
+class ModelBatchRendererComponent;
+}
 class EnemySpawnerComponent;
 
 /**

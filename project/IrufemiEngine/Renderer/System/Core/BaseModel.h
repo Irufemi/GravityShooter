@@ -423,7 +423,7 @@ protected: // メンバ変数
     // 共有モデルデータ(CPU/GPU)
     Irufemi::ResourceHandle modelHandle_;
     Irufemi::ResourceHandle nextModelHandle_; // 次フレームで切り替えるためのモデル
-    bool isModelChanged_ = false;    // モデル切り替えフラグ
+    bool isModelChanged_ = false;             // モデル切り替えフラグ
 
     // オブジェクト全体のTransform
     Irufemi::Transform transform_{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};

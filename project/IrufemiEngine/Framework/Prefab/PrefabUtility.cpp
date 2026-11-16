@@ -69,4 +69,3 @@ PrefabMetrics PrefabUtility::ExtractMetrics(const std::string& prefabPath) {
 }
 
 } // namespace Irufemi
-

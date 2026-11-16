@@ -37,16 +37,16 @@ class Line3DBatch;
  */
 struct ParticleCS {
     Vector3 translate; ///< 位置
-    uint32_t type;              ///< 0: 親, 1: Trail, 2: Death
+    uint32_t type;     ///< 0: 親, 1: Trail, 2: Death
     Vector3 scale;     ///< スケール
-    float lifeTime;             ///< 寿命（秒）
+    float lifeTime;    ///< 寿命（秒）
     Vector3 velocity;  ///< 速度
-    float currentTime;          ///< 現在の経過時間
+    float currentTime; ///< 現在の経過時間
     Vector4 color;     ///< 色
 
     // 拡張パラメータ
     Vector3 rotation;    ///< 回転角
-    float trailTimer;             ///< Trail放出タイマー
+    float trailTimer;    ///< Trail放出タイマー
     Vector3 rotateSpeed; ///< 回転速度
     uint32_t emitterIndex;
     Vector3 startScale; ///< 開始スケール
@@ -57,7 +57,7 @@ struct ParticleCS {
     Vector4 endColor;   ///< 終了色
     Vector4 midColor;   ///< 中間色
     Vector3 midScale;   ///< 中間スケール
-    float midPoint;              ///< 中間タイミング (0.0~1.0)
+    float midPoint;     ///< 中間タイミング (0.0~1.0)
 };
 
 /**
@@ -331,8 +331,8 @@ public:
      * @param endMin 終了時の最小スケール
      * @param endMax 終了時の最大スケール
      */
-    void SetParticleScale(const Vector3& startMin, const Vector3& startMax,
-                          const Vector3& endMin, const Vector3& endMax, uint32_t emitterIndex = 0);
+    void SetParticleScale(const Vector3& startMin, const Vector3& startMax, const Vector3& endMin,
+                          const Vector3& endMax, uint32_t emitterIndex = 0);
 
     /**
      * @brief パーティクルの中間スケール（3段階変化用）を設定する
@@ -340,14 +340,13 @@ public:
      * @param midMax 中間時の最大スケール
      * @param midPoint 中間到達タイミング (0.0~1.0)
      */
-    void SetMidScale(const Vector3& midMin, const Vector3& midMax, float midPoint,
-                     uint32_t emitterIndex = 0);
+    void SetMidScale(const Vector3& midMin, const Vector3& midMax, float midPoint, uint32_t emitterIndex = 0);
 
     /**
      * @brief パーティクルの色（開始時と終了時、オプションで中間色）を動的に設定する
      */
-    void SetParticleColor(const Vector4& startMin, const Vector4& startMax,
-                          const Vector4& endMin, const Vector4& endMax, uint32_t emitterIndex = 0);
+    void SetParticleColor(const Vector4& startMin, const Vector4& startMax, const Vector4& endMin,
+                          const Vector4& endMax, uint32_t emitterIndex = 0);
 
     /**
      * @brief MidColor を設定する。
@@ -356,8 +355,7 @@ public:
      * @param[in] midPoint 設定する MidColor の値
      * @param[in] 0 設定する MidColor の値
      */
-    void SetMidColor(const Vector4& midMin, const Vector4& midMax, float midPoint,
-                     uint32_t emitterIndex = 0);
+    void SetMidColor(const Vector4& midMin, const Vector4& midMax, float midPoint, uint32_t emitterIndex = 0);
 
     /**
      * @brief パーティクルの寿命（最小・最大）を設定する
@@ -485,8 +483,8 @@ public:
      * @param[in] emissionRate 設定する BeamEmitter の値
      * @param[in] 0 設定する BeamEmitter の値
      */
-    void SetBeamEmitter(const Vector3& pos, const Vector3& direction, float radius, float velocity,
-                        float spread, float emissionRate, uint32_t emitterIndex = 0);
+    void SetBeamEmitter(const Vector3& pos, const Vector3& direction, float radius, float velocity, float spread,
+                        float emissionRate, uint32_t emitterIndex = 0);
 
     /** @name アトラス・物理挙動設定 */
     /** @brief テクスチャアトラス（Flipbook）設定 */
@@ -523,8 +521,7 @@ public:
      * @param size ボックスの各軸のサイズ（幅、高さ、奥行き）
      * @param emissionRate 1秒あたりの連続放出数
      */
-    void SetBoxEmitter(const Vector3& pos, const Vector3& size, float emissionRate,
-                       uint32_t emitterIndex);
+    void SetBoxEmitter(const Vector3& pos, const Vector3& size, float emissionRate, uint32_t emitterIndex);
 
     /**
      * @brief メッシュエミッターの設定
@@ -624,8 +621,7 @@ private:
     /**
      * @brief DrawCircle を実行する。
      */
-    void DrawCircle(const Vector3& center, float radius, const Vector3& axis,
-                    const Vector4& color);
+    void DrawCircle(const Vector3& center, float radius, const Vector3& axis, const Vector4& color);
     /**
      * @brief DrawSphereWireframe を実行する。
      */
@@ -633,8 +629,8 @@ private:
     /**
      * @brief DrawCylinderWireframe を実行する。
      */
-    void DrawCylinderWireframe(const Vector3& center, const Vector3& direction, float radius,
-                               float height, const Vector4& color);
+    void DrawCylinderWireframe(const Vector3& center, const Vector3& direction, float radius, float height,
+                               const Vector4& color);
 
     /**
      * @brief UpdateDebugLines を実行する。
@@ -730,8 +726,8 @@ private:
     ConstantBuffer<PerView> perViewBuffer_;
     Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
-    D3D12_INDEX_BUFFER_VIEW indexBufferView_{};                            // NEW: インデックスバッファ
-    uint32_t indexCount_ = 0;                                              // NEW: インデックス数
+    D3D12_INDEX_BUFFER_VIEW indexBufferView_{};          // NEW: インデックスバッファ
+    uint32_t indexCount_ = 0;                            // NEW: インデックス数
     PrimitiveType primitiveType_ = PrimitiveType::Plane; // 現在の形状
 
     ConstantBuffer<Material> materialBuffer_;

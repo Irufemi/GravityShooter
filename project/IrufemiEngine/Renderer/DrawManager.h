@@ -749,7 +749,8 @@ public:
     /**
      * @brief スキニング計算（Compute Shader）の実行
      */
-    void DispatchSkinning(const Irufemi::SkinCluster& skinCluster, const Irufemi::ManagedModel* model, uint32_t numVertices);
+    void DispatchSkinning(const Irufemi::SkinCluster& skinCluster, const Irufemi::ManagedModel* model,
+                          uint32_t numVertices);
 
     /**
      * @brief UAVバリアの実行（リソース競合の解決）

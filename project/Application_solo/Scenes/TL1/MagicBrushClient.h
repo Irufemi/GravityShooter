@@ -11,7 +11,7 @@
 namespace Irufemi {
 class ShaderCompiler; // 前方宣言
 class ShaderManager;
-}
+} // namespace Irufemi
 
 /**
  * @class MagicBrushClient

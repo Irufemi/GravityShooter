@@ -75,7 +75,7 @@ void GameApplication::Run() {
     // 独自コンポーネントの登録
 
     Irufemi::ComponentFactory::Register("SceneTransitionButtonComponent", "Game",
-                               []() { return std::make_shared<SceneTransitionButtonComponent>(); });
+                                        []() { return std::make_shared<SceneTransitionButtonComponent>(); });
     // UIの登録
     auto loadingScreen = std::make_shared<LoadingScreen>();
     loadingScreen->Initialize(engine.get());

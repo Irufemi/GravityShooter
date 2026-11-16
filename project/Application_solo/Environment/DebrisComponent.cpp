@@ -399,8 +399,8 @@ std::shared_ptr<Irufemi::Component> DebrisComponent::Clone() {
     return clone;
 }
 
-bool DebrisComponent::UpdatePullMovement(const Irufemi::TransformComponent* targetTransform, float pullSpeed, float catchDistSq,
-                                         float deltaTime) {
+bool DebrisComponent::UpdatePullMovement(const Irufemi::TransformComponent* targetTransform, float pullSpeed,
+                                         float catchDistSq, float deltaTime) {
     auto transform = GetTransform();
     if (!transform || !targetTransform) {
         return false;
@@ -481,7 +481,8 @@ void DebrisComponent::InitializeOrbitTransition(const Irufemi::TransformComponen
     }
 }
 
-void DebrisComponent::UpdatePlayerOrbit(const Irufemi::TransformComponent* targetTransform, float orbitSpeed, float deltaTime) {
+void DebrisComponent::UpdatePlayerOrbit(const Irufemi::TransformComponent* targetTransform, float orbitSpeed,
+                                        float deltaTime) {
     auto transform = GetTransform();
     if (!transform || !targetTransform) {
         return;

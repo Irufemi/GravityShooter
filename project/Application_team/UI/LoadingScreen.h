@@ -8,7 +8,7 @@ namespace Irufemi {
 class Sprite;
 class Primitive2DObject;
 class Camera;
-}
+} // namespace Irufemi
 
 /**
  * @class LoadingScreen

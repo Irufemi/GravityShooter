@@ -186,8 +186,7 @@ void OptionsScene::Update() {
 
     // --- トランジション演出更新 (Opening: Fade&Scale In / Closing: Fade&Scale Out) ---
     if (transition_.Update(
-            dt,
-            [this](float progress) { ApplyTransition(progress); },
+            dt, [this](float progress) { ApplyTransition(progress); },
             [engine]() {
                 if (auto sm = engine->GetSceneManager()) {
                     sm->PopScene();

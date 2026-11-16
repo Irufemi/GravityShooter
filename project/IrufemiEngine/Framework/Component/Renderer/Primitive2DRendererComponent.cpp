@@ -184,4 +184,3 @@ void Primitive2DRendererComponent::Deserialize(const nlohmann::json& j) {
 }
 
 } // namespace Irufemi
-

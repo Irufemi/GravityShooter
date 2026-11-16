@@ -272,4 +272,3 @@ std::shared_ptr<Component> MeshRendererComponent::Clone() {
 }
 
 } // namespace Irufemi
-

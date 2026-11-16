@@ -30,9 +30,13 @@ enum class DespawnReason {
     CollisionSuicide //!< プレイヤーへの直接体当たりによる自爆
 };
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class EnemyBulletManagerComponent;
-namespace Irufemi { class SplineComponent; }
+namespace Irufemi {
+class SplineComponent;
+}
 class SplineFollowerComponent;
 class IEnemyAttackStrategy;
 
@@ -114,8 +118,9 @@ public:
      * @param targetDistOffset 交戦時に維持する目標レール距離 (m)
      * @param formationOffset フォーメーションによるローカルXYオフセット
      */
-    void SetRailTrackingParams(Irufemi::SplineComponent* spline, SplineFollowerComponent* follower, float initialDistOffset,
-                               float targetDistOffset, const Irufemi::Vector2& formationOffset);
+    void SetRailTrackingParams(Irufemi::SplineComponent* spline, SplineFollowerComponent* follower,
+                               float initialDistOffset, float targetDistOffset,
+                               const Irufemi::Vector2& formationOffset);
 
     /**
      * @brief フォーメーション基準のローカルXYオフセットを設定する
@@ -324,7 +329,7 @@ public:
 
 private:
     EnemyBulletManagerComponent* bulletManager_ = nullptr; //!< キャッシュされた弾マネージャー
-    Irufemi::SplineComponent* cachedSpline_ = nullptr;              //!< キャッシュされたレールスプライン
+    Irufemi::SplineComponent* cachedSpline_ = nullptr;     //!< キャッシュされたレールスプライン
     SplineFollowerComponent* playerFollower_ = nullptr;    //!< プレイヤーのスプライン追従情報
     float currentDistanceOffset_ = 85.0f;                  //!< レール上の自機からの現在相対距離 (m)
     Irufemi::Vector2 baseFormationOffset_ = {0.0f, 0.0f};  //!< フォーメーションによる基本XYオフセット

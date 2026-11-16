@@ -162,4 +162,3 @@ void SpriteRendererComponent::Deserialize(const nlohmann::json& j) {
 }
 
 } // namespace Irufemi
-

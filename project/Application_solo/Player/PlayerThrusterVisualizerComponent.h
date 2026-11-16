@@ -2,7 +2,9 @@
 #include "Framework/Component/Component.h"
 #include <memory>
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class PlayerHealthComponent;
 enum class PlayerFlightState;
 

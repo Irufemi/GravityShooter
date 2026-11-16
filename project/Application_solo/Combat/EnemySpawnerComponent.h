@@ -6,8 +6,12 @@
 #include <memory>
 #include <unordered_map>
 
-namespace Irufemi { class TransformComponent; }
-namespace Irufemi { class EffectMaskComponent; }
+namespace Irufemi {
+class TransformComponent;
+}
+namespace Irufemi {
+class EffectMaskComponent;
+}
 
 /**
  * @class EnemySpawnerComponent
@@ -52,7 +56,7 @@ public:
      * @return 生成またはプールから再利用された Irufemi::GameObject
      */
     Irufemi::GameObject* SpawnEnemy(const Irufemi::Vector3& position, const Irufemi::Vector3& rotation,
-                           float scaleMultiplier = 1.0f);
+                                    float scaleMultiplier = 1.0f);
 
     /**
      * @brief 指定したプレハブ（JSON）に基づきエネミーをスポーンする（マルチモデルInstancing対応）
@@ -63,7 +67,7 @@ public:
      * @return 生成またはプールから再利用された Irufemi::GameObject
      */
     Irufemi::GameObject* SpawnEnemyByPrefab(const std::string& prefabPath, const Irufemi::Vector3& position,
-                                   const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
+                                            const Irufemi::Vector3& rotation, float scaleMultiplier = 1.0f);
 
     /**
      * @brief エネミーのモデルパスを取得する

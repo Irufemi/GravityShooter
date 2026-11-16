@@ -206,4 +206,3 @@ void TextRendererComponent::Deserialize(const nlohmann::json& j) {
 }
 
 } // namespace Irufemi
-

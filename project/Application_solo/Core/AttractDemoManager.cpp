@@ -485,8 +485,8 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         SoundHelper::Play(GameSE::GravityWarp);
 
         // 単なる黒フェードから、事象の地平線への空間吸い込み・重力色収差遷移へ昇華
-        sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::GravitySingularity, 0.65f, EaseType::EaseInCubic,
-                         Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
+        sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::GravitySingularity, 0.65f,
+                         EaseType::EaseInCubic, Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     }
 }
 
@@ -522,8 +522,8 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
 
         if (demoMode_ == DemoMode::GameOverShowcase) {
             // ゲームオーバー実演デモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
-            sm->TransitionTo(GameScenes::InGame, Irufemi::SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
-                             Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+            sm->TransitionTo(GameScenes::InGame, Irufemi::SceneTransition::Type::RadialBlur, 0.8f,
+                             EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         } else {
             // 通常アトラクトデモなら Title へ帰還
             sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
@@ -634,8 +634,8 @@ void AttractDemoManager::StopAllDemo(bool returnToTitle) {
     if (currentScene != GameScenes::Title) {
         hasTriggeredReturn_ = true;
         // 即時スキップ時も空間収束でテンポよく（0.35秒）Titleへ帰還
-        sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::GravitySingularity, 0.35f, EaseType::EaseInQuad,
-                         Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
+        sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::GravitySingularity, 0.35f,
+                         EaseType::EaseInQuad, Irufemi::Vector4{0.005f, 0.015f, 0.035f, 1.0f});
     } else {
         // タイトル画面で出撃中にデモ停止された場合、タイトルを再初期化して通常待機に戻す
         auto currentScenePtr = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());

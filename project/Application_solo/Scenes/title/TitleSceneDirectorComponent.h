@@ -13,7 +13,7 @@ class TransformComponent;
 class CameraComponent;
 class ModelBatchRendererComponent;
 class VoiceInstance;
-}
+} // namespace Irufemi
 class TitleCosmicNebulaComponent;
 
 /**

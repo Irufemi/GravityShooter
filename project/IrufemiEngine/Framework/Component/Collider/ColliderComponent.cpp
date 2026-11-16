@@ -96,4 +96,3 @@ void ColliderComponent::CopyPropertiesFrom(const Component* other) {
 }
 
 } // namespace Irufemi
-

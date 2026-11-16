@@ -26,4 +26,3 @@ float UIAnimator::GetFloatOffset(float amplitude, float speed, float phaseOffset
 }
 
 } // namespace Irufemi
-

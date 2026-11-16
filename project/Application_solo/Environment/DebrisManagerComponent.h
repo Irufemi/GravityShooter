@@ -6,8 +6,12 @@
 #include <queue>
 #include <string>
 
-namespace Irufemi { class GameObject; }
-namespace Irufemi { class VirtualEntityManagerComponent; }
+namespace Irufemi {
+class GameObject;
+}
+namespace Irufemi {
+class VirtualEntityManagerComponent;
+}
 class DebrisComponent;
 enum class DebrisState;
 

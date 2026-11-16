@@ -117,4 +117,3 @@ std::shared_ptr<Component> ParticleEmitterComponent::Clone() {
 }
 
 } // namespace Irufemi
-

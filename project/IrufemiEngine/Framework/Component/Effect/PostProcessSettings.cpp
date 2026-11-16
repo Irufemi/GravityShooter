@@ -243,4 +243,3 @@ std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(const s
 }
 
 } // namespace Irufemi
-

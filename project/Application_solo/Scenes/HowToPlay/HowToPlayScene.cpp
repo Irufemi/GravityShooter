@@ -117,8 +117,7 @@ void HowToPlayScene::Update() {
 
     // --- トランジション演出更新 (Opening: Fade&Scale In / Closing: Fade&Scale Out) ---
     if (transition_.Update(
-            dt,
-            [this](float progress) { ApplyTransition(progress); },
+            dt, [this](float progress) { ApplyTransition(progress); },
             [this]() {
                 if (auto sm = engine_->GetSceneManager()) {
                     sm->PopScene();

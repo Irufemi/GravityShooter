@@ -10,7 +10,9 @@
 #include <functional>
 
 class DebrisManagerComponent;
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class EnemyBeamComponent;
 class DroneManagerComponent;
 class BossBulletManagerComponent;

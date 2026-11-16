@@ -37,4 +37,3 @@ std::shared_ptr<Component> Component::Clone() {
 }
 
 } // namespace Irufemi
-

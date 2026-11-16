@@ -431,4 +431,3 @@ bool PrimitiveRendererComponent::Raycast(const Irufemi::Ray& ray, float& outDist
 }
 
 } // namespace Irufemi
-

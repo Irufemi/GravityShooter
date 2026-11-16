@@ -6,8 +6,12 @@
 #include <memory>
 #include <vector>
 
-namespace Irufemi { class SpriteRendererComponent; }
-namespace Irufemi { class TextRendererComponent; }
+namespace Irufemi {
+class SpriteRendererComponent;
+}
+namespace Irufemi {
+class TextRendererComponent;
+}
 
 class ResultManagerComponent : public Irufemi::Component {
 public:

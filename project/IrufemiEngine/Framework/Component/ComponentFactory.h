@@ -34,4 +34,3 @@ private:
 };
 
 } // namespace Irufemi
-

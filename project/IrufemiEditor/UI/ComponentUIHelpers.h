@@ -15,9 +15,9 @@
 #include "Framework/Component/Collider/AABBColliderComponent.h"
 #include "Framework/Component/Collider/OBBColliderComponent.h"
 
+using Irufemi::ColliderComponent;
 using Irufemi::Component;
 using Irufemi::GameObject;
-using Irufemi::ColliderComponent;
 
 namespace Irufemi::Editor::UI {
 

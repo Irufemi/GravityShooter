@@ -94,4 +94,3 @@ struct Controller {
 };
 
 } // namespace ModalTransition
-

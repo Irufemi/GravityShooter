@@ -147,4 +147,3 @@ void SkyDomeComponent::Deserialize(const nlohmann::json& j) {
 }
 
 } // namespace Irufemi
-

@@ -12,7 +12,7 @@ namespace Irufemi {
  */
 struct LightCommonData {
     DirectionalLight directionalLight; //!< 平行光源 (1体固定)
-    Matrix4x4 viewProjection; //!< ライト視点の投影行列 (ShadowMap用)
+    Matrix4x4 viewProjection;          //!< ライト視点の投影行列 (ShadowMap用)
     uint32_t pointLightCount;          //!< 有効な点光源の数
     uint32_t spotLightCount;           //!< 有効なスポットライトの数
     uint32_t areaLightCount;           //!< 有効なエリアライトの数

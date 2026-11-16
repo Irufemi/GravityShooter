@@ -5,10 +5,16 @@
 #include <unordered_map>
 #include <vector>
 
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 class BossBulletManagerComponent;
-namespace Irufemi { class EffectMaskComponent; }
-namespace Irufemi { class ModelBatchRendererComponent; }
+namespace Irufemi {
+class EffectMaskComponent;
+}
+namespace Irufemi {
+class ModelBatchRendererComponent;
+}
 #include "Renderer/Object/Batch/ModelBatch.h"
 
 class DroneManagerComponent : public Irufemi::Component {

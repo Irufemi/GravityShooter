@@ -4,7 +4,9 @@
 #include <memory>
 #include <string>
 
-namespace Irufemi { class SplineComponent; }
+namespace Irufemi {
+class SplineComponent;
+}
 class Line3DBatch;
 
 /**
@@ -62,9 +64,9 @@ public:
     void OnIDRemapped(const std::unordered_map<uint64_t, uint64_t>& idMap) override;
 
 private:
-    float currentDistance_ = 0.0f;          ///< ルート（軌道）上の進み具合 (m)
-    float speed_ = 10.0f;                   ///< 自動前進するスピード (m/s)
-    float speedMultiplier_ = 1.0f;          ///< 演出用の一時的スピード倍率（標準: 1.0）
-    uint64_t targetPathID_ = 0;             ///< 追従対象のオブジェクトID
+    float currentDistance_ = 0.0f;                   ///< ルート（軌道）上の進み具合 (m)
+    float speed_ = 10.0f;                            ///< 自動前進するスピード (m/s)
+    float speedMultiplier_ = 1.0f;                   ///< 演出用の一時的スピード倍率（標準: 1.0）
+    uint64_t targetPathID_ = 0;                      ///< 追従対象のオブジェクトID
     Irufemi::SplineComponent* cachedPath_ = nullptr; ///< キャッシュされた対象のパス
 };

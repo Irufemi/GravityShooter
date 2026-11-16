@@ -29,7 +29,8 @@ void ProjectBrowserPanel::Initialize(EditorManager* editorManager) {
     RefreshCache();
 
     // バックグラウンドでの自動監視を開始
-    directoryWatcher_ = std::make_unique<Irufemi::DirectoryWatcher>(projectRootPath_, [this]() { isCacheDirty_ = true; });
+    directoryWatcher_ =
+        std::make_unique<Irufemi::DirectoryWatcher>(projectRootPath_, [this]() { isCacheDirty_ = true; });
 }
 
 void ProjectBrowserPanel::BuildDirectoryTree(DirectoryNode* node) {

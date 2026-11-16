@@ -5,9 +5,13 @@
 #include <memory>
 #include <string>
 
-namespace Irufemi { class TransformComponent; }
+namespace Irufemi {
+class TransformComponent;
+}
 class RailShooterPlayerComponent;
-namespace Irufemi { class CameraComponent; }
+namespace Irufemi {
+class CameraComponent;
+}
 
 /**
  * @class StageIntroDirectorComponent

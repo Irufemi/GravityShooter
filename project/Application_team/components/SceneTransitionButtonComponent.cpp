@@ -76,8 +76,8 @@ void SceneTransitionButtonComponent::Update() {
 
             if (!onClickLoadScene_.empty()) {
                 constexpr std::array<Irufemi::SceneTransition::Type, 4> kTransitionTypes = {
-                    Irufemi::SceneTransition::Type::Fade, Irufemi::SceneTransition::Type::Dissolve, Irufemi::SceneTransition::Type::Slide,
-                    Irufemi::SceneTransition::Type::RadialBlur};
+                    Irufemi::SceneTransition::Type::Fade, Irufemi::SceneTransition::Type::Dissolve,
+                    Irufemi::SceneTransition::Type::Slide, Irufemi::SceneTransition::Type::RadialBlur};
                 Irufemi::SceneTransition::Type type = Irufemi::SceneTransition::Type::Fade;
                 if (transitionType_ >= 0 && static_cast<size_t>(transitionType_) < kTransitionTypes.size()) {
                     type = kTransitionTypes[static_cast<size_t>(transitionType_)];

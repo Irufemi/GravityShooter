@@ -245,8 +245,8 @@ void WaveManagerComponent::LoadLevelData(const std::string& filePath) {
             allEvents_.push_back(data);
         }
     }
-    Irufemi::Log::OutPutLog(std::cout,
-                   "[WaveManager] Loaded " + std::to_string(eventQueue_.size()) + " events from " + filePath + "\n");
+    Irufemi::Log::OutPutLog(std::cout, "[WaveManager] Loaded " + std::to_string(eventQueue_.size()) + " events from " +
+                                           filePath + "\n");
 }
 
 void WaveManagerComponent::RegisterHandler(const std::string& eventType, std::shared_ptr<IWaveEventHandler> handler) {
@@ -323,7 +323,7 @@ void WaveManagerComponent::Update() {
                 it->second->Execute(this, nextEvent, pos, fwd, right);
             } else {
                 Irufemi::Log::OutPutLog(std::cout, "[WaveManager] Warning: No handler registered for event type: " +
-                                              nextEvent.eventType + "\n");
+                                                       nextEvent.eventType + "\n");
             }
 
             eventQueue_.pop();
@@ -351,8 +351,8 @@ void WaveManagerComponent::CacheSpawnPoints() {
         auto* rawPtr = obj.get();
         if (reinterpret_cast<uintptr_t>(rawPtr) < 0x1000) {
             Irufemi::Log::OutPutLog(std::cerr, "[WaveManager] CRITICAL ERROR: Caught invalid GameObject pointer (0x" +
-                                          std::format("{:X}", reinterpret_cast<uintptr_t>(rawPtr)) +
-                                          ") in CacheSpawnPoints!\n");
+                                                   std::format("{:X}", reinterpret_cast<uintptr_t>(rawPtr)) +
+                                                   ") in CacheSpawnPoints!\n");
             continue;
         }
 
@@ -366,7 +366,8 @@ void WaveManagerComponent::CacheSpawnPoints() {
     }
 }
 
-const std::vector<Irufemi::SpawnPointComponent*>& WaveManagerComponent::GetSpawnPoints(const std::string& waveId) const {
+const std::vector<Irufemi::SpawnPointComponent*>&
+WaveManagerComponent::GetSpawnPoints(const std::string& waveId) const {
     static const std::vector<Irufemi::SpawnPointComponent*> emptyList;
     auto it = spawnPointsMap_.find(waveId);
     if (it != spawnPointsMap_.end()) {

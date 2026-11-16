@@ -4,7 +4,9 @@
 #include <string>
 
 class PlayerTargetingComponent;
-namespace Irufemi { class Primitive2DRendererComponent; }
+namespace Irufemi {
+class Primitive2DRendererComponent;
+}
 
 /**
  * @class ReticleUIComponent

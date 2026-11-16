@@ -5,8 +5,12 @@
 #include <memory>
 #include <string>
 
-namespace Irufemi { class GameObject; }
-namespace Irufemi { class BaseScene; }
+namespace Irufemi {
+class GameObject;
+}
+namespace Irufemi {
+class BaseScene;
+}
 class EnemyBulletComponent;
 
 /**
@@ -51,8 +55,8 @@ public:
      * @param scale 弾のスケール・コライダー半径
      * @return 射出された弾の Irufemi::GameObject ポインタ（プール枯渇時は nullptr）
      */
-    Irufemi::GameObject* FireBullet(const Irufemi::Vector3& origin, const Irufemi::Vector3& direction, float speed = 30.0f,
-                           int damage = 10, float scale = 0.4f);
+    Irufemi::GameObject* FireBullet(const Irufemi::Vector3& origin, const Irufemi::Vector3& direction,
+                                    float speed = 30.0f, int damage = 10, float scale = 0.4f);
 
     /**
      * @brief 寿命終了または衝突した弾コンポーネントを受け取り、O(1) でプールへ返却する
@@ -81,6 +85,6 @@ private:
 
     int maxBullets_ = 64;                                                         //!< プール最大容量
     std::string bulletModelPath_ = "resources/model/EnemyBullet/EnemyBullet.obj"; //!< 弾の3Dモデルパス
-    std::unique_ptr<Irufemi::ObjectPool<Irufemi::GameObject>> bulletPool_;                          //!< 弾のオブジェクトプール
+    std::unique_ptr<Irufemi::ObjectPool<Irufemi::GameObject>> bulletPool_;        //!< 弾のオブジェクトプール
     bool isWarmedUp_ = false;                                                     //!< 事前ウォームアップ完了フラグ
 };

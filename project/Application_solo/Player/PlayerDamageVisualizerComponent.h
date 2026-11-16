@@ -9,8 +9,12 @@ class PlayerHealthComponent;
 namespace Irufemi {
 class BaseModel;
 }
-namespace Irufemi { class CameraShakeComponent; }
-namespace Irufemi { class ScreenEffectComponent; }
+namespace Irufemi {
+class CameraShakeComponent;
+}
+namespace Irufemi {
+class ScreenEffectComponent;
+}
 
 /**
  * @class PlayerDamageVisualizerComponent

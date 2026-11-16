@@ -237,4 +237,3 @@ std::string SceneObjectRegistry::GenerateUniqueName(const std::string& baseName,
 }
 
 } // namespace Irufemi
-

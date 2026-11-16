@@ -111,7 +111,8 @@ public: // メンバ関数
     /**
      * @brief ライト全体の編集UIを表示する
      */
-    static void DebugLights(Irufemi::DirectionalLight* directionalLight, std::vector<std::unique_ptr<Irufemi::PointLight>>& pointLights,
+    static void DebugLights(Irufemi::DirectionalLight* directionalLight,
+                            std::vector<std::unique_ptr<Irufemi::PointLight>>& pointLights,
                             std::vector<std::unique_ptr<Irufemi::SpotLight>>& spotLights,
                             std::vector<std::unique_ptr<Irufemi::AreaLight>>& areaLights);
 

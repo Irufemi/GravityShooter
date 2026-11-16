@@ -2,7 +2,9 @@
 #include "Level/WaveEvent.h"
 
 class EnemySpawnerComponent;
-namespace Irufemi { class GameObject; }
+namespace Irufemi {
+class GameObject;
+}
 
 // 敵スポーン用のハンドラ
 class SpawnEnemyHandler : public IWaveEventHandler {

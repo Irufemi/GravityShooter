@@ -48,9 +48,10 @@ public:
     Irufemi::RenderTexture* Run(PostProcessManager* manager, ID3D12GraphicsCommandList* commandList,
                                 const std::vector<PostProcessManager::Mode>& modes, Irufemi::RenderTexture* srcTexture,
                                 D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,
-                             PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI,
-                             bool isFinalOutput = true, bool isBackBufferTarget = false,
-                             const D3D12_VIEWPORT* targetViewport = nullptr, const D3D12_RECT* targetScissor = nullptr);
+                                PostProcessManager::Layer layer = PostProcessManager::Layer::PreUI,
+                                bool isFinalOutput = true, bool isBackBufferTarget = false,
+                                const D3D12_VIEWPORT* targetViewport = nullptr,
+                                const D3D12_RECT* targetScissor = nullptr);
 
     /**
      * @brief RenderGraphにポストプロセスの全サブパスを展開・登録する (Zero-Manual-Barriers)
@@ -96,7 +97,8 @@ private:
     std::unordered_map<ID3D12Resource*, D3D12_RESOURCE_STATES> localResourceStates_;
     std::unordered_map<std::type_index, Irufemi::IPostProcessEffect*> effectRegistry_;
 
-    Irufemi::TransientResourceHandle workHandles_[2][2] = {{Irufemi::kInvalidHandle, Irufemi::kInvalidHandle}, {Irufemi::kInvalidHandle, Irufemi::kInvalidHandle}};
+    Irufemi::TransientResourceHandle workHandles_[2][2] = {{Irufemi::kInvalidHandle, Irufemi::kInvalidHandle},
+                                                           {Irufemi::kInvalidHandle, Irufemi::kInvalidHandle}};
     Irufemi::RenderTexture* workTextures_[2][2] = {{nullptr, nullptr}, {nullptr, nullptr}};
 
     std::unique_ptr<Irufemi::BloomEffect> bloomEffect_;

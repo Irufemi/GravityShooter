@@ -17,9 +17,8 @@ namespace Irufemi {
 
 #ifndef RUNTIME_SHADER_COMPILE
 // IDxcBlob を WRL::RuntimeClass で実装（IUnknownのAddRef/Release/QueryInterfaceを自動管理）
-class CustomBlob : public Microsoft::WRL::RuntimeClass<
-                       Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
-                       IDxcBlob> {
+class CustomBlob
+    : public Microsoft::WRL::RuntimeClass<Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>, IDxcBlob> {
     std::vector<uint8_t> data_;
 
 public:

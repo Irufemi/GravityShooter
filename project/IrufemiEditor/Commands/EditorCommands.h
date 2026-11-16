@@ -9,9 +9,9 @@
 #include <memory>
 #include <limits>
 
-using Irufemi::GameObject;
-using Irufemi::Component;
 using Irufemi::BaseScene;
+using Irufemi::Component;
+using Irufemi::GameObject;
 
 /**
  * @class ChangeValueCommand

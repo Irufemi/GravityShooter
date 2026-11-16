@@ -392,7 +392,8 @@ void GravityPlayerComponent::UpdateThrowing() {
 
                     if (throwTarget) {
                         // ターゲットはいたが死んでいた場合、その死んだ座標へ直進させる
-                        Irufemi::Vector3 deadPos = throwTarget->GetComponent<Irufemi::TransformComponent>()->GetWorldPosition();
+                        Irufemi::Vector3 deadPos =
+                            throwTarget->GetComponent<Irufemi::TransformComponent>()->GetWorldPosition();
                         Irufemi::Vector3 throwDir =
                             Irufemi::Math::Normalize(Irufemi::Math::Subtract(deadPos, debrisPos));
                         comp->SetThrowDirection(throwDir);

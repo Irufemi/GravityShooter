@@ -709,8 +709,7 @@ bool DrawComponentContextMenu(Component* comp, EditorActionManager* actionManage
 
     if (pendingRemove) {
         actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            GetSharedComponent(comp->GetGameObject(), comp)));
+            comp->GetGameObject()->shared_from_this(), GetSharedComponent(comp->GetGameObject(), comp)));
         return true;
     }
     return false;

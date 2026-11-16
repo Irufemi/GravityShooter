@@ -65,7 +65,7 @@ class SceneManager;
 class SceneTransition;
 class PrefabManager;
 class GameObject;
-}
+} // namespace Irufemi
 class CollisionManager;
 class FluidSimulation2D;
 
@@ -114,8 +114,8 @@ public: // メンバ関数
      * @param[in] b クリアカラー（青）
      * @param[in] a クリアカラー（アルファ）
      */
-    void Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight, float r,
-                    float g, float b, float a = 1.0f);
+    void Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight, float r, float g, float b,
+                    float a = 1.0f);
 
     /**
      * @brief エンジンの初期化（クリアカラー指定付き - std::array版）
@@ -921,7 +921,8 @@ private: // メンバ変数
     // 状態(現在のブレンドと深度書き込み)
     Irufemi::BlendMode currentBlend_ = Irufemi::BlendMode::kBlendModeNormal;
     Irufemi::PSOManager::DepthWrite currentDepth_ = Irufemi::PSOManager::DepthWrite::Enable;
-    Irufemi::PSOManager::CullMode currentCull_ = Irufemi::PSOManager::CullMode::Back; //!< 現在のカリングモード（デフォルトは背面）
+    Irufemi::PSOManager::CullMode currentCull_ =
+        Irufemi::PSOManager::CullMode::Back; //!< 現在のカリングモード（デフォルトは背面）
     // --- Debug & Logging ---
     // ログ
     std::unique_ptr<Irufemi::Log> log_ = nullptr;

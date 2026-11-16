@@ -4,9 +4,15 @@
 #include "Framework/UI/UIAnimator.h"
 #include "Core/Math/Vector3.h"
 
-namespace Irufemi { class ButtonComponent; }
-namespace Irufemi { class TransformComponent; }
-namespace Irufemi { class SpriteRendererComponent; }
+namespace Irufemi {
+class ButtonComponent;
+}
+namespace Irufemi {
+class TransformComponent;
+}
+namespace Irufemi {
+class SpriteRendererComponent;
+}
 
 /**
  * @class SceneTransitionButtonComponent

@@ -498,8 +498,8 @@ void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, i
 }
 
 // クリアカラーをfloat配列で持つ初期化
-void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight,
-                               float r, float g, float b, float a) {
+void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, int32_t clientHeight, float r, float g,
+                               float b, float a) {
     clearColor_ = {r, g, b, a};
     // 既存の Initialize を呼ぶ(互換性維持)
     Initialize(title, clientWidth, clientHeight);

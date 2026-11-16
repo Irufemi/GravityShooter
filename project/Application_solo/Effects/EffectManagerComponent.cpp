@@ -52,7 +52,7 @@ void EffectManagerComponent::Start() {
 }
 
 Irufemi::ObjectPool<Irufemi::GameObject>* EffectManagerComponent::GetOrCreatePool(const std::string& effectKey,
-                                                                const std::string& prefabPath) {
+                                                                                  const std::string& prefabPath) {
     auto it = effectPools_.find(effectKey);
     if (it != effectPools_.end()) {
         return it->second.get();
@@ -185,9 +185,9 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
     }
 }
 
-std::shared_ptr<Irufemi::GameObject> EffectManagerComponent::PlayAttachedEffect(const std::string& effectKey,
-                                                                       std::shared_ptr<Irufemi::GameObject> parent,
-                                                                       const Irufemi::Vector3& localOffset) {
+std::shared_ptr<Irufemi::GameObject>
+EffectManagerComponent::PlayAttachedEffect(const std::string& effectKey, std::shared_ptr<Irufemi::GameObject> parent,
+                                           const Irufemi::Vector3& localOffset) {
     if (!parent) {
         return nullptr;
     }

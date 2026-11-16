@@ -123,4 +123,3 @@ void GravitySingularityTransitionDriver::OnUpdate(PostProcessManager* ppm, float
 }
 
 } // namespace Irufemi
-

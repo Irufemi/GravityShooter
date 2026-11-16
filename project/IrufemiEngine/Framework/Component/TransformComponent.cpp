@@ -342,4 +342,3 @@ std::shared_ptr<Component> TransformComponent::Clone() {
 }
 
 } // namespace Irufemi
-
