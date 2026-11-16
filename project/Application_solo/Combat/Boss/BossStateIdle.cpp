@@ -18,12 +18,13 @@ void BossStateIdle::Update(BossComponent* boss) {
     }
 
     // --- ビーム攻撃の更新 ---
-    float deltaTime = 1.0f / 60.0f;
-    if (auto engine = boss->GetEngine()) {
-        float dt = engine->GetGameDeltaTime();
-        if (dt > 0.0f) {
-            deltaTime = dt;
-        }
+    auto engine = boss->GetEngine();
+    if (!engine) {
+        return;
+    }
+    float deltaTime = engine->GetGameDeltaTime();
+    if (deltaTime <= 0.0f) {
+        return;
     }
     boss->UpdateBeamAttack(deltaTime);
 

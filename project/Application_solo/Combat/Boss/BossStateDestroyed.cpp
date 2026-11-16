@@ -131,7 +131,11 @@ void BossStateDestroyed::Update(BossComponent* boss) {
         return;
     }
 
-    float dt = (boss && boss->GetEngine()) ? boss->GetEngine()->GetRealDeltaTime() : (1.0f / 60.0f);
+    if (!boss || !boss->GetEngine()) {
+        return;
+    }
+
+    float dt = boss->GetEngine()->GetRealDeltaTime();
     auto& currentStep = steps_[currentStepIndex_];
     currentStep->Update(boss, visualizer_, dt);
 

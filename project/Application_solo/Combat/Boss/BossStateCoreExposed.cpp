@@ -58,7 +58,10 @@ void BossStateCoreExposed::Enter(BossComponent* boss) {
 void BossStateCoreExposed::Update(BossComponent* boss) {
     // 被弾ヒットフラッシュタイマーの減衰
     if (hitFlashTimer_ > 0.0f) {
-        float dt = (boss && boss->GetEngine()) ? boss->GetEngine()->GetGameDeltaTime() : (1.0f / 60.0f);
+        if (!boss || !boss->GetEngine()) {
+            return;
+        }
+        float dt = boss->GetEngine()->GetGameDeltaTime();
         hitFlashTimer_ -= dt;
         if (hitFlashTimer_ <= 0.0f) {
             hitFlashTimer_ = 0.0f;

@@ -405,7 +405,7 @@ void TitleSceneDirectorComponent::Update() {
 
     float deltaTime = engine->GetDeltaTime();
     if (deltaTime <= 0.0f) {
-        deltaTime = 1.0f / 60.0f;
+        return;
     }
 
     CacheEntities();
