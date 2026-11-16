@@ -123,7 +123,8 @@ void GlobalPostProcessComponentEditor::Draw(Component* component, EditorActionMa
             icon = ICON_FA_PALETTE " ";
         } else if (setting->GetMode() == PostProcessMode::Vignette) {
             icon = ICON_FA_CAMERA " ";
-        } else if (setting->GetMode() == PostProcessMode::DepthBasedOutline) {
+        } else if (setting->GetMode() == PostProcessMode::DepthBasedOutline ||
+                   setting->GetMode() == PostProcessMode::BandeDessineeOutline) {
             icon = ICON_FA_PENCIL " ";
         }
 
@@ -166,6 +167,13 @@ void GlobalPostProcessComponentEditor::Draw(Component* component, EditorActionMa
                     float r = static_cast<float>(out->maskMaxRadius);
                     DrawFloatProperty("Mask Max Radius", r, 5.0f, 1.0f, 15.0f, actionManager);
                     out->maskMaxRadius = static_cast<int32_t>(r);
+                } else if (setting->GetMode() == PostProcessMode::BandeDessineeOutline) {
+                    auto* bd = static_cast<BandeDessineeOutlineSettings*>(setting.get());
+                    DrawFloatProperty("Intensity", bd->intensity, 5.0f, 0.0f, 20.0f, actionManager);
+                    DrawFloatProperty("Depth Weight", bd->depthWeight, 2.0f, 0.0f, 10.0f, actionManager);
+                    DrawFloatProperty("Normal Weight", bd->normalWeight, 1.5f, 0.0f, 10.0f, actionManager);
+                    DrawFloatProperty("Fade Start", bd->distanceFadeStart, 30.0f, 0.0f, 500.0f, actionManager);
+                    DrawFloatProperty("Fade End", bd->distanceFadeEnd, 120.0f, 0.0f, 500.0f, actionManager);
                 }
                 // 追加のエフェクトはここに記述
 
@@ -187,7 +195,7 @@ void GlobalPostProcessComponentEditor::Draw(Component* component, EditorActionMa
     ImGui::Spacing();
 
     // エフェクト追加用のドロップダウン
-    const char* effects[] = {"Bloom", "Color Grading", "Vignette", "Outline"};
+    const char* effects[] = {"Bloom", "Color Grading", "Vignette", "Outline", "BandeDessineeOutline"};
     static int selectedEffect = 0;
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 100.0f);
@@ -203,6 +211,8 @@ void GlobalPostProcessComponentEditor::Draw(Component* component, EditorActionMa
             mode = PostProcessMode::Vignette;
         } else if (selectedEffect == 3) {
             mode = PostProcessMode::DepthBasedOutline;
+        } else if (selectedEffect == 4) {
+            mode = PostProcessMode::BandeDessineeOutline;
         }
 
         if (mode != PostProcessMode::None) {

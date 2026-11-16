@@ -484,6 +484,29 @@ struct BlackHoleSupernovaParams {
 };
 
 /**
+ * @struct BandeDessineeOutlineParams
+ * @brief バンド・デシネ調 スタイライズド・アウトライン用パラメータ
+ */
+struct BandeDessineeOutlineParams {
+    Irufemi::Vector4 inkColor = {0.02f, 0.02f, 0.03f, 1.0f}; ///< チャコールインク色
+    float intensity = 5.0f;                                  ///< 全体感度
+    float depthWeight = 2.0f;                                ///< 深度主線の重み
+    float normalWeight = 1.5f;                               ///< 法線内部ペン画の重み
+    float distanceFadeStart = 30.0f;                         ///< 距離減衰開始（手前くっきり）
+    float distanceFadeEnd = 120.0f;                          ///< 距離減衰終了（遠景ノイズゼロ）
+    float pad[3];                                            ///< 16バイトアライメント
+
+    template <typename Visitor> void Visit(Visitor&& v) {
+        v.ColorEdit4("Ink Color", inkColor);
+        v.DragFloat("Intensity", intensity, 0.1f, 0.0f, 20.0f);
+        v.DragFloat("Depth Weight", depthWeight, 0.1f, 0.0f, 10.0f);
+        v.DragFloat("Normal Weight", normalWeight, 0.1f, 0.0f, 10.0f);
+        v.DragFloat("Distance Fade Start", distanceFadeStart, 1.0f, 0.0f, 500.0f);
+        v.DragFloat("Distance Fade End", distanceFadeEnd, 1.0f, 0.0f, 500.0f);
+    }
+};
+
+/**
  * @struct LightShaftsParams
  * @brief ゴッドレイ（光の筋）エフェクト用パラメータ
  */
@@ -652,14 +675,23 @@ struct CombinedParams {
     float supernovaChromaticRatio;
     float supernovaFlashIntensity;
 
+    // BandeDessineeOutline (48 bytes)
+    Irufemi::Vector4 bdInkColor;
+    float bdIntensity;
+    float bdDepthWeight;
+    float bdNormalWeight;
+    float bdFadeStart;
+    float bdFadeEnd;
+    float pad_bdOutline[3];
+
     // [Bindless]
     uint32_t mainTextureIndex;
     uint32_t extraTextureIndex;
     uint32_t maskTextureIndex;
     uint32_t padding_bindless;
 
-    // 256-byte alignment padding (Current size: 688 bytes, padded to 768 bytes)
-    uint32_t alignPadding[20];
+    // 256-byte alignment padding (Current size: 736 bytes, padded to 768 bytes)
+    uint32_t alignPadding[8];
 };
 
 static_assert(sizeof(CombinedParams) % 256 == 0, "CombinedParams must be 256-byte aligned for D3D12 CBV.");

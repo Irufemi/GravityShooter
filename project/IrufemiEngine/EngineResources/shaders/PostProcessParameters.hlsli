@@ -237,6 +237,25 @@ struct PostProcessParams {
     float32_t supernovaIntensity;
     float32_t supernovaChromaticRatio;
     float32_t supernovaFlashIntensity;
+
+    // BandeDessineeOutline
+    float32_t4 bdInkColor;
+    float32_t bdIntensity;
+    float32_t bdDepthWeight;
+    float32_t bdNormalWeight;
+    float32_t bdFadeStart;
+    float32_t bdFadeEnd;
+    float32_t3 pad_bdOutline;
+};
+
+struct BandeDessineeOutlineParams {
+    float32_t4 inkColor;
+    float32_t intensity;
+    float32_t depthWeight;
+    float32_t normalWeight;
+    float32_t fadeStart;
+    float32_t fadeEnd;
+    float32_t3 pad;
 };
 
 struct VignetteParams {

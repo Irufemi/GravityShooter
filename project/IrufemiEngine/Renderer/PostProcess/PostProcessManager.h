@@ -126,6 +126,7 @@ public:
     using LightShaftsParams = Irufemi::LightShaftsParams;
     using GravityDistortionParams = Irufemi::GravityDistortionParams;
     using BlackHoleSupernovaParams = Irufemi::BlackHoleSupernovaParams;
+    using BandeDessineeOutlineParams = Irufemi::BandeDessineeOutlineParams;
     using CombinedParams = Irufemi::CombinedParams;
     using BindlessParams = Irufemi::BindlessParams;
 
@@ -252,7 +253,8 @@ public:
      * @brief そのエフェクトが深度バッファを必要とするかどうか
      */
     static bool UsesDepthBuffer(Mode mode) {
-        return mode == Mode::DepthBasedOutline || mode == Mode::DepthOfField || mode == Mode::LightShafts;
+        return mode == Mode::DepthBasedOutline || mode == Mode::DepthOfField || mode == Mode::LightShafts ||
+               mode == Mode::BandeDessineeOutline;
     }
 
     /**
@@ -396,6 +398,8 @@ public:
     const GravityDistortionParams& GetGravityDistortionParams() const;
     BlackHoleSupernovaParams& GetBlackHoleSupernovaParams();
     const BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() const;
+    BandeDessineeOutlineParams& GetBandeDessineeOutlineParams();
+    const BandeDessineeOutlineParams& GetBandeDessineeOutlineParams() const;
     DissolveParams& GetDissolveParams();
     const DissolveParams& GetDissolveParams() const;
     SlideParams& GetSlideParams();

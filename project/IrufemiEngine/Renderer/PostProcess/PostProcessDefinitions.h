@@ -52,4 +52,5 @@ enum class PostProcessPassType {
     V(DepthOfField, DepthOfFieldParams, Separate, PreUI, "DepthOfField")                                               \
     V(LightShafts, LightShaftsParams, MultiPass, PreUI, "LightShafts")                                                 \
     V(GravityDistortion, GravityDistortionParams, Separate, PreUI, "GravityDistortion")                                \
-    V(BlackHoleSupernova, BlackHoleSupernovaParams, Separate, PreUI, "BlackHoleSupernova")
+    V(BlackHoleSupernova, BlackHoleSupernovaParams, Separate, PreUI, "BlackHoleSupernova")                             \
+    V(BandeDessineeOutline, BandeDessineeOutlineParams, Separate, PreUI, "BandeDessineeOutline")

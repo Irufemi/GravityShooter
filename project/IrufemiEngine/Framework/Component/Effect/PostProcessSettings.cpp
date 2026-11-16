@@ -199,6 +199,70 @@ std::shared_ptr<IPostProcessSettings> OutlineSettings::Clone() const {
 }
 
 // ---------------------------------------------------------
+// BandeDessineeOutlineSettings Implementation
+// ---------------------------------------------------------
+void BandeDessineeOutlineSettings::ApplyToManager(PostProcessManager* manager) {
+    if (!manager) {
+        return;
+    }
+    if (enabled) {
+        if (!manager->HasActiveMode(PostProcessMode::BandeDessineeOutline)) {
+            manager->AddActiveMode(PostProcessMode::BandeDessineeOutline);
+        }
+        if (auto* combined = manager->GetEffect<Irufemi::CombinedPostEffect>()) {
+            auto& p = combined->GetBandeDessineeOutlineParams();
+            p.inkColor = inkColor;
+            p.intensity = intensity;
+            p.depthWeight = depthWeight;
+            p.normalWeight = normalWeight;
+            p.distanceFadeStart = distanceFadeStart;
+            p.distanceFadeEnd = distanceFadeEnd;
+        }
+    } else {
+        manager->RemoveActiveMode(PostProcessMode::BandeDessineeOutline);
+    }
+}
+
+void BandeDessineeOutlineSettings::Serialize(nlohmann::json& j) const {
+    j["type"] = "BandeDessineeOutline";
+    j["enabled"] = enabled;
+    j["inkColor"] = {inkColor.x, inkColor.y, inkColor.z, inkColor.w};
+    j["intensity"] = intensity;
+    j["depthWeight"] = depthWeight;
+    j["normalWeight"] = normalWeight;
+    j["distanceFadeStart"] = distanceFadeStart;
+    j["distanceFadeEnd"] = distanceFadeEnd;
+}
+
+void BandeDessineeOutlineSettings::Deserialize(const nlohmann::json& j) {
+    if (j.contains("enabled")) {
+        enabled = j["enabled"];
+    }
+    if (j.contains("inkColor") && j["inkColor"].is_array() && j["inkColor"].size() >= 4) {
+        inkColor = {j["inkColor"][0], j["inkColor"][1], j["inkColor"][2], j["inkColor"][3]};
+    }
+    if (j.contains("intensity")) {
+        intensity = j["intensity"];
+    }
+    if (j.contains("depthWeight")) {
+        depthWeight = j["depthWeight"];
+    }
+    if (j.contains("normalWeight")) {
+        normalWeight = j["normalWeight"];
+    }
+    if (j.contains("distanceFadeStart")) {
+        distanceFadeStart = j["distanceFadeStart"];
+    }
+    if (j.contains("distanceFadeEnd")) {
+        distanceFadeEnd = j["distanceFadeEnd"];
+    }
+}
+
+std::shared_ptr<IPostProcessSettings> BandeDessineeOutlineSettings::Clone() const {
+    return std::make_shared<BandeDessineeOutlineSettings>(*this);
+}
+
+// ---------------------------------------------------------
 // Factory
 // ---------------------------------------------------------
 std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(PostProcessMode mode) {
@@ -211,6 +275,8 @@ std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(PostPro
         return std::make_shared<VignetteSettings>();
     case PostProcessMode::DepthBasedOutline:
         return std::make_shared<OutlineSettings>();
+    case PostProcessMode::BandeDessineeOutline:
+        return std::make_shared<BandeDessineeOutlineSettings>();
     // Add more effects here in the future
     default:
         return nullptr;
@@ -229,6 +295,9 @@ std::shared_ptr<IPostProcessSettings> PostProcessSettingsFactory::Create(const s
     }
     if (typeName == "Outline" || typeName == "DepthBasedOutline") {
         return Create(PostProcessMode::DepthBasedOutline);
+    }
+    if (typeName == "BandeDessineeOutline") {
+        return Create(PostProcessMode::BandeDessineeOutline);
     }
 
     // SSOT マクロによるエフェクト名・DisplayName からの動的逆引き

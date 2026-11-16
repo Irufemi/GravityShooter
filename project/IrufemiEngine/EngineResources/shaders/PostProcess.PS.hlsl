@@ -42,6 +42,7 @@ bool IsDistortionOrBlurEffect(int32_t mode) {
         case kPostProcessMode_DirectionalBlur:
         case kPostProcessMode_Halftone:
         case kPostProcessMode_DepthOfField:
+        case kPostProcessMode_BandeDessineeOutline:
             return true;
         default:
             return false;
@@ -379,6 +380,16 @@ PixelShaderOutput main(VertexShaderOutput input) {
                     gParams.supernovaFlashIntensity, 
                     gTexture, 
                     gSampler
+                );
+                break;
+
+            case kPostProcessMode_BandeDessineeOutline:
+                color.rgb = ApplyBandeDessineeOutline(
+                    color.rgb, uv, uvStepSize,
+                    gParams.projectionInverse, gParams.bdIntensity,
+                    gParams.bdDepthWeight, gParams.bdNormalWeight,
+                    gParams.bdFadeStart, gParams.bdFadeEnd, gParams.bdInkColor.rgb,
+                    gExtraTexture, gNormalTexture, gMaskTexture, gSamplerPoint
                 );
                 break;
         }

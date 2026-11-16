@@ -140,6 +140,14 @@ void CombinedPostEffect::SyncParamsToCombined(CombinedParams& combined) const {
     combined.supernovaIntensity = blackHoleSupernovaParams_.supernovaIntensity;
     combined.supernovaChromaticRatio = blackHoleSupernovaParams_.supernovaChromaticRatio;
     combined.supernovaFlashIntensity = blackHoleSupernovaParams_.supernovaFlashIntensity;
+
+    // BandeDessineeOutline
+    combined.bdInkColor = bdOutlineParams_.inkColor;
+    combined.bdIntensity = bdOutlineParams_.intensity;
+    combined.bdDepthWeight = bdOutlineParams_.depthWeight;
+    combined.bdNormalWeight = bdOutlineParams_.normalWeight;
+    combined.bdFadeStart = bdOutlineParams_.distanceFadeStart;
+    combined.bdFadeEnd = bdOutlineParams_.distanceFadeEnd;
 }
 
 void CombinedPostEffect::Render(const PostProcessRenderContext& context) {

@@ -230,6 +230,67 @@ float32_t3 ApplyDepthBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uv
     return lerp(color, inkColor, inkLine);
 }
 
+// バンド・デシネ調 スタイライズド・アウトライン (Bande Dessinee Stylized Outline)
+float32_t3 ApplyBandeDessineeOutline(
+    float32_t3 color, float32_t2 uv, float32_t2 uvStepSize,
+    float32_t4x4 projectionInverse, float32_t intensity,
+    float32_t depthWeightScale, float32_t normalWeightScale,
+    float32_t fadeStart, float32_t fadeEnd, float32_t3 inkColor,
+    Texture2D<float32_t4> depthTex, Texture2D<float32_t4> normalTex,
+    Texture2D<float32_t4> maskTex, SamplerState smp)
+{
+    float32_t2 depthDiff = 0;
+    float32_t3 normalDiffX = 0;
+    float32_t3 normalDiffY = 0;
+
+    // 3x3 Prewitt カーネルによるサンプリング
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float32_t2 offsetUV = uv + float32_t2(x, y) * uvStepSize;
+            float32_t depth = depthTex.Sample(smp, offsetUV).r;
+            float32_t vz = ReconstructViewZ(depth, projectionInverse);
+            float32_t3 normal = normalTex.Sample(smp, offsetUV).xyz;
+
+            float32_t wx = (x == 0) ? 0.0f : (x < 0 ? -1.0f / 6.0f : 1.0f / 6.0f);
+            float32_t wy = (y == 0) ? 0.0f : (y < 0 ? -1.0f / 6.0f : 1.0f / 6.0f);
+
+            depthDiff.x += vz * wx;
+            depthDiff.y += vz * wy;
+
+            normalDiffX += normal * wx;
+            normalDiffY += normal * wy;
+        }
+    }
+
+    // 1. 深度主線 & 法線内部ペン画エッジの計算
+    float32_t depthEdge = length(depthDiff) * depthWeightScale;
+    float32_t normalEdge = (length(normalDiffX) + length(normalDiffY)) * normalWeightScale;
+    float32_t totalGeomEdge = depthEdge + normalEdge;
+
+    float edgeThreshold = 0.5f / max(0.001f, intensity);
+    float inkLine = smoothstep(edgeThreshold - 0.05f, edgeThreshold + 0.05f, totalGeomEdge);
+
+    // 2. 距離減衰 (Distance Fade) による遠景（雲海・空・遠景建造物）のノイズ完全遮断
+    float centerDepth = depthTex.Sample(smp, uv).r;
+    float centerViewZ = ReconstructViewZ(centerDepth, projectionInverse);
+    float distanceFade = 1.0f - saturate((centerViewZ - fadeStart) / max(0.001f, fadeEnd - fadeStart));
+
+    // 3. G-Buffer Mask (enableMask = maskTex.b) による外郭シルエット主線の検出
+    float centerMask = maskTex.Sample(smp, uv).b;
+    float upMask     = maskTex.Sample(smp, uv + float32_t2(0, -uvStepSize.y)).b;
+    float downMask   = maskTex.Sample(smp, uv + float32_t2(0,  uvStepSize.y)).b;
+    float leftMask   = maskTex.Sample(smp, uv + float32_t2(-uvStepSize.x, 0)).b;
+    float rightMask  = maskTex.Sample(smp, uv + float32_t2( uvStepSize.x, 0)).b;
+
+    float maskDiff = abs(upMask - centerMask) + abs(downMask - centerMask) +
+                     abs(leftMask - centerMask) + abs(rightMask - centerMask);
+    float maskSilhouette = smoothstep(0.1f, 0.3f, maskDiff);
+
+    // 4. 多層インク線の乗算合成
+    float totalInk = saturate(inkLine * distanceFade + maskSilhouette);
+    return lerp(color, inkColor, totalInk);
+}
+
 // 12. RadialBlur
 float32_t3 ApplyRadialBlur(float32_t3 color, float32_t2 uv, float32_t2 center, float32_t blurWidth, int32_t samples, Texture2D<float32_t4> tex, SamplerState smp) {
     float32_t2 dir = uv - center;

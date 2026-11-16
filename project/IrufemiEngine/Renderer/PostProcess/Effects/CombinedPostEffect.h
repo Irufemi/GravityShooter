@@ -251,6 +251,13 @@ public:
         return blackHoleSupernovaParams_;
     }
 
+    BandeDessineeOutlineParams& GetBandeDessineeOutlineParams() {
+        return bdOutlineParams_;
+    }
+    const BandeDessineeOutlineParams& GetBandeDessineeOutlineParams() const {
+        return bdOutlineParams_;
+    }
+
     // MultiPass/voidエフェクト用ダミースタブ（SSOTマクロ自動展開時の完全な構文合法性を保証）
     struct DummyParam {
         template <typename T> DummyParam& operator=(const T&) {
@@ -307,6 +314,7 @@ private:
     SlideParams slideParams_{};
     GravityDistortionParams gravityDistortionParams_{};
     BlackHoleSupernovaParams blackHoleSupernovaParams_{};
+    BandeDessineeOutlineParams bdOutlineParams_{};
 };
 
 } // namespace Irufemi

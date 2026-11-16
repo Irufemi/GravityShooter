@@ -116,6 +116,33 @@ struct OutlineSettings : public IPostProcessSettings {
 };
 
 // ---------------------------------------------------------
+// Bande Dessinee Outline Settings
+// ---------------------------------------------------------
+/**
+ * @brief バンド・デシネ調 スタイライズド・アウトライン描画設定構造体
+ */
+struct BandeDessineeOutlineSettings : public IPostProcessSettings {
+    PostProcessMode GetMode() const override {
+        return PostProcessMode::BandeDessineeOutline;
+    }
+    const char* GetName() const override {
+        return "BandeDessineeOutline";
+    }
+
+    void ApplyToManager(PostProcessManager* manager) override;
+    void Serialize(nlohmann::json& j) const override;
+    void Deserialize(const nlohmann::json& j) override;
+    std::shared_ptr<IPostProcessSettings> Clone() const override;
+
+    Irufemi::Vector4 inkColor = {0.02f, 0.02f, 0.03f, 1.0f}; ///< インク色 (Charcoal)
+    float intensity = 5.0f;                                  ///< 全体感度
+    float depthWeight = 2.0f;                                ///< 深度主線の重み
+    float normalWeight = 1.5f;                               ///< 法線内部ペン画の重み
+    float distanceFadeStart = 30.0f;                         ///< 距離減衰開始
+    float distanceFadeEnd = 120.0f;                          ///< 距離減衰終了
+};
+
+// ---------------------------------------------------------
 // Factory
 // ---------------------------------------------------------
 class PostProcessSettingsFactory {
