@@ -1199,7 +1199,9 @@ void DebugUI::DrawCommonEngineTabs([[maybe_unused]] IrufemiEngine* engine) {
 
 void DebugUI::DebugGPUParticleManager(GPUParticleManager* manager) {
 #if defined(USE_IMGUI)
-    if (!manager) return;
+    if (!manager) {
+        return;
+    }
     if (ImGui::BeginTabItem("GPU Particle Manager")) {
         if (ImGui::BeginChild("GPUParticleScroll", ImVec2(0, 0), false)) {
             auto state = manager->state_.Write();
@@ -1228,7 +1230,9 @@ void DebugUI::DebugGPUParticleManager(GPUParticleManager* manager) {
 
 void DebugUI::DebugParticleObject(ParticleObject* particle, const char* name) {
 #if defined(USE_IMGUI)
-    if (!particle) return;
+    if (!particle) {
+        return;
+    }
     if (ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen)) {
         bool changed = false;
 

@@ -20,6 +20,7 @@ class DebugUI;
  */
 class ParticleObject {
     friend class DebugUI;
+
 public:
     ParticleObject();
     ~ParticleObject();

@@ -13,6 +13,7 @@ class DebugUI;
 
 class GPUParticleManager {
     friend class DebugUI;
+
 public:
     GPUParticleManager() = default;
     ~GPUParticleManager() = default;
