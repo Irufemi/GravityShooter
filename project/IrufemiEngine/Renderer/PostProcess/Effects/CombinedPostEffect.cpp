@@ -205,8 +205,15 @@ void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context
         }
     }
     manager->mappedBindless_[manager->bindlessBufferOffset_].extraTextureIndex = extraIdx;
+    auto* engine = manager->dxCommon_->GetEngine();
     manager->mappedBindless_[manager->bindlessBufferOffset_].maskTextureIndex =
-        manager->dxCommon_->GetEngine()->GetEffectMaskTexture()->GetSrvIndex();
+        engine->GetEffectMaskTexture() ? engine->GetEffectMaskTexture()->GetSrvIndex() : 0;
+    manager->mappedBindless_[manager->bindlessBufferOffset_].normalTextureIndex =
+        engine->GetNormalTexture() ? engine->GetNormalTexture()->GetSrvIndex() : 0;
+    manager->mappedBindless_[manager->bindlessBufferOffset_].materialTextureIndex =
+        engine->GetMaterialTexture() ? engine->GetMaterialTexture()->GetSrvIndex() : 0;
+    manager->mappedBindless_[manager->bindlessBufferOffset_].velocityTextureIndex =
+        engine->GetVelocityTexture() ? engine->GetVelocityTexture()->GetSrvIndex() : 0;
 
     // 6. 定数バッファのバインド
     commandList->SetGraphicsRootConstantBufferView(
@@ -256,8 +263,15 @@ void CombinedPostEffect::RenderFinalCopyPass(const PostProcessRenderContext& con
     manager->mappedBindless_[manager->bindlessBufferOffset_].mainTextureIndex =
         currentSource ? currentSource->GetSrvIndex() : 0;
     manager->mappedBindless_[manager->bindlessBufferOffset_].extraTextureIndex = manager->depthSrvIndex_;
+    auto* engine = manager->dxCommon_->GetEngine();
     manager->mappedBindless_[manager->bindlessBufferOffset_].maskTextureIndex =
-        manager->dxCommon_->GetEngine()->GetEffectMaskTexture()->GetSrvIndex();
+        engine->GetEffectMaskTexture() ? engine->GetEffectMaskTexture()->GetSrvIndex() : 0;
+    manager->mappedBindless_[manager->bindlessBufferOffset_].normalTextureIndex =
+        engine->GetNormalTexture() ? engine->GetNormalTexture()->GetSrvIndex() : 0;
+    manager->mappedBindless_[manager->bindlessBufferOffset_].materialTextureIndex =
+        engine->GetMaterialTexture() ? engine->GetMaterialTexture()->GetSrvIndex() : 0;
+    manager->mappedBindless_[manager->bindlessBufferOffset_].velocityTextureIndex =
+        engine->GetVelocityTexture() ? engine->GetVelocityTexture()->GetSrvIndex() : 0;
 
     commandList->SetGraphicsRootConstantBufferView(
         (UINT)RootSlot::LightCommon, manager->bindlessCB_->GetGPUVirtualAddress() +

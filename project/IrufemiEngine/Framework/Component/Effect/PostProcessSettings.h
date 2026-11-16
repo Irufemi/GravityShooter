@@ -134,11 +134,11 @@ struct BandeDessineeOutlineSettings : public IPostProcessSettings {
     void Deserialize(const nlohmann::json& j) override;
     std::shared_ptr<IPostProcessSettings> Clone() const override;
 
-    Irufemi::Vector4 inkColor = {0.02f, 0.02f, 0.03f, 1.0f}; ///< インク色 (Charcoal)
-    float intensity = 5.0f;                                  ///< 全体感度
-    float depthWeight = 2.0f;                                ///< 深度主線の重み
-    float normalWeight = 1.5f;                               ///< 法線内部ペン画の重み
-    float distanceFadeStart = 30.0f;                         ///< 距離減衰開始
+    Irufemi::Vector4 inkColor = {0.08f, 0.08f, 0.12f, 1.0f}; ///< インク色 (Charcoal Navy)
+    float intensity = 1.2f;                                  ///< 全体感度
+    float depthWeight = 0.8f;                                ///< 深度主線の重み
+    float normalWeight = 0.8f;                               ///< 法線内部ペン画の重み
+    float distanceFadeStart = 20.0f;                         ///< 距離減衰開始
     float distanceFadeEnd = 120.0f;                          ///< 距離減衰終了
 };
 

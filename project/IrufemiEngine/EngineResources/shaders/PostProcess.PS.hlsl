@@ -42,7 +42,6 @@ bool IsDistortionOrBlurEffect(int32_t mode) {
         case kPostProcessMode_DirectionalBlur:
         case kPostProcessMode_Halftone:
         case kPostProcessMode_DepthOfField:
-        case kPostProcessMode_BandeDessineeOutline:
             return true;
         default:
             return false;
@@ -82,13 +81,12 @@ float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvS
 
             float32_t2 offset = float32_t2(x, y) * uvStepSize;
             float32_t4 neighborMask = maskTex.SampleLevel(smp, uv + offset, 0);
-            int neighborEffect = round(neighborMask.r * 255.0f);
             int neighborInstance = round(neighborMask.g * 255.0f);
 
             // 近傍にアウトライン対象オブジェクトが存在する場合（背景ピクセルに外周アウトラインを描画）
-            // ガレキ(neighborEffect == 1)は個別ネオンスロットの対象外とし、自機(スロット255)の誤参照を完全防止
-            if (neighborEffect != 1 && neighborInstance > 0 && neighborInstance < 256) {
+            if (neighborInstance > 0 && neighborInstance < 256) {
                 CustomEffectParams cParams = gCustomParams[neighborInstance];
+                int neighborEffect = round(neighborMask.r * 255.0f);
                 
                 // 設定された太さ(param1)が 0 より大きい場合のみ、アウトラインを描画する
                 if (cParams.param1 > 0.0f) {
@@ -96,9 +94,17 @@ float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvS
                     if (dist <= thickness) {
                         float effectAlpha = cParams.color1.a > 0.0f ? cParams.color1.a : 1.0f; // Alpha0の時は強制的に1.0にする
                         float alpha = (1.0f - smoothstep(thickness - 0.5f, thickness + 0.5f, dist)) * effectAlpha;
+                        
+                        // バンド・デシネ調 (neighborEffect == kPostProcessMode_BandeDessineeOutline) の場合、
+                        // 蛍光ネオン感を抑え、印刷インクに調和するトーンにする
+                        float3 finalOutlineCol = cParams.color1.rgb;
+                        if (neighborEffect == kPostProcessMode_BandeDessineeOutline) {
+                            finalOutlineCol = lerp(finalOutlineCol, float3(0.02f, 0.02f, 0.03f), 0.25f);
+                        }
+
                         if (alpha > maxWeight) {
                             maxWeight = alpha;
-                            outlineColor = cParams.color1.rgb;
+                            outlineColor = finalOutlineCol;
                         }
                     }
                 }

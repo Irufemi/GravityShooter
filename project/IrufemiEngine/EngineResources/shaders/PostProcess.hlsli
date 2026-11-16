@@ -262,20 +262,24 @@ float32_t3 ApplyBandeDessineeOutline(
         }
     }
 
-    // 1. 深度主線 & 法線内部ペン画エッジの計算
-    float32_t depthEdge = length(depthDiff) * depthWeightScale;
-    float32_t normalEdge = (length(normalDiffX) + length(normalDiffY)) * normalWeightScale;
-    float32_t totalGeomEdge = depthEdge + normalEdge;
-
-    float edgeThreshold = 0.5f / max(0.001f, intensity);
-    float inkLine = smoothstep(edgeThreshold - 0.05f, edgeThreshold + 0.05f, totalGeomEdge);
-
-    // 2. 距離減衰 (Distance Fade) による遠景（雲海・空・遠景建造物）のノイズ完全遮断
+    // 2. 距離減衰 (Distance Fade) および近距離深度正規化用の中心深度取得
     float centerDepth = depthTex.Sample(smp, uv).r;
     float centerViewZ = ReconstructViewZ(centerDepth, projectionInverse);
     float distanceFade = 1.0f - saturate((centerViewZ - fadeStart) / max(0.001f, fadeEnd - fadeStart));
 
-    // 3. G-Buffer Mask (enableMask = maskTex.b) による外郭シルエット主線の検出
+    // 近距離（自機等）での過剰な太さを防ぐ距離適応スケール
+    float depthScale = depthWeightScale / max(1.0f, centerViewZ * 0.12f);
+
+    // 1. 深度主線 & 法線内部ペン画エッジの計算
+    float32_t depthEdge = length(depthDiff) * depthScale;
+    float32_t normalEdge = (length(normalDiffX) + length(normalDiffY)) * normalWeightScale;
+    float32_t totalGeomEdge = depthEdge + normalEdge;
+
+    // シャープな万年筆のような1pxエッジ閾値
+    float edgeThreshold = 0.45f / max(0.1f, intensity);
+    float inkLine = smoothstep(edgeThreshold - 0.02f, edgeThreshold + 0.03f, totalGeomEdge);
+
+    // 3. G-Buffer Mask (enableMask = maskTex.b) による外郭シルエット主線の検出 (急峻な1pxエッジ)
     float centerMask = maskTex.Sample(smp, uv).b;
     float upMask     = maskTex.Sample(smp, uv + float32_t2(0, -uvStepSize.y)).b;
     float downMask   = maskTex.Sample(smp, uv + float32_t2(0,  uvStepSize.y)).b;
@@ -284,11 +288,12 @@ float32_t3 ApplyBandeDessineeOutline(
 
     float maskDiff = abs(upMask - centerMask) + abs(downMask - centerMask) +
                      abs(leftMask - centerMask) + abs(rightMask - centerMask);
-    float maskSilhouette = smoothstep(0.1f, 0.3f, maskDiff);
+    float maskSilhouette = smoothstep(0.4f, 0.6f, maskDiff);
 
-    // 4. 多層インク線の乗算合成
-    float totalInk = saturate(inkLine * distanceFade + maskSilhouette);
-    return lerp(color, inkColor, totalInk);
+    // 4. 多層インク線の乗算（Multiply）合成（不透明ベタ塗りを排し、下地のディテールやカラーを上品に引き締める）
+    float totalInk = saturate(inkLine * distanceFade * 0.75f + maskSilhouette * 0.65f);
+    float32_t3 inkBlended = color * lerp(float32_t3(1.0f, 1.0f, 1.0f), inkColor, totalInk);
+    return lerp(color, inkBlended, totalInk);
 }
 
 // 12. RadialBlur

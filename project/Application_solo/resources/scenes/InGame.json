@@ -374,7 +374,7 @@
             },
             {
               "data": {
-                "customEffectType": 6,
+                "customEffectType": 31,
                 "customParams": {
                   "color1": [
                     0.15000000596046448,
@@ -2190,7 +2190,7 @@
             },
             {
               "data": {
-                "customEffectType": 6,
+                "customEffectType": 31,
                 "customParams": {
                   "color1": [
                     1.0,
@@ -2588,7 +2588,7 @@
             },
             {
               "data": {
-                "customEffectType": 6,
+                "customEffectType": 31,
                 "customParams": {
                   "color1": [
                     1.0,
@@ -2683,7 +2683,7 @@
             },
             {
               "data": {
-                "customEffectType": 6,
+                "customEffectType": 31,
                 "customParams": {
                   "color1": [
                     0.0,
@@ -2853,6 +2853,21 @@
                 "radius": 0.800000011920929,
                 "softness": 0.5,
                 "type": "Vignette"
+              },
+              {
+                "depthWeight": 0.8,
+                "distanceFadeEnd": 120.0,
+                "distanceFadeStart": 20.0,
+                "enabled": true,
+                "inkColor": [
+                  0.08,
+                  0.08,
+                  0.12,
+                  1.0
+                ],
+                "intensity": 1.2,
+                "normalWeight": 0.8,
+                "type": "BandeDessineeOutline"
               }
             ]
           },

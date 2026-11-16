@@ -157,9 +157,9 @@ PixelShaderOutput main(VertexShaderOutput input)
 			float rimDot = 1.0f - saturate(dot(context.normal, context.toEye));
 			// smoothstep によるコミック調のパキッとした硬いエッジ階調化
 			float rimFactor = smoothstep(0.55f - 0.08f, 0.55f + 0.08f, rimDot);
-			// デスストの自然光に馴染む淡いオフホワイト（過剰な発光を抑える）
-			float3 rimColor = float3(0.85f, 0.85f, 0.88f);
 			float rimIntensity = (input.customEffect.y > 0.0f) ? input.customEffect.y : 0.35f;
+			// 特定アクター依存を排し、マテリアルの色調に調和するハイライト
+			float3 rimColor = lerp(float3(1.0f, 1.0f, 1.0f), output.color.rgb, 0.3f);
 			output.color.rgb += rimColor * (rimFactor * rimIntensity);
 		}
 		
