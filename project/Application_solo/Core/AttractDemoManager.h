@@ -7,10 +7,12 @@
 #include <Windows.h>
 
 class IrufemiEngine;
+class TitleSceneDirectorComponent;
 
 namespace Irufemi {
 class GameObject;
 class TextRendererComponent;
+class BaseScene;
 } // namespace Irufemi
 
 /**
@@ -132,6 +134,11 @@ private:
     void StartTitleDemo();
     void StopTitleDemo();
     void StopAllDemo(bool returnToTitle);
+
+    /**
+     * @brief タイトル画面でのGAME START決定・出撃シーケンスを発火する
+     */
+    void TriggerDemoGameLaunch(Irufemi::BaseScene* currentScene, TitleSceneDirectorComponent* dirComp);
 
     Irufemi::Vector2 GetButtonCenter(const std::string& btnName, const Irufemi::Vector2& fallbackPos) const;
 

@@ -94,8 +94,8 @@ void PlayerDeathStateMeltdown::Enter(PlayerDamageVisualizerComponent* visualizer
 
     // 専用ポストプロセスモード BlackHoleSupernova を PreUI レイヤーに登録 (RAII管理)
     if (ppm) {
-        visualizer->GetBlackHoleHandle() =
-            ppm->ActivateScoped(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI);
+        visualizer->SetBlackHoleHandle(
+            ppm->ActivateScoped(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI));
         auto& bh = ppm->GetBlackHoleSupernovaParams();
         bh.center = visualizer->GetDeathScreenUV();
         bh.blackHoleRadius = 0.0f;
@@ -341,7 +341,7 @@ void PlayerDeathStateWhiteoutFade::Enter(PlayerDamageVisualizerComponent* visual
     auto engine = visualizer->GetEngine();
     auto ppm = engine ? engine->GetPostProcessManager() : nullptr;
     if (ppm) {
-        visualizer->GetDeathFadeHandle() = ppm->ActivateScoped(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
+        visualizer->SetDeathFadeHandle(ppm->ActivateScoped(PostProcessMode::Fade, PostProcessManager::Layer::PreUI));
         ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
     }
 }
@@ -385,7 +385,7 @@ void PlayerDeathStateCompleted::Enter(PlayerDamageVisualizerComponent* visualize
     auto ppm = engine ? engine->GetPostProcessManager() : nullptr;
     if (ppm) {
         ppm->GetFadeParams().intensity = 1.0f;
-        visualizer->GetBlackHoleHandle().Release();
+        visualizer->ReleaseBlackHoleHandle();
     }
 
     visualizer->InvokeDeathCompletedCallback();

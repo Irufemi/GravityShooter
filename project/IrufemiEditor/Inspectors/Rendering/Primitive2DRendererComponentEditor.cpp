@@ -20,18 +20,7 @@ void Primitive2DRendererComponentEditor::Draw(Component* component, EditorAction
     auto* comp = static_cast<Primitive2DRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("Primitive2DRenderer", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
-    }
+    ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager);
 
     if (headerOpen) {
         if (ComponentUIHelpers::BeginPropertyTable("Primitive2DTable")) {

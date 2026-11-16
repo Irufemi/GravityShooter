@@ -817,26 +817,8 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                             damageable->TakeDamage(damage);
                         }
 
-                        // ヒット演出（エフェクト＋ボクセル破砕）
-                        if (effectManager) {
-                            effectManager->PlayEffect(debris->GetHitEffectKey(), pos);
-                        }
-                        if (voxelManager) {
-                            Irufemi::VoxelEmitter p{};
-                            p.particleType = 5; // DebrisExplosive
-                            p.lifeTime = 1.0f;
-                            p.gravity = 5.0f;
-                            p.dispersion = 12.0f;
-                            p.scale = {0.5f, 0.5f, 0.5f};
-                            Irufemi::Vector4 aura = GetPlayerAuraColor();
-                            Irufemi::Vector4 rockColor = {1.5f, 1.2f, 1.0f, 1.0f};
-                            p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f,
-                                            rockColor.z + aura.z * 2.0f, 1.0f};
-                            p.endColor = {0.2f, 0.2f, 0.2f, 1.0f};
-                            p.dissolveEdgeColor = aura;
-                            voxelManager->PlayExplosion(debris->GetExplosionModelPath(), pos, {0, 0, 0}, {0, 0, 0},
-                                                        {1, 1, 1}, p, {2, 2, 2});
-                        }
+                        // ヒット演出（エフェクト＋ボクセル破砕を関数化呼び出し）
+                        debris->PlayBreakEffect(pos);
 
                         // ガレキをプールへ安全に返却
                         MarkForRelease(debris->GetGameObject()->shared_from_this());
@@ -853,28 +835,7 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
 
         Irufemi::Vector3 pos;
         if (debris->UpdateThrownMovement(throwSpeed, maxDistSq, deltaTime, pos)) {
-            if (effectManager) {
-                effectManager->PlayEffect(debris->GetHitEffectKey(), pos);
-            }
-            if (voxelManager) {
-                Irufemi::VoxelEmitter p{};
-                p.particleType = 5; // DebrisExplosive
-                p.lifeTime = 1.0f;
-                p.gravity = 5.0f;
-                p.dispersion = 12.0f;
-                p.scale = {0.5f, 0.5f, 0.5f};
-
-                Irufemi::Vector4 aura =
-                    (debris->GetState() == DebrisState::BossOrbiting) ? GetBossAuraColor() : GetPlayerAuraColor();
-                Irufemi::Vector4 rockColor = {1.5f, 1.2f, 1.0f, 1.0f};
-                p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f, rockColor.z + aura.z * 2.0f,
-                                1.0f};
-                p.endColor = {0.2f, 0.2f, 0.2f, 1.0f};
-                p.dissolveEdgeColor = aura;
-
-                voxelManager->PlayExplosion(debris->GetExplosionModelPath(), pos, {0, 0, 0}, {0, 0, 0}, {1, 1, 1}, p,
-                                            {2, 2, 2});
-            }
+            debris->PlayBreakEffect(pos);
             MarkForRelease(debris->GetGameObject()->shared_from_this());
         }
     }

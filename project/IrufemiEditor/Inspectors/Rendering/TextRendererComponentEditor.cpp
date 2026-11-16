@@ -16,18 +16,7 @@ void TextRendererComponentEditor::Draw(Component* component, EditorActionManager
     auto* comp = static_cast<TextRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("TextRenderer", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
-    }
+    ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager);
 
     if (headerOpen) {
         if (ComponentUIHelpers::BeginPropertyTable("TextRendererTable")) {

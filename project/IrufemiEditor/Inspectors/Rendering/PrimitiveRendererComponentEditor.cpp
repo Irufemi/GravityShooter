@@ -20,18 +20,7 @@ void PrimitiveRendererComponentEditor::Draw(Component* component, EditorActionMa
     auto* comp = static_cast<PrimitiveRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("PrimitiveRenderer", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
-    }
+    ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager);
 
     if (headerOpen) {
         if (ComponentUIHelpers::BeginPropertyTable("PrimitiveRendererTable")) {

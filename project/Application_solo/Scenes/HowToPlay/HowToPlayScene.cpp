@@ -18,87 +18,25 @@ void HowToPlayScene::Initialize(IrufemiEngine* engine) {
     Irufemi::BaseScene::Initialize(engine);
     openCooldownTimer_ = 0.15f;
     transition_.StartOpen();
-    uiCached_ = false;
+    uiAnimator_.Clear();
 }
 
 void HowToPlayScene::OnEnter() {
     Irufemi::BaseScene::OnEnter();
     openCooldownTimer_ = 0.15f;
     transition_.StartOpen();
-    uiCached_ = false;
+    uiAnimator_.Clear();
 }
 
 void HowToPlayScene::CacheUIElements() {
-    cachedElements_.clear();
-    const auto& objs = GetGameObjects();
-    for (const auto& obj : objs) {
-        if (!obj) {
-            continue;
-        }
-        auto transform = obj->GetComponent<Irufemi::TransformComponent>();
-        if (!transform) {
-            continue;
-        }
-
-        UIElementState state{};
-        state.obj = obj;
-        state.basePos = transform->GetPosition();
-        state.baseScale = transform->GetScale();
-        state.isBackdrop = (obj->GetName() == "DarkBackdrop");
-
-        if (auto sprite = obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
-            state.baseColor = sprite->GetColor();
-            state.isSprite = true;
-            cachedElements_.push_back(state);
-        } else if (auto text = obj->GetComponent<Irufemi::TextRendererComponent>()) {
-            state.baseColor = text->GetColor();
-            state.isSprite = false;
-            cachedElements_.push_back(state);
-        }
-    }
-    uiCached_ = true;
+    uiAnimator_.CacheElements(GetGameObjects(), "DarkBackdrop");
 }
 
 void HowToPlayScene::ApplyTransition(float progress) {
-    if (!uiCached_) {
+    if (!uiAnimator_.IsCached()) {
         CacheUIElements();
     }
-
-    const Irufemi::Vector3 center{640.0f, 360.0f, 0.0f};
-
-    for (auto& elem : cachedElements_) {
-        if (!elem.obj) {
-            continue;
-        }
-        auto transform = elem.obj->GetComponent<Irufemi::TransformComponent>();
-        if (!transform) {
-            continue;
-        }
-
-        if (elem.isBackdrop) {
-            // 暗幕は位置・スケール固定、アルファのみフェード
-            if (auto sprite = elem.obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
-                sprite->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
-            }
-        } else {
-            // UI要素群を中心からスケール補間＆アルファフェード (0.95 -> 1.0)
-            float scaleMul = std::lerp(0.95f, 1.0f, progress);
-            Irufemi::Vector3 offset = elem.basePos - center;
-            transform->SetPosition(center + offset * scaleMul);
-            transform->SetScale({elem.baseScale.x * scaleMul, elem.baseScale.y * scaleMul, elem.baseScale.z});
-
-            if (elem.isSprite) {
-                if (auto sprite = elem.obj->GetComponent<Irufemi::SpriteRendererComponent>()) {
-                    sprite->SetColor(
-                        {elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
-                }
-            } else {
-                if (auto text = elem.obj->GetComponent<Irufemi::TextRendererComponent>()) {
-                    text->SetColor({elem.baseColor.x, elem.baseColor.y, elem.baseColor.z, elem.baseColor.w * progress});
-                }
-            }
-        }
-    }
+    uiAnimator_.ApplyTransition(progress);
 }
 
 void HowToPlayScene::Update() {
@@ -110,7 +48,7 @@ void HowToPlayScene::Update() {
 
     float dt = engine_->GetDeltaTime();
 
-    if (!uiCached_) {
+    if (!uiAnimator_.IsCached()) {
         CacheUIElements();
         ApplyTransition(0.0f); // 初回フレームで非表示から開始
     }

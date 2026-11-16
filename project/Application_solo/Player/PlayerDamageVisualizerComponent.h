@@ -141,11 +141,14 @@ public:
         return deathScreenUV_;
     }
 
-    Irufemi::ScopedEffectHandle& GetBlackHoleHandle() {
-        return blackHoleHandle_;
+    void SetBlackHoleHandle(Irufemi::ScopedEffectHandle handle) {
+        blackHoleHandle_ = std::move(handle);
     }
-    Irufemi::ScopedEffectHandle& GetDeathFadeHandle() {
-        return deathFadeHandle_;
+    void ReleaseBlackHoleHandle() {
+        blackHoleHandle_.Release();
+    }
+    void SetDeathFadeHandle(Irufemi::ScopedEffectHandle handle) {
+        deathFadeHandle_ = std::move(handle);
     }
 
     void SetIsFlashing(bool flashing) {

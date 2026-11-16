@@ -64,20 +64,10 @@ public: // メンバ関数(システム)
     void OnEnter() override;
 
 private:
-    struct UIElementState {
-        std::shared_ptr<Irufemi::GameObject> obj;
-        Irufemi::Vector3 basePos{};
-        Irufemi::Vector3 baseScale{};
-        Irufemi::Vector4 baseColor{};
-        bool isSprite = false;
-        bool isBackdrop = false;
-    };
-
     void CacheUIElements();
     void ApplyTransition(float progress);
 
     ModalTransition::Controller transition_;
+    ModalTransition::UIAnimator uiAnimator_;
     float openCooldownTimer_ = 0.0f; //!< 前画面からの入力残存防止用タイマー
-    bool uiCached_ = false;
-    std::vector<UIElementState> cachedElements_;
 };

@@ -242,6 +242,12 @@ public:
      */
     bool UpdateThrownMovement(float throwSpeed, float maxDistSq, float deltaTime, Irufemi::Vector3& outPos);
 
+    /**
+     * @brief ガレキ破壊時の演出（パーティクルエフェクト＋Voxel破砕爆発）を再生する
+     * @param hitPos 破壊・着弾中心のワールド座標
+     */
+    void PlayBreakEffect(const Irufemi::Vector3& hitPos);
+
     const std::string& GetHitEffectKey() const {
         return hitEffectKey_;
     }

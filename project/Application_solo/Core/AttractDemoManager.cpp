@@ -288,25 +288,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
             float launchDelay = (demoMode_ == DemoMode::GameOverShowcase) ? 1.50f : 3.00f;
             if (demoTimeline_ >= launchDelay) {
-                if (!hasSubmitted_) {
-                    hasSubmitted_ = true;
-                    UISound::PlayDecide();
-
-                    if (currentScenePtr) {
-                        if (auto menuMgr = currentScenePtr->FindGameObject("MenuManager")) {
-                            if (auto menuCtrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
-                                menuCtrl->TriggerScreenFlash();
-                                menuCtrl->StartDismissAnimation();
-                                menuCtrl->SetLaunching(true);
-                            }
-                            if (dirComp) {
-                                isDemoInGame_ = true;
-                                dirComp->SetNextSceneName(std::string(GameScenes::InGame));
-                                dirComp->StartLaunchSequence();
-                            }
-                        }
-                    }
-                }
+                TriggerDemoGameLaunch(currentScenePtr, dirComp);
             }
         }
         // === 【モード分岐 2】通常アトラクトデモ（StandardAttract） ===
@@ -362,27 +344,7 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
             // 【Phase 3】 8.60s 〜 : GAME START クリック決定 ＆ 出撃演出発火
             else {
                 targetCursorPos = posStart_;
-
-                if (!hasSubmitted_) {
-                    hasSubmitted_ = true;
-                    UISound::PlayDecide(); // 通常決定時と完全に同一の決定音を発音！
-
-                    if (currentScenePtr) {
-                        if (auto menuMgr = currentScenePtr->FindGameObject("MenuManager")) {
-                            if (auto menuCtrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
-                                menuCtrl->TriggerScreenFlash(); // 決定瞬間の白光フラッシュ
-                                menuCtrl->StartDismissAnimation();
-                                menuCtrl->SetLaunching(true);
-                            }
-                            if (dirComp) {
-                                isDemoInGame_ = true; // InGame側での帰還を待機
-                                dirComp->SetNextSceneName(
-                                    std::string(GameScenes::InGame)); // 本編 InGame シーンへ直接出撃！
-                                dirComp->StartLaunchSequence();
-                            }
-                        }
-                    }
-                }
+                TriggerDemoGameLaunch(currentScenePtr, dirComp);
             }
         }
 
@@ -765,5 +727,28 @@ void AttractDemoManager::CleanupDemoHud() {
         demoHudObj_->Destroy();
         demoHudObj_.reset();
         demoHudText_ = nullptr;
+    }
+}
+
+void AttractDemoManager::TriggerDemoGameLaunch(Irufemi::BaseScene* currentScene, TitleSceneDirectorComponent* dirComp) {
+    if (hasSubmitted_) {
+        return;
+    }
+    hasSubmitted_ = true;
+    UISound::PlayDecide();
+
+    if (currentScene) {
+        if (auto menuMgr = currentScene->FindGameObject("MenuManager")) {
+            if (auto menuCtrl = menuMgr->GetComponent<TitleMenuControllerComponent>()) {
+                menuCtrl->TriggerScreenFlash();
+                menuCtrl->StartDismissAnimation();
+                menuCtrl->SetLaunching(true);
+            }
+            if (dirComp) {
+                isDemoInGame_ = true;
+                dirComp->SetNextSceneName(std::string(GameScenes::InGame));
+                dirComp->StartLaunchSequence();
+            }
+        }
     }
 }

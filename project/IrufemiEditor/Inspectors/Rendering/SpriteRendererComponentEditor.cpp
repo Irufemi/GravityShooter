@@ -19,18 +19,7 @@ void SpriteRendererComponentEditor::Draw(Component* component, EditorActionManag
     auto* comp = static_cast<SpriteRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("SpriteRenderer", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
-    }
+    ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager);
 
     if (headerOpen) {
         if (ComponentUIHelpers::BeginPropertyTable("SpriteRendererTable")) {

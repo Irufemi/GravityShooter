@@ -18,18 +18,7 @@ void ModelBatchRendererComponentEditor::Draw(Component* component, EditorActionM
     auto* comp = static_cast<ModelBatchRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("ModelBatchRenderer", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool pendingRemove = false;
-    if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Remove Component")) {
-            pendingRemove = true;
-        }
-        ImGui::EndPopup();
-    }
-    if (pendingRemove) {
-        actionManager->PushAndExecute(std::make_unique<RemoveComponentCommand>(
-            comp->GetGameObject()->shared_from_this(),
-            ComponentUIHelpers::GetSharedComponent(comp->GetGameObject(), comp)));
-    }
+    ComponentUIHelpers::DrawComponentContextMenu(comp, actionManager);
 
     if (headerOpen) {
         if (ComponentUIHelpers::BeginPropertyTable("ModelBatchRendererTable")) {

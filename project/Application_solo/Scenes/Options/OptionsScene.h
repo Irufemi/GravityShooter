@@ -73,15 +73,6 @@ public:
     }
 
 private:
-    struct UIElementState {
-        std::shared_ptr<Irufemi::GameObject> obj;
-        Irufemi::Vector3 basePos{};
-        Irufemi::Vector3 baseScale{};
-        Irufemi::Vector4 baseColor{};
-        bool isSprite = false;
-        bool isBackdrop = false;
-    };
-
     // 動的に取得されるUIレイアウト情報（Transform等から自動抽出）
     struct UIRect {
         float x = 0.0f;
@@ -118,8 +109,7 @@ private:
     void UpdateValueTexts();
 
     ModalTransition::Controller transition_;
-    bool uiCached_ = false;
-    std::vector<UIElementState> cachedElements_;
+    ModalTransition::UIAnimator uiAnimator_;
 
     // キャッシュしたUIコンポーネント参照
     Irufemi::SliderComponent* sliderBGM_ = nullptr;

@@ -207,40 +207,7 @@ void DebrisComponent::OnCollisionEnter(Irufemi::GameObject* otherObj) {
         }
 
         if (auto t = GetTransform()) {
-            Irufemi::Vector3 hitPos = t->GetWorldPosition();
-
-            EffectManagerComponent* effectManager = nullptr;
-            if (auto go = effectManagerObj_.lock()) {
-                effectManager = go->GetComponent<EffectManagerComponent>();
-            } else if (gameObject_ && gameObject_->GetScene()) {
-                if (auto found = gameObject_->GetScene()->FindGameObject("EffectManager")) {
-                    effectManagerObj_ = found;
-                    effectManager = found->GetComponent<EffectManagerComponent>();
-                }
-            }
-            if (effectManager) {
-                effectManager->PlayEffect(hitEffectKey_, hitPos);
-            }
-
-            auto engine = GetEngine();
-            if (auto voxelManager = engine ? engine->GetVoxelParticleManager() : nullptr) {
-                Irufemi::VoxelEmitter p{};
-                p.particleType = 5; // DebrisExplosive
-                p.lifeTime = 1.0f;
-                p.gravity = 5.0f;
-                p.dispersion = 12.0f;
-                p.scale = {0.5f, 0.5f, 0.5f};
-
-                Irufemi::Vector4 aura =
-                    (state_ == DebrisState::BossOrbiting) ? GetBossAuraColor() : GetPlayerAuraColor();
-                Irufemi::Vector4 rockColor = {1.5f, 1.2f, 1.0f, 1.0f};
-                p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f, rockColor.z + aura.z * 2.0f,
-                                1.0f};
-                p.endColor = {0.2f, 0.2f, 0.2f, 1.0f};
-                p.dissolveEdgeColor = aura;
-
-                voxelManager->PlayExplosion(explosionModelPath_, hitPos, {0, 0, 0}, {0, 0, 0}, {1, 1, 1}, p, {2, 2, 2});
-            }
+            PlayBreakEffect(t->GetWorldPosition());
         }
         if (manager_) {
             manager_->MarkForRelease(gameObject_->shared_from_this());
@@ -574,4 +541,39 @@ void DebrisComponent::SetBossOrbitParams(float angleX, float angleY, float angle
     bossOrbitSpeedY_ = speedY;
     bossOrbitSpeedZ_ = speedZ;
     bossOrbitRadiusOffset_ = radiusOffset;
+}
+
+void DebrisComponent::PlayBreakEffect(const Irufemi::Vector3& hitPos) {
+    EffectManagerComponent* effectManager = nullptr;
+    if (auto go = effectManagerObj_.lock()) {
+        effectManager = go->GetComponent<EffectManagerComponent>();
+    } else if (gameObject_ && gameObject_->GetScene()) {
+        if (auto found = gameObject_->GetScene()->FindGameObject("EffectManager")) {
+            effectManagerObj_ = found;
+            effectManager = found->GetComponent<EffectManagerComponent>();
+        }
+    }
+    if (effectManager) {
+        effectManager->PlayEffect(hitEffectKey_, hitPos);
+    }
+
+    auto engine = GetEngine();
+    if (auto voxelManager = engine ? engine->GetVoxelParticleManager() : nullptr) {
+        Irufemi::VoxelEmitter p{};
+        p.particleType = 5; // DebrisExplosive
+        p.lifeTime = 1.0f;
+        p.gravity = 5.0f;
+        p.dispersion = 12.0f;
+        p.scale = {0.5f, 0.5f, 0.5f};
+
+        Irufemi::Vector4 aura =
+            (state_ == DebrisState::BossOrbiting) ? GetBossAuraColor() : GetPlayerAuraColor();
+        Irufemi::Vector4 rockColor = {1.5f, 1.2f, 1.0f, 1.0f};
+        p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f, rockColor.z + aura.z * 2.0f,
+                        1.0f};
+        p.endColor = {0.2f, 0.2f, 0.2f, 1.0f};
+        p.dissolveEdgeColor = aura;
+
+        voxelManager->PlayExplosion(explosionModelPath_, hitPos, {0, 0, 0}, {0, 0, 0}, {1, 1, 1}, p, {2, 2, 2});
+    }
 }
