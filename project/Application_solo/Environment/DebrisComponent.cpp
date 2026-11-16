@@ -566,11 +566,9 @@ void DebrisComponent::PlayBreakEffect(const Irufemi::Vector3& hitPos) {
         p.dispersion = 12.0f;
         p.scale = {0.5f, 0.5f, 0.5f};
 
-        Irufemi::Vector4 aura =
-            (state_ == DebrisState::BossOrbiting) ? GetBossAuraColor() : GetPlayerAuraColor();
+        Irufemi::Vector4 aura = (state_ == DebrisState::BossOrbiting) ? GetBossAuraColor() : GetPlayerAuraColor();
         Irufemi::Vector4 rockColor = {1.5f, 1.2f, 1.0f, 1.0f};
-        p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f, rockColor.z + aura.z * 2.0f,
-                        1.0f};
+        p.startColor = {rockColor.x + aura.x * 2.0f, rockColor.y + aura.y * 2.0f, rockColor.z + aura.z * 2.0f, 1.0f};
         p.endColor = {0.2f, 0.2f, 0.2f, 1.0f};
         p.dissolveEdgeColor = aura;
 

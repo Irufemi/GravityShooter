@@ -218,13 +218,13 @@ private:
     // --- 死亡シーケンス・ステートマシン（SSOT & State Pattern） ---
     std::unique_ptr<IPlayerDeathState> currentDeathState_ = nullptr; ///< 現在の具象状態インスタンス
     DeathSequencePhase phase_ = DeathSequencePhase::None;            ///< 現在の進行フェーズ (互換用キャッシュ)
-    float phaseTimer_ = 0.0f;                             ///< 現在フェーズの経過タイマー（秒）
-    Irufemi::Vector3 originalScale_{1.0f, 1.0f, 1.0f};    ///< 収縮前の自機スケール
-    Irufemi::Vector3 originalLocalPos_{0.0f, 0.0f, 0.0f}; ///< 撃墜前の自機ローカル座標
-    Irufemi::Vector2 deathScreenUV_{0.5f, 0.5f};          ///< 自機のスクリーンUV
-    Irufemi::Vector3 deathWorldPos_{0.0f, 0.0f, 0.0f};    ///< 自機の撃墜ワールド座標
-    Irufemi::Vector3 deathWorldRot_{0.0f, 0.0f, 0.0f};    ///< 自機の撃墜ワールド回転
-    std::function<void()> onDeathSequenceCompleted_;      ///< 演出完了コールバック
+    float phaseTimer_ = 0.0f;                                        ///< 現在フェーズの経過タイマー（秒）
+    Irufemi::Vector3 originalScale_{1.0f, 1.0f, 1.0f};               ///< 収縮前の自機スケール
+    Irufemi::Vector3 originalLocalPos_{0.0f, 0.0f, 0.0f};            ///< 撃墜前の自機ローカル座標
+    Irufemi::Vector2 deathScreenUV_{0.5f, 0.5f};                     ///< 自機のスクリーンUV
+    Irufemi::Vector3 deathWorldPos_{0.0f, 0.0f, 0.0f};               ///< 自機の撃墜ワールド座標
+    Irufemi::Vector3 deathWorldRot_{0.0f, 0.0f, 0.0f};               ///< 自機の撃墜ワールド回転
+    std::function<void()> onDeathSequenceCompleted_;                 ///< 演出完了コールバック
 
     // --- 死亡シーケンス・RAIIエフェクト寿命管理 ---
     Irufemi::ScopedEffectHandle blackHoleHandle_;
