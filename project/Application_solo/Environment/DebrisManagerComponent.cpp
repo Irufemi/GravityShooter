@@ -137,8 +137,8 @@ void DebrisManagerComponent::Initialize() {
         var.virtualManager->Setup(var.maxPoolSize, var.maxVirtualCount + 500, debrisFactory);
         var.animDataList.resize(var.maxVirtualCount + 500);
 
-        // バンド・デシネ表現の有効化 (effectType=1.0: 白抜きハイライト, intensity=1.2, enableMask=true: 黒インク線)
-        var.virtualManager->SetDefaultEffectAttributes(1.0f, 1.2f, true);
+        // セマンティックID: effectType=1.0 (Debrisカテゴリ), effectParam=0.0 (個別スロット非消費), enableMask=true
+        var.virtualManager->SetDefaultEffectAttributes(1.0f, 0.0f, true);
 
         if (gameObject_) {
             gameObject_->AddChild(var.poolObject);

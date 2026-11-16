@@ -81,10 +81,12 @@ float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvS
 
             float32_t2 offset = float32_t2(x, y) * uvStepSize;
             float32_t4 neighborMask = maskTex.SampleLevel(smp, uv + offset, 0);
+            int neighborEffect = round(neighborMask.r * 255.0f);
             int neighborInstance = round(neighborMask.g * 255.0f);
 
             // 近傍にアウトライン対象オブジェクトが存在する場合（背景ピクセルに外周アウトラインを描画）
-            if (neighborInstance > 0 && neighborInstance < 256) {
+            // ガレキ(neighborEffect == 1)は個別ネオンスロットの対象外とし、自機(スロット255)の誤参照を完全防止
+            if (neighborEffect != 1 && neighborInstance > 0 && neighborInstance < 256) {
                 CustomEffectParams cParams = gCustomParams[neighborInstance];
                 
                 // 設定された太さ(param1)が 0 より大きい場合のみ、アウトラインを描画する
