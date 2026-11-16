@@ -1,4 +1,5 @@
 #include "Player/PlayerDamageVisualizerComponent.h"
+#include "Player/PlayerDeathStates.h"
 #include "Player/PlayerHealthComponent.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
 #include "Framework/Component/Renderer/SkinnedMeshRendererComponent.h"
@@ -37,6 +38,9 @@
 #include <iostream>
 
 using namespace Irufemi;
+
+PlayerDamageVisualizerComponent::PlayerDamageVisualizerComponent() = default;
+PlayerDamageVisualizerComponent::~PlayerDamageVisualizerComponent() = default;
 
 void PlayerDamageVisualizerComponent::OnRegisterProperties() {
     Irufemi::Component::OnRegisterProperties();
@@ -308,135 +312,53 @@ void PlayerDamageVisualizerComponent::TriggerDeathVisuals() {
     SetDeathPhase(DeathSequencePhase::Meltdown);
 }
 
-void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase) {
-    phase_ = newPhase;
+PlayerDamageVisualizerComponent::DeathSequencePhase PlayerDamageVisualizerComponent::GetDeathPhase() const {
+    if (currentDeathState_) {
+        return currentDeathState_->GetPhase();
+    }
+    return phase_;
+}
+
+void PlayerDamageVisualizerComponent::ChangeDeathState(std::unique_ptr<IPlayerDeathState> newState) {
+    if (currentDeathState_) {
+        currentDeathState_->Exit(this);
+    }
+    currentDeathState_ = std::move(newState);
     phaseTimer_ = 0.0f;
-
-    auto engine = GetEngine();
-    auto ppm = engine ? engine->GetPostProcessManager() : nullptr;
-
-    switch (phase_) {
-    case DeathSequencePhase::Meltdown: {
-        // スラスターを直ちに完全消火 ＆ スラスターGameObject破棄
-        if (auto thrusterComp = gameObject_->GetComponent<PlayerThrusterVisualizerComponent>()) {
-            thrusterComp->SetThrusterActive(false);
-        }
-        for (const auto& child : gameObject_->GetChildren()) {
-            if (child && child->GetName() == "PlayerThrusterRoot") {
-                child->Destroy();
-            }
-        }
-
-        // 自機コンポーネントを Dying ステートへ移行（入力遮断・姿勢固定）
-        if (auto railPlayer = gameObject_->GetComponent<RailShooterPlayerComponent>()) {
-            railPlayer->SetState(PlayerFlightState::Dying);
-        }
-
-        // 周回ガレキ ＆ 画面内敵弾の特異点一括吸引・回収
-        if (auto grav = gameObject_->GetComponent<GravityPlayerComponent>()) {
-            grav->AbsorbOrbitingDebrisToSingularity();
-        }
-        if (auto bulletMgr = EnemyBulletManagerComponent::GetInstance()) {
-            bulletMgr->AbsorbAndClearAllBullets();
-        }
-        if (auto scene = gameObject_->GetScene()) {
-            if (auto bossObj = scene->FindGameObject("Boss")) {
-                if (auto bossBulletMgr = bossObj->GetComponent<BossBulletManagerComponent>()) {
-                    bossBulletMgr->ClearAllBullets();
-                }
-            }
-        }
-
-        // HUD（照準・ロックオン）の即時消去
-        HideInGameHUD();
-
-        // 点滅解除 ＆ 自機を過熱プラズマ（バイオレット〜シアン過熱発光）
-        if (isFlashing_) {
-            isFlashing_ = false;
-        }
-        if (BaseModel* model = GetTargetModel()) {
-            if (!colorCached_) {
-                originalBaseColor_ = model->GetColor();
-                colorCached_ = true;
-            }
-            model->SetColor({0.8f, 1.2f, 3.5f, 1.0f});
-        }
-
-        // BGMを急速フェードアウト（0.25秒で完全消音）
-        if (engine) {
-            if (auto am = engine->GetAudioManager()) {
-                am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.25f);
-                // 重力エネルギー凝縮チャージ音
-                SoundHelper::Play(GameSE::LaunchCharge);
-            }
-        }
-
-        // 専用ポストプロセスモード BlackHoleSupernova を PreUI レイヤーに登録 (RAII管理)
-        if (ppm) {
-            blackHoleHandle_ =
-                ppm->ActivateScoped(PostProcessMode::BlackHoleSupernova, PostProcessManager::Layer::PreUI);
-            auto& bh = ppm->GetBlackHoleSupernovaParams();
-            bh.center = deathScreenUV_;
-            bh.blackHoleRadius = 0.0f;
-            bh.blackHolePullIntensity = 0.0f;
-            bh.supernovaRadius = 0.0f;
-            bh.supernovaIntensity = 0.0f;
-            bh.supernovaChromaticRatio = 0.0f;
-            bh.supernovaFlashIntensity = 0.0f;
-
-            // 万が一古いフェードが残っていれば初期化
-            ppm->RemoveActiveMode(PostProcessMode::Fade);
-            ppm->GetFadeParams().intensity = 0.0f;
-        }
-        break;
+    if (currentDeathState_) {
+        phase_ = currentDeathState_->GetPhase();
+        currentDeathState_->Enter(this);
+    } else {
+        phase_ = DeathSequencePhase::None;
     }
+}
 
-    case DeathSequencePhase::BlackHole: {
+void PlayerDamageVisualizerComponent::SetDeathPhase(DeathSequencePhase newPhase) {
+    switch (newPhase) {
+    case DeathSequencePhase::Meltdown:
+        ChangeDeathState(std::make_unique<PlayerDeathStateMeltdown>());
         break;
-    }
-
-    case DeathSequencePhase::VacuumFreeze: {
-        // 極小スケールで完全固定（息を呑む完全な静寂・真空）
-        if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
-            transform->SetScale(originalScale_ * 0.01f);
-        }
+    case DeathSequencePhase::BlackHole:
+        ChangeDeathState(std::make_unique<PlayerDeathStateBlackHole>());
         break;
-    }
-
-    case DeathSequencePhase::SupernovaBurst: {
-        // 臨界突破！スーパーノヴァ大爆裂
-        TriggerSupernovaExplosion();
+    case DeathSequencePhase::VacuumFreeze:
+        ChangeDeathState(std::make_unique<PlayerDeathStateVacuumFreeze>());
         break;
-    }
-
-    case DeathSequencePhase::PlasmaAfterglow: {
-        // 激震が静まり返る静寂の余韻へ移行
+    case DeathSequencePhase::SupernovaBurst:
+        ChangeDeathState(std::make_unique<PlayerDeathStateSupernovaBurst>());
         break;
-    }
-
-    case DeathSequencePhase::WhiteoutFade: {
-        // 静寂の余韻から、光が静かに画面を満たしてリザルト接続フェードへ移行 (RAII管理)
-        if (ppm) {
-            deathFadeHandle_ = ppm->ActivateScoped(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
-            ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
-        }
+    case DeathSequencePhase::PlasmaAfterglow:
+        ChangeDeathState(std::make_unique<PlayerDeathStatePlasmaAfterglow>());
         break;
-    }
-
-    case DeathSequencePhase::Completed: {
-        // 全画面白1.0を完全に担保し、リザルト画面へコールバック通知（白抜け戻りを完全防止）
-        if (ppm) {
-            ppm->GetFadeParams().intensity = 1.0f;
-            blackHoleHandle_.Release();
-        }
-        if (onDeathSequenceCompleted_) {
-            onDeathSequenceCompleted_();
-        }
+    case DeathSequencePhase::WhiteoutFade:
+        ChangeDeathState(std::make_unique<PlayerDeathStateWhiteoutFade>());
         break;
-    }
-
+    case DeathSequencePhase::Completed:
+        ChangeDeathState(std::make_unique<PlayerDeathStateCompleted>());
+        break;
     case DeathSequencePhase::None:
     default:
+        ChangeDeathState(nullptr);
         break;
     }
 }
@@ -500,167 +422,8 @@ void PlayerDamageVisualizerComponent::TriggerSupernovaExplosion() {
 }
 
 void PlayerDamageVisualizerComponent::UpdateDeathSequence(float dtReal) {
-    if (phase_ == DeathSequencePhase::None || phase_ == DeathSequencePhase::Completed) {
-        return;
-    }
-
-    phaseTimer_ += dtReal;
-    auto engine = GetEngine();
-    auto ppm = engine ? engine->GetPostProcessManager() : nullptr;
-    if (!ppm) {
-        return;
-    }
-
-    // 撃墜時に確定・ロックされたスクリーン座標を中心に常に固定（ズレ0%保証）
-    auto& bh = ppm->GetBlackHoleSupernovaParams();
-    bh.center = deathScreenUV_;
-
-    switch (phase_) {
-    case DeathSequencePhase::Meltdown: {
-        // 【第1幕】0.00s〜0.40s: 装甲の過熱振動と微小Voxel剥離
-        constexpr float kDuration = 0.40f;
-        float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
-        if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
-            float jitter = (1.0f - t) * 0.08f;
-            Irufemi::Vector3 shake{Irufemi::Random::GeneratorFloat(-jitter, jitter),
-                                   Irufemi::Random::GeneratorFloat(-jitter, jitter),
-                                   Irufemi::Random::GeneratorFloat(-jitter, jitter)};
-            transform->SetPosition(originalLocalPos_ + shake); // ローカル座標に加算してワープを完全防止！
-        }
-
-        if (phaseTimer_ >= kDuration) {
-            SetDeathPhase(DeathSequencePhase::BlackHole);
-        }
-        break;
-    }
-
-    case DeathSequencePhase::BlackHole: {
-        // 【第2幕】0.35s〜1.15s (0.80秒間): 事象の地平面の「拡大」➔ 限界突破の「急速重力収縮（インプロージョン）」！
-        constexpr float kDuration = 0.80f;
-        float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
-
-        // 前半（0.00s〜0.50s / t: 0.0〜0.625）: ブラックホールが悠然と最大まで拡大！周囲の時空を猛烈吸引
-        if (t <= 0.625f) {
-            float tExpand = t / 0.625f;
-            bh.blackHoleRadius = 0.09f * std::sin(tExpand * Irufemi::Math::PIDiv2);
-            bh.blackHolePullIntensity = 0.30f * tExpand;
-
-            // 自機は特異点中心へ圧縮
-            if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
-                float scaleFactor = std::pow(1.0f - tExpand * 0.8f, 2.0f);
-                transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.01f));
-            }
-        }
-        // 後半（0.50s〜0.80s / t: 0.625〜1.0）:
-        // 限界突破！ギュウウッ…と超強烈なイージングで極小特異点へ急激に凝縮（インプロージョン / 縮小）！
-        else {
-            float tImplode = (t - 0.625f) / 0.375f;
-            float implodeCurve = std::pow(1.0f - tImplode, 3.5f);
-            bh.blackHoleRadius = 0.006f + (0.09f - 0.006f) * implodeCurve;
-            bh.blackHolePullIntensity = 0.30f * implodeCurve;
-
-            // 自機本体は完全に特異点へ吸い込まれて消滅
-            if (auto transform = gameObject_->GetComponent<Irufemi::TransformComponent>()) {
-                float scaleFactor = (1.0f - tImplode) * 0.2f;
-                transform->SetScale(originalScale_ * (std::max)(scaleFactor, 0.001f));
-            }
-        }
-
-        if (phaseTimer_ >= kDuration) {
-            SetDeathPhase(DeathSequencePhase::VacuumFreeze);
-        }
-        break;
-    }
-
-    case DeathSequencePhase::VacuumFreeze: {
-        // 【幕間】1.15s〜1.30s (0.15秒間): 極小特異点での完全な静寂・息を呑む一瞬のタメ（Anticipation）！
-        constexpr float kDuration = 0.15f;
-        bh.blackHoleRadius = 0.006f; // 極小特異点
-        bh.blackHolePullIntensity = 0.0f;
-
-        if (phaseTimer_ >= kDuration) {
-            SetDeathPhase(DeathSequencePhase::SupernovaBurst);
-        }
-        break;
-    }
-
-    case DeathSequencePhase::SupernovaBurst: {
-        // 【第3幕】1.30s〜2.05s (0.75秒間): 臨界突破！スーパーノヴァ大爆発（拡大！数千のVoxel結晶大拡散 ＆
-        // スマートプラズマ重力波）
-        constexpr float kDuration = 0.75f;
-        float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
-
-        // 中心には崩壊せず残存する「漆黒の特異点ボイドコア」とフォトンリングを維持！
-        bh.blackHoleRadius = 0.018f * (1.0f - t * 0.2f);
-        bh.blackHolePullIntensity = 0.04f;
-
-        // ★大爆発の瞬間に全画面が眩く白光するホワイトフラッシュ（ガンマ線バースト: 最初の0.10秒で急減衰）
-        bh.supernovaFlashIntensity = (t < 0.10f) ? (1.0f - t / 0.10f) : 0.0f;
-
-        // 爆発開始の最初の 0.08 秒間に急峻な立ち上がりインパルスを持たせ、テクスチャの唐突なポップを根絶！
-        float popInCurve = (t < 0.08f) ? (t / 0.08f) : 1.0f;
-
-        // 多層重力波＆スマートプラズマ流体の全方位展開（超高速・高精細）
-        bh.supernovaRadius = t * 2.8f;
-        bh.supernovaIntensity = 1.8f * popInCurve * (1.0f - t * 0.20f);
-        bh.supernovaChromaticRatio = 0.12f * popInCurve * (1.0f - t * 0.40f);
-
-        // 爆発の広がりとVoxel結晶の飛散を100%美しく魅せるため、ここでは白フェードを入れない！
-        if (phaseTimer_ >= kDuration) {
-            SetDeathPhase(DeathSequencePhase::PlasmaAfterglow);
-        }
-        break;
-    }
-
-    case DeathSequencePhase::PlasmaAfterglow: {
-        // 【第4幕】2.05s〜2.85s (0.80秒間): 白熱流体が画面を飲み込みホワイトアウトへ加速！
-        constexpr float kDuration = 0.80f;
-        float t = std::clamp(phaseTimer_ / kDuration, 0.0f, 1.0f);
-
-        // 衝撃波面は画面外の彼方へ突き抜けさせる
-        bh.supernovaRadius = 2.8f + t * 2.7f; // 2.8 -> 5.5
-
-        // ★薄まる息切れを完全根絶！白熱化に合わせてエネルギーを落とさず、画面を白で満たす
-        bh.supernovaIntensity = 1.8f;
-        bh.supernovaChromaticRatio = 0.08f * (1.0f - t * 0.5f);
-        bh.blackHoleRadius = 0.014f * (1.0f - t);
-        bh.supernovaFlashIntensity = 0.0f;
-
-        // 白い流体の拡大と完全に同期して、画面全体を滑らかに純白（ホワイトアウト）へ突入させる！
-        if (ppm) {
-            ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
-            ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
-            ppm->GetFadeParams().intensity = t; // 0.0 -> 1.0 (途切れず一気に白へ！)
-        }
-
-        if (phaseTimer_ >= kDuration) {
-            SetDeathPhase(DeathSequencePhase::WhiteoutFade);
-        }
-        break;
-    }
-
-    case DeathSequencePhase::WhiteoutFade: {
-        // 【第5幕】2.85s〜3.15s (0.30秒間): 眩い純白（白1.0）を維持し、GAME OVER画面へシームレス接続
-        constexpr float kDuration = 0.30f;
-        if (ppm) {
-            ppm->AddActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
-            ppm->GetFadeParams().color = {1.0f, 1.0f, 1.0f, 1.0f};
-            ppm->GetFadeParams().intensity = 1.0f; // 完全な純白を100%固定保持
-
-            // 超新星は白の裏で消灯
-            bh.supernovaIntensity = 0.0f;
-            bh.blackHoleRadius = 0.0f;
-            bh.supernovaFlashIntensity = 0.0f;
-        }
-
-        if (phaseTimer_ >= kDuration) {
-            SetDeathPhase(DeathSequencePhase::Completed);
-        }
-        break;
-    }
-
-    default:
-        break;
+    if (currentDeathState_) {
+        currentDeathState_->Update(this, dtReal);
     }
 }
 

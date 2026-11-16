@@ -6,6 +6,7 @@
 #include <memory>
 
 class PlayerHealthComponent;
+class IPlayerDeathState;
 namespace Irufemi {
 class BaseModel;
 }
@@ -22,8 +23,8 @@ class ScreenEffectComponent;
  */
 class PlayerDamageVisualizerComponent : public Irufemi::Component {
 public:
-    PlayerDamageVisualizerComponent() = default;
-    ~PlayerDamageVisualizerComponent() override = default;
+    PlayerDamageVisualizerComponent();
+    ~PlayerDamageVisualizerComponent() override;
 
     void Initialize() override;
     void Start() override;
@@ -111,14 +112,61 @@ public:
     /**
      * @brief 現在の死亡シーケンスフェーズを取得する
      */
-    DeathSequencePhase GetDeathPhase() const {
-        return phase_;
-    }
+    DeathSequencePhase GetDeathPhase() const;
 
     /**
-     * @brief 死亡シーケンスのフェーズを明示的に遷移させる
+     * @brief 死亡シーケンスのステートを遷移させる (State Pattern)
+     */
+    void ChangeDeathState(std::unique_ptr<IPlayerDeathState> newState);
+
+    /**
+     * @brief 死亡シーケンスのフェーズを明示的に遷移させる（互換用ファクトリ）
      */
     void SetDeathPhase(DeathSequencePhase newPhase);
+
+    // --- State クラス向け各種アクセサ・操作メソッド ---
+    const Irufemi::Vector3& GetDeathWorldPos() const {
+        return deathWorldPos_;
+    }
+    const Irufemi::Vector3& GetDeathWorldRot() const {
+        return deathWorldRot_;
+    }
+    const Irufemi::Vector3& GetOriginalScale() const {
+        return originalScale_;
+    }
+    const Irufemi::Vector3& GetOriginalLocalPos() const {
+        return originalLocalPos_;
+    }
+    const Irufemi::Vector2& GetDeathScreenUV() const {
+        return deathScreenUV_;
+    }
+
+    Irufemi::ScopedEffectHandle& GetBlackHoleHandle() {
+        return blackHoleHandle_;
+    }
+    Irufemi::ScopedEffectHandle& GetDeathFadeHandle() {
+        return deathFadeHandle_;
+    }
+
+    void SetIsFlashing(bool flashing) {
+        isFlashing_ = flashing;
+    }
+    bool IsColorCached() const {
+        return colorCached_;
+    }
+    void SetColorCached(bool cached) {
+        colorCached_ = cached;
+    }
+    void SetOriginalBaseColor(const Irufemi::Vector4& color) {
+        originalBaseColor_ = color;
+    }
+
+    Irufemi::BaseModel* GetTargetModel();
+    void InvokeDeathCompletedCallback() {
+        if (onDeathSequenceCompleted_) {
+            onDeathSequenceCompleted_();
+        }
+    }
 
 private:
     /**
@@ -126,12 +174,6 @@ private:
      * @param[in] dtReal 実時間デルタタイム
      */
     void UpdateDeathSequence(float dtReal);
-
-    /**
-     * @brief 対象のBaseModelポインタを安全に取得する
-     * @return 取得できたBaseModelへのポインタ、存在しない場合はnullptr
-     */
-    Irufemi::BaseModel* GetTargetModel();
 
     /**
      * @brief ワールド座標を現在のカメラからスクリーンUV座標 (0.0〜1.0) へ動的投影する
@@ -170,8 +212,9 @@ private:
     Irufemi::ScreenEffectComponent* screenEffectComp_ = nullptr;
     Irufemi::BaseModel* cachedTargetModel_ = nullptr;
 
-    // --- 死亡シーケンス・ステートマシン（SSOT） ---
-    DeathSequencePhase phase_ = DeathSequencePhase::None; ///< 現在の進行フェーズ
+    // --- 死亡シーケンス・ステートマシン（SSOT & State Pattern） ---
+    std::unique_ptr<IPlayerDeathState> currentDeathState_ = nullptr; ///< 現在の具象状態インスタンス
+    DeathSequencePhase phase_ = DeathSequencePhase::None;            ///< 現在の進行フェーズ (互換用キャッシュ)
     float phaseTimer_ = 0.0f;                             ///< 現在フェーズの経過タイマー（秒）
     Irufemi::Vector3 originalScale_{1.0f, 1.0f, 1.0f};    ///< 収縮前の自機スケール
     Irufemi::Vector3 originalLocalPos_{0.0f, 0.0f, 0.0f}; ///< 撃墜前の自機ローカル座標

@@ -295,6 +295,7 @@ exit 0</Command>
     <ClCompile Include="Input\PlayerCommands.cpp" />
     <ClCompile Include="Player\PlayerHealthComponent.cpp" />
     <ClCompile Include="Player\PlayerDamageVisualizerComponent.cpp" />
+    <ClCompile Include="Player\PlayerDeathStates.cpp" />
     <ClCompile Include="Player\PlayerThrusterVisualizerComponent.cpp" />
     <ClCompile Include="Core\GameLoopManagerComponent.cpp" />
     <ClCompile Include="Core\ResultManagerComponent.cpp" />
@@ -391,6 +392,7 @@ exit 0</Command>
     <ClInclude Include="Input\PlayerCommands.h" />
     <ClInclude Include="Player\PlayerHealthComponent.h" />
     <ClInclude Include="Player\PlayerDamageVisualizerComponent.h" />
+    <ClInclude Include="Player\PlayerDeathStates.h" />
     <ClInclude Include="Player\PlayerThrusterVisualizerComponent.h" />
     <ClInclude Include="Core\GameLoopManagerComponent.h" />
     <ClInclude Include="Core\ResultManagerComponent.h" />

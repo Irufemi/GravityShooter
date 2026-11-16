@@ -261,6 +261,9 @@
     <ClCompile Include="Player\PlayerDamageVisualizerComponent.cpp">
       <Filter>Player</Filter>
     </ClCompile>
+    <ClCompile Include="Player\PlayerDeathStates.cpp">
+      <Filter>Player</Filter>
+    </ClCompile>
     <ClCompile Include="Player\PlayerThrusterVisualizerComponent.cpp">
       <Filter>Player</Filter>
     </ClCompile>
@@ -517,6 +520,9 @@
       <Filter>Player</Filter>
     </ClInclude>
     <ClInclude Include="Player\PlayerDamageVisualizerComponent.h">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Player\PlayerDeathStates.h">
       <Filter>Player</Filter>
     </ClInclude>
     <ClInclude Include="Player\PlayerThrusterVisualizerComponent.h">
