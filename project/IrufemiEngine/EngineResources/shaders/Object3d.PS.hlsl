@@ -151,17 +151,6 @@ PixelShaderOutput main(VertexShaderOutput input)
 		
 		// アルファ
 		output.color.a = gMaterial.color.a * textureColor.a * input.color.a;
-
-		// バンド・デシネ調 白抜きハイライト (Category ID: customEffect.x == 1.0f: Debris Highlight Mode)
-		if (abs(input.customEffect.x - 1.0f) < 0.1f) {
-			float rimDot = 1.0f - saturate(dot(context.normal, context.toEye));
-			// smoothstep によるコミック調のパキッとした硬いエッジ階調化
-			float rimFactor = smoothstep(0.55f - 0.08f, 0.55f + 0.08f, rimDot);
-			float rimIntensity = (input.customEffect.y > 0.0f) ? input.customEffect.y : 0.35f;
-			// 特定アクター依存を排し、マテリアルの色調に調和するハイライト
-			float3 rimColor = lerp(float3(1.0f, 1.0f, 1.0f), output.color.rgb, 0.3f);
-			output.color.rgb += rimColor * (rimFactor * rimIntensity);
-		}
 		
 		// output.colorのα値が0の時にPixelを棄却
 		if (output.color.a == 0.0)

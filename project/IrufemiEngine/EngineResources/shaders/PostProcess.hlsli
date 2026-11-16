@@ -288,10 +288,10 @@ float32_t3 ApplyBandeDessineeOutline(
 
     float maskDiff = abs(upMask - centerMask) + abs(downMask - centerMask) +
                      abs(leftMask - centerMask) + abs(rightMask - centerMask);
-    float maskSilhouette = smoothstep(0.4f, 0.6f, maskDiff);
+    float maskSilhouette = smoothstep(0.35f, 0.55f, maskDiff);
 
-    // 4. 多層インク線の乗算（Multiply）合成（不透明ベタ塗りを排し、下地のディテールやカラーを上品に引き締める）
-    float totalInk = saturate(inkLine * distanceFade * 0.75f + maskSilhouette * 0.65f);
+    // 4. 多層インク線の乗算（Multiply）合成（ガレキ等の外郭シルエット主線を0.90でクッキリ際立たせる）
+    float totalInk = saturate(inkLine * distanceFade * 0.75f + maskSilhouette * 0.90f);
     float32_t3 inkBlended = color * lerp(float32_t3(1.0f, 1.0f, 1.0f), inkColor, totalInk);
     return lerp(color, inkBlended, totalInk);
 }
