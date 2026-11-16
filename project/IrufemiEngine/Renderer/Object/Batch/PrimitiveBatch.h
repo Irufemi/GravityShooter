@@ -3,6 +3,8 @@
 #include "Renderer/System/Core/BaseBatch.h"
 #include "Renderer/Object/PrimitiveManager.h"
 
+namespace Irufemi {
+
 /**
  * @class PrimitiveBatch
  * @brief PrimitiveManager を利用した基本形状を描画する領域クラス
@@ -62,3 +64,5 @@ private:
     PrimitiveResource customPrimitiveResource_; // カスタム用のリソース
     float boundingSphereRadius_ = 1.0f;         // カリング用外接球半径
 };
+
+} // namespace Irufemi

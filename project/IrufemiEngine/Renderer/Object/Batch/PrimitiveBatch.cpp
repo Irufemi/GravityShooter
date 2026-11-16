@@ -6,7 +6,7 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Renderer/DrawManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 void PrimitiveBatch::Initialize(Irufemi::PrimitiveType type, const std::string& textureName) {
     type_ = type;
@@ -112,3 +112,5 @@ void PrimitiveBatch::Draw() {
 
     drawManager_->SubmitPrimitiveBatch(p);
 }
+
+} // namespace Irufemi

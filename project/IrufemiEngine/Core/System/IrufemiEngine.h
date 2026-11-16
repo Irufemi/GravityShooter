@@ -37,10 +37,12 @@ namespace Irufemi {}
 #include <algorithm>
 
 // --- 前方宣言 ---
-class DebugPrimitiveRenderer;
 class DebugUI;
-class IEngineExtension;
 namespace Irufemi {
+class DebugPrimitiveRenderer;
+class IEngineExtension;
+class ILoadingScreen;
+class Log;
 class DrawManager;
 class AudioManager;
 class InputManager;
@@ -53,17 +55,17 @@ class AnimationManager;
 class TelemetrySender;
 class TelemetryGatherer;
 class TelemetryReceiver;
-}
-class Log;
-class SceneManager;
-class SceneTransition;
 class FontManager;
-class VoxelParticleManager;
-class GameObject;
 class CameraManager;
-class CollisionManager;
 class GPUParticleManager;
 class PrimitiveManager;
+class PSOManager;
+class VoxelParticleManager;
+}
+class SceneManager;
+class SceneTransition;
+class GameObject;
+class CollisionManager;
 class PrefabManager;
 class FluidSimulation2D;
 
@@ -156,7 +158,7 @@ public: // メンバ関数
     /**
      * @brief エンジンの拡張機能（エディタなど）を追加する
      */
-    void AddExtension(std::shared_ptr<IEngineExtension> extension) {
+    void AddExtension(std::shared_ptr<Irufemi::IEngineExtension> extension) {
         if (extension) {
             extensions_.push_back(std::move(extension));
         }
@@ -166,7 +168,7 @@ public: // メンバ関数
      * @brief ローディング画面の描画インターフェースを設定する
      * @param loadingScreen アプリケーション側で実装したローディング画面
      */
-    void SetLoadingScreen(std::shared_ptr<ILoadingScreen> loadingScreen) {
+    void SetLoadingScreen(std::shared_ptr<Irufemi::ILoadingScreen> loadingScreen) {
         loadingScreen_ = std::move(loadingScreen);
     }
 
@@ -419,7 +421,7 @@ public: // ゲッター
      * @brief DebugPrimitiveRenderer を取得する。
      * @return 取得された DebugPrimitiveRenderer
      */
-    DebugPrimitiveRenderer* GetDebugPrimitiveRenderer() const {
+    Irufemi::DebugPrimitiveRenderer* GetDebugPrimitiveRenderer() const {
         return this->debugPrimitiveRenderer_.get();
     }
     /**
@@ -440,7 +442,7 @@ public: // ゲッター
      * @brief FontManager を取得する。
      * @return 取得された FontManager
      */
-    FontManager* GetFontManager() {
+    Irufemi::FontManager* GetFontManager() {
         return this->fontManager_.get();
     }
     /**
@@ -468,7 +470,7 @@ public: // ゲッター
      * @brief CameraManager を取得する。
      * @return 取得された CameraManager
      */
-    CameraManager* GetCameraManager() const {
+    Irufemi::CameraManager* GetCameraManager() const {
         return cameraManager_.get();
     }
     /**
@@ -482,7 +484,7 @@ public: // ゲッター
      * @brief VoxelParticleManager を取得する。
      * @return 取得された VoxelParticleManager
      */
-    VoxelParticleManager* GetVoxelParticleManager() const {
+    Irufemi::VoxelParticleManager* GetVoxelParticleManager() const {
         return voxelParticleManager_.get();
     }
     /**
@@ -517,28 +519,28 @@ public: // ゲッター
      * @brief ThreadPool を取得する。
      * @return 取得された ThreadPool
      */
-    ThreadPool* GetThreadPool() const {
+    Irufemi::ThreadPool* GetThreadPool() const {
         return threadPool_.get();
     }
     /**
      * @brief GPUParticleManager を取得する。
      * @return 取得された GPUParticleManager
      */
-    GPUParticleManager* GetGPUParticleManager() {
+    Irufemi::GPUParticleManager* GetGPUParticleManager() {
         return gpuParticleManager_.get();
     }
     /**
      * @brief PrimitiveManager を取得する。
      * @return 取得された PrimitiveManager
      */
-    PrimitiveManager* GetPrimitiveManager() {
+    Irufemi::PrimitiveManager* GetPrimitiveManager() {
         return primitiveManager_.get();
     }
     /**
      * @brief ScreenCaptureManager を取得する。
      * @return 取得された ScreenCaptureManager
      */
-    ScreenCaptureManager* GetScreenCaptureManager() const {
+    Irufemi::ScreenCaptureManager* GetScreenCaptureManager() const {
         return screenCaptureManager_.get();
     }
     /**
@@ -629,7 +631,7 @@ public: // ゲッター
      * @brief PSOManager を取得する。
      * @return 取得された PSOManager
      */
-    PSOManager* GetPSOManager() {
+    Irufemi::PSOManager* GetPSOManager() {
         return dxCommon_->GetPSOManager();
     }
     ///@}
@@ -831,13 +833,13 @@ public: // セッター
     /**
      * @brief 現在の DepthWrite を取得する。
      */
-    PSOManager::DepthWrite GetDepthWrite() const {
+    Irufemi::PSOManager::DepthWrite GetDepthWrite() const {
         return currentDepth_;
     }
     /**
      * @brief 現在の CullMode を取得する。
      */
-    PSOManager::CullMode GetCull() const {
+    Irufemi::PSOManager::CullMode GetCull() const {
         return currentCull_;
     }
 
@@ -853,14 +855,14 @@ public: // セッター
      * @brief DepthWrite を設定する。
      * @param[in] w 設定する DepthWrite の値
      */
-    void SetDepthWrite(PSOManager::DepthWrite w) {
+    void SetDepthWrite(Irufemi::PSOManager::DepthWrite w) {
         currentDepth_ = w;
     }
     /**
      * @brief Cull を設定する。
      * @param[in] c 設定する Cull の値
      */
-    void SetCull(PSOManager::CullMode c) {
+    void SetCull(Irufemi::PSOManager::CullMode c) {
         currentCull_ = c;
     }
 
@@ -918,11 +920,11 @@ public: // セッター
 private: // メンバ変数
     // 状態(現在のブレンドと深度書き込み)
     Irufemi::BlendMode currentBlend_ = Irufemi::BlendMode::kBlendModeNormal;
-    PSOManager::DepthWrite currentDepth_ = PSOManager::DepthWrite::Enable;
-    PSOManager::CullMode currentCull_ = PSOManager::CullMode::Back; //!< 現在のカリングモード（デフォルトは背面）
+    Irufemi::PSOManager::DepthWrite currentDepth_ = Irufemi::PSOManager::DepthWrite::Enable;
+    Irufemi::PSOManager::CullMode currentCull_ = Irufemi::PSOManager::CullMode::Back; //!< 現在のカリングモード（デフォルトは背面）
     // --- Debug & Logging ---
     // ログ
-    std::unique_ptr<Log> log_ = nullptr;
+    std::unique_ptr<Irufemi::Log> log_ = nullptr;
 
     // WinApp
     std::unique_ptr<Irufemi::WinApp> winApp_ = nullptr;
@@ -939,13 +941,13 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::DrawManager> drawManager_ = nullptr;
 
     // DebugPrimitiveRenderer
-    std::unique_ptr<DebugPrimitiveRenderer> debugPrimitiveRenderer_ = nullptr;
+    std::unique_ptr<Irufemi::DebugPrimitiveRenderer> debugPrimitiveRenderer_ = nullptr;
 
     // DebugUI
     std::unique_ptr<DebugUI> ui_ = nullptr;
 
     // Extensions
-    std::vector<std::shared_ptr<IEngineExtension>> extensions_;
+    std::vector<std::shared_ptr<Irufemi::IEngineExtension>> extensions_;
 
     // TextureManager
     std::unique_ptr<Irufemi::TextureManager> textureManager_ = nullptr;
@@ -957,10 +959,10 @@ private: // メンバ変数
     std::unique_ptr<SceneManager> sceneManager_ = nullptr;
 
     // LoadingScreen (Application側から注入)
-    std::shared_ptr<ILoadingScreen> loadingScreen_ = nullptr;
+    std::shared_ptr<Irufemi::ILoadingScreen> loadingScreen_ = nullptr;
 
     // FontManager
-    std::unique_ptr<FontManager> fontManager_ = nullptr;
+    std::unique_ptr<Irufemi::FontManager> fontManager_ = nullptr;
 
     // ModelManager
     std::unique_ptr<Irufemi::ModelManager> modelManager_ = nullptr;
@@ -969,25 +971,25 @@ private: // メンバ変数
     std::unique_ptr<Irufemi::AnimationManager> animationManager_ = nullptr;
 
     // CameraManager
-    std::unique_ptr<CameraManager> cameraManager_ = nullptr;
+    std::unique_ptr<Irufemi::CameraManager> cameraManager_ = nullptr;
 
     // VoxelParticleManager
-    std::unique_ptr<VoxelParticleManager> voxelParticleManager_ = nullptr;
+    std::unique_ptr<Irufemi::VoxelParticleManager> voxelParticleManager_ = nullptr;
 
     // CollisionManager
     std::unique_ptr<CollisionManager> collisionManager_ = nullptr;
 
     // GPUParticleManager
-    std::unique_ptr<GPUParticleManager> gpuParticleManager_ = nullptr;
+    std::unique_ptr<Irufemi::GPUParticleManager> gpuParticleManager_ = nullptr;
 
     // PrimitiveManager
-    std::unique_ptr<PrimitiveManager> primitiveManager_ = nullptr;
+    std::unique_ptr<Irufemi::PrimitiveManager> primitiveManager_ = nullptr;
 
     // ScreenCaptureManager
-    std::unique_ptr<ScreenCaptureManager> screenCaptureManager_ = nullptr;
+    std::unique_ptr<Irufemi::ScreenCaptureManager> screenCaptureManager_ = nullptr;
 
     // ThreadPool
-    std::unique_ptr<ThreadPool> threadPool_ = nullptr;
+    std::unique_ptr<Irufemi::ThreadPool> threadPool_ = nullptr;
 
     // 画面の色
     std::array<float, 4> clearColor_{0.1f, 0.25f, 0.5f, 1.0f};

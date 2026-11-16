@@ -8,6 +8,8 @@
 #include <mutex>
 #include "Core/Utility/Synchronized.h"
 
+namespace Irufemi {
+
 class Log {
 public:
     struct LogEntry {
@@ -66,3 +68,5 @@ public: // メンバ関数
         logHistory_.WithWrite([](LogContainer& history) { history.clear(); });
     }
 };
+
+} // namespace Irufemi

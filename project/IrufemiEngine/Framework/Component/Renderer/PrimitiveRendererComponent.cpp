@@ -10,6 +10,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include <cmath>
 
+using namespace Irufemi;
+
 PrimitiveRendererComponent::PrimitiveRendererComponent() {}
 PrimitiveRendererComponent::~PrimitiveRendererComponent() {}
 
@@ -63,7 +65,7 @@ void PrimitiveRendererComponent::Draw() {
     }
 }
 
-IRenderable* PrimitiveRendererComponent::GetRenderable() {
+Irufemi::IRenderable* PrimitiveRendererComponent::GetRenderable() {
     return primitive_.get();
 }
 

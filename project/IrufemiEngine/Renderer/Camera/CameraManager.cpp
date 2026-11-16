@@ -1,6 +1,8 @@
 #include "Renderer/Camera/CameraManager.h"
 #include <cassert>
 
+namespace Irufemi {
+
 void CameraManager::AddCamera(const std::string& name, std::shared_ptr<Camera> camera) {
     if (camera) {
         cameras_[name] = camera;
@@ -96,3 +98,5 @@ void CameraManager::Clear() {
     activeCameraName_.clear();
     activeCameraCache_ = nullptr;
 }
+
+} // namespace Irufemi

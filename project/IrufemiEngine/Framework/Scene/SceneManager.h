@@ -76,14 +76,14 @@ public:
      * @param[in] easeType 演出のイージングタイプ（デフォルトは線形）
      */
     void TransitionTo(std::string_view next, SceneTransition::Type type, float duration,
-                      EaseType easeType = EaseType::Linear,
+                      Irufemi::EaseType easeType = Irufemi::EaseType::Linear,
                       const std::optional<Irufemi::Vector4>& customColor = std::nullopt);
     /**
      * @brief データ駆動シーン(JSON)への遷移を開始する
      * @param[in] sceneJsonName 読み込むJSON名 (拡張子なし)
      */
     void LoadScene(const std::string& sceneJsonName, SceneTransition::Type type = SceneTransition::Type::Fade,
-                   float duration = 1.0f, EaseType easeType = EaseType::Linear,
+                   float duration = 1.0f, Irufemi::EaseType easeType = Irufemi::EaseType::Linear,
                    const std::optional<Irufemi::Vector4>& customColor = std::nullopt);
 
     /**
@@ -196,7 +196,7 @@ private:
     Key pendingTransition_{};
     SceneTransition::Type pendingType_ = SceneTransition::Type::Fade;
     float pendingDuration_ = 1.0f;
-    EaseType pendingEaseType_ = EaseType::Linear;
+    Irufemi::EaseType pendingEaseType_ = Irufemi::EaseType::Linear;
     std::optional<Irufemi::Vector4> pendingColor_;
 
     bool wasLoading_ = false;   ///< 前フレームがロード中だったか

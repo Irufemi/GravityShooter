@@ -11,6 +11,8 @@
 #include <d3d12.h>
 #include <wrl.h>
 
+namespace Irufemi {
+
 struct PrimitiveData {
     std::vector<Irufemi::VertexData> vertices;
     std::vector<uint32_t> indices;
@@ -306,3 +308,5 @@ private:
     std::unordered_map<Irufemi::PrimitiveType, PrimitiveResource> gpuCache_;
     std::unordered_map<uint32_t, PrimitiveResource> cylinderGpuCache_;
 };
+
+} // namespace Irufemi

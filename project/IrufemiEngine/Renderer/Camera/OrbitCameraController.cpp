@@ -4,7 +4,7 @@
 #include "Core/Math/MathFunction.h"
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 void OrbitCameraController::UpdateCameraInput(Camera* camera, Irufemi::InputManager* input) {
     if (!camera || !input) {
@@ -200,3 +200,5 @@ void OrbitCameraController::SetPreset(Preset preset, Camera* camera) {
     lastCameraPosition_ = camera->GetTranslate();
     lastCameraRotation_ = camera->GetRotate();
 }
+
+} // namespace Irufemi

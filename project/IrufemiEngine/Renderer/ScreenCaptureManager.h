@@ -12,10 +12,12 @@
 
 // 前方宣言
 class IrufemiEngine;
+
 namespace Irufemi {
+
 class DirectXCommon;
 class RenderTexture;
-}
+class ThreadPool;
 
 enum class ScreenCaptureType {
     SceneOnly, // ポストプロセス後、UI描画前の純粋なシーン
@@ -39,7 +41,7 @@ public:
     /**
      * @brief Initialize を実行する。
      */
-    void Initialize(Irufemi::DirectXCommon* dxCommon, ThreadPool* threadPool);
+    void Initialize(DirectXCommon* dxCommon, ThreadPool* threadPool);
     /**
      * @brief Finalize を実行する。
      */
@@ -103,10 +105,10 @@ private:
                           DXGI_FORMAT overrideFormat = DXGI_FORMAT_UNKNOWN);
 
 private:
-    Irufemi::DirectXCommon* dxCommon_ = nullptr;
+    DirectXCommon* dxCommon_ = nullptr;
     ThreadPool* threadPool_ = nullptr;
 
-    Irufemi::Synchronized<std::vector<ScreenCaptureRequest>> pendingRequests_;
+    Synchronized<std::vector<ScreenCaptureRequest>> pendingRequests_;
 
     // キャプチャ中の多重実行を防ぐためのフラグやバッファ管理
     std::atomic<bool> isEncoding_{false};
@@ -119,3 +121,5 @@ private:
     // 一時的に記録しておくメタデータ内容
     std::string currentMetadataJson_;
 };
+
+} // namespace Irufemi

@@ -8,12 +8,12 @@
 #include "Core/Utility/StringUtility.h"
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 FontManager* Text::fontManager_ = nullptr;
-Irufemi::DrawManager* Text::drawManager_ = nullptr;
+DrawManager* Text::drawManager_ = nullptr;
 CameraManager* Text::cameraManager_ = nullptr;
-DebugUI* Text::ui_ = nullptr;
+::DebugUI* Text::ui_ = nullptr;
 
 Text::Text() {}
 
@@ -337,3 +337,5 @@ void Text::DrawOutlineMask() {
 
     drawMgr->SubmitTextOutlineMask(resource_.get());
 }
+
+} // namespace Irufemi

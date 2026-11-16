@@ -3,7 +3,7 @@
 #include "Core/Math/MathFunction.h"
 #include <iostream>
 #include "Renderer/DrawManager.h"
-using namespace RenderPackets;
+using namespace Irufemi::RenderPackets;
 
 #include <Windows.h>
 #include <cassert>

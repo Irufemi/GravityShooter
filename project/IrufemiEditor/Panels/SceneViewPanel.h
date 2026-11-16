@@ -23,7 +23,7 @@ public:
 
 private:
     EditorManager* editorManager_ = nullptr;
-    OrbitCameraController cameraController_;
+    Irufemi::OrbitCameraController cameraController_;
     EditContext lastEditContext_ = EditContext::Scene;
 
     // --- ギズモ用状態 ---

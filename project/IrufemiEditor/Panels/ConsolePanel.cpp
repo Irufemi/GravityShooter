@@ -4,6 +4,8 @@
 #include <imgui/imgui.h>
 #include "Core/Utility/Log.h"
 
+using namespace Irufemi;
+
 void ConsolePanel::Initialize(EditorManager* editorManager) {
     editorManager_ = editorManager;
 }

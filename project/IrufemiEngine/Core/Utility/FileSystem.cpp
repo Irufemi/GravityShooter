@@ -4,6 +4,8 @@
 #include <algorithm>
 #include "Core/Utility/StringUtility.h"
 
+namespace Irufemi {
+
 namespace fs = std::filesystem;
 
 std::string FileSystem::projectRoot_ = "";
@@ -102,3 +104,5 @@ std::string FileSystem::GetDumpPath() {
 std::string FileSystem::GetExePath() {
     return exePath_;
 }
+
+} // namespace Irufemi

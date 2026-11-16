@@ -3,7 +3,9 @@
 #include "Renderer/Pipeline/PSOManager.h"
 #include <vector>
 
-void VoxelParticleManager::Initialize(IrufemiEngine* engine) {
+namespace Irufemi {
+
+void VoxelParticleManager::Initialize(::IrufemiEngine* engine) {
     engine_ = engine;
 }
 
@@ -223,3 +225,5 @@ void VoxelParticleManager::PlayExplosion(const std::string& modelName, const Iru
     shot.lifeTimer = params.lifeTime + 0.5f;
     oneShots_.push_back(shot);
 }
+
+} // namespace Irufemi

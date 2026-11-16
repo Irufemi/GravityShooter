@@ -8,11 +8,11 @@
 #include "Core/Math/Math.h"
 #include "Core/System/ResourceHandle.h"
 
+namespace Irufemi {
+
 class Camera;
 class PrimitiveManager;
-namespace Irufemi {
 class TextureManager;
-}
 struct PrimitiveData;
 
 /**
@@ -20,7 +20,7 @@ struct PrimitiveData;
  * @brief 座標変換（位置・回転・スケール）を管理するコンポーネント
  */
 struct PrimitiveTransform {
-    Irufemi::Transform transform; //!< トランスフォーム情報
+    Transform transform; //!< トランスフォーム情報
     bool isDirty = true;          //!< 行列再計算が必要な場合のフラグ
 
     /**
@@ -36,14 +36,14 @@ struct PrimitiveTransform {
  * @brief メッシュ形状（頂点・インデックス情報）を管理するデータ
  */
 struct MeshDesc {
-    Irufemi::PrimitiveType type;                //!< 現在のプリミティブ形状タイプ
+    PrimitiveType type;                //!< 現在のプリミティブ形状タイプ
     std::unique_ptr<Object3DResource> resource; //!< D3D12リソース
 
     /**
      * @brief 指定した形状タイプにメッシュを切り替える
      * @param[in] newType 新しい形状タイプ
      */
-    void ChangeMesh(Irufemi::PrimitiveType newType);
+    void ChangeMesh(PrimitiveType newType);
 
     /**
      * @brief カスタムの PrimitiveData を用いて独自にメッシュリソースを再生成する
@@ -70,16 +70,16 @@ private:
 struct MaterialDesc {
     std::string texturePath;                           //!< テクスチャパス
     std::string loadedTexturePath;                     //!< 前回ロードしたパス（変更検知用）
-    Irufemi::ResourceHandle textureHandle;             //!< テクスチャキャッシュ用ハンドル
+    ResourceHandle textureHandle;             //!< テクスチャキャッシュ用ハンドル
     int selectedTextureIndex = 0;                      //!< ImGui選択用インデックス
-    Irufemi::Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; //!< ベースカラー
+    Vector4 color = {1.0f, 1.0f, 1.0f, 1.0f}; //!< ベースカラー
     bool enableLighting = true;                        //!< ライティングの有無
     int lightingMode = 3;   //!< ライティングモード (0:None, 1:Lambert, 2:Half-Lambert, 3:PBR)
     float metallic = 0.0f;  //!< 金属度
     float roughness = 0.5f; //!< 粗さ
 
     // clang-format off
-    Irufemi::Matrix4x4 uvTransform = {
+    Matrix4x4 uvTransform = {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
@@ -97,10 +97,12 @@ struct MaterialDesc {
      * @param[out] resource 反映先のリソース
      * @param[in] textureManager テクスチャハンドル取得用
      */
-    void UpdateMaterial(Object3DResource* resource, Irufemi::TextureManager* textureManager);
+    void UpdateMaterial(Object3DResource* resource, TextureManager* textureManager);
 
     /**
      * @brief 保持しているハンドルを解放する（破棄時に呼ぶ）
      */
-    void Release(Irufemi::TextureManager* textureManager);
+    void Release(TextureManager* textureManager);
 };
+
+} // namespace Irufemi

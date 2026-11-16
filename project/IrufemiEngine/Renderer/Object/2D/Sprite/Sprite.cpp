@@ -9,11 +9,11 @@
 
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
-Irufemi::TextureManager* Sprite::textureManager_ = nullptr;
-Irufemi::DrawManager* Sprite::drawManager_ = nullptr;
-DebugUI* Sprite::ui_ = nullptr;
+TextureManager* Sprite::textureManager_ = nullptr;
+DrawManager* Sprite::drawManager_ = nullptr;
+::DebugUI* Sprite::ui_ = nullptr;
 CameraManager* Sprite::cameraManager_ = nullptr;
 
 void Sprite::Initialize(const std::string& textureName) {
@@ -385,3 +385,5 @@ void Sprite::Debug([[maybe_unused]] const char* spriteName) {
 #endif
     Update();
 }
+
+} // namespace Irufemi

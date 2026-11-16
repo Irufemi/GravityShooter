@@ -1,10 +1,7 @@
 #pragma once
 #include <string>
 
-// namespace StringUtility
-//{
-
-/*ログを出そう*/
+namespace Irufemi {
 
 /**
  * @brief ConvertString を実行する。
@@ -57,4 +54,4 @@ template <typename Func> void ForEachCodePoint(const std::wstring& str, Func&& f
 }
 } // namespace StringUtility
 
-//};
+} // namespace Irufemi

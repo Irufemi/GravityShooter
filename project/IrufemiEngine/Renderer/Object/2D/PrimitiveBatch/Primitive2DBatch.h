@@ -8,6 +8,8 @@
 #include <string>
 #include <wrl.h>
 
+namespace Irufemi {
+
 /**
  * @class Primitive2DBatch
  * @brief 2Dプリミティブのインスタンシング（大量描画）を行うためのバッチクラス
@@ -134,3 +136,5 @@ private:
     D3D12_INDEX_BUFFER_VIEW indexBufferView_{};
     uint32_t indexCount_ = 0;
 };
+
+} // namespace Irufemi

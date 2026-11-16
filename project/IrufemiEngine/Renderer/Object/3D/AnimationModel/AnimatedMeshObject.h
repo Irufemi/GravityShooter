@@ -10,6 +10,8 @@
 #include <memory>
 #include <vector>
 
+namespace Irufemi {
+
 class PrimitiveBatch;
 
 /**
@@ -84,3 +86,5 @@ private:
     std::string filename_;
     bool isCulled_ = false;
 };
+
+} // namespace Irufemi

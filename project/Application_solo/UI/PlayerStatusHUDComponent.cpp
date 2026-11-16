@@ -80,7 +80,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     }
     hpHeaderText_ = hpHeaderObj_->AddComponent<TextRendererComponent>().get();
     hpHeaderText_->SetFontId("toro_glitch");
-    hpHeaderText_->SetAlignment(TextAlignment::Left);
+    hpHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpHeaderText_->SetBaseScale(11.0f);
     hpHeaderText_->SetTopMost(true);
     hpHeaderText_->SetColor({0.35f, 0.80f, 1.0f, 0.75f});
@@ -146,7 +146,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     }
     hpText_ = hpTextObj_->AddComponent<TextRendererComponent>().get();
     hpText_->SetFontId("toro_glitch");
-    hpText_->SetAlignment(TextAlignment::Left);
+    hpText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpText_->SetBaseScale(11.0f);
     hpText_->SetTopMost(true);
     hpText_->SetColor({1.0f, 1.0f, 1.0f, 0.90f});
@@ -165,7 +165,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     }
     debrisHeaderText_ = debrisHeaderObj_->AddComponent<TextRendererComponent>().get();
     debrisHeaderText_->SetFontId("toro_glitch");
-    debrisHeaderText_->SetAlignment(TextAlignment::Left);
+    debrisHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisHeaderText_->SetBaseScale(10.0f);
     debrisHeaderText_->SetTopMost(true);
     debrisHeaderText_->SetColor({0.30f, 0.75f, 0.95f, 0.70f});
@@ -182,7 +182,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     }
     debrisCountText_ = debrisCountObj_->AddComponent<TextRendererComponent>().get();
     debrisCountText_->SetFontId("toro_glitch");
-    debrisCountText_->SetAlignment(TextAlignment::Left);
+    debrisCountText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisCountText_->SetBaseScale(10.0f);
     debrisCountText_->SetTopMost(true);
     debrisCountText_->SetColor({0.60f, 0.85f, 1.0f, 0.75f});

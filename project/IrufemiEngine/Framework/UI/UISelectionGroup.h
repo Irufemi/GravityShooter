@@ -4,9 +4,9 @@
 #include "Framework/UI/UIAnimator.h"
 #include "Core/Math/Vector4.h"
 
+namespace Irufemi {
 class Sprite;
 class StaticModelObject;
-namespace Irufemi {
 class InputManager;
 }
 
@@ -25,13 +25,13 @@ public:
      * @brief 選択項目となるスプライトをリストの末尾に追加する
      * @param sprite 管理対象のスプライト
      */
-    void AddItem(Sprite* sprite);
+    void AddItem(Irufemi::Sprite* sprite);
 
     /**
      * @brief 選択項目となる3Dモデル(StaticModelObject)をリストの末尾に追加する
      * @param obj 管理対象のStaticModelObject
      */
-    void AddItem(StaticModelObject* obj);
+    void AddItem(Irufemi::StaticModelObject* obj);
 
     /**
      * @brief 選択中項目の基本色を設定する
@@ -94,7 +94,7 @@ public:
     }
 
 private:
-    std::vector<std::variant<Sprite*, StaticModelObject*>> items_;
+    std::vector<std::variant<Irufemi::Sprite*, Irufemi::StaticModelObject*>> items_;
     int selectedIndex_ = 0;
 
     UIAnimator animator_;

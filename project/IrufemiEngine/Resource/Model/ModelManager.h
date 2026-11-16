@@ -304,9 +304,9 @@ private:
 
     mutable std::vector<std::string> availableModelsCache_;
     mutable bool isAvailableModelsCached_ = false;
-    std::unique_ptr<::ThreadPool> threadPool_;
-    std::shared_ptr<::TaskGroup> taskGroup_;           ///< 重要タスク用（シーンを止める）
-    std::shared_ptr<::TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用（シーンを止めない）
+    std::unique_ptr<ThreadPool> threadPool_;
+    std::shared_ptr<TaskGroup> taskGroup_;           ///< 重要タスク用（シーンを止める）
+    std::shared_ptr<TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用（シーンを止めない）
 
     std::unique_ptr<DirectoryWatcher> directoryWatcher_;
     /**

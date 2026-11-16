@@ -4,10 +4,10 @@
 #include "Resource/Model/Data/ObjModel.h"
 
 namespace Irufemi {
+
 struct ManagedModel;
 struct GpuMesh;
 class ModelManager;
-}
 
 /**
  * @class ModelBatch
@@ -24,7 +24,7 @@ public:
      * @brief バッチ描画で使用する ModelManager を設定する
      * @param[in] mm 設定する ModelManager のポインタ
      */
-    static void SetModelManager(Irufemi::ModelManager* mm) {
+    static void SetModelManager(ModelManager* mm) {
         modelManager_ = mm;
     }
 
@@ -49,7 +49,7 @@ public:
      * @brief 描画に使用する GPU メッシュリソースを取得する
      * @return 共有 GPU メッシュのポインタ
      */
-    const Irufemi::GpuMesh* GetGpuMesh() const; // 共有メッシュ取得
+    const GpuMesh* GetGpuMesh() const; // 共有メッシュ取得
 
 protected:
     /**
@@ -67,16 +67,18 @@ private:
     /**
      * @brief メッシュのマテリアル定数バッファを生成・割り当てする
      */
-    void CreateMaterialResources(const Irufemi::ObjMesh& mesh);
+    void CreateMaterialResources(const ObjMesh& mesh);
     /**
      * @brief EnsureSharedTexture を実行する。
      */
-    void EnsureSharedTexture(const Irufemi::ObjMesh& mesh);
+    void EnsureSharedTexture(const ObjMesh& mesh);
 
 private:
-    static Irufemi::ModelManager* modelManager_;
+    static ModelManager* modelManager_;
 
     // 共有モデルデータ(CPU/GPU)
-    Irufemi::ResourceHandle modelHandle_{};
+    ResourceHandle modelHandle_{};
     bool isResourcesInitialized_ = false;
 };
+
+} // namespace Irufemi

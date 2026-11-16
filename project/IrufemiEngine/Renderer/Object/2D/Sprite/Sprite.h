@@ -11,11 +11,12 @@
 #include <memory>
 
 // 前方宣言
+class DebugUI;
+
 namespace Irufemi {
+
 class TextureManager;
 class DrawManager;
-}
-class DebugUI;
 class CameraManager;
 
 /**
@@ -27,14 +28,14 @@ class CameraManager;
 class Sprite : public IRenderable {
 public:
     Sprite() = default;
-    explicit Sprite(Irufemi::TextureManager* tm, Irufemi::DrawManager* dm = nullptr, CameraManager* cm = nullptr)
+    explicit Sprite(TextureManager* tm, DrawManager* dm = nullptr, CameraManager* cm = nullptr)
         : instTextureManager_(tm), instDrawManager_(dm), instCameraManager_(cm) {}
 
     /**
      * @brief インスタンス固有の TextureManager を設定する。
      * @param[in] tm 設定する TextureManager のポインタ
      */
-    void SetTextureManagerInstance(Irufemi::TextureManager* tm) {
+    void SetTextureManagerInstance(TextureManager* tm) {
         instTextureManager_ = tm;
     }
 
@@ -42,7 +43,7 @@ public:
      * @brief インスタンス固有の DrawManager を設定する。
      * @param[in] dm 設定する DrawManager のポインタ
      */
-    void SetDrawManagerInstance(Irufemi::DrawManager* dm) {
+    void SetDrawManagerInstance(DrawManager* dm) {
         instDrawManager_ = dm;
     }
 
@@ -66,7 +67,7 @@ public:
      * @brief 使用する DrawManager を取得する（インスタンスメンバ優先）。
      * @return DrawManager のポインタ
      */
-    Irufemi::DrawManager* GetDrawManagerInstance() const {
+    DrawManager* GetDrawManagerInstance() const {
         return instDrawManager_ ? instDrawManager_ : drawManager_;
     }
 
@@ -86,15 +87,15 @@ private:
     int selectedTextureIndex_ = 0;
 
     // インスタンス依存ポインタ（優先）
-    Irufemi::TextureManager* instTextureManager_ = nullptr;
-    Irufemi::DrawManager* instDrawManager_ = nullptr;
+    TextureManager* instTextureManager_ = nullptr;
+    DrawManager* instDrawManager_ = nullptr;
     CameraManager* instCameraManager_ = nullptr;
 
     // 静的フォールバックポインタ
     static CameraManager* cameraManager_;
-    static Irufemi::TextureManager* textureManager_;
-    static Irufemi::DrawManager* drawManager_;
-    static DebugUI* ui_;
+    static TextureManager* textureManager_;
+    static DrawManager* drawManager_;
+    static ::DebugUI* ui_;
 
     // サイズとアンカー
     Irufemi::Vector2 size_{640.0f, 360.0f}; // 既存の見た目互換のため初期値を640x360に
@@ -371,14 +372,14 @@ public: // メンバ関数
      * @brief DrawManager を設定する。
      * @param[in] drawM 設定する DrawManager の値
      */
-    static void SetDrawManager(Irufemi::DrawManager* drawM) {
+    static void SetDrawManager(DrawManager* drawM) {
         drawManager_ = drawM;
     }
     /**
      * @brief DebugUI を設定する。
      * @param[in] ui 設定する DebugUI の値
      */
-    static void SetDebugUI(DebugUI* ui) {
+    static void SetDebugUI(::DebugUI* ui) {
         ui_ = ui;
     }
     /**
@@ -395,6 +396,8 @@ private:
     bool isDirty_ = true;
     bool isTopMost_ = false; // 最前面UIフラグ
     float uiScale_ = 1.0f;   // UIスケール
-    Irufemi::Matrix4x4 lastViewMatrix_ = {};
-    Irufemi::Matrix4x4 lastProjectionMatrix_ = {};
+    Matrix4x4 lastViewMatrix_ = {};
+    Matrix4x4 lastProjectionMatrix_ = {};
 };
+
+} // namespace Irufemi

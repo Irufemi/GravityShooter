@@ -157,7 +157,7 @@ void PauseScene::CreateUIElements() {
         titleText->SetFontId("toro_glitch");
         titleText->SetText(L"- PAUSE -");
         titleText->SetBaseScale(56.0f);
-        titleText->SetAlignment(TextAlignment::Center);
+        titleText->SetAlignment(Irufemi::TextAlignment::Center);
         titleText->SetColor(kColorTitle);
         titleText->SetTopMost(true);
         titleTextComp_ = titleText;
@@ -182,7 +182,7 @@ void PauseScene::CreateUIElements() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
                  sm->LoadScene(std::string(GameScenes::InGame), SceneTransition::Type::RadialBlur, 0.45f,
-                               EaseType::EaseInOutQuad, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+                               Irufemi::EaseType::EaseInOutQuad, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},
         {L"OPTIONS", MenuItem::Options,
@@ -196,8 +196,8 @@ void PauseScene::CreateUIElements() {
          [this]() {
              UISound::PlayDecide();
              if (auto sm = engine_ ? engine_->GetSceneManager() : nullptr) {
-                 sm->TransitionTo(GameScenes::Title, SceneTransition::Type::RadialBlur, 0.6f, EaseType::EaseInCubic,
-                                  Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+                 sm->TransitionTo(GameScenes::Title, SceneTransition::Type::RadialBlur, 0.6f,
+                                  Irufemi::EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
              }
          }},
         {L"QUIT", MenuItem::Quit, [this]() {
@@ -224,7 +224,7 @@ void PauseScene::CreateUIElements() {
             textComp->SetFontId("toro_glitch");
             textComp->SetText(entries[i].text);
             textComp->SetBaseScale(34.0f);
-            textComp->SetAlignment(TextAlignment::Center);
+            textComp->SetAlignment(Irufemi::TextAlignment::Center);
             textComp->SetColor(kColorUnselected);
             textComp->SetTopMost(true);
         }

@@ -12,9 +12,9 @@
 #endif
 #include "Renderer/Object/PrimitiveManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
-IrufemiEngine* Skybox::engine_ = nullptr;
+::IrufemiEngine* Skybox::engine_ = nullptr;
 
 Skybox::Skybox() {}
 
@@ -247,3 +247,5 @@ void Skybox::UnMapResource() {
         indexData_ = nullptr;
     }
 }
+
+} // namespace Irufemi

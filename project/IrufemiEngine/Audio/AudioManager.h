@@ -13,10 +13,11 @@
 // IXAudio2SourceVoice構造体およびIXAudio2SubmixVoiceを前方宣言
 struct IXAudio2SourceVoice;
 struct IXAudio2SubmixVoice;
-class ThreadPool;
-class TaskGroup;
 
 namespace Irufemi {
+
+class ThreadPool;
+class TaskGroup;
 
 /**
  * @class AudioManager
@@ -153,7 +154,7 @@ public:
      * @param[in] folderPath ロード対象のフォルダパス
      * @param[in] threadPool 並列ロードに使用するThreadPool（nullptr時は同期ロード）
      */
-    void LoadAllSoundsFromFolder(const std::string& folderPath, class ThreadPool* threadPool = nullptr);
+    void LoadAllSoundsFromFolder(const std::string& folderPath, ThreadPool* threadPool = nullptr);
 
     /**
      * @brief サブフォルダをカテゴリとしてロードする
@@ -163,7 +164,7 @@ public:
      * @param[in] group 待機用のTaskGroup（内部用）
      */
     void LoadSoundsFromFolder(const std::string& folderPath, const std::string& category,
-                              class ThreadPool* threadPool = nullptr, std::shared_ptr<class TaskGroup> group = nullptr);
+                              ThreadPool* threadPool = nullptr, std::shared_ptr<TaskGroup> group = nullptr);
 
     /**
      * @brief カテゴリ内のサウンド名一覧を取得（ソート済み）

@@ -11,6 +11,10 @@
 #include <shared_mutex>
 #include "Core/Type/BlendMode.h"
 
+namespace Irufemi {
+
+class ThreadPool;
+
 /**
  * @class PSOManager
  * @brief パイプラインステートオブジェクト（PSO）を管理・キャッシュするクラス
@@ -122,13 +126,13 @@ public:
     void ClearCacheByName(const std::string& name);
 
     /** @brief ゲームプレイ中によく使われる PSO の組み合わせを事前にコンパイル・キャッシュします */
-    void PreWarmCommonPSOs(class ThreadPool* threadPool = nullptr);
+    void PreWarmCommonPSOs(ThreadPool* threadPool = nullptr);
 
     /** @brief 実際に使用された PSO のマニフェスト（設定情報）をディスクに自動保存する */
     void SaveManifest(const std::string& manifestPath = "") const;
 
     /** @brief 保存されたマニフェストからすべての PSO を事前ウォームアップする */
-    bool LoadAndPreWarmManifest(class ThreadPool* threadPool = nullptr, const std::string& manifestPath = "");
+    bool LoadAndPreWarmManifest(ThreadPool* threadPool = nullptr, const std::string& manifestPath = "");
 
 private:
     using ComPtr = Microsoft::WRL::ComPtr<ID3D12PipelineState>;
@@ -209,3 +213,5 @@ private:
     ///@}
     ///@}
 };
+
+} // namespace Irufemi

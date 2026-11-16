@@ -8,7 +8,9 @@
 #include "Core/Math/Vector4.h"
 
 // 前方宣言
+namespace Irufemi {
 class ModelBatch;
+}
 class TransformComponent;
 
 /**
@@ -60,7 +62,7 @@ public:
      * @brief 描画可能な内部オブジェクト（ModelBatch）へのポインタを取得します
      * @return IRenderable インターフェースポインタ
      */
-    IRenderable* GetRenderable() override;
+    Irufemi::IRenderable* GetRenderable() override;
 
     // エディタのRaycast用
     /**
@@ -190,7 +192,7 @@ public:
     }
 
 private:
-    std::unique_ptr<ModelBatch> batch_;                 ///< 実際のバッチ描画を担うクラス
+    std::unique_ptr<Irufemi::ModelBatch> batch_;                 ///< 実際のバッチ描画を担うクラス
     std::string modelName_ = "plane.obj";               ///< 読み込むモデル名
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f}; ///< ベースマテリアルカラー
     bool useGPUCulling_ = false;                        ///< GPUカリングの有効フラグ

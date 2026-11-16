@@ -5,6 +5,8 @@
 #include "Core/Math/MathFunction.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 std::vector<VirtualEntityManagerComponent*> VirtualEntityManagerComponent::instances_;
 
 VirtualEntityManagerComponent::VirtualEntityManagerComponent() {

@@ -102,7 +102,7 @@ private:
 } // namespace
 
 void BossStateDestroyed::Enter(BossComponent* boss) {
-    Log::OutPutLog(std::cout, "Boss Destroyed! Starting death sequence steps...\n");
+    Irufemi::Log::OutPutLog(std::cout, "Boss Destroyed! Starting death sequence steps...\n");
 
     // 付随オブジェクト（ドローン群・シールド・弾幕）を一括回収・停止
     if (boss) {

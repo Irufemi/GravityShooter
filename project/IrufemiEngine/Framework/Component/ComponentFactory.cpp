@@ -38,6 +38,8 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+using namespace Irufemi;
+
 std::unordered_map<std::string, ComponentFactory::ComponentRegistration>& ComponentFactory::GetMap() {
     static std::unordered_map<std::string, ComponentRegistration> factoryMap;
     return factoryMap;

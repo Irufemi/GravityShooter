@@ -3,9 +3,9 @@
 #include "Framework/UI/UIAnimator.h"
 
 // 前方宣言
+namespace Irufemi {
 class StaticModelObject;
 class Sprite;
-namespace Irufemi {
 class InputManager;
 }
 
@@ -23,12 +23,12 @@ public:
     /**
      * @brief 対象とする StaticModelObject を設定する
      */
-    void SetTarget(StaticModelObject* targetObj);
+    void SetTarget(Irufemi::StaticModelObject* targetObj);
 
     /**
      * @brief 対象とする Sprite を設定する
      */
-    void SetTarget(Sprite* targetSprite);
+    void SetTarget(Irufemi::Sprite* targetSprite);
 
     /**
      * @brief 決定のトリガーとなるキーコード（VK_SPACE 等）を設定する
@@ -64,8 +64,8 @@ public:
     }
 
 private:
-    StaticModelObject* targetObj_ = nullptr;
-    Sprite* targetSprite_ = nullptr;
+    Irufemi::StaticModelObject* targetObj_ = nullptr;
+    Irufemi::Sprite* targetSprite_ = nullptr;
 
     UIAnimator animator_;
     uint8_t triggerKey_ = 0x20; // VK_SPACE のデフォルト値 (0x20)

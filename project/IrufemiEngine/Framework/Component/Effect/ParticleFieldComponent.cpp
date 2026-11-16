@@ -4,6 +4,9 @@
 #include "Framework/Scene/BaseScene.h"
 #include "Core/System/IrufemiEngine.h"
 #include <cstring>
+
+using namespace Irufemi;
+
 ParticleFieldComponent::ParticleFieldComponent() {
     fieldData_.type = 1; // Default to Point Attractor
     fieldType_ = static_cast<int>(fieldData_.type);

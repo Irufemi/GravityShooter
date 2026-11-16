@@ -2,6 +2,8 @@
 #include "Core/Utility/Ease.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 
+using namespace Irufemi;
+
 // ============================================================================
 // GlitchEffectDriver
 // ============================================================================

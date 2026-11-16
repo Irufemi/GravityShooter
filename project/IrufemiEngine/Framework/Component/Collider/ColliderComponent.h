@@ -278,14 +278,14 @@ public:
     /**
      * @brief デバッグプリミティブ描画時のカテゴリを取得する
      */
-    DebugCategory GetDebugCategory() const {
+    Irufemi::DebugCategory GetDebugCategory() const {
         return debugCategory_;
     }
 
     /**
      * @brief デバッグプリミティブ描画時のカテゴリを設定する
      */
-    void SetDebugCategory(DebugCategory category) {
+    void SetDebugCategory(Irufemi::DebugCategory category) {
         debugCategory_ = category;
     }
 
@@ -323,6 +323,6 @@ protected:
     // BVH (空間分割) 連携
     int32_t bvhNodeId_ = -1; //!< 自身が登録されている Irufemi::DynamicBVH 内のノードインデックス
 
-    DebugCategory debugCategory_ = DebugCategory::Collision;          //!< デバッグ描画カテゴリ (デフォルト: Collision)
+    Irufemi::DebugCategory debugCategory_ = Irufemi::DebugCategory::Collision;          //!< デバッグ描画カテゴリ (デフォルト: Collision)
     std::optional<Irufemi::Vector4> debugCustomColor_ = std::nullopt; //!< デバッグ描画カスタムカラー
 };

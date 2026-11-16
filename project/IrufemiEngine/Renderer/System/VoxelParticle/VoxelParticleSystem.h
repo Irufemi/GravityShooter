@@ -19,6 +19,9 @@
 #include "RHI/DirectX12/ConstantBuffer.h"
 
 class IrufemiEngine;
+
+namespace Irufemi {
+
 class Camera;
 
 // HLSL側のVoxelParticle構造体と一致させる
@@ -274,3 +277,5 @@ private:
 
     static IrufemiEngine* engine_;
 };
+
+} // namespace Irufemi

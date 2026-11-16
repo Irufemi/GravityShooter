@@ -4,6 +4,8 @@
 #include <cstdint>
 #include "RHI/DirectX12/DirectXCommon.h" // kMaxFramesInFlight
 
+namespace Irufemi {
+
 /**
  * @class MultiBufferSyncState
  * @brief 定数バッファ等のマルチバッファリングにおける同期フラグ状態を管理するMixinクラス
@@ -48,3 +50,5 @@ public:
 protected:
     std::array<bool, Irufemi::kMaxFramesInFlight> isDirtyBuffer_{};
 };
+
+} // namespace Irufemi

@@ -229,7 +229,7 @@ void WaveManagerComponent::ReloadLevelData() {
 void WaveManagerComponent::LoadLevelData(const std::string& filePath) {
     nlohmann::json j;
     if (!Irufemi::JsonUtility::LoadFromFile(filePath, j)) {
-        Log::OutPutLog(std::cout, "[WaveManager] Failed to load level data: " + filePath + "\n");
+        Irufemi::Log::OutPutLog(std::cout, "[WaveManager] Failed to load level data: " + filePath + "\n");
         return;
     }
 
@@ -245,7 +245,7 @@ void WaveManagerComponent::LoadLevelData(const std::string& filePath) {
             allEvents_.push_back(data);
         }
     }
-    Log::OutPutLog(std::cout,
+    Irufemi::Log::OutPutLog(std::cout,
                    "[WaveManager] Loaded " + std::to_string(eventQueue_.size()) + " events from " + filePath + "\n");
 }
 
@@ -322,7 +322,7 @@ void WaveManagerComponent::Update() {
 
                 it->second->Execute(this, nextEvent, pos, fwd, right);
             } else {
-                Log::OutPutLog(std::cout, "[WaveManager] Warning: No handler registered for event type: " +
+                Irufemi::Log::OutPutLog(std::cout, "[WaveManager] Warning: No handler registered for event type: " +
                                               nextEvent.eventType + "\n");
             }
 
@@ -350,7 +350,7 @@ void WaveManagerComponent::CacheSpawnPoints() {
         // 最初のバグ (this == 0xF) 対策: 生ポインタが異常に小さい値かどうかをチェック
         auto* rawPtr = obj.get();
         if (reinterpret_cast<uintptr_t>(rawPtr) < 0x1000) {
-            Log::OutPutLog(std::cerr, "[WaveManager] CRITICAL ERROR: Caught invalid GameObject pointer (0x" +
+            Irufemi::Log::OutPutLog(std::cerr, "[WaveManager] CRITICAL ERROR: Caught invalid GameObject pointer (0x" +
                                           std::format("{:X}", reinterpret_cast<uintptr_t>(rawPtr)) +
                                           ") in CacheSpawnPoints!\n");
             continue;

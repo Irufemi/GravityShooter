@@ -4,17 +4,15 @@
 #include "Renderer/Object/2D/Sprite/Sprite.h"
 #include "Engine/Irufemi.h"
 
-using namespace Irufemi;
-
 PromptController::PromptController() {
     animator_.Reset();
 }
 
-void PromptController::SetTarget(StaticModelObject* targetObj) {
+void PromptController::SetTarget(Irufemi::StaticModelObject* targetObj) {
     targetObj_ = targetObj;
 }
 
-void PromptController::SetTarget(Sprite* targetSprite) {
+void PromptController::SetTarget(Irufemi::Sprite* targetSprite) {
     targetSprite_ = targetSprite;
 }
 

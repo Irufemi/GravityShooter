@@ -1078,7 +1078,7 @@ std::wstring GenerateScreenshotPath(const std::wstring& prefix) {
 }
 } // namespace
 
-void DebugUI::ScreenCaptureTab(ScreenCaptureManager* captureManager) {
+void DebugUI::ScreenCaptureTab(Irufemi::ScreenCaptureManager* captureManager) {
 #ifdef USE_IMGUI
     if (!captureManager) {
         return;

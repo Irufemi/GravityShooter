@@ -3,6 +3,8 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Resource/Texture/TextureManager.h"
 
+using namespace Irufemi;
+
 Primitive2DRendererComponent::Primitive2DRendererComponent() {}
 Primitive2DRendererComponent::~Primitive2DRendererComponent() {}
 

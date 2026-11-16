@@ -4,6 +4,8 @@
 #include <iostream>
 #include <format>
 
+namespace Irufemi {
+
 void ErrorUtility::ThrowIfFailed(HRESULT hr, const std::string& msg, const char* file, int line) {
     if (FAILED(hr)) {
         std::string errMsg = GetErrorMessage(hr);
@@ -143,3 +145,5 @@ void ErrorUtility::Warning(bool condition, const std::string& msg, const char* f
         // 処理は停止せずそのまま続行
     }
 }
+
+} // namespace Irufemi

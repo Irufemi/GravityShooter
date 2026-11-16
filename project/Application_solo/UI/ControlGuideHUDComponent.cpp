@@ -102,7 +102,7 @@ void ControlGuideHUDComponent::EnsureUIElements() {
     headerText_->SetText(L"// FCS CONTROLS: 操作システム");
     headerText_->SetBaseScale(10.0f);
     headerText_->SetTopMost(true);
-    headerText_->SetAlignment(TextAlignment::Left);
+    headerText_->SetAlignment(Irufemi::TextAlignment::Left);
     headerText_->SetColor({0.40f, 0.85f, 1.00f, 0.75f});
     headerTextObj_->Initialize();
 
@@ -118,7 +118,7 @@ void ControlGuideHUDComponent::EnsureUIElements() {
     row1Text_->SetText(L"[E / LT] ガレキ引寄    [右クリック / RB] ロックオン    [左クリック / RT] 一斉射撃");
     row1Text_->SetBaseScale(11.0f);
     row1Text_->SetTopMost(true);
-    row1Text_->SetAlignment(TextAlignment::Left);
+    row1Text_->SetAlignment(Irufemi::TextAlignment::Left);
     row1Text_->SetColor({0.90f, 0.95f, 1.00f, 0.95f});
     row1TextObj_->Initialize();
 
@@ -134,7 +134,7 @@ void ControlGuideHUDComponent::EnsureUIElements() {
     row2Text_->SetText(L"[R / B]  ロック解除    [WASD / Lスティック] 機体移動    [ESC / START] ポーズ");
     row2Text_->SetBaseScale(11.0f);
     row2Text_->SetTopMost(true);
-    row2Text_->SetAlignment(TextAlignment::Left);
+    row2Text_->SetAlignment(Irufemi::TextAlignment::Left);
     row2Text_->SetColor({0.75f, 0.82f, 0.92f, 0.85f});
     row2TextObj_->Initialize();
 

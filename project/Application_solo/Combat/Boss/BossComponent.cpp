@@ -27,7 +27,7 @@ void BossComponent::LoadStatusFromJson() {
 
     nlohmann::json j;
     if (!Irufemi::JsonUtility::LoadFromFile(statusDataPath_, j)) {
-        Log::OutPutLog(std::cout, "[BossComponent] Failed to load status: " + statusDataPath_ + "\n");
+        Irufemi::Log::OutPutLog(std::cout, "[BossComponent] Failed to load status: " + statusDataPath_ + "\n");
         return;
     }
 
@@ -99,7 +99,7 @@ void BossComponent::Start() {
     }
 
     if (auto col = gameObject_->GetComponent<SphereColliderComponent>()) {
-        col->SetDebugCategory(DebugCategory::Combat);
+        col->SetDebugCategory(Irufemi::DebugCategory::Combat);
         col->SetDebugCustomColor(Irufemi::Vector4{1.0f, 0.0f, 1.0f, 1.0f});
     }
 
@@ -297,7 +297,7 @@ void BossComponent::ApplyCoreDamage(float damage) {
     hp_ -= damage;
 
     std::string dmgLog = "Boss took damage! HP: " + std::to_string(hp_) + "\n";
-    Log::OutPutLog(std::cout, dmgLog);
+    Irufemi::Log::OutPutLog(std::cout, dmgLog);
 
     NotifyDamageTaken(damage);
 

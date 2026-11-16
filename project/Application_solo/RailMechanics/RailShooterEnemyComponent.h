@@ -343,7 +343,7 @@ private:
     Irufemi::Vector3 lockedTargetPos_ = {0.0f, 0.0f, 0.0f}; //!< 固定された目標座標
 
     // 描画リソース（スナイパー時のみ遅延初期化）
-    std::unique_ptr<Primitive3DObject> telegraphCylinder_ = nullptr;
+    std::unique_ptr<Irufemi::Primitive3DObject> telegraphCylinder_ = nullptr;
     Irufemi::ConstantBuffer<Irufemi::AOEParams> aoeParamsBuffer_;
     Irufemi::AOEParams aoeParamsData_{};
 

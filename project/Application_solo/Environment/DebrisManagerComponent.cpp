@@ -74,7 +74,7 @@ void DebrisManagerComponent::Initialize() {
     bool loaded = Irufemi::JsonUtility::LoadFromFile(configPath, j);
     IRUFEMI_ASSERT_MSG(loaded, "Failed to load DebrisPalette.json: Configuration file is missing or corrupted!");
     if (!loaded) {
-        Log::OutPutLog(std::cerr, "Failed to load DebrisPalette.json\n");
+        Irufemi::Log::OutPutLog(std::cerr, "Failed to load DebrisPalette.json\n");
         return;
     }
 
@@ -119,9 +119,9 @@ void DebrisManagerComponent::Initialize() {
             auraModel->Initialize();
             auraModel->SetShape(Irufemi::PrimitiveType::Sphere);
 
-            if (auto primitive = static_cast<Primitive3DObject*>(auraModel->GetRenderable())) {
+            if (auto primitive = static_cast<Irufemi::Primitive3DObject*>(auraModel->GetRenderable())) {
                 primitive->SetCustomPSO("EnergyCore", Irufemi::BlendMode::kBlendModeAdd,
-                                        PSOManager::DepthWrite::Disable, PSOManager::CullMode::Back);
+                                        Irufemi::PSOManager::DepthWrite::Disable, Irufemi::PSOManager::CullMode::Back);
                 primitive->SetIsTransparent(true);
                 primitive->SetColor(idleAuraColor_);
             }
@@ -164,13 +164,13 @@ void DebrisManagerComponent::Initialize() {
         [this](const std::vector<std::string>& args) {
             int count = args.empty() ? 100 : std::stoi(args[0]);
             SpawnDebrisInFrontOfPlayer(count);
-            Log::OutPutLog(std::cout, "[Command] Spawned " + std::to_string(count) + " debris.\n");
+            Irufemi::Log::OutPutLog(std::cout, "[Command] Spawned " + std::to_string(count) + " debris.\n");
         });
 
     Irufemi::ConsoleCommandSystem::RegisterCommand("clear_debris", "フィールド上の未昇格ガレキを一括消去・返却します。",
                                                    [this](const std::vector<std::string>& /*args*/) {
                                                        ClearAllDebris();
-                                                       Log::OutPutLog(std::cout,
+                                                       Irufemi::Log::OutPutLog(std::cout,
                                                                       "[Command] Cleared all virtual debris.\n");
                                                    });
 }
@@ -822,7 +822,7 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                             effectManager->PlayEffect(debris->GetHitEffectKey(), pos);
                         }
                         if (voxelManager) {
-                            VoxelEmitter p{};
+                            Irufemi::VoxelEmitter p{};
                             p.particleType = 5; // DebrisExplosive
                             p.lifeTime = 1.0f;
                             p.gravity = 5.0f;
@@ -857,7 +857,7 @@ void DebrisManagerComponent::UpdateThrownDebris(float deltaTime) {
                 effectManager->PlayEffect(debris->GetHitEffectKey(), pos);
             }
             if (voxelManager) {
-                VoxelEmitter p{};
+                Irufemi::VoxelEmitter p{};
                 p.particleType = 5; // DebrisExplosive
                 p.lifeTime = 1.0f;
                 p.gravity = 5.0f;

@@ -26,7 +26,7 @@ void MeshRendererComponent::LoadModel(const std::string& filename) {
     }
 }
 
-IRenderable* MeshRendererComponent::GetRenderable() {
+Irufemi::IRenderable* MeshRendererComponent::GetRenderable() {
     return obj_.get();
 }
 

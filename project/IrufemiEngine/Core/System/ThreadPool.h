@@ -11,6 +11,8 @@
 #include <tuple>
 #include "Core/System/TaskGroup.h"
 
+namespace Irufemi {
+
 /**
  * @class ThreadPool
  * @brief 複数のワーカースレッドを用いてタスクを並列実行するクラス
@@ -209,3 +211,5 @@ inline ThreadPool::~ThreadPool() {
         }
     }
 }
+
+} // namespace Irufemi

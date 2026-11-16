@@ -20,11 +20,11 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
         return;
     }
 
-    camera_ = std::make_unique<Camera>();
+    camera_ = std::make_unique<Irufemi::Camera>();
     camera_->Initialize(engine->GetGameResolutionWidth(), engine->GetGameResolutionHeight());
     camera_->UpdateMatrix();
 
-    nowLoadingText_ = std::make_unique<Sprite>();
+    nowLoadingText_ = std::make_unique<Irufemi::Sprite>();
     // 生成した「Now Loading」画像をセット
     nowLoadingText_->Initialize("resources/texture/load/now_loading.png");
 
@@ -36,7 +36,7 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     float screenH = static_cast<float>(engine->GetGameResolutionHeight());
 
     // 背景を真っ黒に塗りつぶすスプライト
-    bgSprite_ = std::make_unique<Sprite>();
+    bgSprite_ = std::make_unique<Irufemi::Sprite>();
     bgSprite_->Initialize("resources/whiteTexture.png");
     bgSprite_->SetColor({0.0f, 0.0f, 0.0f, 1.0f});
     bgSprite_->SetSize(screenW, screenH);
@@ -52,7 +52,7 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
 
     // "..." のドットを3つ作る
     for (int i = 0; i < 3; ++i) {
-        auto dot = std::make_unique<Primitive2DObject>();
+        auto dot = std::make_unique<Irufemi::Primitive2DObject>();
         dot->Initialize(Irufemi::Primitive2DType::Circle, "resources/whiteTexture.png");
         dot->SetColor({1.0f, 1.0f, 1.0f, 1.0f}); // 文字のNeon Cyanに合わせた色にする
         dot->SetPivot({0.5f, 0.5f});

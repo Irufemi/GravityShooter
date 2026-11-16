@@ -41,7 +41,7 @@ public:
 
 private:
     int maxDrones_ = 50;
-    std::unique_ptr<ObjectPool<GameObject>> dronePool_;
+    std::unique_ptr<Irufemi::ObjectPool<GameObject>> dronePool_;
 
     struct DroneAnimData {
         float orbitAngle = 0.0f;
@@ -49,7 +49,7 @@ private:
     };
 
     struct ActiveDrone {
-        ObjectPool<GameObject>::Handle handle;
+        Irufemi::ObjectPool<GameObject>::Handle handle;
         std::shared_ptr<GameObject> gameObject;
     };
 

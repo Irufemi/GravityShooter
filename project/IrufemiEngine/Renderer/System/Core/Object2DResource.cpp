@@ -5,7 +5,7 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Resource/Texture/TextureManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 Object2DResource::~Object2DResource() {
     Unmap();
@@ -186,3 +186,5 @@ void Object2DResource::SyncBeforeDraw() {
         }
     }
 }
+
+} // namespace Irufemi

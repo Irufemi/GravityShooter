@@ -30,7 +30,7 @@
 #include <filesystem>
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // 内部実装の定義
 struct FontManager::Impl {
@@ -460,3 +460,5 @@ ResourceHandle FontManager::GetAtlasHandle() const {
 uint64_t FontManager::GetAtlasVersion() const {
     return impl_->atlasVersion.load();
 }
+
+} // namespace Irufemi

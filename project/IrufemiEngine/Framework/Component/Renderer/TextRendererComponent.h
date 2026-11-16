@@ -67,7 +67,7 @@ public:
      * @brief 描画可能な内部オブジェクト（Text）へのポインタを取得します
      * @return IRenderable インターフェースポインタ
      */
-    IRenderable* GetRenderable() override {
+    Irufemi::IRenderable* GetRenderable() override {
         return textObj_.get();
     }
 
@@ -130,13 +130,13 @@ public:
      * @brief テキストの横揃えアライメント（左揃え・中央揃え・右揃え）を設定します
      * @param[in] align アライメント指定
      */
-    void SetAlignment(TextAlignment align);
+    void SetAlignment(Irufemi::TextAlignment align);
 
     /**
      * @brief テキストの横揃えアライメントを取得します
      * @return アライメント
      */
-    TextAlignment GetAlignment() const {
+    Irufemi::TextAlignment GetAlignment() const {
         return alignment_;
     }
 
@@ -144,13 +144,13 @@ public:
      * @brief テキストの縦揃えアライメント（上揃え・中央揃え・下揃え）を設定します
      * @param[in] vAlign 垂直アライメント指定
      */
-    void SetVerticalAlignment(TextVerticalAlignment vAlign);
+    void SetVerticalAlignment(Irufemi::TextVerticalAlignment vAlign);
 
     /**
      * @brief テキストの縦揃えアライメントを取得します
      * @return 垂直アライメント
      */
-    TextVerticalAlignment GetVerticalAlignment() const {
+    Irufemi::TextVerticalAlignment GetVerticalAlignment() const {
         return verticalAlignment_;
     }
 
@@ -205,7 +205,7 @@ public:
      * @brief 内部の Text オブジェクトを取得します
      * @return Text 生ポインタ
      */
-    Text* GetTextObject() const {
+    Irufemi::Text* GetTextObject() const {
         return textObj_.get();
     }
 
@@ -229,16 +229,16 @@ public:
     void Deserialize(const nlohmann::json& j) override;
 
 private:
-    std::unique_ptr<Text> textObj_;
+    std::unique_ptr<Irufemi::Text> textObj_;
     std::wstring text_ = L"Text";
     std::string textU8_ = "Text"; // For Reflection
     std::string lastSyncedTextU8_ = "Text";
     std::string fontId_ = "MainFont";
     float baseScale_ = 64.0f;
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f};
-    TextAlignment alignment_ = TextAlignment::Left;
+    Irufemi::TextAlignment alignment_ = Irufemi::TextAlignment::Left;
     int alignmentInt_ = 0; // For Reflection (0:Left, 1:Center, 2:Right)
-    TextVerticalAlignment verticalAlignment_ = TextVerticalAlignment::Top;
+    Irufemi::TextVerticalAlignment verticalAlignment_ = Irufemi::TextVerticalAlignment::Top;
     int verticalAlignmentInt_ = 0; // For Reflection (0:Top, 1:Middle, 2:Bottom)
     bool isTopMost_ = false;
 };

@@ -11,11 +11,11 @@
 #include <iostream>
 #include "Resource/Texture/TextureManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 DirectXCommon* BaseBatch::dx_ = nullptr;
-Irufemi::TextureManager* BaseBatch::textureManager_ = nullptr;
-Irufemi::DrawManager* BaseBatch::drawManager_ = nullptr;
+TextureManager* BaseBatch::textureManager_ = nullptr;
+DrawManager* BaseBatch::drawManager_ = nullptr;
 DescriptorPool* BaseBatch::srvPool_ = nullptr;
 
 BaseBatch::BaseBatch() {
@@ -510,3 +510,5 @@ D3D12_GPU_VIRTUAL_ADDRESS BaseBatch::GetMaterialVAddress() const {
     }
     return dx_->GetEngine()->GetMaterialBufferManager()->GetGPUVirtualAddress(materialCbIndex_, dx_->GetFrameIndex());
 }
+
+} // namespace Irufemi

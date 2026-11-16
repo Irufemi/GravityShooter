@@ -207,7 +207,7 @@ public:
      * @brief 紐づく Renderable オブジェクトを取得する
      * @details レンダラー系コンポーネントがこれをオーバーライドすることで、アウトライン描画などを共通化します。
      */
-    virtual IRenderable* GetRenderable() {
+    virtual Irufemi::IRenderable* GetRenderable() {
         return nullptr;
     }
 

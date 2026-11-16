@@ -19,7 +19,7 @@
 
 #pragma comment(lib, "Pathcch.lib")
 
-using namespace Irufemi;
+namespace Irufemi {
 
 ScreenCaptureManager::ScreenCaptureManager() {}
 
@@ -392,3 +392,5 @@ void ScreenCaptureManager::GenerateMetadataJson(const std::wstring& imagePath) {
         ofs.close();
     }
 }
+
+} // namespace Irufemi

@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <vector>
 
+using namespace Irufemi;
+
 namespace {
 
 // ============================================================================

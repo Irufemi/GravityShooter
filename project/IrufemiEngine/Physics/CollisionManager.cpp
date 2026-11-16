@@ -16,7 +16,9 @@
 #include "Core/Math/MathFunction.h"
 #include "Core/System/ThreadPool.h"
 
-void CollisionManager::Initialize(DebugPrimitiveRenderer* debugRenderer) {
+using namespace Irufemi;
+
+void CollisionManager::Initialize(Irufemi::DebugPrimitiveRenderer* debugRenderer) {
     debugPrimitiveRenderer_ = debugRenderer;
     if (!debugLine_) {
         debugLine_ = std::make_unique<Line3DBatch>();

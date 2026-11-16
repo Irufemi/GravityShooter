@@ -251,7 +251,7 @@ void RailShooterEnemyComponent::EnsureTelegraphResources() {
         return;
     }
 
-    telegraphCylinder_ = std::make_unique<Primitive3DObject>();
+    telegraphCylinder_ = std::make_unique<Irufemi::Primitive3DObject>();
     telegraphCylinder_->Initialize(Irufemi::PrimitiveType::Cylinder);
     telegraphCylinder_->SetColor(sniperLaserColor_);
     telegraphCylinder_->SetCastShadows(false);
@@ -333,8 +333,8 @@ void RailShooterEnemyComponent::Draw() {
     telegraphCylinder_->SetScale({sniperLaserRadius_, sniperLaserLength_, sniperLaserRadius_});
     telegraphCylinder_->Update();
 
-    telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd, PSOManager::DepthWrite::Disable,
-                                     PSOManager::CullMode::None);
+    telegraphCylinder_->SetCustomPSO("AOEWarning", Irufemi::BlendMode::kBlendModeAdd,
+                                     Irufemi::PSOManager::DepthWrite::Disable, Irufemi::PSOManager::CullMode::None);
     telegraphCylinder_->SetCustomCBVAddress(aoeParamsBuffer_.GetGPUVirtualAddress(frameIndex));
     telegraphCylinder_->Draw();
 }

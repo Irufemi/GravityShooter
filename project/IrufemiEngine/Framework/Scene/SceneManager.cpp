@@ -17,6 +17,8 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+using namespace Irufemi;
+
 namespace {
 /**
  * @class DataDrivenScene

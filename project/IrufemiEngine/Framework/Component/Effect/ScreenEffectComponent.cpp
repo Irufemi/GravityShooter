@@ -3,6 +3,8 @@
 #include "Core/Utility/Ease.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 namespace {
 // 互換性フォールバック用ダミー静的インスタンス
 PostProcessManager::GlitchParams sDummyGlitch{};

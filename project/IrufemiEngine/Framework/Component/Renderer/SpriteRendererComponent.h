@@ -60,7 +60,7 @@ public:
      * @brief 描画可能な内部オブジェクト（Sprite）へのポインタを取得します
      * @return IRenderable インターフェースポインタ
      */
-    IRenderable* GetRenderable() override {
+    Irufemi::IRenderable* GetRenderable() override {
         return sprite_.get();
     }
 
@@ -124,7 +124,7 @@ public:
      * @brief 内部の Sprite オブジェクトを取得します
      * @return Sprite オブジェクトの生ポインタ
      */
-    Sprite* GetSprite() const {
+    Irufemi::Sprite* GetSprite() const {
         return sprite_.get();
     }
 
@@ -196,7 +196,7 @@ public:
     void Deserialize(const nlohmann::json& j) override;
 
 private:
-    std::unique_ptr<Sprite> sprite_;
+    std::unique_ptr<Irufemi::Sprite> sprite_;
     std::string texturePath_ = "";
     bool isTopMost_ = false;
     bool isFlipX_ = false;

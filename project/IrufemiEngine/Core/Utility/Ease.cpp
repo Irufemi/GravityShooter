@@ -5,6 +5,8 @@
 #include <cmath>
 #include <numbers>
 
+namespace Irufemi {
+
 using namespace Irufemi::Math;
 
 // Irufemi::Quaternion 線形補間(最短経路を選び正規化して返す)
@@ -216,3 +218,5 @@ float EvaluateEase(EaseType type, float t) {
         return t;
     }
 }
+
+} // namespace Irufemi

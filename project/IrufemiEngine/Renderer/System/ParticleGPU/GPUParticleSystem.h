@@ -16,49 +16,49 @@
 #include <random>
 #include "RHI/DirectX12/ConstantBuffer.h"
 #include "Core/System/ResourceHandle.h"
+#include "Renderer/Data/Material.h"
 
 // 前方宣言
+class IrufemiEngine;
+
+#include "RHI/DirectX12/DirectXCommon.h"
+
 namespace Irufemi {
+
 class DrawManager;
 class TextureManager;
 class RenderGraphBuilder;
-}
 class Camera;
-class IrufemiEngine;
 class Line3DBatch;
-
-#include "RHI/DirectX12/DirectXCommon.h"
 
 /**
  * @struct ParticleCS
  * @brief コンピュートシェーダ（CS）側で扱う粒子データ構造体
  */
 struct ParticleCS {
-    Irufemi::Vector3 translate; ///< 位置
+    Vector3 translate; ///< 位置
     uint32_t type;              ///< 0: 親, 1: Trail, 2: Death
-    Irufemi::Vector3 scale;     ///< スケール
+    Vector3 scale;     ///< スケール
     float lifeTime;             ///< 寿命（秒）
-    Irufemi::Vector3 velocity;  ///< 速度
+    Vector3 velocity;  ///< 速度
     float currentTime;          ///< 現在の経過時間
-    Irufemi::Vector4 color;     ///< 色
+    Vector4 color;     ///< 色
 
     // 拡張パラメータ
-    Irufemi::Vector3 rotation;    ///< 回転角
+    Vector3 rotation;    ///< 回転角
     float trailTimer;             ///< Trail放出タイマー
-    Irufemi::Vector3 rotateSpeed; ///< 回転速度
+    Vector3 rotateSpeed; ///< 回転速度
     uint32_t emitterIndex;
-    Irufemi::Vector3 startScale; ///< 開始スケール
+    Vector3 startScale; ///< 開始スケール
     uint32_t billboardMode;
-    Irufemi::Vector3 endScale; ///< 終了スケール
+    Vector3 endScale; ///< 終了スケール
     uint32_t atlasSize;
-    Irufemi::Vector4 startColor; ///< 開始色
-    Irufemi::Vector4 endColor;   ///< 終了色
-    Irufemi::Vector4 midColor;   ///< 中間色
-    Irufemi::Vector3 midScale;   ///< 中間スケール
+    Vector4 startColor; ///< 開始色
+    Vector4 endColor;   ///< 終了色
+    Vector4 midColor;   ///< 中間色
+    Vector3 midScale;   ///< 中間スケール
     float midPoint;              ///< 中間タイミング (0.0~1.0)
 };
-
-#include "Renderer/Data/Material.h"
 
 /**
  * @struct GPUParticleEmitter
@@ -170,13 +170,13 @@ struct ParticleField {
     float pad0 = 0.0f;
     float pad1 = 0.0f;
 
-    Irufemi::Vector3 position = {0.0f, 0.0f, 0.0f};
+    Vector3 position = {0.0f, 0.0f, 0.0f};
     float range = 0.0f; // 0 means infinite
 
-    Irufemi::Vector3 direction = {0.0f, -1.0f, 0.0f};
+    Vector3 direction = {0.0f, -1.0f, 0.0f};
     float falloff = 1.0f; // 減衰率
 
-    Irufemi::Vector3 axis = {0.0f, 1.0f, 0.0f}; // Vortex用の回転軸
+    Vector3 axis = {0.0f, 1.0f, 0.0f}; // Vortex用の回転軸
     float pad2 = 0.0f;
 
     bool operator==(const ParticleField& other) const = default;
@@ -186,7 +186,7 @@ struct ParticleField {
  * @class GPUParticleSystem
  * @brief Compute Shader を使用した、大量の粒子を GPU 上でシミュレーション・描画するクラス
  */
-class GPUParticleSystem : public Irufemi::IComputeTask, public IRenderable {
+class GPUParticleSystem : public IComputeTask, public IRenderable {
 public:
     friend class GPUParticleManager;
     static const uint32_t kMaxEmitters = 2048;
@@ -206,7 +206,7 @@ public:
     /** @name 初期化・更新・描画 */
     ///@{
     void DispatchCompute() override;
-    void Setup(Irufemi::RenderGraphBuilder& builder) override;
+    void Setup(RenderGraphBuilder& builder) override;
     /**
      * @brief Initialize を実行する。
      */
@@ -296,11 +296,11 @@ public:
     /** @brief 粒子の発生ON/OFF */
     void SetEmit(bool emit, uint32_t emitterIndex = 0);
     /** @brief パーティクルの基本色を設定 */
-    void SetColor(const Irufemi::Vector4& color) {
+    void SetColor(const Vector4& color) {
         cpuMaterialData_.color = color;
     }
     /** @brief 3Dメッシュ形状を設定 */
-    void SetPrimitive(Irufemi::PrimitiveType type);
+    void SetPrimitive(PrimitiveType type);
     /** @brief ビルボードのON/OFF */
     void SetBillboard(bool isBillboard, uint32_t emitterIndex = 0);
 
@@ -312,7 +312,7 @@ public:
     void SetTexture(const std::string& textureFilePath);
 
     /** @brief UVの変換行列（スケール・スクロール用）を設定する */
-    void SetUVTransform(const Irufemi::Matrix4x4& transform) {
+    void SetUVTransform(const Matrix4x4& transform) {
         cpuMaterialData_.uvTransform = transform;
     }
     /** @brief 中心部の白丸対策などでSamplerをCLAMPにするか設定する */
@@ -331,8 +331,8 @@ public:
      * @param endMin 終了時の最小スケール
      * @param endMax 終了時の最大スケール
      */
-    void SetParticleScale(const Irufemi::Vector3& startMin, const Irufemi::Vector3& startMax,
-                          const Irufemi::Vector3& endMin, const Irufemi::Vector3& endMax, uint32_t emitterIndex = 0);
+    void SetParticleScale(const Vector3& startMin, const Vector3& startMax,
+                          const Vector3& endMin, const Vector3& endMax, uint32_t emitterIndex = 0);
 
     /**
      * @brief パーティクルの中間スケール（3段階変化用）を設定する
@@ -340,14 +340,14 @@ public:
      * @param midMax 中間時の最大スケール
      * @param midPoint 中間到達タイミング (0.0~1.0)
      */
-    void SetMidScale(const Irufemi::Vector3& midMin, const Irufemi::Vector3& midMax, float midPoint,
+    void SetMidScale(const Vector3& midMin, const Vector3& midMax, float midPoint,
                      uint32_t emitterIndex = 0);
 
     /**
      * @brief パーティクルの色（開始時と終了時、オプションで中間色）を動的に設定する
      */
-    void SetParticleColor(const Irufemi::Vector4& startMin, const Irufemi::Vector4& startMax,
-                          const Irufemi::Vector4& endMin, const Irufemi::Vector4& endMax, uint32_t emitterIndex = 0);
+    void SetParticleColor(const Vector4& startMin, const Vector4& startMax,
+                          const Vector4& endMin, const Vector4& endMax, uint32_t emitterIndex = 0);
 
     /**
      * @brief MidColor を設定する。
@@ -356,7 +356,7 @@ public:
      * @param[in] midPoint 設定する MidColor の値
      * @param[in] 0 設定する MidColor の値
      */
-    void SetMidColor(const Irufemi::Vector4& midMin, const Irufemi::Vector4& midMax, float midPoint,
+    void SetMidColor(const Vector4& midMin, const Vector4& midMax, float midPoint,
                      uint32_t emitterIndex = 0);
 
     /**
@@ -373,7 +373,7 @@ public:
         }
     }
     /** @brief 放出方向を設定する */
-    void SetDirection(const Irufemi::Vector3& dir, uint32_t emitterIndex = 0) {
+    void SetDirection(const Vector3& dir, uint32_t emitterIndex = 0) {
         if (emitterIndex < emittersData_.size()) {
             emittersData_[emitterIndex].directionX = dir.x;
             emittersData_[emitterIndex].directionY = dir.y;
@@ -425,7 +425,7 @@ public:
 
     /** @name 描画設定（パイプライン） */
     ///@{
-    void SetBlendMode(Irufemi::BlendMode blend) {
+    void SetBlendMode(BlendMode blend) {
         selectedBlend_ = blend;
     }
     /**
@@ -466,7 +466,7 @@ public:
 
     /** @name タイプ別エミッター設定 */
     ///@{
-    void SetSphereEmitter(const Irufemi::Vector3& pos, float radius, float emissionRate, uint32_t emitterIndex = 0);
+    void SetSphereEmitter(const Vector3& pos, float radius, float emissionRate, uint32_t emitterIndex = 0);
     /**
      * @brief HemisphereEmitter を設定する。
      * @param[in] pos 設定する HemisphereEmitter の値
@@ -474,7 +474,7 @@ public:
      * @param[in] emissionRate 設定する HemisphereEmitter の値
      * @param[in] 0 設定する HemisphereEmitter の値
      */
-    void SetHemisphereEmitter(const Irufemi::Vector3& pos, float radius, float emissionRate, uint32_t emitterIndex = 0);
+    void SetHemisphereEmitter(const Vector3& pos, float radius, float emissionRate, uint32_t emitterIndex = 0);
     /**
      * @brief BeamEmitter を設定する。
      * @param[in] pos 設定する BeamEmitter の値
@@ -485,7 +485,7 @@ public:
      * @param[in] emissionRate 設定する BeamEmitter の値
      * @param[in] 0 設定する BeamEmitter の値
      */
-    void SetBeamEmitter(const Irufemi::Vector3& pos, const Irufemi::Vector3& direction, float radius, float velocity,
+    void SetBeamEmitter(const Vector3& pos, const Vector3& direction, float radius, float velocity,
                         float spread, float emissionRate, uint32_t emitterIndex = 0);
 
     /** @name アトラス・物理挙動設定 */
@@ -494,7 +494,7 @@ public:
     /** @brief 床衝突設定 */
     void SetGroundCollision(float height, float bounce, uint32_t emitterIndex = 0);
     /** @brief アトラクター（引力源）設定 */
-    void SetAttractor(const Irufemi::Vector3& pos, float strength, uint32_t emitterIndex = 0);
+    void SetAttractor(const Vector3& pos, float strength, uint32_t emitterIndex = 0);
 
     /**
      * @brief リングエミッターの設定
@@ -503,7 +503,7 @@ public:
      * @param thickness 厚み
      * @param emissionRate 1秒あたりの連続放出数
      */
-    void SetRingEmitter(const Irufemi::Vector3& pos, float radius, float thickness, float emissionRate,
+    void SetRingEmitter(const Vector3& pos, float radius, float thickness, float emissionRate,
                         uint32_t emitterIndex = 0);
 
     /**
@@ -514,7 +514,7 @@ public:
      * @param height 高さ
      * @param emissionRate 1秒あたりの連続放出数
      */
-    void SetCylinderEmitter(const Irufemi::Vector3& pos, const Irufemi::Vector3& direction, float radius, float height,
+    void SetCylinderEmitter(const Vector3& pos, const Vector3& direction, float radius, float height,
                             float emissionRate, uint32_t emitterIndex = 0);
 
     /**
@@ -523,18 +523,18 @@ public:
      * @param size ボックスの各軸のサイズ（幅、高さ、奥行き）
      * @param emissionRate 1秒あたりの連続放出数
      */
-    void SetBoxEmitter(const Irufemi::Vector3& pos, const Irufemi::Vector3& size, float emissionRate,
+    void SetBoxEmitter(const Vector3& pos, const Vector3& size, float emissionRate,
                        uint32_t emitterIndex);
 
     /**
      * @brief メッシュエミッターの設定
      */
-    void SetMeshEmitter(const Irufemi::Vector3& pos, D3D12_GPU_VIRTUAL_ADDRESS vbAddress, uint32_t vertexCount,
+    void SetMeshEmitter(const Vector3& pos, D3D12_GPU_VIRTUAL_ADDRESS vbAddress, uint32_t vertexCount,
                         float emissionRate, uint32_t emitterIndex);
     ///@}
 
     /** @brief 開始色を設定する */
-    void SetStartColor(const Irufemi::Vector4& minColor, const Irufemi::Vector4& maxColor, uint32_t emitterIndex = 0) {
+    void SetStartColor(const Vector4& minColor, const Vector4& maxColor, uint32_t emitterIndex = 0) {
         if (emitterIndex < emittersData_.size()) {
             emittersData_[emitterIndex].startColorMinR = minColor.x;
             emittersData_[emitterIndex].startColorMinG = minColor.y;
@@ -548,7 +548,7 @@ public:
     }
 
     /** @brief 終了色を設定する */
-    void SetEndColor(const Irufemi::Vector4& minColor, const Irufemi::Vector4& maxColor, uint32_t emitterIndex = 0) {
+    void SetEndColor(const Vector4& minColor, const Vector4& maxColor, uint32_t emitterIndex = 0) {
         if (emitterIndex < emittersData_.size()) {
             emittersData_[emitterIndex].endColorMinR = minColor.x;
             emittersData_[emitterIndex].endColorMinG = minColor.y;
@@ -575,35 +575,35 @@ public:
 
     /** @name 静的マネージャ設定 */
     ///@{
-    static void SetDXCommon(Irufemi::DirectXCommon* dxCommon) {
+    static void SetDXCommon(DirectXCommon* dxCommon) {
         dxCommon_ = dxCommon;
     }
     /**
      * @brief DrawManager を設定する。
      * @param[in] drawManager 設定する DrawManager の値
      */
-    static void SetDrawManager(Irufemi::DrawManager* drawManager) {
+    static void SetDrawManager(DrawManager* drawManager) {
         drawManager_ = drawManager;
     }
     /**
      * @brief TextureManager を設定する。
      * @param[in] textureManager 設定する TextureManager の値
      */
-    static void SetTextureManager(Irufemi::TextureManager* textureManager) {
+    static void SetTextureManager(TextureManager* textureManager) {
         textureManager_ = textureManager;
     }
     /**
      * @brief Engine を設定する。
      * @param[in] engine 設定する Engine の値
      */
-    static void SetEngine(IrufemiEngine* engine) {
+    static void SetEngine(::IrufemiEngine* engine) {
         engine_ = engine;
     }
     /**
      * @brief Engine を取得する。
      * @return 取得された Engine
      */
-    static IrufemiEngine* GetEngine() {
+    static ::IrufemiEngine* GetEngine() {
         return engine_;
     }
 
@@ -611,7 +611,7 @@ public:
      * @brief TextureManager を取得する。
      * @return 取得された TextureManager
      */
-    static Irufemi::TextureManager* GetTextureManager() {
+    static TextureManager* GetTextureManager() {
         return textureManager_;
     }
     ///@}
@@ -620,21 +620,21 @@ private:
     /**
      * @brief DrawAABB を実行する。
      */
-    void DrawAABB(const Irufemi::Vector3& min, const Irufemi::Vector3& max, const Irufemi::Vector4& color);
+    void DrawAABB(const Vector3& min, const Vector3& max, const Vector4& color);
     /**
      * @brief DrawCircle を実行する。
      */
-    void DrawCircle(const Irufemi::Vector3& center, float radius, const Irufemi::Vector3& axis,
-                    const Irufemi::Vector4& color);
+    void DrawCircle(const Vector3& center, float radius, const Vector3& axis,
+                    const Vector4& color);
     /**
      * @brief DrawSphereWireframe を実行する。
      */
-    void DrawSphereWireframe(const Irufemi::Vector3& center, float radius, const Irufemi::Vector4& color);
+    void DrawSphereWireframe(const Vector3& center, float radius, const Vector4& color);
     /**
      * @brief DrawCylinderWireframe を実行する。
      */
-    void DrawCylinderWireframe(const Irufemi::Vector3& center, const Irufemi::Vector3& direction, float radius,
-                               float height, const Irufemi::Vector4& color);
+    void DrawCylinderWireframe(const Vector3& center, const Vector3& direction, float radius,
+                               float height, const Vector4& color);
 
     /**
      * @brief UpdateDebugLines を実行する。
@@ -657,10 +657,10 @@ private:
 
     ///@}
 
-    static Irufemi::DirectXCommon* dxCommon_;
-    static Irufemi::DrawManager* drawManager_;
-    static Irufemi::TextureManager* textureManager_;
-    static IrufemiEngine* engine_;
+    static DirectXCommon* dxCommon_;
+    static DrawManager* drawManager_;
+    static TextureManager* textureManager_;
+    static ::IrufemiEngine* engine_;
 
     static const uint32_t kMaxParticles = 32768;
 
@@ -677,24 +677,24 @@ private:
     std::vector<D3D12_GPU_VIRTUAL_ADDRESS> meshVertexBuffers_;
 
     // CPU-GPU共有用バッファ（kMaxFramesInFlight個）
-    Microsoft::WRL::ComPtr<ID3D12Resource> emittersResource_[Irufemi::kMaxFramesInFlight];
-    GPUParticleEmitter* emittersMappedData_[Irufemi::kMaxFramesInFlight] = {};
-    uint32_t emittersSrvIndex_[Irufemi::kMaxFramesInFlight] = {};
-    D3D12_GPU_DESCRIPTOR_HANDLE emittersSrvHandleGPU_[Irufemi::kMaxFramesInFlight]{};
+    Microsoft::WRL::ComPtr<ID3D12Resource> emittersResource_[kMaxFramesInFlight];
+    GPUParticleEmitter* emittersMappedData_[kMaxFramesInFlight] = {};
+    uint32_t emittersSrvIndex_[kMaxFramesInFlight] = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE emittersSrvHandleGPU_[kMaxFramesInFlight]{};
 
     /** @name Fieldリソース */
     const std::vector<ParticleField>* globalFields_ = nullptr;
-    Microsoft::WRL::ComPtr<ID3D12Resource> fieldsResource_[Irufemi::kMaxFramesInFlight];
-    ParticleField* fieldsMappedData_[Irufemi::kMaxFramesInFlight] = {};
-    uint32_t fieldsSrvIndex_[Irufemi::kMaxFramesInFlight] = {};
-    D3D12_GPU_DESCRIPTOR_HANDLE fieldsSrvHandleGPU_[Irufemi::kMaxFramesInFlight]{};
+    Microsoft::WRL::ComPtr<ID3D12Resource> fieldsResource_[kMaxFramesInFlight];
+    ParticleField* fieldsMappedData_[kMaxFramesInFlight] = {};
+    uint32_t fieldsSrvIndex_[kMaxFramesInFlight] = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE fieldsSrvHandleGPU_[kMaxFramesInFlight]{};
     ///@}
 
     /** @name 各種リソース */
     ///@{
-    Irufemi::PerFrame perFrameDataStruct_{};
-    Irufemi::PerFrame* perFrameData_ = &perFrameDataStruct_; // CPU側のマスターへのポインタ
-    Irufemi::ConstantBuffer<Irufemi::PerFrame> perFrameBuffer_;
+    PerFrame perFrameDataStruct_{};
+    PerFrame* perFrameData_ = &perFrameDataStruct_; // CPU側のマスターへのポインタ
+    ConstantBuffer<PerFrame> perFrameBuffer_;
     D3D12_CPU_DESCRIPTOR_HANDLE perFrameSrvHandleCPU_{};
     D3D12_GPU_DESCRIPTOR_HANDLE perFrameSrvHandleGPU_{};
 
@@ -727,15 +727,15 @@ private:
     uint32_t sortIndex_ = 0xFFFFFFFF;
     uint32_t sortSrvIndex_ = 0xFFFFFFFF;
 
-    Irufemi::ConstantBuffer<Irufemi::PerView> perViewBuffer_;
+    ConstantBuffer<PerView> perViewBuffer_;
     Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource_;
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView_{};
     D3D12_INDEX_BUFFER_VIEW indexBufferView_{};                            // NEW: インデックスバッファ
     uint32_t indexCount_ = 0;                                              // NEW: インデックス数
-    Irufemi::PrimitiveType primitiveType_ = Irufemi::PrimitiveType::Plane; // 現在の形状
+    PrimitiveType primitiveType_ = PrimitiveType::Plane; // 現在の形状
 
-    Irufemi::ConstantBuffer<Irufemi::Material> materialBuffer_;
-    Irufemi::Material cpuMaterialData_{
+    ConstantBuffer<Material> materialBuffer_;
+    Material cpuMaterialData_{
         {1.0f, 1.0f, 1.0f, 1.0f},                         // color
         0,                                                // enableLighting
         1,                                                // hasTexture
@@ -748,7 +748,7 @@ private:
         0.0f                                              // alphaReference
     };
 
-    Irufemi::ResourceHandle textureHandle_;
+    ResourceHandle textureHandle_;
     int selectedTextureIndex_ = 0;
 
     uint32_t perFrameSrvIndex_ = 0xFFFFFFFF;
@@ -769,7 +769,7 @@ private:
     bool isCsDispatchedThisFrame_ = false;
     uint32_t lastUpdateFrame_ = static_cast<uint32_t>(-1);
 
-    Irufemi::BlendMode selectedBlend_ = Irufemi::BlendMode::kBlendModeAdd;
+    BlendMode selectedBlend_ = BlendMode::kBlendModeAdd;
     PSOManager::DepthWrite selectedDepth_ = PSOManager::DepthWrite::Disable;
     PSOManager::CullMode selectedCull_ = PSOManager::CullMode::None;
     std::string customPSOName_ = "";
@@ -777,3 +777,5 @@ private:
     std::unique_ptr<Line3DBatch> debugLineRegion_;
     bool showEmitterArea_ = true;
 };
+
+} // namespace Irufemi

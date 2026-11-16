@@ -13,8 +13,8 @@
 
 // 前方宣言
 namespace Irufemi {
+
 class DrawManager;
-}
 
 enum class DebugCategory : uint32_t {
     None = 0,
@@ -239,3 +239,5 @@ private:
 
     std::mutex mutex_;
 };
+
+} // namespace Irufemi

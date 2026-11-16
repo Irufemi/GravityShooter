@@ -4,6 +4,8 @@
 #include "Core/Utility/Log.h"
 #include <iostream>
 
+using namespace Irufemi;
+
 ParticleEmitterComponent::ParticleEmitterComponent() {
     particleObj_ = std::make_unique<ParticleObject>();
 }

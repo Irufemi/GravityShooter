@@ -5,6 +5,8 @@
 #include <functional>
 #include <memory>
 
+namespace Irufemi {
+
 /**
  * @class ObjectPool
  * @brief ゼロ・アロケーションを実現する Handle ベースのオブジェクトプール
@@ -187,3 +189,5 @@ private:
     uint32_t headFree_ = 0xFFFFFFFF; ///< フリーリストの先頭インデックス
     size_t freeCount_ = 0;           ///< 空きスロット数
 };
+
+} // namespace Irufemi

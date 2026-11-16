@@ -61,7 +61,7 @@ public:
      * @brief 描画可能な内部オブジェクト（Primitive2DObject）へのポインタを取得します
      * @return IRenderable インターフェースポインタ
      */
-    IRenderable* GetRenderable() override {
+    Irufemi::IRenderable* GetRenderable() override {
         return primitive_.get();
     }
 
@@ -183,7 +183,7 @@ public:
      * @brief 内部の Primitive2DObject を取得します
      * @return Primitive2DObject 生ポインタ
      */
-    Primitive2DObject* GetPrimitive() const {
+    Irufemi::Primitive2DObject* GetPrimitive() const {
         return primitive_.get();
     }
 
@@ -208,7 +208,7 @@ public:
     void Deserialize(const nlohmann::json& j) override;
 
 private:
-    std::unique_ptr<Primitive2DObject> primitive_;
+    std::unique_ptr<Irufemi::Primitive2DObject> primitive_;
     int currentTypeIndex_ = 0; // デフォルトは Rect
     std::string texturePath_ = "";
     bool isTopMost_ = false;

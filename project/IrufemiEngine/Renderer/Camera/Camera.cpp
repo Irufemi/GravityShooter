@@ -6,6 +6,8 @@
 #include <cmath>
 #include <algorithm>
 
+namespace Irufemi {
+
 Camera::Camera() {}
 Camera::~Camera() {}
 
@@ -134,3 +136,5 @@ const Irufemi::Matrix4x4& Camera::GetCameraMatrix() {
     worldMatrix_ = Irufemi::Math::MakeAffineMatrix(scale_, rotate_, translate_);
     return worldMatrix_;
 }
+
+} // namespace Irufemi

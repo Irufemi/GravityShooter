@@ -5,7 +5,7 @@
 #include <cmath>
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 Primitive2DBatch::Primitive2DBatch() {}
 
@@ -260,3 +260,5 @@ void Primitive2DBatch::BuildLine() {
                        {{right, bottom, 0.0f, 1.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}}};
     indexDataList_ = {0, 1, 2, 2, 1, 3};
 }
+
+} // namespace Irufemi

@@ -12,11 +12,10 @@
 #include "RHI/DirectX12/DynamicConstantBuffer.h"
 #include "Core/System/ResourceHandle.h"
 
-class Camera;
-
 namespace Irufemi {
+
+class Camera;
 class TextureManager;
-}
 
 class Object2DResource : public BaseResource {
 public:
@@ -269,3 +268,5 @@ private:
     uint32_t vertexCapacity_ = 0; //!< 現在確保されている頂点バッファの最大要素数
     uint32_t indexCapacity_ = 0;  //!< 現在確保されているインデックスバッファの最大要素数
 };
+
+} // namespace Irufemi

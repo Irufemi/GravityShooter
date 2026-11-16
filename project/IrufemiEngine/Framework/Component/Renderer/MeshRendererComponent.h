@@ -5,7 +5,9 @@
 #include "Core/Shape/Sphere.h"
 
 // 前方宣言
+namespace Irufemi {
 class StaticModelObject;
+}
 class TransformComponent;
 
 class MeshRendererComponent : public Component {
@@ -110,7 +112,7 @@ public:
      * @brief Renderable を取得する。
      * @return 取得された Renderable
      */
-    IRenderable* GetRenderable() override;
+    Irufemi::IRenderable* GetRenderable() override;
 
     /**
      * @brief プロパティ登録
@@ -158,7 +160,7 @@ public:
     }
 
 private:
-    std::unique_ptr<StaticModelObject> obj_; ///< 実際の描画を担う既存クラス
+    std::unique_ptr<Irufemi::StaticModelObject> obj_; ///< 実際の描画を担う既存クラス
     std::string modelName_ = "";             ///< 読み込むモデル名
     std::string currentLoadedFilename_ = ""; ///< 現在ロードされているモデル名（動的変更検知用）
     bool enableLighting_ = true;             ///< ライティング有効フラグ（falseでUnlit自己発光モード）

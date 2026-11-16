@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <climits>
 
+using namespace Irufemi;
+
 CameraShakeComponent::CameraShakeComponent() {
     perlinNoise_ = std::make_shared<Irufemi::PerlinNoise>(
         static_cast<unsigned int>(Irufemi::Random::GeneratorUint64(0, UINT_MAX)));

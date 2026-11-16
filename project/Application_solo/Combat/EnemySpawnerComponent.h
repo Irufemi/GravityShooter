@@ -136,7 +136,7 @@ private:
         Irufemi::Vector3 baseOBBSize = {1.0f, 1.0f, 1.0f};
         bool hasOBBCollider = false;
         std::shared_ptr<ModelBatchRendererComponent> batchRenderer;
-        std::unique_ptr<ObjectPool<GameObject>> pool;
+        std::unique_ptr<Irufemi::ObjectPool<GameObject>> pool;
     };
 
     PrefabPoolData* GetOrCreatePrefabPool(const std::string& prefabPath, uint32_t poolSize = 0);
@@ -156,7 +156,7 @@ private:
         TransformComponent* transform = nullptr;
         EffectMaskComponent* effectMask = nullptr;
         std::string prefabPath;
-        ObjectPool<GameObject>::Handle handle;
+        Irufemi::ObjectPool<GameObject>::Handle handle;
     };
     std::unordered_map<uint64_t, ActiveEnemyInfo> activeEnemyHandles_;
 };

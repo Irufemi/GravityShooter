@@ -8,9 +8,10 @@
 #include "Core/Math/Vector3Int.h"
 
 class IrufemiEngine;
+
 namespace Irufemi {
+
 struct OBB;
-}
 
 class VoxelParticleManager {
 public:
@@ -20,7 +21,7 @@ public:
     /**
      * @brief Initialize を実行する。
      */
-    void Initialize(IrufemiEngine* engine);
+    void Initialize(::IrufemiEngine* engine);
     /**
      * @brief Update を実行する。
      */
@@ -167,5 +168,7 @@ private:
     std::unordered_map<uint32_t, SystemContext*> idLookup_;
     uint32_t nextSystemId_ = 1;
     std::vector<OneShotEmitter> oneShots_;
-    IrufemiEngine* engine_ = nullptr;
+    ::IrufemiEngine* engine_ = nullptr;
 };
+
+} // namespace Irufemi

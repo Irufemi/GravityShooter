@@ -11,6 +11,8 @@
 
 class IrufemiEngine;
 
+namespace Irufemi {
+
 /**
  * @struct GlyphInfo
  * @brief フォントの1文字（グリフ）の描画に必要な情報
@@ -112,3 +114,5 @@ private:
 
     IrufemiEngine* engine_ = nullptr;
 };
+
+} // namespace Irufemi

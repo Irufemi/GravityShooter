@@ -50,18 +50,18 @@ LevelData TL1LevelLoader::Load(const std::string& filepath, BaseScene* scene) {
     LevelData levelData;
 
     if (!scene) {
-        Log::OutPutLog(std::cerr, "[TL1LevelLoader] Scene is null.\n");
+        Irufemi::Log::OutPutLog(std::cerr, "[TL1LevelLoader] Scene is null.\n");
         return levelData;
     }
 
     json rootJson;
     if (!Irufemi::JsonUtility::LoadFromFile(filepath, rootJson)) {
-        Log::OutPutLog(std::cerr, "[TL1LevelLoader] Failed to load JSON file via JsonUtility: " + filepath + "\n");
+        Irufemi::Log::OutPutLog(std::cerr, "[TL1LevelLoader] Failed to load JSON file via JsonUtility: " + filepath + "\n");
         return levelData;
     }
 
     if (!rootJson.contains("objects") || !rootJson["objects"].is_array()) {
-        Log::OutPutLog(std::cerr, "[TL1LevelLoader] JSON does not contain 'objects' array.\n");
+        Irufemi::Log::OutPutLog(std::cerr, "[TL1LevelLoader] JSON does not contain 'objects' array.\n");
         return levelData;
     }
 
@@ -98,7 +98,7 @@ LevelData TL1LevelLoader::Load(const std::string& filepath, BaseScene* scene) {
             obj->Deserialize(engineJson);
             scene->AddGameObject(obj);
         } catch (const std::exception& e) {
-            Log::OutPutLog(std::cerr, "[TL1LevelLoader] Error deserializing object: " + std::string(e.what()) + "\n");
+            Irufemi::Log::OutPutLog(std::cerr, "[TL1LevelLoader] Error deserializing object: " + std::string(e.what()) + "\n");
         }
     }
 

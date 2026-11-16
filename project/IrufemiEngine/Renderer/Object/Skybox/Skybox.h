@@ -18,10 +18,13 @@
 #include "Core/System/ResourceHandle.h"
 
 // 前方宣言
-class Camera;
 class IrufemiEngine;
 
 #include "Renderer/System/Core/IRenderable.h"
+
+namespace Irufemi {
+
+class Camera;
 
 /**
  * @class Skybox
@@ -171,3 +174,5 @@ private: // メンバ変数(resource)
     Irufemi::Matrix4x4 lastViewMatrix_ = {};
     Irufemi::Matrix4x4 lastProjectionMatrix_ = {};
 };
+
+} // namespace Irufemi

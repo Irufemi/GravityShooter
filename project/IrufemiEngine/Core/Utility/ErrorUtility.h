@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <comdef.h>
 
+namespace Irufemi {
+
 class ErrorUtility {
 public:
     /**
@@ -51,6 +53,8 @@ public:
     static void Warning(bool condition, const std::string& msg, const char* file, int line);
 };
 
+} // namespace Irufemi
+
 // =============================================================================
 // DirectX 12 HRESULT エラーハンドリングマクロ (商用AAAエンジン基準)
 // =============================================================================
@@ -61,7 +65,7 @@ public:
  *          例: if (!IRUFEMI_CHECK_HR(hr, "Failed to create texture!")) { return; }
  */
 #define IRUFEMI_CHECK_HR(hr, msg)                                                                                      \
-    (SUCCEEDED(hr) ? true : ErrorUtility::ReportDxError((hr), (msg), __FUNCTION__, __FILE__, __LINE__))
+    (SUCCEEDED(hr) ? true : Irufemi::ErrorUtility::ReportDxError((hr), (msg), __FUNCTION__, __FILE__, __LINE__))
 
 /**
  * @brief 致命的なDirectXアサーションマクロ
@@ -71,7 +75,7 @@ public:
     do {                                                                                                               \
         HRESULT hr_ = (hr);                                                                                            \
         if (FAILED(hr_)) {                                                                                             \
-            ErrorUtility::ThrowIfFailed(hr_, (msg), __FILE__, __LINE__);                                               \
+            Irufemi::ErrorUtility::ThrowIfFailed(hr_, (msg), __FILE__, __LINE__);                                      \
         }                                                                                                              \
     } while (0)
 
@@ -86,20 +90,20 @@ public:
 #define IRUFEMI_ASSERT(condition)                                                                                      \
     do {                                                                                                               \
         if (!(condition)) {                                                                                            \
-            ErrorUtility::Assert(false, #condition, __FILE__, __LINE__);                                               \
+            Irufemi::ErrorUtility::Assert(false, #condition, __FILE__, __LINE__);                                      \
         }                                                                                                              \
     } while (0)
 
 #define IRUFEMI_ASSERT_MSG(condition, msg)                                                                             \
     do {                                                                                                               \
         if (!(condition)) {                                                                                            \
-            ErrorUtility::Assert(false, (msg), __FILE__, __LINE__);                                                    \
+            Irufemi::ErrorUtility::Assert(false, (msg), __FILE__, __LINE__);                                           \
         }                                                                                                              \
     } while (0)
 
 #define IRUFEMI_WARNING(condition, msg)                                                                                \
     do {                                                                                                               \
         if (!(condition)) {                                                                                            \
-            ErrorUtility::Warning(false, (msg), __FILE__, __LINE__);                                                   \
+            Irufemi::ErrorUtility::Warning(false, (msg), __FILE__, __LINE__);                                          \
         }                                                                                                              \
     } while (0)

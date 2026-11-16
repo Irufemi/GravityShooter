@@ -239,7 +239,7 @@ void DroneManagerComponent::WarmupPool() {
         }
         return obj;
     };
-    dronePool_ = std::make_unique<ObjectPool<GameObject>>(maxDrones_, factory);
+    dronePool_ = std::make_unique<Irufemi::ObjectPool<GameObject>>(maxDrones_, factory);
 }
 
 void DroneManagerComponent::DeployDrones(std::weak_ptr<GameObject> boss, int count,

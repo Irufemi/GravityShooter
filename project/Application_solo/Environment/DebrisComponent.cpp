@@ -224,7 +224,7 @@ void DebrisComponent::OnCollisionEnter(GameObject* otherObj) {
 
             auto engine = GetEngine();
             if (auto voxelManager = engine ? engine->GetVoxelParticleManager() : nullptr) {
-                VoxelEmitter p{};
+                Irufemi::VoxelEmitter p{};
                 p.particleType = 5; // DebrisExplosive
                 p.lifeTime = 1.0f;
                 p.gravity = 5.0f;
@@ -286,7 +286,7 @@ void DebrisComponent::UpdateAuraVisuals() {
             child->SetIsActive(isActive);
 
             if (auto auraModel = child->GetComponent<PrimitiveRendererComponent>()) {
-                if (auto primitive = dynamic_cast<Primitive3DObject*>(auraModel->GetRenderable())) {
+                if (auto primitive = dynamic_cast<Irufemi::Primitive3DObject*>(auraModel->GetRenderable())) {
                     primitive->SetColor(auraColor);
                 }
             }

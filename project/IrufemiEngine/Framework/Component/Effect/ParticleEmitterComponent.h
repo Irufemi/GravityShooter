@@ -48,7 +48,7 @@ public:
      * @brief Renderable を取得する。
      * @return 取得された Renderable
      */
-    IRenderable* GetRenderable() override {
+    Irufemi::IRenderable* GetRenderable() override {
         return nullptr;
     }
 
@@ -109,10 +109,10 @@ public:
      * @brief ParticleObject を取得する。
      * @return 取得された ParticleObject
      */
-    ParticleObject* GetParticleObject() const {
+    Irufemi::ParticleObject* GetParticleObject() const {
         return particleObj_.get();
     }
 
 private:
-    std::unique_ptr<ParticleObject> particleObj_;
+    std::unique_ptr<Irufemi::ParticleObject> particleObj_;
 };

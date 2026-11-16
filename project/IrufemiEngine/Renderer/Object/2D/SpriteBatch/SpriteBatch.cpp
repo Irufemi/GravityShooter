@@ -8,10 +8,10 @@
 #include "RHI/DirectX12/DescriptorPool.h"
 #include "../../../../../externals/DirectXTex/d3dx12.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
-Irufemi::TextureManager* SpriteBatch::textureManager_ = nullptr;
-Irufemi::DrawManager* SpriteBatch::drawManager_ = nullptr;
+TextureManager* SpriteBatch::textureManager_ = nullptr;
+DrawManager* SpriteBatch::drawManager_ = nullptr;
 CameraManager* SpriteBatch::cameraManager_ = nullptr;
 DirectXCommon* SpriteBatch::dx_ = nullptr;
 DescriptorPool* SpriteBatch::srvPool_ = nullptr;
@@ -254,3 +254,5 @@ ID3D12PipelineState* SpriteBatch::GetCustomPSO() const {
 D3D12_GPU_DESCRIPTOR_HANDLE SpriteBatch::GetInstancingSrvHandleGPU() const {
     return instancingSrvGPU_.data()[dx_->GetCurrentBackBufferIndex()];
 }
+
+} // namespace Irufemi

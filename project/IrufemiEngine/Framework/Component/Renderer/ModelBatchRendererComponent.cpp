@@ -7,6 +7,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include <cmath>
 
+using namespace Irufemi;
+
 ModelBatchRendererComponent::ModelBatchRendererComponent() {}
 ModelBatchRendererComponent::~ModelBatchRendererComponent() {}
 
@@ -53,7 +55,7 @@ void ModelBatchRendererComponent::Draw() {
     }
 }
 
-IRenderable* ModelBatchRendererComponent::GetRenderable() {
+Irufemi::IRenderable* ModelBatchRendererComponent::GetRenderable() {
     return batch_.get();
 }
 

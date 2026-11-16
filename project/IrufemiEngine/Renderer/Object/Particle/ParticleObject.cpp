@@ -7,9 +7,9 @@
 #include "Core/Utility/Log.h"
 #include "Core/Utility/JsonUtility.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
-Irufemi::TextureManager* ParticleObject::textureManager_ = nullptr;
+TextureManager* ParticleObject::textureManager_ = nullptr;
 
 ParticleObject::ParticleObject() {}
 
@@ -577,7 +577,7 @@ void ParticleObject::CopyFrom(const ParticleObject& other) {
     isDirty_ = true;
 }
 
-void ParticleObject::RegisterProperties(Component* comp) {
+void ParticleObject::RegisterProperties(::Component* comp) {
     if (!comp) {
         return;
     }
@@ -808,3 +808,5 @@ void ParticleObject::DebugUI(const char* name) {
     }
 #endif
 }
+
+} // namespace Irufemi

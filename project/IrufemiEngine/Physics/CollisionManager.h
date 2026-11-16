@@ -32,9 +32,12 @@ struct RaycastHit {
     float distance = 0.0f;
 };
 
+namespace Irufemi {
 class ThreadPool;
-
 class DebugPrimitiveRenderer;
+class Line3DBatch;
+enum class DebugCategory : uint32_t;
+}
 
 /**
  * @class CollisionManager
@@ -47,7 +50,7 @@ public:
 
     /// @brief 初期化
     /// @param[in] debugRenderer デバッグ描画用のレンダラーポインタ
-    void Initialize(DebugPrimitiveRenderer* debugRenderer);
+    void Initialize(Irufemi::DebugPrimitiveRenderer* debugRenderer);
 
     /// @brief 登録されたコライダーをすべてクリアする（シーン切り替え時などに呼ぶ）
     void Clear();
@@ -123,7 +126,7 @@ public:
      * @param pool 使用するエンジンのThreadPool
      * @return 判定結果とHitInfoのペアを返すstd::future
      */
-    std::future<std::pair<bool, RaycastHit>> RaycastAsync(ThreadPool* pool, const Irufemi::Ray& ray,
+    std::future<std::pair<bool, RaycastHit>> RaycastAsync(Irufemi::ThreadPool* pool, const Irufemi::Ray& ray,
                                                           float maxDistance = 1000.0f, uint32_t layerMask = 0xFFFFFFFF,
                                                           GameObject* ignoreObject = nullptr);
 
@@ -132,7 +135,7 @@ public:
 
     /// @brief デバッグ用のAABBを描画キューに追加する
     void DrawDebugAABB(const Irufemi::AABB& aabb, const Irufemi::Vector4& color = {1, 0, 0, 1},
-                       DebugCategory category = DebugCategory::Collision);
+                       Irufemi::DebugCategory category = Irufemi::DebugCategory::Collision);
 
 private:
     CollisionManager(const CollisionManager&) = delete;
@@ -153,8 +156,8 @@ private:
     };
     Irufemi::Synchronized<PendingCommands, std::mutex> pendingCommands_; ///< 遅延コマンド操作用（スレッドセーフ）
 
-    std::unique_ptr<Line3DBatch> debugLine_ = nullptr;
-    DebugPrimitiveRenderer* debugPrimitiveRenderer_ = nullptr;
+    std::unique_ptr<Irufemi::Line3DBatch> debugLine_ = nullptr;
+    Irufemi::DebugPrimitiveRenderer* debugPrimitiveRenderer_ = nullptr;
 
     // --- デバッグ用キャッシュ ---
     std::vector<ColliderComponent*> debugRemoveList_; ///< DrawDebug時の削除リスト（ヒープ割当回避用）

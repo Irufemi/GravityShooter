@@ -12,11 +12,10 @@
 #include "Core/System/ResourceHandle.h"
 #include "Core/Math/Transform.h"
 
-class Camera;
-
 namespace Irufemi {
+
+class Camera;
 class TextureManager;
-}
 
 class Object3DResource : public BaseResource {
 public:
@@ -296,3 +295,5 @@ protected:
     PSOManager::CullMode customCull_ = PSOManager::CullMode::Back;
     D3D12_GPU_VIRTUAL_ADDRESS customCBVAddress_ = 0;
 };
+
+} // namespace Irufemi

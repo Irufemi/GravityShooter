@@ -18,6 +18,8 @@
 #include <atomic>
 #include "Core/Math/Random/Random.h"
 
+using namespace Irufemi;
+
 GameObject::GameObject() : instanceId_(Irufemi::Random::GeneratorUint64(1, ULLONG_MAX)) {
     AddComponent<TransformComponent>();
 }

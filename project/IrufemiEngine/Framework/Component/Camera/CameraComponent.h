@@ -47,7 +47,7 @@ public:
      * @brief Camera を取得する。
      * @return 取得された Camera
      */
-    std::shared_ptr<Camera> GetCamera() const {
+    std::shared_ptr<Irufemi::Camera> GetCamera() const {
         return camera_;
     }
 
@@ -125,7 +125,7 @@ protected:
     void OnRegisterProperties() override;
 
 private:
-    std::shared_ptr<Camera> camera_ = nullptr; ///< 内包するカメラオブジェクト
+    std::shared_ptr<Irufemi::Camera> camera_ = nullptr; ///< 内包するカメラオブジェクト
 
     // シリアライズ・インスペクター編集用プロパティ
     float fovAngleY_ = 45.0f * 3.141592654f / 180.0f; ///< 垂直視野角 (ラジアン)

@@ -4,6 +4,8 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Core/System/IrufemiEngine.h"
 
+using namespace Irufemi;
+
 SpriteRendererComponent::SpriteRendererComponent() {}
 SpriteRendererComponent::~SpriteRendererComponent() {}
 

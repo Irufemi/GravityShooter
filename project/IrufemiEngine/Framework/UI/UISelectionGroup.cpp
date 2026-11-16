@@ -11,13 +11,13 @@ UISelectionGroup::UISelectionGroup() {
     animator_.Reset();
 }
 
-void UISelectionGroup::AddItem(Sprite* sprite) {
+void UISelectionGroup::AddItem(Irufemi::Sprite* sprite) {
     if (sprite) {
         items_.push_back(sprite);
     }
 }
 
-void UISelectionGroup::AddItem(StaticModelObject* obj) {
+void UISelectionGroup::AddItem(Irufemi::StaticModelObject* obj) {
     if (obj) {
         items_.push_back(obj);
     }

@@ -26,12 +26,12 @@ void LockonMarkerUIComponent::Initialize() {
 
     if (!markerBatch_) {
         // 1. SpriteBatch の生成（テクスチャ指定）
-        markerBatch_ = std::make_unique<SpriteBatch>();
+        markerBatch_ = std::make_unique<Irufemi::SpriteBatch>();
         markerBatch_->Initialize("resources/reticle.jpg");
 
         // 2. カスタムシェーダー（輝度アルファ抜き）の適用 (名前指定によるホットリロード安全化)
         markerBatch_->SetCustomPSO("LuminanceAlpha2D", Irufemi::BlendMode::kBlendModeNormal,
-                                   PSOManager::DepthWrite::Off, PSOManager::CullMode::None);
+                                   Irufemi::PSOManager::DepthWrite::Off, Irufemi::PSOManager::CullMode::None);
     }
 }
 
@@ -143,7 +143,7 @@ void LockonMarkerUIComponent::Update() {
         }
 
         // EaseOutCubic を使ってシュッと縮小するアニメーション
-        float easedT = EaseOutCubic(marker.animationT);
+        float easedT = Irufemi::EaseOutCubic(marker.animationT);
         marker.currentScale = std::lerp(3.0f, marker.targetScale, easedT);
 
         int idx = drawCountsCache_[target->GetInstanceID()]++;

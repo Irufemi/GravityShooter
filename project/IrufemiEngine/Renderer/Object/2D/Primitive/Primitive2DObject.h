@@ -12,11 +12,13 @@
 #include "Core/Math/Vector3.h"
 
 // 前方宣言
+class DebugUI;
+class IrufemiEngine;
+
 namespace Irufemi {
+
 class TextureManager;
 class DrawManager;
-}
-class DebugUI;
 
 /**
  * @class Primitive2DObject
@@ -33,7 +35,7 @@ public:
      * @param[in] type 初期形状タイプ
      * @param[in] textureName 使用するテクスチャのパス（デフォルトは白テクスチャ推奨）
      */
-    void Initialize(Irufemi::Primitive2DType type = Irufemi::Primitive2DType::Rect,
+    void Initialize(Primitive2DType type = Primitive2DType::Rect,
                     const std::string& textureName = "resources/whiteTexture.png");
 
     /**
@@ -236,14 +238,14 @@ public:
      * @brief DebugUI を設定する。
      * @param[in] ui 設定する DebugUI の値
      */
-    static void SetDebugUI(DebugUI* ui) {
+    static void SetDebugUI(::DebugUI* ui) {
         ui_ = ui;
     }
     /**
      * @brief Engine を設定する。
      * @param[in] engine 設定する Engine の値
      */
-    static void SetEngine(class IrufemiEngine* engine) {
+    static void SetEngine(::IrufemiEngine* engine) {
         engine_ = engine;
     }
 
@@ -280,9 +282,9 @@ private:
 private:
     std::unique_ptr<Object2DResource> resource_ = nullptr;
 
-    Irufemi::Primitive2DType type_ = Irufemi::Primitive2DType::Rect;
-    Irufemi::Vector2 size_ = {100.0f, 100.0f};
-    Irufemi::Vector2 pivot_ = {0.5f, 0.5f};
+    Primitive2DType type_ = Primitive2DType::Rect;
+    Vector2 size_ = {100.0f, 100.0f};
+    Vector2 pivot_ = {0.5f, 0.5f};
     float thickness_ = 10.0f;   //!< RingやLineでの太さ
     uint32_t subdivision_ = 64; //!< 円系の分割数
 
@@ -291,8 +293,10 @@ private:
     int selectedTextureIndex_ = 0; //!< デバッグUI用
 
     // 静的マネージャ参照
-    static Irufemi::TextureManager* textureManager_;
-    static Irufemi::DrawManager* drawManager_;
-    static DebugUI* ui_;
-    static class IrufemiEngine* engine_;
+    static TextureManager* textureManager_;
+    static DrawManager* drawManager_;
+    static ::DebugUI* ui_;
+    static ::IrufemiEngine* engine_;
 };
+
+} // namespace Irufemi

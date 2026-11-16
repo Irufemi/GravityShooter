@@ -4,9 +4,9 @@
 #include "Renderer/System/Core/BaseResource.h"
 #include "Resource/Model/ModelManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
-IrufemiEngine* BaseModel::engine_ = nullptr;
+::IrufemiEngine* BaseModel::engine_ = nullptr;
 
 BaseModel::~BaseModel() {
     if (transformCbIndex_ != static_cast<uint32_t>(-1)) {
@@ -143,3 +143,5 @@ void BaseModel::UpdateMaterials() {
         // (マテリアルバッファへの転送は SyncBeforeDraw() で行われるため、ここでは SyncMaterialData は呼ばない)
     }
 }
+
+} // namespace Irufemi

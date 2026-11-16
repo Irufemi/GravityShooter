@@ -10,6 +10,8 @@
 #include "Core/System/IrufemiEngine.h"
 #include "Resource/Texture/TextureManager.h"
 
+using namespace Irufemi;
+
 void ParticleEmitterComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* compWrapper = static_cast<ParticleEmitterComponent*>(component);
     auto* comp = compWrapper->GetParticleObject();

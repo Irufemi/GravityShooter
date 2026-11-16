@@ -4,6 +4,8 @@
 #include <mutex>
 #include <condition_variable>
 
+namespace Irufemi {
+
 /**
  * @class TaskGroup
  * @brief 非同期タスクのグループ進捗（残数）を管理するクラス
@@ -61,3 +63,5 @@ private:
     std::mutex mutex_;
     std::condition_variable cv_;
 };
+
+} // namespace Irufemi

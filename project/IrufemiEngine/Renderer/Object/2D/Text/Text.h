@@ -10,13 +10,14 @@
 #include <wrl.h>
 #include <memory>
 
-class FontManager;
+// 前方宣言
 class DebugUI;
-class CameraManager;
 
 namespace Irufemi {
+
+class FontManager;
+class CameraManager;
 class DrawManager;
-}
 
 enum class TextAlignment { Left, Center, Right };
 enum class TextVerticalAlignment { Top, Middle, Bottom };
@@ -321,11 +322,13 @@ private:
     uint64_t lastAtlasVersion_ = 0;
 
     static FontManager* fontManager_;
-    static Irufemi::DrawManager* drawManager_;
+    static DrawManager* drawManager_;
     static CameraManager* cameraManager_;
-    static DebugUI* ui_;
+    static ::DebugUI* ui_;
 
-    Irufemi::Matrix4x4 lastViewMatrix_ = {};
-    Irufemi::Matrix4x4 lastProjectionMatrix_ = {};
-    Irufemi::ResourceHandle lastAtlasHandle_ = {};
+    Matrix4x4 lastViewMatrix_ = {};
+    Matrix4x4 lastProjectionMatrix_ = {};
+    ResourceHandle lastAtlasHandle_ = {};
 };
+
+} // namespace Irufemi

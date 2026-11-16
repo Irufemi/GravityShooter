@@ -67,7 +67,7 @@ public:
      * @brief Renderable を取得する。
      * @return 取得された Renderable
      */
-    IRenderable* GetRenderable() override {
+    Irufemi::IRenderable* GetRenderable() override {
         return animatedMesh_.get();
     }
 
@@ -96,7 +96,7 @@ public:
      * @brief RawObject を取得する。
      * @return 取得された RawObject
      */
-    AnimatedMeshObject* GetRawObject() {
+    Irufemi::AnimatedMeshObject* GetRawObject() {
         return animatedMesh_.get();
     }
 
@@ -141,7 +141,7 @@ public:
     void SetCustomEffectParam(float param);
 
 private:
-    std::unique_ptr<AnimatedMeshObject> animatedMesh_;
+    std::unique_ptr<Irufemi::AnimatedMeshObject> animatedMesh_;
     std::string modelFilename_ = "";
     std::string currentLoadedFilename_ = "";
 

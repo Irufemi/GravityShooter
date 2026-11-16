@@ -12,10 +12,10 @@
 // 前方宣言
 class SceneManager;
 class IrufemiEngine;
-class ThreadPool;
+namespace Irufemi {
 class Object3DResource;
 class Object2DResource;
-namespace Irufemi {
+class ThreadPool;
 class TextureManager;
 class DirectXCommon;
 struct ObjMaterial;
@@ -29,6 +29,7 @@ struct PointLight;
 struct SpotLight;
 struct AreaLight;
 struct LightningParams;
+class ScreenCaptureManager;
 } // namespace Irufemi
 
 #ifdef USE_IMGUI
@@ -153,13 +154,13 @@ public: // メンバ関数
      * @param[in,out] resource 編集対象の3Dリソース
      * @param[in,out] selectedTextureIndex 選択中のテクスチャインデックス
      */
-    void DebugTexture(Object3DResource* resource, int& selectedTextureIndex);
+    void DebugTexture(Irufemi::Object3DResource* resource, int& selectedTextureIndex);
     /**
      * @brief 2Dスプライト用テクスチャの選択・差し替えUIを表示する
      * @param[in,out] resource 編集対象の2Dリソース
      * @param[in,out] selectedTextureIndex 選択中のテクスチャインデックス
      */
-    void DebugTexture(Object2DResource* resource, int& selectedTextureIndex);
+    void DebugTexture(Irufemi::Object2DResource* resource, int& selectedTextureIndex);
 
     /**
      * @brief 平行光源（DirectionalLight）の向き・色・強度を編集するImGui UIを表示する
@@ -217,7 +218,7 @@ public: // メンバ関数
     /**
      * @brief ScreenCaptureManager 用のデバッグタブ
      */
-    void ScreenCaptureTab(class ScreenCaptureManager* captureManager);
+    void ScreenCaptureTab(Irufemi::ScreenCaptureManager* captureManager);
 
     /**
      * @brief 統合デバッグウィンドウの開始
@@ -240,7 +241,7 @@ public: // メンバ関数
     /**
      * @brief PSO設定（描画ステート）の編集UI
      */
-    static void DebugPsoSettings(Irufemi::BlendMode* blendMode, PSOManager::DepthWrite* depthWrite,
-                                 PSOManager::CullMode* cullMode, const char* unique_id = "##PsoSettings");
+    static void DebugPsoSettings(Irufemi::BlendMode* blendMode, Irufemi::PSOManager::DepthWrite* depthWrite,
+                                 Irufemi::PSOManager::CullMode* cullMode, const char* unique_id = "##PsoSettings");
     ///@}
 };

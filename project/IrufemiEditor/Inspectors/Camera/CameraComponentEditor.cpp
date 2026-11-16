@@ -10,6 +10,8 @@
 #include "UI/ComponentUIHelpers.h"
 #include <cmath>
 
+using namespace Irufemi;
+
 CameraComponentEditor::CameraComponentEditor() {
     debugLineBatch_ = std::make_unique<Line3DBatch>();
     debugLineBatch_->Initialize();

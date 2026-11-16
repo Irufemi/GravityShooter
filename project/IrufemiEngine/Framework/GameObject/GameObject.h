@@ -155,8 +155,8 @@ public:
      */
     template <typename T, typename... Args> std::shared_ptr<T> AddComponent(Args&&... args) {
         std::shared_ptr<T> component;
-        if constexpr (IsPooledComponent<T>::value) {
-            component = ComponentPool<T>::GetInstance().Create(std::forward<Args>(args)...);
+        if constexpr (Irufemi::IsPooledComponent<T>::value) {
+            component = Irufemi::ComponentPool<T>::GetInstance().Create(std::forward<Args>(args)...);
         } else {
             component = std::make_shared<T>(std::forward<Args>(args)...);
         }

@@ -4,6 +4,8 @@
 #include <Windows.h>
 #include <cstdio>
 
+namespace Irufemi {
+
 void GPUParticleManager::Initialize() {
     auto state = state_.Write();
     state->systems.clear();
@@ -265,3 +267,5 @@ void GPUParticleManager::Debug() {
     }
 #endif
 }
+
+} // namespace Irufemi

@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <functional>
 
+using namespace Irufemi;
+
 SceneTransition::SceneTransition()
     : fadeDriver_(std::make_unique<FadeTransitionDriver>()),
       dissolveDriver_(std::make_unique<DissolveTransitionDriver>()),

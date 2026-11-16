@@ -7,9 +7,6 @@
 #include "Core/Math/Vector4.h"
 #include "RHI/DirectX12/DescriptorAllocator.h"
 
-// 前方宣言 (グローバル)
-class Camera;
-
 namespace Irufemi {
 
 class DrawManager;

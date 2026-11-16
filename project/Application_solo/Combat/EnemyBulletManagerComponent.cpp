@@ -68,7 +68,7 @@ void EnemyBulletManagerComponent::WarmupPool() {
     }
 
     // ラムダ式内では scene ポインタをキャプチャせず、gameObject_ から最新の有効なシーンを取得する（ダングリング防止）
-    bulletPool_ = std::make_unique<ObjectPool<GameObject>>(maxBullets_, [this]() {
+    bulletPool_ = std::make_unique<Irufemi::ObjectPool<GameObject>>(maxBullets_, [this]() {
         auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
         if (!scene) {
             return std::make_shared<GameObject>("EnemyBullet");

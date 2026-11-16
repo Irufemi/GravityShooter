@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <iostream>
 
+using namespace Irufemi;
+
 TextRendererComponent::TextRendererComponent() {}
 
 TextRendererComponent::~TextRendererComponent() {}
@@ -152,7 +154,7 @@ void TextRendererComponent::SetTopMost(bool isTopMost) {
     }
 }
 
-void TextRendererComponent::SetAlignment(TextAlignment align) {
+void TextRendererComponent::SetAlignment(Irufemi::TextAlignment align) {
     alignment_ = align;
     alignmentInt_ = static_cast<int>(align);
     if (textObj_) {
@@ -160,7 +162,7 @@ void TextRendererComponent::SetAlignment(TextAlignment align) {
     }
 }
 
-void TextRendererComponent::SetVerticalAlignment(TextVerticalAlignment vAlign) {
+void TextRendererComponent::SetVerticalAlignment(Irufemi::TextVerticalAlignment vAlign) {
     verticalAlignment_ = vAlign;
     verticalAlignmentInt_ = static_cast<int>(vAlign);
     if (textObj_) {

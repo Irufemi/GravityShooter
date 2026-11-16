@@ -42,7 +42,7 @@ public:
 private:
     size_t maxLockonCount_ = 1;
     std::vector<LockonMarkerState> activeMarkers_;
-    std::unique_ptr<SpriteBatch> markerBatch_;
+    std::unique_ptr<Irufemi::SpriteBatch> markerBatch_;
 
     // ゼロアロケーション用のキャッシュコンテナ
     std::vector<LockonMarkerState> nextMarkersCache_;

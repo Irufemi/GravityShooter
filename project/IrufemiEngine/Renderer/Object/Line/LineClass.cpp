@@ -1,6 +1,5 @@
 #include "Renderer/Object/Line/LineClass.h"
 #include "Renderer/Camera/CameraManager.h"
-
 #include "Renderer/Camera/Camera.h"
 #include "Renderer/DrawManager.h"
 #include "RHI/DirectX12/DirectXCommon.h"
@@ -8,12 +7,12 @@
 #include "Core/Math/Math.h"
 #include "Core/System/IrufemiEngine.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 DirectXCommon* Line3DBatch::dx_ = nullptr;
-Irufemi::DrawManager* Line3DBatch::drawManager_ = nullptr;
+DrawManager* Line3DBatch::drawManager_ = nullptr;
 DescriptorPool* Line3DBatch::srvAllocator_ = nullptr;
-IrufemiEngine* Line3DBatch::engine_ = nullptr;
+::IrufemiEngine* Line3DBatch::engine_ = nullptr;
 
 Line3DBatch::~Line3DBatch() {
     if (srvAllocator_ && dx_) {
@@ -177,3 +176,5 @@ void Line3DBatch::EnsureInstancingSRV() {
     dx_->GetDevice()->CreateShaderResourceView(instanceBuffer_[frameIndex].Get(), &srvDesc,
                                                instancingSrvCPU_[frameIndex]);
 }
+
+} // namespace Irufemi

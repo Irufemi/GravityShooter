@@ -100,14 +100,14 @@ public:
      * @brief EmitterParams を取得する。
      * @return 取得された EmitterParams
      */
-    VoxelEmitter& GetEmitterParams() {
+    Irufemi::VoxelEmitter& GetEmitterParams() {
         return emitterParams_;
     }
     /**
      * @brief EmitterParams を取得する（読み取り専用）。
      * @return 取得された EmitterParams
      */
-    const VoxelEmitter& GetEmitterParams() const {
+    const Irufemi::VoxelEmitter& GetEmitterParams() const {
         return emitterParams_;
     }
 
@@ -127,7 +127,7 @@ public:
 
 private:
     // 詳細パラメータ
-    VoxelEmitter emitterParams_{};
+    Irufemi::VoxelEmitter emitterParams_{};
 
     // システム設定
     Irufemi::Vector3Int resolution_ = {32, 32, 32}; ///< ボクセルの分割数

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Irufemi {
+
 /**
  * @class IRenderable
  * @brief 描画可能オブジェクトのインターフェース
@@ -27,3 +29,5 @@ public:
      */
     virtual void DrawOutlineMask() {}
 };
+
+} // namespace Irufemi

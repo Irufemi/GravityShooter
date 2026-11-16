@@ -12,6 +12,7 @@
 #include <filesystem>
 
 namespace fs = std::filesystem;
+using namespace Irufemi;
 
 bool SceneSerializer::Save(IScene* scene, const std::string& sceneName) {
     if (!scene) {

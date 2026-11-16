@@ -23,7 +23,7 @@ struct VirtualInstance {
     Irufemi::Vector3 scale = {1.0f, 1.0f, 1.0f};
     bool isPromoted = false;
     bool isDestroyed = false;
-    ObjectPool<GameObject>::Handle promotedHandle;
+    Irufemi::ObjectPool<GameObject>::Handle promotedHandle;
 };
 
 /**
@@ -185,9 +185,9 @@ private:
     int activeInstanceCount_ = 0;
     int maxVirtualInstances_ = 0;
 
-    std::unique_ptr<ObjectPool<GameObject>> pool_;
+    std::unique_ptr<Irufemi::ObjectPool<GameObject>> pool_;
     int maxPoolSize_ = 0;
 
     ModelBatchRendererComponent* batchRenderer_ = nullptr;
-    std::unordered_map<GameObject*, ObjectPool<GameObject>::Handle> activeHandles_;
+    std::unordered_map<GameObject*, Irufemi::ObjectPool<GameObject>::Handle> activeHandles_;
 };

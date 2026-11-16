@@ -5,6 +5,8 @@
 #include "Core/Math/Matrix4x4.h"
 #include "Core/Math/Geometry/Frustum.h"
 
+namespace Irufemi {
+
 /**
  * @class Camera
  * @brief 3D空間の視点を管理し、ビュー行列や射影行列を生成するクラス
@@ -433,3 +435,5 @@ public:
         return height_;
     }
 };
+
+} // namespace Irufemi

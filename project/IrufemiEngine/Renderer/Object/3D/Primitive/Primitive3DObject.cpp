@@ -1,4 +1,5 @@
 #include "Renderer/Object/3D/Primitive/Primitive3DObject.h"
+#include "Core/System/IrufemiEngine.h"
 #include "Renderer/Camera/CameraManager.h"
 
 #include <algorithm>
@@ -17,15 +18,13 @@
 #include "imgui/imgui.h"
 #endif
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // 静的メンバの初期化
-Irufemi::TextureManager* Primitive3DObject::textureManager_ = nullptr;
-Irufemi::DrawManager* Primitive3DObject::drawManager_ = nullptr;
-DebugUI* Primitive3DObject::ui_ = nullptr;
-IrufemiEngine* Primitive3DObject::engine_ = nullptr;
-
-#include "Core/System/IrufemiEngine.h"
+TextureManager* Primitive3DObject::textureManager_ = nullptr;
+DrawManager* Primitive3DObject::drawManager_ = nullptr;
+::DebugUI* Primitive3DObject::ui_ = nullptr;
+::IrufemiEngine* Primitive3DObject::engine_ = nullptr;
 
 // --- Primitive3DObject ---
 
@@ -257,3 +256,5 @@ Irufemi::Vector3 Primitive3DObject::GetDirection() const {
     Irufemi::Matrix4x4 mat = Irufemi::Math::MakeRotateXYZMatrix(transform_.transform.rotate);
     return {mat.m[2][0], mat.m[2][1], mat.m[2][2]};
 }
+
+} // namespace Irufemi

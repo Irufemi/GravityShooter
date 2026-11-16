@@ -76,16 +76,16 @@ public:
         direction_ = dir;
     }
 
-    Primitive3DObject* GetChargeSphere() {
+    Irufemi::Primitive3DObject* GetChargeSphere() {
         return chargeSphere_.get();
     }
-    Primitive3DObject* GetTelegraphCylinder() {
+    Irufemi::Primitive3DObject* GetTelegraphCylinder() {
         return telegraphCylinder_.get();
     }
-    Primitive3DObject* GetAttackCylinder() {
+    Irufemi::Primitive3DObject* GetAttackCylinder() {
         return attackCylinder_.get();
     }
-    Primitive3DObject* GetAttackCylinderOuter() {
+    Irufemi::Primitive3DObject* GetAttackCylinderOuter() {
         return attackCylinderOuter_.get();
     }
 
@@ -132,10 +132,10 @@ private:
     Irufemi::Vector3 direction_{0.0f, 0.0f, 1.0f};
 
     // 描画オブジェクト
-    std::unique_ptr<Primitive3DObject> chargeSphere_ = nullptr;
-    std::unique_ptr<Primitive3DObject> telegraphCylinder_ = nullptr;   // AOE予兆危険円柱
-    std::unique_ptr<Primitive3DObject> attackCylinder_ = nullptr;      // 内側の極太レーザーコア
-    std::unique_ptr<Primitive3DObject> attackCylinderOuter_ = nullptr; // 外側の電撃オーラ
+    std::unique_ptr<Irufemi::Primitive3DObject> chargeSphere_ = nullptr;
+    std::unique_ptr<Irufemi::Primitive3DObject> telegraphCylinder_ = nullptr;   // AOE予兆危険円柱
+    std::unique_ptr<Irufemi::Primitive3DObject> attackCylinder_ = nullptr;      // 内側の極太レーザーコア
+    std::unique_ptr<Irufemi::Primitive3DObject> attackCylinderOuter_ = nullptr; // 外側の電撃オーラ
 
     // シェーダーパラメータ定数バッファ
     Irufemi::ConstantBuffer<Irufemi::AOEParams> aoeParamsBuffer_;

@@ -4,6 +4,8 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Core/System/IrufemiEngine.h"
 
+using namespace Irufemi;
+
 CameraComponent::CameraComponent() = default;
 CameraComponent::~CameraComponent() {
     OnDestroy();

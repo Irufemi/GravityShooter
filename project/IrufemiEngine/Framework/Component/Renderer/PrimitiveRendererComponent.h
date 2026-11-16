@@ -6,7 +6,9 @@
 #include "Core/Shape/Sphere.h"
 
 // 前方宣言
+namespace Irufemi {
 class Primitive3DObject;
+}
 class TransformComponent;
 
 /**
@@ -62,7 +64,7 @@ public:
      * @brief 描画可能な内部オブジェクト（Primitive3DObject）へのポインタを取得します
      * @return IRenderable インターフェースポインタ
      */
-    IRenderable* GetRenderable() override;
+    Irufemi::IRenderable* GetRenderable() override;
 
     // エディタのRaycast用
     /**
@@ -215,7 +217,7 @@ public:
      */
     void RebuildMesh();
 
-    Primitive3DObject* GetPrimitive() const {
+    Irufemi::Primitive3DObject* GetPrimitive() const {
         return primitive_.get();
     }
     int GetCurrentTypeIndex() const {
@@ -289,7 +291,7 @@ public:
     }
 
 private:
-    std::unique_ptr<Primitive3DObject> primitive_;
+    std::unique_ptr<Irufemi::Primitive3DObject> primitive_;
     int currentTypeIndex_ = 2; // デフォルトは Cube (2)
     bool isTransparent_ = false;
     bool enableEffectMask_ = false;

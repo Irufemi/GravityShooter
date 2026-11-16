@@ -17,7 +17,7 @@ void PlayerHealthComponent::LoadStatusFromJson() {
 
     nlohmann::json j;
     if (!Irufemi::JsonUtility::LoadFromFile(statusDataPath_, j)) {
-        Log::OutPutLog(std::cout, "[PlayerHealth] Failed to load status: " + statusDataPath_ + "\n");
+        Irufemi::Log::OutPutLog(std::cout, "[PlayerHealth] Failed to load status: " + statusDataPath_ + "\n");
         return;
     }
 
@@ -51,7 +51,7 @@ void PlayerHealthComponent::Initialize() {
 void PlayerHealthComponent::Start() {
     if (gameObject_) {
         if (auto col = GetCollider()) {
-            col->SetDebugCategory(DebugCategory::Combat);
+            col->SetDebugCategory(Irufemi::DebugCategory::Combat);
             col->SetDebugCustomColor(Irufemi::Vector4{0.0f, 1.0f, 1.0f, 1.0f});
         }
         effectMask_ = gameObject_->GetComponent<EffectMaskComponent>();
@@ -71,7 +71,7 @@ void PlayerHealthComponent::Update() {
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
     if (engine->GetInputManager() && engine->GetInputManager()->IsKeyPressed(VK_F9)) {
         isGodMode_ = !isGodMode_;
-        Log::OutPutLog(std::cout, std::string("[PlayerHealth] God Mode ") + (isGodMode_ ? "ON\n" : "OFF\n"));
+        Irufemi::Log::OutPutLog(std::cout, std::string("[PlayerHealth] God Mode ") + (isGodMode_ ? "ON\n" : "OFF\n"));
     }
 #endif
 
@@ -137,17 +137,17 @@ void PlayerHealthComponent::TakeDamage(int damage) {
     }
 
     if (isGodMode_) {
-        Log::OutPutLog(std::cout, "[PlayerHealth] TakeDamage ignored (God Mode)\n");
+        Irufemi::Log::OutPutLog(std::cout, "[PlayerHealth] TakeDamage ignored (God Mode)\n");
         return;
     }
 
     if (IsInvincible()) {
-        Log::OutPutLog(std::cout, "[PlayerHealth] TakeDamage ignored (Invincible)\n");
+        Irufemi::Log::OutPutLog(std::cout, "[PlayerHealth] TakeDamage ignored (Invincible)\n");
         return;
     }
 
     hp_ -= damage;
-    Log::OutPutLog(std::cout, "[PlayerHealth] Took Damage! HP: " + std::to_string(hp_) + "\n");
+    Irufemi::Log::OutPutLog(std::cout, "[PlayerHealth] Took Damage! HP: " + std::to_string(hp_) + "\n");
 
     for (const auto& listener : onHealthChangedListeners_) {
         if (listener) {
@@ -163,7 +163,7 @@ void PlayerHealthComponent::TakeDamage(int damage) {
 
         NotifyPlayerDied();
 
-        Log::OutPutLog(std::cout, "[PlayerHealth] Player Died!\n");
+        Irufemi::Log::OutPutLog(std::cout, "[PlayerHealth] Player Died!\n");
         return;
     }
 

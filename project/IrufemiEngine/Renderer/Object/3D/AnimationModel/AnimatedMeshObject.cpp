@@ -17,7 +17,7 @@
 #include <cmath>
 #include <cassert>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 AnimatedMeshObject::AnimatedMeshObject() {}
 AnimatedMeshObject::~AnimatedMeshObject() {}
@@ -289,3 +289,5 @@ const SkeletonData* AnimatedMeshObject::GetSkeletonData() const {
 SkeletonPose* AnimatedMeshObject::GetInternalSkeletonPose() {
     return &internalPose_;
 }
+
+} // namespace Irufemi

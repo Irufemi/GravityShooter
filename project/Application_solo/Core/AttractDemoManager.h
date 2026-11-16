@@ -16,7 +16,7 @@ class IrufemiEngine;
  *          - Titleシーン：無操作8秒放置での自律デモ、ベジェ曲線マウススイープ、UIホバー、GAME START出撃自動発火
  *          - InGameシーン：デモ出撃後の3.5秒レール飛行映像の実演およびTitleへの自動フェード帰還
  */
-class AttractDemoManager : public IEngineExtension {
+class AttractDemoManager : public Irufemi::IEngineExtension {
 public:
     /**
      * @enum DemoMode

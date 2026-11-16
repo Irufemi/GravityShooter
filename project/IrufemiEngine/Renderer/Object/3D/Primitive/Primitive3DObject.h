@@ -9,13 +9,13 @@
 #include "Core/Type/PrimitiveType.h"
 #include "Renderer/System/Data/RenderData.h"
 
-// 前方宣言
-class Camera;
+class DebugUI;
+class IrufemiEngine;
+
 namespace Irufemi {
+
 class TextureManager;
 class DrawManager;
-}
-class DebugUI;
 struct PrimitiveData;
 
 /**
@@ -332,7 +332,7 @@ public:
      * @brief インスタンス固有の IrufemiEngine を設定する。
      * @param[in] engine 設定する IrufemiEngine のポインタ
      */
-    void SetEngineInstance(class IrufemiEngine* engine) {
+    void SetEngineInstance(::IrufemiEngine* engine) {
         instEngine_ = engine;
     }
 
@@ -356,7 +356,7 @@ public:
      * @brief 使用する IrufemiEngine を取得する（インスタンスメンバ優先）。
      * @return IrufemiEngine のポインタ
      */
-    class IrufemiEngine* GetEngineInstance() const {
+    ::IrufemiEngine* GetEngineInstance() const {
         return instEngine_ ? instEngine_ : engine_;
     }
 
@@ -386,14 +386,14 @@ public:
      * @brief DebugUI を設定する。
      * @param[in] ui 設定する DebugUI の値
      */
-    static void SetDebugUI(DebugUI* ui) {
+    static void SetDebugUI(::DebugUI* ui) {
         ui_ = ui;
     }
     /**
      * @brief Engine を設定する。
      * @param[in] engine 設定する Engine の値
      */
-    static void SetEngine(class IrufemiEngine* engine) {
+    static void SetEngine(::IrufemiEngine* engine) {
         engine_ = engine;
     }
 
@@ -410,11 +410,13 @@ private:
     // インスタンスポインタ（優先）
     Irufemi::TextureManager* instTextureManager_ = nullptr;
     Irufemi::DrawManager* instDrawManager_ = nullptr;
-    class IrufemiEngine* instEngine_ = nullptr;
+    ::IrufemiEngine* instEngine_ = nullptr;
 
     // 静的ポインタ（既存の設計パターンを継承）
     static Irufemi::TextureManager* textureManager_;
     static Irufemi::DrawManager* drawManager_;
-    static DebugUI* ui_;
-    static class IrufemiEngine* engine_;
+    static ::DebugUI* ui_;
+    static ::IrufemiEngine* engine_;
 };
+
+} // namespace Irufemi

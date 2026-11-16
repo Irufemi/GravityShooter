@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include "Renderer/Camera/Camera.h"
 
+namespace Irufemi {
+
 /**
  * @class CameraManager
  * @brief 複数のカメラを管理し、現在描画に使用する（アクティブな）カメラを切り替えるクラス
@@ -78,3 +80,5 @@ private:
     std::string activeCameraName_;
     Camera* activeCameraCache_ = nullptr; ///< 現在アクティブなカメラへのキャッシュ（ホットパス最適化）
 };
+
+} // namespace Irufemi

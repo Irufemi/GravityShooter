@@ -8,9 +8,11 @@
 #include "Core/Type/BlendMode.h"
 #include "Core/Utility/JsonUtility.h"
 
+class Component;
+
 namespace Irufemi {
+
 class TextureManager;
-}
 
 /**
  * @class ParticleObject
@@ -786,7 +788,7 @@ public:
     /**
      * @brief RegisterProperties を実行する。
      */
-    void RegisterProperties(class Component* comp);
+    void RegisterProperties(::Component* comp);
 
     /**
      * @brief MarkDirty を実行する。
@@ -862,3 +864,5 @@ private:
     int burstCountPending_ = 0;
     bool isDirty_ = true; // パラメータ変更検知フラグ
 };
+
+} // namespace Irufemi

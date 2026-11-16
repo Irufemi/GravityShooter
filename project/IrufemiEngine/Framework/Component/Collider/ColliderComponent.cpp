@@ -2,6 +2,8 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Physics/CollisionManager.h"
 
+using namespace Irufemi;
+
 ColliderComponent::~ColliderComponent() {
     OnDestroy();
 }

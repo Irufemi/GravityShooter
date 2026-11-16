@@ -62,7 +62,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     }
     scoreHeaderText_ = scoreHeaderObj_->AddComponent<TextRendererComponent>().get();
     scoreHeaderText_->SetFontId("toro_glitch");
-    scoreHeaderText_->SetAlignment(TextAlignment::Right);
+    scoreHeaderText_->SetAlignment(Irufemi::TextAlignment::Right);
     scoreHeaderText_->SetBaseScale(12.0f);
     scoreHeaderText_->SetTopMost(true);
     scoreHeaderText_->SetColor({0.35f, 0.75f, 1.0f, 0.5f});
@@ -77,7 +77,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     }
     scoreText_ = scoreObj_->AddComponent<TextRendererComponent>().get();
     scoreText_->SetFontId("toro_glitch");
-    scoreText_->SetAlignment(TextAlignment::Right);
+    scoreText_->SetAlignment(Irufemi::TextAlignment::Right);
     scoreText_->SetBaseScale(22.0f);
     scoreText_->SetTopMost(true);
     scoreText_->SetColor({1.0f, 1.0f, 1.0f, 0.95f});
@@ -92,7 +92,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     }
     killsText_ = killsObj_->AddComponent<TextRendererComponent>().get();
     killsText_->SetFontId("toro_glitch");
-    killsText_->SetAlignment(TextAlignment::Right);
+    killsText_->SetAlignment(Irufemi::TextAlignment::Right);
     killsText_->SetBaseScale(14.0f);
     killsText_->SetTopMost(true);
     killsText_->SetColor({0.4f, 0.85f, 1.0f, 0.75f});
@@ -105,7 +105,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     scene->AddGameObject(popObj_);
     popText_ = popObj_->AddComponent<TextRendererComponent>().get();
     popText_->SetFontId("toro_glitch");
-    popText_->SetAlignment(TextAlignment::Left);
+    popText_->SetAlignment(Irufemi::TextAlignment::Left);
     popText_->SetBaseScale(20.0f);
     popText_->SetTopMost(true);
     popText_->SetColor({1.0f, 0.9f, 0.3f, 1.0f});
@@ -117,7 +117,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     scene->AddGameObject(popScoreObj_);
     popScoreText_ = popScoreObj_->AddComponent<TextRendererComponent>().get();
     popScoreText_->SetFontId("toro_glitch");
-    popScoreText_->SetAlignment(TextAlignment::Left);
+    popScoreText_->SetAlignment(Irufemi::TextAlignment::Left);
     popScoreText_->SetBaseScale(16.0f);
     popScoreText_->SetTopMost(true);
     popScoreText_->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
@@ -130,7 +130,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     scene->AddGameObject(centerBannerObj_);
     centerBannerText_ = centerBannerObj_->AddComponent<TextRendererComponent>().get();
     centerBannerText_->SetFontId("toro_glitch");
-    centerBannerText_->SetAlignment(TextAlignment::Center);
+    centerBannerText_->SetAlignment(Irufemi::TextAlignment::Center);
     centerBannerText_->SetBaseScale(36.0f);
     centerBannerText_->SetTopMost(true);
     centerBannerText_->SetColor({1.0f, 0.85f, 0.2f, 1.0f});
@@ -142,7 +142,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     scene->AddGameObject(centerSubBannerObj_);
     centerSubBannerText_ = centerSubBannerObj_->AddComponent<TextRendererComponent>().get();
     centerSubBannerText_->SetFontId("toro_glitch");
-    centerSubBannerText_->SetAlignment(TextAlignment::Center);
+    centerSubBannerText_->SetAlignment(Irufemi::TextAlignment::Center);
     centerSubBannerText_->SetBaseScale(18.0f);
     centerSubBannerText_->SetTopMost(true);
     centerSubBannerText_->SetColor({1.0f, 1.0f, 1.0f, 1.0f});

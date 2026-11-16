@@ -4,6 +4,8 @@
 #include "Core/System/ComponentPool.h"
 #include <cmath>
 
+using namespace Irufemi;
+
 // Setters
 void TransformComponent::SetPosition(const Irufemi::Vector3& position) {
     if (position_.x != position.x || position_.y != position.y || position_.z != position.z) {

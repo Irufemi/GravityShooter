@@ -10,6 +10,8 @@
 #include "Renderer/Font/FontManager.h"
 #include "Core/Utility/StringUtility.h"
 
+using namespace Irufemi;
+
 void TextRendererComponentEditor::Draw(Component* component, EditorActionManager* actionManager) {
     auto* comp = static_cast<TextRendererComponent*>(component);
     bool headerOpen = ImGui::TreeNodeEx("TextRenderer", ImGuiTreeNodeFlags_DefaultOpen);

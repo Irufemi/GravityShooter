@@ -47,6 +47,8 @@
 // FontAwesome 用のヘッダーを含める
 #include "EngineResources/FontAwesome/IconsFontAwesome6.h"
 
+using namespace Irufemi;
+
 static EditorManager* sInstance = nullptr;
 
 EditorManager::EditorManager() {

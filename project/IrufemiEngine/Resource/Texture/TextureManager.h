@@ -241,9 +241,9 @@ private:
     mutable std::unordered_map<std::string, ResourceHandle> nameToHandleMap_;
     std::vector<std::shared_ptr<Texture>> textureResources_;
 
-    std::unique_ptr<::ThreadPool> threadPool_;
-    std::shared_ptr<::TaskGroup> taskGroup_;           ///< 重要タスク用
-    std::shared_ptr<::TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用
+    std::unique_ptr<ThreadPool> threadPool_;
+    std::shared_ptr<TaskGroup> taskGroup_;           ///< 重要タスク用
+    std::shared_ptr<TaskGroup> backgroundTaskGroup_; ///< バックグラウンド用
 
     // フォールバック白テクスチャ
     std::unique_ptr<Texture> whiteTexture_;

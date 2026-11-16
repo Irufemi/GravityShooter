@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+using namespace Irufemi;
+
 VoxelParticleComponent::VoxelParticleComponent() {}
 
 VoxelParticleComponent::~VoxelParticleComponent() {}

@@ -9,6 +9,8 @@
 #include "Renderer/Data/TransformationMatrix.h"
 #include "Core/Math/Transform.h"
 
+namespace Irufemi {
+
 class Camera;
 
 class LineResource : public BaseResource {
@@ -146,3 +148,5 @@ protected:
     Irufemi::TransformationMatrix transformationMatrix_{};
     uint32_t transformCbIndex_ = static_cast<uint32_t>(-1);
 };
+
+} // namespace Irufemi

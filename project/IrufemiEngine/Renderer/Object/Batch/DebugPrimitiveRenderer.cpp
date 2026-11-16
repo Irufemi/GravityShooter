@@ -7,7 +7,7 @@
 #include "Core/Math/Math.h"
 #include "Core/System/IrufemiEngine.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 DebugPrimitiveRenderer::~DebugPrimitiveRenderer() {
     if (srvAllocator_ && dx_) {
@@ -419,3 +419,5 @@ void DebugPrimitiveRenderer::Draw() {
         drawManager_->SubmitDebugPrimitive(packet);
     }
 }
+
+} // namespace Irufemi

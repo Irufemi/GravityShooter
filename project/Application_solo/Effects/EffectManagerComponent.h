@@ -69,15 +69,15 @@ private:
      * @param prefabPath プレハブパス
      * @return エフェクトプールへの生ポインタ
      */
-    ObjectPool<GameObject>* GetOrCreatePool(const std::string& effectKey, const std::string& prefabPath);
+    Irufemi::ObjectPool<GameObject>* GetOrCreatePool(const std::string& effectKey, const std::string& prefabPath);
 
     int maxHitEffects_ = 50;
     int maxDustEffects_ = 50;
     float effectDuration_ = 2.0f; // エフェクトの生存時間
-    std::unordered_map<std::string, std::unique_ptr<ObjectPool<GameObject>>> effectPools_;
+    std::unordered_map<std::string, std::unique_ptr<Irufemi::ObjectPool<GameObject>>> effectPools_;
 
     struct ActiveEffect {
-        ObjectPool<GameObject>::Handle handle;
+        Irufemi::ObjectPool<GameObject>::Handle handle;
         float timer;
         std::string effectKey;
     };

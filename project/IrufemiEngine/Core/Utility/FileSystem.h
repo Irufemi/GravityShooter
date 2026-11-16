@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace Irufemi {
+
 /**
  * @brief パス解決を行うクラス
  * @details 実行環境（開発環境・配布環境）の違いを吸収し、常に安全な絶対パスを提供します。
@@ -56,3 +58,5 @@ private:
     static std::string engineRoot_;
     static std::string exePath_;
 };
+
+} // namespace Irufemi

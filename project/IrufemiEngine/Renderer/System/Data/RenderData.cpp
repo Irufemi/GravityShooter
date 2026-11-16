@@ -3,7 +3,7 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Renderer/Camera/Camera.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // --- TransformComponent ---
 
@@ -110,10 +110,12 @@ void MaterialDesc::UpdateMaterial(Object3DResource* resource, Irufemi::TextureMa
     resource->MarkAsDirty();
 }
 
-void MaterialDesc::Release(Irufemi::TextureManager* textureManager) {
+void MaterialDesc::Release(TextureManager* textureManager) {
     if (textureManager && textureHandle.IsValid()) {
         textureManager->ReleaseTexture(textureHandle);
         textureHandle = ResourceHandle();
         loadedTexturePath.clear();
     }
 }
+
+} // namespace Irufemi

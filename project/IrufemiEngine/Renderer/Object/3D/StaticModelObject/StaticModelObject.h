@@ -22,18 +22,10 @@
 #include "Renderer/Compute/IComputeTask.h"
 
 namespace Irufemi {
+
 class TextureManager;
 class ModelManager;
 class DrawManager;
-}
-class DebugUI;
-
-//==========================
-// objが配布されているサイト
-// https://quaternius.com/
-// 使用する場合はライセンスがCCOのものを利用する
-// https://creativecommons.org/publicdomain/zero/1.0/deed.ja
-//==========================
 
 /**
  * @class StaticModelObject
@@ -41,7 +33,7 @@ class DebugUI;
  * @details ModelManager から取得した共有モデルデータを参照し、個別の位置・回転・拡縮やマテリアル設定を保持します。
  * スキン付きモデルの場合は、バインドポーズによる静的スキニングコンピュートタスクを実行します。
  */
-class StaticModelObject : public BaseModel, public Irufemi::IComputeTask {
+class StaticModelObject : public BaseModel, public IComputeTask {
 
 private:
     /**
@@ -114,3 +106,5 @@ private:
     uint32_t lastSkinnedFrameIndex_ = 0;
     bool isResourceInitialized_ = false;
 };
+
+} // namespace Irufemi

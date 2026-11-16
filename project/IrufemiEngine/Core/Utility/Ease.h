@@ -6,6 +6,8 @@
 #include "Core/Math/Quaternion.h"
 #include <algorithm>
 
+namespace Irufemi {
+
 // イージングの種類
 enum class EaseType {
     Linear,
@@ -137,3 +139,5 @@ float EaseInQuint(float num);
  * @brief EaseOutQuint を実行する。
  */
 float EaseOutQuint(float num);
+
+} // namespace Irufemi

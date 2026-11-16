@@ -4,11 +4,14 @@
 #include "Framework/UI/DebugUI.h"
 #include "Resource/Texture/TextureManager.h"
 #include "Core/Math/Math.h"
+#include "Core/System/IrufemiEngine.h"
 #include "Engine/Irufemi.h"
 #include "Renderer/Object/3D/Primitive/Primitive3DObject.h"
 #include "Renderer/Object/PrimitiveManager.h"
 
-IrufemiEngine* Effect::engine_ = nullptr;
+namespace Irufemi {
+
+::IrufemiEngine* Effect::engine_ = nullptr;
 
 Effect::Effect() = default;
 Effect::~Effect() = default;
@@ -1089,3 +1092,5 @@ void Effect::Play(const Irufemi::Vector3& position, const Irufemi::Vector3& rota
         break;
     }
 }
+
+} // namespace Irufemi

@@ -3,6 +3,8 @@
 
 class IrufemiEngine;
 
+namespace Irufemi {
+
 /**
  * @class ILoadingScreen
  * @brief エンジンからローディング画面の描画を要求するためのインターフェース
@@ -31,3 +33,5 @@ public:
      */
     virtual void SetFadeAlpha(float /*alpha*/) {}
 };
+
+} // namespace Irufemi

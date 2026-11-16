@@ -52,7 +52,7 @@ public:
      * @brief レンダラブルなオブジェクトを取得する（非対応）
      * @return 常にnullptr
      */
-    IRenderable* GetRenderable() override {
+    Irufemi::IRenderable* GetRenderable() override {
         return nullptr;
     }
 
@@ -99,25 +99,25 @@ public:
      * @brief フィールドデータへの参照を取得する
      * @return 更新や取得のための ParticleField 構造体への参照
      */
-    ParticleField& GetFieldData() {
+    Irufemi::ParticleField& GetFieldData() {
         return fieldData_;
     }
     /**
      * @brief フィールドデータへの参照を取得する（読み取り専用）
      * @return 読み取り専用の ParticleField 構造体への参照
      */
-    const ParticleField& GetFieldData() const {
+    const Irufemi::ParticleField& GetFieldData() const {
         return fieldData_;
     }
 
 private:
-    GPUParticleManager::FieldHandle fieldHandle_;
-    GPUParticleManager* gpuParticleManager_ = nullptr;
+    Irufemi::GPUParticleManager::FieldHandle fieldHandle_;
+    Irufemi::GPUParticleManager* gpuParticleManager_ = nullptr;
 
-    ParticleField fieldData_;
+    Irufemi::ParticleField fieldData_;
     int fieldType_ = 0;
 
-    ParticleField lastFieldData_{};
+    Irufemi::ParticleField lastFieldData_{};
     int lastFieldType_ = -1;
     bool isFirstUpdate_ = true;
 };

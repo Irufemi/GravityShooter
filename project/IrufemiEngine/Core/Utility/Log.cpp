@@ -18,6 +18,8 @@
 
 #include "Core/Utility/FileSystem.h"
 
+namespace Irufemi {
+
 void Log::Initialize() {
 
     /*ログを出そう*/
@@ -63,3 +65,5 @@ void Log::OutPutLog(std::ostream& os, const std::string& message) {
         }
     });
 }
+
+} // namespace Irufemi

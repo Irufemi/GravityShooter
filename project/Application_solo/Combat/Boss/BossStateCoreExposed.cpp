@@ -31,7 +31,7 @@ EffectMaskComponent* BossStateCoreExposed::GetCoreEffectMask(BossComponent* boss
 }
 
 void BossStateCoreExposed::Enter(BossComponent* boss) {
-    Log::OutPutLog(std::cout, "Boss entered CoreExposed State (Vulnerable)\n");
+    Irufemi::Log::OutPutLog(std::cout, "Boss entered CoreExposed State (Vulnerable)\n");
 
     // 【Juice】画面中央に SHIELD BREAK! 特大バナーを通知 ＆ スナップSE
     if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {

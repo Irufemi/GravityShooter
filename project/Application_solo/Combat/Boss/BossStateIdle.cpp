@@ -9,7 +9,7 @@
 #include <memory>
 
 void BossStateIdle::Enter(BossComponent* boss) {
-    Log::OutPutLog(std::cout, "Boss entered Idle State (Shield Active)\n");
+    Irufemi::Log::OutPutLog(std::cout, "Boss entered Idle State (Shield Active)\n");
 }
 
 void BossStateIdle::Update(BossComponent* boss) {
@@ -36,5 +36,5 @@ void BossStateIdle::Update(BossComponent* boss) {
 void BossStateIdle::Exit(BossComponent* boss) {}
 
 void BossStateIdle::OnTakeDamage(BossComponent* boss, float damage) {
-    Log::OutPutLog(std::cout, "Boss blocked damage with shield!\n");
+    Irufemi::Log::OutPutLog(std::cout, "Boss blocked damage with shield!\n");
 }

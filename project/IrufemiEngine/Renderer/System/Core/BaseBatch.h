@@ -16,11 +16,11 @@
 #include "Renderer/Camera/Camera.h"
 #include "Core/System/ResourceHandle.h"
 
-class Camera;
 namespace Irufemi {
+
+class Camera;
 class TextureManager;
 class DrawManager;
-}
 
 class BaseBatch : public IRenderable {
 public:
@@ -461,3 +461,5 @@ protected:
     std::string customPSOName_ = "";
     D3D12_GPU_VIRTUAL_ADDRESS customCBVAddress_ = 0;
 };
+
+} // namespace Irufemi

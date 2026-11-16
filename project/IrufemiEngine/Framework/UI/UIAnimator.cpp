@@ -2,6 +2,8 @@
 #include "Core/Utility/Ease.h"
 #include <cmath>
 
+using namespace Irufemi;
+
 void UIAnimator::Update(float deltaTime) {
     time_ += deltaTime;
 }

@@ -4,7 +4,7 @@
 #include "Core/Math/Math.h"
 #include "Core/System/IrufemiEngine.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 LineResource::~LineResource() {
     Unmap();
@@ -126,3 +126,5 @@ void LineResource::SyncBeforeDraw() {
         }
     }
 }
+
+} // namespace Irufemi

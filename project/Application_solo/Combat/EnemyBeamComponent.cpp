@@ -50,16 +50,16 @@ void EnemyBeamComponent::Initialize() {
     }
 
     // --- チャージ球の初期化 ---
-    chargeSphere_ = std::make_unique<Primitive3DObject>();
+    chargeSphere_ = std::make_unique<Irufemi::Primitive3DObject>();
     chargeSphere_->Initialize(Irufemi::PrimitiveType::Sphere);
     chargeSphere_->SetColor(config_.chargeColor);
     chargeSphere_->SetCullingEnabled(false);
     chargeSphere_->SetCustomPSO("EnergyCore", Irufemi::BlendMode::kBlendModePremultiplied,
-                                PSOManager::DepthWrite::Disable, PSOManager::CullMode::Back);
+                                Irufemi::PSOManager::DepthWrite::Disable, Irufemi::PSOManager::CullMode::Back);
     chargeSphere_->SetIsTransparent(true);
 
     // --- AOE予兆危険円柱の初期化 ---
-    telegraphCylinder_ = std::make_unique<Primitive3DObject>();
+    telegraphCylinder_ = std::make_unique<Irufemi::Primitive3DObject>();
     telegraphCylinder_->Initialize(Irufemi::PrimitiveType::Cylinder);
     telegraphCylinder_->SetColor(config_.telegraphColor);
     telegraphCylinder_->SetCastShadows(false);
@@ -67,14 +67,14 @@ void EnemyBeamComponent::Initialize() {
     telegraphCylinder_->SetIsTransparent(true);
 
     // --- ビーム本体の初期化 ---
-    attackCylinder_ = std::make_unique<Primitive3DObject>();
+    attackCylinder_ = std::make_unique<Irufemi::Primitive3DObject>();
     attackCylinder_->Initialize(Irufemi::PrimitiveType::Cylinder);
     attackCylinder_->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
     attackCylinder_->SetCastShadows(false);
     attackCylinder_->SetCullingEnabled(false);
     attackCylinder_->SetIsTransparent(true);
 
-    attackCylinderOuter_ = std::make_unique<Primitive3DObject>();
+    attackCylinderOuter_ = std::make_unique<Irufemi::Primitive3DObject>();
     attackCylinderOuter_->Initialize(Irufemi::PrimitiveType::Cylinder);
     attackCylinderOuter_->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
     attackCylinderOuter_->SetCastShadows(false);

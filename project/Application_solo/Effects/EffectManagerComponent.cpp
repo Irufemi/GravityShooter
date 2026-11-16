@@ -51,7 +51,7 @@ void EffectManagerComponent::Start() {
     }
 }
 
-ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::string& effectKey,
+Irufemi::ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::string& effectKey,
                                                                 const std::string& prefabPath) {
     auto it = effectPools_.find(effectKey);
     if (it != effectPools_.end()) {
@@ -62,7 +62,7 @@ ObjectPool<GameObject>* EffectManagerComponent::GetOrCreatePool(const std::strin
     }
 
     int poolCapacity = (effectKey == "Hit") ? maxHitEffects_ : maxDustEffects_;
-    auto pool = std::make_unique<ObjectPool<GameObject>>(poolCapacity, [this, prefabPath]() {
+    auto pool = std::make_unique<Irufemi::ObjectPool<GameObject>>(poolCapacity, [this, prefabPath]() {
         // makeChild = true でマネージャーの子として生成し、ルート直置きを解消
         auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
         if (obj) {
@@ -132,7 +132,7 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
         return;
     }
 
-    ObjectPool<GameObject>* targetPool = GetOrCreatePool(effectKey, it->second);
+    Irufemi::ObjectPool<GameObject>* targetPool = GetOrCreatePool(effectKey, it->second);
     if (targetPool) {
         auto handle = targetPool->Acquire();
 

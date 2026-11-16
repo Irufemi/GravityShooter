@@ -13,6 +13,10 @@
 #include "Renderer/Pipeline/PSOManager.h"
 #include "Renderer/Object/PrimitiveManager.h"
 
+class IrufemiEngine;
+
+namespace Irufemi {
+
 class ParticleObject;
 class Primitive3DObject;
 
@@ -69,7 +73,7 @@ public:
      * @brief Engine を設定する。
      * @param[in] engine 設定する Engine の値
      */
-    static void SetEngine(class IrufemiEngine* engine) {
+    static void SetEngine(::IrufemiEngine* engine) {
         engine_ = engine;
     }
 
@@ -199,7 +203,7 @@ public:
     };
 
 private:
-    static class IrufemiEngine* engine_;
+    static ::IrufemiEngine* engine_;
     std::unique_ptr<ParticleObject> hitParticle_;
     std::unique_ptr<ParticleObject> impactPlaneParticle_;
     std::unique_ptr<Primitive3DObject> impactRingObject_;
@@ -235,3 +239,5 @@ private:
     PSOManager::CullMode cullMode_ = PSOManager::CullMode::None;
     bool isBillboard_ = true;
 };
+
+} // namespace Irufemi

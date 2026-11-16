@@ -13,8 +13,10 @@
 #include "Renderer/Camera/CameraManager.h"
 #include "Resource/Model/AnimationManager.h"
 #include "Renderer/Compute/IComputeTask.h"
+#include "Core/Shape/Sphere.h"
+#include "Physics/Collision/Collision.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // 静的メンバ定義
 
@@ -234,8 +236,8 @@ void StaticModelObject::Draw() {
 
     // カメラの行列が変更されたか、オブジェクト自体が変更されたかチェック
     bool cameraChanged =
-        (std::memcmp(&lastViewMatrix_, &activeCam->GetViewMatrix(), sizeof(Irufemi::Matrix4x4)) != 0 ||
-         std::memcmp(&lastProjectionMatrix_, &activeCam->GetPerspectiveFovMatrix(), sizeof(Irufemi::Matrix4x4)) != 0);
+        (std::memcmp(&lastViewMatrix_, &activeCam->GetViewMatrix(), sizeof(Matrix4x4)) != 0 ||
+         std::memcmp(&lastProjectionMatrix_, &activeCam->GetPerspectiveFovMatrix(), sizeof(Matrix4x4)) != 0);
 
     if (isDirty_ || cameraChanged) {
         Update();
@@ -246,18 +248,18 @@ void StaticModelObject::Draw() {
 
     // 視錐台カリング
     if (isCullingEnabled_ && m->cpuModel) {
-        const Irufemi::Sphere& modelSphere = m->cpuModel->boundingSphere;
+        const Sphere& modelSphere = m->cpuModel->boundingSphere;
 
         // ワールド空間の境界球を計算
-        Irufemi::Sphere worldSphere;
-        worldSphere.center = Irufemi::Math::Transform(modelSphere.center, transformationMatrix_.world);
+        Sphere worldSphere;
+        worldSphere.center = Math::Transform(modelSphere.center, transformationMatrix_.world);
 
         // スケールの最大値を適用して半径を変換
         float maxScale = (std::max)({transform_.scale.x, transform_.scale.y, transform_.scale.z});
         worldSphere.radius = modelSphere.radius * maxScale * 1.1f; // 10% マージン
 
         // 判定
-        if (!Irufemi::Collision::IsCollision(activeCam->GetFrustum(), worldSphere)) {
+        if (!Collision::IsCollision(activeCam->GetFrustum(), worldSphere)) {
             return; // 描画スキップ
         }
     }
@@ -294,10 +296,10 @@ void StaticModelObject::DispatchCompute() {
 
     if (isCullingEnabled_) {
         float maxScale = (std::max)({transform_.scale.x, transform_.scale.y, transform_.scale.z});
-        Irufemi::Sphere boundingSphere;
+        Sphere boundingSphere;
         boundingSphere.center = transform_.translate;
         boundingSphere.radius = m->cpuModel->boundingSphere.radius * maxScale * 1.5f;
-        if (!Irufemi::Collision::IsCollision(activeCam->GetFrustum(), boundingSphere)) {
+        if (!Collision::IsCollision(activeCam->GetFrustum(), boundingSphere)) {
             return; // 視錐台カリングされている場合はComputeもスキップ
         }
     }
@@ -346,3 +348,5 @@ void StaticModelObject::DebugTab() {
     }
 #endif
 }
+
+} // namespace Irufemi

@@ -32,6 +32,8 @@
 #include "Platform/Input/Keyboard.h"
 #include <algorithm>
 
+using namespace Irufemi;
+
 void SceneViewPanel::Initialize(EditorManager* editorManager) {
     editorManager_ = editorManager;
 }

@@ -24,9 +24,9 @@
 #include <Windows.h>
 #include <algorithm>
 
-using namespace Irufemi;
+namespace Irufemi {
 
-IrufemiEngine* VoxelParticleSystem::engine_ = nullptr;
+::IrufemiEngine* VoxelParticleSystem::engine_ = nullptr;
 
 VoxelParticleSystem::~VoxelParticleSystem() {
     if (engine_) {
@@ -451,3 +451,5 @@ void VoxelParticleSystem::Debug([[maybe_unused]] const char* name) {
     }
 #endif
 }
+
+} // namespace Irufemi

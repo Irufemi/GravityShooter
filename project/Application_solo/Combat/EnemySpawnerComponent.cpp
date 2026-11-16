@@ -165,7 +165,7 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
 
     uint32_t effectivePoolSize = (poolSize > 0) ? poolSize : static_cast<uint32_t>(maxEnemies_);
 
-    poolData->pool = std::make_unique<ObjectPool<GameObject>>(effectivePoolSize, [weakObj, capturedPrefabPath,
+    poolData->pool = std::make_unique<Irufemi::ObjectPool<GameObject>>(effectivePoolSize, [weakObj, capturedPrefabPath,
                                                                                   capturedModelPath, capturedBaseScale,
                                                                                   capturedColliderRadius,
                                                                                   capturedOBBSize]() {
@@ -256,7 +256,7 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                         // 4. 敵機体のVoxelメッシュ破砕演出（プレハブ固有のモデルメッシュから破砕）
                         if (auto engine = scene->GetEngine()) {
                             if (auto voxelMgr = engine->GetVoxelParticleManager()) {
-                                VoxelEmitter p{};
+                                Irufemi::VoxelEmitter p{};
                                 p.particleType = 5; // DebrisExplosive
                                 p.lifeTime = 1.2f;
                                 p.gravity = 4.0f;

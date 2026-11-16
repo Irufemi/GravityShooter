@@ -6,7 +6,9 @@
 #include <memory>
 
 class PlayerHealthComponent;
+namespace Irufemi {
 class BaseModel;
+}
 class CameraShakeComponent;
 class ScreenEffectComponent;
 
@@ -125,7 +127,7 @@ private:
      * @brief 対象のBaseModelポインタを安全に取得する
      * @return 取得できたBaseModelへのポインタ、存在しない場合はnullptr
      */
-    BaseModel* GetTargetModel();
+    Irufemi::BaseModel* GetTargetModel();
 
     /**
      * @brief ワールド座標を現在のカメラからスクリーンUV座標 (0.0〜1.0) へ動的投影する
@@ -162,7 +164,7 @@ private:
     std::weak_ptr<GameObject> mainCameraObj_;
     CameraShakeComponent* cameraShakeComp_ = nullptr;
     ScreenEffectComponent* screenEffectComp_ = nullptr;
-    BaseModel* cachedTargetModel_ = nullptr;
+    Irufemi::BaseModel* cachedTargetModel_ = nullptr;
 
     // --- 死亡シーケンス・ステートマシン（SSOT） ---
     DeathSequencePhase phase_ = DeathSequencePhase::None; ///< 現在の進行フェーズ

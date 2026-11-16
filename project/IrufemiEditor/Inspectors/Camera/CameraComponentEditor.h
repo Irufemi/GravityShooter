@@ -4,7 +4,9 @@
 #include "Core/IComponentEditor.h"
 #include <memory>
 
+namespace Irufemi {
 class Line3DBatch;
+}
 
 /**
  * @class CameraComponentEditor
@@ -19,7 +21,7 @@ public:
     void Draw(Component* component, EditorActionManager* actionManager) override;
 
 private:
-    std::unique_ptr<Line3DBatch> debugLineBatch_;
+    std::unique_ptr<Irufemi::Line3DBatch> debugLineBatch_;
 };
 
 #endif // EditorMode

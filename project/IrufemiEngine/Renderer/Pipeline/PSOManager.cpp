@@ -11,6 +11,8 @@
 #include "Core/Utility/JsonUtility.h"
 #include <iostream>
 
+namespace Irufemi {
+
 static const std::string kCacheDirectory = "generated/cache/pso/";
 
 // 軽量ハッシュ(キャッシュキー用)
@@ -675,3 +677,5 @@ void PSOManager::ClearCacheByName(const std::string& name) {
         it->second.clear(); // ベクターをクリア
     }
 }
+
+} // namespace Irufemi

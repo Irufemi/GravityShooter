@@ -13,12 +13,16 @@
 #include "Core/Math/Transform.h"
 #include "Renderer/Data/TransformationMatrix.h"
 #include "Renderer/System/Core/LineResource.h"
+#include "Renderer/Pipeline/PSOManager.h"
 
 // 前方宣言
-class Camera;
+class IrufemiEngine;
+
 namespace Irufemi {
+
+class Camera;
 class DrawManager;
-}
+class DescriptorPool;
 
 // 3Dラインのインスタンス描画用クラス
 class Line3DBatch : public IRenderable {
@@ -139,7 +143,7 @@ public:
      * @brief IrufemiEngine インスタンスを設定する
      * @param[in] engine エンジンポインタ
      */
-    static void SetEngine(class IrufemiEngine* engine) {
+    static void SetEngine(::IrufemiEngine* engine) {
         engine_ = engine;
     }
 
@@ -172,10 +176,10 @@ private:
 
 private:
     // 静的依存
-    static Irufemi::DirectXCommon* dx_;
-    static Irufemi::DrawManager* drawManager_;
-    static Irufemi::DescriptorPool* srvAllocator_;
-    static class IrufemiEngine* engine_;
+    static DirectXCommon* dx_;
+    static DrawManager* drawManager_;
+    static DescriptorPool* srvAllocator_;
+    static ::IrufemiEngine* engine_;
 
     std::unique_ptr<LineResource> baseLineResource_ = nullptr;
 
@@ -184,16 +188,18 @@ private:
     size_t maxInstances_ = 65535;
 
     // インスタンシング用 StructuredBuffer と SRV
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> instanceBuffer_;
-    std::array<InstanceData*, Irufemi::kMaxFramesInFlight> instanceData_{};
-    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instanceCapacity_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> instanceBuffer_;
+    std::array<InstanceData*, kMaxFramesInFlight> instanceData_{};
+    std::array<uint32_t, kMaxFramesInFlight> instanceCapacity_{};
 
     uint32_t lastUpdateFrameIndex_ = 0;
     bool isDirty_ = true;
 
-    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instancingSrvIndex_{};
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvGPU_{};
+    std::array<uint32_t, kMaxFramesInFlight> instancingSrvIndex_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvGPU_{};
 
     PSOManager::DepthWrite depthWrite_ = PSOManager::DepthWrite::Enable;
 };
+
+} // namespace Irufemi

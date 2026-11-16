@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <limits>
 
+using namespace Irufemi;
+
 EditorActionManager::EditorActionManager(EditorManager* editor) : editorManager_(editor) {}
 
 void EditorActionManager::PushAndExecute(std::unique_ptr<ICommand> command) {

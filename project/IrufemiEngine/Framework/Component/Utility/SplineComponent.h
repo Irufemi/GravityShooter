@@ -4,6 +4,10 @@
 #include <vector>
 #include <string>
 
+namespace Irufemi {
+class Line3DBatch;
+}
+
 /**
  * @class SplineComponent
  * @brief 複数のウェイポイント間を Catmull-Rom スプラインで補間し、座標や接線を取得する汎用コンポーネント
@@ -134,5 +138,5 @@ private:
     bool drawDebugRail_ = true;               ///< エディタやデバッグ時にレール曲線を描画するかどうか
     bool drawDebugNodes_ = true;              ///< エディタやデバッグ時に各ウェイポイントの球体ギズモを描画するかどうか
     float nodeRadius_ = 0.5f;                 ///< ウェイポイント球体ギズモの描画半径
-    std::unique_ptr<class Line3DBatch> debugLineBatch_; ///< デバッグ描画用のラインバッチ
+    std::unique_ptr<Irufemi::Line3DBatch> debugLineBatch_; ///< デバッグ描画用のラインバッチ
 };

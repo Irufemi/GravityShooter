@@ -48,7 +48,7 @@ public:
      * @brief プール管理用のハンドルを設定する
      * @param handle オブジェクトプールのハンドル
      */
-    void SetPoolHandle(ObjectPool<GameObject>::Handle handle) {
+    void SetPoolHandle(Irufemi::ObjectPool<GameObject>::Handle handle) {
         poolHandle_ = handle;
     }
 
@@ -56,7 +56,7 @@ public:
      * @brief プール管理用のハンドルを取得する
      * @return 保持しているオブジェクトプールハンドル
      */
-    ObjectPool<GameObject>::Handle GetPoolHandle() const {
+    Irufemi::ObjectPool<GameObject>::Handle GetPoolHandle() const {
         return poolHandle_;
     }
 
@@ -75,7 +75,7 @@ public:
 
 private:
     EnemyBulletManagerComponent* manager_ = nullptr;     //!< 管理元マネージャー
-    ObjectPool<GameObject>::Handle poolHandle_;          //!< プール管理用ハンドル
+    Irufemi::ObjectPool<GameObject>::Handle poolHandle_;          //!< プール管理用ハンドル
     Irufemi::Vector3 velocity_{0.0f, 0.0f, 0.0f};        //!< 移動速度ベクトル
     int damage_ = 10;                                    //!< 命中時のダメージ量
     float lifeTimer_ = 0.0f;                             //!< 生存タイマー

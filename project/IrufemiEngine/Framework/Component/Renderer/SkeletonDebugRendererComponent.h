@@ -4,8 +4,10 @@
 #include <memory>
 #include <string>
 
+namespace Irufemi {
 class PrimitiveBatch;
 class Line3DBatch;
+}
 
 /**
  * @class SkeletonDebugRendererComponent
@@ -79,8 +81,8 @@ public:
     }
 
 private:
-    std::unique_ptr<PrimitiveBatch> boneMeshes_;
-    std::unique_ptr<Line3DBatch> debugAxesLines_;
+    std::unique_ptr<Irufemi::PrimitiveBatch> boneMeshes_;
+    std::unique_ptr<Irufemi::Line3DBatch> debugAxesLines_;
 
     bool showBones_ = true;
     bool showAxes_ = true;

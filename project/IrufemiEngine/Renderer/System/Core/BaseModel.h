@@ -18,11 +18,13 @@
 #include <unordered_map>
 
 // 前方宣言
-class Camera;
 class IrufemiEngine;
+
 namespace Irufemi {
+
+class Camera;
 struct ManagedModel;
-}
+class Object3DResource;
 
 /**
  * @class BaseModel
@@ -456,3 +458,5 @@ protected: // メンバ変数
     Irufemi::Matrix4x4 lastViewMatrix_ = {};
     Irufemi::Matrix4x4 lastProjectionMatrix_ = {};
 };
+
+} // namespace Irufemi

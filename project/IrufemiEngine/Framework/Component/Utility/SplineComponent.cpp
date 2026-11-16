@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace Irufemi;
+
 void SplineComponent::OnRegisterProperties() {
     // 拡張した Float3Array を使ってウェイポイントをプロパティに登録
     RegisterProperty("Waypoints", &waypoints_);

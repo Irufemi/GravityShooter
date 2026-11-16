@@ -62,46 +62,46 @@ public: // メンバ関数(ゲーム)
 
 private: // メンバ関数(内部ヘルパ)
 private: // メンバ変数(ゲーム)
-    std::unique_ptr<Sprite> sprite_ = nullptr;
+    std::unique_ptr<Irufemi::Sprite> sprite_ = nullptr;
     bool isActiveSprite_ = false;
 
     // --- プリミティブ形状のテスト用（汎用クラスに統合済み） ---
-    std::unique_ptr<Primitive3DObject> primitiveObj_ = nullptr;
+    std::unique_ptr<Irufemi::Primitive3DObject> primitiveObj_ = nullptr;
     bool isActivePrimitiveObj_ = false;
 
-    std::unique_ptr<Primitive2DObject> primitive2DObj_ = nullptr;
+    std::unique_ptr<Irufemi::Primitive2DObject> primitive2DObj_ = nullptr;
     bool isActivePrimitive2DObj_ = false;
 
-    std::unique_ptr<StaticModelObject> obj_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> obj_ = nullptr;
     bool isActiveObj_ = false;
 
-    std::unique_ptr<StaticModelObject> utashTeapot_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> utashTeapot_ = nullptr;
     bool isActiveUtashTeapot_ = false;
 
-    std::unique_ptr<StaticModelObject> stanfordBunny_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> stanfordBunny_ = nullptr;
     bool isActiveStanfordBunny_ = false;
 
-    std::unique_ptr<StaticModelObject> multiMesh_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> multiMesh_ = nullptr;
     bool isActiveMultiMesh_ = false;
 
-    std::unique_ptr<StaticModelObject> multiMaterial_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> multiMaterial_ = nullptr;
     bool isActiveMultiMaterial_ = false;
 
-    std::unique_ptr<StaticModelObject> suzanne_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> suzanne_ = nullptr;
     bool isActiveSuzanne_ = false;
 
-    std::unique_ptr<StaticModelObject> fence_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> fence_ = nullptr;
     bool isActiveFence_ = false;
 
-    std::unique_ptr<StaticModelObject> terrain_ = nullptr;
+    std::unique_ptr<Irufemi::StaticModelObject> terrain_ = nullptr;
     bool isActiveTerrain_ = false;
 
-    VoxelParticleManager::EmitterHandle voxelEmitterHandle_{};
-    VoxelEmitter voxelEmitParams_{};
+    Irufemi::VoxelParticleManager::EmitterHandle voxelEmitterHandle_{};
+    Irufemi::VoxelEmitter voxelEmitParams_{};
     bool isActiveVoxelParticle_ = false;
 
     // ハードコーディングされたGPUパーティクルのテスト用
-    std::unique_ptr<ParticleObject> particleObj_ = nullptr;
+    std::unique_ptr<Irufemi::ParticleObject> particleObj_ = nullptr;
     bool isActiveGPUParticle_ = false;
 
     std::shared_ptr<GameObject> animatedCube_ = nullptr;
@@ -116,7 +116,7 @@ private: // メンバ変数(ゲーム)
     std::shared_ptr<GameObject> blendTest_ = nullptr;
     bool isActiveBlendTest_ = false;
 
-    std::unique_ptr<Skybox> skybox_ = nullptr;
+    std::unique_ptr<Irufemi::Skybox> skybox_ = nullptr;
 
     // --- ライト ---
     bool isActiveSkybox_ = false;
@@ -126,7 +126,7 @@ private: // メンバ変数(ゲーム)
 
     // --- 電撃エフェクトデモ ---
     bool isActiveLightningCrawl_ = false;
-    std::unique_ptr<Primitive3DObject> lightningCylinder_ = nullptr;
+    std::unique_ptr<Irufemi::Primitive3DObject> lightningCylinder_ = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> lightningParamsResource_ = nullptr;
     Irufemi::LightningParams* lightningParamsData_ = nullptr;
 

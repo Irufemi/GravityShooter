@@ -9,7 +9,7 @@
 #include <utility>
 #include <unordered_map>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 const PrimitiveData& PrimitiveManager::GetPrimitiveData(Irufemi::PrimitiveType type) {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -752,3 +752,5 @@ PrimitiveData PrimitiveManager::CreateOctahedron() {
 
     return data;
 }
+
+} // namespace Irufemi

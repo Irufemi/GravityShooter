@@ -35,12 +35,12 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     float screenW = static_cast<float>(engine->GetGameResolutionWidth());
     float screenH = static_cast<float>(engine->GetGameResolutionHeight());
 
-    camera_ = std::make_shared<Camera>();
+    camera_ = std::make_shared<Irufemi::Camera>();
     camera_->Initialize(engine->GetGameResolutionWidth(), engine->GetGameResolutionHeight());
     camera_->UpdateMatrix();
 
     // 1. 深遠な宇宙空間背景（漆黒ダークスペース）
-    bgSprite_ = std::make_unique<Sprite>();
+    bgSprite_ = std::make_unique<Irufemi::Sprite>();
     bgSprite_->Initialize("resources/whiteTexture.png");
     bgSprite_->SetColor({0.002f, 0.005f, 0.012f, 1.0f}); // 移動中の深宇宙
     bgSprite_->SetSize(screenW, screenH);
@@ -50,7 +50,7 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
 
     // 2. 重力水面膜（Gravitational Veil Surface）プロシージャルリソースの初期化
     // GPUピクセルシェーダー（customEffectType = 10）により1080p/4K全画面で直接描画
-    veilResource_ = std::make_unique<Object2DResource>();
+    veilResource_ = std::make_unique<Irufemi::Object2DResource>();
     veilResource_->SetTextureManager(engine->GetTextureManager());
 
     auto mat = veilResource_->GetMaterialData();
@@ -90,28 +90,28 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     veilResource_->Map();
 
     // 3. テキスト & UI
-    demoText_ = std::make_unique<Text>();
+    demoText_ = std::make_unique<Irufemi::Text>();
     demoText_->SetFontManagerInstance(engine->GetFontManager());
     demoText_->SetDrawManagerInstance(engine->GetDrawManager());
     demoText_->SetCameraManagerInstance(engine->GetCameraManager());
     demoText_->Initialize("toro_glitch");
-    demoText_->SetAlignment(TextAlignment::Right);
+    demoText_->SetAlignment(Irufemi::TextAlignment::Right);
     demoText_->SetBaseScale(22.0f);
     demoText_->SetTopMost(true);
 
-    nowLoadingText_ = std::make_unique<Text>();
+    nowLoadingText_ = std::make_unique<Irufemi::Text>();
     nowLoadingText_->SetFontManagerInstance(engine->GetFontManager());
     nowLoadingText_->SetDrawManagerInstance(engine->GetDrawManager());
     nowLoadingText_->SetCameraManagerInstance(engine->GetCameraManager());
     nowLoadingText_->Initialize("toro_glitch");
-    nowLoadingText_->SetAlignment(TextAlignment::Right);
+    nowLoadingText_->SetAlignment(Irufemi::TextAlignment::Right);
     nowLoadingText_->SetBaseScale(20.0f);
     nowLoadingText_->SetText(L"NOW LOADING");
     nowLoadingText_->SetColor({0.30f, 0.92f, 1.0f, 0.95f});
     nowLoadingText_->SetTopMost(true);
 
     for (size_t i = 0; i < dots_.size(); ++i) {
-        dots_[i] = std::make_unique<Primitive2DObject>();
+        dots_[i] = std::make_unique<Irufemi::Primitive2DObject>();
         dots_[i]->Initialize(Irufemi::Primitive2DType::Circle, "resources/whiteTexture.png");
         dots_[i]->SetColor({0.30f, 0.90f, 1.0f, 1.0f});
         dots_[i]->SetPivot({0.5f, 0.5f});

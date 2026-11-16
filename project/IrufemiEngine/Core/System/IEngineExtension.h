@@ -2,6 +2,8 @@
 
 class IrufemiEngine;
 
+namespace Irufemi {
+
 /**
  * @class IEngineExtension
  * @brief エンジンのメインループに外部から処理を挿入するためのインターフェース。
@@ -36,3 +38,5 @@ public:
      */
     virtual void OnFinalize() {}
 };
+
+} // namespace Irufemi

@@ -14,13 +14,13 @@
  *          フレームを跨いでキャッシュまたは保持することは厳禁です。
  */
 
+namespace Irufemi {
+
 // 前方宣言
 class Object3DResource;
 class Object2DResource;
 class LineResource;
-namespace Irufemi {
 struct GpuMesh;
-}
 
 /**
  * @namespace RenderPackets
@@ -31,7 +31,7 @@ namespace RenderPackets {
 struct Standard3DPacket {
     const class Object3DResource* resource;
     const D3D12_VERTEX_BUFFER_VIEW* vertexBufferViewOverride;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     bool castShadows;
@@ -44,7 +44,7 @@ struct Standard3DPacket {
 
 struct SpritePacket {
     const class Object2DResource* resource;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
@@ -55,7 +55,7 @@ struct LinePacket {
     const class LineResource* resource;
     D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU;
     UINT instanceCount;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
@@ -73,7 +73,7 @@ struct GPUParticlePacket {
     D3D12_GPU_DESCRIPTOR_HANDLE sortListSrvHandle;
     uint32_t instanceCount;
     ID3D12Resource* particleResource;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
@@ -111,7 +111,7 @@ struct PrimitiveBatchPacket {
     D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU;
     UINT indexCount;
     UINT instanceCount;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     bool castShadows;
@@ -120,11 +120,11 @@ struct PrimitiveBatchPacket {
 };
 
 struct ModelBatchPacket {
-    const Irufemi::GpuMesh* gpuMesh;
+    const GpuMesh* gpuMesh;
     D3D12_GPU_VIRTUAL_ADDRESS materialAddress;
     D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU;
     UINT instanceCount;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     bool castShadows;
@@ -150,7 +150,7 @@ struct Primitive2DBatchPacket {
     D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU;
     UINT indexCount;
     UINT instanceCount;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
@@ -161,7 +161,7 @@ struct SpriteBatchPacket {
     const class Object2DResource* resource;
     D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU;
     UINT instanceCount;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
@@ -174,7 +174,7 @@ struct DebugPrimitivePacket {
     UINT indexCount;
     UINT instanceCount;
     D3D12_GPU_DESCRIPTOR_HANDLE instancingSrvHandleGPU;
-    Irufemi::BlendMode blendMode;
+    BlendMode blendMode;
     PSOManager::DepthWrite depthWrite;
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
@@ -182,3 +182,5 @@ struct DebugPrimitivePacket {
 };
 
 } // namespace RenderPackets
+
+} // namespace Irufemi

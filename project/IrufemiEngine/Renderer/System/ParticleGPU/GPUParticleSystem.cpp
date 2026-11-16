@@ -27,13 +27,13 @@
 #include <cassert>
 #include <vector>
 
-using namespace Irufemi;
+namespace Irufemi {
 
 // 静的メンバ変数の実体定義
 DirectXCommon* GPUParticleSystem::dxCommon_ = nullptr;
-Irufemi::DrawManager* GPUParticleSystem::drawManager_ = nullptr;
-Irufemi::TextureManager* GPUParticleSystem::textureManager_ = nullptr;
-IrufemiEngine* GPUParticleSystem::engine_ = nullptr;
+DrawManager* GPUParticleSystem::drawManager_ = nullptr;
+TextureManager* GPUParticleSystem::textureManager_ = nullptr;
+::IrufemiEngine* GPUParticleSystem::engine_ = nullptr;
 
 GPUParticleSystem::GPUParticleSystem() {
     emittersData_.emplace_back();
@@ -1190,3 +1190,5 @@ void GPUParticleSystem::CreateBuffersAndViews() {
         materialBuffer_[i]->useClampSampler = 0;
     }
 }
+
+} // namespace Irufemi

@@ -7,6 +7,8 @@
 #include <vector>
 #include "Core/Type/BlendMode.h"
 
+namespace Irufemi {
+
 class GPUParticleManager {
 public:
     GPUParticleManager() = default;
@@ -85,7 +87,7 @@ public:
     /**
      * @brief 指定したテクスチャ、ブレンドモード、タイムスケール設定に対するシステムを取得し、エミッターを登録する
      */
-    EmitterHandle RegisterEmitter(const std::string& texturePath, Irufemi::BlendMode blendMode, bool isUnscaledTime,
+    EmitterHandle RegisterEmitter(const std::string& texturePath, BlendMode blendMode, bool isUnscaledTime,
                                   bool enableLighting,
                                   PSOManager::DepthWrite depthWrite = PSOManager::DepthWrite::Disable);
 
@@ -146,7 +148,7 @@ private:
 
     struct SystemKey {
         std::string texturePath;
-        Irufemi::BlendMode blendMode;
+        BlendMode blendMode;
         bool isUnscaledTime;
         bool enableLighting;
         PSOManager::DepthWrite depthWrite;
@@ -183,5 +185,7 @@ private:
         uint32_t nextFieldIndex = 0;
     };
 
-    mutable Irufemi::Synchronized<ManagerState> state_;
+    mutable Synchronized<ManagerState> state_;
 };
+
+} // namespace Irufemi

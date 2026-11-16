@@ -14,15 +14,17 @@
 #include "Core/Math/Transform.h"
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "Renderer/Data/RenderPackets.h"
+#include "Renderer/Pipeline/PSOManager.h"
+
+namespace Irufemi {
 
 // 前方宣言
-namespace Irufemi {
 class TextureManager;
 class DrawManager;
-}
 class CameraManager;
 class Object2DResource;
 class Camera;
+class DescriptorPool;
 
 /**
  * @class SpriteBatch
@@ -217,26 +219,28 @@ private:
     uint32_t visibleInstanceCount_ = 0;
     bool instanceDirty_ = false;
     bool isTopMost_ = false;
-    Irufemi::Vector2 textureSize_{0.0f, 0.0f};
+    Vector2 textureSize_{0.0f, 0.0f};
 
     ID3D12PipelineState* customPSO_ = nullptr;
     std::string customPSOName_ = "";
-    Irufemi::BlendMode customBlend_ = Irufemi::BlendMode::kBlendModeNormal;
+    BlendMode customBlend_ = BlendMode::kBlendModeNormal;
     PSOManager::DepthWrite customDepth_ = PSOManager::DepthWrite::Off;
     PSOManager::CullMode customCull_ = PSOManager::CullMode::None;
     D3D12_GPU_VIRTUAL_ADDRESS customCBVAddress_ = 0;
 
     // インスタンシング用バッファ
-    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, Irufemi::kMaxFramesInFlight> instanceBuffer_;
-    std::array<InstanceData*, Irufemi::kMaxFramesInFlight> instanceData_{};
-    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instanceCapacity_{};
-    std::array<uint32_t, Irufemi::kMaxFramesInFlight> instancingSrvIndex_{};
-    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvCPU_{};
-    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, Irufemi::kMaxFramesInFlight> instancingSrvGPU_{};
+    std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, kMaxFramesInFlight> instanceBuffer_;
+    std::array<InstanceData*, kMaxFramesInFlight> instanceData_{};
+    std::array<uint32_t, kMaxFramesInFlight> instanceCapacity_{};
+    std::array<uint32_t, kMaxFramesInFlight> instancingSrvIndex_{};
+    std::array<D3D12_CPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvCPU_{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, kMaxFramesInFlight> instancingSrvGPU_{};
 
-    static Irufemi::TextureManager* textureManager_;
-    static Irufemi::DrawManager* drawManager_;
+    static TextureManager* textureManager_;
+    static DrawManager* drawManager_;
     static CameraManager* cameraManager_;
-    static Irufemi::DirectXCommon* dx_;
-    static Irufemi::DescriptorPool* srvPool_;
+    static DirectXCommon* dx_;
+    static DescriptorPool* srvPool_;
 };
+
+} // namespace Irufemi

@@ -3,6 +3,8 @@
 #include "Platform/Input/InputManager.h"
 #include "Core/Math/Vector3.h"
 
+namespace Irufemi {
+
 /**
  * @class OrbitCameraController
  * @brief マウス操作によるパン、オービット、ズーム機能を提供するカメラコントローラー。
@@ -70,3 +72,5 @@ private:
     Irufemi::Vector3 lastCameraPosition_ = {0.0f, 0.0f, 0.0f};
     Irufemi::Vector3 lastCameraRotation_ = {0.0f, 0.0f, 0.0f};
 };
+
+} // namespace Irufemi

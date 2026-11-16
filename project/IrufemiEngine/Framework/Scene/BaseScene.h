@@ -11,16 +11,17 @@
 
 // 前方宣言
 class IrufemiEngine;
-class CameraManager;
 class DebugCamera;
 namespace Irufemi {
+class Camera;
+class CameraManager;
+class OrbitCameraController;
 struct DirectionalLight;
 struct PointLight;
 struct SpotLight;
 struct AreaLight;
 }
 class GameObject;
-class Camera;
 class SceneObjectRegistry;
 
 /**
@@ -261,8 +262,8 @@ private:
     std::string previousActiveCameraName_ = "Main";
 
     // デバッグ用の独立したカメラインスタンスとそのコントローラー
-    std::shared_ptr<Camera> debugCamera_;
-    std::unique_ptr<OrbitCameraController> debugCameraController_;
+    std::shared_ptr<Irufemi::Camera> debugCamera_;
+    std::unique_ptr<Irufemi::OrbitCameraController> debugCameraController_;
 
     // --- ライティング ---
     std::unique_ptr<Irufemi::DirectionalLight> directionalLight_;

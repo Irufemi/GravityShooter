@@ -8,9 +8,9 @@
 #include "Resource/Texture/TextureManager.h"
 #include "Renderer/DrawManager.h"
 
-using namespace Irufemi;
+namespace Irufemi {
 
-Irufemi::ModelManager* ModelBatch::modelManager_ = nullptr;
+ModelManager* ModelBatch::modelManager_ = nullptr;
 
 void ModelBatch::Initialize(const std::string& objFilename) {
     IRUFEMI_ASSERT(modelManager_ && "ModelBatch::Initialize: ModelManager is not set.");
@@ -163,3 +163,5 @@ void ModelBatch::Draw(bool /*isUI*/) {
     // Overloaded draw for UI, if necessary
     Draw();
 }
+
+} // namespace Irufemi
