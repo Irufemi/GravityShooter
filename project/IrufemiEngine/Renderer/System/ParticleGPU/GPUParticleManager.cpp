@@ -226,10 +226,6 @@ void GPUParticleManager::UpdateFieldData(const FieldHandle& handle, const Partic
     }
 }
 
-#if defined(USE_IMGUI)
-#include <imgui.h>
-#endif
-
 int GPUParticleManager::GetTotalEmittersUsed() const {
     auto state = state_.Read();
     int totalEmitters = 0;
@@ -238,34 +234,6 @@ int GPUParticleManager::GetTotalEmittersUsed() const {
         totalEmitters += (int)(pair.second.nextIndex - pair.second.freeIndices.size());
     }
     return totalEmitters;
-}
-
-void GPUParticleManager::Debug() {
-#if defined(USE_IMGUI)
-    if (ImGui::BeginTabItem("GPU Particle Manager")) {
-        if (ImGui::BeginChild("GPUParticleScroll", ImVec2(0, 0), false)) {
-            auto state = state_.Write();
-            ImGui::TextDisabled("(Global system stats moved to TelemetryMonitor)");
-            ImGui::Separator();
-
-            ImGui::Spacing();
-            ImGui::Text("System Details per Texture");
-            for (auto& pair : state->systems) {
-                const std::string& textureName = pair.first.texturePath;
-                auto& context = pair.second;
-
-                if (ImGui::TreeNode(textureName.c_str())) {
-                    ImGui::Text("Emitters: %d / %d", (int)(context.nextIndex - context.freeIndices.size()),
-                                GPUParticleSystem::kMaxEmitters);
-                    context.system->Debug();
-                    ImGui::TreePop();
-                }
-            }
-            ImGui::EndChild();
-        }
-        ImGui::EndTabItem();
-    }
-#endif
 }
 
 } // namespace Irufemi

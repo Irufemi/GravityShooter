@@ -9,7 +9,10 @@
 
 namespace Irufemi {
 
+class DebugUI;
+
 class GPUParticleManager {
+    friend class DebugUI;
 public:
     GPUParticleManager() = default;
     ~GPUParticleManager() = default;
@@ -30,10 +33,6 @@ public:
      * @brief Finalize を実行する。
      */
     void Finalize();
-    /**
-     * @brief Debug を実行する。
-     */
-    void Debug();
 
     /**
      * @brief 現在GPU上に残っているすべてのパーティクルをクリアする（シーン遷移時などに使用）

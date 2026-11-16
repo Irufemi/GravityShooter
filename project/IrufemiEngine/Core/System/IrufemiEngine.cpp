@@ -443,9 +443,9 @@ void IrufemiEngine::Initialize(const std::wstring& title, int32_t clientWidth, i
     // シェーダーのホットリロード監視（別スレッドで動作）
     auto reloadCallback = [this]() { shouldReloadShaders_ = true; };
     shaderWatchers_.push_back(
-        std::make_unique<DirectoryWatcher>(FileSystem::GetResourcePath("shaders"), reloadCallback));
+        std::make_unique<Irufemi::DirectoryWatcher>(FileSystem::GetResourcePath("shaders"), reloadCallback));
     shaderWatchers_.push_back(
-        std::make_unique<DirectoryWatcher>(FileSystem::GetEngineRoot() + "/EngineResources/shaders", reloadCallback));
+        std::make_unique<Irufemi::DirectoryWatcher>(FileSystem::GetEngineRoot() + "/EngineResources/shaders", reloadCallback));
 #endif
 
     // --- CVar (Console Variables) のロードとコールバック設定 ---

@@ -174,7 +174,7 @@ void WaveManagerComponent::Draw() {
             Irufemi::Matrix4x4 transform =
                 Irufemi::Math::MakeAffineMatrix(scale, Irufemi::Vector3{0.0f, 0.0f, 0.0f}, phPos);
             Irufemi::Vector4 color = {1.0f, 1.0f, 0.0f, 1.0f}; // Yellow for Playhead
-            engine->GetDebugPrimitiveRenderer()->AddCube(transform, color, DebugCategory::Level);
+            engine->GetDebugPrimitiveRenderer()->AddCube(transform, color, Irufemi::DebugCategory::Level);
         }
 
         // 3. イベントのプレビュー描画（Target Spline を基準レールとして使用）

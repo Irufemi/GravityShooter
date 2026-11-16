@@ -38,6 +38,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include "Renderer/Data/Material.h"
 #include "Resource/Model/Data/ObjModel.h"
 #include "Resource/Model/Data/Animation.h"
+#include "Renderer/Object/Particle/ParticleObject.h"
+#include "Renderer/System/ParticleGPU/GPUParticleManager.h"
 #include "Renderer/System/Core/LineResource.h"
 #include "Renderer/System/Core/Object3DResource.h"
 #include "Renderer/System/Core/Object2DResource.h"
@@ -1187,10 +1189,215 @@ void DebugUI::DrawCommonEngineTabs([[maybe_unused]] IrufemiEngine* engine) {
 
         // 6. GPU Particle タブ (関数内で BeginTabItem("GPU Particle Manager") を実行)
         if (engine->GetGPUParticleManager()) {
-            engine->GetGPUParticleManager()->Debug();
+            DebugGPUParticleManager(engine->GetGPUParticleManager());
         }
 
         ImGui::EndTabBar();
+    }
+#endif
+}
+
+void DebugUI::DebugGPUParticleManager(GPUParticleManager* manager) {
+#if defined(USE_IMGUI)
+    if (!manager) return;
+    if (ImGui::BeginTabItem("GPU Particle Manager")) {
+        if (ImGui::BeginChild("GPUParticleScroll", ImVec2(0, 0), false)) {
+            auto state = manager->state_.Write();
+            ImGui::TextDisabled("(Global system stats moved to TelemetryMonitor)");
+            ImGui::Separator();
+
+            ImGui::Spacing();
+            ImGui::Text("System Details per Texture");
+            for (auto& pair : state->systems) {
+                const std::string& textureName = pair.first.texturePath;
+                auto& context = pair.second;
+
+                if (ImGui::TreeNode(textureName.c_str())) {
+                    ImGui::Text("Emitters: %d / %d", (int)(context.nextIndex - context.freeIndices.size()),
+                                GPUParticleSystem::kMaxEmitters);
+                    context.system->Debug();
+                    ImGui::TreePop();
+                }
+            }
+            ImGui::EndChild();
+        }
+        ImGui::EndTabItem();
+    }
+#endif
+}
+
+void DebugUI::DebugParticleObject(ParticleObject* particle, const char* name) {
+#if defined(USE_IMGUI)
+    if (!particle) return;
+    if (ImGui::CollapsingHeader(name, ImGuiTreeNodeFlags_DefaultOpen)) {
+        bool changed = false;
+
+        if (ImGui::TreeNodeEx("General", ImGuiTreeNodeFlags_DefaultOpen)) {
+            // Texture Manager Combo
+            auto* textureManager = particle->GetTextureManager();
+            if (textureManager && !textureManager->GetTextureNamesForDebug().empty()) {
+                auto textureNames = textureManager->GetTextureNamesForDebug();
+                std::vector<const char*> namesCStr;
+                int currentIndex = -1;
+                for (int i = 0; i < textureNames.size(); ++i) {
+                    namesCStr.push_back(textureNames[i].c_str());
+                    if (particle->texturePath_ == textureNames[i]) {
+                        currentIndex = i;
+                    }
+                }
+                if (currentIndex == -1) {
+                    currentIndex = 0; // fallback
+                }
+
+                if (ImGui::Combo("Texture", &currentIndex, namesCStr.data(), (int)namesCStr.size())) {
+                    if (particle->texturePath_ != textureNames[currentIndex]) {
+                        particle->SetTexturePath(textureNames[currentIndex]);
+                        changed = true;
+                    }
+                }
+            }
+
+            const char* blendNames[] = {"None", "Normal", "Add", "Subtract", "Multiply", "Screen", "Premultiplied"};
+            int currentBlend = static_cast<int>(particle->blendMode_);
+            if (ImGui::Combo("Blend Mode", &currentBlend, blendNames, 7)) {
+                particle->SetBlendMode(static_cast<BlendMode>(currentBlend));
+                changed = true;
+            }
+
+            bool lighting = particle->enableLighting_;
+            int currentDepthWrite = static_cast<int>(particle->depthWrite_);
+            const char* depthWriteNames[] = {"Enable", "Disable", "Off"};
+            if (ImGui::Combo("Depth Write", &currentDepthWrite, depthWriteNames, IM_ARRAYSIZE(depthWriteNames))) {
+                particle->SetDepthWrite(static_cast<PSOManager::DepthWrite>(currentDepthWrite));
+                changed = true;
+            }
+
+            if (ImGui::Checkbox("Enable Lighting", &particle->enableLighting_)) {
+                particle->SetEnableLighting(lighting);
+            }
+
+            if (ImGui::Checkbox("Unscaled Time", &particle->isUnscaledTime_)) {
+                if (particle->emitterHandle_.IsValid() && particle->gpuParticleManager_) {
+                    particle->gpuParticleManager_->UnregisterEmitter(particle->emitterHandle_);
+                    particle->emitterHandle_ = particle->gpuParticleManager_->RegisterEmitter(
+                        particle->texturePath_, particle->blendMode_, particle->isUnscaledTime_,
+                        particle->enableLighting_, particle->depthWrite_);
+                }
+                changed = true;
+            }
+
+            if (ImGui::Button("再生成")) {
+                if (particle->gpuParticleManager_ && particle->emitterHandle_.IsValid()) {
+                    particle->gpuParticleManager_->UnregisterEmitter(particle->emitterHandle_);
+                    particle->emitterHandle_ = particle->gpuParticleManager_->RegisterEmitter(
+                        particle->texturePath_, particle->blendMode_, particle->isUnscaledTime_,
+                        particle->enableLighting_, particle->depthWrite_);
+                }
+            }
+
+            changed |= ImGui::Checkbox("Emit On Awake", &particle->emitOnAwake_);
+
+            ImGui::Separator();
+            changed |= ImGui::DragInt("Atlas Rows", &particle->atlasRows_, 1, 1, 16);
+            changed |= ImGui::DragInt("Atlas Cols", &particle->atlasCols_, 1, 1, 16);
+
+            ImGui::Separator();
+            if (ImGui::Button("Test Burst (50 particles)")) {
+                particle->EmitBurst(50);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Play")) {
+                particle->Play();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Stop")) {
+                particle->Stop();
+            }
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNodeEx("Shape", ImGuiTreeNodeFlags_DefaultOpen)) {
+            const char* typeNames[] = {"Sphere", "Beam", "Ring", "Cylinder", "Box", "Hemisphere", "Mesh"};
+            if (ImGui::Combo("Emit Type", &particle->emitType_, typeNames, 7)) {
+                changed = true;
+            }
+            if (particle->emitType_ == 6) {
+                // Mesh emitter settings
+                char pathBuf[256];
+                strncpy_s(pathBuf, particle->emitterModelPath_.c_str(), sizeof(pathBuf));
+                if (ImGui::InputText("Model Path", pathBuf, sizeof(pathBuf))) {
+                    particle->SetEmitterModelPath(pathBuf);
+                }
+            }
+            const char* billboardNames[] = {"None", "Billboard", "Y-Axis"};
+            changed |= ImGui::Combo("Billboard Mode", &particle->billboardMode_, billboardNames, 3);
+
+            ImGui::Separator();
+            if (particle->emitType_ == 2) { // Box
+                changed |= ImGui::DragFloat3("Area Size", &particle->areaSize_.x, 0.1f, 0.0f, 100.0f);
+            } else {
+                changed |= ImGui::DragFloat("Radius / Size", &particle->radius_, 0.1f, 0.0f, 100.0f);
+            }
+
+            changed |= ImGui::DragFloat("Spread", &particle->spread_, 0.01f, 0.0f, 1.0f);
+            changed |= ImGui::DragFloat3("Direction", &particle->direction_.x, 0.05f);
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNodeEx("Emission Parameters", ImGuiTreeNodeFlags_DefaultOpen)) {
+            changed |= ImGui::DragFloat("Emission Rate (/sec)", &particle->emissionRate_, 1.0f, 0.0f, 10000.0f);
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNodeEx("Physics & Kinetics", ImGuiTreeNodeFlags_DefaultOpen)) {
+            changed |= ImGui::DragFloat("Velocity", &particle->velocity_, 0.1f, 0.0f, 100.0f);
+            changed |= ImGui::DragFloat("Gravity", &particle->gravity_, 0.1f, -50.0f, 50.0f);
+            changed |= ImGui::DragFloat("Damping", &particle->damping_, 0.005f, 0.0f, 1.0f);
+            changed |= ImGui::DragFloat("Bounce", &particle->bounce_, 0.01f, 0.0f, 1.0f);
+            changed |= ImGui::DragFloat("Ground Height", &particle->groundHeight_, 0.1f, -100.0f, 100.0f);
+
+            ImGui::Separator();
+            changed |= ImGui::DragFloat("Attractor Strength", &particle->attractorStrength_, 0.1f, -50.0f, 50.0f);
+            changed |= ImGui::DragFloat3("Attractor Pos", &particle->attractorPos_.x, 0.1f);
+
+            ImGui::Separator();
+            changed |= ImGui::DragFloat("Jitter", &particle->jitter_, 0.01f, 0.0f, 10.0f);
+
+            ImGui::Separator();
+            changed |= ImGui::Checkbox("Enable Trail (Sparks)", &particle->enableTrail_);
+            if (particle->enableTrail_) {
+                changed |= ImGui::DragFloat("Trail Frequency", &particle->trailFrequency_, 0.01f, 0.01f, 1.0f);
+            }
+            changed |= ImGui::Checkbox("Enable Death Emit", &particle->enableDeathEmit_);
+            changed |= ImGui::Checkbox("Enable Random Rotation", &particle->enableRandomRotation_);
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNodeEx("Lifetime & Visuals", ImGuiTreeNodeFlags_DefaultOpen)) {
+            changed |= ImGui::DragFloat("Life Min", &particle->lifeTimeMin_, 0.05f, 0.01f, 10.0f);
+            changed |= ImGui::DragFloat("Life Max", &particle->lifeTimeMax_, 0.05f, 0.01f, 10.0f);
+
+            ImGui::Separator();
+            changed |= ImGui::ColorEdit4("Start Color", &particle->color_.x);
+            changed |= ImGui::ColorEdit4("Mid Color", &particle->midColor_.x);
+
+            ImGui::Separator();
+            changed |= ImGui::DragFloat3("Start Scale", &particle->startScale_.x, 0.05f);
+            changed |= ImGui::DragFloat3("Mid Scale", &particle->midScale_.x, 0.05f);
+            changed |= ImGui::DragFloat3("End Scale", &particle->endScale_.x, 0.05f);
+
+            ImGui::Separator();
+            changed |= ImGui::SliderFloat("Mid Point (0~1)", &particle->midPoint_, 0.0f, 1.0f);
+
+            ImGui::TreePop();
+        }
+
+        if (changed) {
+            particle->MarkDirty();
+        }
     }
 #endif
 }

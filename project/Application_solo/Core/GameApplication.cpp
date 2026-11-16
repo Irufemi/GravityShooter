@@ -98,7 +98,7 @@ void RegisterScenes(Irufemi::SceneManager& sm) {
     sm.Register(GameScenes::Result, [] { return std::make_unique<ResultScene>(); });
 
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-    sm.Register(GameScenes::Debug, [] { return std::make_unique<DebugScene>(); });
+    sm.Register(GameScenes::Debug, [] { return std::make_unique<Irufemi::DebugScene>(); });
 #endif
     sm.Register(GameScenes::Options, [] { return std::make_unique<OptionsScene>(); });
     sm.Register(GameScenes::HowToPlay, [] { return std::make_unique<HowToPlayScene>(); });

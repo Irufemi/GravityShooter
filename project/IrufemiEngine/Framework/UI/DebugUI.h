@@ -33,6 +33,8 @@ struct SpotLight;
 struct AreaLight;
 struct LightningParams;
 class ScreenCaptureManager;
+class ParticleObject;
+class GPUParticleManager;
 } // namespace Irufemi
 
 #ifdef USE_IMGUI
@@ -202,6 +204,16 @@ public: // メンバ関数
      */
     static void DebugAnimationControl(const Irufemi::Animation& animation, float& currentTime,
                                       const char* unique_id = "");
+
+    /**
+     * @brief パーティクルオブジェクトのデバッグUIを表示する
+     */
+    static void DebugParticleObject(Irufemi::ParticleObject* particle, const char* name = "Particle Object");
+
+    /**
+     * @brief GPUパーティクルマネージャーのデバッグUIを表示する
+     */
+    static void DebugGPUParticleManager(Irufemi::GPUParticleManager* manager);
     ///@}
 
     /** @name エンジン情報のデバッグ */

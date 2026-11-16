@@ -245,13 +245,13 @@ void SpawnEnemyHandler::DrawEditorPreview(WaveManagerComponent* manager, const W
             // 当たり判定の球体（ワイヤー球: エメラルドグリーン）をリアルタイム描画
             if (auto debugRenderer = engine->GetDebugPrimitiveRenderer()) {
                 Irufemi::Vector4 sphereColor = {0.0f, 1.0f, 0.5f, 0.85f}; // 見やすい緑色のワイヤー球
-                debugRenderer->AddSphere(positions[i], finalRadius, sphereColor, DebugCategory::Level);
+                debugRenderer->AddSphere(positions[i], finalRadius, sphereColor, Irufemi::DebugCategory::Level);
             }
         }
     } else if (auto debugRenderer = engine->GetDebugPrimitiveRenderer()) {
         Irufemi::Vector4 sphereColor = {0.0f, 1.0f, 0.5f, 0.85f};
         for (const auto& pos : positions) {
-            debugRenderer->AddSphere(pos, finalRadius, sphereColor, DebugCategory::Level);
+            debugRenderer->AddSphere(pos, finalRadius, sphereColor, Irufemi::DebugCategory::Level);
         }
     }
 }

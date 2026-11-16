@@ -221,9 +221,6 @@ void StaticModelObject::SyncBeforeDraw() {
     }
 }
 
-#include "Physics/Collision/Collision.h"
-#include "Core/Shape/Sphere.h"
-
 void StaticModelObject::Draw() {
     auto m = engine_ ? engine_->GetObjModelManager()->Resolve(modelHandle_) : nullptr;
     if (!m || !engine_ || !engine_->GetDrawManager()) {

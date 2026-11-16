@@ -12,12 +12,14 @@ namespace Irufemi {
 
 class Component;
 class TextureManager;
+class DebugUI;
 
 /**
  * @class ParticleObject
  * @brief C++べた書きでGPUパーティクルを制御するための描画オブジェクトラッパー
  */
 class ParticleObject {
+    friend class DebugUI;
 public:
     ParticleObject();
     ~ParticleObject();
@@ -81,11 +83,6 @@ private:
     inline static Irufemi::ModelManager* modelManager_ = nullptr;
 
 public:
-    /**
-     * @brief DebugUI を実行する。
-     */
-    void DebugUI(const char* name = "Particle Object");
-
     /**
      * @brief Serialize を実行する。
      */

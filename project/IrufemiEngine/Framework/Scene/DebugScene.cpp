@@ -279,7 +279,7 @@ void DebugScene::Update() {
         }
 #ifdef USE_IMGUI
         ImGui::Begin("Hardcoded Particle Test");
-        particleObj_->DebugUI("Hardcoded Particle Test");
+        Irufemi::DebugUI::DebugParticleObject(particleObj_.get(), "Hardcoded Particle Test");
         ImGui::End();
 #endif
         particleObj_->Update();

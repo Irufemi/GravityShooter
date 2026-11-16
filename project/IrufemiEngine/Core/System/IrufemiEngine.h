@@ -39,6 +39,7 @@ namespace Irufemi {}
 // --- 前方宣言 ---
 namespace Irufemi {
 class DebugUI;
+class DirectoryWatcher;
 class DebugPrimitiveRenderer;
 class IEngineExtension;
 class ILoadingScreen;
@@ -1067,7 +1068,7 @@ private: // メンバ変数
     void ApplyPendingResize();
 
 #if defined(_DEBUG) || defined(EditorMode)
-    std::vector<std::unique_ptr<class DirectoryWatcher>> shaderWatchers_;
+    std::vector<std::unique_ptr<Irufemi::DirectoryWatcher>> shaderWatchers_;
     std::atomic<bool> shouldReloadShaders_{false};
 #endif
 };

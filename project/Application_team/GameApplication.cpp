@@ -52,7 +52,7 @@ void RegisterScenes(Irufemi::SceneManager& sm) {
     sm.Register("GameOver", [] { return std::make_unique<GameOverScene>(); });
     sm.Register("Pause", [] { return std::make_unique<PauseScene>(); });
 #if defined(_DEBUG) || defined(DEVELOPMENT) || defined(EditorMode)
-    sm.Register("Debug", [] { return std::make_unique<DebugScene>(); });
+    sm.Register("Debug", [] { return std::make_unique<Irufemi::DebugScene>(); });
 #endif
 }
 } // namespace
