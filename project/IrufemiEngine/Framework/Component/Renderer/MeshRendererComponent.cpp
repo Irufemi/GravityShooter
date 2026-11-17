@@ -80,6 +80,19 @@ void MeshRendererComponent::SetCustomEffectParam(float param) {
     }
 }
 
+void MeshRendererComponent::SetCustomPSO(const std::string& psoName, Irufemi::BlendMode blend,
+                                         PSOManager::DepthWrite depth, PSOManager::CullMode cull) {
+    if (obj_) {
+        obj_->SetCustomPSO(psoName, blend, depth, cull);
+    }
+}
+
+void MeshRendererComponent::SetCustomCBVAddress(D3D12_GPU_VIRTUAL_ADDRESS addr) {
+    if (obj_) {
+        obj_->SetCustomCBVAddress(addr);
+    }
+}
+
 void MeshRendererComponent::SetEnableLighting(bool enable) {
     enableLighting_ = enable;
     if (obj_) {

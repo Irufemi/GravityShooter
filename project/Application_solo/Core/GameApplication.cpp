@@ -124,6 +124,10 @@ void RegisterShaders(IrufemiEngine& engine) {
     auto psLightningCrawl = shaderManager->GetOrCompile(L"LightningCrawl.PS.hlsl", options);
     psoManager->RegisterShader("LightningCrawl", {{vs3d, psLightningCrawl}});
 
+    // ボス撃破演出用: 3D空間ノイズ電流オーバーレイピクセルシェーダー
+    auto psBossLightning = shaderManager->GetOrCompile(L"BossLightning.PS.hlsl", options);
+    psoManager->RegisterShader("BossLightning", {{vs3d, psBossLightning}});
+
     // LockonMarker用シェーダー (SpriteBatch.VS.hlsl を使う)
     auto vsSpriteBatch = shaderManager->GetOrCompile(L"SpriteBatch.VS.hlsl", options);
     auto psLuminanceAlpha = shaderManager->GetOrCompile(L"LuminanceAlpha2D.PS.hlsl", options);

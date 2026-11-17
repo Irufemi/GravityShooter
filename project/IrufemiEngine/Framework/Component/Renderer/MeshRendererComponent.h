@@ -2,7 +2,10 @@
 #include "Framework/Component/Component.h"
 #include <memory>
 #include <string>
+#include <d3d12.h>
 #include "Core/Shape/Sphere.h"
+#include "Core/Type/BlendMode.h"
+#include "Renderer/Pipeline/PSOManager.h"
 
 namespace Irufemi {
 
@@ -65,6 +68,23 @@ public:
      * @param[in] param 設定する CustomEffectParam の値
      */
     void SetCustomEffectParam(float param);
+
+    /**
+     * @brief CustomPSO を設定する（名前指定）
+     * @param psoName PSO名
+     * @param blend ブレンドモード
+     * @param depth 深度設定
+     * @param cull カリングモード
+     */
+    void SetCustomPSO(const std::string& psoName, Irufemi::BlendMode blend = Irufemi::BlendMode::kBlendModeNormal,
+                      PSOManager::DepthWrite depth = PSOManager::DepthWrite::Enable,
+                      PSOManager::CullMode cull = PSOManager::CullMode::Back);
+
+    /**
+     * @brief 汎用カスタム定数バッファ（RootSlot::Special = b6）のGPU仮想アドレスを設定する
+     * @param addr GPU仮想アドレス
+     */
+    void SetCustomCBVAddress(D3D12_GPU_VIRTUAL_ADDRESS addr);
 
     /**
      * @brief EnableLighting を設定する。
