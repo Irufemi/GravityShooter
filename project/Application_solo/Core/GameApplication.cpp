@@ -228,10 +228,10 @@ void GameApplication::Run() {
     engine->AddExtension(editorManager);
 #endif
 
-    // アトラクトデモ＆キオスク固定展示の設定（デフォルトOFF: 通常プレイ）
+    // アトラクトデモ＆キオスク固定展示の設定（クリア演出評価用自律デモ起動）
     AttractDemoConfig demoConfig;
-    demoConfig.enabledOnStart = false; // デモプレイ機能をオフ（起動時はプレイヤー操作）
-    demoConfig.defaultMode = AttractDemoManager::DemoMode::GameOverShowcase;
+    demoConfig.enabledOnStart = true; // 起動時からデモプレイ機能を有効化
+    demoConfig.defaultMode = AttractDemoManager::DemoMode::ClearShowcase;
     demoConfig.enableDevHotkeys = true; // 開発・審査用のF8トグルは有効
 
     // コマンドライン引数（-demo または --kiosk）が指定されている場合はデモ起動へ上書き

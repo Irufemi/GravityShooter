@@ -30,9 +30,10 @@ public:
      * @brief 実演するデモの種類
      */
     enum class DemoMode {
+        ClearShowcase,      ///< 【クリア演出実演】出撃後ボス即時撃破・STAGE CLEARリザルト接続を実演ループ
+        GameOverShowcase,   ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
         TransitionShowcase, ///< 【画面遷移ショーケース】起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ
-        StandardAttract,    ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
-        GameOverShowcase ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
+        StandardAttract     ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
     };
 
     /**
@@ -41,7 +42,7 @@ public:
      */
     struct Config {
         bool enabledOnStart = false; ///< 起動時にデモプレイ（キオスクループ）を開始するか（デフォルト: OFF）
-        DemoMode defaultMode = DemoMode::GameOverShowcase; ///< 初期デモモード
+        DemoMode defaultMode = DemoMode::ClearShowcase; ///< 初期デモモード
         bool enableDevHotkeys = true; ///< F8（デモトグル）やF7（モード切替）等の開発キーを有効にするか
     };
 
@@ -82,15 +83,18 @@ public:
      */
     void CycleNextDemoMode() {
         switch (demoMode_) {
+        case DemoMode::ClearShowcase:
+            demoMode_ = DemoMode::GameOverShowcase;
+            break;
+        case DemoMode::GameOverShowcase:
+            demoMode_ = DemoMode::TransitionShowcase;
+            break;
         case DemoMode::TransitionShowcase:
             demoMode_ = DemoMode::StandardAttract;
             break;
         case DemoMode::StandardAttract:
-            demoMode_ = DemoMode::GameOverShowcase;
-            break;
-        case DemoMode::GameOverShowcase:
         default:
-            demoMode_ = DemoMode::TransitionShowcase;
+            demoMode_ = DemoMode::ClearShowcase;
             break;
         }
     }

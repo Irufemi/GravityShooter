@@ -15,6 +15,7 @@
 #include "Audio/AudioManager.h"
 #include "Audio/SoundHelper.h"
 #include "Player/PlayerHealthComponent.h"
+#include "Combat/Boss/BossComponent.h"
 #include "Level/StageIntroDirectorComponent.h"
 #include <algorithm>
 #include <cmath>
@@ -282,11 +283,12 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
         Irufemi::Vector2 targetCursorPos = posSweepStart_;
 
-        // === 【モード分岐 1 & 3】画面遷移ショーケース / ゲームオーバー実演 ===
-        if (demoMode_ == DemoMode::TransitionShowcase || demoMode_ == DemoMode::GameOverShowcase) {
+        // === 【モード分岐 1, 3 & 4】画面遷移ショーケース / ゲームオーバー実演 / クリア実演 ===
+        if (demoMode_ == DemoMode::TransitionShowcase || demoMode_ == DemoMode::GameOverShowcase ||
+            demoMode_ == DemoMode::ClearShowcase) {
             targetCursorPos = posStart_;
 
-            float launchDelay = (demoMode_ == DemoMode::GameOverShowcase) ? 1.50f : 3.00f;
+            float launchDelay = (demoMode_ == DemoMode::TransitionShowcase) ? 3.00f : 1.50f;
             if (demoTimeline_ >= launchDelay) {
                 TriggerDemoGameLaunch(currentScenePtr, dirComp);
             }
@@ -412,6 +414,39 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         return;
     }
 
+    // クリア演出実演モードの場合：イントロ閃光をスキップし、通常飛行を1.50秒見せた後にボスを撃破
+    if (demoMode_ == DemoMode::ClearShowcase) {
+        auto currentScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());
+        if (currentScene) {
+            // ワープイントロ演出（2.8秒）をスキップし、自機とカメラを即座に通常戦闘姿勢にスタンバイ
+            if (auto introObj = currentScene->FindGameObject("StageIntroDirector")) {
+                if (auto intro = introObj->GetComponent<StageIntroDirectorComponent>()) {
+                    intro->SkipIntroSequence();
+                }
+            }
+        }
+
+        if (inGameTimer_ >= 1.50f && !hasTriggeredReturn_) {
+            if (currentScene) {
+                BossComponent* bossComp = nullptr;
+                if (auto bossObj = currentScene->FindGameObject("Boss")) {
+                    bossComp = bossObj->GetComponent<BossComponent>();
+                }
+                if (!bossComp) {
+                    for (const auto& obj : currentScene->GetGameObjects()) {
+                        if (obj && (bossComp = obj->GetComponent<BossComponent>())) {
+                            break;
+                        }
+                    }
+                }
+                if (bossComp && bossComp->GetHp() > 0.0f) {
+                    bossComp->ApplyCoreDamage(99999.0f);
+                }
+            }
+        }
+        return; // ボス撃破シーケンス完了後にResultManager側でResultへ移行するため、通常の時間切れ帰還はスキップ
+    }
+
     // ゲームオーバー演出実演モードの場合：イントロ閃光をスキップし、通常飛行を1.50秒見せた後に自機を撃破
     if (demoMode_ == DemoMode::GameOverShowcase) {
         auto currentScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());
@@ -473,8 +508,10 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
 
     resultTimer_ += deltaTime;
 
-    // リザルト文字および暗幕をじっくり視認させた後（1.80秒後）に自動ループ遷移
-    if (resultTimer_ >= 1.80f) {
+    // リザルト文字および暗幕をじっくり視認させた後に自動ループ遷移
+    // （GameOverShowcase: 1.80秒後 / ClearShowcase: ランクスタンプ確認のため 4.00秒後）
+    float waitDuration = (demoMode_ == DemoMode::ClearShowcase) ? 4.00f : 1.80f;
+    if (resultTimer_ >= waitDuration) {
         hasTriggeredReturn_ = true;
 
         // BGMの滑らかなフェードアウト (0.75秒で対数減衰)
@@ -482,8 +519,8 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
             am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.75f);
         }
 
-        if (demoMode_ == DemoMode::GameOverShowcase) {
-            // ゲームオーバー実演デモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
+        if (demoMode_ == DemoMode::GameOverShowcase || demoMode_ == DemoMode::ClearShowcase) {
+            // ショーケースデモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
             sm->TransitionTo(GameScenes::InGame, Irufemi::SceneTransition::Type::RadialBlur, 0.8f,
                              EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         } else {
@@ -700,6 +737,9 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
     if (isKioskLoopMode_) {
         std::wstring targetText;
         switch (demoMode_) {
+        case DemoMode::ClearShowcase:
+            targetText = L"DEMO: CLEAR SHOWCASE   |   F7: MODE   |   F8: EXIT";
+            break;
         case DemoMode::TransitionShowcase:
             targetText = L"DEMO: TRANSITION SHOWCASE   |   F7: MODE   |   F8: EXIT";
             break;
