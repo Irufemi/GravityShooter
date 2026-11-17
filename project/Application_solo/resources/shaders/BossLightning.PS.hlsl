@@ -124,6 +124,18 @@ PixelShaderOutput main(VertexShaderOutput input)
 		output.color = gMaterial.color * textureColor * input.color;
 	}
 	
+    // --- 装甲放電ディゾルブ（3D空間ノイズ侵食分解＆超高輝度エッジ発光） ---
+    LightningDissolveOutput dissolveOut = EvaluateLightningDissolve(
+        input.worldPosition,
+        input.position.xy,
+        gPerFrame.time,
+        gLightningCfg
+    );
+    if (dissolveOut.isDiscarded) {
+        discard;
+    }
+    output.color.rgb += dissolveOut.edgeEmission;
+
     // --- 3D空間ノイズ電流（LightningUtility.hlsli）の加算合成 ---
     float3 toCam = normalize(gPerFrame.cameraWorldPosition - input.worldPosition);
     LightningSurfaceOutput lightningOut = Evaluate3DLightningCrawl(

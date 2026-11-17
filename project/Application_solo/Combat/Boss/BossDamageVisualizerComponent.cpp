@@ -3,6 +3,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/Camera/CameraShakeComponent.h"
+#include "Framework/Component/Camera/CameraComponent.h"
 #include <algorithm>
 
 void BossDamageVisualizerComponent::OnRegisterProperties() {
@@ -78,6 +79,13 @@ std::shared_ptr<Irufemi::GameObject> BossDamageVisualizerComponent::GetMainCamer
                 return cam;
             }
         }
+    }
+    return nullptr;
+}
+
+Irufemi::CameraComponent* BossDamageVisualizerComponent::GetMainCameraComponent() const {
+    if (auto cam = GetMainCamera()) {
+        return cam->GetComponent<Irufemi::CameraComponent>();
     }
     return nullptr;
 }

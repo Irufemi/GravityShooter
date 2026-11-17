@@ -507,6 +507,30 @@ struct BandeDessineeOutlineParams {
 };
 
 /**
+ * @struct LightningCataclysmParams
+ * @brief ボス撃破用・超高圧電磁カタクリズム用ポストプロセスパラメータ
+ */
+struct LightningCataclysmParams {
+    Irufemi::Vector2 center = {0.5f, 0.5f}; ///< 放電・EMP中心UV
+    float empWaveRadius = 0.0f;             ///< EMP衝撃波面半径
+    float empWaveIntensity = 0.0f;          ///< EMP空間歪み強度
+    float arcIntensity = 0.0f;              ///< 放射状アーク放電強度
+    float plasmaFlashIntensity = 0.0f;      ///< 超高圧プラズマ白熱フラッシュ強度
+    float electricChromatic = 0.0f;         ///< 電磁干渉色収差比率
+    float time = 0.0f;                      ///< アークアニメーション用時間
+
+    template <typename Visitor> void Visit(Visitor&& v) {
+        v.DragFloat2("Center UV", center, 0.01f, 0.0f, 1.0f);
+        v.DragFloat("EMP Radius", empWaveRadius, 0.01f, 0.0f, 3.0f);
+        v.DragFloat("EMP Intensity", empWaveIntensity, 0.01f, 0.0f, 5.0f);
+        v.DragFloat("Arc Intensity", arcIntensity, 0.01f, 0.0f, 5.0f);
+        v.DragFloat("Plasma Flash", plasmaFlashIntensity, 0.05f, 0.0f, 10.0f);
+        v.DragFloat("Electric Chromatic", electricChromatic, 0.005f, 0.0f, 0.5f);
+        v.DragFloat("Time", time, 0.01f, 0.0f, 100.0f);
+    }
+};
+
+/**
  * @struct LightShaftsParams
  * @brief ゴッドレイ（光の筋）エフェクト用パラメータ
  */
@@ -690,8 +714,14 @@ struct CombinedParams {
     uint32_t maskTextureIndex;
     uint32_t padding_bindless;
 
-    // 256-byte alignment padding (Current size: 736 bytes, padded to 768 bytes)
-    uint32_t alignPadding[8];
+    // LightningCataclysm (32 bytes = 8 float, perfectly replaces alignPadding[8])
+    Irufemi::Vector2 lightningCataclysmCenter;
+    float lightningEmpWaveRadius;
+    float lightningEmpWaveIntensity;
+    float lightningArcIntensity;
+    float lightningPlasmaFlashIntensity;
+    float lightningElectricChromatic;
+    float lightningTime;
 };
 
 static_assert(sizeof(CombinedParams) % 256 == 0, "CombinedParams must be 256-byte aligned for D3D12 CBV.");

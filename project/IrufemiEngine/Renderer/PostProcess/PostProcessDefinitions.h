@@ -53,4 +53,5 @@ enum class PostProcessPassType {
     V(LightShafts, LightShaftsParams, MultiPass, PreUI, "LightShafts")                                                 \
     V(GravityDistortion, GravityDistortionParams, Separate, PreUI, "GravityDistortion")                                \
     V(BlackHoleSupernova, BlackHoleSupernovaParams, Separate, PreUI, "BlackHoleSupernova")                             \
-    V(BandeDessineeOutline, BandeDessineeOutlineParams, Separate, PreUI, "BandeDessineeOutline")
+    V(BandeDessineeOutline, BandeDessineeOutlineParams, Separate, PreUI, "BandeDessineeOutline")                       \
+    V(LightningCataclysm, LightningCataclysmParams, Separate, PreUI, "LightningCataclysm")

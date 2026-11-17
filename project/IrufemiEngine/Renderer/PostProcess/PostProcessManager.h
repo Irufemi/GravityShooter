@@ -127,6 +127,7 @@ public:
     using GravityDistortionParams = Irufemi::GravityDistortionParams;
     using BlackHoleSupernovaParams = Irufemi::BlackHoleSupernovaParams;
     using BandeDessineeOutlineParams = Irufemi::BandeDessineeOutlineParams;
+    using LightningCataclysmParams = Irufemi::LightningCataclysmParams;
     using CombinedParams = Irufemi::CombinedParams;
     using BindlessParams = Irufemi::BindlessParams;
 
@@ -400,6 +401,8 @@ public:
     const BlackHoleSupernovaParams& GetBlackHoleSupernovaParams() const;
     BandeDessineeOutlineParams& GetBandeDessineeOutlineParams();
     const BandeDessineeOutlineParams& GetBandeDessineeOutlineParams() const;
+    LightningCataclysmParams& GetLightningCataclysmParams();
+    const LightningCataclysmParams& GetLightningCataclysmParams() const;
     DissolveParams& GetDissolveParams();
     const DissolveParams& GetDissolveParams() const;
     SlideParams& GetSlideParams();

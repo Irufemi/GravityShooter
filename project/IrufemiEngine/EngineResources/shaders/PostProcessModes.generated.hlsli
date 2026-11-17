@@ -38,5 +38,6 @@ static const int32_t kPostProcessMode_LightShafts = 28;
 static const int32_t kPostProcessMode_GravityDistortion = 29;
 static const int32_t kPostProcessMode_BlackHoleSupernova = 30;
 static const int32_t kPostProcessMode_BandeDessineeOutline = 31;
+static const int32_t kPostProcessMode_LightningCataclysm = 32;
 
-static const int32_t kPostProcessMode_Count = 32;
+static const int32_t kPostProcessMode_Count = 33;

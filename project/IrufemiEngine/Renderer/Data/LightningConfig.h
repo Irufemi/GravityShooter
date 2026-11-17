@@ -16,7 +16,8 @@ struct LightningConfig {
 
     float intensity = 0.0f;        //!< 全体発光輝度（0.0で非表示、1.0で通常、20.0+で超発光）
     float branchAmount = 0.6f;     //!< 支流スパークの寄与率（0.0〜1.0）
-    float pad[2] = {0.0f, 0.0f};   //!< 16バイトアライメント用パディング
+    float dissolveProgress = 0.0f; //!< 装甲ディゾルブ進行度（0.0で通常、1.0で完全消失）
+    float dissolveEdgeWidth = 0.08f;//!< ディゾルブ発光エッジ幅
 
     Vector4 coreColor = {1.0f, 1.0f, 1.2f, 1.0f}; //!< 稲妻の芯の色（HDR純白・超高輝度）
     Vector4 haloColor = {0.2f, 0.6f, 1.8f, 1.0f}; //!< 外郭プラズマオーラ色（シアン・紫電等）

@@ -178,10 +178,12 @@ private:
     float idleTimer_ = 0.0f;    ///< Titleでの無操作タイマー
     float demoTimeline_ = 0.0f; ///< Titleデモタイムライン（秒）
     float inGameTimer_ = 0.0f;  ///< InGameデモタイマー（秒）
+    float combatTimer_ = 0.0f;  ///< イントロ完了後の通常交戦タイマー（秒）
     float resultTimer_ = 0.0f;  ///< Resultデモタイマー（秒）
 
     static constexpr float kIdleThreshold_ = 8.0f;   ///< 自動デモ開始までの無操作秒数
     static constexpr float kInGameDuration_ = 9.00f; ///< 本編デモ映像の表示秒数（じっくり魅せる9.0秒）
+    static constexpr float kBossCombatShowcaseDuration_ = 5.00f; ///< ボス対峙・通常交戦の展示秒数（5.0秒）
     static constexpr uint8_t kToggleKey_ = VK_F8;    ///< キオスク固定展示トグルキー (F8)
 
     // タイムライン用ターゲット座標キャッシュ

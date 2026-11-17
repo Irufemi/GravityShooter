@@ -865,3 +865,237 @@ float32_t3 ApplyBlackHoleSupernova(float32_t2 uv, float32_t2 center, float32_t b
     return sampleColor;
 }
 
+// 線分 ab と点 p の最短距離（Point-to-Segment Distance）
+float DistToSegment2D(float2 p, float2 a, float2 b) {
+    float2 pa = p - a;
+    float2 ba = b - a;
+    float dot_ba = dot(ba, ba);
+    if (dot_ba < 1e-7f) {
+        return length(pa);
+    }
+    float h = clamp(dot(pa, ba) / dot_ba, 0.0f, 1.0f);
+    return length(pa - ba * h);
+}
+
+// 疑似乱数ハッシュ関数 (シードから 0.0〜1.0 の乱数生成)
+float LightningHash12(float2 p) {
+    return frac(sin(dot(p, float2(12.9898f, 78.233f))) * 43758.5453f);
+}
+
+/**
+ * @brief 中点変位法（Midpoint Displacement）によるリアルな稲妻ボルトの最短距離算出
+ * @details スギヤマ_ソウタ氏の雷エフェクト設計に準拠：
+ *          始点と終点の中点を垂直方向に変位させ、揺らぎ幅を半分（x0.55）にしながら再帰分割（8セグメント）。
+ *          主幹節点から確率で枝分かれ（サブボルト）を派生させて放電の広がりを再現。
+ */
+float EvaluateMidpointLightningBolt(float2 p, float2 a, float2 b, float seed, out float outBranchDist) {
+    float2 d = b - a;
+    float len = length(d);
+    if (len < 1e-5f) {
+        outBranchDist = 1000.0f;
+        return 1000.0f;
+    }
+    float2 n = float2(-d.y, d.x) / len; // 進行方向に対する垂直法線
+
+    // 中点変位法の変位幅（ステップごとに x0.55 減衰）
+    float w1 = len * 0.22f;
+    float w2 = w1 * 0.55f;
+    float w3 = w2 * 0.55f;
+
+    // 各節点の垂直オフセット（-1.0〜+1.0）
+    float disp1  = (LightningHash12(float2(seed, 1.13f)) - 0.5f) * 2.0f * w1;
+    float disp2a = (LightningHash12(float2(seed, 2.37f)) - 0.5f) * 2.0f * w2;
+    float disp2b = (LightningHash12(float2(seed, 3.81f)) - 0.5f) * 2.0f * w2;
+    float disp3a = (LightningHash12(float2(seed, 4.19f)) - 0.5f) * 2.0f * w3;
+    float disp3b = (LightningHash12(float2(seed, 5.62f)) - 0.5f) * 2.0f * w3;
+    float disp3c = (LightningHash12(float2(seed, 6.94f)) - 0.5f) * 2.0f * w3;
+    float disp3d = (LightningHash12(float2(seed, 7.45f)) - 0.5f) * 2.0f * w3;
+
+    // 8分割（9節点）
+    float2 p0 = a;
+    float2 p8 = b;
+    float2 p4 = (p0 + p8) * 0.5f + n * disp1;
+    float2 p2 = (p0 + p4) * 0.5f + n * disp2a;
+    float2 p6 = (p4 + p8) * 0.5f + n * disp2b;
+    float2 p1 = (p0 + p2) * 0.5f + n * disp3a;
+    float2 p3 = (p2 + p4) * 0.5f + n * disp3b;
+    float2 p5 = (p4 + p6) * 0.5f + n * disp3c;
+    float2 p7 = (p6 + p8) * 0.5f + n * disp3d;
+
+    // 主幹セグメント群との最短距離
+    float dMain = DistToSegment2D(p, p0, p1);
+    dMain = min(dMain, DistToSegment2D(p, p1, p2));
+    dMain = min(dMain, DistToSegment2D(p, p2, p3));
+    dMain = min(dMain, DistToSegment2D(p, p3, p4));
+    dMain = min(dMain, DistToSegment2D(p, p4, p5));
+    dMain = min(dMain, DistToSegment2D(p, p5, p6));
+    dMain = min(dMain, DistToSegment2D(p, p6, p7));
+    dMain = min(dMain, DistToSegment2D(p, p7, p8));
+
+    // 途中の節点からの枝分かれ（サブボルト）
+    float dBranch = 1000.0f;
+    float hasBranch = LightningHash12(float2(seed, 8.21f));
+    if (hasBranch > 0.25f) {
+        float side = (LightningHash12(float2(seed, 9.47f)) > 0.5f) ? 1.0f : -1.0f;
+        float angleBranch = atan2(d.y, d.x) + side * 0.65f;
+        float branchLen = len * 0.38f;
+        float2 branchDir = float2(cos(angleBranch), sin(angleBranch));
+        float2 b0 = p4;
+        float2 b2 = b0 + branchDir * branchLen;
+        float2 bn = float2(-branchDir.y, branchDir.x);
+        float bDisp = (LightningHash12(float2(seed, 10.73f)) - 0.5f) * 2.0f * (w2 * 0.75f);
+        float2 b1 = (b0 + b2) * 0.5f + bn * bDisp;
+
+        dBranch = min(DistToSegment2D(p, b0, b1), DistToSegment2D(p, b1, b2));
+    }
+
+    outBranchDist = dBranch;
+    return dMain;
+}
+
+// 32. Lightning Cataclysm (高電圧アーク放電ボルト ＆ ストロボ稲妻 ＆ 単一EMP衝撃波)
+float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t empWaveRadius,
+                                  float32_t empWaveIntensity, float32_t arcIntensity,
+                                  float32_t plasmaFlashIntensity, float32_t electricChromatic,
+                                  float32_t time, Texture2D<float32_t4> tex, SamplerState smp) {
+    uint32_t texWidth, texHeight;
+    tex.GetDimensions(texWidth, texHeight);
+    float aspect = float(texWidth) / max(float(texHeight), 1.0f);
+    float32_t2 aspectScale = float32_t2(aspect, 1.0f);
+
+    // アスペクト比補正した等方2D座標系（正方形空間）
+    float32_t2 pIso = (uv - 0.5f) * aspectScale;
+    float32_t2 centerIso = (center - 0.5f) * aspectScale;
+
+    float32_t2 delta = pIso - centerIso;
+    float32_t dist = length(delta);
+    float32_t2 dir = (dist > 0.0001f) ? (delta / dist) : float32_t2(0.0f, 0.0f);
+
+    float32_t2 finalUV = uv;
+    float32_t2 chromaticOffset = float32_t2(0.0f, 0.0f);
+    float32_t3 lightningEmission = float32_t3(0.0f, 0.0f, 0.0f);
+
+    // --- 1. 単一のEMP衝撃波リング（薄くシャープな波面） ---
+    if (empWaveRadius > 0.001f && empWaveIntensity > 0.0001f) {
+        float waveWidth = 0.035f;
+        float dWave = abs(dist - empWaveRadius);
+        if (dWave < waveWidth) {
+            float normD = dWave / waveWidth;
+            float waveFactor = (1.0f - normD * normD);
+            waveFactor = waveFactor * waveFactor;
+
+            // 時空の瞬間屈折（波面でのみ局所変位）
+            finalUV += (dir * (waveFactor * empWaveIntensity * 0.020f)) / aspectScale;
+            chromaticOffset += (dir * (waveFactor * (electricChromatic + 0.015f))) / aspectScale;
+            lightningEmission += float32_t3(0.4f, 1.2f, 3.0f) * (waveFactor * empWaveIntensity * 1.5f);
+        }
+    }
+
+    // --- 2. 中点変位法による本物の稲妻ボルト ＆ 独立ライフサイクル（スギヤマ_ソウタ氏設計準拠） ---
+    if (arcIntensity > 0.001f) {
+        // 8本の独立放電チャンネル（不規則な周期と位相で独立発火）
+        static const float kPeriods[8] = { 0.22f, 0.17f, 0.25f, 0.19f, 0.23f, 0.16f, 0.27f, 0.20f };
+        static const float kPhases[8]  = { 0.00f, 0.08f, 0.15f, 0.04f, 0.11f, 0.18f, 0.06f, 0.13f };
+        static const float kLifes[8]   = { 0.14f, 0.11f, 0.15f, 0.12f, 0.14f, 0.10f, 0.16f, 0.12f };
+
+        [unroll]
+        for (int i = 0; i < 8; ++i) {
+            float period = kPeriods[i];
+            float phase = kPhases[i];
+            float life = kLifes[i];
+
+            float cycleTime = time + phase;
+            float cycleId = floor(cycleTime / period);
+            float localTime = fmod(cycleTime, period);
+
+            // 寿命を超えたら消灯（余韻が終わり、次のサイクルまで暗黒）
+            if (localTime >= life) {
+                continue;
+            }
+
+            float normT = localTime / life; // 0.0 -> 1.0
+
+            // スギヤマ氏資料 P4:
+            // 「COLOR: 白色の軸に、その周囲にまとう水色の光」
+            // 「MOTION: 軸が消え去った後も少し余韻が残る」
+            // 白い軸 (Core): 発生の瞬間 (0.00〜0.03秒) に一気に発光し、0.08秒で素早く消滅
+            float coreIntensity = smoothstep(0.0f, 0.08f, normT) * (1.0f - smoothstep(0.08f, 0.35f, normT));
+            // まとう水色の光 (Glow / 余韻): 発生から消灯まで滑らかに減衰して余韻を残す
+            float glowIntensity = smoothstep(0.0f, 0.05f, normT) * pow(1.0f - normT, 1.6f);
+
+            float seed = cycleId * 17.317f + float(i) * 5.191f;
+
+            float2 startPt;
+            float2 endPt;
+
+            if ((i % 2) == 0) {
+                // 長距離ストライクボルト（ボス近傍 -> 外周空間・大地・海）
+                float startAngle = LightningHash12(float2(seed, 0.11f)) * TAU;
+                float startR = 0.02f + LightningHash12(float2(seed, 0.22f)) * 0.06f;
+                startPt = centerIso + float2(cos(startAngle), sin(startAngle)) * startR;
+
+                float endAngle = LightningHash12(float2(seed, 0.33f)) * TAU;
+                float endR = 0.32f + LightningHash12(float2(seed, 0.44f)) * 0.48f;
+                endPt = centerIso + float2(cos(endAngle), sin(endAngle)) * endR;
+            } else {
+                // 近距離ショートアーク（ボスのリング装甲周囲を激しく這う）
+                float ringAngle1 = LightningHash12(float2(seed, 0.55f)) * TAU;
+                float ringAngle2 = ringAngle1 + ((LightningHash12(float2(seed, 0.66f)) > 0.5f) ? 1.0f : -1.0f) * (0.8f + LightningHash12(float2(seed, 0.77f)) * 1.4f);
+                float ringR1 = 0.04f + LightningHash12(float2(seed, 0.88f)) * 0.07f;
+                float ringR2 = 0.04f + LightningHash12(float2(seed, 0.99f)) * 0.07f;
+                startPt = centerIso + float2(cos(ringAngle1), sin(ringAngle1)) * ringR1;
+                endPt = centerIso + float2(cos(ringAngle2), sin(ringAngle2)) * ringR2;
+            }
+
+            // 中点変位法でボルトの距離を評価
+            float branchDist;
+            float mainDist = EvaluateMidpointLightningBolt(pIso, startPt, endPt, seed, branchDist);
+
+            // 主幹ボルトの発光
+            // 白い軸 (Core): 極細の鋭角芯
+            float mainCore = exp(-mainDist * 650.0f) * coreIntensity * 3.5f;
+            // まとう水色の光 (Glow): 鮮烈なエレクトリックブルー光彩
+            float mainGlow = exp(-mainDist * 75.0f) * glowIntensity * 1.2f;
+            // 遠方の水色オーラ
+            float mainAura = exp(-mainDist * 18.0f) * glowIntensity * 0.35f;
+
+            // 小枝 (Branch) の発光
+            float branchCore = exp(-branchDist * 800.0f) * coreIntensity * 2.0f;
+            float branchGlow = exp(-branchDist * 95.0f) * glowIntensity * 0.8f;
+
+            float totalCore = mainCore + branchCore;
+            float totalGlow = mainGlow + branchGlow;
+            float totalAura = mainAura;
+
+            // スギヤマ氏資料 P4: 「白色の軸に、その周囲にまとう水色の光」
+            float32_t3 boltColor = float32_t3(1.0f, 1.0f, 1.0f) * totalCore
+                                 + float32_t3(0.25f, 0.80f, 1.6f) * totalGlow
+                                 + float32_t3(0.05f, 0.25f, 0.9f) * totalAura;
+
+            lightningEmission += boltColor * arcIntensity;
+        }
+    }
+
+    // --- 3. 電磁波干渉ジッター（微小な水平色収差） ---
+    if (electricChromatic > 0.0001f) {
+        float jitter = sin(uv.y * 300.0f + time * 40.0f) * electricChromatic * 0.20f;
+        chromaticOffset.x += jitter;
+    }
+
+    // --- 4. サンプリングと合成 ---
+    float32_t3 sampleColor;
+    if (length(chromaticOffset) > 0.0001f) {
+        sampleColor = SampleWithRGBShift(tex, smp, finalUV, chromaticOffset);
+    } else {
+        sampleColor = tex.Sample(smp, finalUV).rgb;
+    }
+
+    // 白飛び塊を作らない、雷の純粋加算合成
+    sampleColor += lightningEmission;
+
+    // 高圧プラズマ白熱全画面フラッシュ（爆発の瞬間のみ）
+    sampleColor += float32_t3(1.1f, 1.2f, 1.4f) * plasmaFlashIntensity;
+
+    return sampleColor;
+}
+

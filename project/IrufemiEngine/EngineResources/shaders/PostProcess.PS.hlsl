@@ -398,6 +398,21 @@ PixelShaderOutput main(VertexShaderOutput input) {
                     gExtraTexture, gNormalTexture, gMaskTexture, gSamplerPoint
                 );
                 break;
+
+            case kPostProcessMode_LightningCataclysm:
+                color.rgb = ApplyLightningCataclysm(
+                    uv,
+                    gParams.lightningCataclysmCenter,
+                    gParams.lightningEmpWaveRadius,
+                    gParams.lightningEmpWaveIntensity,
+                    gParams.lightningArcIntensity,
+                    gParams.lightningPlasmaFlashIntensity,
+                    gParams.lightningElectricChromatic,
+                    gParams.lightningTime,
+                    gTexture,
+                    gSampler
+                );
+                break;
         }
     }
 

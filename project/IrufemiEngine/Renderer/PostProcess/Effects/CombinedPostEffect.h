@@ -258,6 +258,13 @@ public:
         return bdOutlineParams_;
     }
 
+    LightningCataclysmParams& GetLightningCataclysmParams() {
+        return lightningCataclysmParams_;
+    }
+    const LightningCataclysmParams& GetLightningCataclysmParams() const {
+        return lightningCataclysmParams_;
+    }
+
     // MultiPass/voidエフェクト用ダミースタブ（SSOTマクロ自動展開時の完全な構文合法性を保証）
     struct DummyParam {
         template <typename T> DummyParam& operator=(const T&) {
@@ -315,6 +322,7 @@ private:
     GravityDistortionParams gravityDistortionParams_{};
     BlackHoleSupernovaParams blackHoleSupernovaParams_{};
     BandeDessineeOutlineParams bdOutlineParams_{};
+    LightningCataclysmParams lightningCataclysmParams_{};
 };
 
 } // namespace Irufemi

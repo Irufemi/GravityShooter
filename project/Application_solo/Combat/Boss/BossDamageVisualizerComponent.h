@@ -8,6 +8,7 @@ class GameObject;
 }
 namespace Irufemi {
 class CameraShakeComponent;
+class CameraComponent;
 }
 
 /**
@@ -26,6 +27,21 @@ public:
     std::string GetComponentName() const override {
         return "BossDamageVisualizerComponent";
     }
+
+    /**
+     * @brief メインカメラのゲームオブジェクトを取得する（弱参照キャッシュ付き）
+     */
+    std::shared_ptr<Irufemi::GameObject> GetMainCamera() const;
+
+    /**
+     * @brief メインカメラの CameraComponent を取得する
+     */
+    Irufemi::CameraComponent* GetMainCameraComponent() const;
+
+    /**
+     * @brief メインカメラの Irufemi::CameraShakeComponent を取得する
+     */
+    Irufemi::CameraShakeComponent* GetCameraShake() const;
 
     /**
      * @brief 被弾時のカメラシェイクを再生する
@@ -149,16 +165,6 @@ public:
     }
 
 private:
-    /**
-     * @brief メインカメラのゲームオブジェクトを取得する（弱参照キャッシュ付き）
-     */
-    std::shared_ptr<Irufemi::GameObject> GetMainCamera() const;
-
-    /**
-     * @brief メインカメラの Irufemi::CameraShakeComponent を取得する
-     */
-    Irufemi::CameraShakeComponent* GetCameraShake() const;
-
     /**
      * @brief 登録済みのイベントリスナーを解除する
      */

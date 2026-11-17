@@ -246,6 +246,32 @@ struct PostProcessParams {
     float32_t bdFadeStart;
     float32_t bdFadeEnd;
     float32_t3 pad_bdOutline;
+
+    // [Bindless]
+    uint32_t mainTextureIndex;
+    uint32_t extraTextureIndex;
+    uint32_t maskTextureIndex;
+    uint32_t padding_bindless;
+
+    // LightningCataclysm (32 bytes = 8 float)
+    float32_t2 lightningCataclysmCenter;
+    float32_t lightningEmpWaveRadius;
+    float32_t lightningEmpWaveIntensity;
+    float32_t lightningArcIntensity;
+    float32_t lightningPlasmaFlashIntensity;
+    float32_t lightningElectricChromatic;
+    float32_t lightningTime;
+};
+
+struct LightningCataclysmParams {
+    float32_t2 center;
+    float32_t empWaveRadius;
+    float32_t empWaveIntensity;
+    float32_t arcIntensity;
+    float32_t plasmaFlashIntensity;
+    float32_t electricChromatic;
+    float32_t time;
+    float32_t pad;
 };
 
 struct BandeDessineeOutlineParams {

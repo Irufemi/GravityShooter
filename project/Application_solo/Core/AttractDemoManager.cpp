@@ -112,6 +112,7 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
         if (currentScene == GameScenes::InGame) {
             // Title から本編 InGame に突入した瞬間
             inGameTimer_ = 0.0f;
+            combatTimer_ = 0.0f;
             hasTriggeredReturn_ = false;
             isDemoPlaying_ = false; // タイトル用デモフラグは終了
 
@@ -414,19 +415,43 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         return;
     }
 
-    // クリア演出実演モードの場合：イントロ閃光をスキップし、通常飛行を1.50秒見せた後にボスを撃破
+    // クリア演出実演モードの場合：スタート演出（Warp-In & FCS起動）をフル再生し、通常戦闘・対峙を5.0秒見せた後にボスを撃破
     if (demoMode_ == DemoMode::ClearShowcase) {
         auto currentScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());
+        bool isIntroActive = false;
         if (currentScene) {
-            // ワープイントロ演出（2.8秒）をスキップし、自機とカメラを即座に通常戦闘姿勢にスタンバイ
-            if (auto introObj = currentScene->FindGameObject("StageIntroDirector")) {
-                if (auto intro = introObj->GetComponent<StageIntroDirectorComponent>()) {
-                    intro->SkipIntroSequence();
+            // スタート演出（StageIntroDirectorComponent）の状態を確認
+            StageIntroDirectorComponent* introComp = nullptr;
+            if (auto mgrObj = currentScene->FindGameObject("GameManager")) {
+                introComp = mgrObj->GetComponent<StageIntroDirectorComponent>();
+            }
+            if (!introComp) {
+                if (auto introObj = currentScene->FindGameObject("StageIntroDirector")) {
+                    introComp = introObj->GetComponent<StageIntroDirectorComponent>();
                 }
+            }
+            if (!introComp) {
+                for (const auto& obj : currentScene->GetGameObjects()) {
+                    if (obj && (introComp = obj->GetComponent<StageIntroDirectorComponent>())) {
+                        break;
+                    }
+                }
+            }
+
+            if (introComp) {
+                isIntroActive = introComp->IsActive();
+            } else {
+                // イントロコンポーネントが存在しない場合は画面表示3秒以降を戦闘とみなす
+                isIntroActive = (inGameTimer_ > 3.0f);
             }
         }
 
-        if (inGameTimer_ >= 1.50f && !hasTriggeredReturn_) {
+        // スタート演出が完了して通常戦闘に入ったら対峙タイマーを進める
+        if (isIntroActive) {
+            combatTimer_ += deltaTime;
+        }
+
+        if (combatTimer_ >= kBossCombatShowcaseDuration_ && !hasTriggeredReturn_) {
             if (currentScene) {
                 BossComponent* bossComp = nullptr;
                 if (auto bossObj = currentScene->FindGameObject("Boss")) {
@@ -440,6 +465,7 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
                     }
                 }
                 if (bossComp && bossComp->GetHp() > 0.0f) {
+                    hasTriggeredReturn_ = true;
                     bossComp->ApplyCoreDamage(99999.0f);
                 }
             }

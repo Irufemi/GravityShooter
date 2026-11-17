@@ -32,6 +32,23 @@ public:
 
     void OnIDRemapped(const std::unordered_map<uint64_t, uint64_t>& idMap) override;
 
+    float GetDistanceOffset() const {
+        return distanceOffset_;
+    }
+    void SetDistanceOffset(float offset) {
+        distanceOffset_ = offset;
+    }
+
+    const Irufemi::Vector3& GetLocalOffset() const {
+        return localOffset_;
+    }
+    void SetLocalOffset(const Irufemi::Vector3& offset) {
+        localOffset_ = offset;
+    }
+    void SetLocalOffsetY(float offsetY) {
+        localOffset_.y = offsetY;
+    }
+
     static constexpr int kSearchRetryInterval = 30;        ///< ターゲット検索リトライ間隔 (フレーム数)
     static constexpr float kDefaultDistanceOffset = 80.0f; ///< ターゲット前方の基準オフセット距離 (m)
 

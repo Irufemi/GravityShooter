@@ -148,6 +148,15 @@ void CombinedPostEffect::SyncParamsToCombined(CombinedParams& combined) const {
     combined.bdNormalWeight = bdOutlineParams_.normalWeight;
     combined.bdFadeStart = bdOutlineParams_.distanceFadeStart;
     combined.bdFadeEnd = bdOutlineParams_.distanceFadeEnd;
+
+    // LightningCataclysm
+    combined.lightningCataclysmCenter = lightningCataclysmParams_.center;
+    combined.lightningEmpWaveRadius = lightningCataclysmParams_.empWaveRadius;
+    combined.lightningEmpWaveIntensity = lightningCataclysmParams_.empWaveIntensity;
+    combined.lightningArcIntensity = lightningCataclysmParams_.arcIntensity;
+    combined.lightningPlasmaFlashIntensity = lightningCataclysmParams_.plasmaFlashIntensity;
+    combined.lightningElectricChromatic = lightningCataclysmParams_.electricChromatic;
+    combined.lightningTime = lightningCataclysmParams_.time;
 }
 
 void CombinedPostEffect::Render(const PostProcessRenderContext& context) {

@@ -21,7 +21,8 @@ struct LightningConfig {
 
     float intensity;        //!< 全体発光輝度（0.0で非表示、1.0で通常、20.0+で超オーバーブライト）
     float branchAmount;     //!< 支流スパークの寄与率（0.0〜1.0）
-    float2 pad;             //!< 16バイトパディング
+    float dissolveProgress; //!< 装甲ディゾルブ進行度（0.0で通常、1.0で完全消失）
+    float dissolveEdgeWidth;//!< ディゾルブ発光エッジ幅（例: 0.08）
 
     float4 coreColor;       //!< 稲妻の芯の色（HDR純白・超高輝度）
     float4 haloColor;       //!< 外郭プラズマオーラ色（シアン・紫電・ネオンブルー等）
@@ -31,6 +32,64 @@ struct LightningSurfaceOutput {
     float3 emissiveColor;   //!< 元のマテリアル色に加算（Add）するRGB発光成分
     float boltIntensity;    //!< 稲妻の存在強度（0.0〜1.0）
 };
+
+struct LightningDissolveOutput {
+    bool isDiscarded;       //!< ピクセル破棄フラグ
+    float3 edgeEmission;    //!< ディゾルブ境界の高輝度プラズマエッジ発光
+};
+
+/**
+ * @brief 3D空間ノイズを用いた装甲の放電ディゾルブ消滅評価関数
+ * @param samplePos 3Dサンプリング座標（ワールド座標またはローカル座標）
+ * @param screenPos 画面ピクセル座標（ディザリング用）
+ * @param time 経過時間
+ * @param cfg 設定構造体
+ */
+inline LightningDissolveOutput EvaluateLightningDissolve(
+    float3 samplePos,
+    float2 screenPos,
+    float time,
+    LightningConfig cfg
+) {
+    LightningDissolveOutput outVal;
+    outVal.isDiscarded = false;
+    outVal.edgeEmission = float3(0.0, 0.0, 0.0);
+
+    if (cfg.dissolveProgress <= 0.0001) {
+        return outVal;
+    }
+
+    if (cfg.dissolveProgress >= 0.9999) {
+        outVal.isDiscarded = true;
+        return outVal;
+    }
+
+    // 3D空間ノイズによる自然な浸食パターン (0.0〜1.0)
+    float3 p = samplePos * (cfg.density * 0.35) + float3(0.0, time * 0.4, 0.0);
+    float noiseVal = fBm(p);
+
+    // インターリーブド勾配ノイズ調の微小ディザリングでアンチエイリアス感・粒子感を付加
+    float dither = frac(sin(dot(screenPos, float2(12.9898, 78.233))) * 43758.5453) * 0.04;
+    float combinedNoise = saturate(noiseVal + dither);
+
+    float threshold = cfg.dissolveProgress;
+    float edgeWidth = max(0.01, cfg.dissolveEdgeWidth);
+
+    if (combinedNoise < threshold) {
+        outVal.isDiscarded = true;
+        return outVal;
+    }
+
+    // エッジ領域（threshold 〜 threshold + edgeWidth）で超高輝度プラズマ発光
+    float edgeDist = combinedNoise - threshold;
+    if (edgeDist < edgeWidth) {
+        float edgeNorm = 1.0 - (edgeDist / edgeWidth);
+        // エッジ光彩（haloColor と coreColor のブレンド・HDR発光）
+        outVal.edgeEmission = lerp(cfg.haloColor.rgb, cfg.coreColor.rgb, edgeNorm) * (edgeNorm * edgeNorm * 18.0);
+    }
+
+    return outVal;
+}
 
 /**
  * @brief 3Dローカル座標と法線から表面電流の加算カラーを算出する純粋関数
