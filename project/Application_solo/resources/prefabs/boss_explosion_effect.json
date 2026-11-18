@@ -1,0 +1,233 @@
+{
+  "name": "BossExplosionEffectRoot",
+  "isFolder": false,
+  "isActive": true,
+  "components": [
+    {
+      "type": "TransformComponent"
+    },
+    {
+      "type": "LifetimeComponent",
+      "data": {
+        "lifeTime": 3.0
+      }
+    }
+  ],
+  "children": [
+    {
+      "name": "FlashCore",
+      "components": [
+        {
+          "type": "TransformComponent"
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "billboardMode": 1,
+              "emitOnAwake": true,
+              "showDebugArea": false,
+              "burstCountOnAwake": 1,
+              "emitType": 0,
+              "emissionRate": 0.0,
+              "lifeTimeMin": 0.14,
+              "lifeTimeMax": 0.14,
+              "velocity": 0.0,
+              "startScale": [ 10.0, 10.0, 10.0 ],
+              "midScale": [ 6.0, 6.0, 6.0 ],
+              "endScale": [ 0.0, 0.0, 0.0 ],
+              "midPoint": 0.35,
+              "color": [ 12.0, 12.0, 12.0, 1.0 ],
+              "midColor": [ 6.0, 5.0, 2.5, 0.9 ],
+              "endColor": [ 0.0, 0.0, 0.0, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "MainFireballCluster",
+      "components": [
+        {
+          "type": "TransformComponent"
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "billboardMode": 1,
+              "enableRandomRotation": true,
+              "emitOnAwake": true,
+              "showDebugArea": false,
+              "burstCountOnAwake": 85,
+              "emitType": 0,
+              "emissionRate": 0.0,
+              "radius": 2.5,
+              "spread": 1.0,
+              "velocity": 16.0,
+              "lifeTimeMin": 1.2,
+              "lifeTimeMax": 1.8,
+              "startScale": [ 2.0, 2.0, 2.0 ],
+              "midScale": [ 6.0, 6.0, 6.0 ],
+              "endScale": [ 8.5, 8.5, 8.5 ],
+              "midPoint": 0.22,
+              "color": [ 6.0, 3.8, 1.2, 1.0 ],
+              "midColor": [ 3.2, 0.9, 0.1, 0.85 ],
+              "endColor": [ 0.35, 0.05, 0.01, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FireballNoiseShell",
+      "components": [
+        {
+          "type": "TransformComponent"
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/noise_circle.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "billboardMode": 1,
+              "enableRandomRotation": true,
+              "emitOnAwake": true,
+              "showDebugArea": false,
+              "burstCountOnAwake": 50,
+              "emitType": 0,
+              "emissionRate": 0.0,
+              "radius": 2.5,
+              "spread": 1.0,
+              "velocity": 20.0,
+              "lifeTimeMin": 0.9,
+              "lifeTimeMax": 1.5,
+              "startScale": [ 2.5, 2.5, 2.5 ],
+              "midScale": [ 6.5, 6.5, 6.5 ],
+              "endScale": [ 9.5, 9.5, 9.5 ],
+              "midPoint": 0.28,
+              "color": [ 3.5, 1.8, 0.3, 0.9 ],
+              "midColor": [ 1.2, 0.3, 0.02, 0.7 ],
+              "endColor": [ 0.0, 0.0, 0.0, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SparksBurst",
+      "components": [
+        {
+          "type": "TransformComponent"
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "billboardMode": 1,
+              "emitOnAwake": true,
+              "showDebugArea": false,
+              "burstCountOnAwake": 200,
+              "emitType": 0,
+              "emissionRate": 0.0,
+              "radius": 1.2,
+              "spread": 1.0,
+              "velocity": 80.0,
+              "gravity": -18.0,
+              "lifeTimeMin": 0.8,
+              "lifeTimeMax": 1.8,
+              "startScale": [ 0.7, 0.7, 0.7 ],
+              "midScale": [ 0.45, 0.45, 0.45 ],
+              "endScale": [ 0.05, 0.05, 0.05 ],
+              "midPoint": 0.20,
+              "color": [ 12.0, 9.0, 3.0, 1.0 ],
+              "midColor": [ 6.0, 2.5, 0.5, 0.9 ],
+              "endColor": [ 0.8, 0.06, 0.0, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PlasmaSmokePlume",
+      "components": [
+        {
+          "type": "TransformComponent"
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "billboardMode": 1,
+              "enableRandomRotation": true,
+              "emitOnAwake": true,
+              "showDebugArea": false,
+              "burstCountOnAwake": 45,
+              "emitType": 0,
+              "emissionRate": 0.0,
+              "radius": 3.0,
+              "spread": 1.0,
+              "velocity": 7.0,
+              "gravity": 3.5,
+              "lifeTimeMin": 1.6,
+              "lifeTimeMax": 2.8,
+              "startScale": [ 3.0, 3.0, 3.0 ],
+              "midScale": [ 8.0, 8.0, 8.0 ],
+              "endScale": [ 12.0, 12.0, 12.0 ],
+              "midPoint": 0.30,
+              "color": [ 0.8, 0.45, 0.2, 0.45 ],
+              "midColor": [ 0.25, 0.15, 0.35, 0.30 ],
+              "endColor": [ 0.0, 0.0, 0.0, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ShockwaveRing3D",
+      "components": [
+        {
+          "type": "TransformComponent"
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/texture/ring.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "billboardMode": 1,
+              "emitOnAwake": true,
+              "showDebugArea": false,
+              "burstCountOnAwake": 2,
+              "emitType": 0,
+              "emissionRate": 0.0,
+              "lifeTimeMin": 0.40,
+              "lifeTimeMax": 0.50,
+              "startScale": [ 2.0, 2.0, 2.0 ],
+              "midScale": [ 20.0, 20.0, 20.0 ],
+              "endScale": [ 42.0, 42.0, 42.0 ],
+              "midPoint": 0.45,
+              "color": [ 5.0, 4.0, 1.5, 0.9 ],
+              "endColor": [ 0.2, 0.04, 0.0, 0.0 ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

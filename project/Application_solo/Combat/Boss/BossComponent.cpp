@@ -14,6 +14,8 @@
 #include "Combat/Boss/BossDamageVisualizerComponent.h"
 #include "Player/TargetableComponent.h"
 #include "Combat/ScoreManagerComponent.h"
+#include "Core/System/IrufemiEngine.h"
+#include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
 #include <algorithm>
 #include <iostream>
 #include "Core/Utility/JsonUtility.h"
@@ -105,6 +107,13 @@ void BossComponent::Start() {
 
     auto scene = gameObject_->GetScene();
     if (scene) {
+        // ボス撃破演出用高密度Voxelシステムの事前確保（ロード画面中に完了同期）
+        if (auto engine = scene->GetEngine()) {
+            if (auto voxelMgr = engine->GetVoxelParticleManager()) {
+                voxelMgr->ReservePool("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{20, 20, 20}, 4000);
+            }
+        }
+
         auto container = scene->FindGameObject("BossContainer");
         if (container) {
             bossContainer_ = container;

@@ -970,28 +970,69 @@ float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t e
     float32_t2 delta = pIso - centerIso;
     float32_t dist = length(delta);
     float32_t2 dir = (dist > 0.0001f) ? (delta / dist) : float32_t2(0.0f, 0.0f);
+    float angle = atan2(dir.y, dir.x);
 
     float32_t2 finalUV = uv;
     float32_t2 chromaticOffset = float32_t2(0.0f, 0.0f);
     float32_t3 lightningEmission = float32_t3(0.0f, 0.0f, 0.0f);
 
-    // --- 1. 単一のEMP衝撃波リング（薄くシャープな波面） ---
+    // --- 1. 多層3Dボリューム爆炎 ＆ ノイズドーナツ爆炎リング (Volumetric Blast & Donut Ring) ---
+    // ゲーム・アニメのBoss撃破特有の、ノイズで激しく爆ぜる巨大なドーナツ状爆炎 ＆ 3Dボリューム火球！
     if (empWaveRadius > 0.001f && empWaveIntensity > 0.0001f) {
-        float waveWidth = 0.035f;
-        float dWave = abs(dist - empWaveRadius);
-        if (dWave < waveWidth) {
-            float normD = dWave / waveWidth;
-            float waveFactor = (1.0f - normD * normD);
-            waveFactor = waveFactor * waveFactor;
+        // [A] ドーナツ爆炎の波面ノイズ変形（爆炎の突起・激しい火焔のうねり）
+        float flameTurbulence = sFBm(float2(angle * 5.0f - time * 6.0f, dist * 10.0f - time * 4.0f)) * 0.55f
+                              + sFBm(float2(angle * 10.0f + time * 8.0f, dist * 18.0f)) * 0.30f
+                              + sFBm(float2(angle * 2.5f, time * 3.0f)) * 0.15f;
 
-            // 時空の瞬間屈折（波面でのみ局所変位）
-            finalUV += (dir * (waveFactor * empWaveIntensity * 0.020f)) / aspectScale;
-            chromaticOffset += (dir * (waveFactor * (electricChromatic + 0.015f))) / aspectScale;
-            lightningEmission += float32_t3(0.4f, 1.2f, 3.0f) * (waveFactor * empWaveIntensity * 1.5f);
+        // ノイズによって有機的に激しくうねるドーナツの中心線半径
+        float ringRadius = empWaveRadius + (flameTurbulence - 0.5f) * 0.12f;
+
+        // ドーナツの幅（質量感ある分厚い爆炎の帯: 初期0.32 -> 拡大時0.20）
+        float ringWidth = lerp(0.32f, 0.20f, saturate(empWaveRadius * 0.6f));
+
+        // 波面中心線からの距離
+        float dRing = abs(dist - ringRadius);
+
+        if (dRing < ringWidth) {
+            float normD = dRing / ringWidth; // 0.0(リング中心) -> 1.0(リング境界)
+            float ringEnvelope = 1.0f - normD * normD;
+            ringEnvelope = ringEnvelope * ringEnvelope; // 滑らかな放物線エンベロープ
+
+            // ① ドーナツ爆炎の内部乱流密度（炎の塊、火焔の濃淡）
+            float flameDensity = smoothstep(0.2f, 0.7f, flameTurbulence);
+
+            // ② 白熱コア層（ドーナツの中心線上を走る超高熱純白ライン）
+            float coreLine = pow(ringEnvelope, 3.0f) * (0.8f + flameDensity * 1.2f) * 4.5f;
+
+            // ③ 爆炎本体層（ドーナツの帯全体を満たす激しい火焔）
+            float flameBody = ringEnvelope * (0.5f + flameDensity * 1.5f) * 3.2f;
+
+            // 合計強度
+            float blastGlow = (coreLine + flameBody) * empWaveIntensity;
+
+            // 鮮烈なプラズマ爆炎カラー（純白超高熱コア ➔ 鮮烈エレクトリックシアン ➔ サファイアブルー）
+            float3 colWhiteCore = float3(4.5f, 4.8f, 5.5f);
+            float3 colCyanFlame = float3(0.4f, 2.2f, 4.5f);
+            float3 colDeepBlue  = float3(0.1f, 0.5f, 2.2f);
+
+            float3 blastColor;
+            if (normD < 0.35f) {
+                blastColor = lerp(colWhiteCore, colCyanFlame, normD / 0.35f);
+            } else {
+                blastColor = lerp(colCyanFlame, colDeepBlue, (normD - 0.35f) / 0.65f);
+            }
+
+            // ④ 空間を外側へ猛烈に押し広げる大質量時空屈折歪み
+            float distortPower = (coreLine * 0.025f + ringEnvelope * 0.065f) * empWaveIntensity;
+            finalUV += (dir * distortPower) / aspectScale;
+
+            // ⑤ ドーナツ波面のエッジ色収差（プリズム分光）
+            float chromaticPower = ringEnvelope * (empWaveIntensity * 0.035f + electricChromatic * 0.6f);
+            chromaticOffset += (dir * chromaticPower) / aspectScale;
         }
     }
 
-    // --- 2. 中点変位法による本物の稲妻ボルト ＆ 独立ライフサイクル（スギヤマ_ソウタ氏設計準拠） ---
+    // --- 2. 衝撃波リングに連動したアーク放電 ＆ 独立ライフサイクル ---
     if (arcIntensity > 0.001f) {
         // 8本の独立放電チャンネル（不規則な周期と位相で独立発火）
         static const float kPeriods[8] = { 0.22f, 0.17f, 0.25f, 0.19f, 0.23f, 0.16f, 0.27f, 0.20f };
@@ -1015,10 +1056,7 @@ float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t e
 
             float normT = localTime / life; // 0.0 -> 1.0
 
-            // スギヤマ氏資料 P4:
-            // 「COLOR: 白色の軸に、その周囲にまとう水色の光」
-            // 「MOTION: 軸が消え去った後も少し余韻が残る」
-            // 白い軸 (Core): 発生の瞬間 (0.00〜0.03秒) に一気に発光し、0.08秒で素早く消滅
+            // 白い軸 (Core): 発生の瞬間に一気に発光し、素早く消滅
             float coreIntensity = smoothstep(0.0f, 0.08f, normT) * (1.0f - smoothstep(0.08f, 0.35f, normT));
             // まとう水色の光 (Glow / 余韻): 発生から消灯まで滑らかに減衰して余韻を残す
             float glowIntensity = smoothstep(0.0f, 0.05f, normT) * pow(1.0f - normT, 1.6f);
@@ -1028,23 +1066,41 @@ float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t e
             float2 startPt;
             float2 endPt;
 
-            if ((i % 2) == 0) {
-                // 長距離ストライクボルト（ボス近傍 -> 外周空間・大地・海）
-                float startAngle = LightningHash12(float2(seed, 0.11f)) * TAU;
-                float startR = 0.02f + LightningHash12(float2(seed, 0.22f)) * 0.06f;
-                startPt = centerIso + float2(cos(startAngle), sin(startAngle)) * startR;
-
-                float endAngle = LightningHash12(float2(seed, 0.33f)) * TAU;
-                float endR = 0.32f + LightningHash12(float2(seed, 0.44f)) * 0.48f;
-                endPt = centerIso + float2(cos(endAngle), sin(endAngle)) * endR;
+            if (empWaveRadius > 0.06f) {
+                // ★衝撃波リングと完全連動する放電
+                if ((i % 2) == 0) {
+                    // 中心から衝撃波リングの波面へ向かってズドンと突き刺さるストライク
+                    float strikeAngle = LightningHash12(float2(seed, 0.33f)) * TAU;
+                    float2 ringDir = float2(cos(strikeAngle), sin(strikeAngle));
+                    startPt = centerIso + ringDir * 0.02f;
+                    endPt   = centerIso + ringDir * (empWaveRadius + (LightningHash12(float2(seed, 0.44f)) - 0.5f) * 0.10f);
+                } else {
+                    // 衝撃波リングの波面そのものをバチバチ這い回る波面アークショート
+                    float arcAngle1 = LightningHash12(float2(seed, 0.55f)) * TAU;
+                    float arcAngle2 = arcAngle1 + ((LightningHash12(float2(seed, 0.66f)) > 0.5f) ? 1.0f : -1.0f) * (0.4f + LightningHash12(float2(seed, 0.77f)) * 0.6f);
+                    float arcR1 = empWaveRadius + (LightningHash12(float2(seed, 0.88f)) - 0.5f) * 0.08f;
+                    float arcR2 = empWaveRadius + (LightningHash12(float2(seed, 0.99f)) - 0.5f) * 0.08f;
+                    startPt = centerIso + float2(cos(arcAngle1), sin(arcAngle1)) * arcR1;
+                    endPt   = centerIso + float2(cos(arcAngle2), sin(arcAngle2)) * arcR2;
+                }
             } else {
-                // 近距離ショートアーク（ボスのリング装甲周囲を激しく這う）
-                float ringAngle1 = LightningHash12(float2(seed, 0.55f)) * TAU;
-                float ringAngle2 = ringAngle1 + ((LightningHash12(float2(seed, 0.66f)) > 0.5f) ? 1.0f : -1.0f) * (0.8f + LightningHash12(float2(seed, 0.77f)) * 1.4f);
-                float ringR1 = 0.04f + LightningHash12(float2(seed, 0.88f)) * 0.07f;
-                float ringR2 = 0.04f + LightningHash12(float2(seed, 0.99f)) * 0.07f;
-                startPt = centerIso + float2(cos(ringAngle1), sin(ringAngle1)) * ringR1;
-                endPt = centerIso + float2(cos(ringAngle2), sin(ringAngle2)) * ringR2;
+                // 収縮・タメ・接近時の通常アーク放電
+                if ((i % 2) == 0) {
+                    float startAngle = LightningHash12(float2(seed, 0.11f)) * TAU;
+                    float startR = 0.02f + LightningHash12(float2(seed, 0.22f)) * 0.06f;
+                    startPt = centerIso + float2(cos(startAngle), sin(startAngle)) * startR;
+
+                    float endAngle = LightningHash12(float2(seed, 0.33f)) * TAU;
+                    float endR = 0.32f + LightningHash12(float2(seed, 0.44f)) * 0.48f;
+                    endPt = centerIso + float2(cos(endAngle), sin(endAngle)) * endR;
+                } else {
+                    float ringAngle1 = LightningHash12(float2(seed, 0.55f)) * TAU;
+                    float ringAngle2 = ringAngle1 + ((LightningHash12(float2(seed, 0.66f)) > 0.5f) ? 1.0f : -1.0f) * (0.8f + LightningHash12(float2(seed, 0.77f)) * 1.4f);
+                    float ringR1 = 0.04f + LightningHash12(float2(seed, 0.88f)) * 0.07f;
+                    float ringR2 = 0.04f + LightningHash12(float2(seed, 0.99f)) * 0.07f;
+                    startPt = centerIso + float2(cos(ringAngle1), sin(ringAngle1)) * ringR1;
+                    endPt = centerIso + float2(cos(ringAngle2), sin(ringAngle2)) * ringR2;
+                }
             }
 
             // 中点変位法でボルトの距離を評価

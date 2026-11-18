@@ -81,25 +81,29 @@ inline Irufemi::Vector3 LerpVector3(const Irufemi::Vector3& a, const Irufemi::Ve
 }
 
 /**
- * @brief ボスのワールド座標をスクリーンUV座標（0.0〜1.0）へ射影変換する
+ * @brief 任意のワールド座標をスクリーンUV座標（0.0〜1.0）へ射影変換する
  */
-inline Irufemi::Vector2 CalculateBossScreenUV(BossComponent* boss) {
-    if (!boss || !boss->GetGameObject() || !boss->GetEngine()) {
+inline Irufemi::Vector2 CalculateWorldScreenUV(Irufemi::IrufemiEngine* engine, const Irufemi::Vector3& worldPos, bool* outIsVisible = nullptr) {
+    if (outIsVisible) {
+        *outIsVisible = false;
+    }
+    if (!engine) {
         return Irufemi::Vector2{0.5f, 0.48f};
     }
-    auto engine = boss->GetEngine();
     auto camMgr = engine->GetCameraManager();
     auto activeCam = camMgr ? camMgr->GetActiveCamera() : nullptr;
     if (!activeCam) {
         return Irufemi::Vector2{0.5f, 0.48f};
     }
 
-    Irufemi::Vector3 worldPos = boss->GetGameObject()->GetTransform()->GetWorldPosition();
     const auto& viewProj = activeCam->GetViewProjectionMatrix3D();
-
     float w = worldPos.x * viewProj.m[0][3] + worldPos.y * viewProj.m[1][3] + worldPos.z * viewProj.m[2][3] + viewProj.m[3][3];
     if (w <= 0.001f) {
         return Irufemi::Vector2{0.5f, 0.48f};
+    }
+
+    if (outIsVisible) {
+        *outIsVisible = true;
     }
 
     Irufemi::Vector3 clipPos = Irufemi::Math::Transform(worldPos, viewProj);
@@ -107,6 +111,16 @@ inline Irufemi::Vector2 CalculateBossScreenUV(BossComponent* boss) {
         std::clamp(clipPos.x * 0.5f + 0.5f, 0.05f, 0.95f),
         std::clamp(-clipPos.y * 0.5f + 0.5f, 0.05f, 0.95f)
     };
+}
+
+/**
+ * @brief ボスのワールド座標をスクリーンUV座標（0.0〜1.0）へ射影変換する
+ */
+inline Irufemi::Vector2 CalculateBossScreenUV(BossComponent* boss) {
+    if (!boss || !boss->GetGameObject()) {
+        return Irufemi::Vector2{0.5f, 0.48f};
+    }
+    return CalculateWorldScreenUV(boss->GetEngine(), boss->GetGameObject()->GetTransform()->GetWorldPosition());
 }
 
 inline float SmoothStep(float t) {
@@ -323,14 +337,14 @@ public:
             updateCBV(updateCBV, boss->GetGameObject());
         }
 
-        // 4. ポストプロセス LightningCataclysm を駆動（アーク放電が空間を裂く）
+        // 4. ポストプロセス LightningCataclysm を駆動（アーク放電が空間を裂く、ドーナツ爆炎は大爆発まで出さない）
         if (auto ppm = engine->GetPostProcessManager()) {
             auto& lc = ppm->GetLightningCataclysmParams();
             lc.center = CalculateBossScreenUV(boss);
             lc.arcIntensity = std::lerp(0.0f, 3.8f, progress * progress);
             lc.electricChromatic = std::lerp(0.0f, 0.030f, progress);
-            lc.empWaveRadius = progress * 0.45f;
-            lc.empWaveIntensity = progress * 0.85f;
+            lc.empWaveRadius = 0.0f;
+            lc.empWaveIntensity = 0.0f;
             lc.time += dt * 3.5f;
         }
 
@@ -415,36 +429,38 @@ public:
         };
         hideRecursive(hideRecursive, boss->GetGameObject());
 
-        // 3. 眼前の接近位置に高密度（12x12x12、千個超）ボクセルボスを静止実体化（共振タメ）
+        // 3. 眼前の接近位置に高密度（12x12x12、千個超）ボクセルボスを実体化
         auto transform = boss->GetGameObject()->GetTransform();
-        Irufemi::Vector3 deadPos = transform ? transform->GetWorldPosition() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
-        Irufemi::Vector3 deadRot = transform ? transform->GetRotation() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
-        Irufemi::Vector3 deadScale = transform ? transform->GetScale() : Irufemi::Vector3{1.0f, 1.0f, 1.0f};
+        basePos_ = transform ? transform->GetWorldPosition() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
+        baseRot_ = transform ? transform->GetRotation() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
+        baseScale_ = transform ? transform->GetScale() : Irufemi::Vector3{1.0f, 1.0f, 1.0f};
 
         if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
-            staticHandle_ = voxelMgr->RegisterEmitter("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{12, 12, 12});
+            staticHandle_ = voxelMgr->RegisterEmitter("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{20, 20, 20});
             if (staticHandle_.IsValid()) {
-                Irufemi::VoxelEmitter p{};
-                p.emit = 1;
-                p.emitPosition = deadPos;
-                p.rotate = deadRot;
-                p.scale = deadScale;
-                p.lifeTime = 3.0f;
-                p.dispersion = 0.35f; // その場で微小振動（電磁共振）
-                p.gravity = 0.0f;
-                p.startColor = {3.5f, 4.5f, 7.0f, 1.0f}; // 超高圧青白プラズマ発光
-                p.endColor = {0.3f, 0.7f, 1.8f, 1.0f};
-                voxelMgr->UpdateEmitterData(staticHandle_, p);
+                emitterParams_ = Irufemi::VoxelEmitter{};
+                emitterParams_.emit = 1;
+                emitterParams_.emitPosition = basePos_;
+                emitterParams_.rotate = baseRot_;
+                emitterParams_.scale = {0.95f, 0.95f, 0.95f}; // 超高密度分割（数千個）による緻密な造形美
+                emitterParams_.lifeTime = 3.0f;
+                emitterParams_.dispersion = 0.5f;
+                emitterParams_.convergence = 55.0f; // 中心点へ向かって猛烈に吸い込まれる立体爆縮！
+                emitterParams_.gravity = 0.0f;
+                emitterParams_.startColor = {5.0f, 6.0f, 9.0f, 1.0f}; // 超高圧青白プラズマ発光
+                emitterParams_.endColor = {2.0f, 3.5f, 6.5f, 1.0f};
+                voxelMgr->UpdateEmitterData(staticHandle_, emitterParams_);
             }
         }
 
-        // 4. ポストプロセス LightningCataclysm: 放電を抑えて真空の収縮タメを演出
+        // 4. ポストプロセス LightningCataclysm: 大爆発ドーナツは出さず、真空の収縮放電タメを演出
         if (auto ppm = boss->GetEngine()->GetPostProcessManager()) {
             auto& lc = ppm->GetLightningCataclysmParams();
             lc.center = CalculateBossScreenUV(boss);
-            lc.arcIntensity = 0.6f;
-            lc.empWaveRadius = 0.35f;
-            lc.empWaveIntensity = 1.2f;
+            lc.arcIntensity = 1.0f;
+            lc.empWaveRadius = 0.0f;
+            lc.empWaveIntensity = 0.0f;
+            lc.electricChromatic = 0.015f;
         }
 
         SoundHelper::Play(GameSE::GravityWarp, 0.85f, 1.45f);
@@ -456,14 +472,28 @@ public:
         float progress = std::clamp(elapsedTime_ / targetDuration_, 0.0f, 1.0f);
 
         if (boss && boss->GetEngine()) {
+            // 数千個のボクセルが convergence = 55.0 -> 110.0 によって中心に向かって立体的に吸い込まれる！
+            if (staticHandle_.IsValid()) {
+                if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
+                    emitterParams_.convergence = std::lerp(55.0f, 110.0f, progress);
+                    emitterParams_.startColor = Irufemi::Vector4{
+                        std::lerp(5.0f, 10.0f, progress),
+                        std::lerp(6.0f, 12.0f, progress),
+                        std::lerp(9.0f, 16.0f, progress),
+                        1.0f
+                    };
+                    voxelMgr->UpdateEmitterData(staticHandle_, emitterParams_);
+                }
+            }
+
             if (auto ppm = boss->GetEngine()->GetPostProcessManager()) {
                 auto& lc = ppm->GetLightningCataclysmParams();
                 lc.center = CalculateBossScreenUV(boss);
-                // EMP波面の急速爆縮・収縮
-                lc.empWaveRadius = std::lerp(0.35f, 0.02f, progress);
-                lc.empWaveIntensity = std::lerp(1.2f, 0.1f, progress);
-                lc.electricChromatic = std::lerp(0.030f, 0.010f, progress);
-                lc.time += dt * 1.5f;
+                lc.empWaveRadius = 0.0f;
+                lc.empWaveIntensity = 0.0f;
+                lc.arcIntensity = std::lerp(1.0f, 3.0f, progress);
+                lc.electricChromatic = std::lerp(0.015f, 0.035f, progress);
+                lc.time += dt * 2.0f;
             }
         }
 
@@ -492,6 +522,10 @@ private:
     float targetDuration_ = 0.45f; // 実時間0.45秒の息を呑むタメ
     bool isCompleted_ = false;
     Irufemi::VoxelParticleManager::EmitterHandle staticHandle_{};
+    Irufemi::Vector3 basePos_{};
+    Irufemi::Vector3 baseRot_{};
+    Irufemi::Vector3 baseScale_{};
+    Irufemi::VoxelEmitter emitterParams_{};
 };
 
 /**
@@ -502,6 +536,8 @@ class DeathStepVoxelCataclysm : public IDeathSequenceStep {
 public:
     void Enter(BossComponent* boss, BossDamageVisualizerComponent* visualizer) override {
         elapsedTime_ = 0.0f;
+        chainStep_ = 0;
+        mainExploded_ = false;
         isCompleted_ = false;
 
         if (!boss || !boss->GetGameObject() || !boss->GetEngine()) {
@@ -509,87 +545,144 @@ public:
             return;
         }
 
-        Irufemi::Vector3 deadPos = boss->GetGameObject()->GetTransform()->GetWorldPosition();
+        deadPos_ = boss->GetGameObject()->GetTransform()->GetWorldPosition();
+
+        // 1. 【第1連鎖誘爆】左翼装甲で先行爆裂！
+        Irufemi::Vector3 subPos = deadPos_ + Irufemi::Vector3{-2.6f, 1.2f, 0.5f};
+        if (auto effectMgr = EffectManagerComponent::GetInstance()) {
+            effectMgr->PlayEffect("Hit", subPos);
+        }
+        SoundHelper::Play(GameSE::DebrisShatter, 0.85f, 1.40f);
+    }
+
+    void TriggerMainExplosion(BossComponent* boss, BossDamageVisualizerComponent* visualizer) {
+        if (!boss || !boss->GetGameObject() || !boss->GetEngine()) {
+            return;
+        }
+
+        // 0. 爆縮タメから一気に通常速度（1.0f）へ解放！起爆の瞬発力とカタルシスを最大化！
+        boss->GetEngine()->SetTimeScale(1.0f);
 
         // 1. 特大カメラシェイク発火
         if (visualizer) {
             visualizer->TriggerDeathShake();
         }
 
-        // 2. 高密度（12x12x12、千個超）ボクセルの一斉超高速飛散爆発（dispersion = 85.0f）！
+        // 2. 3D空間多層爆発エフェクト（大火球・高密度スパーク・立ち昇る噴煙・3Dリング）を爆心地に炸裂！
+        if (auto effectMgr = EffectManagerComponent::GetInstance()) {
+            effectMgr->PlayEffect("BossExplosion", deadPos_);
+        }
+
+        // 3. 超高密度（20x20x20、数千個）ボクセルの3D全方位大爆散（白熱オレンジから金属煤へと冷えながら飛散）！
         if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
             Irufemi::VoxelEmitter p{};
             p.lifeTime = 3.2f;
-            p.gravity = 2.8f;
-            p.dispersion = 85.0f; // 画面全体（カメラ方向にも）超高速クーロン爆散！
+            p.gravity = 1.2f;
+            p.dispersion = 75.0f; // カメラ手前・奥・全方位へ圧倒的な3D深度で超高速大爆散！
             p.particleType = 5;   // DebrisExplosive
-            p.scale = {1.2f, 1.2f, 1.2f};
-            p.startColor = {4.5f, 5.5f, 9.0f, 1.0f}; // 超発光
-            p.endColor = {0.05f, 0.15f, 0.35f, 1.0f};
+            p.scale = {1.1f, 1.1f, 1.1f};
+            p.startColor = {8.5f, 6.5f, 2.5f, 1.0f};  // 爆発の熱エネルギーを帯びた白熱黄金オレンジ
+            p.endColor = {0.05f, 0.05f, 0.08f, 1.0f}; // 飛散して冷え切った機体の金属煤
+            p.dissolveEdgeColor = {10.0f, 4.0f, 0.8f, 1.0f};
 
             auto transform = boss->GetGameObject()->GetTransform();
             Irufemi::Vector3 deadRot = transform ? transform->GetRotation() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
             Irufemi::Vector3 deadScale = transform ? transform->GetScale() : Irufemi::Vector3{1.0f, 1.0f, 1.0f};
 
-            voxelMgr->PlayExplosion("resources/model/BossRing/BossRing.obj", deadPos,
+            voxelMgr->PlayExplosion("resources/model/BossRing/BossRing.obj", deadPos_,
                                     Irufemi::Vector3{0.0f, 0.0f, 0.0f}, deadRot, deadScale,
-                                    p, Irufemi::Vector3Int{12, 12, 12});
+                                    p, Irufemi::Vector3Int{20, 20, 20});
         }
 
-        // 3. ポストプロセス LightningCataclysm: 全画面純白プラズマフラッシュ ＆ EMP衝撃波大爆発
+        // 4. ポストプロセス LightningCataclysm: 瞬間閃光 ＆ 空間歪み衝撃波
         if (auto ppm = boss->GetEngine()->GetPostProcessManager()) {
             auto& lc = ppm->GetLightningCataclysmParams();
-            lc.center = CalculateBossScreenUV(boss);
-            lc.plasmaFlashIntensity = 4.5f; // 純白フラッシュ
-            lc.arcIntensity = 4.2f;
-            lc.empWaveRadius = 0.0f;
-            lc.empWaveIntensity = 3.5f;
-            lc.electricChromatic = 0.065f;
+            lc.center = CalculateWorldScreenUV(boss->GetEngine(), deadPos_);
+            lc.plasmaFlashIntensity = 0.50f; // ドカンと炸裂する瞬間閃光
+            lc.arcIntensity = 6.5f;
+            lc.empWaveRadius = 0.04f;
+            lc.empWaveIntensity = 4.2f;
+            lc.electricChromatic = 0.045f;
         }
 
-        // 4. GPU衝撃波パーティクル再生
-        if (auto effectMgr = EffectManagerComponent::GetInstance()) {
-            effectMgr->PlayEffect("debris_dust_effect", deadPos);
-        }
-
+        // 重低音インパクト ＆ デブリ破砕音の多重再生によるド迫力爆発音
+        SoundHelper::Play(GameSE::ResultImpact, 1.0f, 0.80f);
         SoundHelper::Play(GameSE::DebrisShatter, 1.0f, 0.85f);
     }
 
     void Update(BossComponent* boss, BossDamageVisualizerComponent* visualizer, float dt) override {
         elapsedTime_ += dt;
-        float progress = std::clamp(elapsedTime_ / targetDuration_, 0.0f, 1.0f);
 
         if (!boss || !boss->GetEngine()) {
             return;
         }
 
-        auto ppm = boss->GetEngine()->GetPostProcessManager();
-        if (ppm) {
-            auto& lc = ppm->GetLightningCataclysmParams();
-            lc.center = CalculateBossScreenUV(boss);
-            // プラズマ白熱フラッシュの急速減衰（0.30秒で減衰）
-            lc.plasmaFlashIntensity = (std::max)(0.0f, 4.5f * (1.0f - progress / 0.25f));
-            // EMP波面の全画面大爆進
-            lc.empWaveRadius = progress * 2.8f;
-            lc.empWaveIntensity = 3.5f * (1.0f - progress);
-            lc.arcIntensity = 4.2f * (1.0f - progress);
-            lc.electricChromatic = 0.065f * (1.0f - progress);
-            lc.time += dt * 4.0f;
+        // --- 多段連鎖爆発シークエンス（ドカン！ ➔ ドカン！ ➔ ドカン！ ➔ ドッカァァァン！！） ---
+        if (chainStep_ == 0 && elapsedTime_ >= 0.09f) {
+            chainStep_ = 1;
+            Irufemi::Vector3 subPos = deadPos_ + Irufemi::Vector3{2.8f, -1.2f, -0.6f};
+            if (auto effectMgr = EffectManagerComponent::GetInstance()) {
+                effectMgr->PlayEffect("Hit", subPos);
+            }
+            SoundHelper::Play(GameSE::DebrisShatter, 0.95f, 1.15f);
+        }
+        if (chainStep_ == 1 && elapsedTime_ >= 0.18f) {
+            chainStep_ = 2;
+            Irufemi::Vector3 subPos = deadPos_ + Irufemi::Vector3{0.6f, 2.8f, 0.8f};
+            if (auto effectMgr = EffectManagerComponent::GetInstance()) {
+                effectMgr->PlayEffect("Hit", subPos);
+            }
+            SoundHelper::Play(GameSE::GravityWarp, 0.85f, 1.55f);
+        }
+        if (chainStep_ == 2 && elapsedTime_ >= 0.26f && !mainExploded_) {
+            chainStep_ = 3;
+            mainExploded_ = true;
+            TriggerMainExplosion(boss, visualizer);
         }
 
-        // 爆散中盤（0.45s以降）にかけてカメラFOVを26度から通常角45度へスムーズにズームアウト、およびボス追従距離・高さを復帰
-        if (progress > 0.45f) {
-            float zoomOutProgress = (progress - 0.45f) / 0.55f;
-            float smoothZoom = SmoothStep(zoomOutProgress);
+        // 本爆発後の経過時間
+        float postExplodeTime = elapsedTime_ - 0.26f;
 
-            float currentFov = std::lerp(kCinematicZoomFov, kDefaultFov, smoothZoom);
-            SetCinematicCameraFov(visualizer, boss, currentFov);
+        if (mainExploded_) {
+            auto ppm = boss->GetEngine()->GetPostProcessManager();
+            if (ppm) {
+                auto& lc = ppm->GetLightningCataclysmParams();
+                bool isVisible = false;
+                lc.center = CalculateWorldScreenUV(boss->GetEngine(), deadPos_, &isVisible);
 
-            float currentDist = std::lerp(kCinematicBossDistance, kDefaultBossDistance, smoothZoom);
-            SetBossDistanceOffset(boss, currentDist);
+                if (!isVisible) {
+                    lc.empWaveIntensity = 0.0f;
+                    lc.arcIntensity = 0.0f;
+                    lc.plasmaFlashIntensity = 0.0f;
+                } else {
+                    // 1. 瞬間閃光：0.08秒で素早く引き、大爆発の全貌を露出
+                    lc.plasmaFlashIntensity = (std::max)(0.0f, 0.50f * (1.0f - postExplodeTime / 0.08f));
 
-            float currentOffsetY = std::lerp(kCinematicBossOffsetY, kDefaultBossOffsetY, smoothZoom);
-            SetBossOffsetY(boss, currentOffsetY);
+                    // 2. 超音速ドーナツ衝撃波リング：最初の0.26秒で画面外へ一気に突き抜ける
+                    float waveTime = (std::min)(postExplodeTime / 0.26f, 1.0f);
+                    float easeOutWave = 1.0f - std::pow(1.0f - waveTime, 4.0f);
+                    lc.empWaveRadius = std::lerp(0.04f, 2.8f, easeOutWave);
+
+                    // 衝撃波リング自体は0.32秒で画面外へ去りフェードアウト
+                    float waveFade = (std::max)(0.0f, 1.0f - postExplodeTime / 0.32f);
+                    lc.empWaveIntensity = waveFade * waveFade * 4.5f;
+
+                    // 3. 連動アーク放電：0.40秒で収束
+                    float arcFade = (std::max)(0.0f, 1.0f - postExplodeTime / 0.40f);
+                    lc.arcIntensity = arcFade * arcFade * 6.5f;
+                    lc.electricChromatic = 0.045f * arcFade;
+                    lc.time += dt * 5.0f;
+                }
+            }
+
+            // 4. カメラFOVを通常角へスムーズにズームアウトしながら余韻を見送る
+            if (postExplodeTime > 0.30f) {
+                float zoomOutProgress = (std::min)((postExplodeTime - 0.30f) / 1.30f, 1.0f);
+                float smoothZoom = SmoothStep(zoomOutProgress);
+
+                float currentFov = std::lerp(kCinematicZoomFov, kDefaultFov, smoothZoom);
+                SetCinematicCameraFov(visualizer, boss, currentFov);
+            }
         }
 
         if (elapsedTime_ >= targetDuration_) {
@@ -598,10 +691,7 @@ public:
     }
 
     void Exit(BossComponent* boss, BossDamageVisualizerComponent* visualizer) override {
-        // カメラFOVとボス追従距離・高さを通常状態に確定
         SetCinematicCameraFov(visualizer, boss, kDefaultFov);
-        SetBossDistanceOffset(boss, kDefaultBossDistance);
-        SetBossOffsetY(boss, kDefaultBossOffsetY);
     }
 
     bool IsCompleted() const override {
@@ -610,8 +700,11 @@ public:
 
 private:
     float elapsedTime_ = 0.0f;
-    float targetDuration_ = 1.60f; // 実時間1.60秒
+    float targetDuration_ = 2.40f; // 多段連鎖爆発＋本爆発＋雄大な余韻を見守る2.4秒
+    int chainStep_ = 0;
+    bool mainExploded_ = false;
     bool isCompleted_ = false;
+    Irufemi::Vector3 deadPos_{};
 };
 
 /**

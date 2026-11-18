@@ -25,6 +25,7 @@ void EffectManagerComponent::OnRegisterProperties() {
     RegisterProperty("Hit Effect Path", &hitEffectPath_);
     RegisterProperty("Dust Effect Path", &dustEffectPath_);
     RegisterProperty("Thruster Effect Path", &thrusterEffectPath_);
+    RegisterProperty("Boss Explosion Effect Path", &bossExplosionEffectPath_);
 }
 
 void EffectManagerComponent::Initialize() {
@@ -32,6 +33,7 @@ void EffectManagerComponent::Initialize() {
     effectDictionary_["Dust"] = dustEffectPath_;
     effectDictionary_["debris_dust_effect"] = dustEffectPath_;
     effectDictionary_["Thruster"] = thrusterEffectPath_;
+    effectDictionary_["BossExplosion"] = bossExplosionEffectPath_;
 }
 
 void EffectManagerComponent::Start() {
@@ -61,7 +63,8 @@ Irufemi::ObjectPool<Irufemi::GameObject>* EffectManagerComponent::GetOrCreatePoo
         return nullptr;
     }
 
-    int poolCapacity = (effectKey == "Hit") ? maxHitEffects_ : maxDustEffects_;
+    int poolCapacity = (effectKey == "Hit") ? maxHitEffects_ :
+                       (effectKey == "BossExplosion") ? maxBossExplosions_ : maxDustEffects_;
     auto pool = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(poolCapacity, [this, prefabPath]() {
         // makeChild = true でマネージャーの子として生成し、ルート直置きを解消
         auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
@@ -159,7 +162,21 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
             if (obj) {
                 if (auto t = obj->GetComponent<Irufemi::TransformComponent>()) {
                     t->SetWorldPosition(worldPosition);
+                    t->UpdateMatrixImmediate();
                 }
+
+                auto updateHierarchyMatrix = [](auto self, Irufemi::GameObject* go) -> void {
+                    if (!go) return;
+                    for (const auto& child : go->GetChildren()) {
+                        if (child) {
+                            if (auto ct = child->GetComponent<Irufemi::TransformComponent>()) {
+                                ct->UpdateMatrixImmediate();
+                            }
+                            self(self, child.get());
+                        }
+                    }
+                };
+                updateHierarchyMatrix(updateHierarchyMatrix, obj.get());
 
                 // アクティブ化して LifetimeComponent のタイマーをリセットする
                 obj->SetIsActive(true);
@@ -170,6 +187,7 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
                 // ツリー全体からすべての ParticleEmitterComponent を取得して再発火させる
                 auto emitters = obj->GetComponentsInChildren<Irufemi::ParticleEmitterComponent>();
                 for (auto pe : emitters) {
+                    pe->OnSpawned(); // 最新の確定ワールド座標を ParticleObject に確実に反映
                     pe->Restart(false);
                 }
 

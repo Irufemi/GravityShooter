@@ -62,6 +62,7 @@ private:
     std::string hitEffectPath_ = "resources/prefabs/normal_attack_hit_effect.json";
     std::string dustEffectPath_ = "resources/prefabs/debris_dust_effect.json";
     std::string thrusterEffectPath_ = "resources/prefabs/player_thruster_effect.json";
+    std::string bossExplosionEffectPath_ = "resources/prefabs/boss_explosion_effect.json";
 
     // 内部的にキーからパスを引くための辞書
     std::unordered_map<std::string, std::string> effectDictionary_;
@@ -77,6 +78,7 @@ private:
 
     int maxHitEffects_ = 50;
     int maxDustEffects_ = 50;
+    int maxBossExplosions_ = 5;
     float effectDuration_ = 2.0f; // エフェクトの生存時間
     std::unordered_map<std::string, std::unique_ptr<Irufemi::ObjectPool<Irufemi::GameObject>>> effectPools_;
 
