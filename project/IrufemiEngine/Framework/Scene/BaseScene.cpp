@@ -26,6 +26,7 @@
 #include "Core/Utility/Log.h"
 #include <fstream>
 #include <iostream>
+#include <chrono>
 #include "Core/Utility/JsonUtility.h"
 #include <algorithm>
 #include <regex>
@@ -369,6 +370,7 @@ void BaseScene::WarmUpRenderState() {
                 obj->Start();
             }
         }
+        primingIndex_ = gameObjects_.size();
     }
 
     // 3. 全Transformのワールド行列を一括計算 (DOD) - 第1パス: 各オブジェクトの初期Transformを確定
@@ -406,7 +408,7 @@ void BaseScene::WarmUpRenderState() {
     // 7. 初回フレームデータ（カメラ行列、ライト、フォグ等）をレンダラーへ提出
     SubmitFrameData();
 
-    // 6. 演出サブシステム（Voxel / GPU Particle）のシーン開始前ウォームアップ
+    // 8. 演出サブシステム（Voxel / GPU Particle）のシーン開始前ウォームアップ
     if (engine_) {
         if (auto vpm = engine_->GetVoxelParticleManager()) {
             vpm->WarmUp();
@@ -415,6 +417,64 @@ void BaseScene::WarmUpRenderState() {
             gpm->WarmUp();
         }
     }
+}
+
+bool BaseScene::StepPriming(float maxTimeMs) {
+    // 1. 遅延登録キューのフラッシュ（初回あるいは動的追加分）
+    {
+        std::lock_guard<std::recursive_mutex> lock(sceneMutex_);
+        if (!pendingAdds_.empty() || !pendingRemoves_.empty()) {
+            for (auto& obj : pendingAdds_) {
+                gameObjects_.push_back(obj);
+                objectRegistry_->Register(obj);
+            }
+            pendingAdds_.clear();
+
+            for (auto& obj : pendingRemoves_) {
+                auto it = std::find(gameObjects_.begin(), gameObjects_.end(), obj);
+                if (it != gameObjects_.end()) {
+                    gameObjects_.erase(it);
+                    objectRegistry_->Unregister(obj);
+                }
+            }
+            pendingRemoves_.clear();
+        }
+    }
+
+    auto startTime = std::chrono::steady_clock::now();
+
+    // 2. タイムスライス方式で未実行オブジェクトの Start() を順次呼び出し
+    if (engine_ && engine_->IsPlayMode()) {
+        while (primingIndex_ < gameObjects_.size()) {
+            auto& obj = gameObjects_[primingIndex_++];
+            if (obj && !obj->GetParent() && !obj->IsDestroyed() && !obj->IsStarted()) {
+                auto tStart0 = std::chrono::steady_clock::now();
+                obj->Start();
+                auto msObj = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tStart0).count();
+                if (msObj > 4.0f) {
+                    Log::OutPutLog(std::cout, std::format("[BaseScene-Perf] obj->Start() for '{}' took: {:.2f}ms\n", obj->GetName(), msObj));
+                }
+            }
+
+            // 指定した最大時間（ミリ秒）を超過した場合は次フレームへ処理を譲り、ローディング画面の描画を回す
+            auto elapsedMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
+            if (elapsedMs >= maxTimeMs) {
+                return false; // 未完了（次フレームへ継続）
+            }
+        }
+    } else {
+        primingIndex_ = gameObjects_.size();
+    }
+
+    // 3. 全てのオブジェクトの Start() が完了（最終確定 WarmUp は全アセット完了時に SceneManager から呼び出し）
+    return true; // 完了
+}
+
+bool BaseScene::IsPrimingCompleted() const {
+    if (engine_ && engine_->IsPlayMode()) {
+        return primingIndex_ >= gameObjects_.size();
+    }
+    return true;
 }
 
 void BaseScene::AddGameObject(std::shared_ptr<GameObject> obj) {

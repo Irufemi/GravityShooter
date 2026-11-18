@@ -47,6 +47,23 @@ public:
     virtual void WarmUpRenderState() {}
 
     /**
+     * @brief シーン内の未初期化オブジェクトを時分割（タイムスライス）で順次初期化（Start）する
+     * @param maxTimeMs 1フレームあたりの最大許容時間（ミリ秒）。これを超えたら次回フレームへ持ち越す。
+     * @return すべてのオブジェクトの初期化が完了していれば true、未完了なら false
+     */
+    virtual bool StepPriming(float maxTimeMs = 4.0f) {
+        return true;
+    }
+
+    /**
+     * @brief シーン内のすべてのオブジェクトの初期化（Start）が完了しているか判定
+     * @return 完了していれば true
+     */
+    virtual bool IsPrimingCompleted() const {
+        return true;
+    }
+
+    /**
      * @brief シーンが保持する GameObject のリストを取得する
      */
     virtual const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const;

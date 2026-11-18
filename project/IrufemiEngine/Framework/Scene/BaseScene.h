@@ -59,6 +59,19 @@ public:
     virtual void WarmUpRenderState() override;
 
     /**
+     * @brief シーン内の未初期化オブジェクトを時分割（タイムスライス）で順次初期化（Start）する
+     * @param maxTimeMs 1フレームあたりの最大許容時間（ミリ秒）。これを超えたら次回フレームへ持ち越す。
+     * @return すべてのオブジェクトの初期化が完了していれば true、未完了なら false
+     */
+    virtual bool StepPriming(float maxTimeMs = 4.0f) override;
+
+    /**
+     * @brief シーン内のすべてのオブジェクトの初期化（Start）が完了しているか判定
+     * @return 完了していれば true
+     */
+    virtual bool IsPrimingCompleted() const override;
+
+    /**
      * @brief シーンに GameObject を追加する
      */
     void AddGameObject(std::shared_ptr<GameObject> obj);
@@ -255,6 +268,7 @@ private:
     std::vector<std::shared_ptr<GameObject>> gameObjects_;
     std::vector<std::shared_ptr<GameObject>> pendingAdds_;
     std::vector<std::shared_ptr<GameObject>> pendingRemoves_;
+    size_t primingIndex_ = 0; ///< タイムスライス初期化（StepPriming）の進行カーソル
 
     // オブジェクトインデックス管理レジストリ
     std::unique_ptr<SceneObjectRegistry> objectRegistry_;

@@ -44,19 +44,26 @@ public:
      * @brief プールの初期化
      * @param capacity 最大保持可能数
      * @param factory 初期化時に各要素を構築するためのファクトリ関数（GameObjectのPrefab生成用）
+     * @param initialPrewarm 初期生成数（デフォルトは0。Acquire時のオンデマンド遅延生成によりロード時のメインスレッドブロックを完全排除）
      */
-    explicit ObjectPool(size_t capacity, std::function<std::shared_ptr<T>()> factory = nullptr) {
+    explicit ObjectPool(size_t capacity, std::function<std::shared_ptr<T>()> factory = nullptr,
+                        size_t initialPrewarm = 0)
+        : factory_(std::move(factory)) {
         slots_.resize(capacity);
         for (size_t i = 0; i < capacity; ++i) {
             slots_[i].nextFree = static_cast<uint32_t>(i + 1);
             slots_[i].generation = 1;
             slots_[i].active = false;
 
-            if (factory) {
-                // ファクトリが指定されている場合はPrefabなどを事前生成して格納
-                slots_[i].data = factory();
+            // 初期プリウォーム数のみ先行生成（指定がなければ0で完全遅延生成）
+            if (i < initialPrewarm) {
+                if (factory_) {
+                    slots_[i].data = factory_();
+                } else {
+                    slots_[i].data = std::make_shared<T>();
+                }
             } else {
-                slots_[i].data = std::make_shared<T>();
+                slots_[i].data = nullptr;
             }
         }
         // 最後の要素の nextFree は無効値
@@ -70,19 +77,48 @@ public:
     ~ObjectPool() = default;
 
     /**
-     * @brief オブジェクトを O(1) で取得する
+     * @brief 未生成のスロットを指定個数だけ先行生成（時分割プリウォーム用）
+     * @param count 今回生成する最大個数
+     * @return 実際に生成した個数
+     */
+    size_t Prewarm(size_t count) {
+        size_t generated = 0;
+        for (auto& slot : slots_) {
+            if (generated >= count) {
+                break;
+            }
+            if (!slot.data) {
+                if (factory_) {
+                    slot.data = factory_();
+                } else {
+                    slot.data = std::make_shared<T>();
+                }
+                ++generated;
+            }
+        }
+        return generated;
+    }
+
+    /**
+     * @brief オブジェクトを O(1) で取得する（未生成スロットの場合はオンデマンドで初回実体化）
      * @return 取得したオブジェクトの Handle。空きがない場合は無効な Handle を返す。
      */
     Handle Acquire() {
         if (headFree_ == 0xFFFFFFFF) {
-            /**
-             * @brief Handle を実行する。
-             */
             return Handle(); // 空きなし
         }
 
         uint32_t index = headFree_;
         headFree_ = slots_[index].nextFree;
+
+        // 遅延生成：スロットが未生成の場合は初回利用時に実体化
+        if (!slots_[index].data) {
+            if (factory_) {
+                slots_[index].data = factory_();
+            } else {
+                slots_[index].data = std::make_shared<T>();
+            }
+        }
 
         slots_[index].active = true;
         --freeCount_;
@@ -188,6 +224,7 @@ private:
     std::vector<Slot> slots_;
     uint32_t headFree_ = 0xFFFFFFFF; ///< フリーリストの先頭インデックス
     size_t freeCount_ = 0;           ///< 空きスロット数
+    std::function<std::shared_ptr<T>()> factory_; ///< 遅延生成用ファクトリ関数
 };
 
 } // namespace Irufemi

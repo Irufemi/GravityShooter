@@ -189,7 +189,9 @@ void VoxelParticleManager::EnsureAllInitialized() {
 }
 
 void VoxelParticleManager::WarmUp() {
-    EnsureAllInitialized();
+    // ※ EnsureAllInitialized() による同期 wait() はメインスレッドをブロックしてロード画面を固まらせるため廃止。
+    // ボクセルタスクの完了は IsAllReady() -> Engine::IsAssetLoading() によりローディング画面を描画しながら待機します。
+
     // 登録済みの全システムの状態をリセット・同期（モデル読み込みは各コンポーネント・プレハブのStart()に委任）
     for (auto& pair : systems_) {
         if (pair.second.system) {
