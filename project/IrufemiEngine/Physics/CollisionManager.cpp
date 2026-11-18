@@ -20,6 +20,11 @@ using namespace Irufemi;
 
 void CollisionManager::Initialize(Irufemi::DebugPrimitiveRenderer* debugRenderer) {
     debugPrimitiveRenderer_ = debugRenderer;
+    if (isInitialized_) {
+        return; // 既に初期化済みの場合はファイルI/OおよびGPUバッファ生成をスキップ
+    }
+    isInitialized_ = true;
+
     if (!debugLine_) {
         debugLine_ = std::make_unique<Line3DBatch>();
         debugLine_->Initialize();

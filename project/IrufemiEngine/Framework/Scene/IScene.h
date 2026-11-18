@@ -186,6 +186,24 @@ public:
     virtual bool ShouldClearParticlesOnPop() const {
         return false;
     }
+
+    /**
+     * @brief このシーン独自のカメラ・ライティングで下層の描画フレームデータを上書きするかどうか
+     * @return true: 独自の3Dカメラ・ライトで上書きする（通常の3Dワールドシーン）
+     *         false: 下層シーンのカメラ・ライトをそのまま維持する（2Dオーバーレイ、UI、ポーズ画面など）
+     */
+    virtual bool OverridesFrameData() const {
+        return true;
+    }
+
+    /**
+     * @brief シーン開始時（WarmUpRenderState）にパーティクル等のグローバル演出システムをクリア・リセットするかどうか
+     * @return true: リセットする（通常シーン切り替え）
+     *         false: リセットしない（スタックシーン、オーバーレイシーンなど）
+     */
+    virtual bool ResetsGlobalSystemsOnWarmUp() const {
+        return true;
+    }
 };
 
 } // namespace Irufemi

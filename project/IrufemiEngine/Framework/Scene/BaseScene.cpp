@@ -105,11 +105,14 @@ void BaseScene::Initialize(IrufemiEngine* engine) {
     engine_ = engine;
 
     // --- カメラマネージャーの初期化はエンジン側で行われるため、ここではメインカメラの登録のみ行う ---
-    auto mainCamera = std::make_shared<Camera>();
-    mainCamera->Initialize(engine_->GetGameResolutionWidth(), engine_->GetGameResolutionHeight());
-    mainCamera->SetTranslate({0.0f, 0.0f, -50.0f});
-    mainCamera->UpdateMatrix();
-    engine_->GetCameraManager()->AddCamera("Main", mainCamera);
+    // ※ オーバーレイシーン（OverridesFrameData == false）の場合は下層の3Dカメラを保護するため上書き登録しない
+    if (OverridesFrameData()) {
+        auto mainCamera = std::make_shared<Camera>();
+        mainCamera->Initialize(engine_->GetGameResolutionWidth(), engine_->GetGameResolutionHeight());
+        mainCamera->SetTranslate({0.0f, 0.0f, -50.0f});
+        mainCamera->UpdateMatrix();
+        engine_->GetCameraManager()->AddCamera("Main", mainCamera);
+    }
 
     // --- デバッグカメラの初期化とマネージャーへの登録 ---
     debugCamera_ = std::make_shared<Camera>();
@@ -267,7 +270,10 @@ void BaseScene::Update() {
         debugRenderer->EndSimulationFrame();
     }
 
-    SubmitFrameData();
+    // オーバーレイシーン（OverridesFrameData == false）の場合は下層シーンのフレームデータを維持
+    if (OverridesFrameData()) {
+        SubmitFrameData();
+    }
 }
 
 void BaseScene::Draw() {
@@ -412,10 +418,13 @@ void BaseScene::WarmUpRenderState() {
     }
 
     // 7. 初回フレームデータ（カメラ行列、ライト、フォグ等）をレンダラーへ提出
-    SubmitFrameData();
+    if (OverridesFrameData()) {
+        SubmitFrameData();
+    }
 
     // 8. 演出サブシステム（Voxel / GPU Particle）のシーン開始前ウォームアップ
-    if (engine_) {
+    // ※ スタック・オーバーレイシーン等の場合は既存演出の余韻を保護するためスキップ
+    if (ResetsGlobalSystemsOnWarmUp() && engine_) {
         if (auto vpm = engine_->GetVoxelParticleManager()) {
             vpm->WarmUp();
         }

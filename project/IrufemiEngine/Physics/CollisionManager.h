@@ -160,6 +160,7 @@ private:
 
     std::unique_ptr<Irufemi::Line3DBatch> debugLine_ = nullptr;
     Irufemi::DebugPrimitiveRenderer* debugPrimitiveRenderer_ = nullptr;
+    bool isInitialized_ = false; ///< 初期化済みフラグ（多重初期化・多重ディスクI/O防止用）
 
     // --- デバッグ用キャッシュ ---
     std::vector<Irufemi::ColliderComponent*> debugRemoveList_; ///< DrawDebug時の削除リスト（ヒープ割当回避用）

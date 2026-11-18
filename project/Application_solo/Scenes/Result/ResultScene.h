@@ -32,6 +32,15 @@ public:
         return false;
     }
 
+    // 2Dオーバーレイのため、下層シーンの3Dカメラ・ライティングをそのまま維持
+    bool OverridesFrameData() const override {
+        return false;
+    }
+    // 下層シーンの演出パーティクル（ボスの爆散や余韻）を保護するためリセットしない
+    bool ResetsGlobalSystemsOnWarmUp() const override {
+        return false;
+    }
+
     // --- クリア結果受け渡し用のフラグ ---
     static void SetIsClear(bool isClear) {
         s_isClearPending_ = isClear;

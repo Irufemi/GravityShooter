@@ -57,6 +57,12 @@ public:
     bool ShouldClearParticlesOnPop() const override {
         return false;
     }
+    bool OverridesFrameData() const override {
+        return false;
+    }
+    bool ResetsGlobalSystemsOnWarmUp() const override {
+        return false;
+    }
 
 private:
     void CreateUIElements();

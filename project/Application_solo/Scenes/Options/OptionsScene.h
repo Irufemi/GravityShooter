@@ -72,6 +72,13 @@ public:
         return false;
     }
 
+    bool OverridesFrameData() const override {
+        return false;
+    }
+    bool ResetsGlobalSystemsOnWarmUp() const override {
+        return false;
+    }
+
 private:
     // 動的に取得されるUIレイアウト情報（Transform等から自動抽出）
     struct UIRect {
