@@ -434,6 +434,12 @@ bool BaseScene::StepPriming(float maxTimeMs) {
     // 2. タイムスライス方式で未実行オブジェクトの Start() を順次呼び出し
     if (engine_ && engine_->IsPlayMode()) {
         while (primingIndex_ < gameObjects_.size()) {
+            // 指定した最大時間（ミリ秒）を超過した場合は次フレームへ処理を譲り、ローディング画面の描画を最優先
+            auto elapsedMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
+            if (elapsedMs >= maxTimeMs) {
+                return false; // 未完了（次フレームへ継続）
+            }
+
             auto& obj = gameObjects_[primingIndex_++];
             if (obj && !obj->GetParent() && !obj->IsDestroyed() && !obj->IsStarted()) {
                 auto tStart0 = std::chrono::steady_clock::now();
@@ -444,8 +450,8 @@ bool BaseScene::StepPriming(float maxTimeMs) {
                 }
             }
 
-            // 指定した最大時間（ミリ秒）を超過した場合は次フレームへ処理を譲り、ローディング画面の描画を回す
-            auto elapsedMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
+            // 1オブジェクトの実行で最大時間を超過した場合も直ちに抜けて描画を保証
+            elapsedMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
             if (elapsedMs >= maxTimeMs) {
                 return false; // 未完了（次フレームへ継続）
             }

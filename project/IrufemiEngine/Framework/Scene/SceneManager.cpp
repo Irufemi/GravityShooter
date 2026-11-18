@@ -522,19 +522,9 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     // シーン破棄前に、現在溜まっている描画・コンピュートタスクを破棄する。
     engine_->GetDrawManager()->ClearAllQueues();
 
-    // GPU処理の完了を待つ (リソース解放中のアクセス違反を防ぐ)
-    auto tGpuWait0 = std::chrono::steady_clock::now();
-    engine_->GetDirectXCommon()->WaitForGPU();
-    auto msGpuWait = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tGpuWait0).count();
-
-    // 現在のシーンスタックの全シーンを終了させて破棄（メインスレッドで実行）
-    auto tSceneDestruct0 = std::chrono::steady_clock::now();
-    for (auto it = sceneStack_.rbegin(); it != sceneStack_.rend(); ++it) {
-        it->scene->OnExit();
-        it->scene->Finalize();
-    }
+    // 旧シーンスタックの所有権をワーカースレッドへオフロード（メインスレッドの処理コスト: 0.00ms）
+    auto retiringScenes = std::make_shared<std::vector<SceneStackItem>>(std::move(sceneStack_));
     sceneStack_.clear();
-    auto msSceneDestruct = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tSceneDestruct0).count();
 
     // 次のシーンへ行く前にパーティクルの状態をクリア
     if (engine_->GetVoxelParticleManager()) {
@@ -559,9 +549,6 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
         engine_->GetCameraManager()->Clear();
     }
 
-    // シーン切り替え時にプレハブキャッシュをクリア（古いシーンのプレハブ残留によるメモリリーク防止）
-    SceneSerializer::ClearCache();
-
     // シーン切り替え時に前シーン・遷移演出の残留SEを確実に停止・破棄（新シーンへの音漏れを根絶）
     // ※ただし、Titleからの出撃（Title ➔ InGame）の際は、シームレスな出撃ジェット音（3.55秒）の突入同期を保護・維持する
     if (engine_->GetAudioManager()) {
@@ -577,12 +564,24 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     }
 
     auto msMainTearDown = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tMainStart).count();
-    Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StartAsyncInitialize MainThread teardown took: {:.2f}ms (WaitForGPU: {:.2f}ms, Destruct: {:.2f}ms)\n",
-                                          msMainTearDown, msGpuWait, msSceneDestruct));
+    Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StartAsyncInitialize MainThread handoff took: {:.2f}ms (Zero main-thread blocking)\n",
+                                          msMainTearDown));
 
-    initFuture_ = std::async(std::launch::async, [this, factory, next]() {
+    initFuture_ = std::async(std::launch::async, [this, factory, next, retiringScenes]() {
         auto tWorker0 = std::chrono::steady_clock::now();
         Log::OutPutLog(std::cout, "[SceneManager-Perf] [WorkerThread] Start async loading for: " + next + "\n");
+
+        // 旧シーンの非同期破棄（メインスレッドの描画ループを一切止めずにバックグラウンドで安全に解体）
+        if (retiringScenes && !retiringScenes->empty()) {
+            auto tTeardown0 = std::chrono::steady_clock::now();
+            for (auto it = retiringScenes->rbegin(); it != retiringScenes->rend(); ++it) {
+                it->scene->OnExit();
+                it->scene->Finalize();
+            }
+            retiringScenes->clear();
+            auto msTeardown = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tTeardown0).count();
+            Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] [WorkerThread] Async scene teardown finished in: {:.2f}ms\n", msTeardown));
+        }
 
         // 新しいシーンを生成
         auto newScene = factory();

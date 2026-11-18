@@ -4,28 +4,28 @@
             "id": "debris_archway",
             "modelPath": "resources/model/Debris/Archway/Debris_Archway.obj",
             "maxVirtualCount": 1500,
-            "maxPoolSize": 50,
+            "maxPoolSize": 100,
             "spawnWeight": 20
         },
         {
             "id": "debris_pillar",
             "modelPath": "resources/model/Debris/Pillar/Debris_Pillar.obj",
             "maxVirtualCount": 2500,
-            "maxPoolSize": 50,
+            "maxPoolSize": 100,
             "spawnWeight": 30
         },
         {
             "id": "debris_wall",
             "modelPath": "resources/model/Debris/Wall/Debris_Wall.obj",
             "maxVirtualCount": 2500,
-            "maxPoolSize": 50,
+            "maxPoolSize": 100,
             "spawnWeight": 30
         },
         {
             "id": "debris_generic",
             "modelPath": "resources/model/Debris/Generic/Debris_Generic.obj",
             "maxVirtualCount": 3500,
-            "maxPoolSize": 50,
+            "maxPoolSize": 100,
             "spawnWeight": 20
         }
     ]

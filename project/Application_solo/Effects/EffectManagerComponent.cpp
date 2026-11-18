@@ -37,19 +37,9 @@ void EffectManagerComponent::Initialize() {
 }
 
 void EffectManagerComponent::Start() {
+    // エフェクトプールの定義登録のみを先行準備（実際のインスタンス化は ObjectPool のオンデマンド遅延生成に任せる）
     for (const auto& [key, path] : effectDictionary_) {
-        auto* pool = GetOrCreatePool(key, path);
-        if (pool) {
-            // 最低1個生成してボクセルコンポーネント等の事前確保をロード中に完了させる
-            auto handle = pool->Acquire();
-            if (handle.IsValid()) {
-                if (auto obj = pool->Resolve(handle)) {
-                    obj->SetIsActive(true);
-                    obj->SetIsActive(false);
-                }
-                pool->Release(handle);
-            }
-        }
+        GetOrCreatePool(key, path);
     }
 }
 
