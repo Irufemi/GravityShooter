@@ -55,6 +55,13 @@ public:
 
     // バッファを生成しマッピングする（kMaxFramesInFlight分）
     /**
+     * @brief 初期化済みかどうかを判定する
+     */
+    bool IsInitialized() const {
+        return mappedData_[0] != nullptr;
+    }
+
+    /**
      * @brief Initialize を実行する。
      */
     void Initialize(DirectXCommon* dxCommon) {

@@ -128,6 +128,9 @@ public:
     /** @brief ゲームプレイ中によく使われる PSO の組み合わせを事前にコンパイル・キャッシュします */
     void PreWarmCommonPSOs(ThreadPool* threadPool = nullptr);
 
+    /** @brief 登録済みの全シェーダーに対して主要ステートバリエーションを事前コンパイル・キャッシュします */
+    void PreWarmRegisteredShaders(ThreadPool* threadPool = nullptr);
+
     /** @brief 実際に使用された PSO のマニフェスト（設定情報）をディスクに自動保存する */
     void SaveManifest(const std::string& manifestPath = "") const;
 
@@ -202,6 +205,7 @@ private:
     mutable std::mutex manifestMutex_;
     mutable std::unordered_set<GraphicsPSORecord, GraphicsPSORecordHash> recordedGraphicsPSOs_;
     mutable std::unordered_set<std::string> recordedComputePSOs_;
+    mutable bool isManifestCorrupted_{false}; ///< マニフェスト読み込み破損検知フラグ（破損時の誤上書き保存を抑止）
 
     /** @name ディスクキャッシュ (PSO Blob) */
     ///@{

@@ -271,6 +271,11 @@ void GameApplication::Run() {
     // アプリ固有のシェーダー登録
     RegisterShaders(*engine);
 
+    // アプリ固有シェーダーの代表的ステートバリエーションを非同期プリウォーム (PSO Precaching)
+    if (auto psoManager = engine->GetPSOManager()) {
+        psoManager->PreWarmRegisteredShaders(engine->GetThreadPool());
+    }
+
     // 独自コンポーネントの登録
     RegisterComponents();
     // UIの登録

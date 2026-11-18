@@ -75,16 +75,15 @@ void PSOManager::RegisterShader(const std::string& name, const PipelineStateDesc
 
 ID3D12PipelineState* PSOManager::GetPSO(const std::string& name, Irufemi::BlendMode blend, DepthWrite depth,
                                         CullMode cull) {
-    {
-        std::lock_guard<std::mutex> lock(manifestMutex_);
-        recordedGraphicsPSOs_.insert({name, blend, depth, cull});
-    }
-
     Key key{Hash(name, blend, depth, cull)};
     PipelineStateDesc psoDesc;
     {
         std::shared_lock<std::shared_mutex> readLock(psoMutex_);
         if (auto cit = cache_.find(key); cit != cache_.end()) {
+            {
+                std::lock_guard<std::mutex> lock(manifestMutex_);
+                recordedGraphicsPSOs_.insert({name, blend, depth, cull});
+            }
             return cit->second.Get();
         }
         auto it = shaderRegistry_.find(name);
@@ -214,10 +213,18 @@ ID3D12PipelineState* PSOManager::GetPSO(const std::string& name, Irufemi::BlendM
     {
         std::unique_lock<std::shared_mutex> writeLock(psoMutex_);
         if (auto cit = cache_.find(key); cit != cache_.end()) {
+            {
+                std::lock_guard<std::mutex> lock(manifestMutex_);
+                recordedGraphicsPSOs_.insert({name, blend, depth, cull});
+            }
             return cit->second.Get(); // 別スレッドで先行して登録されていればそれを返す
         }
         cache_[key] = pso;
         cacheKeysByName_[name].push_back(key);
+        {
+            std::lock_guard<std::mutex> lock(manifestMutex_);
+            recordedGraphicsPSOs_.insert({name, blend, depth, cull});
+        }
         return pso.Get();
     }
 }
@@ -381,24 +388,72 @@ void PSOManager::ClearCache() {
 }
 
 void PSOManager::SaveManifest(const std::string& manifestPath) const {
-    std::string path = manifestPath.empty() ? (kCacheDirectory + "pso_manifest.json") : manifestPath;
-
-    std::vector<GraphicsPSORecord> graphicsList;
-    std::vector<std::string> computeList;
-    {
-        std::lock_guard<std::mutex> lock(manifestMutex_);
-        graphicsList.assign(recordedGraphicsPSOs_.begin(), recordedGraphicsPSOs_.end());
-        computeList.assign(recordedComputePSOs_.begin(), recordedComputePSOs_.end());
+    if (isManifestCorrupted_) {
+        Log::OutPutLog(std::cout,
+                       "[PSOManager] Warning: Skipped saving manifest because loaded manifest was corrupted.\n");
+        return;
     }
 
-    if (graphicsList.empty() && computeList.empty()) {
+    std::vector<std::string> targetPaths;
+    if (!manifestPath.empty()) {
+        targetPaths.push_back(manifestPath);
+    } else {
+        targetPaths.push_back(kCacheDirectory + "pso_manifest.json");
+#ifdef _DEBUG
+        // 開発環境（Debug）では、配布マスター（resources/pso_manifest.json）も自動更新
+        if (std::filesystem::exists("resources/pso_manifest.json")) {
+            targetPaths.push_back("resources/pso_manifest.json");
+        }
+#endif
+    }
+
+    std::unordered_set<GraphicsPSORecord, GraphicsPSORecordHash> mergedGraphics;
+    std::unordered_set<std::string> mergedCompute;
+    {
+        std::lock_guard<std::mutex> lock(manifestMutex_);
+        mergedGraphics = recordedGraphicsPSOs_;
+        mergedCompute = recordedComputePSOs_;
+    }
+
+    // 既存のマスターマニフェストが存在すればマージ。
+    // ただし、現在 shaderRegistry_ に実在しないシェーダー名は強制除外（Dead Shader Pruning）
+    std::string masterPath = "resources/pso_manifest.json";
+    if (std::filesystem::exists(masterPath)) {
+        nlohmann::json existingJson;
+        if (Irufemi::JsonUtility::LoadFromFile(masterPath, existingJson)) {
+            if (existingJson.contains("graphics") && existingJson["graphics"].is_array()) {
+                std::shared_lock<std::shared_mutex> readLock(psoMutex_);
+                for (const auto& item : existingJson["graphics"]) {
+                    std::string name = item.value("name", "");
+                    if (name.empty() || shaderRegistry_.find(name) == shaderRegistry_.end()) {
+                        // 削除・リネームされたシェーダーはマージ対象から除外（自動パージ）
+                        continue;
+                    }
+                    GraphicsPSORecord rec{name, static_cast<Irufemi::BlendMode>(item.value("blend", 0)),
+                                          static_cast<DepthWrite>(item.value("depth", 0)),
+                                          static_cast<CullMode>(item.value("cull", 0))};
+                    mergedGraphics.insert(rec);
+                }
+            }
+            if (existingJson.contains("compute") && existingJson["compute"].is_array()) {
+                for (const auto& item : existingJson["compute"]) {
+                    std::string name = item.get<std::string>();
+                    if (!name.empty() && computeCache_.find(name) != computeCache_.end()) {
+                        mergedCompute.insert(name);
+                    }
+                }
+            }
+        }
+    }
+
+    if (mergedGraphics.empty() && mergedCompute.empty()) {
         return;
     }
 
     nlohmann::json j;
     j["version"] = 1;
     nlohmann::json gArray = nlohmann::json::array();
-    for (const auto& item : graphicsList) {
+    for (const auto& item : mergedGraphics) {
         nlohmann::json obj;
         obj["name"] = item.name;
         obj["blend"] = static_cast<int>(item.blend);
@@ -407,16 +462,29 @@ void PSOManager::SaveManifest(const std::string& manifestPath) const {
         gArray.push_back(obj);
     }
     j["graphics"] = gArray;
-    j["compute"] = computeList;
+    j["compute"] = std::vector<std::string>(mergedCompute.begin(), mergedCompute.end());
 
-    std::error_code ec;
-    std::filesystem::create_directories(kCacheDirectory, ec);
+    for (const auto& path : targetPaths) {
+        std::error_code ec;
+        std::filesystem::path p(path);
+        if (p.has_parent_path()) {
+            std::filesystem::create_directories(p.parent_path(), ec);
+        }
 
-    std::ofstream file(path);
-    if (file.is_open()) {
-        file << j.dump(4);
-        Log::OutPutLog(std::cout, std::format("[PSOManager] Saved PSO manifest (Graphics: {}, Compute: {}) to {}\n",
-                                              graphicsList.size(), computeList.size(), path));
+        // アトミック保存（.tmp に書き込んでから置換）
+        std::string tempPath = path + ".tmp";
+        std::ofstream file(tempPath);
+        if (file.is_open()) {
+            file << j.dump(4);
+            file.close();
+            std::filesystem::rename(tempPath, path, ec);
+            if (ec) {
+                std::filesystem::remove(path, ec);
+                std::filesystem::rename(tempPath, path, ec);
+            }
+            Log::OutPutLog(std::cout, std::format("[PSOManager] Saved PSO manifest (Graphics: {}, Compute: {}) to {}\n",
+                                                  mergedGraphics.size(), mergedCompute.size(), path));
+        }
     }
 }
 
@@ -443,6 +511,8 @@ bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::strin
 
     nlohmann::json j;
     if (!Irufemi::JsonUtility::LoadFromFile(path, j)) {
+        isManifestCorrupted_ = true;
+        Log::OutPutLog(std::cout, "[PSOManager] Error: Failed to parse PSO manifest (corrupted or invalid JSON): " + path + "\n");
         return false;
     }
 
@@ -460,6 +530,15 @@ bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::strin
             if (name.empty()) {
                 continue;
             }
+
+            // 実在チェック: 削除された古いシェーダーはロードをスキップ
+            {
+                std::shared_lock<std::shared_mutex> readLock(psoMutex_);
+                if (shaderRegistry_.find(name) == shaderRegistry_.end()) {
+                    continue;
+                }
+            }
+
             auto blend = static_cast<Irufemi::BlendMode>(item.value("blend", 0));
             auto depth = static_cast<DepthWrite>(item.value("depth", 0));
             auto cull = static_cast<CullMode>(item.value("cull", 0));
@@ -509,6 +588,78 @@ void PSOManager::PreWarmCommonPSOs(ThreadPool* threadPool) {
 
     Log::OutPutLog(std::cout, "[PSOManager] Warning: No PSO manifest found to pre-warm.\n");
     GetCopyImage();
+}
+
+void PSOManager::PreWarmRegisteredShaders(ThreadPool* threadPool) {
+    std::unordered_map<std::string, PipelineStateDesc> registered;
+    {
+        std::shared_lock<std::shared_mutex> readLock(psoMutex_);
+        registered = shaderRegistry_;
+    }
+
+    if (registered.empty()) {
+        return;
+    }
+
+    std::shared_ptr<TaskGroup> taskGroup;
+    if (threadPool) {
+        taskGroup = std::make_shared<TaskGroup>();
+    }
+
+    size_t count = 0;
+    for (const auto& [name, desc] : registered) {
+        if (desc.isDepthOnly) {
+            auto blend = Irufemi::BlendMode::kBlendModeNone;
+            auto depth = DepthWrite::Enable;
+            auto cull = CullMode::Back;
+            if (threadPool && taskGroup) {
+                threadPool->Enqueue(taskGroup,
+                                    [this, name, blend, depth, cull]() { GetPSO(name, blend, depth, cull); });
+            } else {
+                GetPSO(name, blend, depth, cull);
+            }
+            ++count;
+            continue;
+        }
+
+        const std::vector<Irufemi::BlendMode> blendModes = {
+            Irufemi::BlendMode::kBlendModeNormal,
+            Irufemi::BlendMode::kBlendModeAdd,
+            Irufemi::BlendMode::kBlendModeNone
+        };
+
+        const std::vector<CullMode> cullModes = {
+            CullMode::Back,
+            CullMode::None
+        };
+
+        std::vector<DepthWrite> depthModes;
+        if (desc.disableDepthTest) {
+            depthModes = {DepthWrite::Off};
+        } else {
+            depthModes = {DepthWrite::Enable, DepthWrite::Disable};
+        }
+
+        for (auto b : blendModes) {
+            for (auto d : depthModes) {
+                for (auto c : cullModes) {
+                    if (threadPool && taskGroup) {
+                        threadPool->Enqueue(taskGroup, [this, name, b, d, c]() { GetPSO(name, b, d, c); });
+                    } else {
+                        GetPSO(name, b, d, c);
+                    }
+                    ++count;
+                }
+            }
+        }
+    }
+
+    if (taskGroup) {
+        taskGroup->Wait();
+    }
+
+    Log::OutPutLog(std::cout, std::format("[PSOManager] Pre-warmed {} state combinations for {} registered shaders.\n",
+                                          count, registered.size()));
 }
 
 // Multiply : out = src * dst

@@ -224,8 +224,11 @@ public:
         Irufemi::Vector4 lightningColor = visualizer ? visualizer->GetDeathLightningColor() : Irufemi::Vector4{2.2f, 0.2f, 2.8f, 1.0f};
         Irufemi::Vector4 blastColor = visualizer ? visualizer->GetDeathBlastColor() : Irufemi::Vector4{3.8f, 0.3f, 4.5f, 1.0f};
 
-        if (dxCommon) {
-            lightningBuffer_.Initialize(dxCommon);
+        lightningBuffer_ = &boss->GetLightningBuffer();
+        if (dxCommon && lightningBuffer_) {
+            if (!lightningBuffer_->IsInitialized()) {
+                lightningBuffer_->Initialize(dxCommon);
+            }
             config_ = Irufemi::LightningConfig{};
             config_.density = 1.2f;
             config_.boltCount = 1.5f;
@@ -235,11 +238,11 @@ public:
             config_.branchAmount = 0.6f;
             config_.coreColor = Irufemi::Vector4{1.5f, 1.3f, 1.5f, 1.0f};
             config_.haloColor = lightningColor;
-            lightningBuffer_.UpdateAll(config_);
+            lightningBuffer_->UpdateAll(config_);
 
             // ボスおよび子オブジェクトのMeshRendererにBossLightning PSOとCBVアドレスを設定
             uint32_t frameIndex = dxCommon->GetCurrentBackBufferIndex();
-            D3D12_GPU_VIRTUAL_ADDRESS cbvAddr = lightningBuffer_.GetGPUVirtualAddress(frameIndex);
+            D3D12_GPU_VIRTUAL_ADDRESS cbvAddr = lightningBuffer_->GetGPUVirtualAddress(frameIndex);
 
             auto applyPSORecursive = [&](auto self, Irufemi::GameObject* obj) -> void {
                 if (!obj) {
@@ -323,11 +326,11 @@ public:
         config_.dissolveProgress = dissolve;
         config_.dissolveEdgeWidth = 0.08f;
 
-        if (dxCommon) {
+        if (dxCommon && lightningBuffer_) {
             uint32_t frameIndex = dxCommon->GetCurrentBackBufferIndex();
-            lightningBuffer_.Update(config_, frameIndex);
+            lightningBuffer_->Update(config_, frameIndex);
 
-            D3D12_GPU_VIRTUAL_ADDRESS cbvAddr = lightningBuffer_.GetGPUVirtualAddress(frameIndex);
+            D3D12_GPU_VIRTUAL_ADDRESS cbvAddr = lightningBuffer_->GetGPUVirtualAddress(frameIndex);
             auto updateCBV = [&](auto self, Irufemi::GameObject* obj) -> void {
                 if (!obj) {
                     return;
@@ -400,7 +403,7 @@ private:
     int burstCount_ = 0;
     bool isCompleted_ = false;
 
-    Irufemi::ConstantBuffer<Irufemi::LightningConfig> lightningBuffer_;
+    Irufemi::ConstantBuffer<Irufemi::LightningConfig>* lightningBuffer_ = nullptr;
     Irufemi::LightningConfig config_{};
 };
 

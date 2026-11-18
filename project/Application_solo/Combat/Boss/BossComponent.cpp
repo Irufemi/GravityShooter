@@ -15,6 +15,7 @@
 #include "Player/TargetableComponent.h"
 #include "Combat/ScoreManagerComponent.h"
 #include "Core/System/IrufemiEngine.h"
+#include "Renderer/Pipeline/PSOManager.h"
 #include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
 #include <algorithm>
 #include <iostream>
@@ -111,6 +112,15 @@ void BossComponent::Start() {
         if (auto engine = scene->GetEngine()) {
             if (auto voxelMgr = engine->GetVoxelParticleManager()) {
                 voxelMgr->ReservePool("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{20, 20, 20}, 4000);
+            }
+            if (auto dxCommon = engine->GetDirectXCommon()) {
+                if (!lightningBuffer_.IsInitialized()) {
+                    lightningBuffer_.Initialize(dxCommon);
+                }
+            }
+            if (auto psoMgr = engine->GetPSOManager()) {
+                psoMgr->GetPSO("BossLightning", Irufemi::BlendMode::kBlendModeNormal,
+                               Irufemi::PSOManager::DepthWrite::Enable, Irufemi::PSOManager::CullMode::Back);
             }
         }
 

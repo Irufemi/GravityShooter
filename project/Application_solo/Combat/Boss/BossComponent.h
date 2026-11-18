@@ -4,6 +4,8 @@
 #include "Core/Math/Vector3.h"
 #include "Core/Math/Matrix4x4.h"
 #include "Combat/Boss/IBossState.h"
+#include "Renderer/Data/LightningConfig.h"
+#include "RHI/DirectX12/ConstantBuffer.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -34,6 +36,13 @@ public:
      */
     void SetOnDeathSequenceFinished(std::function<void()> callback) {
         onDeathSequenceFinished_ = std::move(callback);
+    }
+
+    /**
+     * @brief 撃破演出用放電定数バッファを取得する
+     */
+    Irufemi::ConstantBuffer<Irufemi::LightningConfig>& GetLightningBuffer() {
+        return lightningBuffer_;
     }
 
     /**
@@ -241,4 +250,7 @@ private:
     float beamOffsetZ_ = 4.0f;
     float beamOffsetY_ = -1.0f;
     float beamRange_ = 1000.0f;
+
+    // 撃破演出用放電定数バッファ（ロード画面で先行初期化）
+    Irufemi::ConstantBuffer<Irufemi::LightningConfig> lightningBuffer_;
 };
