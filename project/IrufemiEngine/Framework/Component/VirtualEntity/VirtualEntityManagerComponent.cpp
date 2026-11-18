@@ -250,7 +250,7 @@ void VirtualEntityManagerComponent::Update() {
             auto t = child->GetComponent<TransformComponent>();
             if (t) {
                 batchRenderer_->AddInstanceWorld(t->GetWorldMatrix(), static_cast<int32_t>(defaultEffectType_),
-                                                defaultEffectParam_, defaultEnableMask_);
+                                                 defaultEffectParam_, defaultEnableMask_);
             }
         }
     }
