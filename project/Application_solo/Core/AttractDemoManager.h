@@ -30,8 +30,8 @@ public:
      * @brief 実演するデモの種類
      */
     enum class DemoMode {
-        ClearShowcase,      ///< 【クリア演出実演】出撃後ボス即時撃破・STAGE CLEARリザルト接続を実演ループ
-        GameOverShowcase,   ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
+        ClearShowcase, ///< 【クリア演出実演】出撃後ボス即時撃破・STAGE CLEARリザルト接続を実演ループ
+        GameOverShowcase, ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
         TransitionShowcase, ///< 【画面遷移ショーケース】起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ
         StandardAttract     ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
     };
@@ -181,10 +181,10 @@ private:
     float combatTimer_ = 0.0f;  ///< イントロ完了後の通常交戦タイマー（秒）
     float resultTimer_ = 0.0f;  ///< Resultデモタイマー（秒）
 
-    static constexpr float kIdleThreshold_ = 8.0f;   ///< 自動デモ開始までの無操作秒数
-    static constexpr float kInGameDuration_ = 9.00f; ///< 本編デモ映像の表示秒数（じっくり魅せる9.0秒）
+    static constexpr float kIdleThreshold_ = 8.0f;               ///< 自動デモ開始までの無操作秒数
+    static constexpr float kInGameDuration_ = 9.00f;             ///< 本編デモ映像の表示秒数（じっくり魅せる9.0秒）
     static constexpr float kBossCombatShowcaseDuration_ = 5.00f; ///< ボス対峙・通常交戦の展示秒数（5.0秒）
-    static constexpr uint8_t kToggleKey_ = VK_F8;    ///< キオスク固定展示トグルキー (F8)
+    static constexpr uint8_t kToggleKey_ = VK_F8;                ///< キオスク固定展示トグルキー (F8)
 
     // タイムライン用ターゲット座標キャッシュ
     Irufemi::Vector2 posSweepStart_{640.0f, 650.0f};

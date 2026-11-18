@@ -25,12 +25,12 @@
 
 namespace {
 
-constexpr float kDefaultFov = 0.785398f;         //!< 通常カメラFOV (45度)
-constexpr float kCinematicZoomFov = 0.453786f;    //!< 撃破時シネマティックズームFOV (26度)
-constexpr float kDefaultBossDistance = 80.0f;    //!< 通常時のボス追従距離 (80m)
-constexpr float kCinematicBossDistance = 14.0f;  //!< 撃破演出時の至近追従距離 (14m、眼前を埋め尽くす)
-constexpr float kDefaultBossOffsetY = 10.0f;     //!< 通常時のボス高さオフセット (10m)
-constexpr float kCinematicBossOffsetY = 2.4f;    //!< 撃破演出時のアイレベル高さオフセット (2.4m、カメラ正面に配置)
+constexpr float kDefaultFov = 0.785398f;        //!< 通常カメラFOV (45度)
+constexpr float kCinematicZoomFov = 0.453786f;  //!< 撃破時シネマティックズームFOV (26度)
+constexpr float kDefaultBossDistance = 80.0f;   //!< 通常時のボス追従距離 (80m)
+constexpr float kCinematicBossDistance = 14.0f; //!< 撃破演出時の至近追従距離 (14m、眼前を埋め尽くす)
+constexpr float kDefaultBossOffsetY = 10.0f;    //!< 通常時のボス高さオフセット (10m)
+constexpr float kCinematicBossOffsetY = 2.4f;   //!< 撃破演出時のアイレベル高さオフセット (2.4m、カメラ正面に配置)
 
 /**
  * @brief レール上のボス追従距離オフセットを動的に変更する
@@ -73,17 +73,14 @@ inline void SetCinematicCameraFov(BossDamageVisualizerComponent* visualizer, Bos
 }
 
 inline Irufemi::Vector3 LerpVector3(const Irufemi::Vector3& a, const Irufemi::Vector3& b, float t) {
-    return Irufemi::Vector3{
-        std::lerp(a.x, b.x, t),
-        std::lerp(a.y, b.y, t),
-        std::lerp(a.z, b.z, t)
-    };
+    return Irufemi::Vector3{std::lerp(a.x, b.x, t), std::lerp(a.y, b.y, t), std::lerp(a.z, b.z, t)};
 }
 
 /**
  * @brief 任意のワールド座標をスクリーンUV座標（0.0〜1.0）へ射影変換する
  */
-inline Irufemi::Vector2 CalculateWorldScreenUV(Irufemi::IrufemiEngine* engine, const Irufemi::Vector3& worldPos, bool* outIsVisible = nullptr) {
+inline Irufemi::Vector2 CalculateWorldScreenUV(Irufemi::IrufemiEngine* engine, const Irufemi::Vector3& worldPos,
+                                               bool* outIsVisible = nullptr) {
     if (outIsVisible) {
         *outIsVisible = false;
     }
@@ -97,7 +94,8 @@ inline Irufemi::Vector2 CalculateWorldScreenUV(Irufemi::IrufemiEngine* engine, c
     }
 
     const auto& viewProj = activeCam->GetViewProjectionMatrix3D();
-    float w = worldPos.x * viewProj.m[0][3] + worldPos.y * viewProj.m[1][3] + worldPos.z * viewProj.m[2][3] + viewProj.m[3][3];
+    float w = worldPos.x * viewProj.m[0][3] + worldPos.y * viewProj.m[1][3] + worldPos.z * viewProj.m[2][3] +
+              viewProj.m[3][3];
     if (w <= 0.001f) {
         return Irufemi::Vector2{0.5f, 0.48f};
     }
@@ -107,10 +105,8 @@ inline Irufemi::Vector2 CalculateWorldScreenUV(Irufemi::IrufemiEngine* engine, c
     }
 
     Irufemi::Vector3 clipPos = Irufemi::Math::Transform(worldPos, viewProj);
-    return Irufemi::Vector2{
-        std::clamp(clipPos.x * 0.5f + 0.5f, 0.05f, 0.95f),
-        std::clamp(-clipPos.y * 0.5f + 0.5f, 0.05f, 0.95f)
-    };
+    return Irufemi::Vector2{std::clamp(clipPos.x * 0.5f + 0.5f, 0.05f, 0.95f),
+                            std::clamp(-clipPos.y * 0.5f + 0.5f, 0.05f, 0.95f)};
 }
 
 /**
@@ -296,11 +292,9 @@ public:
 
         if (auto transform = boss->GetGameObject()->GetComponent<Irufemi::TransformComponent>()) {
             float jitter = 0.05f + progress * 0.40f;
-            Irufemi::Vector3 shake{
-                Irufemi::Random::GeneratorFloat(-jitter, jitter),
-                Irufemi::Random::GeneratorFloat(-jitter, jitter),
-                Irufemi::Random::GeneratorFloat(-jitter, jitter)
-            };
+            Irufemi::Vector3 shake{Irufemi::Random::GeneratorFloat(-jitter, jitter),
+                                   Irufemi::Random::GeneratorFloat(-jitter, jitter),
+                                   Irufemi::Random::GeneratorFloat(-jitter, jitter)};
             transform->SetPosition(transform->GetPosition() + shake);
         }
 
@@ -356,11 +350,9 @@ public:
 
             if (auto effectMgr = EffectManagerComponent::GetInstance()) {
                 Irufemi::Vector3 curPos = boss->GetGameObject()->GetTransform()->GetWorldPosition();
-                Irufemi::Vector3 offset{
-                    Irufemi::Random::GeneratorFloat(-4.5f, 4.5f),
-                    Irufemi::Random::GeneratorFloat(-3.5f, 3.5f),
-                    Irufemi::Random::GeneratorFloat(-4.5f, 4.5f)
-                };
+                Irufemi::Vector3 offset{Irufemi::Random::GeneratorFloat(-4.5f, 4.5f),
+                                        Irufemi::Random::GeneratorFloat(-3.5f, 3.5f),
+                                        Irufemi::Random::GeneratorFloat(-4.5f, 4.5f)};
                 effectMgr->PlayEffect("debris_dust_effect", curPos + offset);
             }
             SoundHelper::Play(GameSE::DebrisShatter, 0.75f, 1.35f);
@@ -413,7 +405,9 @@ public:
 
         // 2. ボスメッシュの完全非表示化（ディゾルブが完了し、Voxelへと相転移）
         auto hideRecursive = [](auto self, Irufemi::GameObject* obj) -> void {
-            if (!obj) return;
+            if (!obj) {
+                return;
+            }
             if (auto* r = obj->GetComponent<Irufemi::MeshRendererComponent>()) {
                 r->SetVisible(false);
             }
@@ -424,7 +418,9 @@ public:
                 em->SetEnableEffectMask(false);
             }
             for (const auto& child : obj->GetChildren()) {
-                if (child) self(self, child.get());
+                if (child) {
+                    self(self, child.get());
+                }
             }
         };
         hideRecursive(hideRecursive, boss->GetGameObject());
@@ -436,7 +432,8 @@ public:
         baseScale_ = transform ? transform->GetScale() : Irufemi::Vector3{1.0f, 1.0f, 1.0f};
 
         if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
-            staticHandle_ = voxelMgr->RegisterEmitter("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{20, 20, 20});
+            staticHandle_ =
+                voxelMgr->RegisterEmitter("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{20, 20, 20});
             if (staticHandle_.IsValid()) {
                 emitterParams_ = Irufemi::VoxelEmitter{};
                 emitterParams_.emit = 1;
@@ -476,12 +473,9 @@ public:
             if (staticHandle_.IsValid()) {
                 if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
                     emitterParams_.convergence = std::lerp(55.0f, 110.0f, progress);
-                    emitterParams_.startColor = Irufemi::Vector4{
-                        std::lerp(5.0f, 10.0f, progress),
-                        std::lerp(6.0f, 12.0f, progress),
-                        std::lerp(9.0f, 16.0f, progress),
-                        1.0f
-                    };
+                    emitterParams_.startColor =
+                        Irufemi::Vector4{std::lerp(5.0f, 10.0f, progress), std::lerp(6.0f, 12.0f, progress),
+                                         std::lerp(9.0f, 16.0f, progress), 1.0f};
                     voxelMgr->UpdateEmitterData(staticHandle_, emitterParams_);
                 }
             }
@@ -590,8 +584,8 @@ public:
             Irufemi::Vector3 deadScale = transform ? transform->GetScale() : Irufemi::Vector3{1.0f, 1.0f, 1.0f};
 
             voxelMgr->PlayExplosion("resources/model/BossRing/BossRing.obj", deadPos_,
-                                    Irufemi::Vector3{0.0f, 0.0f, 0.0f}, deadRot, deadScale,
-                                    p, Irufemi::Vector3Int{20, 20, 20});
+                                    Irufemi::Vector3{0.0f, 0.0f, 0.0f}, deadRot, deadScale, p,
+                                    Irufemi::Vector3Int{20, 20, 20});
         }
 
         // 4. ポストプロセス LightningCataclysm: 瞬間閃光 ＆ 空間歪み衝撃波
@@ -777,11 +771,12 @@ void BossStateDestroyed::Enter(BossComponent* boss) {
     currentStepIndex_ = 0;
 
     // 5幕構成のシネマティック撃破シーケンス
-    steps_.push_back(std::make_unique<DeathStepOvervoltageFreeze>());  // 第1幕: ヒットストップ & 静寂 & コア白熱
-    steps_.push_back(std::make_unique<DeathStepLightningCrescendo>()); // 第2幕: 物理ドリーイン & 超望遠ズーム & 放電クレッシェンド
-    steps_.push_back(std::make_unique<DeathStepImplosionAndEMP>());     // 第3幕: 息を呑む爆縮 & 高密度Voxel相転移 & EMPタメ
-    steps_.push_back(std::make_unique<DeathStepVoxelCataclysm>());     // 第4幕: 千個超Voxelクーロン大爆散 & プラズマ超閃光
-    steps_.push_back(std::make_unique<DeathStepFinishSequence>());     // 第5幕: 完了通知 & ResultScene即時接続
+    steps_.push_back(std::make_unique<DeathStepOvervoltageFreeze>()); // 第1幕: ヒットストップ & 静寂 & コア白熱
+    steps_.push_back(
+        std::make_unique<DeathStepLightningCrescendo>()); // 第2幕: 物理ドリーイン & 超望遠ズーム & 放電クレッシェンド
+    steps_.push_back(std::make_unique<DeathStepImplosionAndEMP>()); // 第3幕: 息を呑む爆縮 & 高密度Voxel相転移 & EMPタメ
+    steps_.push_back(std::make_unique<DeathStepVoxelCataclysm>());  // 第4幕: 千個超Voxelクーロン大爆散 & プラズマ超閃光
+    steps_.push_back(std::make_unique<DeathStepFinishSequence>());  // 第5幕: 完了通知 & ResultScene即時接続
 
     if (!steps_.empty()) {
         steps_[currentStepIndex_]->Enter(boss, visualizer_);

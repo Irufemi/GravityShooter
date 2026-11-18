@@ -288,7 +288,8 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
         // フェードアウト完了待ち
         if (engine_->GetSceneTransition()->IsOutFinished()) {
             // 新しいシーンに非同期で切り替え、裏ロード開始
-            Log::OutPutLog(std::cout, "[SceneManager-Perf] FadeOut completed. Calling StartAsyncInitialize for: " + pendingTransition_ + "\n");
+            Log::OutPutLog(std::cout, "[SceneManager-Perf] FadeOut completed. Calling StartAsyncInitialize for: " +
+                                          pendingTransition_ + "\n");
             StartAsyncInitialize(pendingTransition_);
             transitionPhase_ = TransitionPhase::Initializing; // 初期化フェーズへ
         }
@@ -326,7 +327,9 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             }
 
             auto ms = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
-            Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] Background init finished! MainThread handoff took: {:.2f}ms. Entering LoadingWait\n", ms));
+            Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] Background init finished! MainThread handoff "
+                                                  "took: {:.2f}ms. Entering LoadingWait\n",
+                                                  ms));
 
             transitionPhase_ = TransitionPhase::LoadingWait; // ロード待機フェーズへ
             // ※従来のメインスレッド一括 WarmUpRenderState() は廃止。
@@ -340,7 +343,8 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             isPrimingDone = sceneStack_.back().scene->StepPriming(4.0f);
             auto ms = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
             if (ms > 5.0f) {
-                Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StepPriming took: {:.2f}ms (isDone={})\n", ms, isPrimingDone));
+                Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StepPriming took: {:.2f}ms (isDone={})\n",
+                                                      ms, isPrimingDone));
             }
         }
 
@@ -349,7 +353,10 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
 
         // 全オブジェクトのStart()完了 かつ 全アセットのロード完了 かつ 最低表示保証時間（1.5秒）を満たすのを待つ
         if (isPrimingDone && !isAssetLoading && durationMet) {
-            Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] LoadingWait complete! (Timer: {:.2f}s). Starting Opening (FadeIn)\n", loadingTimer_));
+            Log::OutPutLog(
+                std::cout,
+                std::format("[SceneManager-Perf] LoadingWait complete! (Timer: {:.2f}s). Starting Opening (FadeIn)\n",
+                            loadingTimer_));
             transitionPhase_ = TransitionPhase::Opening;
             loadingDismissTimer_ = 0.0f;
 
@@ -365,7 +372,8 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
                 sceneStack_.back().scene->OnEnter(); // ロード完了直後にBGM再生等を開始
                 sceneStack_.back().scene->WarmUpRenderState();
                 auto ms = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
-                Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] OnEnter + Final WarmUp took: {:.2f}ms\n", ms));
+                Log::OutPutLog(std::cout,
+                               std::format("[SceneManager-Perf] OnEnter + Final WarmUp took: {:.2f}ms\n", ms));
             }
 
             // ロードが完了した瞬間に、フェードインを開始する
@@ -543,7 +551,8 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
         it->scene->Finalize();
     }
     sceneStack_.clear();
-    auto msSceneDestruct = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tSceneDestruct0).count();
+    auto msSceneDestruct =
+        std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tSceneDestruct0).count();
 
     // 次のシーンへ行く前にパーティクルの状態をクリア
     if (engine_->GetVoxelParticleManager()) {
@@ -585,8 +594,10 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
         fluid->Reset();
     }
 
-    auto msMainTearDown = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tMainStart).count();
-    Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StartAsyncInitialize MainThread teardown took: {:.2f}ms (WaitForGPU: {:.2f}ms, Destruct: {:.2f}ms)\n",
+    auto msMainTearDown =
+        std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tMainStart).count();
+    Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StartAsyncInitialize MainThread teardown took: {:.2f}ms "
+                                          "(WaitForGPU: {:.2f}ms, Destruct: {:.2f}ms)\n",
                                           msMainTearDown, msGpuWait, msSceneDestruct));
 
     initFuture_ = std::async(std::launch::async, [this, factory, next]() {
@@ -619,9 +630,12 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
             nextScene_ = std::move(newScene);
         }
 
-        auto msTotalWorker = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tWorker0).count();
-        Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] [WorkerThread] Finished async load for: {} in {:.2f}ms (newScene->Initialize: {:.2f}ms, SceneSerializer::Load: {:.2f}ms)\n",
-                                              next, msTotalWorker, msInit, msLoad));
+        auto msTotalWorker =
+            std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tWorker0).count();
+        Log::OutPutLog(std::cout,
+                       std::format("[SceneManager-Perf] [WorkerThread] Finished async load for: {} in {:.2f}ms "
+                                   "(newScene->Initialize: {:.2f}ms, SceneSerializer::Load: {:.2f}ms)\n",
+                                   next, msTotalWorker, msInit, msLoad));
 
         isAsyncInitializing_.store(false);
     });

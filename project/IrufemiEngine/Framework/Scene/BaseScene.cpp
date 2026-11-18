@@ -450,14 +450,17 @@ bool BaseScene::StepPriming(float maxTimeMs) {
             if (obj && !obj->GetParent() && !obj->IsDestroyed() && !obj->IsStarted()) {
                 auto tStart0 = std::chrono::steady_clock::now();
                 obj->Start();
-                auto msObj = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tStart0).count();
+                auto msObj =
+                    std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tStart0).count();
                 if (msObj > 4.0f) {
-                    Log::OutPutLog(std::cout, std::format("[BaseScene-Perf] obj->Start() for '{}' took: {:.2f}ms\n", obj->GetName(), msObj));
+                    Log::OutPutLog(std::cout, std::format("[BaseScene-Perf] obj->Start() for '{}' took: {:.2f}ms\n",
+                                                          obj->GetName(), msObj));
                 }
             }
 
             // 指定した最大時間（ミリ秒）を超過した場合は次フレームへ処理を譲り、ローディング画面の描画を回す
-            auto elapsedMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
+            auto elapsedMs =
+                std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
             if (elapsedMs >= maxTimeMs) {
                 return false; // 未完了（次フレームへ継続）
             }
