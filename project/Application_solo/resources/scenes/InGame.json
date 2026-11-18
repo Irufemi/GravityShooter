@@ -2342,7 +2342,25 @@
             "Damage Shake Intensity": 0.4000000059604645,
             "Death Shake Duration": 1.0,
             "Death Shake Frequency": 10.0,
-            "Death Shake Intensity": 2.0
+            "Death Shake Intensity": 2.0,
+            "Death Lightning Color": [
+              2.2,
+              0.2,
+              2.8,
+              1.0
+            ],
+            "Death Blast Color": [
+              3.8,
+              0.3,
+              4.5,
+              1.0
+            ],
+            "Death Voxel Color": [
+              9.5,
+              2.0,
+              8.0,
+              1.0
+            ]
           },
           "type": "BossDamageVisualizerComponent"
         }

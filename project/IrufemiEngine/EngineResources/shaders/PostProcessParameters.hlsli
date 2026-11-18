@@ -253,7 +253,7 @@ struct PostProcessParams {
     uint32_t maskTextureIndex;
     uint32_t padding_bindless;
 
-    // LightningCataclysm (32 bytes = 8 float)
+    // LightningCataclysm (64 bytes = 16 float)
     float32_t2 lightningCataclysmCenter;
     float32_t lightningEmpWaveRadius;
     float32_t lightningEmpWaveIntensity;
@@ -261,6 +261,9 @@ struct PostProcessParams {
     float32_t lightningPlasmaFlashIntensity;
     float32_t lightningElectricChromatic;
     float32_t lightningTime;
+    float32_t4 lightningFlameColor;
+    float32_t4 lightningColor;
+    float32_t pad_align[56];
 };
 
 struct LightningCataclysmParams {
@@ -271,7 +274,8 @@ struct LightningCataclysmParams {
     float32_t plasmaFlashIntensity;
     float32_t electricChromatic;
     float32_t time;
-    float32_t pad;
+    float32_t4 flameColor;
+    float32_t4 lightningColor;
 };
 
 struct BandeDessineeOutlineParams {

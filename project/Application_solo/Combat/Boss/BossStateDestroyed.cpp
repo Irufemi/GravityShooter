@@ -220,6 +220,10 @@ public:
 
         auto engine = boss->GetEngine();
         auto dxCommon = engine->GetDirectXCommon();
+
+        Irufemi::Vector4 lightningColor = visualizer ? visualizer->GetDeathLightningColor() : Irufemi::Vector4{2.2f, 0.2f, 2.8f, 1.0f};
+        Irufemi::Vector4 blastColor = visualizer ? visualizer->GetDeathBlastColor() : Irufemi::Vector4{3.8f, 0.3f, 4.5f, 1.0f};
+
         if (dxCommon) {
             lightningBuffer_.Initialize(dxCommon);
             config_ = Irufemi::LightningConfig{};
@@ -229,8 +233,8 @@ public:
             config_.speed = 2.5f;
             config_.intensity = 0.8f;
             config_.branchAmount = 0.6f;
-            config_.coreColor = Irufemi::Vector4{1.2f, 1.2f, 1.5f, 1.0f};
-            config_.haloColor = Irufemi::Vector4{0.3f, 0.8f, 2.5f, 1.0f};
+            config_.coreColor = Irufemi::Vector4{1.5f, 1.3f, 1.5f, 1.0f};
+            config_.haloColor = lightningColor;
             lightningBuffer_.UpdateAll(config_);
 
             // ボスおよび子オブジェクトのMeshRendererにBossLightning PSOとCBVアドレスを設定
@@ -265,6 +269,8 @@ public:
             lc.plasmaFlashIntensity = 0.0f;
             lc.electricChromatic = 0.0f;
             lc.time = 0.0f;
+            lc.flameColor = blastColor;
+            lc.lightningColor = lightningColor;
         }
 
         // 重厚なスローモーション（0.12f）
@@ -347,6 +353,10 @@ public:
             lc.empWaveRadius = 0.0f;
             lc.empWaveIntensity = 0.0f;
             lc.time += dt * 3.5f;
+            if (visualizer) {
+                lc.lightningColor = visualizer->GetDeathLightningColor();
+                lc.flameColor = visualizer->GetDeathBlastColor();
+            }
         }
 
         // 5. 連鎖小爆発パーティクル（0.10秒おき）
@@ -439,6 +449,7 @@ public:
         if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
             staticHandle_ = voxelMgr->RegisterEmitter("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{20, 20, 20});
             if (staticHandle_.IsValid()) {
+                Irufemi::Vector4 voxelColor = visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
                 emitterParams_ = Irufemi::VoxelEmitter{};
                 emitterParams_.emit = 1;
                 emitterParams_.emitPosition = basePos_;
@@ -448,8 +459,8 @@ public:
                 emitterParams_.dispersion = 0.5f;
                 emitterParams_.convergence = 55.0f; // 中心点へ向かって猛烈に吸い込まれる立体爆縮！
                 emitterParams_.gravity = 0.0f;
-                emitterParams_.startColor = {5.0f, 6.0f, 9.0f, 1.0f}; // 超高圧青白プラズマ発光
-                emitterParams_.endColor = {2.0f, 3.5f, 6.5f, 1.0f};
+                emitterParams_.startColor = Irufemi::Vector4{voxelColor.x * 0.7f, voxelColor.y * 0.7f, voxelColor.z * 0.7f, 1.0f}; // ボス固有のヴォイドマゼンタ
+                emitterParams_.endColor = Irufemi::Vector4{voxelColor.x * 0.35f, voxelColor.y * 0.35f, voxelColor.z * 0.35f, 1.0f};
                 voxelMgr->UpdateEmitterData(staticHandle_, emitterParams_);
             }
         }
@@ -462,6 +473,10 @@ public:
             lc.empWaveRadius = 0.0f;
             lc.empWaveIntensity = 0.0f;
             lc.electricChromatic = 0.015f;
+            if (visualizer) {
+                lc.lightningColor = visualizer->GetDeathLightningColor();
+                lc.flameColor = visualizer->GetDeathBlastColor();
+            }
         }
 
         SoundHelper::Play(GameSE::GravityWarp, 0.85f, 1.45f);
@@ -473,14 +488,17 @@ public:
         float progress = std::clamp(elapsedTime_ / targetDuration_, 0.0f, 1.0f);
 
         if (boss && boss->GetEngine()) {
+            Irufemi::Vector4 voxelColor = visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
+
             // 数千個のボクセルが convergence = 55.0 -> 110.0 によって中心に向かって立体的に吸い込まれる！
             if (staticHandle_.IsValid()) {
                 if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
                     emitterParams_.convergence = std::lerp(55.0f, 110.0f, progress);
+                    float boost = std::lerp(0.7f, 1.4f, progress);
                     emitterParams_.startColor = Irufemi::Vector4{
-                        std::lerp(5.0f, 10.0f, progress),
-                        std::lerp(6.0f, 12.0f, progress),
-                        std::lerp(9.0f, 16.0f, progress),
+                        voxelColor.x * boost,
+                        voxelColor.y * boost,
+                        voxelColor.z * boost,
                         1.0f
                     };
                     voxelMgr->UpdateEmitterData(staticHandle_, emitterParams_);
@@ -495,6 +513,10 @@ public:
                 lc.arcIntensity = std::lerp(1.0f, 3.0f, progress);
                 lc.electricChromatic = std::lerp(0.015f, 0.035f, progress);
                 lc.time += dt * 2.0f;
+                if (visualizer) {
+                    lc.lightningColor = visualizer->GetDeathLightningColor();
+                    lc.flameColor = visualizer->GetDeathBlastColor();
+                }
             }
         }
 
@@ -593,17 +615,19 @@ public:
             effectMgr->PlayEffect("BossExplosion", deadPos_);
         }
 
-        // 3. 超高密度（20x20x20、数千個）ボクセルの3D全方位大爆散（白熱オレンジから金属煤へと冷えながら飛散）！
+        // 3. 超高密度（20x20x20、数千個）ボクセルの3D全方位大爆散（白熱マゼンタから金属煤へと冷えながら飛散）！
         if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
+            Irufemi::Vector4 voxelColor = visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
+
             Irufemi::VoxelEmitter p{};
             p.lifeTime = 3.2f;
             p.gravity = 1.2f;
             p.dispersion = 75.0f; // カメラ手前・奥・全方位へ圧倒的な3D深度で超高速大爆散！
             p.particleType = 5;   // DebrisExplosive
             p.scale = {1.1f, 1.1f, 1.1f};
-            p.startColor = {8.5f, 6.5f, 2.5f, 1.0f};  // 爆発の熱エネルギーを帯びた白熱黄金オレンジ
+            p.startColor = voxelColor; // ボス固有の暴走マゼンタプラズマ
             p.endColor = {0.05f, 0.05f, 0.08f, 1.0f}; // 飛散して冷え切った機体の金属煤
-            p.dissolveEdgeColor = {10.0f, 4.0f, 0.8f, 1.0f};
+            p.dissolveEdgeColor = {voxelColor.x * 0.8f, voxelColor.y * 0.4f, voxelColor.z * 0.5f, 1.0f};
 
             auto transform = boss->GetGameObject()->GetTransform();
             Irufemi::Vector3 deadRot = transform ? transform->GetRotation() : Irufemi::Vector3{0.0f, 0.0f, 0.0f};
@@ -623,6 +647,10 @@ public:
             lc.empWaveRadius = 0.04f;
             lc.empWaveIntensity = 4.2f;
             lc.electricChromatic = 0.045f;
+            if (visualizer) {
+                lc.flameColor = visualizer->GetDeathBlastColor();
+                lc.lightningColor = visualizer->GetDeathLightningColor();
+            }
         }
 
         // 重低音インパクト ＆ デブリ破砕音の多重再生によるド迫力爆発音
@@ -682,6 +710,10 @@ public:
                     lc.arcIntensity = arcFade * arcFade * 6.5f;
                     lc.electricChromatic = 0.045f * arcFade;
                     lc.time += dt * 5.0f;
+                    if (visualizer) {
+                        lc.flameColor = visualizer->GetDeathBlastColor();
+                        lc.lightningColor = visualizer->GetDeathLightningColor();
+                    }
                 }
             }
 

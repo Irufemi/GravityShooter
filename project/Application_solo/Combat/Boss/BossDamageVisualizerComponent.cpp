@@ -14,6 +14,9 @@ void BossDamageVisualizerComponent::OnRegisterProperties() {
     RegisterProperty("Death Shake Intensity", &deathShakeIntensity_);
     RegisterProperty("Death Shake Duration", &deathShakeDuration_);
     RegisterProperty("Death Shake Frequency", &deathShakeFrequency_);
+    RegisterProperty("Death Lightning Color", &deathLightningColor_);
+    RegisterProperty("Death Blast Color", &deathBlastColor_);
+    RegisterProperty("Death Voxel Color", &deathVoxelColor_);
 }
 
 BossDamageVisualizerComponent::~BossDamageVisualizerComponent() {

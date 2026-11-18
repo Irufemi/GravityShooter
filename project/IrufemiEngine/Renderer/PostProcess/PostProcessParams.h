@@ -518,6 +518,8 @@ struct LightningCataclysmParams {
     float plasmaFlashIntensity = 0.0f;      ///< 超高圧プラズマ白熱フラッシュ強度
     float electricChromatic = 0.0f;         ///< 電磁干渉色収差比率
     float time = 0.0f;                      ///< アークアニメーション用時間
+    Irufemi::Vector4 flameColor = {0.4f, 2.2f, 4.5f, 1.0f};     ///< ドーナツ爆炎の波面カラー
+    Irufemi::Vector4 lightningColor = {0.25f, 0.80f, 1.6f, 1.0f}; ///< アーク放電の光彩カラー
 
     template <typename Visitor> void Visit(Visitor&& v) {
         v.DragFloat2("Center UV", center, 0.01f, 0.0f, 1.0f);
@@ -527,6 +529,8 @@ struct LightningCataclysmParams {
         v.DragFloat("Plasma Flash", plasmaFlashIntensity, 0.05f, 0.0f, 10.0f);
         v.DragFloat("Electric Chromatic", electricChromatic, 0.005f, 0.0f, 0.5f);
         v.DragFloat("Time", time, 0.01f, 0.0f, 100.0f);
+        v.ColorEdit4("Flame Color", flameColor);
+        v.ColorEdit4("Lightning Color", lightningColor);
     }
 };
 
@@ -714,7 +718,7 @@ struct CombinedParams {
     uint32_t maskTextureIndex;
     uint32_t padding_bindless;
 
-    // LightningCataclysm (32 bytes = 8 float, perfectly replaces alignPadding[8])
+    // LightningCataclysm (64 bytes = 16 float)
     Irufemi::Vector2 lightningCataclysmCenter;
     float lightningEmpWaveRadius;
     float lightningEmpWaveIntensity;
@@ -722,6 +726,9 @@ struct CombinedParams {
     float lightningPlasmaFlashIntensity;
     float lightningElectricChromatic;
     float lightningTime;
+    Irufemi::Vector4 lightningFlameColor;
+    Irufemi::Vector4 lightningColor;
+    float alignPadding[56]; // 224 bytes (56 * 4) to reach 1024 bytes (1024 % 256 == 0)
 };
 
 static_assert(sizeof(CombinedParams) % 256 == 0, "CombinedParams must be 256-byte aligned for D3D12 CBV.");

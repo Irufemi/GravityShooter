@@ -157,6 +157,8 @@ void CombinedPostEffect::SyncParamsToCombined(CombinedParams& combined) const {
     combined.lightningPlasmaFlashIntensity = lightningCataclysmParams_.plasmaFlashIntensity;
     combined.lightningElectricChromatic = lightningCataclysmParams_.electricChromatic;
     combined.lightningTime = lightningCataclysmParams_.time;
+    combined.lightningFlameColor = lightningCataclysmParams_.flameColor;
+    combined.lightningColor = lightningCataclysmParams_.lightningColor;
 }
 
 void CombinedPostEffect::Render(const PostProcessRenderContext& context) {

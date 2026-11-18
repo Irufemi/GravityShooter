@@ -409,6 +409,8 @@ PixelShaderOutput main(VertexShaderOutput input) {
                     gParams.lightningPlasmaFlashIntensity,
                     gParams.lightningElectricChromatic,
                     gParams.lightningTime,
+                    gParams.lightningFlameColor.rgb,
+                    gParams.lightningColor.rgb,
                     gTexture,
                     gSampler
                 );

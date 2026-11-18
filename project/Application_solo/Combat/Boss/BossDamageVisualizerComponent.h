@@ -1,5 +1,6 @@
 #pragma once
 #include "Framework/Component/Component.h"
+#include "Core/Math/Vector4.h"
 #include <memory>
 
 class BossComponent;
@@ -164,6 +165,36 @@ public:
         deathShakeFrequency_ = val;
     }
 
+    /**
+     * @brief 撃破時の稲妻放電カラー（ハロ発光色）を取得する
+     */
+    const Irufemi::Vector4& GetDeathLightningColor() const {
+        return deathLightningColor_;
+    }
+    void SetDeathLightningColor(const Irufemi::Vector4& color) {
+        deathLightningColor_ = color;
+    }
+
+    /**
+     * @brief 撃破時のEMPドーナツ爆炎カラーを取得する
+     */
+    const Irufemi::Vector4& GetDeathBlastColor() const {
+        return deathBlastColor_;
+    }
+    void SetDeathBlastColor(const Irufemi::Vector4& color) {
+        deathBlastColor_ = color;
+    }
+
+    /**
+     * @brief 撃破時のVoxel爆縮・爆散プラズマカラーを取得する
+     */
+    const Irufemi::Vector4& GetDeathVoxelColor() const {
+        return deathVoxelColor_;
+    }
+    void SetDeathVoxelColor(const Irufemi::Vector4& color) {
+        deathVoxelColor_ = color;
+    }
+
 private:
     /**
      * @brief 登録済みのイベントリスナーを解除する
@@ -186,4 +217,9 @@ private:
     float deathShakeIntensity_ = 2.0f;
     float deathShakeDuration_ = 1.0f;
     float deathShakeFrequency_ = 10.0f;
+
+    // 撃破演出カラーパレット（ボス固有色：ネオンマゼンタ＆クリムゾン）
+    Irufemi::Vector4 deathLightningColor_ = {2.2f, 0.2f, 2.8f, 1.0f}; ///< 撃破時放電カラー（高圧マゼンタ紫電）
+    Irufemi::Vector4 deathBlastColor_     = {3.8f, 0.3f, 4.5f, 1.0f}; ///< 撃破時爆炎波面カラー（ヴォイドマゼンタ）
+    Irufemi::Vector4 deathVoxelColor_     = {9.5f, 2.0f, 8.0f, 1.0f}; ///< 撃破時Voxelプラズマカラー（暴走マゼンタ）
 };

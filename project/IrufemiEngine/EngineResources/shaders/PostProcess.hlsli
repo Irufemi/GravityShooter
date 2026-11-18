@@ -957,7 +957,8 @@ float EvaluateMidpointLightningBolt(float2 p, float2 a, float2 b, float seed, ou
 float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t empWaveRadius,
                                   float32_t empWaveIntensity, float32_t arcIntensity,
                                   float32_t plasmaFlashIntensity, float32_t electricChromatic,
-                                  float32_t time, Texture2D<float32_t4> tex, SamplerState smp) {
+                                  float32_t time, float32_t3 flameColor, float32_t3 lightningColor,
+                                  Texture2D<float32_t4> tex, SamplerState smp) {
     uint32_t texWidth, texHeight;
     tex.GetDimensions(texWidth, texHeight);
     float aspect = float(texWidth) / max(float(texHeight), 1.0f);
@@ -1010,16 +1011,16 @@ float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t e
             // 合計強度
             float blastGlow = (coreLine + flameBody) * empWaveIntensity;
 
-            // 鮮烈なプラズマ爆炎カラー（純白超高熱コア ➔ 鮮烈エレクトリックシアン ➔ サファイアブルー）
+            // 鮮烈なプラズマ爆炎カラー（純白超高熱コア ➔ 注入された炎色 ➔ 外周の深色）
             float3 colWhiteCore = float3(4.5f, 4.8f, 5.5f);
-            float3 colCyanFlame = float3(0.4f, 2.2f, 4.5f);
-            float3 colDeepBlue  = float3(0.1f, 0.5f, 2.2f);
+            float3 colFlame     = flameColor;
+            float3 colDeepEdge  = flameColor * 0.35f;
 
             float3 blastColor;
             if (normD < 0.35f) {
-                blastColor = lerp(colWhiteCore, colCyanFlame, normD / 0.35f);
+                blastColor = lerp(colWhiteCore, colFlame, normD / 0.35f);
             } else {
-                blastColor = lerp(colCyanFlame, colDeepBlue, (normD - 0.35f) / 0.65f);
+                blastColor = lerp(colFlame, colDeepEdge, (normD - 0.35f) / 0.65f);
             }
 
             // ④ 空間を外側へ猛烈に押し広げる大質量時空屈折歪み
@@ -1123,10 +1124,10 @@ float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t e
             float totalGlow = mainGlow + branchGlow;
             float totalAura = mainAura;
 
-            // スギヤマ氏資料 P4: 「白色の軸に、その周囲にまとう水色の光」
+            // 外部より供給された放電カラーに基づく合成
             float32_t3 boltColor = float32_t3(1.0f, 1.0f, 1.0f) * totalCore
-                                 + float32_t3(0.25f, 0.80f, 1.6f) * totalGlow
-                                 + float32_t3(0.05f, 0.25f, 0.9f) * totalAura;
+                                 + lightningColor * totalGlow
+                                 + lightningColor * 0.35f * totalAura;
 
             lightningEmission += boltColor * arcIntensity;
         }
