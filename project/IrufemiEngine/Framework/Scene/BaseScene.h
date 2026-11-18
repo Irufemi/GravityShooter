@@ -290,6 +290,9 @@ private:
     // --- フレームデータの自動送信 ---
     void SubmitFrameData();
 
+    /// @brief 遅延登録・削除キュー内の GameObject を確定反映する
+    void FlushPendingObjects();
+
 protected:
     // ── 入力ヘルパ ──
     // InputManager をラップした安全なヘルパー

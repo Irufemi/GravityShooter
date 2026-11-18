@@ -288,14 +288,12 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
         // フェードアウト完了待ち
         if (engine_->GetSceneTransition()->IsOutFinished()) {
             // 新しいシーンに非同期で切り替え、裏ロード開始
-            Log::OutPutLog(std::cout, "[SceneManager-Perf] FadeOut completed. Calling StartAsyncInitialize for: " + pendingTransition_ + "\n");
             StartAsyncInitialize(pendingTransition_);
             transitionPhase_ = TransitionPhase::Initializing; // 初期化フェーズへ
         }
     } else if (transitionPhase_ == TransitionPhase::Initializing) {
         // バックグラウンドでのシーン破棄・初期化完了待ち
         if (initFuture_.valid() && initFuture_.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-            auto t0 = std::chrono::steady_clock::now();
             try {
                 initFuture_.get(); // ワーカースレッドの完了待機および例外の再スロー
             } catch (const std::exception& e) {
@@ -325,31 +323,27 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
                 engine_->SetCursorLocked(!sceneStack_.back().scene->IsCursorVisible());
             }
 
-            auto ms = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
-            Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] Background init finished! MainThread handoff took: {:.2f}ms. Entering LoadingWait\n", ms));
-
             transitionPhase_ = TransitionPhase::LoadingWait; // ロード待機フェーズへ
             // ※従来のメインスレッド一括 WarmUpRenderState() は廃止。
             // LoadingWait フェーズにて、描画ループを回しながらタイムスライス（StepPriming）で毎フレーム分散実行します。
         }
     } else if (transitionPhase_ == TransitionPhase::LoadingWait) {
-        // タイムスライス方式で毎フレーム最大4.0ms分、オブジェクトのStart()を消化（ローディング画面を一切止めない）
+        // タイムスライス方式で毎フレーム最大 primingBudgetMs_ 分、オブジェクトのStart()を消化（ローディング画面を一切止めない）
         bool isPrimingDone = true;
         if (!sceneStack_.empty()) {
             auto t0 = std::chrono::steady_clock::now();
-            isPrimingDone = sceneStack_.back().scene->StepPriming(4.0f);
+            isPrimingDone = sceneStack_.back().scene->StepPriming(primingBudgetMs_);
             auto ms = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
-            if (ms > 5.0f) {
-                Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StepPriming took: {:.2f}ms (isDone={})\n", ms, isPrimingDone));
+            if (ms > primingBudgetMs_ * 2.0f) {
+                Log::OutPutLog(std::cout, std::format("[SceneManager] Warning: StepPriming took: {:.2f}ms (Budget: {:.2f}ms)\n", ms, primingBudgetMs_));
             }
         }
 
         bool isAssetLoading = engine_->IsAssetLoading();
         bool durationMet = (loadingTimer_ >= minLoadingDuration_);
 
-        // 全オブジェクトのStart()完了 かつ 全アセットのロード完了 かつ 最低表示保証時間（1.5秒）を満たすのを待つ
+        // 全オブジェクトのStart()完了 かつ 全アセットのロード完了 かつ 最低表示保証時間を満たすのを待つ
         if (isPrimingDone && !isAssetLoading && durationMet) {
-            Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] LoadingWait complete! (Timer: {:.2f}s). Starting Opening (FadeIn)\n", loadingTimer_));
             transitionPhase_ = TransitionPhase::Opening;
             loadingDismissTimer_ = 0.0f;
 
@@ -361,11 +355,8 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             // GPUスキニング予約・初回フレームデータ提出（WarmUpRenderState）のみを安全に済ませる。
             // ---------------------------------------------------------
             if (!sceneStack_.empty()) {
-                auto t0 = std::chrono::steady_clock::now();
                 sceneStack_.back().scene->OnEnter(); // ロード完了直後にBGM再生等を開始
                 sceneStack_.back().scene->WarmUpRenderState();
-                auto ms = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
-                Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] OnEnter + Final WarmUp took: {:.2f}ms\n", ms));
             }
 
             // ロードが完了した瞬間に、フェードインを開始する

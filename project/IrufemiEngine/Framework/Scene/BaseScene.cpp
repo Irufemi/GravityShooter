@@ -343,25 +343,31 @@ void BaseScene::Draw() {
     }
 }
 
+void BaseScene::FlushPendingObjects() {
+    std::lock_guard<std::recursive_mutex> lock(sceneMutex_);
+    if (pendingAdds_.empty() && pendingRemoves_.empty()) {
+        return;
+    }
+
+    for (auto& obj : pendingAdds_) {
+        gameObjects_.push_back(obj);
+        objectRegistry_->Register(obj);
+    }
+    pendingAdds_.clear();
+
+    for (auto& obj : pendingRemoves_) {
+        auto it = std::find(gameObjects_.begin(), gameObjects_.end(), obj);
+        if (it != gameObjects_.end()) {
+            gameObjects_.erase(it);
+            objectRegistry_->Unregister(obj);
+        }
+    }
+    pendingRemoves_.clear();
+}
+
 void BaseScene::WarmUpRenderState() {
     // 1. 遅延登録キューのフラッシュ（ロード済みオブジェクトをリストに確定）
-    {
-        std::lock_guard<std::recursive_mutex> lock(sceneMutex_);
-        for (auto& obj : pendingAdds_) {
-            gameObjects_.push_back(obj);
-            objectRegistry_->Register(obj);
-        }
-        pendingAdds_.clear();
-
-        for (auto& obj : pendingRemoves_) {
-            auto it = std::find(gameObjects_.begin(), gameObjects_.end(), obj);
-            if (it != gameObjects_.end()) {
-                gameObjects_.erase(it);
-                objectRegistry_->Unregister(obj);
-            }
-        }
-        pendingRemoves_.clear();
-    }
+    FlushPendingObjects();
 
     // 2. 未実行オブジェクトの Start() を先行実行（Scene Priming: ゲーム実行中のみ開始し、Editモード時の暴発を防止）
     if (engine_ && engine_->IsPlayMode()) {
@@ -421,25 +427,7 @@ void BaseScene::WarmUpRenderState() {
 
 bool BaseScene::StepPriming(float maxTimeMs) {
     // 1. 遅延登録キューのフラッシュ（初回あるいは動的追加分）
-    {
-        std::lock_guard<std::recursive_mutex> lock(sceneMutex_);
-        if (!pendingAdds_.empty() || !pendingRemoves_.empty()) {
-            for (auto& obj : pendingAdds_) {
-                gameObjects_.push_back(obj);
-                objectRegistry_->Register(obj);
-            }
-            pendingAdds_.clear();
-
-            for (auto& obj : pendingRemoves_) {
-                auto it = std::find(gameObjects_.begin(), gameObjects_.end(), obj);
-                if (it != gameObjects_.end()) {
-                    gameObjects_.erase(it);
-                    objectRegistry_->Unregister(obj);
-                }
-            }
-            pendingRemoves_.clear();
-        }
-    }
+    FlushPendingObjects();
 
     auto startTime = std::chrono::steady_clock::now();
 

@@ -163,6 +163,16 @@ public:
     /** @brief チラつき防止（アンチフリッカー）機能付きで、ローディング画面を描画すべきかを取得 */
     bool ShouldDrawLoadingScreen() const;
 
+    /** @brief タイムスライス初期化（StepPriming）の1フレームあたりの処理バジェット（ミリ秒）を取得 */
+    float GetPrimingBudgetMs() const {
+        return primingBudgetMs_;
+    }
+
+    /** @brief タイムスライス初期化（StepPriming）の1フレームあたりの処理バジェット（ミリ秒）を設定 */
+    void SetPrimingBudgetMs(float ms) {
+        primingBudgetMs_ = ms;
+    }
+
     /** @brief ローディング画面のフェードアルファ（0.0f〜1.0f）を取得 */
     float GetLoadingFadeAlpha() const {
         return loadingFadeAlpha_;
@@ -212,6 +222,9 @@ private:
     float loadingFadeDuration_ = 0.5f;   ///< 終了時のフェードアウト時間（秒）
     float loadingFadeAlpha_ = 0.0f;      ///< 現在のローディング画面アルファ値（0.0f〜1.0f）
     float loadingDismissTimer_ = 0.0f;   ///< フェードアウト経過タイマー
+
+    // --- タイムスライス初期化 (Scene Priming) ---
+    float primingBudgetMs_ = 4.0f; ///< 1フレームあたりの最大処理バジェット（ミリ秒）
 
     // --- 非同期読み込み用 ---
     std::future<void> initFuture_;

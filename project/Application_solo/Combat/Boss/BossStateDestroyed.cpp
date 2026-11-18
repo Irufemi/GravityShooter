@@ -22,6 +22,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <array>
 
 namespace {
 
@@ -534,6 +535,21 @@ private:
  */
 class DeathStepVoxelCataclysm : public IDeathSequenceStep {
 public:
+    struct SubExplosionDef {
+        float triggerTime = 0.0f;
+        Irufemi::Vector3 offset{};
+        GameSE se = GameSE::DebrisShatter;
+        float seVolume = 1.0f;
+        float sePitch = 1.0f;
+    };
+
+    static constexpr float kMainExplosionDelay = 0.26f;
+
+    inline static const std::array<SubExplosionDef, 2> kSubExplosions = {{
+        {0.09f, {2.8f, -1.2f, -0.6f}, GameSE::DebrisShatter, 0.95f, 1.15f},
+        {0.18f, {0.6f, 2.8f, 0.8f}, GameSE::GravityWarp, 0.85f, 1.55f},
+    }};
+
     void Enter(BossComponent* boss, BossDamageVisualizerComponent* visualizer) override {
         elapsedTime_ = 0.0f;
         chainStep_ = 0;
@@ -548,11 +564,15 @@ public:
         deadPos_ = boss->GetGameObject()->GetTransform()->GetWorldPosition();
 
         // 1. 【第1連鎖誘爆】左翼装甲で先行爆裂！
-        Irufemi::Vector3 subPos = deadPos_ + Irufemi::Vector3{-2.6f, 1.2f, 0.5f};
+        PlaySubExplosion({-2.6f, 1.2f, 0.5f}, GameSE::DebrisShatter, 0.85f, 1.40f);
+    }
+
+    void PlaySubExplosion(const Irufemi::Vector3& offset, GameSE se, float volume, float pitch) {
+        Irufemi::Vector3 subPos = deadPos_ + offset;
         if (auto effectMgr = EffectManagerComponent::GetInstance()) {
             effectMgr->PlayEffect("Hit", subPos);
         }
-        SoundHelper::Play(GameSE::DebrisShatter, 0.85f, 1.40f);
+        SoundHelper::Play(se, volume, pitch);
     }
 
     void TriggerMainExplosion(BossComponent* boss, BossDamageVisualizerComponent* visualizer) {
@@ -618,30 +638,20 @@ public:
         }
 
         // --- 多段連鎖爆発シークエンス（ドカン！ ➔ ドカン！ ➔ ドカン！ ➔ ドッカァァァン！！） ---
-        if (chainStep_ == 0 && elapsedTime_ >= 0.09f) {
-            chainStep_ = 1;
-            Irufemi::Vector3 subPos = deadPos_ + Irufemi::Vector3{2.8f, -1.2f, -0.6f};
-            if (auto effectMgr = EffectManagerComponent::GetInstance()) {
-                effectMgr->PlayEffect("Hit", subPos);
-            }
-            SoundHelper::Play(GameSE::DebrisShatter, 0.95f, 1.15f);
+        while (chainStep_ < static_cast<int>(kSubExplosions.size()) &&
+               elapsedTime_ >= kSubExplosions[chainStep_].triggerTime) {
+            const auto& step = kSubExplosions[chainStep_];
+            PlaySubExplosion(step.offset, step.se, step.seVolume, step.sePitch);
+            ++chainStep_;
         }
-        if (chainStep_ == 1 && elapsedTime_ >= 0.18f) {
-            chainStep_ = 2;
-            Irufemi::Vector3 subPos = deadPos_ + Irufemi::Vector3{0.6f, 2.8f, 0.8f};
-            if (auto effectMgr = EffectManagerComponent::GetInstance()) {
-                effectMgr->PlayEffect("Hit", subPos);
-            }
-            SoundHelper::Play(GameSE::GravityWarp, 0.85f, 1.55f);
-        }
-        if (chainStep_ == 2 && elapsedTime_ >= 0.26f && !mainExploded_) {
-            chainStep_ = 3;
+
+        if (elapsedTime_ >= kMainExplosionDelay && !mainExploded_) {
             mainExploded_ = true;
             TriggerMainExplosion(boss, visualizer);
         }
 
         // 本爆発後の経過時間
-        float postExplodeTime = elapsedTime_ - 0.26f;
+        float postExplodeTime = elapsedTime_ - kMainExplosionDelay;
 
         if (mainExploded_) {
             auto ppm = boss->GetEngine()->GetPostProcessManager();

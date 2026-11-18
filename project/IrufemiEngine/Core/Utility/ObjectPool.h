@@ -16,10 +16,13 @@ namespace Irufemi {
  */
 template <typename T> class ObjectPool {
 public:
+    /// @brief 無効なスロットインデックス値
+    static constexpr uint32_t kInvalidIndex = 0xFFFFFFFF;
+
     /// @brief プール内のオブジェクトを安全に指し示すためのハンドル
     struct Handle {
-        uint32_t index = 0xFFFFFFFF; ///< スロットのインデックス
-        uint32_t generation = 0;     ///< 世代（古いハンドルでのアクセスを防ぐ）
+        uint32_t index = kInvalidIndex; ///< スロットのインデックス
+        uint32_t generation = 0;        ///< 世代（古いハンドルでのアクセスを防ぐ）
 
 #if defined(_DEBUG) || defined(EditorMode) || defined(DEVELOPMENT)
         T* debugPtr = nullptr; ///< エディタ上での視認性・デバッグ用のポインタ
@@ -30,7 +33,7 @@ public:
          * @return 判定結果 (true/false)
          */
         bool IsValid() const {
-            return index != 0xFFFFFFFF;
+            return index != kInvalidIndex;
         }
         bool operator==(const Handle& other) const {
             return index == other.index && generation == other.generation;
@@ -68,7 +71,7 @@ public:
         }
         // 最後の要素の nextFree は無効値
         if (capacity > 0) {
-            slots_[capacity - 1].nextFree = 0xFFFFFFFF;
+            slots_[capacity - 1].nextFree = kInvalidIndex;
         }
         headFree_ = 0;
         freeCount_ = capacity;
@@ -104,7 +107,7 @@ public:
      * @return 取得したオブジェクトの Handle。空きがない場合は無効な Handle を返す。
      */
     Handle Acquire() {
-        if (headFree_ == 0xFFFFFFFF) {
+        if (headFree_ == kInvalidIndex) {
             return Handle(); // 空きなし
         }
 
@@ -222,8 +225,8 @@ private:
     };
 
     std::vector<Slot> slots_;
-    uint32_t headFree_ = 0xFFFFFFFF; ///< フリーリストの先頭インデックス
-    size_t freeCount_ = 0;           ///< 空きスロット数
+    uint32_t headFree_ = kInvalidIndex; ///< フリーリストの先頭インデックス
+    size_t freeCount_ = 0;              ///< 空きスロット数
     std::function<std::shared_ptr<T>()> factory_; ///< 遅延生成用ファクトリ関数
 };
 
