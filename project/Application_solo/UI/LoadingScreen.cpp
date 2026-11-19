@@ -243,3 +243,17 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
         demoText_->Draw();
     }
 }
+
+void LoadingScreen::OnDrawLoadingScreen(IrufemiEngine* engine, float deltaTime) {
+    // シーン遷移直後（CameraManager空洞化）でも初回フレームから確実に2D正射影行列を同期
+    if (engine) {
+        if (auto camMgr = engine->GetCameraManager()) {
+            if (!camMgr->GetActiveCamera()) {
+                camMgr->AddCamera("LoadingCamera", camera_);
+                camMgr->SetActiveCamera("LoadingCamera");
+            }
+        }
+    }
+    Update(deltaTime);
+    Draw(engine);
+}

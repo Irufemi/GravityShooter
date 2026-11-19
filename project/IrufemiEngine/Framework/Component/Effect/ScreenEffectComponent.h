@@ -37,6 +37,9 @@ public:
     /// @brief 演出を開始する（Weight を 1.0 にし、時間経過で減衰させる）
     void Play();
 
+    /// @brief 演出を即座に停止し、元のポストプロセス状態に戻す
+    void Stop();
+
     void SetMode(PostProcessMode mode);
     PostProcessMode GetMode() const {
         return mode_;

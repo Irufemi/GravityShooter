@@ -903,21 +903,21 @@ void StageIntroDirectorComponent::CleanupWarpVisuals() {
         cam->SetFovAngleY(baseCameraFov_);
     }
 
-    // ラジアルブラー・色収差・フェード閃光の確実な解除
+    // ラジアルブラー・色収差・フェード閃光の確実な解除 (PreUIレイヤー限定、画面遷移の暗転を保護)
     if (auto engine = GetEngine()) {
         if (auto ppm = engine->GetPostProcessManager()) {
             if (isRadialBlurActive_) {
-                ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
+                ppm->RemoveActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
                 ppm->GetRadialBlurParams().blurWidth = 0.0f;
                 isRadialBlurActive_ = false;
             }
             if (isChromaticActive_) {
-                ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration);
+                ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration, PostProcessManager::Layer::PreUI);
                 ppm->GetChromaticAberrationParams().intensity = 0.0f;
                 isChromaticActive_ = false;
             }
             if (isFadeActive_) {
-                ppm->RemoveActiveMode(PostProcessMode::Fade);
+                ppm->RemoveActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
                 ppm->GetFadeParams().intensity = 0.0f;
                 isFadeActive_ = false;
             }

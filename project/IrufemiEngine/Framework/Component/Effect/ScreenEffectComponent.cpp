@@ -20,16 +20,7 @@ ScreenEffectComponent::~ScreenEffectComponent() {
 }
 
 void ScreenEffectComponent::OnDestroy() {
-    if (isPlaying_) {
-        auto engine = GetEngine();
-        if (engine && engine->GetPostProcessManager()) {
-            if (driver_) {
-                driver_->RestoreBaseParams(engine->GetPostProcessManager());
-            }
-            engine->GetPostProcessManager()->RemoveActiveMode(mode_);
-        }
-        isPlaying_ = false;
-    }
+    Stop();
 }
 
 void ScreenEffectComponent::Initialize() {
@@ -65,9 +56,28 @@ void ScreenEffectComponent::Play() {
     currentWeight_ = 1.0f;
     isPlaying_ = true;
 
-    wasModeActiveBeforePlay_ = ppm->HasActiveMode(mode_);
+    wasModeActiveBeforePlay_ = ppm->HasActiveMode(mode_, PostProcessManager::Layer::PreUI);
     if (!wasModeActiveBeforePlay_ && mode_ != PostProcessMode::None) {
-        ppm->AddActiveMode(mode_, PostProcessManager::Layer::PostUI);
+        ppm->AddActiveMode(mode_, PostProcessManager::Layer::PreUI);
+    }
+}
+
+void ScreenEffectComponent::Stop() {
+    if (!isPlaying_) {
+        return;
+    }
+    isPlaying_ = false;
+    currentWeight_ = 0.0f;
+
+    auto engine = GetEngine();
+    if (engine && engine->GetPostProcessManager()) {
+        auto* ppm = engine->GetPostProcessManager();
+        if (driver_) {
+            driver_->RestoreBaseParams(ppm);
+        }
+        if (!wasModeActiveBeforePlay_ && mode_ != PostProcessMode::None) {
+            ppm->RemoveActiveMode(mode_, PostProcessManager::Layer::PreUI);
+        }
     }
 }
 
@@ -84,21 +94,12 @@ void ScreenEffectComponent::Update() {
     float dt = engine->GetGameDeltaTime();
     currentWeight_ -= dt / duration_;
 
-    auto* ppm = engine->GetPostProcessManager();
-
     if (currentWeight_ <= 0.0f) {
-        currentWeight_ = 0.0f;
-        isPlaying_ = false;
-
-        if (driver_) {
-            driver_->RestoreBaseParams(ppm);
-        }
-
-        if (!wasModeActiveBeforePlay_ && mode_ != PostProcessMode::None) {
-            ppm->RemoveActiveMode(mode_);
-        }
+        Stop();
         return;
     }
+
+    auto* ppm = engine->GetPostProcessManager();
 
     // Weightに基づいたEaseOut補間処理
     float t = EaseOutQuad(currentWeight_);

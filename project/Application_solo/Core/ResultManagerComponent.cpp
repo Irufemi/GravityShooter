@@ -120,9 +120,12 @@ void ResultManagerComponent::Update() {
     float dt = engine->GetRealDeltaTime();
     timer_ += dt;
 
-    // 暗幕のフェードイン (0.0 -> 0.78 / EaseInQuad でグッと暗く沈み込ませる)
+    // 画面遷移中（タイトル帰還中、またはデモ自動遷移中）は、システム側の暗転やRadialBlurを破壊しないよう突入ポストプロセス更新を停止
+    bool isTransitioning = isExiting_ || (engine->GetSceneManager() && engine->GetSceneManager()->IsTransitioning());
     float enterProgress = std::clamp(timer_ / 0.50f, 0.0f, 1.0f);
-    UpdateEntryPostProcess(enterProgress);
+    if (!isTransitioning) {
+        UpdateEntryPostProcess(enterProgress);
+    }
 
     if (auto bgObj = darkBackdropObj_.lock()) {
         if (auto sprite = bgObj->GetComponent<Irufemi::SpriteRendererComponent>()) {
@@ -673,12 +676,12 @@ void ResultManagerComponent::RemoveEntryPostProcess() {
     }
     if (auto engine = GetEngine()) {
         if (auto ppm = engine->GetPostProcessManager()) {
-            ppm->RemoveActiveMode(PostProcessMode::RadialBlur);
+            ppm->RemoveActiveMode(PostProcessMode::RadialBlur, PostProcessManager::Layer::PreUI);
             if (hasWhiteFlash_) {
-                ppm->RemoveActiveMode(PostProcessMode::Fade);
+                ppm->RemoveActiveMode(PostProcessMode::Fade, PostProcessManager::Layer::PreUI);
                 hasWhiteFlash_ = false;
             }
-            ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration);
+            ppm->RemoveActiveMode(PostProcessMode::ChromaticAberration, PostProcessManager::Layer::PreUI);
         }
     }
     isPostProcessActive_ = false;

@@ -39,9 +39,9 @@ void SceneTransition::Start(Type type, float duration, bool isOut, EaseType ease
         customColor_ = std::nullopt; // フェードアウト開始時に新規指定が無ければリセット
     }
 
-    // 前回のトランジション演出で使ったエフェクトだけを確実に取り除く
+    // 前回のトランジション演出で使ったエフェクトだけを確実に取り除く (PostUIレイヤー限定)
     for (auto mode : activeTransitionModes_) {
-        ppManager_->RemoveActiveMode(mode);
+        ppManager_->RemoveActiveMode(mode, PostProcessManager::Layer::PostUI);
     }
     activeTransitionModes_.clear();
 
@@ -96,10 +96,10 @@ void SceneTransition::Update(float deltaTime) {
         timer_ = totalDuration;
         isActive_ = false;
 
-        // フェードイン（画面が表示される方）が完了した場合はトランジションエフェクトのみをクリア
+        // フェードイン（画面が表示される方）が完了した場合はトランジションエフェクトのみをクリア (PostUIレイヤー限定)
         if (!isOut_) {
             for (auto mode : activeTransitionModes_) {
-                ppManager_->RemoveActiveMode(mode);
+                ppManager_->RemoveActiveMode(mode, PostProcessManager::Layer::PostUI);
             }
             activeTransitionModes_.clear();
             ppManager_->ResetPostUI();

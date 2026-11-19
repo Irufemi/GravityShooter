@@ -144,6 +144,33 @@ void PlayerDamageVisualizerComponent::TriggerDamageFlash() {
     }
 }
 
+void PlayerDamageVisualizerComponent::ResetVisuals() {
+    isFlashing_ = false;
+    flashRemaining_ = 0.0f;
+    flashTimer_ = 0.0f;
+
+    if (gameObject_) {
+        BaseModel* model = nullptr;
+        if (auto mesh = gameObject_->GetComponent<Irufemi::MeshRendererComponent>()) {
+            if (auto renderable = mesh->GetRenderable()) {
+                model = dynamic_cast<BaseModel*>(renderable);
+            }
+        } else if (auto skinned = gameObject_->GetComponent<Irufemi::SkinnedMeshRendererComponent>()) {
+            if (auto renderable = skinned->GetRenderable()) {
+                model = dynamic_cast<BaseModel*>(renderable);
+            }
+        }
+
+        if (model && colorCached_) {
+            model->SetColor(originalBaseColor_);
+        }
+
+        if (auto screenEffect = gameObject_->GetComponent<Irufemi::ScreenEffectComponent>()) {
+            screenEffect->Stop();
+        }
+    }
+}
+
 void PlayerDamageVisualizerComponent::TriggerCameraShake() {
     if (!cameraShakeComp_ || mainCameraObj_.expired()) {
         cameraShakeComp_ = nullptr;
@@ -288,6 +315,8 @@ void PlayerDamageVisualizerComponent::TriggerDeathVisuals() {
     if (phase_ != DeathSequencePhase::None) {
         return; // 二重発火を完全にガード
     }
+
+    ResetVisuals();
 
     // 親台車（PlayerCart）の前進を即時完全停止し、カメラによる自機の置き去り・追い抜きを根絶
     if (auto scene = gameObject_->GetScene()) {

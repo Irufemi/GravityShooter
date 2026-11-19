@@ -32,10 +32,7 @@ public:
     void Draw(IrufemiEngine* engine);
 
     // ILoadingScreen の実装
-    void OnDrawLoadingScreen(IrufemiEngine* engine, float deltaTime) override {
-        Update(deltaTime);
-        Draw(engine);
-    }
+    void OnDrawLoadingScreen(IrufemiEngine* engine, float deltaTime) override;
 
     void SetFadeAlpha(float alpha) override {
         masterAlpha_ = alpha;

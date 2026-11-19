@@ -41,6 +41,11 @@ public:
     void TriggerDamageFlash();
 
     /**
+     * @brief 被弾点滅演出・画面エフェクトを即座に停止し、モデル色と画面を通常状態に復元する
+     */
+    void ResetVisuals();
+
+    /**
      * @brief カメラシェイク演出を再生する
      */
     void TriggerCameraShake();

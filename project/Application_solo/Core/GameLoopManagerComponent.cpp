@@ -161,6 +161,9 @@ void GameLoopManagerComponent::OnBossDied() {
         if (auto health = player->GetComponent<PlayerHealthComponent>()) {
             health->SetGodMode(true); // ゲームクリア時に被弾しないようにする
         }
+        if (auto visualizer = player->GetComponent<PlayerDamageVisualizerComponent>()) {
+            visualizer->ResetVisuals(); // クリア時に被弾演出・グリッチを即座にリセット
+        }
     }
     if (auto engine = GetEngine()) {
         SoundHelper::Play(GameSE::ResultImpact);
@@ -185,6 +188,11 @@ void GameLoopManagerComponent::OnPlayerDied() {
 }
 
 void GameLoopManagerComponent::OnDeathSequenceFinished() {
+    if (auto player = playerObj_.lock()) {
+        if (auto visualizer = player->GetComponent<PlayerDamageVisualizerComponent>()) {
+            visualizer->ResetVisuals(); // リザルト表示前に被弾演出を完全にクリア
+        }
+    }
     ResultScene::SetIsClear(isClear_);
     if (auto engine = GetEngine()) {
         if (auto sceneManager = engine->GetSceneManager()) {

@@ -219,15 +219,15 @@ public:
     /**
      * @brief 指定したポストプロセスモードを解除する
      * @param mode 解除するモード
-     * @param layer 解除対象のレイヤー（Layer::All で全レイヤーから完全解除）
+     * @param layer 解除対象のレイヤー（デフォルトはゲームプレイ用の PreUI。画面遷移等の PostUI を誤解除しない安全設計）
      */
-    void RemoveActiveMode(Mode mode, Layer layer = Layer::All);
+    void RemoveActiveMode(Mode mode, Layer layer = Layer::PreUI);
 
     /**
      * @brief すべてのポストプロセスモードを解除する
-     * @param layer 解除対象のレイヤー（Layer::All で全レイヤーをクリア）
+     * @param layer 解除対象のレイヤー（デフォルトはゲームプレイ用の PreUI。画面遷移等の PostUI を誤解除しない安全設計）
      */
-    void ClearActiveModes(Layer layer = Layer::All);
+    void ClearActiveModes(Layer layer = Layer::PreUI);
 
     /**
      * @brief スコープまたはハンドルの寿命に合わせて自動解除されるRAIIエフェクトを発行する

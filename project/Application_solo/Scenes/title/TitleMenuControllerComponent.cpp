@@ -59,13 +59,8 @@ void TitleMenuControllerComponent::Initialize() {
     }
     GetTitleTextObject();
 
-    // シーン開始時にポストプロセスのFadeモードが残留しないよう安全にクリア
-    if (auto engine = GetEngine()) {
-        if (auto pp = engine->GetPostProcessManager()) {
-            pp->GetFadeParams().intensity = 0.0f;
-            pp->RemoveActiveMode(PostProcessMode::Fade);
-        }
-    }
+    // ※暗転・フェード等の画面遷移ライフサイクルは SceneManager / SceneTransition が一元管理するため、
+    // ここで直接グローバルな Fade を強制クリアしない（裏ロード中の暗転破壊を防止）
 }
 
 std::shared_ptr<Irufemi::GameObject> TitleMenuControllerComponent::GetButtonObject(size_t index) {
