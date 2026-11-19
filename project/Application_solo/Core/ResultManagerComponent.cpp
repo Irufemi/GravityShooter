@@ -75,7 +75,6 @@ void ResultManagerComponent::Initialize() {
     text->SetFontId(fontId_);
     text->SetText(ResultScene::IsClear() ? L"STAGE CLEAR" : L"GAME OVER");
     text->SetBaseScale(baseTitleScale_ * 1.35f); // 出現時は拡大から開始
-    text->SetTopMost(true);
     text->SetAlignment(TextAlignment::Center);
     // クリア時はネオンシアン・グリーン、失敗時は重力警告レッド
     text->SetColor(ResultScene::IsClear() ? Irufemi::Vector4{0.4f, 1.0f, 0.7f, 1.0f}
@@ -94,7 +93,6 @@ void ResultManagerComponent::Initialize() {
         returnText->SetFontId(fontId_);
         returnText->SetText(L"Press SPACE / A to Return");
         returnText->SetBaseScale(18.0f);
-        returnText->SetTopMost(true);
         returnText->SetAlignment(TextAlignment::Center);
         returnText->SetColor({0.85f, 0.9f, 1.0f, 0.0f});
 
@@ -346,7 +344,6 @@ void ResultManagerComponent::SetupStatsUI() {
         text->SetFontId(fontId_);
         text->SetText(str);
         text->SetBaseScale(13.0f);
-        text->SetTopMost(true);
         text->SetAlignment(align);
         text->SetColor({col.x, col.y, col.z, 0.0f});
         obj->Initialize();
@@ -403,7 +400,6 @@ void ResultManagerComponent::SetupStatsUI() {
         labelText->SetFontId(fontId_);
         labelText->SetText(rows[i].label);
         labelText->SetBaseScale(17.0f);
-        labelText->SetTopMost(true);
         labelText->SetAlignment(TextAlignment::Left);
         labelText->SetColor({0.65f, 0.72f, 0.85f, 0.0f}); // 初期非表示
         labelObj->Initialize();
@@ -419,7 +415,6 @@ void ResultManagerComponent::SetupStatsUI() {
         valText->SetFontId(fontId_);
         valText->SetText(rows[i].value);
         valText->SetBaseScale(19.0f);
-        valText->SetTopMost(true);
         valText->SetAlignment(TextAlignment::Right);
         valText->SetColor({0.35f, 0.92f, 1.0f, 0.0f}); // 初期非表示
         valObj->Initialize();
@@ -438,7 +433,6 @@ void ResultManagerComponent::SetupStatsUI() {
     rankText->SetFontId(fontId_);
     rankText->SetText(rankText_);
     rankText->SetBaseScale(46.0f);
-    rankText->SetTopMost(true);
     rankText->SetAlignment(TextAlignment::Center);
     rankText->SetColor({rankColor_.x, rankColor_.y, rankColor_.z, 0.0f}); // 初期非表示
     rankObj->Initialize();
