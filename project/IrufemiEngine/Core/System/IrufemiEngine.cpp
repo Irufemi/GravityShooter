@@ -908,6 +908,12 @@ void IrufemiEngine::Execute() {
         // 描画
         sceneManager_->Draw();
 
+        // ロード画面UIを最前面パス（TopMostPass）としてキューに登録（遅延なく同一フレームで描画確定）
+        if (sceneManager_ && sceneManager_->ShouldDrawLoadingScreen() && loadingScreen_) {
+            loadingScreen_->SetFadeAlpha(sceneManager_->GetLoadingFadeAlpha());
+            loadingScreen_->OnDrawLoadingScreen(this, deltaTime_);
+        }
+
         if (voxelParticleManager_) {
             voxelParticleManager_->Draw();
         }
@@ -1039,15 +1045,6 @@ void IrufemiEngine::ProcessFrame() {
 void IrufemiEngine::EndFrame() {
     // (RenderTexture の SRV 化やバックバッファへの転送、
     // ポストプロセス処理はすべて RenderGraph 内で行われます)
-
-    // 描画先がバックバッファになり、ポストプロセス（暗転など）が掛かった上から
-    // 影響を受けない最前面UIとしてロード画面を描画する
-    if (sceneManager_ && sceneManager_->ShouldDrawLoadingScreen()) {
-        if (loadingScreen_) {
-            loadingScreen_->SetFadeAlpha(sceneManager_->GetLoadingFadeAlpha());
-            loadingScreen_->OnDrawLoadingScreen(this, deltaTime_);
-        }
-    }
 
     // 描画後処理
     ui_->QueuePostDrawCommands();

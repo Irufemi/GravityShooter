@@ -290,6 +290,7 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             // 新しいシーンに非同期で切り替え、裏ロード開始
             StartAsyncInitialize(pendingTransition_);
             transitionPhase_ = TransitionPhase::Initializing; // 初期化フェーズへ
+            UpdateLoadStatus(); // 即座に最新のロード状況（isLoading=true, loadingFadeAlpha等）を同期反映
         }
     } else if (transitionPhase_ == TransitionPhase::Initializing) {
         // バックグラウンドでのシーン破棄・初期化完了待ち
