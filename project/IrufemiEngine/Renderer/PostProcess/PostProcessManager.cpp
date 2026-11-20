@@ -50,6 +50,7 @@ void PostProcessManager::Reset(Layer layer) {
     if (layer == Layer::All || layer == Layer::PreUI) {
         gravityDistortionActive_ = false;
         gravityDistortionTimer_ = 0.0f;
+        isOutlineMuted_ = false;
     }
 }
 
@@ -108,7 +109,21 @@ void PostProcessManager::BeginFrame() {
 
 std::vector<PostProcessManager::Mode> PostProcessManager::GetActiveModes(Layer layer) const {
     std::lock_guard<std::mutex> lock(modesMutex_);
-    return (layer == Layer::PreUI) ? activePreUI_ : activePostUI_;
+    if (layer == Layer::PreUI) {
+        if (isOutlineMuted_) {
+            std::vector<Mode> filtered;
+            filtered.reserve(activePreUI_.size());
+            for (auto m : activePreUI_) {
+                if (m != Mode::BandeDessineeOutline && m != Mode::DepthBasedOutline &&
+                    m != Mode::LuminanceBasedOutline) {
+                    filtered.push_back(m);
+                }
+            }
+            return filtered;
+        }
+        return activePreUI_;
+    }
+    return activePostUI_;
 }
 
 bool PostProcessManager::HasActiveMode(Mode mode, Layer layer) const {

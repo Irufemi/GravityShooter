@@ -175,6 +175,11 @@ void CombinedPostEffect::RenderWithBatch(const PostProcessRenderContext& context
 
     // 1. パラメータの詰め替えとGPU同期
     SyncParamsToCombined(manager->combinedParams_);
+    if (manager->IsOutlineMuted()) {
+        manager->combinedParams_.maskOutlineMaxRadius = 0;
+        manager->combinedParams_.outlineIntensity = 0.0f;
+        manager->combinedParams_.bdIntensity = 0.0f;
+    }
     manager->combinedParams_.effectCount = static_cast<int32_t>(batch.size());
     for (size_t i = 0; i < batch.size(); ++i) {
         manager->combinedParams_.effects[i] = static_cast<int32_t>(batch[i]);

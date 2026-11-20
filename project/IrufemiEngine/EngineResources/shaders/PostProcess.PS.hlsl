@@ -55,6 +55,11 @@ bool IsDistortionOrBlurEffect(int32_t mode) {
  * 境界と判定された場合、最も支配的なマスクIDに対応する CustomEffectParams を取得し、色と太さを適用します。
  */
 float32_t3 ApplyMaskBasedOutline(float32_t3 color, float32_t2 uv, float32_t2 uvStepSize, Texture2D<float32_t4> maskTex, SamplerState smp) {
+    // アウトラインが無効化されている場合は、探索を行わず即座にバイパス
+    if (gParams.maskOutlineMaxRadius <= 0) {
+        return color;
+    }
+
     float32_t4 centerMask = maskTex.SampleLevel(smp, uv, 0);
     int centerEffect = round(centerMask.r * 255.0f);
     int centerInstance = round(centerMask.g * 255.0f);

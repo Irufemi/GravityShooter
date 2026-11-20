@@ -150,6 +150,21 @@ public:
     void BeginFrame();
 
     /**
+     * @brief ポストプロセスアウトライン（BandeDessinee / DepthBased / MaskBased）を一括ミュートする
+     * @details ボス撃破等のシネマティック演出において、自機や雑魚敵のアウトライン貫通を防ぐためのパイプラインマスター制御
+     */
+    void SetOutlineMuted(bool muted) {
+        isOutlineMuted_ = muted;
+    }
+
+    /**
+     * @brief ポストプロセスアウトラインが一括ミュートされているかを取得する
+     */
+    bool IsOutlineMuted() const {
+        return isOutlineMuted_;
+    }
+
+    /**
      * @brief ポストプロセスの状態とパラメータをリセットする
      * @param layer リセット対象のレイヤー (PreUI / PostUI / All)
      */
@@ -544,6 +559,9 @@ private:
     Microsoft::WRL::ComPtr<ID3D12Resource> gaussianCB_;
     GaussianParams* mappedGaussian_ = nullptr;
     GaussianParams gaussianParams_;
+
+    // アウトライン一括ミュートフラグ（シネマティック演出等で使用）
+    bool isOutlineMuted_ = false;
 
     // 重力波ディストーション演出用状態
     GravityDistortionParams gravityDistortionParams_{};

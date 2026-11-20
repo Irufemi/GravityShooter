@@ -19,6 +19,11 @@
 #include "Core/Math/Random/Random.h"
 #include "Core/Math/MathFunction.h"
 #include "Renderer/Camera/CameraManager.h"
+#include "Framework/Scene/BaseScene.h"
+#include "UI/LockonMarkerUIComponent.h"
+#include "Player/PlayerTargetingComponent.h"
+#include "Combat/EnemyBulletManagerComponent.h"
+#include "Combat/BossBulletManagerComponent.h"
 #include <iostream>
 #include <cmath>
 #include <algorithm>
@@ -761,10 +766,11 @@ public:
     void Enter(BossComponent* boss, BossDamageVisualizerComponent* visualizer) override {
         isCompleted_ = true;
 
-        // 1. ポストプロセス LightningCataclysm を解除
+        // 1. ポストプロセス LightningCataclysm を解除 & アウトラインミュート解除
         if (boss && boss->GetEngine()) {
             if (auto ppm = boss->GetEngine()->GetPostProcessManager()) {
                 ppm->RemoveActiveMode(PostProcessMode::LightningCataclysm);
+                ppm->SetOutlineMuted(false);
             }
         }
 
@@ -803,10 +809,71 @@ private:
     bool isCompleted_ = false;
 };
 
+/**
+ * @brief ボス撃破演出に伴うシネマティック・アイソレーション
+ * @details 戦闘HUD（レティクル・ロックオン等）や画面内の敵弾を一掃し、ボスの劇的な崩壊演出にフォーカスする
+ * @note アウトライン（自機・雑魚敵等）の非表示化は、個別オブジェクト操作ではなく PostProcessManager::SetOutlineMuted(true) で元栓一括遮断
+ */
+void IsolateCinematicScene(BossComponent* boss) {
+    if (!boss || !boss->GetGameObject()) {
+        return;
+    }
+    auto scene = boss->GetGameObject()->GetScene();
+    if (!scene) {
+        return;
+    }
+
+    // 1. 戦闘用HUD（レティクル、ロックオン枠、HPバー、スコアHUD）の非表示化
+    if (auto reticle = scene->FindGameObject("Reticle")) {
+        reticle->SetIsActive(false);
+    }
+    if (auto lockon = scene->FindGameObject("LockonMarkerUI")) {
+        lockon->SetIsActive(false);
+        if (auto markerComp = lockon->GetComponent<LockonMarkerUIComponent>()) {
+            markerComp->SyncTargets({});
+        }
+    }
+    if (auto statusHud = scene->FindGameObject("PlayerStatusHUD")) {
+        statusHud->SetIsActive(false);
+    }
+    if (auto scoreHud = scene->FindGameObject("ScoreHUD")) {
+        scoreHud->SetIsActive(false);
+    }
+
+    // 2. 自機ターゲティングの無効化
+    if (auto player = scene->FindGameObject("Player")) {
+        if (auto targeting = player->GetComponent<PlayerTargetingComponent>()) {
+            targeting->SetEnabled(false);
+        }
+    }
+
+    // 3. 画面内の敵弾の一括クリア
+    if (auto enemyBulletMgr = scene->FindGameObject("EnemyBulletManager")) {
+        if (auto ebm = enemyBulletMgr->GetComponent<EnemyBulletManagerComponent>()) {
+            ebm->AbsorbAndClearAllBullets();
+        }
+    }
+    if (auto bossBulletMgr = scene->FindGameObject("BossBulletManager")) {
+        if (auto bbm = bossBulletMgr->GetComponent<BossBulletManagerComponent>()) {
+            bbm->ClearAllBullets();
+        }
+    }
+}
+
 } // namespace
 
 void BossStateDestroyed::Enter(BossComponent* boss) {
     Irufemi::Log::OutPutLog(std::cout, "Boss Destroyed! Starting lightning cataclysm death sequence...\n");
+
+    // ポストプロセス層のアウトラインを一括ミュート（自機・敵機等の輪郭線貫通をパイプライン元栓で完全遮断）
+    if (boss && boss->GetEngine()) {
+        if (auto ppm = boss->GetEngine()->GetPostProcessManager()) {
+            ppm->SetOutlineMuted(true);
+        }
+    }
+
+    // 戦闘HUD非表示・敵弾一掃（シネマティック・アイソレーション）
+    IsolateCinematicScene(boss);
 
     // 付随オブジェクト（ドローン群・シールド・弾幕）を一括回収・停止
     if (boss) {
@@ -856,7 +923,12 @@ void BossStateDestroyed::Update(BossComponent* boss) {
 }
 
 void BossStateDestroyed::Exit(BossComponent* boss) {
-    (void)boss;
+    // 撃破ステート離脱時、確実にアウトラインミュートを解除
+    if (boss && boss->GetEngine()) {
+        if (auto ppm = boss->GetEngine()->GetPostProcessManager()) {
+            ppm->SetOutlineMuted(false);
+        }
+    }
 }
 
 void BossStateDestroyed::OnTakeDamage(BossComponent* boss, float damage) {
