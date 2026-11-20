@@ -10,6 +10,7 @@
 #include "Renderer/System/Core/Object2DResource.h"
 #include "Core/Math/Vector2.h"
 #include "Core/Math/Vector3.h"
+#include "Renderer/Data/UILayer.h"
 
 // 前方宣言
 class IrufemiEngine;
@@ -131,13 +132,6 @@ public:
         return thickness_;
     }
     /**
-     * @brief IsTopMost かどうかを判定する。
-     * @return 判定結果 (true/false)
-     */
-    bool IsTopMost() const {
-        return isTopMost_;
-    }
-    /**
      * @brief TextureHandle を取得する。
      * @return 取得された TextureHandle
      */
@@ -203,10 +197,43 @@ public:
     void SetTexture(const std::string& textureName);
 
     /**
-     * @brief 最前面描画（UIなど）のフラグを設定する
+     * @brief UI描画階層（UILayer）を設定する
+     */
+    void SetLayer(UILayer layer) {
+        layer_ = layer;
+        isTopMost_ = (layer >= UILayer::SystemOverlay);
+    }
+    /**
+     * @brief UI描画階層（UILayer）を取得する
+     */
+    UILayer GetLayer() const {
+        return layer_;
+    }
+
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を設定する
+     */
+    void SetSortingOrder(int order) {
+        sortingOrder_ = order;
+    }
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を取得する
+     */
+    int GetSortingOrder() const {
+        return sortingOrder_;
+    }
+
+    /**
+     * @brief 最前面描画（UIなど）のフラグを設定する（後方互換用）
      */
     void SetTopMost(bool isTopMost) {
-        isTopMost_ = isTopMost;
+        SetLayer(isTopMost ? UILayer::SystemOverlay : UILayer::GameHUD);
+    }
+    /**
+     * @brief IsTopMost かどうかを判定する（後方互換用）
+     */
+    bool IsTopMost() const {
+        return layer_ >= UILayer::SystemOverlay;
     }
 
     /**
@@ -289,6 +316,8 @@ private:
     uint32_t subdivision_ = 64; //!< 円系の分割数
 
     bool isTopMost_ = false;       //!< UI用など、最前面描画フラグ
+    UILayer layer_ = UILayer::GameHUD;
+    int sortingOrder_ = 0;
     bool isMeshDirty_ = true;      //!< メッシュ再構築フラグ
     int selectedTextureIndex_ = 0; //!< デバッグUI用
 

@@ -39,7 +39,8 @@ void TextRendererComponent::OnAwake() {
     textObj_->SetText(text_);
     textObj_->SetBaseScale(baseScale_);
     textObj_->SetColor(color_);
-    textObj_->SetTopMost(isTopMost_);
+    textObj_->SetLayer(layer_);
+    textObj_->SetSortingOrder(sortingOrder_);
     textObj_->SetAlignment(alignment_);
     textObj_->SetVerticalAlignment(verticalAlignment_);
     // ロード画面中に生成を終わらせるため、初期化時に強制アップデート（非同期タスク待ち・頂点生成）
@@ -147,11 +148,23 @@ void TextRendererComponent::SetColor(const Irufemi::Vector4& color) {
     }
 }
 
-void TextRendererComponent::SetTopMost(bool isTopMost) {
-    isTopMost_ = isTopMost;
+void TextRendererComponent::SetLayer(Irufemi::UILayer layer) {
+    layer_ = layer;
+    isTopMost_ = (layer >= Irufemi::UILayer::SystemOverlay);
     if (textObj_) {
-        textObj_->SetTopMost(isTopMost_);
+        textObj_->SetLayer(layer_);
     }
+}
+
+void TextRendererComponent::SetSortingOrder(int order) {
+    sortingOrder_ = order;
+    if (textObj_) {
+        textObj_->SetSortingOrder(sortingOrder_);
+    }
+}
+
+void TextRendererComponent::SetTopMost(bool isTopMost) {
+    SetLayer(isTopMost ? Irufemi::UILayer::SystemOverlay : Irufemi::UILayer::GameHUD);
 }
 
 void TextRendererComponent::SetAlignment(Irufemi::TextAlignment align) {
@@ -199,7 +212,11 @@ void TextRendererComponent::Deserialize(const nlohmann::json& j) {
         textObj_->SetFontId(fontId_);
         textObj_->SetBaseScale(baseScale_);
         textObj_->SetColor(color_);
-        textObj_->SetTopMost(isTopMost_);
+        if (isTopMost_) {
+            layer_ = Irufemi::UILayer::SystemOverlay;
+        }
+        textObj_->SetLayer(layer_);
+        textObj_->SetSortingOrder(sortingOrder_);
         textObj_->SetAlignment(alignment_);
         textObj_->SetVerticalAlignment(verticalAlignment_);
     }

@@ -140,7 +140,8 @@ void PauseScene::CreateUIElements() {
         sprite->SetBaseSize(gameRes);
         sprite->SetAnchor({0.5f, 0.5f});
         sprite->SetColor(kColorDarkMask);
-        sprite->SetTopMost(true);
+        sprite->SetLayer(Irufemi::UILayer::Menu);
+        sprite->SetSortingOrder(100);
         darkOverlaySprite_ = sprite;
     }
     darkOverlayObj->Initialize();
@@ -159,7 +160,8 @@ void PauseScene::CreateUIElements() {
         titleText->SetBaseScale(56.0f);
         titleText->SetAlignment(Irufemi::TextAlignment::Center);
         titleText->SetColor(kColorTitle);
-        titleText->SetTopMost(true);
+        titleText->SetLayer(Irufemi::UILayer::Menu);
+        titleText->SetSortingOrder(110);
         titleTextComp_ = titleText;
     }
     titleObj->Initialize();
@@ -227,7 +229,8 @@ void PauseScene::CreateUIElements() {
             textComp->SetBaseScale(34.0f);
             textComp->SetAlignment(Irufemi::TextAlignment::Center);
             textComp->SetColor(kColorUnselected);
-            textComp->SetTopMost(true);
+            textComp->SetLayer(Irufemi::UILayer::Menu);
+            textComp->SetSortingOrder(120);
         }
         itemObj->Initialize();
 

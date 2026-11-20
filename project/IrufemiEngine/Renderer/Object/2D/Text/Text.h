@@ -7,6 +7,7 @@
 #include <cstdint>
 #include "Renderer/System/Core/Object2DResource.h"
 #include "Core/Math/Vector2.h"
+#include "Renderer/Data/UILayer.h"
 #include <wrl.h>
 #include <memory>
 
@@ -114,18 +115,46 @@ public:
         return color_;
     }
     /**
-     * @brief TopMost を設定する。
+     * @brief UI描画階層（UILayer）を設定する。
+     * @param[in] layer 設定する UILayer
+     */
+    void SetLayer(UILayer layer) {
+        layer_ = layer;
+        isTopMost_ = (layer >= UILayer::SystemOverlay);
+    }
+    /**
+     * @brief UI描画階層（UILayer）を取得する。
+     */
+    UILayer GetLayer() const {
+        return layer_;
+    }
+
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を設定する。
+     */
+    void SetSortingOrder(int order) {
+        sortingOrder_ = order;
+    }
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を取得する。
+     */
+    int GetSortingOrder() const {
+        return sortingOrder_;
+    }
+
+    /**
+     * @brief TopMost を設定する（後方互換用）。
      * @param[in] isTopMost 設定する TopMost の値
      */
     void SetTopMost(bool isTopMost) {
-        isTopMost_ = isTopMost;
+        SetLayer(isTopMost ? UILayer::SystemOverlay : UILayer::GameHUD);
     }
     /**
-     * @brief IsTopMost かどうかを判定する。
+     * @brief IsTopMost かどうかを判定する（後方互換用）。
      * @return 判定結果 (true/false)
      */
     bool IsTopMost() const {
-        return isTopMost_;
+        return layer_ >= UILayer::SystemOverlay;
     }
     /**
      * @brief BaseScale を設定する。
@@ -316,6 +345,8 @@ private:
     bool isDirty_ = true;
     bool isTextDirty_ = true;
     bool isTopMost_ = false;
+    UILayer layer_ = UILayer::GameHUD;
+    int sortingOrder_ = 0;
     bool hasPendingGlyphs_ = false;
     uint64_t lastAtlasVersion_ = 0;
 

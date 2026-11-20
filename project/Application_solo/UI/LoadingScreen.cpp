@@ -32,24 +32,30 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
         return;
     }
 
-    float screenW = static_cast<float>(engine->GetGameResolutionWidth());
-    float screenH = static_cast<float>(engine->GetGameResolutionHeight());
-
     camera_ = std::make_shared<Irufemi::Camera>();
     camera_->Initialize(engine->GetGameResolutionWidth(), engine->GetGameResolutionHeight());
     camera_->UpdateMatrix();
 
+    // 2D正射影空間の論理解像度をカメラから動的に取得
+    const Irufemi::Vector2 uiRes = camera_->GetOrthographicResolution();
+    const float screenW = uiRes.x;
+    const float screenH = uiRes.y;
+
     // 1. 深遠な宇宙空間背景（漆黒ダークスペース）
     bgSprite_ = std::make_unique<Irufemi::Sprite>();
+    bgSprite_->SetDrawManagerInstance(engine->GetDrawManager());
+    bgSprite_->SetCameraManagerInstance(engine->GetCameraManager());
+    bgSprite_->SetTextureManagerInstance(engine->GetTextureManager());
     bgSprite_->Initialize("resources/whiteTexture.png");
     bgSprite_->SetColor({0.002f, 0.005f, 0.012f, 1.0f}); // 移動中の深宇宙
     bgSprite_->SetSize(screenW, screenH);
     bgSprite_->SetAnchor(0.0f, 0.0f);
     bgSprite_->SetPosition(0.0f, 0.0f);
-    bgSprite_->SetTopMost(true);
+    bgSprite_->SetLayer(Irufemi::UILayer::SystemOverlay);
+    bgSprite_->SetSortingOrder(0); // 最背面に設定して水面膜の上書きを防止
 
     // 2. 重力水面膜（Gravitational Veil Surface）プロシージャルリソースの初期化
-    // GPUピクセルシェーダー（customEffectType = 10）により1080p/4K全画面で直接描画
+    // GPUピクセルシェーダー（customEffectType = 10）により全画面で直接描画
     veilResource_ = std::make_unique<Irufemi::Object2DResource>();
     veilResource_->SetTextureManager(engine->GetTextureManager());
 
@@ -95,9 +101,10 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     demoText_->SetDrawManagerInstance(engine->GetDrawManager());
     demoText_->SetCameraManagerInstance(engine->GetCameraManager());
     demoText_->Initialize("toro_glitch");
-    demoText_->SetAlignment(Irufemi::TextAlignment::Right);
+    demoText_->SetAlignment(Irufemi::TextAlignment::Center);
     demoText_->SetBaseScale(22.0f);
-    demoText_->SetTopMost(true);
+    demoText_->SetLayer(Irufemi::UILayer::SystemOverlay);
+    demoText_->SetSortingOrder(200);
 
     nowLoadingText_ = std::make_unique<Irufemi::Text>();
     nowLoadingText_->SetFontManagerInstance(engine->GetFontManager());
@@ -108,7 +115,8 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
     nowLoadingText_->SetBaseScale(20.0f);
     nowLoadingText_->SetText(L"NOW LOADING");
     nowLoadingText_->SetColor({0.30f, 0.92f, 1.0f, 0.95f});
-    nowLoadingText_->SetTopMost(true);
+    nowLoadingText_->SetLayer(Irufemi::UILayer::SystemOverlay);
+    nowLoadingText_->SetSortingOrder(100);
 
     for (size_t i = 0; i < dots_.size(); ++i) {
         dots_[i] = std::make_unique<Irufemi::Primitive2DObject>();
@@ -119,7 +127,8 @@ void LoadingScreen::Initialize(IrufemiEngine* engine) {
         float baseY = screenH - 45.0f;
         dots_[i]->SetPosition(Irufemi::Vector3{baseX + static_cast<float>(i) * 20.0f, baseY, 0.0f});
         dots_[i]->SetSize({8.0f, 8.0f});
-        dots_[i]->SetTopMost(true);
+        dots_[i]->SetLayer(Irufemi::UILayer::SystemOverlay);
+        dots_[i]->SetSortingOrder(100);
     }
 }
 
@@ -181,10 +190,10 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
         }
     }
 
-    float screenW = static_cast<float>(engine->GetGameResolutionWidth());
-    float screenH = static_cast<float>(engine->GetGameResolutionHeight());
-    constexpr float kBaseVirtualHeight = 720.0f; // UIオーサリング基準高
-    float uiScale = screenH / kBaseVirtualHeight;
+    // 2D正射影空間の論理解像度をカメラから動的に取得
+    const Irufemi::Vector2 uiRes = camera_ ? camera_->GetOrthographicResolution() : engine->GetUIResolution();
+    const float screenW = uiRes.x;
+    const float screenH = uiRes.y;
 
     // 1. 深遠な宇宙空間背景（漆黒ダークスペース）
     engine->SetBlend(Irufemi::BlendMode::kBlendModeNormal);
@@ -195,7 +204,7 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
     }
 
     // 2. 重力水面膜（Gravitational Veil Surface）プロシージャル描画
-    // GPUピクセルシェーダー（customEffectType = 10）により全画面1080p/4Kで滑らかに流動
+    // GPUピクセルシェーダー（customEffectType = 10）により全画面で滑らかに流動
     if (veilResource_) {
         auto* mat = veilResource_->GetMaterialData();
         if (mat) {
@@ -216,30 +225,30 @@ void LoadingScreen::Draw(IrufemiEngine* engine) {
         engine->SetBlend(Irufemi::BlendMode::kBlendModeNormal);
         veilResource_->UpdateTransform(*camera_);
         veilResource_->SyncBeforeDraw();
-        engine->GetDrawManager()->SubmitTopMostSprite(veilResource_.get());
+        engine->GetDrawManager()->SubmitTopMostSprite(veilResource_.get(), 10, Irufemi::UILayer::SystemOverlay);
     }
 
     // 3. 右下 NOW LOADING テキスト ＆ ウェーブドット
     engine->SetBlend(Irufemi::BlendMode::kBlendModeNormal);
-    float dotBaseX = screenW - 75.0f * uiScale;
-    float dotBaseY = screenH - 45.0f * uiScale;
+    const float dotBaseX = screenW - 75.0f;
+    const float dotBaseY = screenH - 45.0f;
 
     if (nowLoadingText_) {
-        nowLoadingText_->SetPosition(dotBaseX - 15.0f * uiScale, dotBaseY - 10.0f * uiScale);
+        nowLoadingText_->SetPosition(dotBaseX - 15.0f, dotBaseY - 10.0f);
         nowLoadingText_->Draw();
     }
 
     for (size_t i = 0; i < dots_.size(); ++i) {
         if (dots_[i]) {
-            dots_[i]->SetSize({7.0f * uiScale, 7.0f * uiScale});
-            dots_[i]->SetPosition(Irufemi::Vector3{dotBaseX + static_cast<float>(i) * 18.0f * uiScale, dotBaseY, 0.0f});
+            dots_[i]->SetSize({7.0f, 7.0f});
+            dots_[i]->SetPosition(Irufemi::Vector3{dotBaseX + static_cast<float>(i) * 18.0f, dotBaseY, 0.0f});
             dots_[i]->Draw();
         }
     }
 
-    // 4. アトラクトデモHUD（右上）
+    // 4. アトラクトデモHUD（画面上部中央へ配置）
     if (AttractDemoManager::IsAttractModeActive() && demoText_) {
-        demoText_->SetPosition(screenW - 55.0f * uiScale, 42.0f * uiScale);
+        demoText_->SetPosition(screenW * 0.5f, 36.0f);
         demoText_->Draw();
     }
 }

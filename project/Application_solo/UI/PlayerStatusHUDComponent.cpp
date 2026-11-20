@@ -82,7 +82,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpHeaderText_->SetFontId("toro_glitch");
     hpHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpHeaderText_->SetBaseScale(11.0f);
-    hpHeaderText_->SetTopMost(true);
+    hpHeaderText_->SetLayer(Irufemi::UILayer::GameHUD);
+    hpHeaderText_->SetSortingOrder(10);
     hpHeaderText_->SetColor({0.35f, 0.80f, 1.0f, 0.75f});
     hpHeaderText_->SetText(L"// HULL INTEGRITY");
     hpHeaderObj_->Initialize();
@@ -103,7 +104,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpBarBgSprite_->SetBaseSize({kBarW, kBarH});
     hpBarBgSprite_->SetAnchor({0.0f, 0.5f});
     hpBarBgSprite_->SetColor({0.03f, 0.07f, 0.12f, 0.75f});
-    hpBarBgSprite_->SetTopMost(true);
+    hpBarBgSprite_->SetLayer(Irufemi::UILayer::GameHUD);
+    hpBarBgSprite_->SetSortingOrder(5);
     hpBarBgObj_->Initialize();
 
     // 4. HP Ghost Bar（後追い遅延バー）
@@ -118,7 +120,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpGhostBarSprite_->SetBaseSize({kBarW, kBarH});
     hpGhostBarSprite_->SetAnchor({0.0f, 0.5f});
     hpGhostBarSprite_->SetColor({1.0f, 0.40f, 0.15f, 0.85f}); // オレンジ/白熱赤
-    hpGhostBarSprite_->SetTopMost(true);
+    hpGhostBarSprite_->SetLayer(Irufemi::UILayer::GameHUD);
+    hpGhostBarSprite_->SetSortingOrder(6);
     hpGhostBarObj_->Initialize();
 
     // 5. HP Front Bar（即時実HPバー）
@@ -133,7 +136,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpFrontBarSprite_->SetBaseSize({kBarW, kBarH});
     hpFrontBarSprite_->SetAnchor({0.0f, 0.5f});
     hpFrontBarSprite_->SetColor({0.15f, 0.95f, 0.85f, 0.95f}); // ネオンエメラルドシアン
-    hpFrontBarSprite_->SetTopMost(true);
+    hpFrontBarSprite_->SetLayer(Irufemi::UILayer::GameHUD);
+    hpFrontBarSprite_->SetSortingOrder(7);
     hpFrontBarObj_->Initialize();
 
     // 6. HPパーセントテキスト
@@ -148,7 +152,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     hpText_->SetFontId("toro_glitch");
     hpText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpText_->SetBaseScale(11.0f);
-    hpText_->SetTopMost(true);
+    hpText_->SetLayer(Irufemi::UILayer::GameHUD);
+    hpText_->SetSortingOrder(10);
     hpText_->SetColor({1.0f, 1.0f, 1.0f, 0.90f});
     hpText_->SetText(L"100%");
     hpTextObj_->Initialize();
@@ -167,7 +172,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     debrisHeaderText_->SetFontId("toro_glitch");
     debrisHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisHeaderText_->SetBaseScale(10.0f);
-    debrisHeaderText_->SetTopMost(true);
+    debrisHeaderText_->SetLayer(Irufemi::UILayer::GameHUD);
+    debrisHeaderText_->SetSortingOrder(10);
     debrisHeaderText_->SetColor({0.30f, 0.75f, 0.95f, 0.70f});
     debrisHeaderText_->SetText(L"DEBRIS");
     debrisHeaderObj_->Initialize();
@@ -184,7 +190,8 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
     debrisCountText_->SetFontId("toro_glitch");
     debrisCountText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisCountText_->SetBaseScale(10.0f);
-    debrisCountText_->SetTopMost(true);
+    debrisCountText_->SetLayer(Irufemi::UILayer::GameHUD);
+    debrisCountText_->SetSortingOrder(10);
     debrisCountText_->SetColor({0.60f, 0.85f, 1.0f, 0.75f});
     debrisCountText_->SetText(L"(0/10)");
     debrisCountObj_->Initialize();
@@ -267,7 +274,8 @@ void PlayerStatusHUDComponent::SetupDebrisPips(int maxCount) {
         bgSprite->SetBaseSize({pipW, kPipH});
         bgSprite->SetAnchor({0.5f, 0.5f});
         bgSprite->SetColor({0.03f, 0.07f, 0.12f, 0.75f});
-        bgSprite->SetTopMost(true);
+        bgSprite->SetLayer(Irufemi::UILayer::GameHUD);
+        bgSprite->SetSortingOrder(5);
         bgObj->Initialize();
         debrisPipBgObjs_[i] = bgObj;
 
@@ -283,7 +291,8 @@ void PlayerStatusHUDComponent::SetupDebrisPips(int maxCount) {
         fillSprite->SetBaseSize({(std::max)(1.0f, pipW - 2.0f), kPipH - 2.0f});
         fillSprite->SetAnchor({0.5f, 0.5f});
         fillSprite->SetColor({0.06f, 0.10f, 0.15f, 0.25f}); // 初期は空スロット
-        fillSprite->SetTopMost(true);
+        fillSprite->SetLayer(Irufemi::UILayer::GameHUD);
+        fillSprite->SetSortingOrder(7);
         fillObj->Initialize();
         debrisPipFillObjs_[i] = fillObj;
         debrisPipFillSprites_[i] = fillSprite.get();

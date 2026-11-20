@@ -27,7 +27,11 @@ void Primitive2DRendererComponent::OnAwake() {
         primitive_->SetColor(color_);
         primitive_->SetThickness(thickness_);
         primitive_->SetSubdivision(subdivision_);
-        primitive_->SetTopMost(isTopMost_);
+        if (isTopMost_) {
+            layer_ = Irufemi::UILayer::SystemOverlay;
+        }
+        primitive_->SetLayer(layer_);
+        primitive_->SetSortingOrder(sortingOrder_);
     }
 }
 
@@ -116,11 +120,23 @@ void Primitive2DRendererComponent::SetSubdivision(int subdivision) {
     }
 }
 
-void Primitive2DRendererComponent::SetTopMost(bool isTopMost) {
-    isTopMost_ = isTopMost;
+void Primitive2DRendererComponent::SetLayer(Irufemi::UILayer layer) {
+    layer_ = layer;
+    isTopMost_ = (layer >= Irufemi::UILayer::SystemOverlay);
     if (primitive_) {
-        primitive_->SetTopMost(isTopMost_);
+        primitive_->SetLayer(layer_);
     }
+}
+
+void Primitive2DRendererComponent::SetSortingOrder(int order) {
+    sortingOrder_ = order;
+    if (primitive_) {
+        primitive_->SetSortingOrder(sortingOrder_);
+    }
+}
+
+void Primitive2DRendererComponent::SetTopMost(bool isTopMost) {
+    SetLayer(isTopMost ? Irufemi::UILayer::SystemOverlay : Irufemi::UILayer::GameHUD);
 }
 
 nlohmann::json Primitive2DRendererComponent::Serialize() {
@@ -179,7 +195,11 @@ void Primitive2DRendererComponent::Deserialize(const nlohmann::json& j) {
         primitive_->SetColor(color_);
         primitive_->SetThickness(thickness_);
         primitive_->SetSubdivision(subdivision_);
-        primitive_->SetTopMost(isTopMost_);
+        if (isTopMost_) {
+            layer_ = Irufemi::UILayer::SystemOverlay;
+        }
+        primitive_->SetLayer(layer_);
+        primitive_->SetSortingOrder(sortingOrder_);
     }
 }
 

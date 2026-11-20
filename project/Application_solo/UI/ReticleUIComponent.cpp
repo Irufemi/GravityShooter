@@ -23,7 +23,8 @@ void ReticleUIComponent::Initialize() {
             primitiveRenderer_->SetShape(Irufemi::Primitive2DType::Ring);
             primitiveRenderer_->SetSize({36.0f, 36.0f});
             primitiveRenderer_->SetThickness(2.0f);
-            primitiveRenderer_->SetTopMost(true);
+            primitiveRenderer_->SetLayer(Irufemi::UILayer::GameHUD);
+            primitiveRenderer_->SetSortingOrder(20);
         }
     }
 
@@ -73,7 +74,8 @@ void ReticleUIComponent::Update() {
             primitiveRenderer_->SetShape(Irufemi::Primitive2DType::Ring);
             primitiveRenderer_->SetSize({36.0f, 36.0f});
             primitiveRenderer_->SetThickness(2.0f);
-            primitiveRenderer_->SetTopMost(true);
+            primitiveRenderer_->SetLayer(Irufemi::UILayer::GameHUD);
+            primitiveRenderer_->SetSortingOrder(20);
         }
     }
 

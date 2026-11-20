@@ -35,6 +35,7 @@
 // サブシステムマネージャー
 #include "Renderer/DrawManager.h"
 #include "Renderer/Camera/CameraManager.h"
+#include "Renderer/Camera/Camera.h"
 #include "Renderer/Font/FontManager.h"
 #include "Resource/Texture/TextureManager.h"
 #include "Resource/Model/ModelManager.h"
@@ -1303,4 +1304,13 @@ void IrufemiEngine::RequestQuit() {
         }
     }
     PostQuitMessage(0);
+}
+
+Irufemi::Vector2 IrufemiEngine::GetUIResolution() const {
+    if (cameraManager_) {
+        if (auto activeCam = cameraManager_->GetActiveCamera()) {
+            return activeCam->GetOrthographicResolution();
+        }
+    }
+    return GetGameResolution();
 }

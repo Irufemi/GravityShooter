@@ -23,6 +23,7 @@
 #include <atomic>
 #include "Renderer/Compute/IComputeTask.h"
 #include "Renderer/Data/RenderPackets.h"
+#include "Renderer/Data/UILayer.h"
 #include "Renderer/Data/RenderStage.h"
 #include "Renderer/Data/FogParams.h"
 
@@ -659,7 +660,7 @@ public:
     /**
      * @brief 2Dオブジェクト（スプライト等）の標準描画 (Sprite.hlsl)
      */
-    void SubmitSprite(const class Object2DResource* resource);
+    void SubmitSprite(const class Object2DResource* resource, int sortingOrder = 0, UILayer layer = UILayer::GameHUD);
     /**
      * @brief DrawSprite を実行する。
      */
@@ -686,17 +687,17 @@ public:
     /**
      * @brief SubmitTopMostSprite を実行する。
      */
-    void SubmitTopMostSprite(const class Object2DResource* resource);
+    void SubmitTopMostSprite(const class Object2DResource* resource, int sortingOrder = 0, UILayer layer = UILayer::SystemOverlay);
 
     // --- Text ---
     /**
      * @brief SubmitText を実行する。
      */
-    void SubmitText(const class Object2DResource* resource);
+    void SubmitText(const class Object2DResource* resource, int sortingOrder = 0, UILayer layer = UILayer::GameHUD);
     /**
      * @brief SubmitTopMostText を実行する。
      */
-    void SubmitTopMostText(const class Object2DResource* resource);
+    void SubmitTopMostText(const class Object2DResource* resource, int sortingOrder = 0, UILayer layer = UILayer::SystemOverlay);
     /**
      * @brief DrawText を実行する。
      */

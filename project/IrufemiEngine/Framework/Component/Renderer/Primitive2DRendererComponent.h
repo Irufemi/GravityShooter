@@ -111,10 +111,45 @@ public:
     void SetSubdivision(int subdivision);
 
     /**
-     * @brief 最前面（UI TopMostレイヤー）に描画するかどうかを設定します
+     * @brief UI描画階層（UILayer）を設定します
+     * @param[in] layer レイヤー指定
+     */
+    void SetLayer(Irufemi::UILayer layer);
+
+    /**
+     * @brief UI描画階層を取得します
+     * @return UILayer
+     */
+    Irufemi::UILayer GetLayer() const {
+        return layer_;
+    }
+
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を設定します
+     * @param[in] order ソート順（大きいほど手前に描画）
+     */
+    void SetSortingOrder(int order);
+
+    /**
+     * @brief レイヤー内の描画優先度を取得します
+     * @return ソート順
+     */
+    int GetSortingOrder() const {
+        return sortingOrder_;
+    }
+
+    /**
+     * @brief 最前面（UI TopMostレイヤー）に描画するかどうかを設定します（後方互換用）
      * @param[in] isTopMost 最前面にする場合は true
      */
     void SetTopMost(bool isTopMost);
+
+    /**
+     * @brief 最前面描画が有効かどうかを取得します（後方互換用）
+     */
+    bool IsTopMost() const {
+        return layer_ >= Irufemi::UILayer::SystemOverlay;
+    }
 
     // プロパティ取得（Editor用など）
     /**
@@ -174,14 +209,6 @@ public:
     }
 
     /**
-     * @brief 最前面描画が有効かどうかを取得します
-     * @return 有効な場合は true
-     */
-    bool IsTopMost() const {
-        return isTopMost_;
-    }
-
-    /**
      * @brief 内部の Primitive2DObject を取得します
      * @return Primitive2DObject 生ポインタ
      */
@@ -214,6 +241,8 @@ private:
     int currentTypeIndex_ = 0; // デフォルトは Rect
     std::string texturePath_ = "";
     bool isTopMost_ = false;
+    Irufemi::UILayer layer_ = Irufemi::UILayer::GameHUD;
+    int sortingOrder_ = 0;
 
     // 描画パラメータのバックアップ（Primitive2DObject生成前やSerialize用）
     Irufemi::Vector2 size_ = {100.0f, 100.0f};

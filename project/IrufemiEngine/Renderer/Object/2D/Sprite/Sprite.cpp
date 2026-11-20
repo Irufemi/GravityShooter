@@ -185,10 +185,10 @@ void Sprite::Draw() {
     // --- 描画直前のバッファ同期 ---
     SyncBeforeDraw();
 
-    if (isTopMost_) {
-        drawMgr->SubmitTopMostSprite(resource_.get());
+    if (layer_ >= UILayer::SystemOverlay) {
+        drawMgr->SubmitTopMostSprite(resource_.get(), sortingOrder_, layer_);
     } else {
-        drawMgr->SubmitSprite(resource_.get());
+        drawMgr->SubmitSprite(resource_.get(), sortingOrder_, layer_);
     }
 }
 

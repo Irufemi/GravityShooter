@@ -600,6 +600,13 @@ public: // ゲッター
     }
 
     /**
+     * @brief UI論理空間（正射影スクリーン）の基準解像度を動的に取得する
+     * @details アクティブカメラの正射影境界（OrthographicResolution）を動的に返し、存在しない場合は論理UI基準を返します
+     * @return UI論理解像度 Vector2
+     */
+    Irufemi::Vector2 GetUIResolution() const;
+
+    /**
      * @brief 内部レンダリング解像度を設定する
      */
     void SetGameResolution(uint32_t width, uint32_t height) {

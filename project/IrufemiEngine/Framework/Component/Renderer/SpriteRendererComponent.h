@@ -75,15 +75,43 @@ public:
     }
 
     /**
-     * @brief 最前面描画が有効かどうかを取得します
-     * @return 最前面描画が有効なら true
+     * @brief UI描画階層（UILayer）を設定します
+     * @param[in] layer レイヤー指定
      */
-    bool IsTopMost() const {
-        return isTopMost_;
+    void SetLayer(Irufemi::UILayer layer);
+
+    /**
+     * @brief UI描画階層を取得します
+     * @return UILayer
+     */
+    Irufemi::UILayer GetLayer() const {
+        return layer_;
     }
 
     /**
-     * @brief 最前面描画の有効/無効を設定します
+     * @brief レイヤー内の描画優先度（SortingOrder）を設定します
+     * @param[in] order ソート順（大きいほど手前に描画）
+     */
+    void SetSortingOrder(int order);
+
+    /**
+     * @brief レイヤー内の描画優先度を取得します
+     * @return ソート順
+     */
+    int GetSortingOrder() const {
+        return sortingOrder_;
+    }
+
+    /**
+     * @brief 最前面描画が有効かどうかを取得します（後方互換用）
+     * @return 最前面描画が有効なら true
+     */
+    bool IsTopMost() const {
+        return layer_ >= Irufemi::UILayer::SystemOverlay;
+    }
+
+    /**
+     * @brief 最前面描画の有効/無効を設定します（後方互換用）
      * @param[in] isTopMost 最前面描画フラグ
      */
     void SetTopMost(bool isTopMost);
@@ -201,6 +229,8 @@ private:
     std::unique_ptr<Irufemi::Sprite> sprite_;
     std::string texturePath_ = "";
     bool isTopMost_ = false;
+    Irufemi::UILayer layer_ = Irufemi::UILayer::GameHUD;
+    int sortingOrder_ = 0;
     bool isFlipX_ = false;
     bool isFlipY_ = false;
     Irufemi::Vector2 anchor_{0.5f, 0.5f};

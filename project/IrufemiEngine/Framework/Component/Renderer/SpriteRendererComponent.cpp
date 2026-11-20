@@ -27,7 +27,8 @@ void SpriteRendererComponent::OnAwake() {
         // 初期設定
         sprite_->SetAnchor(anchor_.x, anchor_.y);
         sprite_->SetFlip(isFlipX_, isFlipY_);
-        sprite_->SetTopMost(isTopMost_);
+        sprite_->SetLayer(layer_);
+        sprite_->SetSortingOrder(sortingOrder_);
         sprite_->SetColor(color_);
     }
 
@@ -86,11 +87,23 @@ void SpriteRendererComponent::SetAnchor(const Irufemi::Vector2& anchor) {
     }
 }
 
-void SpriteRendererComponent::SetTopMost(bool isTopMost) {
-    isTopMost_ = isTopMost;
+void SpriteRendererComponent::SetLayer(Irufemi::UILayer layer) {
+    layer_ = layer;
+    isTopMost_ = (layer >= Irufemi::UILayer::SystemOverlay);
     if (sprite_) {
-        sprite_->SetTopMost(isTopMost_);
+        sprite_->SetLayer(layer_);
     }
+}
+
+void SpriteRendererComponent::SetSortingOrder(int order) {
+    sortingOrder_ = order;
+    if (sprite_) {
+        sprite_->SetSortingOrder(sortingOrder_);
+    }
+}
+
+void SpriteRendererComponent::SetTopMost(bool isTopMost) {
+    SetLayer(isTopMost ? Irufemi::UILayer::SystemOverlay : Irufemi::UILayer::GameHUD);
 }
 
 void SpriteRendererComponent::SetFlipX(bool isFlipX) {
@@ -155,7 +168,11 @@ void SpriteRendererComponent::Deserialize(const nlohmann::json& j) {
     if (sprite_) {
         sprite_->SetAnchor(anchor_.x, anchor_.y);
         sprite_->SetFlip(isFlipX_, isFlipY_);
-        sprite_->SetTopMost(isTopMost_);
+        if (isTopMost_) {
+            layer_ = Irufemi::UILayer::SystemOverlay;
+        }
+        sprite_->SetLayer(layer_);
+        sprite_->SetSortingOrder(sortingOrder_);
         sprite_->SetColor(color_);
         // サイズの反映はUpdateでscaleを考慮して行われるが、ベースサイズとして保持
     }

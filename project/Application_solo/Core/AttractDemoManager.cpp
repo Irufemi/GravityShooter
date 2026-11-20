@@ -717,6 +717,9 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
         return;
     }
 
+    // UI論理解像度を動的取得
+    const Irufemi::Vector2 uiRes = engine_->GetUIResolution();
+
     // シーン遷移や未初期化時に現在のシーンへHUDを生成・バインド
     if (!demoHudObj_ || demoHudObj_->GetScene() != baseScene) {
         if (auto existing = baseScene->FindGameObject("DemoAttractHUD")) {
@@ -728,18 +731,14 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
             hudObj->SetIsSerializable(false); // シーン保存汚染を防止
             hudObj->SetHideInHierarchy(true);
 
-            if (auto t = hudObj->GetTransform()) {
-                // 画面右上（右端マージン 55px, 上部マージン 42px）
-                t->SetPosition({1225.0f, 42.0f, 0.0f});
-            }
-
             auto textComp = hudObj->AddComponent<Irufemi::TextRendererComponent>();
             if (textComp) {
                 textComp->SetFontId("toro_glitch");
                 textComp->SetText(L"AUTO DEMO   |   PRESS ANY KEY");
-                textComp->SetAlignment(TextAlignment::Right);
+                textComp->SetAlignment(TextAlignment::Center);
                 textComp->SetBaseScale(22.0f);
-                textComp->SetTopMost(true);
+                textComp->SetLayer(Irufemi::UILayer::SystemOverlay);
+                textComp->SetSortingOrder(1000);
                 textComp->SetColor({0.30f, 0.90f, 1.0f, 0.0f});
                 demoHudText_ = textComp.get();
             }
@@ -751,6 +750,16 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
     if (!demoHudObj_ || !demoHudText_) {
         return;
     }
+
+    // スコアHUDとの重なりを防止し、画面上部中央に配置
+    if (auto t = demoHudObj_->GetTransform()) {
+        t->SetPosition({uiRes.x * 0.5f, 36.0f, 0.0f});
+    }
+
+    // 最前面システムオーバーレイ層の描画プライオリティを確実に保証
+    demoHudText_->SetAlignment(TextAlignment::Center);
+    demoHudText_->SetLayer(Irufemi::UILayer::SystemOverlay);
+    demoHudText_->SetSortingOrder(1000);
 
     demoHudObj_->SetActive(true);
     demoHudBlinkTimer_ += deltaTime * 2.8f;

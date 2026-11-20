@@ -307,11 +307,11 @@ void Text::Draw() {
         return; // 描画するものがなければスキップ
     }
 
-    // TextRenderer用の描画キューに送信
-    if (isTopMost_) {
-        drawMgr->SubmitTopMostText(resource_.get());
+    // TextRenderer用の描画キューに送信（UILayer および sortingOrder に応じて振り分け）
+    if (layer_ >= UILayer::SystemOverlay) {
+        drawMgr->SubmitTopMostText(resource_.get(), sortingOrder_, layer_);
     } else {
-        drawMgr->SubmitText(resource_.get());
+        drawMgr->SubmitText(resource_.get(), sortingOrder_, layer_);
     }
 }
 

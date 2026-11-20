@@ -171,19 +171,48 @@ public:
         return color_;
     }
 
-    // UIとして最前面に描画するか
+    // UI描画階層（UILayer）
     /**
-     * @brief 最前面（UI TopMostレイヤー）に描画するかどうかを設定します
+     * @brief UI描画階層（UILayer）を設定します
+     * @param[in] layer レイヤー指定
+     */
+    void SetLayer(Irufemi::UILayer layer);
+
+    /**
+     * @brief UI描画階層を取得します
+     * @return UILayer
+     */
+    Irufemi::UILayer GetLayer() const {
+        return layer_;
+    }
+
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を設定します
+     * @param[in] order ソート順（大きいほど手前に描画）
+     */
+    void SetSortingOrder(int order);
+
+    /**
+     * @brief レイヤー内の描画優先度を取得します
+     * @return ソート順
+     */
+    int GetSortingOrder() const {
+        return sortingOrder_;
+    }
+
+    // UIとして最前面に描画するか（後方互換用）
+    /**
+     * @brief 最前面（UI TopMostレイヤー）に描画するかどうかを設定します（後方互換用）
      * @param[in] isTopMost 最前面にする場合は true
      */
     void SetTopMost(bool isTopMost);
 
     /**
-     * @brief 最前面描画が有効かどうかを取得します
+     * @brief 最前面描画が有効かどうかを取得します（後方互換用）
      * @return 有効な場合は true
      */
     bool IsTopMost() const {
-        return isTopMost_;
+        return layer_ >= Irufemi::UILayer::SystemOverlay;
     }
 
     // バウンディングボックス取得（ローカル座標系）
@@ -243,6 +272,8 @@ private:
     Irufemi::TextVerticalAlignment verticalAlignment_ = Irufemi::TextVerticalAlignment::Top;
     int verticalAlignmentInt_ = 0; // For Reflection (0:Top, 1:Middle, 2:Bottom)
     bool isTopMost_ = false;
+    Irufemi::UILayer layer_ = Irufemi::UILayer::GameHUD;
+    int sortingOrder_ = 0;
 };
 
 } // namespace Irufemi

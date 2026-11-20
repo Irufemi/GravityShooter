@@ -7,6 +7,7 @@
 #include <cstdint>
 #include "Renderer/System/Core/Object2DResource.h"
 #include "Core/Math/Vector2.h"
+#include "Renderer/Data/UILayer.h"
 #include <wrl.h>
 #include <memory>
 
@@ -343,14 +344,48 @@ public: // メンバ関数
     }
     ///@}
 
-    /** @name 最前面描画設定 */
+    /** @name UI描画階層・最前面描画設定 */
     ///@{
     /**
-     * @brief ポストプロセスの影響を受けない最前面のUIとして描画するかを設定する
+     * @brief UI描画階層（UILayer）を設定する
+     * @param[in] layer 設定する UILayer
+     */
+    void SetLayer(UILayer layer) {
+        layer_ = layer;
+        isTopMost_ = (layer >= UILayer::SystemOverlay);
+    }
+    /**
+     * @brief UI描画階層（UILayer）を取得する
+     */
+    UILayer GetLayer() const {
+        return layer_;
+    }
+
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を設定する
+     */
+    void SetSortingOrder(int order) {
+        sortingOrder_ = order;
+    }
+    /**
+     * @brief レイヤー内の描画優先度（SortingOrder）を取得する
+     */
+    int GetSortingOrder() const {
+        return sortingOrder_;
+    }
+
+    /**
+     * @brief ポストプロセスの影響を受けない最前面のUIとして描画するかを設定する（後方互換用）
      * @param[in] isTopMost trueなら最前面(バックバッファ直接)に描画する
      */
     void SetTopMost(bool isTopMost) {
-        isTopMost_ = isTopMost;
+        SetLayer(isTopMost ? UILayer::SystemOverlay : UILayer::GameHUD);
+    }
+    /**
+     * @brief IsTopMost かどうかを判定する（後方互換用）
+     */
+    bool IsTopMost() const {
+        return layer_ >= UILayer::SystemOverlay;
     }
     ///@}
 
@@ -393,6 +428,8 @@ private:
     // 行列更新の最適化用
     bool isDirty_ = true;
     bool isTopMost_ = false; // 最前面UIフラグ
+    UILayer layer_ = UILayer::GameHUD;
+    int sortingOrder_ = 0;
     float uiScale_ = 1.0f;   // UIスケール
     Matrix4x4 lastViewMatrix_ = {};
     Matrix4x4 lastProjectionMatrix_ = {};

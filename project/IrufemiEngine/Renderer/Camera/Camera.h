@@ -434,6 +434,30 @@ public:
     float GetViewportHeight() const {
         return height_;
     }
+
+    /**
+     * @brief 2D正射影空間の幅（論理UI空間の幅）を取得する
+     * @return 正射影空間の幅
+     */
+    float GetOrthographicWidth() const {
+        return right_ - left_;
+    }
+
+    /**
+     * @brief 2D正射影空間の高さ（論理UI空間の高さ）を取得する
+     * @return 正射影空間の高さ
+     */
+    float GetOrthographicHeight() const {
+        return bottom_ - top_;
+    }
+
+    /**
+     * @brief 2D正射影空間の解像度（論理UI空間サイズ）を取得する
+     * @return Irufemi::Vector2 {幅, 高さ}
+     */
+    Irufemi::Vector2 GetOrthographicResolution() const {
+        return {right_ - left_, bottom_ - top_};
+    }
 };
 
 } // namespace Irufemi

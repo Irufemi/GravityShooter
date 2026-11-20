@@ -68,10 +68,10 @@ void Primitive2DObject::Draw() {
 
     SyncBeforeDraw();
 
-    if (isTopMost_) {
-        drawManager_->SubmitTopMostSprite(resource_.get());
+    if (layer_ >= UILayer::SystemOverlay) {
+        drawManager_->SubmitTopMostSprite(resource_.get(), sortingOrder_, layer_);
     } else {
-        drawManager_->SubmitSprite(resource_.get()); // 通常2D描画
+        drawManager_->SubmitSprite(resource_.get(), sortingOrder_, layer_); // 通常2D描画
     }
 }
 

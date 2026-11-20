@@ -192,6 +192,18 @@ void DrawManager::MergeThreadLocalQueues() {
         mergeVec(textQueue_, lq->textQueue);
         mergeVec(topMostTextQueue_, lq->topMostTextQueue);
     }
+
+    // --- UILayer および sortingOrder に基づく安定ソート（一線級エンジンの階層・ZOrderパイプライン） ---
+    auto sortByLayerAndOrder = [](const auto& a, const auto& b) {
+        if (a.layer != b.layer) {
+            return static_cast<uint8_t>(a.layer) < static_cast<uint8_t>(b.layer);
+        }
+        return a.sortingOrder < b.sortingOrder;
+    };
+    std::stable_sort(spriteQueue_.begin(), spriteQueue_.end(), sortByLayerAndOrder);
+    std::stable_sort(textQueue_.begin(), textQueue_.end(), sortByLayerAndOrder);
+    std::stable_sort(topMostSpriteQueue_.begin(), topMostSpriteQueue_.end(), sortByLayerAndOrder);
+    std::stable_sort(topMostTextQueue_.begin(), topMostTextQueue_.end(), sortByLayerAndOrder);
 }
 
 void DrawManager::SubmitCustomPass(Irufemi::RenderStage stage, std::function<void()> drawFunc) {
@@ -625,7 +637,7 @@ void DrawManager::SetEnvironmentMap(D3D12_GPU_DESCRIPTOR_HANDLE envMapHandle) {
     environmentMapHandle_ = envMapHandle;
 }
 
-void DrawManager::SubmitSprite(const Object2DResource* resource) {
+void DrawManager::SubmitSprite(const Object2DResource* resource, int sortingOrder, UILayer layer) {
     if (!resource) {
         return;
     }
@@ -634,19 +646,23 @@ void DrawManager::SubmitSprite(const Object2DResource* resource) {
     p.blendMode = dxCommon_->GetEngine()->GetBlend();
     p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
     p.cullMode = dxCommon_->GetEngine()->GetCull();
-    GetLocalQueues().spriteQueue.push_back(p);
+    p.layer = layer;
+    p.sortingOrder = sortingOrder;
+
+    if (layer >= UILayer::SystemOverlay) {
+        GetLocalQueues().topMostSpriteQueue.push_back(p);
+    } else {
+        GetLocalQueues().spriteQueue.push_back(p);
+    }
 }
 
-void DrawManager::SubmitTopMostSprite(const Object2DResource* resource) {
+void DrawManager::SubmitTopMostSprite(const Object2DResource* resource, int sortingOrder, UILayer layer) {
     if (!resource) {
         return;
     }
-    SpritePacket p{};
-    p.resource = resource;
-    p.blendMode = dxCommon_->GetEngine()->GetBlend();
-    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
-    p.cullMode = dxCommon_->GetEngine()->GetCull();
-    GetLocalQueues().topMostSpriteQueue.push_back(p);
+    // TopMost呼び出しでLayerが未指定(デフォルト)ならSystemOverlayを自動昇格
+    UILayer effectiveLayer = (layer < UILayer::SystemOverlay) ? UILayer::SystemOverlay : layer;
+    SubmitSprite(resource, sortingOrder, effectiveLayer);
 }
 
 void DrawManager::DrawSprite(const RenderPackets::SpritePacket& packet) {
@@ -695,7 +711,7 @@ void DrawManager::DrawTopMostSpriteBatch(const RenderPackets::SpriteBatchPacket&
     DrawSpriteBatch(packet);
 }
 
-void DrawManager::SubmitText(const Object2DResource* resource) {
+void DrawManager::SubmitText(const Object2DResource* resource, int sortingOrder, UILayer layer) {
     if (!resource) {
         return;
     }
@@ -704,19 +720,23 @@ void DrawManager::SubmitText(const Object2DResource* resource) {
     p.blendMode = dxCommon_->GetEngine()->GetBlend();
     p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
     p.cullMode = dxCommon_->GetEngine()->GetCull();
-    GetLocalQueues().textQueue.push_back(p);
+    p.layer = layer;
+    p.sortingOrder = sortingOrder;
+
+    if (layer >= UILayer::SystemOverlay) {
+        GetLocalQueues().topMostTextQueue.push_back(p);
+    } else {
+        GetLocalQueues().textQueue.push_back(p);
+    }
 }
 
-void DrawManager::SubmitTopMostText(const Object2DResource* resource) {
+void DrawManager::SubmitTopMostText(const Object2DResource* resource, int sortingOrder, UILayer layer) {
     if (!resource) {
         return;
     }
-    SpritePacket p{};
-    p.resource = resource;
-    p.blendMode = dxCommon_->GetEngine()->GetBlend();
-    p.depthWrite = dxCommon_->GetEngine()->GetDepthWrite();
-    p.cullMode = dxCommon_->GetEngine()->GetCull();
-    GetLocalQueues().topMostTextQueue.push_back(p);
+    // TopMost呼び出しでLayerが未指定(デフォルト)ならSystemOverlayを自動昇格
+    UILayer effectiveLayer = (layer < UILayer::SystemOverlay) ? UILayer::SystemOverlay : layer;
+    SubmitText(resource, sortingOrder, effectiveLayer);
 }
 
 void DrawManager::DrawText(const RenderPackets::SpritePacket& packet) {

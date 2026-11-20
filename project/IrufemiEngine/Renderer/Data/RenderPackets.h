@@ -5,6 +5,7 @@
 #include <functional>
 #include "Core/Type/BlendMode.h"
 #include "Renderer/Pipeline/PSOManager.h"
+#include "Renderer/Data/UILayer.h"
 
 /**
  * @file RenderPackets.h
@@ -49,6 +50,8 @@ struct SpritePacket {
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
     D3D12_GPU_VIRTUAL_ADDRESS customCBVAddress = 0;
+    UILayer layer = UILayer::GameHUD;
+    int sortingOrder = 0;
 };
 
 struct LinePacket {
@@ -166,6 +169,8 @@ struct SpriteBatchPacket {
     PSOManager::CullMode cullMode;
     ID3D12PipelineState* customPSO = nullptr;
     D3D12_GPU_VIRTUAL_ADDRESS customCBVAddress = 0;
+    UILayer layer = UILayer::GameHUD;
+    int sortingOrder = 0;
 };
 
 struct DebugPrimitivePacket {
