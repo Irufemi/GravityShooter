@@ -1618,32 +1618,24 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
                                            PostProcessManager::Layer::PreUI, true);
     }
 
-    // 3. UI 描画パス
+#ifndef EditorMode
+    // 3. スタンドアロン実行時: 3Dシーン（内部解像度 1280x720）をバックバッファ（実機ネイティブ解像度）へ高品質アップスケール転送
+    if (ppMgr && ppMgr->GetRunner()) {
+        D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
+        auto sceneBlitSrc = renderGraph_->CreateTransientResource("PP_SceneBlitSrc", desc);
+        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_SceneBlitSrc", sceneBlitSrc));
+        ppMgr->GetRunner()->PopulatePasses(renderGraph_.get(), ppMgr, {}, sceneBlitSrc, kInvalidHandle,
+                                           PostProcessManager::Layer::PostUI, true);
+    }
+#endif
+
+    // 4. UI 描画パス（バックバッファ実機解像度に直接レンダリングし、MSDFフォントを最高精度でラスタライズ）
     renderGraph_->AddPass(std::make_unique<UIPass>());
 
-    // 4. Post-UI ポストプロセス
-    const auto& postUiModes =
-        ppMgr ? ppMgr->GetActiveModes(PostProcessManager::Layer::PostUI) : std::vector<PostProcessManager::Mode>{};
-    if (!postUiModes.empty() && ppMgr && ppMgr->GetRunner()) {
-        D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
-        auto postUiSrc = renderGraph_->CreateTransientResource("PP_PostUISrc", desc);
-        renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc", postUiSrc));
-        ppMgr->GetRunner()->PopulatePasses(renderGraph_.get(), ppMgr, postUiModes, postUiSrc, kInvalidHandle,
-                                           PostProcessManager::Layer::PostUI, true);
-    } else {
-#ifndef EditorMode
-        // スタンドアロン実行時は、PostUIエフェクトが無効な場合でもメインテクスチャからバックバッファへの最終画面転送を行う
-        if (ppMgr && ppMgr->GetRunner()) {
-            D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
-            auto postUiSrc = renderGraph_->CreateTransientResource("PP_PostUISrc", desc);
-            renderGraph_->AddPass(std::make_unique<PostProcessCopyPass>("PP_PostUISrc", postUiSrc));
-            ppMgr->GetRunner()->PopulatePasses(renderGraph_.get(), ppMgr, {}, postUiSrc, kInvalidHandle,
-                                               PostProcessManager::Layer::PostUI, true);
-        }
-#endif
-    }
+    // 5. Post-UI ポストプロセス（画面遷移暗転フェードをUIの上からアルファブレンド合成）
+    renderGraph_->AddPass(std::make_unique<PostUIPass>());
 
-    // 5. 最前面UIおよび選択アウトライン
+    // 6. 最前面UIおよび選択アウトライン
     renderGraph_->AddPass(std::make_unique<TopMostPass>());
     renderGraph_->AddPass(std::make_unique<SelectionOutlinePass>());
 }

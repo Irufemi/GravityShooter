@@ -68,7 +68,7 @@ void Text::GenerateVertices() {
 
     std::vector<float> lineWidths;
     float currentLineWidth = 0.0f;
-    float scaleFactor = baseScale_ / 32.0f; // GLYPH_SIZE(32)を基準にスケール
+    float scaleFactor = baseScale_ / FontManager::BASE_GLYPH_SIZE; // FontManagerの基準サイズ(BASE_GLYPH_SIZE)と動的連動
 
     bool hasPendingGlyphs = false;
 
@@ -110,7 +110,7 @@ void Text::GenerateVertices() {
         if (c == U'\n') {
             lineIndex++;
             currentX = getStartX(lineIndex);
-            currentY += scaleFactor * 32.0f * 1.2f; // 行間 (Y下方向が正)
+            currentY += baseScale_ * FontManager::DEFAULT_LINE_SPACING; // 行間 (Y下方向が正)
             return;
         }
 

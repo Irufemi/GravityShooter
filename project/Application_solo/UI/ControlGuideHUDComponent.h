@@ -54,5 +54,5 @@ private:
 
     bool isElementsCreated_ = false;
     bool isVisible_ = true;
-    std::string fontId_ = "toro_glitch";
+    std::string fontId_ = "NotoSansJP-Bold";
 };

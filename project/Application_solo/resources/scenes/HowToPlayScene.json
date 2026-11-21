@@ -77,16 +77,16 @@
         {
           "data": {
             "alignment": 1,
-            "baseScale": 46.0,
+            "baseScale": 36.0,
             "color": [
               0.1,
               0.95,
               1.0,
               1.0
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "--- HOW TO PLAY ---"
+            "text": "--- 操作方法 (HOW TO PLAY) ---"
           },
           "type": "TextRendererComponent"
         }
@@ -128,9 +128,9 @@
               1.0,
               1.0
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "ACTION"
+            "text": "アクション"
           },
           "type": "TextRendererComponent"
         }
@@ -172,9 +172,9 @@
               1.0,
               1.0
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "KEY / MOUSE"
+            "text": "キーボード / マウス"
           },
           "type": "TextRendererComponent"
         }
@@ -216,9 +216,9 @@
               0.35,
               1.0
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "GAMEPAD"
+            "text": "ゲームパッド"
           },
           "type": "TextRendererComponent"
         }
@@ -311,9 +311,9 @@
               1.0,
               1.0
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "MOVE\nAIM RETICLE\nATTRACT DEBRIS\nLOCK-ON TARGET\nTHROW / ATTACK\nCANCEL LOCK-ON\nPAUSE MENU"
+            "text": "機体移動\n照準 (レティクル) 移動\nガレキ引寄\n敵・ガレキ ロックオン\nガレキ投擲 / 攻撃\nロックオン解除\nポーズメニュー"
           },
           "type": "TextRendererComponent"
         }
@@ -355,9 +355,9 @@
               1.0,
               0.9
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "WASD\nMouse Move\nE Key\nRight Click\nLeft Click / Q\nR Key\nESC"
+            "text": "W / A / S / D\nマウス移動\nE キー\n右クリック\n左クリック / Q\nR キー\nESC"
           },
           "type": "TextRendererComponent"
         }
@@ -399,9 +399,9 @@
               0.5,
               0.95
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "Left Stick\nRight Stick\nLT / LB\nRB / A Button\nRT (Trigger)\nB Button\nSTART"
+            "text": "左スティック\n右スティック\nLT / LB\nRB / A ボタン\nRT (トリガー)\nB ボタン\nSTART"
           },
           "type": "TextRendererComponent"
         }
@@ -487,16 +487,16 @@
         {
           "data": {
             "alignment": 1,
-            "baseScale": 18.0,
+            "baseScale": 16.0,
             "color": [
               0.4,
               0.95,
               0.8,
               0.9
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "* STEAL SHIELD: Lock Boss Shield & Attract (E / LT) to capture ammo!\n* MULTI-THROW: Throw fires debris to all locked targets simultaneously!"
+            "text": "★ シールド強奪: ボスのシールドをロックして引寄 (E / LT) で弾丸を鹵獲！\n★ 一斉投擲: 投擲を行うと、ロックした全ての対象へ同時にガレキを発射！"
           },
           "type": "TextRendererComponent"
         }
@@ -531,16 +531,16 @@
         {
           "data": {
             "alignment": 1,
-            "baseScale": 22.0,
+            "baseScale": 20.0,
             "color": [
               0.65,
               0.75,
               0.85,
               0.8
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
-            "text": "[ PRESS B  /  ESC  /  CLICK TO CLOSE ]"
+            "text": "[ Bボタン  /  ESC  /  クリック で閉じる ]"
           },
           "type": "TextRendererComponent"
         }

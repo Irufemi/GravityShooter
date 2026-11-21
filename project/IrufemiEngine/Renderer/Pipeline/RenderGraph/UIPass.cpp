@@ -8,12 +8,14 @@
 using namespace Irufemi;
 
 void UIPass::Setup(RenderGraphBuilder& builder, const Irufemi::RenderContext& rc) {
-    if (rc.engine && rc.engine->GetMainRenderTexture()) {
-        builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-    }
-    if (rc.drawManager && rc.drawManager->GetDxCommon()) {
-        builder.RequireState(rc.drawManager->GetDxCommon()->GetDepthStencilResource(),
-                             D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    if (rc.isEditorMode) {
+        if (rc.engine && rc.engine->GetMainRenderTexture()) {
+            builder.RequireState(rc.engine->GetMainRenderTexture()->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+        }
+    } else {
+        if (rc.outputResource) {
+            builder.RequireState(rc.outputResource, D3D12_RESOURCE_STATE_RENDER_TARGET);
+        }
     }
 }
 
@@ -26,26 +28,18 @@ void UIPass::Execute(const Irufemi::RenderContext& rc) {
 
     auto cmdList = engine->GetCommandList();
 
-    // UI の描画先を設定
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = engine->GetMainRenderTexture()->GetRtvHandle();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = drawManager->GetDxCommon()->GetDSVCPUDescriptorHandle(0);
-    cmdList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+    // 出力先RTVとビューポート・シザーの設定
+    // エディタモード時はMainRenderTexture、スタンドアロン実行時はバックバッファ（実機ネイティブ解像度）へ直接描画
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rc.outputRTV;
+    cmdList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+    cmdList->RSSetViewports(1, &rc.viewport);
+    cmdList->RSSetScissorRects(1, &rc.scissorRect);
 
-    // Viewport と Scissor を明示的に設定 (PreUIパスなどから引き継いだ意図しないViewportで描画されるのを防ぐため)
-    D3D12_VIEWPORT viewport{};
-    D3D12_RECT scissor{};
-    viewport.Width = static_cast<float>(engine->GetGameResolutionWidth());
-    viewport.Height = static_cast<float>(engine->GetGameResolutionHeight());
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    scissor.left = 0;
-    scissor.right = engine->GetGameResolutionWidth();
-    scissor.top = 0;
-    scissor.bottom = engine->GetGameResolutionHeight();
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-    cmdList->RSSetViewports(1, &viewport);
-    cmdList->RSSetScissorRects(1, &scissor);
+    // PSO名のプレフィックス/サフィックスの決定
+    // バックバッファ描画時（非エディタモード）は ForBackBuffer PSO を使用して最高精度でラスタライズ
+    const char* spritePso = rc.isEditorMode ? "Sprite" : "SpriteForBackBuffer";
+    const char* spriteBatchPso = rc.isEditorMode ? "SpriteBatch" : "SpriteBatchForBackBuffer";
+    const char* textPso = rc.isEditorMode ? "Text" : "TextForBackBuffer";
 
     auto DrawWithPSO = [&](const auto& queue, auto drawFunc, const char* psoName) {
         if (queue.empty()) {
@@ -95,19 +89,19 @@ void UIPass::Execute(const Irufemi::RenderContext& rc) {
     };
 
     // 8. Sprites
-    DrawWithPSO(drawManager->GetSpriteQueue(), [&](const auto& p) { drawManager->DrawSprite(p); }, "Sprite");
+    DrawWithPSO(drawManager->GetSpriteQueue(), [&](const auto& p) { drawManager->DrawSprite(p); }, spritePso);
 
     // 8.01 SpriteBatch
     DrawWithPSO(
-        drawManager->GetSpriteBatchQueue(), [&](const auto& p) { drawManager->DrawSpriteBatch(p); }, "SpriteBatch");
+        drawManager->GetSpriteBatchQueue(), [&](const auto& p) { drawManager->DrawSpriteBatch(p); }, spriteBatchPso);
 
     // 8.02 Primitive2DBatch
     DrawWithPSO(
         drawManager->GetPrimitive2DBatchQueue(), [&](const auto& p) { drawManager->DrawPrimitive2DBatch(p); },
-        "SpriteBatch");
+        spriteBatchPso);
 
-    // 8.1 Texts
-    DrawWithPSO(drawManager->GetTextQueue(), [&](const auto& p) { drawManager->DrawText(p); }, "Text");
+    // 8.1 Texts (実機ネイティブ解像度で最高精度のMSDFラスタライズ)
+    DrawWithPSO(drawManager->GetTextQueue(), [&](const auto& p) { drawManager->DrawText(p); }, textPso);
 
     // 8.5 UI 3D Objects (Always drawn on top of Sprites)
     DrawWithPSO(drawManager->GetUI3DQueue(), [&](const auto& p) { drawManager->DrawStandard3D(p); }, "Object3D");

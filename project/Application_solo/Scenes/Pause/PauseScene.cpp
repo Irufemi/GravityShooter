@@ -46,11 +46,7 @@ void PauseScene::Initialize(IrufemiEngine* engine) {
     if (engine) {
         if (auto fm = engine->GetFontManager()) {
             fm->PrecacheText("toro_glitch", L"- PAUSE -");
-            fm->PrecacheText("toro_glitch", L"RESUME");
-            fm->PrecacheText("toro_glitch", L"RETRY");
-            fm->PrecacheText("toro_glitch", L"OPTIONS");
-            fm->PrecacheText("toro_glitch", L"TITLE");
-            fm->PrecacheText("toro_glitch", L"QUIT");
+            fm->PrecacheText("NotoSansJP-Bold", L"RESUME RETRY OPTIONS TITLE QUIT");
         }
     }
 
@@ -224,7 +220,7 @@ void PauseScene::CreateUIElements() {
 
         auto textComp = itemObj->AddComponent<Irufemi::TextRendererComponent>();
         if (textComp) {
-            textComp->SetFontId("toro_glitch");
+            textComp->SetFontId("NotoSansJP-Bold");
             textComp->SetText(entries[i].text);
             textComp->SetBaseScale(34.0f);
             textComp->SetAlignment(Irufemi::TextAlignment::Center);

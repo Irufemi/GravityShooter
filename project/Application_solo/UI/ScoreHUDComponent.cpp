@@ -61,7 +61,7 @@ void ScoreHUDComponent::EnsureUIElements() {
         t->SetPosition({1240.0f, 22.0f, 0.0f});
     }
     scoreHeaderText_ = scoreHeaderObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    scoreHeaderText_->SetFontId("toro_glitch");
+    scoreHeaderText_->SetFontId("NotoSansJP-Bold");
     scoreHeaderText_->SetAlignment(Irufemi::TextAlignment::Right);
     scoreHeaderText_->SetBaseScale(12.0f);
     scoreHeaderText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -77,7 +77,7 @@ void ScoreHUDComponent::EnsureUIElements() {
         t->SetPosition({1240.0f, 44.0f, 0.0f});
     }
     scoreText_ = scoreObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    scoreText_->SetFontId("toro_glitch");
+    scoreText_->SetFontId("NotoSansJP-Bold");
     scoreText_->SetAlignment(Irufemi::TextAlignment::Right);
     scoreText_->SetBaseScale(22.0f);
     scoreText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -93,7 +93,7 @@ void ScoreHUDComponent::EnsureUIElements() {
         t->SetPosition({1240.0f, 68.0f, 0.0f});
     }
     killsText_ = killsObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    killsText_->SetFontId("toro_glitch");
+    killsText_->SetFontId("NotoSansJP-Bold");
     killsText_->SetAlignment(Irufemi::TextAlignment::Right);
     killsText_->SetBaseScale(14.0f);
     killsText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -107,7 +107,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     popObj_->SetIsSerializable(false);
     scene->AddGameObject(popObj_);
     popText_ = popObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    popText_->SetFontId("toro_glitch");
+    popText_->SetFontId("NotoSansJP-Bold");
     popText_->SetAlignment(Irufemi::TextAlignment::Left);
     popText_->SetBaseScale(20.0f);
     popText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -120,7 +120,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     popScoreObj_->SetIsSerializable(false);
     scene->AddGameObject(popScoreObj_);
     popScoreText_ = popScoreObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    popScoreText_->SetFontId("toro_glitch");
+    popScoreText_->SetFontId("NotoSansJP-Bold");
     popScoreText_->SetAlignment(Irufemi::TextAlignment::Left);
     popScoreText_->SetBaseScale(16.0f);
     popScoreText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -134,7 +134,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     centerBannerObj_->SetIsSerializable(false);
     scene->AddGameObject(centerBannerObj_);
     centerBannerText_ = centerBannerObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    centerBannerText_->SetFontId("toro_glitch");
+    centerBannerText_->SetFontId("NotoSansJP-Bold");
     centerBannerText_->SetAlignment(Irufemi::TextAlignment::Center);
     centerBannerText_->SetBaseScale(36.0f);
     centerBannerText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -147,7 +147,7 @@ void ScoreHUDComponent::EnsureUIElements() {
     centerSubBannerObj_->SetIsSerializable(false);
     scene->AddGameObject(centerSubBannerObj_);
     centerSubBannerText_ = centerSubBannerObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    centerSubBannerText_->SetFontId("toro_glitch");
+    centerSubBannerText_->SetFontId("NotoSansJP-Bold");
     centerSubBannerText_->SetAlignment(Irufemi::TextAlignment::Center);
     centerSubBannerText_->SetBaseScale(18.0f);
     centerSubBannerText_->SetLayer(Irufemi::UILayer::GameHUD);

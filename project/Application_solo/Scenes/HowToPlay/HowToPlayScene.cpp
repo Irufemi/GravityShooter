@@ -8,6 +8,7 @@
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/SpriteRendererComponent.h"
 #include "Framework/Component/Renderer/TextRendererComponent.h"
+#include "Renderer/Font/FontManager.h"
 #include "UI/UISound.h"
 #include <cmath>
 #include <algorithm>
@@ -19,6 +20,20 @@ void HowToPlayScene::Initialize(IrufemiEngine* engine) {
     openCooldownTimer_ = 0.15f;
     transition_.StartOpen();
     uiAnimator_.Clear();
+
+    // 操作説明テキストの事前キャッシュ（初回オープン時のヒッチ・コマ落ちを完全根絶）
+    if (engine) {
+        if (auto fm = engine->GetFontManager()) {
+            const std::string fontId = "NotoSansJP-Bold";
+            fm->PrecacheTextSync(fontId, L"--- 操作方法 (HOW TO PLAY) ---");
+            fm->PrecacheTextSync(fontId, L"アクション キーボード / マウス ゲームパッド");
+            fm->PrecacheTextSync(fontId, L"機体移動 照準 (レティクル) 移動 ガレキ引寄 敵・ガレキ ロックオン ガレキ投擲 / 攻撃 ロックオン解除 ポーズメニュー");
+            fm->PrecacheTextSync(fontId, L"W / A / S / D マウス移動 E キー 右クリック 左クリック / Q R キー ESC");
+            fm->PrecacheTextSync(fontId, L"左スティック 右スティック LT / LB RB / A ボタン RT (トリガー) B ボタン START");
+            fm->PrecacheTextSync(fontId, L"★ シールド強奪: ボスのシールドをロックして引寄 (E / LT) で弾丸を鹵獲！ 一斉投擲: 投擲を行うと、ロックした全ての対象へ同時にガレキを発射！");
+            fm->PrecacheTextSync(fontId, L"[ Bボタン  /  ESC  /  クリック で閉じる ]");
+        }
+    }
 }
 
 void HowToPlayScene::OnEnter() {

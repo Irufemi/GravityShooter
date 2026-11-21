@@ -59,11 +59,11 @@ std::vector<OptionsScene::SliderBinding> OptionsScene::GetSliderBindings() {
 void OptionsScene::Initialize(IrufemiEngine* engine) {
     Irufemi::BaseScene::Initialize(engine);
 
-    // スライダー数値で使用する文字を非同期（スレッドプール）でバックグラウンド生成
+    // スライダー数値・UIテキストで使用する文字を非同期（スレッドプール）でバックグラウンド生成
     // メインスレッドの初期ロードを阻害せず、操作時の文字飛びを防止
     if (engine) {
         if (auto fm = engine->GetFontManager()) {
-            fm->PrecacheText("toro_glitch", L"0123456789%");
+            fm->PrecacheText("NotoSansJP-Bold", L"0123456789% OPTIONS BGM SE VOLUME STICK SENSITIVITY BACK CLOSE CURSOR ADJUST SELECT /-.,");
         }
         if (auto input = engine->GetInputManager()) {
             input->SetVirtualCursorPosition(engine->GetGameResolution() * 0.5f);

@@ -16,12 +16,14 @@ TitleScene::~TitleScene() {}
 void TitleScene::Initialize(IrufemiEngine* engine) {
     Irufemi::BaseScene::Initialize(engine);
 
-    // モーダル画面（HowToPlayScene, OptionsScene）で使用される全英数字・記号を先行ウォームアップ
+    // モーダル画面（HowToPlayScene, OptionsScene）およびタイトルメニューで使用される全英数字・記号を先行ウォームアップ
     // 画面遷移時のFreeType走査・GPUアップロードによるメインスレッド阻害（フレームヒッチ）を根絶
     if (engine) {
         if (auto fm = engine->GetFontManager()) {
             fm->PrecacheText("toro_glitch",
                              L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/-%:.,_ ()[]<>+!?");
+            fm->PrecacheTextSync("NotoSansJP-Bold",
+                                 L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/-%:.,_ ()[]<>+!?");
         }
         // 出撃演出で使用するSEの事前ウォームアップ（SoundHelperで安全に事前ロード）
         SoundHelper::PreloadAll();

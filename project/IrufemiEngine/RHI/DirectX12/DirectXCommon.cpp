@@ -342,6 +342,7 @@ void DirectXCommon::RegisterAllShaders() {
 
     auto vsFullscreen = shaderManager_->GetOrCompile(L"Fullscreen.VS.hlsl", options);
     auto psFog = shaderManager_->GetOrCompile(L"Fog.PS.hlsl", options);
+    auto psFadeOverlay = shaderManager_->GetOrCompile(L"FadeOverlay.PS.hlsl", options);
 
 #ifdef EditorMode
     auto vsSelection = shaderManager_->GetOrCompile(L"SelectionMask.VS.hlsl", options);
@@ -490,6 +491,11 @@ void DirectXCommon::RegisterAllShaders() {
     PSOManager::PipelineStateDesc textBBDesc = spriteBBDesc;
     textBBDesc.shaders = {vsText, psText};
     psoManager_->RegisterShader("TextForBackBuffer", textBBDesc);
+
+    // 画面遷移フェード（暗転）用オーバーレイ設定
+    PSOManager::PipelineStateDesc fadeOverlayDesc = spriteBBDesc;
+    fadeOverlayDesc.shaders = {vsFullscreen, psFadeOverlay};
+    psoManager_->RegisterShader("FadeOverlay", fadeOverlayDesc);
 
     // --- Compute PSO生成 ---
     auto computeRootSig = GetComputeRootSignature();

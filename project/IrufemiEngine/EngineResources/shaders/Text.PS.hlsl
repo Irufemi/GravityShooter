@@ -25,15 +25,23 @@ PixelShaderOutput main(VertexShaderOutput input)
     // アトラステクスチャからRGB(MSDF)をサンプリング
     float32_t3 sampleColor = gTextures[gMaterial.textureIndex].Sample(gSampler, uv).rgb;
 
-    // 距離場を計算し、0.5 を基準値として内外を判定
-    float sd = median(sampleColor.r, sampleColor.g, sampleColor.b) - 0.5f;
+    // アトラス解像度を動的取得 (ゼロ除算ガード)
+    float2 texSize;
+    gTextures[gMaterial.textureIndex].GetDimensions(texSize.x, texSize.y);
+    texSize = max(texSize, float2(1.0f, 1.0f));
 
-    // fwidth関数を用いて、画面サイズに応じたピクセル単位の変化量を取得し、アンチエイリアス幅を最適化
-    float screenPxDistance = fwidth(sd);
-    
-    // 不透明度（アルファ）を計算：clampで 0.0(外側) ～ 1.0(内側) の滑らかなグラデーションを作る
-    // （エッジ付近のジャギを綺麗に消す効果がある）
-    float opacity = clamp(sd / max(screenPxDistance, 0.0001f) + 0.5f, 0.0f, 1.0f);
+    // MSDF生成時の距離場スプレッド (FontManager::PX_RANGE = 4.0)
+    const float pxRange = 4.0f;
+    float2 unitRange = float2(pxRange, pxRange) / texSize;
+    float2 screenTexSize = 1.0f / max(fwidth(uv), float2(1e-5f, 1e-5f));
+    float screenPxRange = max(0.5f * dot(unitRange, screenTexSize), 1.0f);
+
+    // 距離場の中央値から画面ピクセル空間の距離を計算
+    float sd = median(sampleColor.r, sampleColor.g, sampleColor.b);
+    float screenPxDistance = screenPxRange * (sd - 0.5f);
+
+    // 画面ピクセル空間で正確に1ピクセルのアンチエイリアス境界を生成
+    float opacity = clamp(screenPxDistance + 0.5f, 0.0f, 1.0f);
 
     // マテリアルの色と頂点カラー(input.color)を合成
     float32_t4 baseColor = gMaterial.color * input.color;

@@ -55,9 +55,10 @@ struct FontManager::Impl {
 
     static const int ATLAS_WIDTH = 2048;
     static const int ATLAS_HEIGHT = 2048;
-    static const int GLYPH_SIZE = 32;       // ベースサイズ
-    static const int PADDING = 2;           // エッジパディング
-    static constexpr double PX_RANGE = 2.0; // 距離場スプレッド
+    static const int GLYPH_SIZE = static_cast<int>(FontManager::BASE_GLYPH_SIZE);
+    static const int PADDING = FontManager::PADDING;
+    static const int GUTTER = FontManager::GUTTER;
+    static constexpr double PX_RANGE = static_cast<double>(FontManager::PX_RANGE);
 
     // 非同期生成用スレッドプールとタスクグループ
     std::unique_ptr<ThreadPool> threadPool;
@@ -299,7 +300,7 @@ void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wst
         if (loaded) {
             shape.normalize();
             shape.orientContours();
-            msdfgen::edgeColoringSimple(shape, 3.0);
+            msdfgen::edgeColoringByDistance(shape, 3.0);
 
             msdfgen::Shape::Bounds bounds = shape.getBounds();
             double width = bounds.r - bounds.l;
@@ -352,35 +353,40 @@ void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wst
             }
 
             stbrp_rect rect{};
-            rect.w = gen.texWidth;
-            rect.h = gen.texHeight;
+            rect.w = gen.texWidth + Impl::GUTTER * 2;
+            rect.h = gen.texHeight + Impl::GUTTER * 2;
             if (stbrp_pack_rects(&impl_->packContext, &rect, 1) == 1) {
+                // 安全マージン（Gutter）の内側にグリフデータを書き込む（周囲は完全透明の黒のまま保護）
+                int glyphX = rect.x + Impl::GUTTER;
+                int glyphY = rect.y + Impl::GUTTER;
+
                 // CPUアトラスにコピー (上下反転に対応するためY座標を反転しながらコピー)
                 for (int y = 0; y < gen.texHeight; ++y) {
                     for (int x = 0; x < gen.texWidth; ++x) {
                         const float* pixel = gen.msdf(x, gen.texHeight - 1 - y); // Y反転
-                        int destX = rect.x + x;
-                        int destY = rect.y + y;
+                        int destX = glyphX + x;
+                        int destY = glyphY + y;
                         int destIndex = (destY * Impl::ATLAS_WIDTH + destX) * 4;
-                        float pxRange = static_cast<float>(Impl::PX_RANGE);
+                        // msdfgen::generateMSDF で既に [0.0, 1.0] (0.5=エッジ) に正規化されているため、
+                        // 二重正規化を廃止し、そのまま [0, 255] へ変換
                         impl_->cpuAtlasData[destIndex + 0] =
-                            static_cast<uint8_t>(std::clamp((pixel[0] / pxRange + 0.5f) * 255.f, 0.f, 255.f)); // R
+                            static_cast<uint8_t>(std::clamp(pixel[0] * 255.0f + 0.5f, 0.0f, 255.0f)); // R
                         impl_->cpuAtlasData[destIndex + 1] =
-                            static_cast<uint8_t>(std::clamp((pixel[1] / pxRange + 0.5f) * 255.f, 0.f, 255.f)); // G
+                            static_cast<uint8_t>(std::clamp(pixel[1] * 255.0f + 0.5f, 0.0f, 255.0f)); // G
                         impl_->cpuAtlasData[destIndex + 2] =
-                            static_cast<uint8_t>(std::clamp((pixel[2] / pxRange + 0.5f) * 255.f, 0.f, 255.f)); // B
-                        impl_->cpuAtlasData[destIndex + 3] = 255;                                              // A
+                            static_cast<uint8_t>(std::clamp(pixel[2] * 255.0f + 0.5f, 0.0f, 255.0f)); // B
+                        impl_->cpuAtlasData[destIndex + 3] = 255;                                       // A
                     }
                 }
 
                 GlyphInfo info{};
                 info.character = gen.char32;
-                info.uvTopLeft = Irufemi::Vector2(static_cast<float>(rect.x) / Impl::ATLAS_WIDTH,
-                                                  static_cast<float>(rect.y) / Impl::ATLAS_HEIGHT);
-                info.uvBottomRight = Irufemi::Vector2(static_cast<float>(rect.x + rect.w) / Impl::ATLAS_WIDTH,
-                                                      static_cast<float>(rect.y + rect.h) / Impl::ATLAS_HEIGHT);
-                info.width = static_cast<float>(rect.w);
-                info.height = static_cast<float>(rect.h);
+                info.uvTopLeft = Irufemi::Vector2(static_cast<float>(glyphX) / Impl::ATLAS_WIDTH,
+                                                  static_cast<float>(glyphY) / Impl::ATLAS_HEIGHT);
+                info.uvBottomRight = Irufemi::Vector2(static_cast<float>(glyphX + gen.texWidth) / Impl::ATLAS_WIDTH,
+                                                      static_cast<float>(glyphY + gen.texHeight) / Impl::ATLAS_HEIGHT);
+                info.width = static_cast<float>(gen.texWidth);
+                info.height = static_cast<float>(gen.texHeight);
                 info.offsetX = static_cast<float>(gen.bounds.l * scale) - Impl::PADDING;
                 info.offsetY = static_cast<float>((metrics.ascenderY - gen.bounds.t) * scale) -
                                Impl::PADDING; // ベースライン基準のオフセット

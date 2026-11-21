@@ -282,7 +282,7 @@
               1.0,
               1.0
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
             "text": "GAME START",
             "verticalAlignment": 0
@@ -327,7 +327,7 @@
               0.800000011920929,
               0.6499999761581421
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
             "text": "HOW TO PLAY",
             "verticalAlignment": 0
@@ -372,7 +372,7 @@
               0.800000011920929,
               0.6499999761581421
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
             "text": "OPTIONS",
             "verticalAlignment": 0
@@ -417,7 +417,7 @@
               0.800000011920929,
               0.6499999761581421
             ],
-            "fontId": "toro_glitch",
+            "fontId": "NotoSansJP-Bold",
             "isTopMost": true,
             "text": "QUIT",
             "verticalAlignment": 0

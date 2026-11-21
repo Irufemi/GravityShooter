@@ -79,7 +79,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
         t->SetPosition({0.0f, 0.0f, 1.5f});
     }
     hpHeaderText_ = hpHeaderObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    hpHeaderText_->SetFontId("toro_glitch");
+    hpHeaderText_->SetFontId("NotoSansJP-Bold");
     hpHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpHeaderText_->SetBaseScale(11.0f);
     hpHeaderText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -149,7 +149,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
         t->SetPosition({kBarW + 10.0f, kBarY - 6.0f, 1.2f});
     }
     hpText_ = hpTextObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    hpText_->SetFontId("toro_glitch");
+    hpText_->SetFontId("NotoSansJP-Bold");
     hpText_->SetAlignment(Irufemi::TextAlignment::Left);
     hpText_->SetBaseScale(11.0f);
     hpText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -169,7 +169,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
         t->SetPosition({0.0f, kDebrisY - 5.0f, 1.5f});
     }
     debrisHeaderText_ = debrisHeaderObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    debrisHeaderText_->SetFontId("toro_glitch");
+    debrisHeaderText_->SetFontId("NotoSansJP-Bold");
     debrisHeaderText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisHeaderText_->SetBaseScale(10.0f);
     debrisHeaderText_->SetLayer(Irufemi::UILayer::GameHUD);
@@ -187,7 +187,7 @@ void PlayerStatusHUDComponent::EnsureUIElements() {
         t->SetPosition({0.0f, kDebrisY - 5.0f, 1.5f});
     }
     debrisCountText_ = debrisCountObj_->AddComponent<Irufemi::TextRendererComponent>().get();
-    debrisCountText_->SetFontId("toro_glitch");
+    debrisCountText_->SetFontId("NotoSansJP-Bold");
     debrisCountText_->SetAlignment(Irufemi::TextAlignment::Left);
     debrisCountText_->SetBaseScale(10.0f);
     debrisCountText_->SetLayer(Irufemi::UILayer::GameHUD);

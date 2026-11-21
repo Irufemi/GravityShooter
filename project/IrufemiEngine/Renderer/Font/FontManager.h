@@ -34,6 +34,17 @@ struct GlyphInfo {
  */
 class FontManager {
 public:
+    // --- フォント・MSDF生成パラメータのマスター定数 ---
+    static constexpr float BASE_GLYPH_SIZE = 64.0f;       ///< MSDFグリフの生成基準サイズ（解像度）
+    static constexpr float PX_RANGE = 4.0f;              ///< MSDF距離場スプレッド（アンチエイリアスマージン）
+    static constexpr int PADDING = 6;                    ///< グリフ内パディング（距離場収束マージン）
+    static constexpr int GUTTER = 2;                     ///< アトラス配置時のグリフ間安全マージン（Atlas Bleeding防止）
+    static constexpr float DEFAULT_LINE_SPACING = 1.2f;  ///< デフォルトの行間倍率
+
+    static constexpr float GetBaseGlyphSize() { return BASE_GLYPH_SIZE; }
+    static constexpr float GetPxRange() { return PX_RANGE; }
+    static constexpr float GetDefaultLineSpacing() { return DEFAULT_LINE_SPACING; }
+
     FontManager();
     ~FontManager();
 

@@ -733,7 +733,7 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
 
             auto textComp = hudObj->AddComponent<Irufemi::TextRendererComponent>();
             if (textComp) {
-                textComp->SetFontId("toro_glitch");
+                textComp->SetFontId("NotoSansJP-Bold");
                 textComp->SetText(L"AUTO DEMO   |   PRESS ANY KEY");
                 textComp->SetAlignment(TextAlignment::Center);
                 textComp->SetBaseScale(22.0f);
