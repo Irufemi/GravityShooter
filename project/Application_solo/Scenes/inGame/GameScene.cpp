@@ -37,7 +37,8 @@ void GameScene::Initialize(IrufemiEngine* engine) {
             fm->PrecacheTextSync(hudFontId, L"// FCS CONTROLS: 操作システム");
             fm->PrecacheTextSync(hudFontId,
                                  L"[E / LT] ガレキ引寄    [右クリック / RB] ロックオン    [左クリック / RT] 一斉射撃");
-            fm->PrecacheTextSync(hudFontId, L"[R / B]  ロック解除    [WASD / Lスティック] 機体移動    [ESC / START] ポーズ");
+            fm->PrecacheTextSync(hudFontId,
+                                 L"[R / B]  ロック解除    [WASD / Lスティック] 機体移動    [ESC / START] ポーズ");
 
             // 2. スコアHUD & ポップアップ & プレイヤーHUD - NotoSansJP
             fm->PrecacheTextSync(hudFontId, L"// DATA: SCORE 0123456789 KILLS: +pts CHAIN x HIT!!");

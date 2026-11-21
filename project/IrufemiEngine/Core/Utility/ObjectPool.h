@@ -226,8 +226,8 @@ private:
     };
 
     std::vector<Slot> slots_;
-    uint32_t headFree_ = kInvalidIndex; ///< フリーリストの先頭インデックス
-    size_t freeCount_ = 0;              ///< 空きスロット数
+    uint32_t headFree_ = kInvalidIndex;           ///< フリーリストの先頭インデックス
+    size_t freeCount_ = 0;                        ///< 空きスロット数
     std::function<std::shared_ptr<T>()> factory_; ///< 遅延生成用ファクトリ関数
 };
 

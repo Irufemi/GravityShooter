@@ -329,14 +329,17 @@ void SceneManager::ProcessTransitionPhase(bool& isLoading) {
             // LoadingWait フェーズにて、描画ループを回しながらタイムスライス（StepPriming）で毎フレーム分散実行します。
         }
     } else if (transitionPhase_ == TransitionPhase::LoadingWait) {
-        // タイムスライス方式で毎フレーム最大 primingBudgetMs_ 分、オブジェクトのStart()を消化（ローディング画面を一切止めない）
+        // タイムスライス方式で毎フレーム最大 primingBudgetMs_
+        // 分、オブジェクトのStart()を消化（ローディング画面を一切止めない）
         bool isPrimingDone = true;
         if (!sceneStack_.empty()) {
             auto t0 = std::chrono::steady_clock::now();
             isPrimingDone = sceneStack_.back().scene->StepPriming(primingBudgetMs_);
             auto ms = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
             if (ms > primingBudgetMs_ * 2.0f) {
-                Log::OutPutLog(std::cout, std::format("[SceneManager] Warning: StepPriming took: {:.2f}ms (Budget: {:.2f}ms)\n", ms, primingBudgetMs_));
+                Log::OutPutLog(std::cout,
+                               std::format("[SceneManager] Warning: StepPriming took: {:.2f}ms (Budget: {:.2f}ms)\n",
+                                           ms, primingBudgetMs_));
             }
         }
 
@@ -564,9 +567,13 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
         fluid->Reset();
     }
 
-    auto msMainTearDown = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tMainStart).count();
-    Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] StartAsyncInitialize MainThread handoff took: {:.2f}ms (Zero main-thread blocking)\n",
-                                          msMainTearDown));
+    auto msMainTearDown =
+        std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tMainStart).count();
+    Log::OutPutLog(
+        std::cout,
+        std::format(
+            "[SceneManager-Perf] StartAsyncInitialize MainThread handoff took: {:.2f}ms (Zero main-thread blocking)\n",
+            msMainTearDown));
 
     initFuture_ = std::async(std::launch::async, [this, factory, next, retiringScenes]() {
         auto tWorker0 = std::chrono::steady_clock::now();
@@ -580,8 +587,12 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
                 it->scene->Finalize();
             }
             retiringScenes->clear();
-            auto msTeardown = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tTeardown0).count();
-            Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] [WorkerThread] Async scene teardown finished in: {:.2f}ms\n", msTeardown));
+            auto msTeardown =
+                std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tTeardown0).count();
+            Log::OutPutLog(
+                std::cout,
+                std::format("[SceneManager-Perf] [WorkerThread] Async scene teardown finished in: {:.2f}ms\n",
+                            msTeardown));
         }
 
         // 新しいシーンを生成

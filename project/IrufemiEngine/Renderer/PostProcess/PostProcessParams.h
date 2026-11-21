@@ -511,14 +511,14 @@ struct BandeDessineeOutlineParams {
  * @brief ボス撃破用・超高圧電磁カタクリズム用ポストプロセスパラメータ
  */
 struct LightningCataclysmParams {
-    Irufemi::Vector2 center = {0.5f, 0.5f}; ///< 放電・EMP中心UV
-    float empWaveRadius = 0.0f;             ///< EMP衝撃波面半径
-    float empWaveIntensity = 0.0f;          ///< EMP空間歪み強度
-    float arcIntensity = 0.0f;              ///< 放射状アーク放電強度
-    float plasmaFlashIntensity = 0.0f;      ///< 超高圧プラズマ白熱フラッシュ強度
-    float electricChromatic = 0.0f;         ///< 電磁干渉色収差比率
-    float time = 0.0f;                      ///< アークアニメーション用時間
-    Irufemi::Vector4 flameColor = {0.4f, 2.2f, 4.5f, 1.0f};     ///< ドーナツ爆炎の波面カラー
+    Irufemi::Vector2 center = {0.5f, 0.5f};                       ///< 放電・EMP中心UV
+    float empWaveRadius = 0.0f;                                   ///< EMP衝撃波面半径
+    float empWaveIntensity = 0.0f;                                ///< EMP空間歪み強度
+    float arcIntensity = 0.0f;                                    ///< 放射状アーク放電強度
+    float plasmaFlashIntensity = 0.0f;                            ///< 超高圧プラズマ白熱フラッシュ強度
+    float electricChromatic = 0.0f;                               ///< 電磁干渉色収差比率
+    float time = 0.0f;                                            ///< アークアニメーション用時間
+    Irufemi::Vector4 flameColor = {0.4f, 2.2f, 4.5f, 1.0f};       ///< ドーナツ爆炎の波面カラー
     Irufemi::Vector4 lightningColor = {0.25f, 0.80f, 1.6f, 1.0f}; ///< アーク放電の光彩カラー
 
     template <typename Visitor> void Visit(Visitor&& v) {

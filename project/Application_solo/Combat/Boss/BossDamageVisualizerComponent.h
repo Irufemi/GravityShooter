@@ -220,6 +220,6 @@ private:
 
     // 撃破演出カラーパレット（ボス固有色：ネオンマゼンタ＆クリムゾン）
     Irufemi::Vector4 deathLightningColor_ = {2.2f, 0.2f, 2.8f, 1.0f}; ///< 撃破時放電カラー（高圧マゼンタ紫電）
-    Irufemi::Vector4 deathBlastColor_     = {3.8f, 0.3f, 4.5f, 1.0f}; ///< 撃破時爆炎波面カラー（ヴォイドマゼンタ）
-    Irufemi::Vector4 deathVoxelColor_     = {9.5f, 2.0f, 8.0f, 1.0f}; ///< 撃破時Voxelプラズマカラー（暴走マゼンタ）
+    Irufemi::Vector4 deathBlastColor_ = {3.8f, 0.3f, 4.5f, 1.0f};     ///< 撃破時爆炎波面カラー（ヴォイドマゼンタ）
+    Irufemi::Vector4 deathVoxelColor_ = {9.5f, 2.0f, 8.0f, 1.0f};     ///< 撃破時Voxelプラズマカラー（暴走マゼンタ）
 };
