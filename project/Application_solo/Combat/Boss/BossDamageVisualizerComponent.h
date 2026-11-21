@@ -10,7 +10,7 @@ class GameObject;
 namespace Irufemi {
 class CameraShakeComponent;
 class CameraComponent;
-}
+} // namespace Irufemi
 
 /**
  * @class BossDamageVisualizerComponent

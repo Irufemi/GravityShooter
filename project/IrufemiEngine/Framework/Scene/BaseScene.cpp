@@ -453,9 +453,11 @@ bool BaseScene::StepPriming(float maxTimeMs) {
             if (obj && !obj->GetParent() && !obj->IsDestroyed() && !obj->IsStarted()) {
                 auto tStart0 = std::chrono::steady_clock::now();
                 obj->Start();
-                auto msObj = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tStart0).count();
+                auto msObj =
+                    std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tStart0).count();
                 if (msObj > 4.0f) {
-                    Log::OutPutLog(std::cout, std::format("[BaseScene-Perf] obj->Start() for '{}' took: {:.2f}ms\n", obj->GetName(), msObj));
+                    Log::OutPutLog(std::cout, std::format("[BaseScene-Perf] obj->Start() for '{}' took: {:.2f}ms\n",
+                                                          obj->GetName(), msObj));
                 }
             }
 

@@ -47,7 +47,8 @@ public:
      * @brief プールの初期化
      * @param capacity 最大保持可能数
      * @param factory 初期化時に各要素を構築するためのファクトリ関数（GameObjectのPrefab生成用）
-     * @param initialPrewarm 初期生成数（デフォルトは0。Acquire時のオンデマンド遅延生成によりロード時のメインスレッドブロックを完全排除）
+     * @param initialPrewarm
+     * 初期生成数（デフォルトは0。Acquire時のオンデマンド遅延生成によりロード時のメインスレッドブロックを完全排除）
      */
     explicit ObjectPool(size_t capacity, std::function<std::shared_ptr<T>()> factory = nullptr,
                         size_t initialPrewarm = 0)

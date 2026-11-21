@@ -610,9 +610,12 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
             nextScene_ = std::move(newScene);
         }
 
-        auto msTotalWorker = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tWorker0).count();
-        Log::OutPutLog(std::cout, std::format("[SceneManager-Perf] [WorkerThread] Finished async load for: {} in {:.2f}ms (newScene->Initialize: {:.2f}ms, SceneSerializer::Load: {:.2f}ms)\n",
-                                              next, msTotalWorker, msInit, msLoad));
+        auto msTotalWorker =
+            std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - tWorker0).count();
+        Log::OutPutLog(std::cout,
+                       std::format("[SceneManager-Perf] [WorkerThread] Finished async load for: {} in {:.2f}ms "
+                                   "(newScene->Initialize: {:.2f}ms, SceneSerializer::Load: {:.2f}ms)\n",
+                                   next, msTotalWorker, msInit, msLoad));
 
         isAsyncInitializing_.store(false);
     });

@@ -415,7 +415,8 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
         return;
     }
 
-    // クリア演出実演モードの場合：スタート演出（Warp-In & FCS起動）をフル再生し、通常戦闘・対峙を5.0秒見せた後にボスを撃破
+    // クリア演出実演モードの場合：スタート演出（Warp-In &
+    // FCS起動）をフル再生し、通常戦闘・対峙を5.0秒見せた後にボスを撃破
     if (demoMode_ == DemoMode::ClearShowcase) {
         auto currentScene = dynamic_cast<Irufemi::BaseScene*>(sm->GetCurrentScene());
         bool isIntroActive = false;

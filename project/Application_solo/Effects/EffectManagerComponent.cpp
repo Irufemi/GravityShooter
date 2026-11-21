@@ -53,8 +53,9 @@ Irufemi::ObjectPool<Irufemi::GameObject>* EffectManagerComponent::GetOrCreatePoo
         return nullptr;
     }
 
-    int poolCapacity = (effectKey == "Hit") ? maxHitEffects_ :
-                       (effectKey == "BossExplosion") ? maxBossExplosions_ : maxDustEffects_;
+    int poolCapacity = (effectKey == "Hit")             ? maxHitEffects_
+                       : (effectKey == "BossExplosion") ? maxBossExplosions_
+                                                        : maxDustEffects_;
     auto pool = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(poolCapacity, [this, prefabPath]() {
         // makeChild = true でマネージャーの子として生成し、ルート直置きを解消
         auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
@@ -156,7 +157,9 @@ void EffectManagerComponent::PlayEffect(const std::string& effectKey, const Iruf
                 }
 
                 auto updateHierarchyMatrix = [](auto self, Irufemi::GameObject* go) -> void {
-                    if (!go) return;
+                    if (!go) {
+                        return;
+                    }
                     for (const auto& child : go->GetChildren()) {
                         if (child) {
                             if (auto ct = child->GetComponent<Irufemi::TransformComponent>()) {
