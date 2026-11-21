@@ -300,7 +300,7 @@ void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wst
         if (loaded) {
             shape.normalize();
             shape.orientContours();
-            msdfgen::edgeColoringByDistance(shape, 3.0);
+            msdfgen::edgeColoringInkTrap(shape, 3.0);
 
             msdfgen::Shape::Bounds bounds = shape.getBounds();
             double width = bounds.r - bounds.l;
