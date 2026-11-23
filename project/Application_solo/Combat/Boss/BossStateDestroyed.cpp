@@ -222,8 +222,10 @@ public:
         auto engine = boss->GetEngine();
         auto dxCommon = engine->GetDirectXCommon();
 
-        Irufemi::Vector4 lightningColor = visualizer ? visualizer->GetDeathLightningColor() : Irufemi::Vector4{2.2f, 0.2f, 2.8f, 1.0f};
-        Irufemi::Vector4 blastColor = visualizer ? visualizer->GetDeathBlastColor() : Irufemi::Vector4{3.8f, 0.3f, 4.5f, 1.0f};
+        Irufemi::Vector4 lightningColor =
+            visualizer ? visualizer->GetDeathLightningColor() : Irufemi::Vector4{2.2f, 0.2f, 2.8f, 1.0f};
+        Irufemi::Vector4 blastColor =
+            visualizer ? visualizer->GetDeathBlastColor() : Irufemi::Vector4{3.8f, 0.3f, 4.5f, 1.0f};
 
         lightningBuffer_ = &boss->GetLightningBuffer();
         if (dxCommon && lightningBuffer_) {
@@ -454,7 +456,8 @@ public:
             staticHandle_ =
                 voxelMgr->RegisterEmitter("resources/model/BossRing/BossRing.obj", Irufemi::Vector3Int{20, 20, 20});
             if (staticHandle_.IsValid()) {
-                Irufemi::Vector4 voxelColor = visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
+                Irufemi::Vector4 voxelColor =
+                    visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
                 emitterParams_ = Irufemi::VoxelEmitter{};
                 emitterParams_.emit = 1;
                 emitterParams_.emitPosition = basePos_;
@@ -464,8 +467,10 @@ public:
                 emitterParams_.dispersion = 0.5f;
                 emitterParams_.convergence = 55.0f; // 中心点へ向かって猛烈に吸い込まれる立体爆縮！
                 emitterParams_.gravity = 0.0f;
-                emitterParams_.startColor = Irufemi::Vector4{voxelColor.x * 0.7f, voxelColor.y * 0.7f, voxelColor.z * 0.7f, 1.0f}; // ボス固有のヴォイドマゼンタ
-                emitterParams_.endColor = Irufemi::Vector4{voxelColor.x * 0.35f, voxelColor.y * 0.35f, voxelColor.z * 0.35f, 1.0f};
+                emitterParams_.startColor = Irufemi::Vector4{voxelColor.x * 0.7f, voxelColor.y * 0.7f,
+                                                             voxelColor.z * 0.7f, 1.0f}; // ボス固有のヴォイドマゼンタ
+                emitterParams_.endColor =
+                    Irufemi::Vector4{voxelColor.x * 0.35f, voxelColor.y * 0.35f, voxelColor.z * 0.35f, 1.0f};
                 voxelMgr->UpdateEmitterData(staticHandle_, emitterParams_);
             }
         }
@@ -493,19 +498,16 @@ public:
         float progress = std::clamp(elapsedTime_ / targetDuration_, 0.0f, 1.0f);
 
         if (boss && boss->GetEngine()) {
-            Irufemi::Vector4 voxelColor = visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
+            Irufemi::Vector4 voxelColor =
+                visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
 
             // 数千個のボクセルが convergence = 55.0 -> 110.0 によって中心に向かって立体的に吸い込まれる！
             if (staticHandle_.IsValid()) {
                 if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
                     emitterParams_.convergence = std::lerp(55.0f, 110.0f, progress);
                     float boost = std::lerp(0.7f, 1.4f, progress);
-                    emitterParams_.startColor = Irufemi::Vector4{
-                        voxelColor.x * boost,
-                        voxelColor.y * boost,
-                        voxelColor.z * boost,
-                        1.0f
-                    };
+                    emitterParams_.startColor =
+                        Irufemi::Vector4{voxelColor.x * boost, voxelColor.y * boost, voxelColor.z * boost, 1.0f};
                     voxelMgr->UpdateEmitterData(staticHandle_, emitterParams_);
                 }
             }
@@ -622,7 +624,8 @@ public:
 
         // 3. 超高密度（20x20x20、数千個）ボクセルの3D全方位大爆散（白熱マゼンタから金属煤へと冷えながら飛散）！
         if (auto voxelMgr = boss->GetEngine()->GetVoxelParticleManager()) {
-            Irufemi::Vector4 voxelColor = visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
+            Irufemi::Vector4 voxelColor =
+                visualizer ? visualizer->GetDeathVoxelColor() : Irufemi::Vector4{9.5f, 2.0f, 8.0f, 1.0f};
 
             Irufemi::VoxelEmitter p{};
             p.lifeTime = 3.2f;
@@ -630,7 +633,7 @@ public:
             p.dispersion = 75.0f; // カメラ手前・奥・全方位へ圧倒的な3D深度で超高速大爆散！
             p.particleType = 5;   // DebrisExplosive
             p.scale = {1.1f, 1.1f, 1.1f};
-            p.startColor = voxelColor; // ボス固有の暴走マゼンタプラズマ
+            p.startColor = voxelColor;                // ボス固有の暴走マゼンタプラズマ
             p.endColor = {0.05f, 0.05f, 0.08f, 1.0f}; // 飛散して冷え切った機体の金属煤
             p.dissolveEdgeColor = {voxelColor.x * 0.8f, voxelColor.y * 0.4f, voxelColor.z * 0.5f, 1.0f};
 
@@ -809,7 +812,8 @@ private:
 /**
  * @brief ボス撃破演出に伴うシネマティック・アイソレーション
  * @details 戦闘HUD（レティクル・ロックオン等）や画面内の敵弾を一掃し、ボスの劇的な崩壊演出にフォーカスする
- * @note アウトライン（自機・雑魚敵等）の非表示化は、個別オブジェクト操作ではなく PostProcessManager::SetOutlineMuted(true) で元栓一括遮断
+ * @note アウトライン（自機・雑魚敵等）の非表示化は、個別オブジェクト操作ではなく
+ * PostProcessManager::SetOutlineMuted(true) で元栓一括遮断
  */
 void IsolateCinematicScene(BossComponent* boss) {
     if (!boss || !boss->GetGameObject()) {

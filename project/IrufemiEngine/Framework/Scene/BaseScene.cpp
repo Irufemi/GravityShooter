@@ -444,7 +444,8 @@ bool BaseScene::StepPriming(float maxTimeMs) {
     if (engine_ && engine_->IsPlayMode()) {
         while (primingIndex_ < gameObjects_.size()) {
             // 指定した最大時間（ミリ秒）を超過した場合は次フレームへ処理を譲り、ローディング画面の描画を最優先
-            auto elapsedMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
+            auto elapsedMs =
+                std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - startTime).count();
             if (elapsedMs >= maxTimeMs) {
                 return false; // 未完了（次フレームへ継続）
             }

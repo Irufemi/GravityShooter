@@ -315,7 +315,7 @@ private:
     float thickness_ = 10.0f;   //!< RingやLineでの太さ
     uint32_t subdivision_ = 64; //!< 円系の分割数
 
-    bool isTopMost_ = false;       //!< UI用など、最前面描画フラグ
+    bool isTopMost_ = false; //!< UI用など、最前面描画フラグ
     UILayer layer_ = UILayer::GameHUD;
     int sortingOrder_ = 0;
     bool isMeshDirty_ = true;      //!< メッシュ再構築フラグ

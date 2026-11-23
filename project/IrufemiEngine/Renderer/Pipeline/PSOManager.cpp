@@ -512,7 +512,8 @@ bool PSOManager::LoadAndPreWarmManifest(ThreadPool* threadPool, const std::strin
     nlohmann::json j;
     if (!Irufemi::JsonUtility::LoadFromFile(path, j)) {
         isManifestCorrupted_ = true;
-        Log::OutPutLog(std::cout, "[PSOManager] Error: Failed to parse PSO manifest (corrupted or invalid JSON): " + path + "\n");
+        Log::OutPutLog(std::cout,
+                       "[PSOManager] Error: Failed to parse PSO manifest (corrupted or invalid JSON): " + path + "\n");
         return false;
     }
 
@@ -622,16 +623,11 @@ void PSOManager::PreWarmRegisteredShaders(ThreadPool* threadPool) {
             continue;
         }
 
-        const std::vector<Irufemi::BlendMode> blendModes = {
-            Irufemi::BlendMode::kBlendModeNormal,
-            Irufemi::BlendMode::kBlendModeAdd,
-            Irufemi::BlendMode::kBlendModeNone
-        };
+        const std::vector<Irufemi::BlendMode> blendModes = {Irufemi::BlendMode::kBlendModeNormal,
+                                                            Irufemi::BlendMode::kBlendModeAdd,
+                                                            Irufemi::BlendMode::kBlendModeNone};
 
-        const std::vector<CullMode> cullModes = {
-            CullMode::Back,
-            CullMode::None
-        };
+        const std::vector<CullMode> cullModes = {CullMode::Back, CullMode::None};
 
         std::vector<DepthWrite> depthModes;
         if (desc.disableDepthTest) {

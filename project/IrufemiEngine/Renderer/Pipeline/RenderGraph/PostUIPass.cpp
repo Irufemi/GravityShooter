@@ -81,7 +81,7 @@ void PostUIPass::Execute(const Irufemi::RenderContext& rc) {
 
             cmdList->SetGraphicsRootSignature(dxCommon->GetRootSignature());
             cmdList->SetGraphicsRootConstantBufferView(static_cast<UINT>(RootSlot::Material),
-                                                      fadeConstantBuffer_->GetGPUVirtualAddress());
+                                                       fadeConstantBuffer_->GetGPUVirtualAddress());
 
             cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             cmdList->IASetVertexBuffers(0, 0, nullptr);

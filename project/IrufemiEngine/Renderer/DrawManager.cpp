@@ -1619,7 +1619,8 @@ void DrawManager::BuildRenderGraph(IrufemiEngine* engine) {
     }
 
 #ifndef EditorMode
-    // 3. スタンドアロン実行時: 3Dシーン（内部解像度 1280x720）をバックバッファ（実機ネイティブ解像度）へ高品質アップスケール転送
+    // 3. スタンドアロン実行時: 3Dシーン（内部解像度
+    // 1280x720）をバックバッファ（実機ネイティブ解像度）へ高品質アップスケール転送
     if (ppMgr && ppMgr->GetRunner()) {
         D3D12_RESOURCE_DESC desc = engine->GetMainRenderTexture()->GetResource()->GetDesc();
         auto sceneBlitSrc = renderGraph_->CreateTransientResource("PP_SceneBlitSrc", desc);

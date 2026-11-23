@@ -430,7 +430,7 @@ private:
     bool isTopMost_ = false; // 最前面UIフラグ
     UILayer layer_ = UILayer::GameHUD;
     int sortingOrder_ = 0;
-    float uiScale_ = 1.0f;   // UIスケール
+    float uiScale_ = 1.0f; // UIスケール
     Matrix4x4 lastViewMatrix_ = {};
     Matrix4x4 lastProjectionMatrix_ = {};
 };

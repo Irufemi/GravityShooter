@@ -63,7 +63,9 @@ void OptionsScene::Initialize(IrufemiEngine* engine) {
     // メインスレッドの初期ロードを阻害せず、操作時の文字飛びを防止
     if (engine) {
         if (auto fm = engine->GetFontManager()) {
-            fm->PrecacheText("NotoSansJP-Bold", L"0123456789% OPTIONS BGM SE VOLUME STICK SENSITIVITY BACK CLOSE CURSOR ADJUST SELECT /-.,");
+            fm->PrecacheText(
+                "NotoSansJP-Bold",
+                L"0123456789% OPTIONS BGM SE VOLUME STICK SENSITIVITY BACK CLOSE CURSOR ADJUST SELECT /-.,");
         }
         if (auto input = engine->GetInputManager()) {
             input->SetVirtualCursorPosition(engine->GetGameResolution() * 0.5f);

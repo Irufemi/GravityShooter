@@ -151,7 +151,8 @@ public:
 
     /**
      * @brief ポストプロセスアウトライン（BandeDessinee / DepthBased / MaskBased）を一括ミュートする
-     * @details ボス撃破等のシネマティック演出において、自機や雑魚敵のアウトライン貫通を防ぐためのパイプラインマスター制御
+     * @details
+     * ボス撃破等のシネマティック演出において、自機や雑魚敵のアウトライン貫通を防ぐためのパイプラインマスター制御
      */
     void SetOutlineMuted(bool muted) {
         isOutlineMuted_ = muted;

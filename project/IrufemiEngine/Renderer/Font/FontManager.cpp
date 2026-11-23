@@ -224,7 +224,8 @@ void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wst
             if (c1 >= 0xD800 && c1 <= 0xDBFF && (i + 1 < text.size())) {
                 wchar_t c2 = text[i + 1];
                 if (c2 >= 0xDC00 && c2 <= 0xDFFF) {
-                    char32 = 0x10000 + ((static_cast<char32_t>(c1) - 0xD800) << 10) + (static_cast<char32_t>(c2) - 0xDC00);
+                    char32 =
+                        0x10000 + ((static_cast<char32_t>(c1) - 0xD800) << 10) + (static_cast<char32_t>(c2) - 0xDC00);
                     ++i;
                 } else {
                     char32 = static_cast<char32_t>(c1);
@@ -375,7 +376,7 @@ void FontManager::PrecacheTextInternal(const std::string& fontId, const std::wst
                             static_cast<uint8_t>(std::clamp(pixel[1] * 255.0f + 0.5f, 0.0f, 255.0f)); // G
                         impl_->cpuAtlasData[destIndex + 2] =
                             static_cast<uint8_t>(std::clamp(pixel[2] * 255.0f + 0.5f, 0.0f, 255.0f)); // B
-                        impl_->cpuAtlasData[destIndex + 3] = 255;                                       // A
+                        impl_->cpuAtlasData[destIndex + 3] = 255;                                     // A
                     }
                 }
 

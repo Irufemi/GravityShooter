@@ -687,7 +687,8 @@ public:
     /**
      * @brief SubmitTopMostSprite を実行する。
      */
-    void SubmitTopMostSprite(const class Object2DResource* resource, int sortingOrder = 0, UILayer layer = UILayer::SystemOverlay);
+    void SubmitTopMostSprite(const class Object2DResource* resource, int sortingOrder = 0,
+                             UILayer layer = UILayer::SystemOverlay);
 
     // --- Text ---
     /**
@@ -697,7 +698,8 @@ public:
     /**
      * @brief SubmitTopMostText を実行する。
      */
-    void SubmitTopMostText(const class Object2DResource* resource, int sortingOrder = 0, UILayer layer = UILayer::SystemOverlay);
+    void SubmitTopMostText(const class Object2DResource* resource, int sortingOrder = 0,
+                           UILayer layer = UILayer::SystemOverlay);
     /**
      * @brief DrawText を実行する。
      */
