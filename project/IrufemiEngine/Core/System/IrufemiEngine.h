@@ -690,6 +690,13 @@ public: // ゲッター
         return timeScale_;
     }
     /**
+     * @brief ゲームシミュレーションが一時停止中（TimeScale <= 0.0f）かを判定します
+     * @return シミュレーション停止中の場合は true
+     */
+    bool IsSimulationPaused() const {
+        return timeScale_ <= 0.0f;
+    }
+    /**
      * @brief TimeScale を設定する。
      * @param[in] scale 設定する TimeScale の値
      */

@@ -41,6 +41,8 @@
 // エンジン機能
 #include "RHI/DirectX12/ShaderManager.h"
 #include "Renderer/Pipeline/PSOManager.h"
+#include "Core/Utility/JsonUtility.h"
+#include "Core/Utility/StringUtility.h"
 
 // UI
 #include "UI/LoadingScreen.h"
@@ -88,6 +90,18 @@ constexpr std::string_view kInitialScene = GameScenes::InGame;
 constexpr std::string_view kInitialScene = GameScenes::Title;
 #endif
 
+// --- デモモード文字列のパース ---
+AttractDemoManager::DemoMode ParseDemoMode(const std::string& modeStr) {
+    if (modeStr == "GameOverShowcase") {
+        return AttractDemoManager::DemoMode::GameOverShowcase;
+    } else if (modeStr == "TransitionShowcase") {
+        return AttractDemoManager::DemoMode::TransitionShowcase;
+    } else if (modeStr == "StandardAttract") {
+        return AttractDemoManager::DemoMode::StandardAttract;
+    }
+    return AttractDemoManager::DemoMode::ClearShowcase;
+}
+
 // --- シーン登録処理 ---
 void RegisterScenes(Irufemi::SceneManager& sm) {
     sm.Register(GameScenes::Title, [] { return std::make_unique<TitleScene>(); });
@@ -127,6 +141,10 @@ void RegisterShaders(IrufemiEngine& engine) {
     // ボス撃破演出用: 3D空間ノイズ電流オーバーレイピクセルシェーダー
     auto psBossLightning = shaderManager->GetOrCompile(L"BossLightning.PS.hlsl", options);
     psoManager->RegisterShader("BossLightning", {{vs3d, psBossLightning}});
+
+    // 3D空間量子化アーク放電シェーダー
+    auto psElectricArc = shaderManager->GetOrCompile(L"ElectricArc.PS.hlsl", options);
+    psoManager->RegisterShader("ElectricArc", {{vs3d, psElectricArc}});
 
     // LockonMarker用シェーダー (SpriteBatch.VS.hlsl を使う)
     auto vsSpriteBatch = shaderManager->GetOrCompile(L"SpriteBatch.VS.hlsl", options);
@@ -232,11 +250,68 @@ void GameApplication::Run() {
     engine->AddExtension(editorManager);
 #endif
 
-    // アトラクトデモ＆キオスク固定展示の設定（クリア演出評価用自律デモ起動）
+    // デフォルト構成設定（フォールバック用）
+    int32_t clientWidth = kClientWidth;
+    int32_t clientHeight = kClientHeight;
+    std::wstring title = kTitle;
+    Irufemi::Vector4 clearColor = kClearColor;
+    std::string initialScene = std::string(kInitialScene);
+
     AttractDemoConfig demoConfig;
-    demoConfig.enabledOnStart = true; // 起動時からデモプレイ機能を有効化
+    demoConfig.enabledOnStart = false; // デフォルトはOFF
     demoConfig.defaultMode = AttractDemoManager::DemoMode::ClearShowcase;
-    demoConfig.enableDevHotkeys = true; // 開発・審査用のF8トグルは有効
+    demoConfig.enableDevHotkeys = true;
+
+    // 外部設定ファイル（resources/config/app_config.json）の読み込み
+    nlohmann::json appConfigJson;
+    std::string configPath = "resources/config/app_config.json";
+    if (!JsonUtility::LoadFromFile(configPath, appConfigJson)) {
+        configPath = "project/Application_solo/resources/config/app_config.json";
+        JsonUtility::LoadFromFile(configPath, appConfigJson);
+    }
+
+    if (!appConfigJson.is_null() && !appConfigJson.empty()) {
+        if (appConfigJson.contains("window")) {
+            const auto& wnd = appConfigJson["window"];
+            if (wnd.contains("title") && wnd["title"].is_string()) {
+                title = ConvertString(wnd["title"].get<std::string>());
+            }
+            if (wnd.contains("width") && wnd["width"].is_number_integer()) {
+                clientWidth = wnd["width"].get<int32_t>();
+            }
+            if (wnd.contains("height") && wnd["height"].is_number_integer()) {
+                clientHeight = wnd["height"].get<int32_t>();
+            }
+            if (wnd.contains("clearColor")) {
+                clearColor = JsonUtility::ToVector4(wnd["clearColor"], clearColor);
+            }
+        }
+
+        if (appConfigJson.contains("scene")) {
+            const auto& scn = appConfigJson["scene"];
+            if (scn.contains("initialScene") && scn["initialScene"].is_string()) {
+                initialScene = scn["initialScene"].get<std::string>();
+            }
+        }
+
+        if (appConfigJson.contains("demo")) {
+            const auto& demo = appConfigJson["demo"];
+            if (demo.contains("enabledOnStart") && demo["enabledOnStart"].is_boolean()) {
+                demoConfig.enabledOnStart = demo["enabledOnStart"].get<bool>();
+            }
+            if (demo.contains("defaultMode") && demo["defaultMode"].is_string()) {
+                demoConfig.defaultMode = ParseDemoMode(demo["defaultMode"].get<std::string>());
+            }
+            if (demo.contains("enableDevHotkeys") && demo["enableDevHotkeys"].is_boolean()) {
+                demoConfig.enableDevHotkeys = demo["enableDevHotkeys"].get<bool>();
+            }
+        }
+    }
+
+#ifdef EditorMode
+    // エディタモード実行時は、編集・検証作業を阻害しないよう起動時自動デモを強制無効化
+    demoConfig.enabledOnStart = false;
+#endif
 
     // コマンドライン引数（-demo または --kiosk）が指定されている場合はデモ起動へ上書き
     if (const wchar_t* cmdLine = GetCommandLineW()) {
@@ -250,7 +325,7 @@ void GameApplication::Run() {
     engine->AddExtension(std::make_shared<AttractDemoManager>(demoConfig));
 
     // エンジンの初期化
-    engine->Initialize(kTitle, kClientWidth, kClientHeight, kClearColor);
+    engine->Initialize(title, clientWidth, clientHeight, clearColor);
 
 #ifdef EditorMode
     // エンジン初期化後にエディタへ登録（OnInitialize内でレジストリが生成されるため）
@@ -295,7 +370,7 @@ void GameApplication::Run() {
     engine->SetSceneRegistrar(RegisterScenes);
 
     // 初期シーンの設定
-    engine->SetInitialSceneName(std::string(kInitialScene));
+    engine->SetInitialSceneName(initialScene);
 
     // ゲームループの実行
     engine->Execute();

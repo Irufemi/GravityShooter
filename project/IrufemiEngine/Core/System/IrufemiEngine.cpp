@@ -875,14 +875,17 @@ void IrufemiEngine::Execute() {
         sceneTransition_->Update(deltaTime_);
         postProcessManager_->Update(gameTime_);
 
-        // 4) ParticleのUpdate (GPU)
-        if (gpuParticleManager_) {
+        // シミュレーション停止状態（ポーズ中）の判定
+        bool isSimPaused = IsSimulationPaused();
+
+        // 4) ParticleのUpdate (GPU) - ポーズ中はシミュレーション計算を凍結
+        if (gpuParticleManager_ && !isSimPaused) {
             gpuParticleManager_->Update();
         }
 
         // 5) 2D GPU流体シミュレーションの更新 & コンピュートタスク登録
-        if (fluidSimulation_) {
-            fluidSimulation_->Update(deltaTime_);
+        if (fluidSimulation_ && !isSimPaused) {
+            fluidSimulation_->Update(gameDeltaTime_);
             if (drawManager_) {
                 drawManager_->RegisterComputeTask(fluidSimulation_.get());
             }
@@ -894,9 +897,8 @@ void IrufemiEngine::Execute() {
 
         if (voxelParticleManager_) {
             // ポーズ中は VoxelParticle の更新をスキップする
-            bool isPaused = (sceneManager_ && sceneManager_->GetCurrent() == "Pause");
-            if (!isPaused) {
-                voxelParticleManager_->Update(deltaTime_);
+            if (!isSimPaused) {
+                voxelParticleManager_->Update(gameDeltaTime_);
             }
         }
 

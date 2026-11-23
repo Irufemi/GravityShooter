@@ -176,7 +176,7 @@ public:
 
     /**
      * @brief 描画後にインスタンスを自動クリアするかどうかを設定します
-     * @param[in] enable 自動クリアする場合は true（デフォルト: true）
+     * @param[in] enable 自動クリアする場合は true（デフォルト: false）
      */
     void SetAutoClearEveryFrame(bool enable) {
         autoClearEveryFrame_ = enable;
@@ -195,7 +195,7 @@ private:
     std::string modelName_ = "plane.obj";               ///< 読み込むモデル名
     Irufemi::Vector4 color_ = {1.0f, 1.0f, 1.0f, 1.0f}; ///< ベースマテリアルカラー
     bool useGPUCulling_ = false;                        ///< GPUカリングの有効フラグ
-    bool autoClearEveryFrame_ = true;                   ///< 描画後にインスタンスを自動クリアするかどうか
+    bool autoClearEveryFrame_ = false;                  ///< 描画後にインスタンスを自動クリアするかどうか（デフォルト: false）
 };
 
 } // namespace Irufemi

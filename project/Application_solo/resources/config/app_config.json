@@ -1,0 +1,16 @@
+{
+  "window": {
+    "title": "Application_solo",
+    "width": 1280,
+    "height": 720,
+    "clearColor": [0.08, 0.03, 0.02, 1.0]
+  },
+  "scene": {
+    "initialScene": "InGame"
+  },
+  "demo": {
+    "enabledOnStart": true,
+    "defaultMode": "ClearShowcase",
+    "enableDevHotkeys": true
+  }
+}

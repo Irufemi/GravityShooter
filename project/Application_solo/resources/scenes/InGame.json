@@ -2245,6 +2245,7 @@
           "data": {
             "Beam Offset Y": 0.0,
             "Beam Offset Z": 4.0,
+            "Initial Drone Count": 10,
             "Status Data Path": "resources/GameData/BossStatus.json"
           },
           "type": "BossComponent"
@@ -2340,21 +2341,21 @@
             "Damage Shake Duration": 0.1599999964237213,
             "Damage Shake Frequency": 15.0,
             "Damage Shake Intensity": 0.4000000059604645,
-            "Death Shake Duration": 1.0,
-            "Death Shake Frequency": 10.0,
-            "Death Shake Intensity": 2.0,
-            "Death Lightning Color": [
-              2.2,
-              0.2,
-              2.8,
-              1.0
-            ],
             "Death Blast Color": [
-              3.8,
-              0.3,
+              3.799999952316284,
+              0.30000001192092896,
               4.5,
               1.0
             ],
+            "Death Lightning Color": [
+              2.200000047683716,
+              0.20000000298023224,
+              2.799999952316284,
+              1.0
+            ],
+            "Death Shake Duration": 1.0,
+            "Death Shake Frequency": 10.0,
+            "Death Shake Intensity": 2.0,
             "Death Voxel Color": [
               9.5,
               2.0,
@@ -2455,7 +2456,9 @@
         },
         {
           "data": {
+            "Boss Explosion Effect Path": "resources/prefabs/boss_explosion_effect.json",
             "Dust Effect Path": "resources/prefabs/debris_dust_effect.json",
+            "Enemy Explosion Effect Path": "resources/prefabs/enemy_explosion_effect.json",
             "Hit Effect Path": "resources/prefabs/normal_attack_hit_effect.json",
             "Thruster Effect Path": "resources/prefabs/player_thruster_effect.json"
           },
@@ -2498,7 +2501,7 @@
               0.6499999761581421
             ],
             "currentTypeIndex": 3,
-            "isTopMost": true,
+            "isTopMost": false,
             "pivot": [
               0.5,
               0.5
@@ -2873,18 +2876,18 @@
                 "type": "Vignette"
               },
               {
-                "depthWeight": 0.8,
+                "depthWeight": 0.800000011920929,
                 "distanceFadeEnd": 120.0,
                 "distanceFadeStart": 20.0,
                 "enabled": true,
                 "inkColor": [
-                  0.08,
-                  0.08,
-                  0.12,
+                  0.07999999821186066,
+                  0.07999999821186066,
+                  0.11999999731779099,
                   1.0
                 ],
-                "intensity": 1.2,
-                "normalWeight": 0.8,
+                "intensity": 1.2000000476837158,
+                "normalWeight": 0.800000011920929,
                 "type": "BandeDessineeOutline"
               }
             ]

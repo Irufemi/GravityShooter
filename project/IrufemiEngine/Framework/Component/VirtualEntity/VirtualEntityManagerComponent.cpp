@@ -2,6 +2,7 @@
 #include "Framework/GameObject/GameObject.h"
 #include "Framework/Component/TransformComponent.h"
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
+#include "Core/System/IrufemiEngine.h"
 #include "Core/Math/MathFunction.h"
 #include <algorithm>
 
@@ -226,6 +227,11 @@ void VirtualEntityManagerComponent::ReleaseGameObject(const std::shared_ptr<Game
 void VirtualEntityManagerComponent::Update() {
     if (!batchRenderer_) {
         return;
+    }
+
+    auto engine = GetEngine();
+    if (engine && engine->IsSimulationPaused()) {
+        return; // ポーズ中は前フレームのバッチインスタンスをそのまま保持
     }
 
     activeInstanceCount_ = static_cast<int>(dense_.size());

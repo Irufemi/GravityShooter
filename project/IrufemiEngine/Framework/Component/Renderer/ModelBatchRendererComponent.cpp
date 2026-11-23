@@ -49,7 +49,12 @@ void ModelBatchRendererComponent::Draw() {
     }
     if (batch_) {
         batch_->Draw();
-        if (autoClearEveryFrame_) {
+        // シミュレーション停止中（ポーズ中）は再描画のためにインスタンスを保持し、クリアをスキップ
+        bool isPaused = false;
+        if (auto engine = GetEngine()) {
+            isPaused = engine->IsSimulationPaused();
+        }
+        if (autoClearEveryFrame_ && !isPaused) {
             batch_->ClearInstances();
         }
     }

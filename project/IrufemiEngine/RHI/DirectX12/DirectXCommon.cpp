@@ -262,7 +262,8 @@ void DirectXCommon::SetInfoQueue() {
         D3D12_MESSAGE_ID denyIds[] = {D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE,
                                       D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
                                       D3D12_MESSAGE_ID_CREATEPIPELINESTATE_CACHEDBLOBDRIVERVERSIONMISMATCH,
-                                      D3D12_MESSAGE_ID_CREATEPIPELINESTATE_CACHEDBLOBDESCMISMATCH};
+                                      D3D12_MESSAGE_ID_CREATEPIPELINESTATE_CACHEDBLOBDESCMISMATCH,
+                                      D3D12_MESSAGE_ID_CREATEGRAPHICSPIPELINESTATE_RENDERTARGETVIEW_NOT_SET};
         D3D12_MESSAGE_SEVERITY severties[] = {D3D12_MESSAGE_SEVERITY_INFO};
         D3D12_INFO_QUEUE_FILTER filter{};
         filter.DenyList.NumIDs = _countof(denyIds);
@@ -379,10 +380,20 @@ void DirectXCommon::RegisterAllShaders() {
     batchDesc.shaders = {vsBatch, ps3d};
     psoManager_->RegisterShader("Batch", batchDesc); // ps3dを共有
 
-    // 2D/UI系 (MRT非対応・1枚)
-    psoManager_->RegisterShader("Sprite", {{vsSprite, psSprite}});
-    psoManager_->RegisterShader("SpriteBatch", {{vsSpriteBatch, psSprite}});
-    psoManager_->RegisterShader("Text", {{vsText, psText}});
+    // 2D/UI系 (MRT非対応・1枚・DSVなし)
+    PSOManager::PipelineStateDesc ui2DDesc{};
+    ui2DDesc.shaders = {vsSprite, psSprite};
+    ui2DDesc.disableDepthTest = true;
+    ui2DDesc.noDSV = true;
+    psoManager_->RegisterShader("Sprite", ui2DDesc);
+
+    PSOManager::PipelineStateDesc uiBatchDesc = ui2DDesc;
+    uiBatchDesc.shaders = {vsSpriteBatch, psSprite};
+    psoManager_->RegisterShader("SpriteBatch", uiBatchDesc);
+
+    PSOManager::PipelineStateDesc uiTextDesc = ui2DDesc;
+    uiTextDesc.shaders = {vsText, psText};
+    psoManager_->RegisterShader("Text", uiTextDesc);
 
     // 3Dエフェクト系 (MRT対応)
     PSOManager::PipelineStateDesc particleDesc = mrtDesc;

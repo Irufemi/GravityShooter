@@ -26,6 +26,7 @@ void EffectManagerComponent::OnRegisterProperties() {
     RegisterProperty("Dust Effect Path", &dustEffectPath_);
     RegisterProperty("Thruster Effect Path", &thrusterEffectPath_);
     RegisterProperty("Boss Explosion Effect Path", &bossExplosionEffectPath_);
+    RegisterProperty("Enemy Explosion Effect Path", &enemyExplosionEffectPath_);
 }
 
 void EffectManagerComponent::Initialize() {
@@ -34,6 +35,7 @@ void EffectManagerComponent::Initialize() {
     effectDictionary_["debris_dust_effect"] = dustEffectPath_;
     effectDictionary_["Thruster"] = thrusterEffectPath_;
     effectDictionary_["BossExplosion"] = bossExplosionEffectPath_;
+    effectDictionary_["EnemyExplosion"] = enemyExplosionEffectPath_;
 }
 
 void EffectManagerComponent::Start() {
@@ -53,9 +55,10 @@ Irufemi::ObjectPool<Irufemi::GameObject>* EffectManagerComponent::GetOrCreatePoo
         return nullptr;
     }
 
-    int poolCapacity = (effectKey == "Hit")             ? maxHitEffects_
-                       : (effectKey == "BossExplosion") ? maxBossExplosions_
-                                                        : maxDustEffects_;
+    int poolCapacity = (effectKey == "Hit")              ? maxHitEffects_
+                       : (effectKey == "BossExplosion")  ? maxBossExplosions_
+                       : (effectKey == "EnemyExplosion") ? maxEnemyExplosions_
+                                                         : maxDustEffects_;
     auto pool = std::make_unique<Irufemi::ObjectPool<Irufemi::GameObject>>(poolCapacity, [this, prefabPath]() {
         // makeChild = true でマネージャーの子として生成し、ルート直置きを解消
         auto obj = gameObject_->Instantiate(prefabPath, {0.0f, 0.0f, 0.0f}, true);
