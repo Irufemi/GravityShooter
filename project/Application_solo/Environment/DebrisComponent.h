@@ -7,7 +7,7 @@ class DebrisManagerComponent;
 namespace Irufemi {
 class GameObject;
 class ParticleEmitterComponent;
-}
+} // namespace Irufemi
 
 enum class DebrisState {
     Idle,         ///< 漂流中（自然な浮遊）

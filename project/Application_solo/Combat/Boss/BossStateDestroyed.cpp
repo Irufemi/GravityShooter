@@ -653,9 +653,9 @@ public:
             lc.center = CalculateWorldScreenUV(boss->GetEngine(), deadPos_);
             lc.plasmaFlashIntensity = 0.50f; // ドカンと炸裂する瞬間閃光
             lc.arcIntensity = 6.5f;
-            lc.empWaveRadius = 0.05f;         // 局所衝撃波リングの起点
-            lc.empWaveIntensity = 0.40f;      // 全画面ではなくボスの周囲のみを歪ませる適度な強度
-            lc.electricChromatic = 0.0f;      // 全画面色収差は完全オフ（視界・UIを明瞭に維持）
+            lc.empWaveRadius = 0.05f;    // 局所衝撃波リングの起点
+            lc.empWaveIntensity = 0.40f; // 全画面ではなくボスの周囲のみを歪ませる適度な強度
+            lc.electricChromatic = 0.0f; // 全画面色収差は完全オフ（視界・UIを明瞭に維持）
             if (visualizer) {
                 lc.flameColor = visualizer->GetDeathBlastColor();
                 lc.lightningColor = visualizer->GetDeathLightningColor();

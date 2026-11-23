@@ -276,8 +276,8 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                                         p.gravity = kVoxelParticleGravity;
                                         p.dispersion = kVoxelParticleDispersion;
                                         p.scale = {0.5f, 0.5f, 0.5f};
-                                        p.startColor = {8.0f, 1.5f, 7.0f, 1.0f};          // 超高輝度マゼンタ過電圧放電色
-                                        p.endColor = {0.2f, 0.02f, 0.25f, 0.0f};          // 電磁紫煙フェード
+                                        p.startColor = {8.0f, 1.5f, 7.0f, 1.0f}; // 超高輝度マゼンタ過電圧放電色
+                                        p.endColor = {0.2f, 0.02f, 0.25f, 0.0f}; // 電磁紫煙フェード
                                         p.dissolveEdgeColor = {20.0f, 3.0f, 18.0f, 1.0f}; // 超高圧放電エッジ発光
                                         voxelMgr->PlayExplosion(capturedModelPath, deadPos, {0.0f, 0.0f, 0.0f},
                                                                 {0.0f, 0.0f, 0.0f}, currentScale, p, {3, 3, 3});
