@@ -284,19 +284,12 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                                     }
                                 }
 
-                                // 5. 中点変位法アーク放電（LightningCataclysm）の瞬間トリガー
-                                if (auto spawnerObj = weakObj.lock()) {
-                                    if (auto spawner = spawnerObj->GetComponent<EnemySpawnerComponent>()) {
-                                        spawner->TriggerLightningCataclysm(deadPos);
-                                    }
-                                }
-
-                                // 6. 撃破爆発エフェクトの再生（高圧電磁破裂）
+                                // 5. 撃破爆発エフェクトの再生（高圧電磁破裂）
                                 if (auto effectMgr = EffectManagerComponent::GetInstance()) {
                                     effectMgr->PlayEffect("EnemyExplosion", deadPos);
                                 }
 
-                                // 7. スコア＆マルチキル通知（基本点100pts）
+                                // 6. スコア＆マルチキル通知（基本点100pts）
                                 if (auto scoreMgr = ScoreManagerComponent::GetInstance()) {
                                     scoreMgr->NotifyEnemyKilled(100);
                                 }
@@ -335,28 +328,6 @@ void EnemySpawnerComponent::Update() {
     auto engine = GetEngine();
     if (engine && engine->IsSimulationPaused()) {
         return; // ポーズ中は前フレームのバッチインスタンスをそのまま保持
-    }
-
-    // 稲妻ポストプロセス（LightningCataclysm）の減衰・自動終了制御
-    if (lightningTimer_ > 0.0f) {
-        float dt = engine ? engine->GetGameDeltaTime() : 0.0f;
-        lightningTimer_ -= dt;
-        if (auto scene = gameObject_ ? gameObject_->GetScene() : nullptr) {
-            if (auto eng = scene->GetEngine()) {
-                if (auto ppm = eng->GetPostProcessManager()) {
-                    if (lightningTimer_ <= 0.0f) {
-                        lightningTimer_ = 0.0f;
-                        ppm->RemoveActiveMode(PostProcessMode::LightningCataclysm);
-                    } else {
-                        auto& lc = ppm->GetLightningCataclysmParams();
-                        float factor = lightningTimer_ / 0.12f;
-                        lc.arcIntensity = factor;
-                        lc.empWaveIntensity = factor * 0.6f;
-                        lc.empWaveRadius += dt * 0.8f;
-                    }
-                }
-            }
-        }
     }
 
     // 1. 各プレハブ専用の ModelBatchRendererComponent インスタンス描画キューをクリア
@@ -491,47 +462,4 @@ Irufemi::GameObject* EnemySpawnerComponent::SpawnEnemyByPrefab(const std::string
     }
 
     return nullptr;
-}
-
-void EnemySpawnerComponent::TriggerLightningCataclysm(const Irufemi::Vector3& worldPos) {
-    auto scene = gameObject_ ? gameObject_->GetScene() : nullptr;
-    auto engine = scene ? scene->GetEngine() : nullptr;
-    if (!engine) {
-        return;
-    }
-
-    auto ppm = engine->GetPostProcessManager();
-    auto cameraMgr = engine->GetCameraManager();
-    if (!ppm || !cameraMgr) {
-        return;
-    }
-
-    Irufemi::Camera* activeCam = cameraMgr->GetActiveCamera();
-    if (!activeCam) {
-        return;
-    }
-
-    const auto& viewProj = activeCam->GetViewProjectionMatrix3D();
-    float w = worldPos.x * viewProj.m[0][3] + worldPos.y * viewProj.m[1][3] + worldPos.z * viewProj.m[2][3] + viewProj.m[3][3];
-    if (w <= 0.001f) {
-        return; // カメラ後方はスキップ
-    }
-
-    Irufemi::Vector3 clipPos = Irufemi::Math::Transform(worldPos, viewProj);
-    Irufemi::Vector2 screenUV = {
-        std::clamp(clipPos.x * 0.5f + 0.5f, 0.05f, 0.95f),
-        std::clamp(-clipPos.y * 0.5f + 0.5f, 0.05f, 0.95f)
-    };
-
-    ppm->AddActiveMode(PostProcessMode::LightningCataclysm, PostProcessManager::Layer::PreUI);
-    auto& lc = ppm->GetLightningCataclysmParams();
-    lc.center = screenUV;
-    lc.arcIntensity = 1.0f;
-    lc.empWaveRadius = 0.04f;
-    lc.empWaveIntensity = 0.6f;
-    lc.electricChromatic = 0.04f;
-    lc.flameColor = Irufemi::Vector4{3.5f, 0.3f, 4.0f, 1.0f}; // 電磁マゼンタ
-    lc.lightningColor = Irufemi::Vector4{2.5f, 0.4f, 3.0f, 1.0f}; // 電磁稲妻色
-
-    lightningTimer_ = 0.12f;
 }

@@ -5,6 +5,7 @@
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace Irufemi {
 class TransformComponent;
@@ -131,12 +132,6 @@ public:
      */
     std::shared_ptr<Irufemi::GameObject> GetDebrisManagerObject();
 
-    /**
-     * @brief 敵撃破位置を中心とする中点変位法アーク放電（LightningCataclysm）を瞬間発火する
-     * @param[in] worldPos 撃破ワールド座標
-     */
-    void TriggerLightningCataclysm(const Irufemi::Vector3& worldPos);
-
 private:
     struct PrefabPoolData {
         std::string prefabPath;
@@ -161,7 +156,6 @@ private:
     std::unordered_map<std::string, std::unique_ptr<PrefabPoolData>> prefabPools_;
     std::weak_ptr<Irufemi::GameObject> playerCartObj_;
     std::weak_ptr<Irufemi::GameObject> debrisManagerObj_;
-    float lightningTimer_ = 0.0f;
     struct ActiveEnemyInfo {
         Irufemi::GameObject* enemyObj = nullptr;
         Irufemi::TransformComponent* transform = nullptr;
