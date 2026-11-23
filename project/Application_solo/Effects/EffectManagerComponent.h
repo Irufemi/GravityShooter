@@ -64,6 +64,7 @@ private:
     std::string thrusterEffectPath_ = "resources/prefabs/player_thruster_effect.json";
     std::string bossExplosionEffectPath_ = "resources/prefabs/boss_explosion_effect.json";
     std::string enemyExplosionEffectPath_ = "resources/prefabs/enemy_explosion_effect.json";
+    std::string debrisTrailEffectPath_ = "resources/prefabs/debris_trail_effect.json";
 
     // 内部的にキーからパスを引くための辞書
     std::unordered_map<std::string, std::string> effectDictionary_;

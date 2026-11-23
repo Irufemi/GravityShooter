@@ -27,6 +27,7 @@ void EffectManagerComponent::OnRegisterProperties() {
     RegisterProperty("Thruster Effect Path", &thrusterEffectPath_);
     RegisterProperty("Boss Explosion Effect Path", &bossExplosionEffectPath_);
     RegisterProperty("Enemy Explosion Effect Path", &enemyExplosionEffectPath_);
+    RegisterProperty("Debris Trail Effect Path", &debrisTrailEffectPath_);
 }
 
 void EffectManagerComponent::Initialize() {
@@ -36,6 +37,7 @@ void EffectManagerComponent::Initialize() {
     effectDictionary_["Thruster"] = thrusterEffectPath_;
     effectDictionary_["BossExplosion"] = bossExplosionEffectPath_;
     effectDictionary_["EnemyExplosion"] = enemyExplosionEffectPath_;
+    effectDictionary_["DebrisTrail"] = debrisTrailEffectPath_;
 }
 
 void EffectManagerComponent::Start() {

@@ -4,6 +4,11 @@
 
 class DebrisManagerComponent;
 
+namespace Irufemi {
+class GameObject;
+class ParticleEmitterComponent;
+}
+
 enum class DebrisState {
     Idle,         ///< 漂流中（自然な浮遊）
     Pulled,       ///< プレイヤーに引き寄せられている
@@ -320,4 +325,7 @@ private:
     std::string hitEffectKey_ = "Dust";
     std::string explosionModelPath_ = "resources/model/Debris/Generic/Debris_Generic.obj";
     std::weak_ptr<Irufemi::GameObject> effectManagerObj_;
+
+    // 投擲時の重力光条トレイルオブジェクト（Niagara SpawnAttached方式）
+    std::weak_ptr<Irufemi::GameObject> trailObj_;
 };

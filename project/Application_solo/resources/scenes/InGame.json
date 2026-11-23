@@ -2425,6 +2425,127 @@
             "overrides": []
           },
           "type": "GlobalPostProcessComponent"
+        },
+        {
+          "data": {
+            "Area Size": [
+              36.0,
+              24.0,
+              60.0
+            ],
+            "Attractor Pos": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Attractor Strength": 0.0,
+            "Billboard Mode": 1,
+            "Blend Mode": 2,
+            "Bounce": 0.0,
+            "Burst Count On Awake": 0,
+            "Color": [
+              0.15000000596046448,
+              1.2000000476837158,
+              2.799999952316284,
+              0.699999988079071
+            ],
+            "Damping": 0.0,
+            "Direction": [
+              0.0,
+              0.0,
+              -1.0
+            ],
+            "Emission Rate": 160.0,
+            "Emit On Awake": true,
+            "Emit Type": 4,
+            "Enable Death Emit": false,
+            "Enable Random Rotation": false,
+            "Enable Trail": false,
+            "End Scale": [
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582
+            ],
+            "Gravity": 0.0,
+            "Ground Height": -100.0,
+            "Jitter": 0.0,
+            "Life Time Max": 2.5,
+            "Life Time Min": 1.5,
+            "Mid Color": [
+              0.800000011920929,
+              0.15000000596046448,
+              1.7999999523162842,
+              0.800000011920929
+            ],
+            "Mid Point": 0.5,
+            "Mid Scale": [
+              0.09000000357627869,
+              0.09000000357627869,
+              0.09000000357627869
+            ],
+            "ParticleData": {
+              "areaSize": [
+                36.0,
+                24.0,
+                60.0
+              ],
+              "blendMode": 2,
+              "color": [
+                0.15000000596046448,
+                1.2000000476837158,
+                2.799999952316284,
+                0.699999988079071
+              ],
+              "depthWrite": 2,
+              "direction": [
+                0.0,
+                0.0,
+                -1.0
+              ],
+              "emissionRate": 160.0,
+              "emitOnAwake": true,
+              "emitType": 4,
+              "enableLighting": false,
+              "endScale": [
+                0.009999999776482582,
+                0.009999999776482582,
+                0.009999999776482582
+              ],
+              "isUnscaledTime": false,
+              "lifeTimeMax": 2.5,
+              "lifeTimeMin": 1.5,
+              "midColor": [
+                0.800000011920929,
+                0.15000000596046448,
+                1.7999999523162842,
+                0.800000011920929
+              ],
+              "midScale": [
+                0.09000000357627869,
+                0.09000000357627869,
+                0.09000000357627869
+              ],
+              "spread": 0.05000000074505806,
+              "startScale": [
+                0.05999999865889549,
+                0.05999999865889549,
+                0.05999999865889549
+              ],
+              "texturePath": "resources/circle.png"
+            },
+            "Radius": 0.0,
+            "Show Debug Area": true,
+            "Spread": 0.05000000074505806,
+            "Start Scale": [
+              0.05999999865889549,
+              0.05999999865889549,
+              0.05999999865889549
+            ],
+            "Texture Path": "resources/circle.png",
+            "Trail Frequency": 0.05000000074505806,
+            "Velocity": 1.0
+          },
+          "type": "ParticleEmitterComponent"
         }
       ],
       "instanceId": 1432498776640000749,

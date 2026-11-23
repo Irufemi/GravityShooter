@@ -9,7 +9,7 @@
     "initialScene": "InGame"
   },
   "demo": {
-    "enabledOnStart": true,
+    "enabledOnStart": false,
     "defaultMode": "ClearShowcase",
     "enableDevHotkeys": true
   }

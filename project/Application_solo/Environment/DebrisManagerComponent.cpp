@@ -15,6 +15,7 @@
 #include "Renderer/Camera/Camera.h"
 #include "Framework/Component/Collider/SphereColliderComponent.h"
 #include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
+#include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Renderer/Object/3D/Primitive/Primitive3DObject.h"
 #include "Core/Type/PrimitiveType.h"
 #include "Renderer/Pipeline/PSOManager.h"

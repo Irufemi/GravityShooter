@@ -16,6 +16,7 @@
 #include "Framework/Component/Camera/CameraShakeComponent.h"
 #include "Framework/Scene/BaseScene.h"
 #include "Framework/Component/Renderer/PrimitiveRendererComponent.h"
+#include "Framework/Component/Effect/ParticleEmitterComponent.h"
 #include "Renderer/Object/3D/Primitive/Primitive3DObject.h"
 #include <cmath>
 #include <windows.h>
@@ -278,6 +279,11 @@ void DebrisComponent::ResetForPool() {
     ResetHitAuthority();
     UpdateAuraVisuals();
 
+    if (auto trail = trailObj_.lock()) {
+        trail->Destroy();
+        trailObj_.reset();
+    }
+
     if (auto collider = gameObject_ ? gameObject_->GetComponent<Irufemi::ColliderComponent>() : nullptr) {
         auto* cm = GetEngine() ? GetEngine()->GetCollisionManager() : nullptr;
         if (cm) {
@@ -350,6 +356,20 @@ void DebrisComponent::SetState(DebrisState newState, bool forceVisualUpdate) {
     if (state_ == DebrisState::Thrown && gameObject_) {
         if (auto transform = GetTransform()) {
             throwOrigin_ = transform->GetWorldPosition();
+        }
+        // 投擲時にトレイルエフェクトを動的結合 (Niagara SpawnAttached方式)
+        if (trailObj_.expired()) {
+            if (auto fxMgr = EffectManagerComponent::GetInstance()) {
+                auto trail = fxMgr->PlayAttachedEffect("DebrisTrail", gameObject_->shared_from_this());
+                if (trail) {
+                    trailObj_ = trail;
+                }
+            }
+        }
+    } else {
+        if (auto trail = trailObj_.lock()) {
+            trail->Destroy();
+            trailObj_.reset();
         }
     }
 }

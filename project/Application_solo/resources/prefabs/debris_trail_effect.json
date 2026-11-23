@@ -1,0 +1,90 @@
+{
+  "name": "DebrisTrailRoot",
+  "isFolder": false,
+  "isActive": true,
+  "components": [
+    {
+      "type": "TransformComponent"
+    }
+  ],
+  "children": [
+    {
+      "name": "GravitonCoreStream",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, 0.0 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 160.0,
+              "radius": 0.25,
+              "spread": 0.08,
+              "speedMin": 0.5,
+              "speedMax": 2.5,
+              "direction": [ 0.0, 0.0, 0.0 ],
+              "lifeTimeMin": 0.25,
+              "lifeTimeMax": 0.38,
+              "startScale": [ 0.80, 0.80, 0.80 ],
+              "midScale": [ 0.45, 0.45, 0.45 ],
+              "endScale": [ 0.05, 0.05, 0.05 ],
+              "color": [ 0.25, 2.20, 4.50, 1.0 ],
+              "midColor": [ 0.10, 0.85, 2.60, 0.8 ],
+              "endColor": [ 0.01, 0.15, 1.10, 0.0 ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GravitonMoteSparks",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [ 0.0, 0.0, 0.0 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ]
+          }
+        },
+        {
+          "type": "ParticleEmitterComponent",
+          "data": {
+            "ParticleData": {
+              "texturePath": "resources/circle2.png",
+              "blendMode": 2,
+              "depthWrite": 2,
+              "emitOnAwake": true,
+              "emitType": 0,
+              "emissionRate": 80.0,
+              "radius": 0.40,
+              "spread": 0.25,
+              "speedMin": 1.0,
+              "speedMax": 4.0,
+              "direction": [ 0.0, 0.0, 0.0 ],
+              "lifeTimeMin": 0.18,
+              "lifeTimeMax": 0.28,
+              "startScale": [ 0.35, 0.35, 0.35 ],
+              "midScale": [ 0.18, 0.18, 0.18 ],
+              "endScale": [ 0.02, 0.02, 0.02 ],
+              "color": [ 1.50, 3.20, 5.00, 1.0 ],
+              "midColor": [ 0.20, 1.20, 3.50, 0.9 ],
+              "endColor": [ 0.00, 0.20, 1.20, 0.0 ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
