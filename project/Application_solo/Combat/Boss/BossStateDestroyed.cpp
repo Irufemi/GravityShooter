@@ -14,6 +14,7 @@
 #include "Effects/EffectManagerComponent.h"
 #include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
 #include "Renderer/Data/LightningConfig.h"
+#include "Renderer/Data/RefractionDistortionParams.h"
 #include "RHI/DirectX12/ConstantBuffer.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
 #include "Core/Math/Random/Random.h"
@@ -643,15 +644,54 @@ public:
                                     Irufemi::Vector3Int{20, 20, 20});
         }
 
-        // 4. ポストプロセス LightningCataclysm: 瞬間閃光 ＆ 空間歪み衝撃波
+        // 4. 3D空間個別屈折エフェクト（Screen-Space Refraction）の生成: ボス周辺空間の局所重力爆縮＆衝撃波
+        if (auto scene = boss->GetGameObject()->GetScene()) {
+            distortionObj_ = std::make_shared<Irufemi::GameObject>("BossRefractionDistortion");
+            if (distortionObj_) {
+                scene->AddGameObject(distortionObj_);
+                auto t = distortionObj_->GetTransform();
+                t->SetPosition(deadPos_);
+                t->SetScale(Irufemi::Vector3{45.0f, 45.0f, 45.0f}); // ボスを包み込む巨大クアッド (45m)
+
+                if (auto camMgr = boss->GetEngine()->GetCameraManager()) {
+                    if (auto cam = camMgr->GetActiveCamera()) {
+                        t->SetRotation(cam->GetRotate());
+                    }
+                }
+
+                auto renderer = distortionObj_->AddComponent<Irufemi::MeshRendererComponent>();
+                if (renderer) {
+                    renderer->LoadModel("sample/plane.obj");
+                    renderer->SetCustomPSO("RefractionDistortion");
+
+                    distortionBuffer_ = std::make_unique<Irufemi::ConstantBuffer<Irufemi::RefractionDistortionParams>>();
+                    distortionBuffer_->Initialize(boss->GetEngine()->GetDirectXCommon());
+
+                    distortionParams_.distortionTint = visualizer ? visualizer->GetDeathBlastColor() : Irufemi::Vector4{2.5f, 0.4f, 2.0f, 1.0f};
+                    distortionParams_.distortionIntensity = 0.14f;
+                    distortionParams_.waveRadius = 0.05f;
+                    distortionParams_.waveWidth = 0.18f;
+                    distortionParams_.chromaticAberration = 0.035f;
+                    distortionParams_.pinchIntensity = 1.0f;
+                    distortionParams_.sceneTextureIndex = boss->GetEngine()->GetMainRenderTexture() ? boss->GetEngine()->GetMainRenderTexture()->GetSrvIndex() : 0;
+                    distortionParams_.time = 0.0f;
+
+                    distortionBuffer_->UpdateAll(distortionParams_);
+                    uint32_t frameIdx = boss->GetEngine()->GetDirectXCommon()->GetCurrentBackBufferIndex();
+                    renderer->SetCustomCBVAddress(distortionBuffer_->GetGPUVirtualAddress(frameIdx));
+                }
+            }
+        }
+
+        // 5. ポストプロセス LightningCataclysm: 瞬間閃光 ＆ 連動アーク放電（※全画面歪み・色収差は撤廃し個別エフェクトへ移行）
         if (auto ppm = boss->GetEngine()->GetPostProcessManager()) {
             auto& lc = ppm->GetLightningCataclysmParams();
             lc.center = CalculateWorldScreenUV(boss->GetEngine(), deadPos_);
             lc.plasmaFlashIntensity = 0.50f; // ドカンと炸裂する瞬間閃光
             lc.arcIntensity = 6.5f;
-            lc.empWaveRadius = 0.04f;
-            lc.empWaveIntensity = 4.2f;
-            lc.electricChromatic = 0.045f;
+            lc.empWaveRadius = 0.0f;
+            lc.empWaveIntensity = 0.0f;       // 全画面ピンチ歪みはゼロ化（個別クアッドが担当）
+            lc.electricChromatic = 0.0f;      // 全画面色収差はゼロ化（個別クアッドが担当）
             if (visualizer) {
                 lc.flameColor = visualizer->GetDeathBlastColor();
                 lc.lightningColor = visualizer->GetDeathLightningColor();
@@ -701,24 +741,45 @@ public:
                     // 1. 瞬間閃光：0.08秒で素早く引き、大爆発の全貌を露出
                     lc.plasmaFlashIntensity = (std::max)(0.0f, 0.50f * (1.0f - postExplodeTime / 0.08f));
 
-                    // 2. 超音速ドーナツ衝撃波リング：最初の0.26秒で画面外へ一気に突き抜ける
-                    float waveTime = (std::min)(postExplodeTime / 0.26f, 1.0f);
-                    float easeOutWave = 1.0f - std::pow(1.0f - waveTime, 4.0f);
-                    lc.empWaveRadius = std::lerp(0.04f, 2.8f, easeOutWave);
+                    // 全画面歪み・全画面色収差はゼロ化（3D個別空間屈折クアッドへ完全移譲）
+                    lc.empWaveRadius = 0.0f;
+                    lc.empWaveIntensity = 0.0f;
+                    lc.electricChromatic = 0.0f;
 
-                    // 衝撃波リング自体は0.32秒で画面外へ去りフェードアウト
-                    float waveFade = (std::max)(0.0f, 1.0f - postExplodeTime / 0.32f);
-                    lc.empWaveIntensity = waveFade * waveFade * 4.5f;
-
-                    // 3. 連動アーク放電：0.40秒で収束
+                    // 2. 連動アーク放電：0.40秒で収束
                     float arcFade = (std::max)(0.0f, 1.0f - postExplodeTime / 0.40f);
                     lc.arcIntensity = arcFade * arcFade * 6.5f;
-                    lc.electricChromatic = 0.045f * arcFade;
                     lc.time += dt * 5.0f;
                     if (visualizer) {
                         lc.flameColor = visualizer->GetDeathBlastColor();
                         lc.lightningColor = visualizer->GetDeathLightningColor();
                     }
+                }
+            }
+
+            // 3. 3D個別空間屈折クアッドの動的更新（局所重力爆縮 ＆ 衝撃波リング）
+            if (distortionObj_ && distortionBuffer_) {
+                if (postExplodeTime < 0.60f) {
+                    float waveTime = (std::min)(postExplodeTime / 0.38f, 1.0f);
+                    float easeOutWave = 1.0f - std::pow(1.0f - waveTime, 3.0f);
+                    distortionParams_.waveRadius = std::lerp(0.05f, 0.95f, easeOutWave);
+                    distortionParams_.waveWidth = 0.16f;
+                    distortionParams_.pinchIntensity = (std::max)(0.0f, 1.0f - postExplodeTime / 0.32f);
+                    distortionParams_.distortionIntensity = (std::max)(0.0f, 0.14f * (1.0f - postExplodeTime / 0.45f));
+                    distortionParams_.time += dt;
+                    distortionParams_.sceneTextureIndex = boss->GetEngine()->GetMainRenderTexture() ? boss->GetEngine()->GetMainRenderTexture()->GetSrvIndex() : 0;
+
+                    // カメラの正面を向くビルボード回転
+                    if (auto camMgr = boss->GetEngine()->GetCameraManager()) {
+                        if (auto cam = camMgr->GetActiveCamera()) {
+                            distortionObj_->GetTransform()->SetRotation(cam->GetRotate());
+                        }
+                    }
+
+                    uint32_t frameIdx = boss->GetEngine()->GetDirectXCommon()->GetCurrentBackBufferIndex();
+                    distortionBuffer_->Update(distortionParams_, frameIdx);
+                } else {
+                    distortionObj_->SetIsActive(false);
                 }
             }
 
@@ -739,6 +800,10 @@ public:
 
     void Exit(BossComponent* boss, BossDamageVisualizerComponent* visualizer) override {
         SetCinematicCameraFov(visualizer, boss, kDefaultFov);
+        if (distortionObj_) {
+            distortionObj_->Destroy();
+            distortionObj_.reset();
+        }
     }
 
     bool IsCompleted() const override {
@@ -746,6 +811,9 @@ public:
     }
 
 private:
+    std::shared_ptr<Irufemi::GameObject> distortionObj_ = nullptr;
+    std::unique_ptr<Irufemi::ConstantBuffer<Irufemi::RefractionDistortionParams>> distortionBuffer_ = nullptr;
+    Irufemi::RefractionDistortionParams distortionParams_{};
     float elapsedTime_ = 0.0f;
     float targetDuration_ = 2.40f; // 多段連鎖爆発＋本爆発＋雄大な余韻を見守る2.4秒
     int chainStep_ = 0;

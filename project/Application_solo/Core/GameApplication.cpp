@@ -146,6 +146,10 @@ void RegisterShaders(IrufemiEngine& engine) {
     auto psElectricArc = shaderManager->GetOrCompile(L"ElectricArc.PS.hlsl", options);
     psoManager->RegisterShader("ElectricArc", {{vs3d, psElectricArc}});
 
+    // 3D空間個別屈折シェーダー (Screen-Space Refraction)
+    auto psRefraction = shaderManager->GetOrCompile(L"RefractionDistortion.PS.hlsl", options);
+    psoManager->RegisterShader("RefractionDistortion", {{vs3d, psRefraction}});
+
     // LockonMarker用シェーダー (SpriteBatch.VS.hlsl を使う)
     auto vsSpriteBatch = shaderManager->GetOrCompile(L"SpriteBatch.VS.hlsl", options);
     auto psLuminanceAlpha = shaderManager->GetOrCompile(L"LuminanceAlpha2D.PS.hlsl", options);
