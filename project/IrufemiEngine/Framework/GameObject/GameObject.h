@@ -250,6 +250,11 @@ public:
     void RemoveComponent(Component* component);
 
     /**
+     * @brief 全コンポーネントを安全に逆順解放する
+     */
+    void ClearComponents();
+
+    /**
      * @brief アタッチされているすべてのコンポーネントのリストを取得する
      */
     const std::vector<std::shared_ptr<Component>>& GetComponents() const {

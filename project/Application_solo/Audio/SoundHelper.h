@@ -17,6 +17,8 @@ struct SoundActionDescriptor {
     float volume = 1.0f;
     float pitch = 1.0f;
     bool loop = false;
+    float duration = 0.0f; ///< 自動停止までの持続秒数（0以下の場合は無制限）
+    float fadeOut = 0.0f;  ///< 自動停止時のフェードアウト秒数
 };
 
 /**

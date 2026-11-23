@@ -365,7 +365,6 @@ void EnemySpawnerComponent::Update() {
     }
 
 #if defined(_DEBUG)
-    auto engine = GetEngine();
     auto input = engine ? engine->GetInputManager() : nullptr;
     if (!input) {
         return;

@@ -23,6 +23,10 @@ BossDamageVisualizerComponent::~BossDamageVisualizerComponent() {
     UnregisterListeners();
 }
 
+void BossDamageVisualizerComponent::OnDestroy() {
+    UnregisterListeners();
+}
+
 void BossDamageVisualizerComponent::UnregisterListeners() {
     if (bossComp_) {
         if (damageListenerId_ != 0) {

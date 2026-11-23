@@ -531,6 +531,17 @@ void BaseScene::ClearGameObjects() {
             obj->Destroy();
         }
     }
+    // 逆順（後から追加・構築された依存コンポーネントから先）にコンポーネントを解放して破棄順依存のクラッシュを防止
+    for (auto& obj : gameObjects_) {
+        if (obj) {
+            obj->ClearComponents();
+        }
+    }
+    for (auto& obj : pendingAdds_) {
+        if (obj) {
+            obj->ClearComponents();
+        }
+    }
     gameObjects_.clear();
     pendingAdds_.clear();
     pendingRemoves_.clear();

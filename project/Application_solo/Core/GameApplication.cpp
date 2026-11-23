@@ -138,9 +138,19 @@ void RegisterShaders(IrufemiEngine& engine) {
     auto psLightningCrawl = shaderManager->GetOrCompile(L"LightningCrawl.PS.hlsl", options);
     psoManager->RegisterShader("LightningCrawl", {{vs3d, psLightningCrawl}});
 
-    // ボス撃破演出用: 3D空間ノイズ電流オーバーレイピクセルシェーダー
+    // 3D不透明パス用の MRT 共通設定 (Object3D と同一の 5面 G-Buffer レイアウト)
+    Irufemi::PSOManager::PipelineStateDesc mrtDesc{};
+    mrtDesc.numRenderTargets = 5;
+    mrtDesc.rtvFormat1 = DXGI_FORMAT_R8G8B8A8_UNORM;     // Mask
+    mrtDesc.rtvFormat2 = DXGI_FORMAT_R16G16B16A16_FLOAT; // Normal & Depth
+    mrtDesc.rtvFormat3 = DXGI_FORMAT_R8G8B8A8_UNORM;     // Material
+    mrtDesc.rtvFormat4 = DXGI_FORMAT_R16G16_FLOAT;       // Velocity
+
+    // ボス撃破演出用: 3D空間ノイズ電流オーバーレイピクセルシェーダー (MRT 5面対応)
     auto psBossLightning = shaderManager->GetOrCompile(L"BossLightning.PS.hlsl", options);
-    psoManager->RegisterShader("BossLightning", {{vs3d, psBossLightning}});
+    auto bossLightningDesc = mrtDesc;
+    bossLightningDesc.shaders = {vs3d, psBossLightning};
+    psoManager->RegisterShader("BossLightning", bossLightningDesc);
 
     // 3D空間量子化アーク放電シェーダー
     auto psElectricArc = shaderManager->GetOrCompile(L"ElectricArc.PS.hlsl", options);

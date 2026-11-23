@@ -30,8 +30,7 @@ GameObject::GameObject(const std::string& name)
 }
 
 GameObject::~GameObject() {
-    components_.clear();
-    componentMap_.clear();
+    ClearComponents();
     // デストラクタ内でのOnDestroy呼び出し（shared_from_this等によるbad_weak_ptrリスク）は避け、
     // 未破棄の場合のみ警告ログを出力する（破棄はBaseSceneや明示的なDestroyで完結させる）
     if (lifeState_ != GameObjectLifeState::Destroyed) {
@@ -504,6 +503,25 @@ void GameObject::RemoveComponent(Component* component) {
         std::remove_if(components_.begin(), components_.end(),
                        [component](const std::shared_ptr<Component>& ptr) { return ptr.get() == component; }),
         components_.end());
+}
+
+void GameObject::ClearComponents() {
+    std::lock_guard<std::recursive_mutex> lock(structureMutex_);
+    // 後から追加された依存コンポーネントから先に破棄（逆順破棄）
+    while (!components_.empty()) {
+        auto comp = std::move(components_.back());
+        components_.pop_back();
+
+        if (comp) {
+            auto typeIt = componentMap_.find(typeid(*comp));
+            if (typeIt != componentMap_.end()) {
+                auto& vec = typeIt->second;
+                vec.erase(std::remove(vec.begin(), vec.end(), comp.get()), vec.end());
+            }
+        }
+    }
+    componentMap_.clear();
+    transformCache_ = nullptr;
 }
 
 nlohmann::json GameObject::Serialize() const {

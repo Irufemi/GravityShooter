@@ -22,7 +22,10 @@ class BossBulletManagerComponent;
 class BossComponent : public Irufemi::Component, public IDamageable {
 public:
     BossComponent();
-    ~BossComponent() override = default;
+    ~BossComponent() override {
+        onDamageTakenListeners_.clear();
+        onBossDiedListeners_.clear();
+    }
 
     void Initialize() override;
     void Start() override;

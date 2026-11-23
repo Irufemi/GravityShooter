@@ -125,10 +125,10 @@ void DirectXCommon::Finalize() {
         debugController_.Reset();
     }
 
-    // 最後に詳細なリークレポートを出力
+    // 最後にリークレポートを出力（全件ダンプによるプロセス終了時の長時間フリーズを防ぐため概要サマリーを出力）
     Microsoft::WRL::ComPtr<IDXGIDebug1> dxgiDebug;
     if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug)))) {
-        dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+        dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
     }
 #endif
 

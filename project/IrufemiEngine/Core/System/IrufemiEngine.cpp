@@ -526,6 +526,11 @@ void IrufemiEngine::Finalize() {
         return;
     }
 
+    // 終了シグナル受信時、全オーディオ再生を即時フラッシュ・停止（XAudio2ハードウェアスレッドの待機ブロック根絶）
+    if (audioManager_) {
+        audioManager_->StopAll();
+    }
+
     // アプリケーション終了時、シーン破棄前にGPU処理の完了を待つ
     if (dxCommon_) {
         dxCommon_->WaitForGPU();

@@ -13,7 +13,9 @@
     "GravityWarp": {
       "Path": "resources/audio/SE/se_gravity_warp.mp3",
       "Volume": 0.85,
-      "Pitch": 1.05
+      "Pitch": 1.05,
+      "Duration": 1.2,
+      "FadeOut": 0.5
     },
     "HudSnap": {
       "Path": "resources/audio/SE/se_hud_snap.mp3",

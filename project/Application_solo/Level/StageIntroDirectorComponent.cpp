@@ -658,11 +658,9 @@ void StageIntroDirectorComponent::TriggerBreachImpulse() {
     }
 
     // 2. 音響多重化（重低音空間音 ＋ 重力界面破断音の完全同期）
+    SoundHelper::Play(GameSE::GravityWarp, 0.80f, 1.15f);
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
-            if (!warpSePath_.empty()) {
-                am->PlayByFile(warpSePath_, 0.80f, 1.15f, AudioCategory::SE);
-            }
             if (!breachSePath_.empty()) {
                 am->PlayByFile(breachSePath_, 0.85f, 1.0f, AudioCategory::SE);
             }

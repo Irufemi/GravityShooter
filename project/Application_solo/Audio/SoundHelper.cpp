@@ -56,6 +56,8 @@ bool Initialize(AudioManager* audioManager, const std::string& configPath) {
             desc.volume = val.value("Volume", 1.0f);
             desc.pitch = val.value("Pitch", 1.0f);
             desc.loop = val.value("Loop", false);
+            desc.duration = val.value("Duration", 0.0f);
+            desc.fadeOut = val.value("FadeOut", 0.0f);
             s_seMap[key] = desc;
         }
     }
@@ -125,7 +127,12 @@ void Play(GameSE se, std::optional<float> volumeMultiplier, std::optional<float>
     float finalVol = volumeMultiplier.has_value() ? (desc->volume * (*volumeMultiplier)) : desc->volume;
     float finalPitch = pitchMultiplier.has_value() ? (desc->pitch * (*pitchMultiplier)) : desc->pitch;
 
-    s_audioManager->PlayByFile(desc->path, finalVol, finalPitch, AudioCategory::SE);
+    if (desc->duration > 0.0f) {
+        float fade = desc->fadeOut > 0.0f ? desc->fadeOut : 0.3f;
+        s_audioManager->PlayByFileWithFade(desc->path, desc->duration, fade, finalVol, AudioCategory::SE);
+    } else {
+        s_audioManager->PlayByFile(desc->path, finalVol, finalPitch, AudioCategory::SE);
+    }
 }
 
 void PlayByName(std::string_view name, std::optional<float> volumeMultiplier, std::optional<float> pitchMultiplier) {
@@ -141,7 +148,12 @@ void PlayByName(std::string_view name, std::optional<float> volumeMultiplier, st
     float finalVol = volumeMultiplier.has_value() ? (desc.volume * (*volumeMultiplier)) : desc.volume;
     float finalPitch = pitchMultiplier.has_value() ? (desc.pitch * (*pitchMultiplier)) : desc.pitch;
 
-    s_audioManager->PlayByFile(desc.path, finalVol, finalPitch, AudioCategory::SE);
+    if (desc.duration > 0.0f) {
+        float fade = desc.fadeOut > 0.0f ? desc.fadeOut : 0.3f;
+        s_audioManager->PlayByFileWithFade(desc.path, desc.duration, fade, finalVol, AudioCategory::SE);
+    } else {
+        s_audioManager->PlayByFile(desc.path, finalVol, finalPitch, AudioCategory::SE);
+    }
 }
 
 void PlayBGM(GameBGM bgm, std::optional<float> volumeMultiplier) {

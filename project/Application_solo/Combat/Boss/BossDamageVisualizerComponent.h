@@ -23,6 +23,7 @@ public:
 
     void Initialize() override;
     void Start() override;
+    void OnDestroy() override;
     void OnRegisterProperties() override;
 
     std::string GetComponentName() const override {
