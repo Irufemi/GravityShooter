@@ -115,36 +115,12 @@ const SoundActionDescriptor* GetDescriptor(GameBGM bgm) {
     return nullptr;
 }
 
-void Play(GameSE se, std::optional<float> volumeMultiplier, std::optional<float> pitchMultiplier) {
-    if (!s_audioManager) {
+namespace {
+void PlaySoundDescriptor(const SoundActionDescriptor& desc, std::optional<float> volumeMultiplier,
+                         std::optional<float> pitchMultiplier) {
+    if (desc.path.empty() || !s_audioManager) {
         return;
     }
-    const auto* desc = GetDescriptor(se);
-    if (!desc || desc->path.empty()) {
-        return;
-    }
-
-    float finalVol = volumeMultiplier.has_value() ? (desc->volume * (*volumeMultiplier)) : desc->volume;
-    float finalPitch = pitchMultiplier.has_value() ? (desc->pitch * (*pitchMultiplier)) : desc->pitch;
-
-    if (desc->duration > 0.0f) {
-        float fade = desc->fadeOut > 0.0f ? desc->fadeOut : 0.3f;
-        s_audioManager->PlayByFileWithFade(desc->path, desc->duration, fade, finalVol, AudioCategory::SE);
-    } else {
-        s_audioManager->PlayByFile(desc->path, finalVol, finalPitch, AudioCategory::SE);
-    }
-}
-
-void PlayByName(std::string_view name, std::optional<float> volumeMultiplier, std::optional<float> pitchMultiplier) {
-    if (!s_audioManager) {
-        return;
-    }
-    std::shared_lock<std::shared_mutex> lock(s_soundMutex);
-    auto it = s_seMap.find(std::string(name));
-    if (it == s_seMap.end() || it->second.path.empty()) {
-        return;
-    }
-    const auto& desc = it->second;
     float finalVol = volumeMultiplier.has_value() ? (desc.volume * (*volumeMultiplier)) : desc.volume;
     float finalPitch = pitchMultiplier.has_value() ? (desc.pitch * (*pitchMultiplier)) : desc.pitch;
 
@@ -154,6 +130,30 @@ void PlayByName(std::string_view name, std::optional<float> volumeMultiplier, st
     } else {
         s_audioManager->PlayByFile(desc.path, finalVol, finalPitch, AudioCategory::SE);
     }
+}
+} // namespace
+
+void Play(GameSE se, std::optional<float> volumeMultiplier, std::optional<float> pitchMultiplier) {
+    if (!s_audioManager) {
+        return;
+    }
+    const auto* desc = GetDescriptor(se);
+    if (!desc) {
+        return;
+    }
+    PlaySoundDescriptor(*desc, volumeMultiplier, pitchMultiplier);
+}
+
+void PlayByName(std::string_view name, std::optional<float> volumeMultiplier, std::optional<float> pitchMultiplier) {
+    if (!s_audioManager) {
+        return;
+    }
+    std::shared_lock<std::shared_mutex> lock(s_soundMutex);
+    auto it = s_seMap.find(std::string(name));
+    if (it == s_seMap.end()) {
+        return;
+    }
+    PlaySoundDescriptor(it->second, volumeMultiplier, pitchMultiplier);
 }
 
 void PlayBGM(GameBGM bgm, std::optional<float> volumeMultiplier) {

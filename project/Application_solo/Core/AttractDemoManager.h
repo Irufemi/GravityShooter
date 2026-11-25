@@ -200,9 +200,7 @@ private:
     float inGameTimer_ = 0.0f;  ///< InGameデモタイマー（秒）
     float combatTimer_ = 0.0f;  ///< イントロ完了後の通常交戦タイマー（秒）
     float resultTimer_ = 0.0f;  ///< Resultデモタイマー（秒）
-    int particleShowcasePhase_ = 0; ///< パーティクル実演フェーズステップ [0〜5]
     bool particleShowcaseTargetIsClear_ = true; ///< ParticleShowcase時の実演ターゲット（true: ボス撃破クリア実演 / false: 自機撃墜ゲームオーバー実演）
-    float demoCombatActionTimer_ = 0.0f;       ///< デモ自律戦闘アクション（引き寄せ・投擲）用タイマー
 
     static constexpr float kIdleThreshold_ = 8.0f;               ///< 自動デモ開始までの無操作秒数
     static constexpr float kInGameDuration_ = 9.00f;             ///< 本編デモ映像の表示秒数（じっくり魅せる9.0秒）

@@ -564,10 +564,13 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     }
 
     // シーン切り替え時に前シーン・遷移演出の残留SEを確実に停止・破棄（新シーンへの音漏れを根絶）
-    // ※ただし、Titleからの出撃（Title ➔ InGame）の際は、シームレスな出撃ジェット音（3.55秒）の突入同期を保護・維持する
+    // ※ただし、退場するシーンが音声維持を要求している場合（Titleからの出撃など）は、シームレスな出撃ジェット音の突入同期を保護・維持する
     if (engine_->GetAudioManager()) {
-        bool isTitleLaunchToInGame = (previousScene == "Title" && next == "InGame");
-        if (!isTitleLaunchToInGame) {
+        bool shouldStopSE = true;
+        if (!sceneStack_.empty() && sceneStack_.back().scene) {
+            shouldStopSE = sceneStack_.back().scene->ShouldStopSEOnTransition();
+        }
+        if (shouldStopSE) {
             engine_->GetAudioManager()->StopCategory(Irufemi::AudioCategory::SE);
         }
     }

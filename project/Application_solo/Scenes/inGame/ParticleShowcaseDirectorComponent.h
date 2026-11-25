@@ -30,11 +30,30 @@ public:
     enum class Phase {
         IntroBoost,       ///< [Phase 0] スラスター推進実演 (0.0s ~ 2.5s)
         PullDebris,       ///< [Phase 1] ガレキ引き寄せ＆エレクトリックシアンオーラ点灯 (2.5s ~ 5.0s)
-        LockonEnemy,      ///< [Phase 2] 敵飛来＆ロックオン・サテライトUI展開 (5.0s ~ 7.0s)
-        ThrowAndShatter,  ///< [Phase 3] ガレキ投擲・重力光条トレイル・直撃3D Voxel破砕 (7.0s ~ 10.0s)
-        ShieldDefense,    ///< [Phase 4] 敵弾のガレキシールド受け止め防御実演 (10.0s ~ 13.0s)
+        LockonEnemy,      ///< [Phase 2] 敵飛来＆ロックオン・サテライトUI展開 (5.0s ~ 7.5s)
+        ThrowAndShatter,  ///< [Phase 3] ガレキ投擲・重力光条トレイル・直撃3D Voxel破砕 (7.5s ~ 10.5s)
+        ShieldDefense,    ///< [Phase 4] 敵弾のガレキシールド受け止め防御実演 (10.5s ~ 14.5s)
         ClimaxSequence,   ///< [Phase 5] クライマックス（クリア周: ボス連鎖爆散 / 敗北周: 自機特異点大爆散）
         Finished          ///< シーケンス完了・リザルト遷移待機
+    };
+
+    /**
+     * @struct Timing
+     * @brief ショーケース各フェーズの演出タイミング設定パラメータ
+     */
+    struct Timing {
+        static constexpr float kIntroBoostDuration = 2.5f;       ///< [Phase 0] スラスター推進時間 (秒)
+        static constexpr float kPullDebrisDuration = 2.5f;       ///< [Phase 1] ガレキ引き寄せ時間 (秒)
+        static constexpr float kLockonDuration = 2.5f;           ///< [Phase 2] ロックオン展開時間 (秒)
+        static constexpr float kMinShatterDetectTime = 0.8f;     ///< [Phase 3] 撃破検知開始最短時間 (秒)
+        static constexpr float kShatterAfterglowDuration = 1.8f; ///< [Phase 3] 撃破後アフターグロー鑑賞時間 (秒)
+        static constexpr float kShatterFailsafeTimeout = 4.5f;   ///< [Phase 3] フェイルセーフタイムアウト (秒)
+        static constexpr float kShieldDefenseCounterTime = 2.0f; ///< [Phase 4] 敵弾受け止め後の反撃投擲タイミング (秒)
+        static constexpr float kShieldAfterglowDuration = 2.0f;  ///< [Phase 4] スナイパー撃破後アフターグロー鑑賞時間 (秒)
+        static constexpr float kShieldFailsafeTimeout = 5.0f;    ///< [Phase 4] フェイルセーフタイムアウト (秒)
+        static constexpr float kBossPullDebrisTime = 1.5f;       ///< [Phase 5] ボス対峙後のガレキ引き寄せタイミング (秒)
+        static constexpr float kBossThrowDebrisTime = 2.8f;      ///< [Phase 5] ボスコアへの反撃投擲タイミング (秒)
+        static constexpr float kBossCoreDamageTime = 3.8f;       ///< [Phase 5] ボスコア直撃・連鎖大爆散発火タイミング (秒)
     };
 
     ParticleShowcaseDirectorComponent() = default;

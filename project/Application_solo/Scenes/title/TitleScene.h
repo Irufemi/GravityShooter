@@ -37,4 +37,11 @@ public: // メンバ関数(システム)
      * @brief 上のシーンがPopされ、最前面に復帰した時の処理
      */
     void OnResume() override;
+
+    /**
+     * @brief 出撃演出時のシームレスなジェット音（3.55秒）の突入同期を保護・維持するため、シーン遷移時のSE停止をバイパスする
+     */
+    bool ShouldStopSEOnTransition() const override {
+        return false;
+    }
 };

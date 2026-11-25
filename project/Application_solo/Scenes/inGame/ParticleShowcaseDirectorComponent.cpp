@@ -111,16 +111,16 @@ void ParticleShowcaseDirectorComponent::Update() {
     }
 
     switch (currentPhase_) {
-    // === [Phase 0] スラスター推進実演 (0.0s ~ 2.5s) ===
+    // === [Phase 0] スラスター推進実演 ===
     case Phase::IntroBoost:
-        if (phaseTimer_ >= 2.5f) {
+        if (phaseTimer_ >= Timing::kIntroBoostDuration) {
             currentPhase_ = Phase::PullDebris;
             phaseTimer_ = 0.0f;
             hasSpawnedCurrentPhase_ = false;
         }
         break;
 
-    // === [Phase 1] ガレキ引き寄せ＆エレクトリックシアンオーラ点灯 (2.5s ~ 5.0s) ===
+    // === [Phase 1] ガレキ引き寄せ＆エレクトリックシアンオーラ点灯 ===
     case Phase::PullDebris:
         if (!hasSpawnedCurrentPhase_) {
             hasSpawnedCurrentPhase_ = true;
@@ -129,14 +129,14 @@ void ParticleShowcaseDirectorComponent::Update() {
             }
             PullDebrisToCount(2); // 敵2機分（2個）確実に引き寄せてオービット保持
         }
-        if (phaseTimer_ >= 2.5f) {
+        if (phaseTimer_ >= Timing::kPullDebrisDuration) {
             currentPhase_ = Phase::LockonEnemy;
             phaseTimer_ = 0.0f;
             hasSpawnedCurrentPhase_ = false;
         }
         break;
 
-    // === [Phase 2] Wave 1: 通常雑魚敵（重力ゴーレム）2機編隊アプローチ＆マルチロックオン (5.0s ~ 7.5s) ===
+    // === [Phase 2] Wave 1: 通常雑魚敵（重力ゴーレム）2機編隊アプローチ＆マルチロックオン ===
     case Phase::LockonEnemy:
         if (!hasSpawnedCurrentPhase_) {
             hasSpawnedCurrentPhase_ = true;
@@ -153,14 +153,14 @@ void ParticleShowcaseDirectorComponent::Update() {
                 }
             }
         }
-        if (phaseTimer_ >= 2.5f) {
+        if (phaseTimer_ >= Timing::kLockonDuration) {
             currentPhase_ = Phase::ThrowAndShatter;
             phaseTimer_ = 0.0f;
             hasSpawnedCurrentPhase_ = false;
         }
         break;
 
-    // === [Phase 3] ガレキ連続投擲・重力光条トレイル・2機連続3D Voxel破砕 (7.5s ~ 10.5s) ===
+    // === [Phase 3] ガレキ連続投擲・重力光条トレイル・2機連続3D Voxel破砕 ===
     case Phase::ThrowAndShatter:
         if (!hasSpawnedCurrentPhase_) {
             hasSpawnedCurrentPhase_ = true;
@@ -169,7 +169,7 @@ void ParticleShowcaseDirectorComponent::Update() {
             }
         }
         // 敵全滅を検知後、Voxel破砕・電磁紫煙・残骸ガレキ飛翔を邪魔なく鑑賞させるアフターグロー待機時間を計測
-        if (phaseTimer_ >= 0.8f && AreAllDemoEnemiesDestroyed() && !hasEnemyDied_) {
+        if (phaseTimer_ >= Timing::kMinShatterDetectTime && AreAllDemoEnemiesDestroyed() && !hasEnemyDied_) {
             hasEnemyDied_ = true;
             enemyDiedTimer_ = 0.0f;
         }
@@ -177,8 +177,9 @@ void ParticleShowcaseDirectorComponent::Update() {
             enemyDiedTimer_ += dt;
         }
 
-        // 撃破から1.8秒間じっくり演出を見せてから、次のシールド防御フェーズへ遷移（フェイルセーフ4.5秒）
-        if ((hasEnemyDied_ && enemyDiedTimer_ >= 1.8f) || phaseTimer_ >= 4.5f) {
+        // 撃破からじっくり演出を見せてから、次のシールド防御フェーズへ遷移（フェイルセーフ付き）
+        if ((hasEnemyDied_ && enemyDiedTimer_ >= Timing::kShatterAfterglowDuration) ||
+            phaseTimer_ >= Timing::kShatterFailsafeTimeout) {
             currentPhase_ = Phase::ShieldDefense;
             phaseTimer_ = 0.0f;
             hasSpawnedCurrentPhase_ = false;
@@ -188,7 +189,7 @@ void ParticleShowcaseDirectorComponent::Update() {
         }
         break;
 
-    // === [Phase 4] Wave 2: 狙撃メカ出現・敵弾ガレキシールド受け止め防御実演 (10.5s ~ 14.5s) ===
+    // === [Phase 4] Wave 2: 狙撃メカ出現・敵弾ガレキシールド受け止め防御実演 ===
     case Phase::ShieldDefense:
         if (!hasSpawnedCurrentPhase_) {
             hasSpawnedCurrentPhase_ = true;
@@ -201,8 +202,8 @@ void ParticleShowcaseDirectorComponent::Update() {
             // 正面に射撃スナイパーメカをスポーン
             SpawnDemonstrationEnemy("resources/prefabs/Enemy_SniperArtillery.json", 28.0f, {0.0f, 0.0f}, true);
         }
-        // 敵弾を受け止めさせた後（2.0秒後）、反撃投擲
-        if (phaseTimer_ >= 2.0f && !hasTriggeredCounterThrow_) {
+        // 敵弾を受け止めさせた後、反撃投擲
+        if (phaseTimer_ >= Timing::kShieldDefenseCounterTime && !hasTriggeredCounterThrow_) {
             hasTriggeredCounterThrow_ = true;
             if (!demoEnemies_.empty()) {
                 if (auto sniper = demoEnemies_[0].lock()) {
@@ -224,8 +225,9 @@ void ParticleShowcaseDirectorComponent::Update() {
             enemyDiedTimer_ += dt;
         }
 
-        // 撃破から2.0秒間じっくり演出を見せてから、次のクライマックス（ボス出現）へ遷移（フェイルセーフ5.0秒）
-        if ((hasEnemyDied_ && enemyDiedTimer_ >= 2.0f) || phaseTimer_ >= 5.0f) {
+        // 撃破からじっくり演出を見せてから、次のクライマックス（ボス出現）へ遷移（フェイルセーフ付き）
+        if ((hasEnemyDied_ && enemyDiedTimer_ >= Timing::kShieldAfterglowDuration) ||
+            phaseTimer_ >= Timing::kShieldFailsafeTimeout) {
             currentPhase_ = Phase::ClimaxSequence;
             phaseTimer_ = 0.0f;
             hasSpawnedCurrentPhase_ = false;
@@ -243,7 +245,7 @@ void ParticleShowcaseDirectorComponent::Update() {
         if (isClearShowcase_) {
             bossEncounterTimer_ += dt;
 
-            // 1. ボス威風堂々たる出現・対峙 (0.0s ~ 1.5s: ガレキ回収はまだ行わずボスの巨大感をしっかり見せる)
+            // 1. ボス威風堂々たる出現・対峙 (ガレキ回収はまだ行わずボスの巨大感をしっかり見せる)
             if (!hasTriggeredClimax_) {
                 hasTriggeredClimax_ = true;
                 if (auto boss = bossObj_.lock()) {
@@ -251,8 +253,8 @@ void ParticleShowcaseDirectorComponent::Update() {
                 }
             }
 
-            // 2. 対峙後、ボスに対抗するため自機がガレキを一気に引き寄せ！ (1.5s)
-            if (bossEncounterTimer_ >= 1.5f && !hasPulledBossDebris_) {
+            // 2. 対峙後、ボスに対抗するため自機がガレキを一気に引き寄せ！
+            if (bossEncounterTimer_ >= Timing::kBossPullDebrisTime && !hasPulledBossDebris_) {
                 hasPulledBossDebris_ = true;
                 if (debrisMgr_) {
                     debrisMgr_->SpawnDebrisInFrontOfPlayer(4);
@@ -260,8 +262,8 @@ void ParticleShowcaseDirectorComponent::Update() {
                 PullDebrisToCount(2);
             }
 
-            // 3. ボスコアへ向けて反撃投擲！ (2.8s)
-            if (bossEncounterTimer_ >= 2.8f && !hasThrownBossDebris_) {
+            // 3. ボスコアへ向けて反撃投擲！
+            if (bossEncounterTimer_ >= Timing::kBossThrowDebrisTime && !hasThrownBossDebris_) {
                 hasThrownBossDebris_ = true;
                 if (auto boss = bossObj_.lock()) {
                     if (targetingComp_) {
@@ -273,8 +275,8 @@ void ParticleShowcaseDirectorComponent::Update() {
                 }
             }
 
-            // 4. ボスコア直撃！4段連鎖爆散＆4,000ボクセル全方位大爆散発火！ (3.8s)
-            if (bossEncounterTimer_ >= 3.8f && bossComp_ && bossComp_->GetHp() > 0.0f) {
+            // 4. ボスコア直撃！4段連鎖爆散＆4,000ボクセル全方位大爆散発火！
+            if (bossEncounterTimer_ >= Timing::kBossCoreDamageTime && bossComp_ && bossComp_->GetHp() > 0.0f) {
                 bossComp_->ApplyCoreDamage(99999.0f);
             }
         } else {

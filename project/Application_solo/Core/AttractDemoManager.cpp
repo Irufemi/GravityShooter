@@ -67,7 +67,6 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     inGameTimer_ = 0.0f;
     combatTimer_ = 0.0f;
     resultTimer_ = 0.0f;
-    particleShowcasePhase_ = 0;
 
     // 起動時デモが有効な場合、第1フレームが始まる前にあらかじめ初期カーソル位置を設定
     // （メインループの更新順序の隙間による画面中央からの瞬間ワープ外力を物理的に根絶）
@@ -135,8 +134,6 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
             // Title から本編 InGame / ParticleShowcase に突入した瞬間
             inGameTimer_ = 0.0f;
             combatTimer_ = 0.0f;
-            particleShowcasePhase_ = 0;
-            demoCombatActionTimer_ = 0.0f;
             hasTriggeredReturn_ = false;
             isDemoPlaying_ = false; // タイトル用デモフラグは終了
 
@@ -219,7 +216,6 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
         isKioskLoopMode_ = true;
         isKioskModeActive_ = true;
         isAttractModeActive_ = true;
-        particleShowcasePhase_ = 0;
         inGameTimer_ = 0.0f;
         auto sm = engine_->GetSceneManager();
         if (sm) {
