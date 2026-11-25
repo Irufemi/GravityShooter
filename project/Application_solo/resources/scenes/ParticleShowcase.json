@@ -1,0 +1,3173 @@
+{
+  "gameObjects": [
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Draw Debug Nodes": true,
+            "Draw Debug Rail": true,
+            "Node Radius": 0.5,
+            "Waypoints": [
+              [
+                0.0,
+                15.0,
+                0.0
+              ],
+              [
+                1.7999999523162842,
+                15.199999809265137,
+                56.599998474121094
+              ],
+              [
+                6.800000190734863,
+                15.699999809265137,
+                113.0999984741211
+              ],
+              [
+                14.0,
+                16.5,
+                169.6999969482422
+              ],
+              [
+                21.799999237060547,
+                17.600000381469727,
+                226.3000030517578
+              ],
+              [
+                28.799999237060547,
+                18.799999237060547,
+                282.8999938964844
+              ],
+              [
+                33.79999923706055,
+                20.0,
+                339.3999938964844
+              ],
+              [
+                35.900001525878906,
+                21.0,
+                396.0
+              ],
+              [
+                34.400001525878906,
+                21.600000381469727,
+                452.6000061035156
+              ],
+              [
+                29.5,
+                21.799999237060547,
+                509.1000061035156
+              ],
+              [
+                21.5,
+                21.399999618530273,
+                565.7000122070312
+              ],
+              [
+                11.5,
+                20.299999237060547,
+                622.2999877929688
+              ],
+              [
+                0.800000011920929,
+                18.600000381469727,
+                678.9000244140625
+              ],
+              [
+                -9.199999809265137,
+                16.5,
+                735.4000244140625
+              ],
+              [
+                -17.200000762939453,
+                14.300000190734863,
+                792.0
+              ],
+              [
+                -22.0,
+                12.300000190734863,
+                848.5999755859375
+              ],
+              [
+                -22.799999237060547,
+                10.800000190734863,
+                905.0999755859375
+              ],
+              [
+                -19.5,
+                10.0,
+                961.7000122070312
+              ],
+              [
+                -12.800000190734863,
+                10.199999809265137,
+                1018.2999877929688
+              ],
+              [
+                -3.700000047683716,
+                11.399999618530273,
+                1074.9000244140625
+              ],
+              [
+                6.300000190734863,
+                13.600000381469727,
+                1131.4000244140625
+              ],
+              [
+                15.399999618530273,
+                16.399999618530273,
+                1188.0
+              ],
+              [
+                22.100000381469727,
+                19.299999237060547,
+                1244.5999755859375
+              ],
+              [
+                25.200000762939453,
+                21.700000762939453,
+                1301.0999755859375
+              ],
+              [
+                24.0,
+                23.0,
+                1357.699951171875
+              ],
+              [
+                19.0,
+                23.0,
+                1414.300048828125
+              ],
+              [
+                11.100000381469727,
+                22.0,
+                1470.9000244140625
+              ],
+              [
+                2.0,
+                20.799999237060547,
+                1527.4000244140625
+              ],
+              [
+                -6.5,
+                20.0,
+                1584.0
+              ],
+              [
+                -12.0,
+                20.0,
+                1640.5999755859375
+              ],
+              [
+                -12.0,
+                20.0,
+                1697.0999755859375
+              ],
+              [
+                -6.5,
+                20.0,
+                1753.699951171875
+              ],
+              [
+                2.0,
+                20.799999237060547,
+                1810.300048828125
+              ],
+              [
+                11.100000381469727,
+                22.0,
+                1866.9000244140625
+              ],
+              [
+                19.0,
+                23.0,
+                1923.4000244140625
+              ],
+              [
+                24.0,
+                23.0,
+                1980.0
+              ]
+            ]
+          },
+          "type": "SplineComponent"
+        }
+      ],
+      "instanceId": 8865338349013935913,
+      "name": "PathManager",
+      "tag": "Untagged"
+    },
+    {
+      "children": [
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "modelName": "resources/model/PlayerCraft/PlayerCraft.obj"
+              },
+              "type": "MeshRendererComponent"
+            },
+            {
+              "data": {
+                "Acceleration": 55.0,
+                "Friction": 10.0,
+                "HoverAmplitude": 0.30000001192092896,
+                "HoverFrequency": 2.0,
+                "MaxPitchAngle": 0.4000000059604645,
+                "MaxRollAngle": 0.800000011920929,
+                "MaxSpeed": 8.0,
+                "MaxYawAngle": 0.20000000298023224,
+                "MoveLimitMax": [
+                  4.099999904632568,
+                  3.0,
+                  0.0
+                ],
+                "MoveLimitMin": [
+                  -4.099999904632568,
+                  -1.0,
+                  0.0
+                ],
+                "XYSpeed": 8.0
+              },
+              "type": "RailShooterPlayerComponent"
+            },
+            {
+              "data": {
+                "Max Orbit Count": 10,
+                "No Lock Throw Dist": 1000.0,
+                "Orbit Angle Max": 6.28000020980835,
+                "Orbit Radius Max": 4.0,
+                "Orbit Radius Min": 2.0,
+                "Pull Radius": 100.0,
+                "Status Data Path": "resources/GameData/PlayerStatus.json",
+                "Throw Interval": 0.15000000596046448
+              },
+              "type": "GravityPlayerComponent"
+            },
+            {
+              "data": {
+                "Lockon Radius 2D": 200.0,
+                "Max Lockon Count": 1,
+                "Weight 2D": 1.0,
+                "Weight 3D": 10.0
+              },
+              "type": "PlayerTargetingComponent"
+            },
+            {
+              "data": {
+                "Current HP": 100,
+                "Death Sequence Duration": 3.0,
+                "God Mode": false,
+                "Invincibility Time": 1.0,
+                "Max HP": 100,
+                "Status Data Path": "resources/GameData/PlayerStatus.json"
+              },
+              "type": "PlayerHealthComponent"
+            },
+            {
+              "data": {
+                "Flash Duration": 1.0,
+                "Flash Interval": 0.05000000074505806,
+                "Shake Intensity": 1.0
+              },
+              "type": "PlayerDamageVisualizerComponent"
+            },
+            {
+              "data": {
+                "Max Scale Z": 1.7999999523162842,
+                "Min Scale Z": 0.800000011920929,
+                "Nozzle Offset": [
+                  0.0,
+                  0.0,
+                  -0.47999998927116394
+                ]
+              },
+              "type": "PlayerThrusterVisualizerComponent"
+            },
+            {
+              "data": {
+                "isStatic": false,
+                "isTrigger": false,
+                "layer": 2,
+                "localOffset": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "localRadius": 0.3499999940395355,
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "SphereColliderComponent"
+            },
+            {
+              "data": {
+                "duration": 0.4000000059604645,
+                "mode": 15,
+                "targetGlitchParams": {
+                  "blockSizeX": 16.0,
+                  "blockSizeY": 32.0,
+                  "color": [
+                    1.0,
+                    0.10000000149011612,
+                    0.30000001192092896,
+                    0.800000011920929
+                  ],
+                  "edgeMaskStrength": 1.0,
+                  "intensity": 4.0,
+                  "offsetBase": 0.029999999329447746,
+                  "offsetMax": 0.15000000596046448,
+                  "probability": 0.4000000059604645,
+                  "rgbShiftBase": 0.009999999776482582,
+                  "rgbShiftMax": 0.019999999552965164,
+                  "scanlineFreq": 800.0,
+                  "scanlineIntensity": 0.05000000074505806
+                }
+              },
+              "type": "ScreenEffectComponent"
+            },
+            {
+              "data": {
+                "customEffectType": 31,
+                "customParams": {
+                  "color1": [
+                    0.15000000596046448,
+                    0.8999999761581421,
+                    1.0,
+                    1.0
+                  ],
+                  "color2": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "param1": 1.5,
+                  "param2": 0.0,
+                  "param3": 0.0,
+                  "param4": 0.0
+                },
+                "enableEffectMask": true
+              },
+              "type": "EffectMaskComponent"
+            }
+          ],
+          "instanceId": 372368188768739661,
+          "name": "Player",
+          "tag": "Untagged"
+        }
+      ],
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Speed": 15.0,
+            "Target Path": 8865338349013935913
+          },
+          "type": "SplineFollowerComponent"
+        }
+      ],
+      "instanceId": 666616630839427138,
+      "name": "PlayerCart",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Density Scale": 1.0,
+            "Fade End Dist": 2200.0,
+            "Fade Start Dist": 400.0,
+            "Rail Speed": 35.0,
+            "Soft Range": 4.0,
+            "Surface Y": 0.0,
+            "Volume Depth": 35.0
+          },
+          "type": "NebulaSeaFloorComponent"
+        }
+      ],
+      "instanceId": 1479653983827768141,
+      "name": "NebulaSeaFloor",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Auto Supply Enabled": true,
+            "Boss Aura Color": [
+              0.800000011920929,
+              0.0,
+              0.6000000238418579,
+              0.4000000059604645
+            ],
+            "Boss Shield Radius": 8.0,
+            "Camera Shake Duration(Frames)": 10,
+            "Camera Shake Intensity": 0.5,
+            "Catch Distance Sq": 25.0,
+            "Debris Aura Scale": [
+              2.200000047683716,
+              2.200000047683716,
+              2.200000047683716
+            ],
+            "Debris Base Scale": [
+              0.5,
+              0.5,
+              0.5
+            ],
+            "Debris Collider Radius": 0.5,
+            "Debris Damage (Boss)": 10.0,
+            "Debris Damage (Enemy)": 100.0,
+            "Debris Orbit Radius": 2.0,
+            "Debris Orbit Speed": 2.0,
+            "Debris Pull Speed": 10.0,
+            "Debris Pull Y Offset": 2.0,
+            "Debris Throw Speed": 50.0,
+            "Idle Aura Color": [
+              0.6000000238418579,
+              0.20000000298023224,
+              1.0,
+              0.4000000059604645
+            ],
+            "Max Throw Distance": 1500.0,
+            "Player Aura Color": [
+              0.0,
+              0.800000011920929,
+              1.0,
+              0.4000000059604645
+            ],
+            "Recycle Behind Distance": 25.0,
+            "Supply Check Interval": 0.5,
+            "Target Field Count": 30
+          },
+          "type": "DebrisManagerComponent"
+        }
+      ],
+      "instanceId": 2738409501711223709,
+      "name": "DebrisManager",
+      "tag": "Untagged"
+    },
+    {
+      "children": [
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  0.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  4.0,
+                  4.0,
+                  4.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 11885677516590899743,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  0.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  4.0,
+                  4.0,
+                  4.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 12783448169298074664,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  50.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  4.0,
+                  4.0,
+                  4.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 15559784441686355999,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  50.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  4.0,
+                  4.0,
+                  4.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 12303246592443928224,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  100.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  4.0,
+                  4.0,
+                  4.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 3653961546853952424,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  100.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  4.0,
+                  4.0,
+                  4.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 16929313141388334964,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  150.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 7829076546148146147,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  150.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 6651277885081328326,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  200.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 7244019588197013818,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  200.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 9855439171412399657,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  250.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 9820813002461921479,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  250.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 1016633993462513132,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  300.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 11996021626221440313,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  300.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 1950984887873972948,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  350.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 17163880982974725929,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  350.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 9395930987214003050,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  400.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 8388261763467154917,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  400.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 17812838492364818968,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -20.0,
+                  0.0,
+                  450.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 3806927177791887503,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  20.0,
+                  0.0,
+                  450.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.44999998807907104,
+                  0.0
+                ],
+                "localSize": [
+                  0.4000000059604645,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 540716208983100232,
+          "name": "Env_Pillar",
+          "prefabPath": "resources/prefabs/Env_Pillar.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  100.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.30000001192092896,
+                  0.0
+                ],
+                "localSize": [
+                  0.8999999761581421,
+                  0.699999988079071,
+                  0.30000001192092896
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 15984828550388992657,
+          "name": "Env_Arch",
+          "prefabPath": "resources/prefabs/Env_Arch.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  200.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.30000001192092896,
+                  0.0
+                ],
+                "localSize": [
+                  0.8999999761581421,
+                  0.699999988079071,
+                  0.30000001192092896
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 17915682287821025886,
+          "name": "Env_Arch",
+          "prefabPath": "resources/prefabs/Env_Arch.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  300.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.30000001192092896,
+                  0.0
+                ],
+                "localSize": [
+                  0.8999999761581421,
+                  0.699999988079071,
+                  0.30000001192092896
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 11786694816912988601,
+          "name": "Env_Arch",
+          "prefabPath": "resources/prefabs/Env_Arch.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  400.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.30000001192092896,
+                  0.0
+                ],
+                "localSize": [
+                  0.8999999761581421,
+                  0.699999988079071,
+                  0.30000001192092896
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 11898017777263555540,
+          "name": "Env_Arch",
+          "prefabPath": "resources/prefabs/Env_Arch.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  500.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.0,
+                  0.30000001192092896,
+                  0.0
+                ],
+                "localSize": [
+                  0.8999999761581421,
+                  0.699999988079071,
+                  0.30000001192092896
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 3733248130217507626,
+          "name": "Env_Arch",
+          "prefabPath": "resources/prefabs/Env_Arch.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  -10.0,
+                  0.0,
+                  150.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  5.0,
+                  5.0,
+                  5.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.02500000037252903,
+                  0.550000011920929,
+                  0.0
+                ],
+                "localSize": [
+                  0.75,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 995045504784278724,
+          "name": "Env_Wall",
+          "prefabPath": "resources/prefabs/Env_Wall.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  10.0,
+                  0.0,
+                  250.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.02500000037252903,
+                  0.550000011920929,
+                  0.0
+                ],
+                "localSize": [
+                  0.75,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 13530510242956763352,
+          "name": "Env_Wall",
+          "prefabPath": "resources/prefabs/Env_Wall.json",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  5.0,
+                  350.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "isStatic": true,
+                "isTrigger": false,
+                "layer": 64,
+                "localOffset": [
+                  0.02500000037252903,
+                  0.550000011920929,
+                  0.0
+                ],
+                "localSize": [
+                  0.75,
+                  0.8999999761581421,
+                  0.4000000059604645
+                ],
+                "mask": 4294967295,
+                "pushbackMask": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "OBBColliderComponent"
+            }
+          ],
+          "instanceId": 5403363078805797012,
+          "name": "Env_Wall",
+          "prefabPath": "resources/prefabs/Env_Wall.json",
+          "tag": "Untagged"
+        }
+      ],
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "ColOffset_Env_Arch": [
+              0.0,
+              0.30000001192092896,
+              0.0
+            ],
+            "ColOffset_Env_Pillar": [
+              0.0,
+              0.44999998807907104,
+              0.0
+            ],
+            "ColOffset_Env_Wall": [
+              0.02500000037252903,
+              0.550000011920929,
+              0.0
+            ],
+            "ColSize_Env_Arch": [
+              0.8999999761581421,
+              0.699999988079071,
+              0.30000001192092896
+            ],
+            "ColSize_Env_Pillar": [
+              0.4000000059604645,
+              0.8999999761581421,
+              0.4000000059604645
+            ],
+            "ColSize_Env_Wall": [
+              0.75,
+              0.8999999761581421,
+              0.4000000059604645
+            ],
+            "IsDestructible_Env_Arch": false,
+            "IsDestructible_Env_Pillar": false,
+            "IsDestructible_Env_Wall": true,
+            "PushbackMaskX_Env_Arch": 1.0,
+            "PushbackMaskX_Env_Pillar": 1.0,
+            "PushbackMaskX_Env_Wall": 1.0,
+            "PushbackMaskY_Env_Arch": 1.0,
+            "PushbackMaskY_Env_Pillar": 1.0,
+            "PushbackMaskY_Env_Wall": 1.0,
+            "PushbackMaskZ_Env_Arch": 1.0,
+            "PushbackMaskZ_Env_Pillar": 1.0,
+            "PushbackMaskZ_Env_Wall": 1.0,
+            "SpawnCount_Env_Arch": 3,
+            "SpawnCount_Env_Pillar": 3,
+            "SpawnCount_Env_Wall": 3,
+            "Target Prefabs": "Env_Pillar,Env_Arch,Env_Wall",
+            "Type_Env_Arch": 0,
+            "Type_Env_Pillar": 0,
+            "Type_Env_Wall": 1
+          },
+          "type": "EnvironmentManagerComponent"
+        }
+      ],
+      "instanceId": 11920602262375386320,
+      "name": "EnvironmentManager",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Enemy Prefab Path": "resources/prefabs/Enemy_GravityGolem.json"
+          },
+          "type": "EnemySpawnerComponent"
+        }
+      ],
+      "instanceId": 7610254239322583345,
+      "name": "EnemySpawner",
+      "tag": "Untagged"
+    },
+    {
+      "children": [
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  8.0,
+                  8.0,
+                  8.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "modelName": "resources/model/BossRing/BossRing.obj"
+              },
+              "type": "MeshRendererComponent"
+            },
+            {
+              "data": {
+                "customEffectType": 31,
+                "customParams": {
+                  "color1": [
+                    1.0,
+                    0.05000000074505806,
+                    0.15000000596046448,
+                    1.0
+                  ],
+                  "color2": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "param1": 2.0,
+                  "param2": 0.0,
+                  "param3": 0.0,
+                  "param4": 0.0
+                },
+                "enableEffectMask": true
+              },
+              "type": "EffectMaskComponent"
+            }
+          ],
+          "instanceId": 5433160966212677511,
+          "name": "BossCore",
+          "tag": "Untagged"
+        }
+      ],
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              20.0,
+              150.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Beam Offset Y": 0.0,
+            "Beam Offset Z": 4.0,
+            "Initial Drone Count": 10,
+            "Status Data Path": "resources/GameData/BossStatus.json"
+          },
+          "type": "BossComponent"
+        },
+        {
+          "data": {
+            "Distance Offset": 80.0,
+            "Local Offset X": 0.0,
+            "Local Offset Y": 10.0,
+            "Local Offset Z": 0.0,
+            "Target Object": 666616630839427138
+          },
+          "type": "RailRelativeFollowerComponent"
+        },
+        {
+          "data": {
+            "isStatic": false,
+            "isTrigger": true,
+            "layer": 4,
+            "localOffset": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "localRadius": 4.599999904632568,
+            "mask": 4294967231,
+            "pushbackMask": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "SphereColliderComponent"
+        },
+        {
+          "type": "TargetableComponent"
+        },
+        {
+          "data": {
+            "Aura Color": [
+              0.10000000149011612,
+              0.0,
+              0.20000000298023224,
+              1.0
+            ],
+            "Aura Core Color": [
+              0.800000011920929,
+              0.0,
+              1.0,
+              1.0
+            ],
+            "Aura Intensity": 12.0,
+            "Aura Speed": 0.800000011920929,
+            "Beam Color": [
+              0.800000011920929,
+              0.0,
+              1.0,
+              1.0
+            ],
+            "Beam Core Color": [
+              0.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Beam Core Intensity": 40.0,
+            "Beam Damage": 30,
+            "Beam Intensity": 6.0,
+            "Beam Length": 200.0,
+            "Beam Max Radius": 1.0,
+            "Beam Speed": 3.0,
+            "Charge Duration": 1.5,
+            "Charge Sphere Color": [
+              0.699999988079071,
+              0.0,
+              0.8999999761581421,
+              1.0
+            ],
+            "Fire Duration": 0.800000011920929,
+            "Hit Check Margin": 0.5,
+            "Lock Lead Time": 0.4000000059604645,
+            "Telegraph Color": [
+              1.0,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.699999988079071
+            ]
+          },
+          "type": "EnemyBeamComponent"
+        },
+        {
+          "data": {
+            "Damage Shake Duration": 0.1599999964237213,
+            "Damage Shake Frequency": 15.0,
+            "Damage Shake Intensity": 0.4000000059604645,
+            "Death Blast Color": [
+              3.799999952316284,
+              0.30000001192092896,
+              4.5,
+              1.0
+            ],
+            "Death Lightning Color": [
+              2.200000047683716,
+              0.20000000298023224,
+              2.799999952316284,
+              1.0
+            ],
+            "Death Shake Duration": 1.0,
+            "Death Shake Frequency": 10.0,
+            "Death Shake Intensity": 2.0,
+            "Death Voxel Color": [
+              9.5,
+              2.0,
+              8.0,
+              1.0
+            ]
+          },
+          "type": "BossDamageVisualizerComponent"
+        }
+      ],
+      "instanceId": 12219067998687025011,
+      "name": "Boss",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              16.200000762939453,
+              -6.5
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "FOV": 0.785398006439209,
+            "FarZ": 2500.0,
+            "MakeActive": true,
+            "NearZ": 0.10000000149011612
+          },
+          "type": "CameraComponent"
+        },
+        {
+          "data": {
+            "FollowDelay": 0.009999999776482582,
+            "Offset": [
+              0.0,
+              1.2000000476837158,
+              -6.5
+            ],
+            "Target Object": 666616630839427138
+          },
+          "type": "TargetFollowComponent"
+        },
+        {
+          "data": {
+            "Global Intensity Multiplier": 1.0
+          },
+          "type": "CameraShakeComponent"
+        },
+        {
+          "data": {
+            "overrides": []
+          },
+          "type": "GlobalPostProcessComponent"
+        },
+        {
+          "data": {
+            "Area Size": [
+              36.0,
+              24.0,
+              60.0
+            ],
+            "Attractor Pos": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Attractor Strength": 0.0,
+            "Billboard Mode": 1,
+            "Blend Mode": 2,
+            "Bounce": 0.0,
+            "Burst Count On Awake": 0,
+            "Color": [
+              0.15000000596046448,
+              1.2000000476837158,
+              2.799999952316284,
+              0.699999988079071
+            ],
+            "Damping": 0.0,
+            "Direction": [
+              0.0,
+              0.0,
+              -1.0
+            ],
+            "Emission Rate": 160.0,
+            "Emit On Awake": true,
+            "Emit Type": 4,
+            "Enable Death Emit": false,
+            "Enable Random Rotation": false,
+            "Enable Trail": false,
+            "End Scale": [
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582
+            ],
+            "Gravity": 0.0,
+            "Ground Height": -100.0,
+            "Jitter": 0.0,
+            "Life Time Max": 2.5,
+            "Life Time Min": 1.5,
+            "Mid Color": [
+              0.800000011920929,
+              0.15000000596046448,
+              1.7999999523162842,
+              0.800000011920929
+            ],
+            "Mid Point": 0.5,
+            "Mid Scale": [
+              0.09000000357627869,
+              0.09000000357627869,
+              0.09000000357627869
+            ],
+            "ParticleData": {
+              "areaSize": [
+                36.0,
+                24.0,
+                60.0
+              ],
+              "blendMode": 2,
+              "color": [
+                0.15000000596046448,
+                1.2000000476837158,
+                2.799999952316284,
+                0.699999988079071
+              ],
+              "depthWrite": 2,
+              "direction": [
+                0.0,
+                0.0,
+                -1.0
+              ],
+              "emissionRate": 160.0,
+              "emitOnAwake": true,
+              "emitType": 4,
+              "enableLighting": false,
+              "endScale": [
+                0.009999999776482582,
+                0.009999999776482582,
+                0.009999999776482582
+              ],
+              "isUnscaledTime": false,
+              "lifeTimeMax": 2.5,
+              "lifeTimeMin": 1.5,
+              "midColor": [
+                0.800000011920929,
+                0.15000000596046448,
+                1.7999999523162842,
+                0.800000011920929
+              ],
+              "midScale": [
+                0.09000000357627869,
+                0.09000000357627869,
+                0.09000000357627869
+              ],
+              "spread": 0.05000000074505806,
+              "startScale": [
+                0.05999999865889549,
+                0.05999999865889549,
+                0.05999999865889549
+              ],
+              "texturePath": "resources/circle.png"
+            },
+            "Radius": 0.0,
+            "Show Debug Area": true,
+            "Spread": 0.05000000074505806,
+            "Start Scale": [
+              0.05999999865889549,
+              0.05999999865889549,
+              0.05999999865889549
+            ],
+            "Texture Path": "resources/circle.png",
+            "Trail Frequency": 0.05000000074505806,
+            "Velocity": 1.0
+          },
+          "type": "ParticleEmitterComponent"
+        }
+      ],
+      "instanceId": 1432498776640000749,
+      "name": "MainCamera",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Boss Explosion Effect Path": "resources/prefabs/boss_explosion_effect.json",
+            "Dust Effect Path": "resources/prefabs/debris_dust_effect.json",
+            "Enemy Explosion Effect Path": "resources/prefabs/enemy_explosion_effect.json",
+            "Hit Effect Path": "resources/prefabs/normal_attack_hit_effect.json",
+            "Thruster Effect Path": "resources/prefabs/player_thruster_effect.json"
+          },
+          "type": "EffectManagerComponent"
+        }
+      ],
+      "instanceId": 6798844798954951457,
+      "name": "EffectManager",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              0.20000000298023224,
+              0.20000000298023224,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "color": [
+              0.10000000149011612,
+              0.8500000238418579,
+              1.0,
+              0.6499999761581421
+            ],
+            "currentTypeIndex": 3,
+            "isTopMost": false,
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "size": [
+              36.0,
+              36.0
+            ],
+            "subdivision": 32,
+            "texturePath": "",
+            "thickness": 2.0
+          },
+          "type": "Primitive2DRendererComponent"
+        },
+        {
+          "type": "ReticleUIComponent"
+        }
+      ],
+      "instanceId": 4541778554248896256,
+      "isActive": false,
+      "name": "Reticle",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "type": "LockonMarkerUIComponent"
+        }
+      ],
+      "instanceId": 4009175389553285076,
+      "isActive": false,
+      "name": "LockonMarkerUI",
+      "tag": "Untagged"
+    },
+    {
+      "children": [
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "autoClearEveryFrame": true,
+                "color": [
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "modelName": "resources/model/BossDrone/boss_drone.obj"
+              },
+              "type": "ModelBatchRendererComponent"
+            },
+            {
+              "data": {
+                "Active Drones (Batch)": 0,
+                "Bullet Speed": 45.0,
+                "Drone Prefab Path": "resources/prefabs/BossDrone.json",
+                "Fire Interval": 3.0,
+                "Max Drones": 50,
+                "Orbit Radius": 15.0,
+                "Orbit Speed": 1.0
+              },
+              "type": "DroneManagerComponent"
+            },
+            {
+              "data": {
+                "customEffectType": 31,
+                "customParams": {
+                  "color1": [
+                    1.0,
+                    0.05000000074505806,
+                    0.05000000074505806,
+                    1.0
+                  ],
+                  "color2": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "param1": 1.5,
+                  "param2": 0.0,
+                  "param3": 0.0,
+                  "param4": 0.0
+                },
+                "enableEffectMask": true
+              },
+              "type": "EffectMaskComponent"
+            }
+          ],
+          "instanceId": 12851281749722887849,
+          "name": "BossDroneManager",
+          "tag": "Untagged"
+        },
+        {
+          "components": [
+            {
+              "data": {
+                "inheritScale": true,
+                "position": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rotation": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "scale": [
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              "type": "TransformComponent"
+            },
+            {
+              "data": {
+                "autoClearEveryFrame": true,
+                "color": [
+                  0.8500000238418579,
+                  0.15000000596046448,
+                  1.0,
+                  1.0
+                ],
+                "modelName": "resources/model/BossDroneBullet/BossDroneBullet.obj"
+              },
+              "type": "ModelBatchRendererComponent"
+            },
+            {
+              "data": {
+                "Active Instances (Batch)": 0
+              },
+              "type": "VirtualEntityManagerComponent"
+            },
+            {
+              "data": {
+                "Bullet Color": [
+                  0.8500000238418579,
+                  0.15000000596046448,
+                  1.0,
+                  1.0
+                ],
+                "Bullet Model Path": "resources/model/BossDroneBullet/BossDroneBullet.obj",
+                "Bullet Prefab Path": "resources/prefabs/BossBullet.json",
+                "Bullet Scale": [
+                  0.5,
+                  0.5,
+                  0.5
+                ],
+                "Default Life Time": 5.0,
+                "Hit Effect Key": "Dust",
+                "Hit Radius": 0.5,
+                "Max Bullets": 2000,
+                "Target Player": 372368188768739661
+              },
+              "type": "BossBulletManagerComponent"
+            },
+            {
+              "data": {
+                "customEffectType": 31,
+                "customParams": {
+                  "color1": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "color2": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "param1": 1.0,
+                  "param2": 0.0,
+                  "param3": 0.0,
+                  "param4": 0.0
+                },
+                "enableEffectMask": true
+              },
+              "type": "EffectMaskComponent"
+            }
+          ],
+          "instanceId": 8075332939169388328,
+          "name": "BossBulletManager",
+          "tag": "Untagged"
+        }
+      ],
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        }
+      ],
+      "instanceId": 9306585553890366926,
+      "name": "BossContainer",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Result Time Scale": 0.10000000149011612,
+            "Target Boss Name": "Boss",
+            "Target Player Name": "Player"
+          },
+          "type": "GameLoopManagerComponent"
+        },
+        {
+          "data": {
+            "Editor Preview Distance": 0.0,
+            "Enemy Spawner": 0,
+            "Level Data Path": "",
+            "Target Spline": 8865338349013935913
+          },
+          "type": "WaveManagerComponent"
+        },
+        {
+          "data": {
+            "Arrival Duration": 0.3499999940395355,
+            "Bootup Duration": 0.6499999761581421,
+            "Breach Progress Threshold": 0.3199999928474426,
+            "Breach SE Path": "resources/audio/SE/se_water_breach.mp3",
+            "Breach Shake Amplitude": 0.09000000357627869,
+            "FCS Boot SE Path": "resources/audio/SE/se_fcs_online.mp3",
+            "Membrane Displacement": 0.03799999877810478,
+            "Membrane Offset Z": -1.7999999523162842,
+            "Membrane RGB Shift": 0.03999999910593033,
+            "Membrane Scale X": 48.0,
+            "Membrane Scale Y": 36.0,
+            "Rail Speed Boost": 2.200000047683716,
+            "Start Offset Z": -4.800000190734863,
+            "Target Ship Name": "Player",
+            "Warp SE Path": "resources/audio/SE/se_gravity_warp.mp3",
+            "WarpIn Blur Width": 0.14000000059604645,
+            "WarpIn Duration": 1.7999999523162842,
+            "WarpIn FOV Boost": 24.0
+          },
+          "type": "StageIntroDirectorComponent"
+        }
+      ],
+      "instanceId": 8040492037901668950,
+      "name": "GameManager",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "overrides": [
+              {
+                "enabled": true,
+                "intensity": 1.7999999523162842,
+                "sigma": 4.0,
+                "threshold": 0.6000000238418579,
+                "type": "Bloom"
+              },
+              {
+                "enabled": true,
+                "exposure": 2.0,
+                "hue": 0.0,
+                "saturation": 0.20000000298023224,
+                "type": "ColorGrading",
+                "value": -0.10000000149011612
+              },
+              {
+                "enabled": true,
+                "radius": 0.800000011920929,
+                "softness": 0.5,
+                "type": "Vignette"
+              },
+              {
+                "depthWeight": 0.800000011920929,
+                "distanceFadeEnd": 120.0,
+                "distanceFadeStart": 20.0,
+                "enabled": true,
+                "inkColor": [
+                  0.07999999821186066,
+                  0.07999999821186066,
+                  0.11999999731779099,
+                  1.0
+                ],
+                "intensity": 1.2000000476837158,
+                "normalWeight": 0.800000011920929,
+                "type": "BandeDessineeOutline"
+              }
+            ]
+          },
+          "type": "GlobalPostProcessComponent"
+        }
+      ],
+      "instanceId": 998877665544332211,
+      "name": "GlobalPostProcessVolume",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "color": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "intensity": 1.0,
+            "texturePath": "resources/texture/sky/skydome.png",
+            "uvOffset": [
+              0.0,
+              0.0
+            ],
+            "uvTiling": [
+              1.0,
+              1.0
+            ]
+          },
+          "type": "SkyDomeComponent"
+        }
+      ],
+      "instanceId": 777111222333444555,
+      "name": "Skydome",
+      "tag": "Untagged"
+    },
+    {
+      "components": [
+        {
+          "data": {
+            "inheritScale": true,
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              -0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "TransformComponent"
+        },
+        {
+          "data": {
+            "Color": [
+              0.00800000037997961,
+              0.014999999664723873,
+              0.029999999329447746
+            ],
+            "Density": 1.0,
+            "Enabled": true,
+            "End Distance": 2200.0,
+            "Start Distance": 300.0,
+            "Type (0:Lin, 1:Exp)": 0,
+            "enabled": true,
+            "fogColor": [
+              0.00800000037997961,
+              0.014999999664723873,
+              0.029999999329447746
+            ],
+            "fogDensity": 1.0,
+            "fogEnd": 2200.0,
+            "fogStart": 300.0,
+            "fogType": 0
+          },
+          "type": "FogComponent"
+        }
+      ],
+      "instanceId": 888111222333444555,
+      "name": "AtmosphericFog",
+      "tag": "Untagged"
+    },
+    {
+      "name": "ParticleShowcaseDirector",
+      "components": [
+        {
+          "type": "TransformComponent",
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "inheritScale": true
+          }
+        },
+        {
+          "type": "ParticleShowcaseDirectorComponent",
+          "data": {}
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "directionalLight": {
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "direction": [
+        0.5,
+        -0.699999988079071,
+        1.0
+      ],
+      "intensity": 1.0
+    }
+  },
+  "version": 1
+}

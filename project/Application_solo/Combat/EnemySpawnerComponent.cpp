@@ -246,7 +246,7 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                                 }
                                 constexpr float kLargeEnemyScaleThreshold = 1.3f;
                                 constexpr int kLargeEnemyDropCount = 4;
-                                constexpr int kNormalEnemyDropCount = 2;
+                                constexpr int kNormalEnemyDropCount = 3;
                                 int dropCount = (scaleMult >= kLargeEnemyScaleThreshold) ? kLargeEnemyDropCount
                                                                                          : kNormalEnemyDropCount;
 
@@ -266,19 +266,19 @@ EnemySpawnerComponent::PrefabPoolData* EnemySpawnerComponent::GetOrCreatePrefabP
                                 // 4. 敵機体のVoxelメッシュ破砕演出（プレハブ固有のモデルメッシュから破砕）
                                 if (auto engine = scene->GetEngine()) {
                                     if (auto voxelMgr = engine->GetVoxelParticleManager()) {
-                                        constexpr float kVoxelParticleLifeTime = 1.2f;
-                                        constexpr float kVoxelParticleGravity = 4.0f;
-                                        constexpr float kVoxelParticleDispersion = 14.0f;
+                                        constexpr float kVoxelParticleLifeTime = 1.6f;
+                                        constexpr float kVoxelParticleGravity = 3.5f;
+                                        constexpr float kVoxelParticleDispersion = 24.0f;
 
                                         Irufemi::VoxelEmitter p{};
                                         p.particleType = 5; // DebrisExplosive
                                         p.lifeTime = kVoxelParticleLifeTime;
                                         p.gravity = kVoxelParticleGravity;
                                         p.dispersion = kVoxelParticleDispersion;
-                                        p.scale = {0.5f, 0.5f, 0.5f};
-                                        p.startColor = {8.0f, 1.5f, 7.0f, 1.0f}; // 超高輝度マゼンタ過電圧放電色
+                                        p.scale = {0.65f, 0.65f, 0.65f};
+                                        p.startColor = {14.0f, 3.0f, 12.0f, 1.0f}; // 超高輝度マゼンタ過電圧放電色
                                         p.endColor = {0.2f, 0.02f, 0.25f, 0.0f}; // 電磁紫煙フェード
-                                        p.dissolveEdgeColor = {20.0f, 3.0f, 18.0f, 1.0f}; // 超高圧放電エッジ発光
+                                        p.dissolveEdgeColor = {30.0f, 6.0f, 26.0f, 1.0f}; // 超高圧放電エッジ発光
                                         voxelMgr->PlayExplosion(capturedModelPath, deadPos, {0.0f, 0.0f, 0.0f},
                                                                 {0.0f, 0.0f, 0.0f}, currentScale, p, {3, 3, 3});
                                     }

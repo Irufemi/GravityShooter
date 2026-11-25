@@ -6,11 +6,11 @@
     "clearColor": [0.08, 0.03, 0.02, 1.0]
   },
   "scene": {
-    "initialScene": "InGame"
+    "initialScene": "Title"
   },
   "demo": {
-    "enabledOnStart": false,
-    "defaultMode": "ClearShowcase",
+    "enabledOnStart": true,
+    "defaultMode": "ParticleShowcase",
     "enableDevHotkeys": true
   }
 }

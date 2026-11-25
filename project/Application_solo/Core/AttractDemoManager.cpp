@@ -15,8 +15,14 @@
 #include "Audio/AudioManager.h"
 #include "Audio/SoundHelper.h"
 #include "Player/PlayerHealthComponent.h"
+#include "Player/GravityPlayerComponent.h"
+#include "Player/PlayerTargetingComponent.h"
 #include "Combat/Boss/BossComponent.h"
 #include "Level/StageIntroDirectorComponent.h"
+#include "Effects/EffectManagerComponent.h"
+#include "Environment/DebrisManagerComponent.h"
+#include "RailMechanics/RailShooterEnemyComponent.h"
+#include "Player/PlayerDamageVisualizerComponent.h"
 #include <algorithm>
 #include <cmath>
 
@@ -54,11 +60,14 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     wasF8Down_ = false;
     wasF7Down_ = false;
     wasF6Down_ = false;
+    wasF5Down_ = false;
     f8CooldownTimer_ = 0.0f;
     idleTimer_ = 0.0f;
     demoTimeline_ = 0.0f;
     inGameTimer_ = 0.0f;
+    combatTimer_ = 0.0f;
     resultTimer_ = 0.0f;
+    particleShowcasePhase_ = 0;
 }
 
 void AttractDemoManager::OnFinalize() {
@@ -109,10 +118,12 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
         demoHudObj_.reset();
         demoHudText_ = nullptr;
 
-        if (currentScene == GameScenes::InGame) {
-            // Title から本編 InGame に突入した瞬間
+        if (currentScene == GameScenes::InGame || currentScene == GameScenes::ParticleShowcase) {
+            // Title から本編 InGame / ParticleShowcase に突入した瞬間
             inGameTimer_ = 0.0f;
             combatTimer_ = 0.0f;
+            particleShowcasePhase_ = 0;
+            demoCombatActionTimer_ = 0.0f;
             hasTriggeredReturn_ = false;
             isDemoPlaying_ = false; // タイトル用デモフラグは終了
 
@@ -128,11 +139,18 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
             hasTriggeredReturn_ = false;
             demoTimeline_ = 0.0f;
             idleTimer_ = 0.0f;
+            hasSubmitted_ = false;
+            hasTriggeredDemoPulse_ = false;
 
             if (auto input = engine_->GetInputManager()) {
                 if (auto mouse = input->GetMouse()) {
                     mouse->SetVirtualPosition({0.0f, 0.0f}, false);
                 }
+            }
+
+            // キオスク・デモモード中はタイトル帰還時に自動でタイトルデモを再起動（永続ループ保証）
+            if (isKioskLoopMode_) {
+                StartTitleDemo();
             }
         } else if (currentScene == GameScenes::Result) {
             // Result シーン突入時
@@ -147,6 +165,7 @@ void AttractDemoManager::OnUpdate(float deltaTime) {
     static const std::unordered_map<std::string, SceneUpdateHandler> kSceneUpdateHandlers = {
         {std::string(GameScenes::Title), &AttractDemoManager::UpdateTitleScene},
         {std::string(GameScenes::InGame), &AttractDemoManager::UpdateInGameScene},
+        {std::string(GameScenes::ParticleShowcase), &AttractDemoManager::UpdateInGameScene},
         {std::string(GameScenes::Result), &AttractDemoManager::UpdateResultScene},
     };
 
@@ -176,6 +195,30 @@ void AttractDemoManager::UpdateF8Input(float deltaTime) {
 
     // InputManager によるF8キー押下の検知
     bool isF8Down = inputManager->IsKeyPressed(VK_F8) || inputManager->IsKeyDown(VK_F8);
+
+    // F5キーでパーティクル実演デモ（ParticleShowcase）を即時テスト開始
+    bool isF5Down = inputManager->IsKeyPressed(VK_F5) || inputManager->IsKeyDown(VK_F5);
+    bool f5Triggered = isF5Down && !wasF5Down_;
+    wasF5Down_ = isF5Down;
+
+    if (f5Triggered) {
+        demoMode_ = DemoMode::ParticleShowcase;
+        isKioskLoopMode_ = true;
+        isKioskModeActive_ = true;
+        isAttractModeActive_ = true;
+        particleShowcasePhase_ = 0;
+        inGameTimer_ = 0.0f;
+        auto sm = engine_->GetSceneManager();
+        if (sm) {
+            if (sm->GetCurrent() == GameScenes::Title) {
+                StartTitleDemo();
+            } else if (sm->GetCurrent() == GameScenes::InGame) {
+                hasTriggeredReturn_ = false;
+            } else {
+                sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::Fade, 0.3f);
+            }
+        }
+    }
 
     // F6キーで自機を強制撃破（ゲームオーバー演出デバッグ・実演確認用）
     bool isF6Down = inputManager->IsKeyPressed(VK_F6) || inputManager->IsKeyDown(VK_F6);
@@ -284,13 +327,53 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
 
         Irufemi::Vector2 targetCursorPos = posSweepStart_;
 
-        // === 【モード分岐 1, 3 & 4】画面遷移ショーケース / ゲームオーバー実演 / クリア実演 ===
+        // === 【モード分岐 1, 3, 4】画面遷移ショーケース / ゲームオーバー実演 / クリア実演 ===
         if (demoMode_ == DemoMode::TransitionShowcase || demoMode_ == DemoMode::GameOverShowcase ||
             demoMode_ == DemoMode::ClearShowcase) {
             targetCursorPos = posStart_;
 
             float launchDelay = (demoMode_ == DemoMode::TransitionShowcase) ? 3.00f : 1.50f;
             if (demoTimeline_ >= launchDelay) {
+                TriggerDemoGameLaunch(currentScenePtr, dirComp);
+            }
+        }
+        // === 【モード分岐 5】パーティクル完全実演（ParticleShowcase）：流体星雲撹拌・重力パルス・STARTホバー出撃 ===
+        else if (demoMode_ == DemoMode::ParticleShowcase) {
+            // 区間1 (0.00s〜1.40s): 画面下部から右ガレキ密集エリアへ加速侵入（星雲引き波トレイル）
+            if (demoTimeline_ < 1.40f) {
+                float t = SmoothStep(demoTimeline_ / 1.40f);
+                targetCursorPos.x = std::lerp(posSweepStart_.x, posSweepRight_.x, t);
+                targetCursorPos.y = std::lerp(posSweepStart_.y, posSweepRight_.y, t);
+            }
+            // 区間2 (1.40s〜2.80s): 右ガレキから自機頭上を経由し、左ガレキへS字クロス通過
+            else if (demoTimeline_ < 2.80f) {
+                float t = (demoTimeline_ - 1.40f) / 1.40f;
+                targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
+
+                // 自機頭上クロス（t ≒ 0.45 付近）で重力光彩パルス ＆ 全ガレキ一斉衝撃波を発火！
+                if (t >= 0.45f && !hasTriggeredDemoPulse_) {
+                    hasTriggeredDemoPulse_ = true;
+                    if (dirComp) {
+                        if (auto nebulaComp = dirComp->GetNebulaComponent()) {
+                            nebulaComp->TriggerPulse(1.0f);
+                        }
+                        dirComp->TriggerGravitationalShockwave(1.0f);
+                    }
+                }
+            }
+            // 区間3 (2.80s〜4.00s): 左ガレキから「GAME START」へ滑らかに吸い寄せ合流
+            else if (demoTimeline_ < 4.00f) {
+                float t = SmoothStep((demoTimeline_ - 2.80f) / 1.20f);
+                targetCursorPos.x = std::lerp(posSweepLeft_.x, posStart_.x, t);
+                targetCursorPos.y = std::lerp(posSweepLeft_.y, posStart_.y, t);
+            }
+            // 区間4 (4.00s〜4.70s): STARTボタン上でピタッと静止ホバー（拡大・発光演出）
+            else if (demoTimeline_ < 4.70f) {
+                targetCursorPos = posStart_;
+            }
+            // 区間5 (4.70s〜): GAME START クリック決定 ＆ 出撃演出（白熱Afterglow＋小惑星Voxel散華）発火！
+            else {
+                targetCursorPos = posStart_;
                 TriggerDemoGameLaunch(currentScenePtr, dirComp);
             }
         }
@@ -412,6 +495,13 @@ void AttractDemoManager::UpdateInGameScene(float deltaTime) {
     if (userSkip) {
         // 手動スキップされた場合はデモを完全解除して通常タイトルに戻す
         StopAllDemo(true);
+        return;
+    }
+
+    // パーティクル完全実演モードの場合：
+    // 専用テストステージ（ParticleShowcase）上の ParticleShowcaseDirectorComponent が
+    // ガレキ引き寄せ・敵ロックオン・直撃3D Voxel破砕・敵弾シールド防御・クライマックス演出の全シーケンスを完全統括。
+    if (demoMode_ == DemoMode::ParticleShowcase) {
         return;
     }
 
@@ -538,6 +628,10 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
     // リザルト文字および暗幕をじっくり視認させた後に自動ループ遷移
     // （GameOverShowcase: 1.80秒後 / ClearShowcase: ランクスタンプ確認のため 4.00秒後）
     float waitDuration = (demoMode_ == DemoMode::ClearShowcase) ? 4.00f : 1.80f;
+    if (demoMode_ == DemoMode::ParticleShowcase) {
+        waitDuration = particleShowcaseTargetIsClear_ ? 4.00f : 2.00f;
+    }
+
     if (resultTimer_ >= waitDuration) {
         hasTriggeredReturn_ = true;
 
@@ -546,8 +640,15 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
             am->FadeCategoryVolume(AudioCategory::BGM, 0.0f, 0.75f);
         }
 
-        if (demoMode_ == DemoMode::GameOverShowcase || demoMode_ == DemoMode::ClearShowcase) {
-            // ショーケースデモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
+        if (demoMode_ == DemoMode::ParticleShowcase) {
+            // パーティクル実演モード：次回周のためにクリア実演とゲームオーバー実演を交互にトグル反転！
+            AttractDemoManager::ToggleParticleShowcaseTarget();
+            particleShowcaseTargetIsClear_ = AttractDemoManager::IsParticleShowcaseTargetClear();
+            // タイトルへ滑らかに帰還し、タイトル演出〜出撃演出から再スタート（完全アトラクトループ）
+            sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::RadialBlur, 0.8f,
+                             EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+        } else if (demoMode_ == DemoMode::GameOverShowcase || demoMode_ == DemoMode::ClearShowcase) {
+            // 単体ショーケースデモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
             sm->TransitionTo(GameScenes::InGame, Irufemi::SceneTransition::Type::RadialBlur, 0.8f,
                              EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         } else {
@@ -782,6 +883,9 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
         case DemoMode::StandardAttract:
             targetText = L"DEMO: STANDARD ATTRACT   |   F7: MODE   |   F8: EXIT";
             break;
+        case DemoMode::ParticleShowcase:
+            targetText = L"DEMO: PARTICLE SHOWCASE (ETHEREAL VOXEL & FLUID FX)   |   F5: TEST   |   F7: MODE   |   F8: EXIT";
+            break;
         case DemoMode::GameOverShowcase:
             targetText = L"DEMO: GAME OVER SHOWCASE   |   F6: KILL   |   F7: MODE   |   F8: EXIT";
             break;
@@ -822,7 +926,10 @@ void AttractDemoManager::TriggerDemoGameLaunch(Irufemi::BaseScene* currentScene,
             }
             if (dirComp) {
                 isDemoInGame_ = true;
-                dirComp->SetNextSceneName(std::string(GameScenes::InGame));
+                std::string targetScene = (demoMode_ == DemoMode::ParticleShowcase)
+                                              ? std::string(GameScenes::ParticleShowcase)
+                                              : std::string(GameScenes::InGame);
+                dirComp->SetNextSceneName(targetScene);
                 dirComp->StartLaunchSequence();
             }
         }

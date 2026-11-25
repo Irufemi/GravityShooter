@@ -101,4 +101,5 @@ private: // メンバ変数
     Irufemi::Vector2 prevRawMouseUV_{0.5f, 0.5f};       //!< 前フレームのマウスUV
     Irufemi::Vector2 smoothedVelocity_{0.0f, 0.0f};     //!< 平滑化されたマウス移動速度ベクトル
     Irufemi::Vector2 parallaxOffset_{0.0f, 0.0f};       //!< パララックスオフセット
+    bool isFirstFrame_ = true;                          //!< 起動直後のマウスワープ外力を防止する初回フレームフラグ
 };

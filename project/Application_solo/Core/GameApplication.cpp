@@ -57,6 +57,7 @@
 #include "Environment/NebulaSeaFloorComponent.h"
 #include "Scenes/stageSelect/SelectScene.h"
 #include "Scenes/inGame/GameScene.h"
+#include "Scenes/inGame/ParticleShowcaseDirectorComponent.h"
 #include "Scenes/Pause/PauseScene.h"
 #include "Scenes/TL1/TL1Scene.h"
 #include "Scenes/Options/OptionsScene.h"
@@ -92,7 +93,9 @@ constexpr std::string_view kInitialScene = GameScenes::Title;
 
 // --- デモモード文字列のパース ---
 AttractDemoManager::DemoMode ParseDemoMode(const std::string& modeStr) {
-    if (modeStr == "GameOverShowcase") {
+    if (modeStr == "ParticleShowcase") {
+        return AttractDemoManager::DemoMode::ParticleShowcase;
+    } else if (modeStr == "GameOverShowcase") {
         return AttractDemoManager::DemoMode::GameOverShowcase;
     } else if (modeStr == "TransitionShowcase") {
         return AttractDemoManager::DemoMode::TransitionShowcase;
@@ -107,6 +110,7 @@ void RegisterScenes(Irufemi::SceneManager& sm) {
     sm.Register(GameScenes::Title, [] { return std::make_unique<TitleScene>(); });
     sm.Register(GameScenes::Select, [] { return std::make_unique<SelectScene>(); });
     sm.Register(GameScenes::InGame, [] { return std::make_unique<GameScene>(); });
+    sm.Register(GameScenes::ParticleShowcase, [] { return std::make_unique<GameScene>(); });
     sm.Register(GameScenes::Pause, [] { return std::make_unique<PauseScene>(); });
     sm.Register(GameScenes::TL1, [] { return std::make_unique<TL1Scene>(); });
     sm.Register(GameScenes::Result, [] { return std::make_unique<ResultScene>(); });
@@ -242,6 +246,8 @@ void RegisterComponents() {
                                         []() { return std::make_shared<TitleCosmicNebulaComponent>(); });
     Irufemi::ComponentFactory::Register("TitleSceneDirectorComponent", "Game",
                                         []() { return std::make_shared<TitleSceneDirectorComponent>(); });
+    Irufemi::ComponentFactory::Register("ParticleShowcaseDirectorComponent", "Game",
+                                        []() { return std::make_shared<ParticleShowcaseDirectorComponent>(); });
     Irufemi::ComponentFactory::Register("NebulaSeaFloorComponent", "Environment",
                                         []() { return std::make_shared<NebulaSeaFloorComponent>(); });
 }

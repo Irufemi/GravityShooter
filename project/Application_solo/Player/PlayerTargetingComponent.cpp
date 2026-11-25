@@ -299,6 +299,20 @@ void PlayerTargetingComponent::ClearTargets() {
     queuedTargets_.clear();
 }
 
+void PlayerTargetingComponent::AddExplicitTarget(const std::shared_ptr<Irufemi::GameObject>& target) {
+    if (!target) {
+        return;
+    }
+    // 既に同一ターゲットがキューに存在しないかチェック
+    for (const auto& q : queuedTargets_) {
+        if (q == target) {
+            return;
+        }
+    }
+    queuedTargets_.push_back(target);
+    UpdateOutlineHighlights();
+}
+
 std::shared_ptr<Irufemi::GameObject> PlayerTargetingComponent::PopTarget() {
     if (queuedTargets_.empty()) {
         return nullptr;

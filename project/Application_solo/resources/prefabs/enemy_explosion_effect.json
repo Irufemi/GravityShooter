@@ -89,21 +89,21 @@
               "depthWrite": 2,
               "billboardMode": 1,
               "emitOnAwake": true,
-              "burstCountOnAwake": 50,
+              "burstCountOnAwake": 90,
               "emitType": 0,
               "emissionRate": 0.0,
-              "radius": 0.4,
+              "radius": 0.5,
               "spread": 1.0,
-              "velocity": 65.0,
-              "gravity": -5.0,
-              "damping": 0.08,
+              "velocity": 75.0,
+              "gravity": -6.0,
+              "damping": 0.07,
               "jitter": 0.85,
-              "lifeTimeMin": 0.15,
-              "lifeTimeMax": 0.35,
+              "lifeTimeMin": 0.2,
+              "lifeTimeMax": 0.45,
               "startScale": [
-                0.25,
-                0.25,
-                0.25
+                0.35,
+                0.35,
+                0.35
               ],
               "midScale": [
                 0.12,
@@ -157,36 +157,36 @@
               "burstCountOnAwake": 1,
               "emitType": 0,
               "emissionRate": 0.0,
-              "lifeTimeMin": 0.12,
-              "lifeTimeMax": 0.16,
+              "lifeTimeMin": 0.14,
+              "lifeTimeMax": 0.20,
               "velocity": 0.0,
               "startScale": [
-                0.5,
-                0.5,
-                0.5
+                0.8,
+                0.8,
+                0.8
               ],
               "midScale": [
-                5.0,
-                5.0,
-                5.0
+                7.5,
+                7.5,
+                7.5
               ],
               "endScale": [
-                8.0,
-                8.0,
-                8.0
+                13.0,
+                13.0,
+                13.0
               ],
-              "midPoint": 0.4,
+              "midPoint": 0.35,
               "color": [
-                6.0,
-                1.0,
-                5.0,
-                0.9
+                10.0,
+                2.0,
+                8.5,
+                1.0
               ],
               "midColor": [
-                2.5,
-                0.3,
-                2.0,
-                0.5
+                4.0,
+                0.6,
+                3.5,
+                0.6
               ],
               "endColor": [
                 0.2,
@@ -215,29 +215,29 @@
               "billboardMode": 1,
               "enableRandomRotation": true,
               "emitOnAwake": true,
-              "burstCountOnAwake": 12,
+              "burstCountOnAwake": 24,
               "emitType": 0,
               "emissionRate": 0.0,
-              "radius": 1.2,
+              "radius": 1.5,
               "spread": 1.0,
-              "velocity": 12.0,
-              "damping": 0.12,
-              "lifeTimeMin": 0.4,
-              "lifeTimeMax": 0.7,
+              "velocity": 16.0,
+              "damping": 0.10,
+              "lifeTimeMin": 0.5,
+              "lifeTimeMax": 0.9,
               "startScale": [
-                1.0,
-                1.0,
-                1.0
+                1.2,
+                1.2,
+                1.2
               ],
               "midScale": [
-                3.0,
-                3.0,
-                3.0
-              ],
-              "endScale": [
                 4.0,
                 4.0,
                 4.0
+              ],
+              "endScale": [
+                6.0,
+                6.0,
+                6.0
               ],
               "midPoint": 0.3,
               "color": [

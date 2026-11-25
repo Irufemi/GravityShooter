@@ -243,6 +243,7 @@ exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="Scenes\inGame\GameScene.cpp" />
+    <ClCompile Include="Scenes\inGame\ParticleShowcaseDirectorComponent.cpp" />
     <ClCompile Include="Scenes\Result\ResultScene.cpp" />
 
     <ClCompile Include="Scenes\Pause\PauseScene.cpp" />
@@ -330,6 +331,7 @@ exit 0</Command>
     <ClInclude Include="Scenes\TL1\MagicBrushClient.h" />
     <ClInclude Include="scene\GameOver\GameOverScene.h" />
     <ClInclude Include="Scenes\inGame\GameScene.h" />
+    <ClInclude Include="Scenes\inGame\ParticleShowcaseDirectorComponent.h" />
     <ClInclude Include="Scenes\Result\ResultScene.h" />
 
     <ClInclude Include="Scenes\Pause\PauseScene.h" />

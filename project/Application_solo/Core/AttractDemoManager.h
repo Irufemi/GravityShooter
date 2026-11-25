@@ -33,7 +33,8 @@ public:
         ClearShowcase, ///< 【クリア演出実演】出撃後ボス即時撃破・STAGE CLEARリザルト接続を実演ループ
         GameOverShowcase, ///< 【ゲームオーバー演出実演】出撃後2.5秒で特異点収縮・スーパーノヴァ大爆発・ResultScene接続を実演ループ
         TransitionShowcase, ///< 【画面遷移ショーケース】起動直後0.3秒で出撃し、重力の壁突入・突破を即座に実演ループ
-        StandardAttract     ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
+        StandardAttract,    ///< 【通常アトラクト】ガレキスイープ・メニューホバーを経てから出撃
+        ParticleShowcase    ///< 【パーティクル完全実演】タイトル流体星雲〜InGame全エフェクト連続展示ループ
     };
 
     /**
@@ -41,9 +42,9 @@ public:
      * @brief アトラクトデモおよびキオスク展示の起動構成設定
      */
     struct Config {
-        bool enabledOnStart = false; ///< 起動時にデモプレイ（キオスクループ）を開始するか（デフォルト: OFF）
-        DemoMode defaultMode = DemoMode::ClearShowcase; ///< 初期デモモード
-        bool enableDevHotkeys = true; ///< F8（デモトグル）やF7（モード切替）等の開発キーを有効にするか
+        bool enabledOnStart = true;                                       ///< 起動時にデモプレイ（キオスクループ）を開始するか（デフォルト: ON）
+        DemoMode defaultMode = DemoMode::ParticleShowcase;                 ///< 初期デモモード（パーティクル完全実演）
+        bool enableDevHotkeys = true;                                     ///< F8（デモトグル）やF7（モード切替）等の開発キーを有効にするか
     };
 
     /**
@@ -93,6 +94,9 @@ public:
             demoMode_ = DemoMode::StandardAttract;
             break;
         case DemoMode::StandardAttract:
+            demoMode_ = DemoMode::ParticleShowcase;
+            break;
+        case DemoMode::ParticleShowcase:
         default:
             demoMode_ = DemoMode::ClearShowcase;
             break;
@@ -127,9 +131,24 @@ public:
         return isAttractModeActive_;
     }
 
+    /**
+     * @brief ParticleShowcase時の次回実演ターゲットがクリア実演（true）かゲームオーバー実演（false）か
+     */
+    static bool IsParticleShowcaseTargetClear() {
+        return particleShowcaseTargetIsClearStatic_;
+    }
+
+    /**
+     * @brief ParticleShowcaseの実演ターゲットを交互に反転
+     */
+    static void ToggleParticleShowcaseTarget() {
+        particleShowcaseTargetIsClearStatic_ = !particleShowcaseTargetIsClearStatic_;
+    }
+
 private:
     static inline bool isKioskModeActive_ = false;
     static inline bool isAttractModeActive_ = false;
+    static inline bool particleShowcaseTargetIsClearStatic_ = true;
     void UpdateF8Input(float deltaTime);
     void UpdateTitleScene(float deltaTime);
     void UpdateInGameScene(float deltaTime);
@@ -172,6 +191,7 @@ private:
     bool wasF8Down_ = false;                             ///< 前フレームのF8キー押下状態（エッジ検知）
     bool wasF7Down_ = false;                             ///< 前フレームのF7キー押下状態（エッジ検知）
     bool wasF6Down_ = false;                             ///< 前フレームのF6キー押下状態（デバッグ用即時撃破）
+    bool wasF5Down_ = false;                             ///< 前フレームのF5キー押下状態（即時パーティクルデモテスト）
     float f8CooldownTimer_ = 0.0f;                       ///< 多重発火防止用クールダウンタイマー（秒）
     static constexpr float kF8CooldownDuration_ = 0.30f; ///< クールダウン時間（300ms）
 
@@ -180,6 +200,9 @@ private:
     float inGameTimer_ = 0.0f;  ///< InGameデモタイマー（秒）
     float combatTimer_ = 0.0f;  ///< イントロ完了後の通常交戦タイマー（秒）
     float resultTimer_ = 0.0f;  ///< Resultデモタイマー（秒）
+    int particleShowcasePhase_ = 0; ///< パーティクル実演フェーズステップ [0〜5]
+    bool particleShowcaseTargetIsClear_ = true; ///< ParticleShowcase時の実演ターゲット（true: ボス撃破クリア実演 / false: 自機撃墜ゲームオーバー実演）
+    float demoCombatActionTimer_ = 0.0f;       ///< デモ自律戦闘アクション（引き寄せ・投擲）用タイマー
 
     static constexpr float kIdleThreshold_ = 8.0f;               ///< 自動デモ開始までの無操作秒数
     static constexpr float kInGameDuration_ = 9.00f;             ///< 本編デモ映像の表示秒数（じっくり魅せる9.0秒）

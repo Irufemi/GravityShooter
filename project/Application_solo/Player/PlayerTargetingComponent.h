@@ -46,6 +46,12 @@ public:
      */
     void ClearTargets();
 
+    /**
+     * @brief 指定したターゲットをロックオンキューに明示的に追加する（デモ演出・イベント用）
+     * @param target ロックオン対象オブジェクト
+     */
+    void AddExplicitTarget(const std::shared_ptr<Irufemi::GameObject>& target);
+
     const std::deque<std::shared_ptr<Irufemi::GameObject>>& GetQueuedTargets() const {
         return queuedTargets_;
     }

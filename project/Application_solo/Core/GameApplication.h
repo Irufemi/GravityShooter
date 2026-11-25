@@ -11,6 +11,7 @@ namespace GameScenes {
 inline constexpr std::string_view Title = "Title";
 inline constexpr std::string_view Select = "Select";
 inline constexpr std::string_view InGame = "InGame";
+inline constexpr std::string_view ParticleShowcase = "ParticleShowcase";
 inline constexpr std::string_view Pause = "Pause";
 inline constexpr std::string_view TL1 = "TL1";
 inline constexpr std::string_view Result = "Result";

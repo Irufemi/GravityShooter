@@ -21,6 +21,7 @@
 #include "Renderer/Camera/Camera.h"
 #include "Core/Math/MathFunction.h"
 #include "Framework/Component/Effect/VoxelParticleComponent.h"
+#include "Renderer/System/VoxelParticle/VoxelParticleManager.h"
 #include "Framework/Component/Renderer/MeshRendererComponent.h"
 #include "Framework/Component/Renderer/ModelBatchRendererComponent.h"
 #include "Renderer/PostProcess/PostProcessManager.h"
@@ -67,6 +68,7 @@ void TitleSceneDirectorComponent::Initialize() {
     launchTimer_ = 0.0f;
     hasTriggeredSceneTransition_ = false;
     hasExplodedDebris_ = false;
+    hasTriggeredEtherealVoxel_ = false;
     isMicroFreezing_ = false;
     freezeTimer_ = 0.0f;
     hasTriggeredRelease_ = false;
@@ -79,8 +81,11 @@ void TitleSceneDirectorComponent::Initialize() {
     asteroidInstances_.clear();
     initialBgmVolume_ = 0.70f;
 
-    // シーン初期化時点で出撃シークエンスSEを完全先行プリロード（ディスクI/O根絶）
+    // シーン初期化時点で出撃シークエンスSEおよび白熱クリスタルVoxelプールを先行プリロード（ディスクI/O根絶・ゼロヒッチ保証）
     if (auto engine = GetEngine()) {
+        if (auto voxelMgr = engine->GetVoxelParticleManager()) {
+            voxelMgr->ReservePool(debrisVoxelModelPath_, Irufemi::Vector3Int{3, 3, 3}, 1);
+        }
         if (auto am = engine->GetAudioManager()) {
             if (!chargeSePath_.empty()) {
                 am->GetOrLoadSoundByFile(chargeSePath_);
@@ -370,10 +375,36 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
     hasTriggeredRelease_ = true;
     isMicroFreezing_ = false;
 
-    // 1. ガレキのVoxel粉砕飛散を一斉発火！
+    // 1. 最至近（手前）の小惑星1基を「白熱クリスタルVoxel」として星屑のように儚く散華
+    if (!hasTriggeredEtherealVoxel_ && !asteroidInstances_.empty()) {
+        hasTriggeredEtherealVoxel_ = true;
+        auto& ast = asteroidInstances_[0]; // カメラ正面手前の小惑星
+
+        if (auto engine = GetEngine()) {
+            if (auto voxelMgr = engine->GetVoxelParticleManager()) {
+                Irufemi::VoxelEmitter p{};
+                p.particleType = 5;                                  // DebrisExplosive
+                p.lifeTime = 1.1f;                                   // 儚く消え入る1.1秒
+                p.gravity = 1.0f;                                    // 宇宙空間の微弱重力
+                p.dispersion = 8.5f;                                 // ふわっと優しく広がる拡散
+                p.scale = {0.35f, 0.35f, 0.35f};                     // 繊細なクリスタル状微細キューブ
+                p.startColor = {4.5f, 4.5f, 5.0f, 1.0f};             // 純白の星光（白熱エミッシブ）
+                p.endColor = {0.15f, 0.35f, 0.55f, 0.0f};            // 深宇宙シアンの儚いフェードアウト
+                p.dissolveEdgeColor = {8.0f, 8.0f, 10.0f, 1.0f};     // 散華時の白熱グローエッジ
+
+                voxelMgr->PlayExplosion(debrisVoxelModelPath_, ast.currentPos,
+                                        Irufemi::Vector3{0.0f, 0.0f, 0.0f}, ast.rotation,
+                                        ast.currentScale, p, Irufemi::Vector3Int{3, 3, 3});
+            }
+        }
+        // 破砕した小惑星は非表示化（極小スケールへ）
+        ast.currentScale = {0.0f, 0.0f, 0.0f};
+    }
+
+    // 2. 残りの小惑星群（41基）は既存通り優雅に宇宙へスライド流出（Afterglowの美しさを完全維持）
     TriggerDebrisExplosion();
 
-    // 2. 音響の多重レイヤー同時炸裂！（登録プロパティ変数を参照）
+    // 3. 音響の多重レイヤー同時炸裂！（登録プロパティ変数を参照）
     if (auto engine = GetEngine()) {
         if (auto am = engine->GetAudioManager()) {
             // A: 爆砕重低音
