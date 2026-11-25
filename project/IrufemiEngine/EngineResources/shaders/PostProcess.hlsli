@@ -1038,13 +1038,13 @@ float32_t3 ApplyLightningCataclysm(float32_t2 uv, float32_t2 center, float32_t e
         // 8本の独立放電チャンネル（不規則な周期と位相で独立発火）
         static const float kPeriods[8] = { 0.22f, 0.17f, 0.25f, 0.19f, 0.23f, 0.16f, 0.27f, 0.20f };
         static const float kPhases[8]  = { 0.00f, 0.08f, 0.15f, 0.04f, 0.11f, 0.18f, 0.06f, 0.13f };
-        static const float kLifes[8]   = { 0.14f, 0.11f, 0.15f, 0.12f, 0.14f, 0.10f, 0.16f, 0.12f };
+        static const float kLifetimes[8] = { 0.14f, 0.11f, 0.15f, 0.12f, 0.14f, 0.10f, 0.16f, 0.12f };
 
         [unroll]
         for (int i = 0; i < 8; ++i) {
             float period = kPeriods[i];
             float phase = kPhases[i];
-            float life = kLifes[i];
+            float life = kLifetimes[i];
 
             float cycleTime = time + phase;
             float cycleId = floor(cycleTime / period);
