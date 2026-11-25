@@ -40,6 +40,13 @@ public:
     void WaitForGPU();
 
     /**
+     * @brief 指定したフェンス値の完了をスレッドセーフに待機する（ワーカースレッド等からの非同期同期用）
+     * @param[in] fenceValue 待機するフェンス目標値
+     * @param[in] timeoutMs タイムアウトミリ秒（デフォルト1000ms。永久フリーズを防止）
+     */
+    void WaitForFenceValue(uint64_t fenceValue, DWORD timeoutMs = 1000);
+
+    /**
      * @brief 任意のコマンドリストを同期的にアップロードキューで実行し待機します
      * @param[in] commands コマンドを記録する関数（ラムダ等）
      */

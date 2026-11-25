@@ -901,10 +901,9 @@ void IrufemiEngine::Execute() {
         }
 
         if (voxelParticleManager_) {
-            // ポーズ中は VoxelParticle の更新をスキップする
-            if (!isSimPaused) {
-                voxelParticleManager_->Update(gameDeltaTime_);
-            }
+            // ボクセルリソースの非同期ロード完了（FinishInitialization）を保証するため常にUpdateを実行
+            // （ポーズ中はゲーム時間デルタを0にすることで物理更新・パーティクル放出のみを安全に凍結）
+            voxelParticleManager_->Update(isSimPaused ? 0.0f : gameDeltaTime_);
         }
 
         // インプットを更新

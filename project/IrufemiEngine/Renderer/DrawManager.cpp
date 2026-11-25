@@ -36,6 +36,7 @@ using namespace Irufemi::RenderPackets;
 #include "Renderer/Pipeline/RenderGraph/PostProcessPass.h"
 #include "Renderer/Pipeline/RenderGraph/PostProcessCopyPass.h"
 #include "Renderer/Pipeline/RenderGraph/SelectionOutlinePass.h"
+#include "Renderer/Fluid/FluidSimulation2D.h"
 #include "Renderer/PostProcess/PostProcessRunner.h"
 #include "Resource/Model/ModelManager.h"
 #include "Core/System/IrufemiEngine.h"

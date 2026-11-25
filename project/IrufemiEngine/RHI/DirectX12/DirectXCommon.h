@@ -64,6 +64,13 @@ public: // メンバ関数
     void WaitForGPU();
 
     /**
+     * @brief 指定したフェンス値の完了を待機する（ワーカースレッドからの安全な非同期待機用）
+     * @param[in] fenceValue 待機する目標フェンス値
+     * @param[in] timeoutMs タイムアウトミリ秒（デフォルト1000ms）
+     */
+    void WaitForFenceValue(uint64_t fenceValue, DWORD timeoutMs = 1000);
+
+    /**
      * @brief 初期化
      * @param[in] hwnd ウィンドウハンドル
      * @param[in] w クライアント領域の幅

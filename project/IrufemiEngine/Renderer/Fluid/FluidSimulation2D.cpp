@@ -5,6 +5,7 @@
 #include "RHI/DirectX12/RootSignatureConfig.h"
 #include "RHI/DirectX12/ShaderManager.h"
 #include "RHI/DirectX12/DirectXUtils.h"
+#include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
 #include "Core/Utility/ErrorUtility.h"
 #include "Core/Utility/Log.h"
 #include <algorithm>
@@ -272,6 +273,38 @@ D3D12_GPU_DESCRIPTOR_HANDLE FluidSimulation2D::GetVelocitySRV() const {
     return {0};
 }
 
+ID3D12Resource* FluidSimulation2D::GetVelocityResource(int index) const {
+    if (index >= 0 && index < 2) {
+        return velocityTex_[index].Get();
+    }
+    return velocityTex_[velocityPingPong_].Get();
+}
+
+ID3D12Resource* FluidSimulation2D::GetDensityResource(int index) const {
+    if (index >= 0 && index < 2) {
+        return densityTex_[index].Get();
+    }
+    return densityTex_[densityPingPong_].Get();
+}
+
+void FluidSimulation2D::Setup(Irufemi::RenderGraphBuilder& builder) {
+    // RenderGraph の自動バリア制御: ComputePass で書き込み・演算する全テクスチャを UAV ステートとして要求
+    for (int i = 0; i < 2; ++i) {
+        if (velocityTex_[i]) {
+            builder.RequireState(velocityTex_[i].Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        }
+        if (densityTex_[i]) {
+            builder.RequireState(densityTex_[i].Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        }
+        if (pressureTex_[i]) {
+            builder.RequireState(pressureTex_[i].Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        }
+    }
+    if (divergenceTex_) {
+        builder.RequireState(divergenceTex_.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    }
+}
+
 void FluidSimulation2D::DispatchCompute() {
     auto commandList = dxCommon_->GetCommandList();
     if (!commandList || !psoAdvect_) {
@@ -289,10 +322,17 @@ void FluidSimulation2D::DispatchCompute() {
     // エンジン統一の ComputeRootSignature を設定 (SetDescriptorHeapsの切り替えは一切不要)
     commandList->SetComputeRootSignature(dxCommon_->GetComputeRootSignature());
 
-    // ゼロクリア（Reset）リクエスト処理: GPU上で両面（Ping-Pong）の速度・濃度を完全にゼロ化
+    // 共通シミュレーション定数バッファ (CBV_b0: 解像度・デルタタイム等) はリセットパスを含め全パス共通で先行バインド
+    commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b0,
+                                                  globalParamsCB_->GetGPUVirtualAddress());
+
+    // ゼロクリア（Reset）リクエスト処理: GPU上で両面（Ping-Pong）の速度・濃度・圧力を完全にゼロ化
     if (needsReset_) {
         needsReset_ = false;
         injectionQueue_.clear();
+        velocityPingPong_ = 0;
+        densityPingPong_ = 0;
+        pressurePingPong_ = 0;
         if (psoInject_ && mappedInjectParams_) {
             commandList->SetPipelineState(psoInject_.Get());
             mappedInjectParams_[0].injectType = 3.0f; // Clear mode
@@ -300,10 +340,11 @@ void FluidSimulation2D::DispatchCompute() {
                                                           injectParamsCB_->GetGPUVirtualAddress());
 
             for (int i = 0; i < 2; ++i) {
+                // SRV側には逆面 (1 - i) をバインドし、同一リソースの SRV/UAV 同時バインド(Hazard)を完全回避
                 commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t0,
-                                                           pool->GetGPUHandle(velocitySrvIndices_[i]));
+                                                           pool->GetGPUHandle(velocitySrvIndices_[1 - i]));
                 commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::SRV_t1,
-                                                           pool->GetGPUHandle(densitySrvIndices_[i]));
+                                                           pool->GetGPUHandle(densitySrvIndices_[1 - i]));
                 commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u0,
                                                            pool->GetGPUHandle(velocityUavIndices_[i]));
                 commandList->SetComputeRootDescriptorTable((UINT)ComputeRootSlot::UAV_u1,
@@ -315,9 +356,6 @@ void FluidSimulation2D::DispatchCompute() {
         }
         return; // リセットフレームは移流・解法処理をスキップして即座に静寂状態を確立
     }
-
-    commandList->SetComputeRootConstantBufferView((UINT)ComputeRootSlot::CBV_b0,
-                                                  globalParamsCB_->GetGPUVirtualAddress());
 
     // ------------------------------------------------------------------------
     // 1. 半ラグランジュ移流 (Advection)

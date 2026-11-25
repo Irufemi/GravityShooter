@@ -526,6 +526,16 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
     // シーン破棄前に、現在溜まっている描画・コンピュートタスクを破棄する。
     engine_->GetDrawManager()->ClearAllQueues();
 
+    // 旧シーンが最後にGPUへ提出した描画タスクのフェンス値を確定させるため、
+    // メインキューにSignalをエンキュー（メインスレッド側は待機せず0.00msで即復帰）
+    uint64_t retiredFenceValue = 0;
+    if (auto dxCommon = engine_->GetDirectXCommon()) {
+        if (auto queue = dxCommon->GetCommandQueue()) {
+            retiredFenceValue = dxCommon->IncrementGlobalFence();
+            queue->Signal(dxCommon->GetFence(), retiredFenceValue);
+        }
+    }
+
     // 旧シーンスタックの所有権をワーカースレッドへオフロード（メインスレッドの処理コスト: 0.00ms）
     auto retiringScenes = std::make_shared<std::vector<SceneStackItem>>(std::move(sceneStack_));
     sceneStack_.clear();
@@ -575,13 +585,21 @@ void SceneManager::StartAsyncInitialize(const Key& next) {
             "[SceneManager-Perf] StartAsyncInitialize MainThread handoff took: {:.2f}ms (Zero main-thread blocking)\n",
             msMainTearDown));
 
-    initFuture_ = std::async(std::launch::async, [this, factory, next, retiringScenes]() {
+    initFuture_ = std::async(std::launch::async, [this, factory, next, retiringScenes, retiredFenceValue]() {
         auto tWorker0 = std::chrono::steady_clock::now();
         Log::OutPutLog(std::cout, "[SceneManager-Perf] [WorkerThread] Start async loading for: " + next + "\n");
 
         // 旧シーンの非同期破棄（メインスレッドの描画ループを一切止めずにバックグラウンドで安全に解体）
         if (retiringScenes && !retiringScenes->empty()) {
             auto tTeardown0 = std::chrono::steady_clock::now();
+
+            // 一線級エンジン（AAA）標準の Asynchronous Fence-Guarded Destruction:
+            // メインスレッドのローディング画面描画（60fps）を一切止めずに、
+            // GPUが旧シーンの全リソース（定数バッファ・メッシュ等）を使い終えるまでワーカースレッド側で安全に非同期待機
+            if (auto dxCommon = engine_->GetDirectXCommon()) {
+                dxCommon->WaitForFenceValue(retiredFenceValue, 1000);
+            }
+
             for (auto it = retiringScenes->rbegin(); it != retiringScenes->rend(); ++it) {
                 it->scene->OnExit();
                 it->scene->Finalize();

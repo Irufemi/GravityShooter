@@ -1,6 +1,7 @@
 #include "Renderer/Pipeline/RenderGraph/MainTransparentPass.h"
 #include "Renderer/DrawManager.h"
 #include "Core/System/IrufemiEngine.h"
+#include "Renderer/Fluid/FluidSimulation2D.h"
 #include "RHI/DirectX12/ShadowMap.h"
 #include "RHI/DirectX12/DirectXCommon.h"
 #include "Renderer/Pipeline/RenderGraph/RenderGraphBuilder.h"
@@ -47,6 +48,16 @@ void MainTransparentPass::Setup(RenderGraphBuilder& builder, const Irufemi::Rend
         }
         if (auto tex = engine->GetVelocityTexture()) {
             builder.RequireState(tex->GetResource(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+        }
+
+        // 半透明・水面膜等で参照される流体テクスチャをピクセルシェーダー読み取り状態として自動要求
+        if (auto fluid = engine->GetFluidSimulation()) {
+            if (auto* vel = fluid->GetVelocityResource()) {
+                builder.RequireState(vel, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            }
+            if (auto* den = fluid->GetDensityResource()) {
+                builder.RequireState(den, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            }
         }
     }
 }

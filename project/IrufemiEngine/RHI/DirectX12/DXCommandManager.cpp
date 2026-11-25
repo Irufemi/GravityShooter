@@ -91,6 +91,24 @@ void DXCommandManager::WaitForGPU() {
     }
 }
 
+void DXCommandManager::WaitForFenceValue(uint64_t fenceValue, DWORD timeoutMs) {
+    if (!fence_ || fenceValue == 0) {
+        return;
+    }
+    // すでにGPU上で目標フェンス値以上の処理が完了していれば待機不要（即時復帰）
+    if (fence_->GetCompletedValue() >= fenceValue) {
+        return;
+    }
+    // ワーカースレッド独自の一時Eventを作成して待機（他スレッドとのイベント競合を完全防止）
+    HANDLE event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (event) {
+        if (SUCCEEDED(fence_->SetEventOnCompletion(fenceValue, event))) {
+            WaitForSingleObject(event, timeoutMs);
+        }
+        CloseHandle(event);
+    }
+}
+
 void DXCommandManager::ExecuteUploadCommands(std::function<void(ID3D12GraphicsCommandList*)> commands) {
     std::lock_guard<std::mutex> lock(uploadMutex_);
     uploadCommandAllocator_->Reset();

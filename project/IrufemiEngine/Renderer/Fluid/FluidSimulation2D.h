@@ -93,6 +93,12 @@ public: // メンバ関数
     void DispatchCompute() override;
 
     /**
+     * @brief 描画前（RenderGraph構築時）にリソースの依存状態を宣言する (IComputeTask 実装)
+     * @details RenderGraphの自動バリア制御により、ComputePass前にUAVステートへの遷移を保証します。
+     */
+    void Setup(Irufemi::RenderGraphBuilder& builder) override;
+
+    /**
      * @brief 流体場に局所的な速度ベクトル（力）を注入する
      * @param[in] uv 注入位置 (0.0 - 1.0)
      * @param[in] velocity 速度ベクトル (UV/sec)
@@ -131,6 +137,16 @@ public: // メンバ関数
      * @brief 描画シェーダー用 速度テクスチャ SRV を取得
      */
     D3D12_GPU_DESCRIPTOR_HANDLE GetVelocitySRV() const;
+
+    /**
+     * @brief 速度テクスチャリソースを取得（RenderGraph自動バリア用、index = -1 の場合は現在の読み取り面）
+     */
+    ID3D12Resource* GetVelocityResource(int index = -1) const;
+
+    /**
+     * @brief 濃度テクスチャリソースを取得（RenderGraph自動バリア用、index = -1 の場合は現在の読み取り面）
+     */
+    ID3D12Resource* GetDensityResource(int index = -1) const;
 
     /**
      * @brief 速度減衰率を設定する [0.90 - 1.00]

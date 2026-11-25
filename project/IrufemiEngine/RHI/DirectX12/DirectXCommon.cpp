@@ -71,6 +71,12 @@ void DirectXCommon::WaitForGPU() {
     }
 }
 
+void DirectXCommon::WaitForFenceValue(uint64_t fenceValue, DWORD timeoutMs) {
+    if (commandManager_) {
+        commandManager_->WaitForFenceValue(fenceValue, timeoutMs);
+    }
+}
+
 void DirectXCommon::Finalize() {
 
     // GPU同期 (全フレームの完了を待機)

@@ -14,19 +14,19 @@ RWTexture2D<float4> gOutDensity    : register(u1);
 void main(uint3 id : SV_DispatchThreadID) {
     if (id.x >= (uint)gResolution.x || id.y >= (uint)gResolution.y) return;
     int2 coord = id.xy;
-    float2 uv = (float2(coord) + 0.5) * gInvResolution;
-
-    float2 delta = uv - gInjectPosUV;
-    float dist = length(delta);
-    float safeRadius = max(0.001, gInjectRadius);
-    float factor = exp(-pow(dist / safeRadius, 2.0)); // ガウス分布減衰
 
     if (gInjectType > 2.5) {
-        // 全面ゼロリセット (Clear / Reset)
+        // 全面ゼロリセット (Clear / Reset): 不要な距離・ガウス計算を行わず即時書き込んで早期リターン
         gOutVelocity[coord] = float2(0.0, 0.0);
         gOutDensity[coord]  = float4(0.0, 0.0, 0.0, 0.0);
         return;
     }
+
+    float2 uv = (float2(coord) + 0.5) * gInvResolution;
+    float2 delta = uv - gInjectPosUV;
+    float dist = length(delta);
+    float safeRadius = max(0.001, gInjectRadius);
+    float factor = exp(-pow(dist / safeRadius, 2.0)); // ガウス分布減衰
 
     if (gInjectType < 0.5) {
         // 通常の外力注入 (速度ベクトル)
