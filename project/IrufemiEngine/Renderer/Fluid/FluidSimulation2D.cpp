@@ -91,6 +91,9 @@ void FluidSimulation2D::Initialize(DirectXCommon* dxCommon, uint32_t width, uint
     CreateTextures();
     CreateDescriptors();
     CreatePipelines();
+
+    // 起動直後のテクスチャ未初期化ゴミ（ランダム値）を排除するため、初回ゼロクリアを即時キューイング
+    Reset();
 }
 
 void FluidSimulation2D::CreateTextures() {

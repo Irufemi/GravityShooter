@@ -22,7 +22,7 @@ TitleCosmicNebulaComponent::~TitleCosmicNebulaComponent() {
 
 void TitleCosmicNebulaComponent::Initialize() {
     CreateConstantBuffer();
-    isFirstFrame_ = true;
+    initialSnapFrames_ = 5;
 
     // タイトル星雲用に流体減衰率を最適化＆前シーンの残存運動量を完全ゼロリセット
     if (auto engine = GetEngine()) {
@@ -58,6 +58,16 @@ void TitleCosmicNebulaComponent::CreateConstantBuffer() {
             return;
         }
         if (SUCCEEDED(hr) && mappedParams_) {
+            // 初期状態の正常パラメータを設定（未初期化 {0,0} 描画による画面左上への歪み・破綻を根絶）
+            params_.centerUV = {0.5f, 0.42f, 0.0f, 0.0f};
+            params_.mouseUV = {0.5f, 0.5f, 0.0f, 0.0f};
+            params_.swirlStrength = 0.65f * swirlMultiplier_;
+            params_.density = 1.0f;
+            params_.time = 0.0f;
+            params_.pulseIntensity = 0.0f;
+            for (auto& p : params_.trailPoints) {
+                p = {0.5f, 0.5f, 0.0f, 0.0f};
+            }
             *mappedParams_ = params_;
         }
     }
@@ -107,15 +117,25 @@ void TitleCosmicNebulaComponent::Update() {
     float gameWidth = gameRes.x;
     float gameHeight = gameRes.y;
 
-    // 初回フレーム判定：起動直後の画面中央から実カーソル座標への瞬間ワープ外力を完全に防止
-    if (isFirstFrame_) {
-        isFirstFrame_ = false;
+    // 起動直後・シーン開始直後の初期スナップ（最初の5フレーム間は外力注入を完全遮断し、デモやOSカーソルの初期位置へ同期）
+    if (initialSnapFrames_ > 0) {
+        --initialSnapFrames_;
         smoothedMousePos_ = targetMousePos;
         smoothedMouseUV_.x = std::clamp(smoothedMousePos_.x / gameWidth, 0.0f, 1.0f);
         smoothedMouseUV_.y = std::clamp(smoothedMousePos_.y / gameHeight, 0.0f, 1.0f);
         prevRawMouseUV_ = smoothedMouseUV_;
         smoothedVelocity_ = {0.0f, 0.0f};
-        return; // 初回フレームは物理外力の注入を行わずにリターン
+
+        // 初期スナップフレームでも定数バッファの正常値を確実に更新
+        params_.centerUV = {0.5f, 0.42f, collapseProgress_, 0.0f};
+        params_.mouseUV = {smoothedMouseUV_.x, smoothedMouseUV_.y, 0.0f, 0.0f};
+        params_.swirlStrength = 0.65f * swirlMultiplier_;
+        params_.density = 1.0f;
+        params_.time = totalTime_;
+        if (mappedParams_) {
+            *mappedParams_ = params_;
+        }
+        return; // 初期スナップフレームは物理外力の注入を行わずにリターン
     }
 
     // 滑らかな追従補間 (Smooth Damp)
@@ -127,11 +147,19 @@ void TitleCosmicNebulaComponent::Update() {
     smoothedMouseUV_.x = std::clamp(smoothedMousePos_.x / gameWidth, 0.0f, 1.0f);
     smoothedMouseUV_.y = std::clamp(smoothedMousePos_.y / gameHeight, 0.0f, 1.0f);
 
-    // --- 速度ベクトルの算出と平滑化（Velocity-Aligned Wake Field） ---
-    constexpr float kMinDeltaTime = 0.0001f;
-    float safeDeltaTime = (std::max)(deltaTime, kMinDeltaTime);
-    Irufemi::Vector2 rawVelocity{(smoothedMouseUV_.x - prevRawMouseUV_.x) / safeDeltaTime,
-                                 (smoothedMouseUV_.y - prevRawMouseUV_.y) / safeDeltaTime};
+    // --- 速度ベクトルの算出と瞬間ワープ安全ガード（Velocity-Aligned Wake Field） ---
+    // 瞬間ワープ検知フェイルセーフ（1フレームで画面の10%以上移動した急激なジャンプ時は外力積をゼロ化）
+    float frameDist = std::hypot(smoothedMouseUV_.x - prevRawMouseUV_.x, smoothedMouseUV_.y - prevRawMouseUV_.y);
+    Irufemi::Vector2 rawVelocity{0.0f, 0.0f};
+    if (frameDist <= 0.10f) {
+        constexpr float kMinDeltaTime = 0.0001f;
+        float safeDeltaTime = (std::max)(deltaTime, kMinDeltaTime);
+        rawVelocity.x = (smoothedMouseUV_.x - prevRawMouseUV_.x) / safeDeltaTime;
+        rawVelocity.y = (smoothedMouseUV_.y - prevRawMouseUV_.y) / safeDeltaTime;
+    } else {
+        // ワープ時は平滑化速度もゼロにリセット（巨大な衝撃波の注入を物理的に根絶）
+        smoothedVelocity_ = {0.0f, 0.0f};
+    }
     prevRawMouseUV_ = smoothedMouseUV_;
 
     // 速度ベクトルの異常急加速・画面外ワープを安全にクランプ

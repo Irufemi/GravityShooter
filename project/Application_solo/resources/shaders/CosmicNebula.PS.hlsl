@@ -146,6 +146,12 @@ PixelShaderOutput main(VertexShaderOutput input) {
     // --- 4. 2D回転行列による連続渦巻き（流体制御と突入乱流の注入） ---
     // GPGPU流体速度場 (fluidVel) および突入時のカールノイズ乱流を取得
     float2 fluidVel = gFluidVelocity.Sample(gSampler, uv).xy;
+    // 不正値（NaN / Inf）および初期化過渡期のVRAMゴミデータを物理的にクランプ
+    if (isnan(fluidVel.x) || isnan(fluidVel.y) || isinf(fluidVel.x) || isinf(fluidVel.y)) {
+        fluidVel = float2(0.0, 0.0);
+    } else {
+        fluidVel = clamp(fluidVel, -1.2, 1.2);
+    }
     float fluidSpeed = length(fluidVel);
 
     float impactSwirl = 0.0;

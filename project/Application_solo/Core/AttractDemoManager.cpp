@@ -68,6 +68,19 @@ void AttractDemoManager::OnInitialize(IrufemiEngine* engine) {
     combatTimer_ = 0.0f;
     resultTimer_ = 0.0f;
     particleShowcasePhase_ = 0;
+
+    // 起動時デモが有効な場合、第1フレームが始まる前にあらかじめ初期カーソル位置を設定
+    // （メインループの更新順序の隙間による画面中央からの瞬間ワープ外力を物理的に根絶）
+    if (isKioskLoopMode_) {
+        isDemoPlaying_ = true;
+        posSweepStart_ = {640.0f, 650.0f};
+        if (auto input = engine_->GetInputManager()) {
+            input->SetVirtualCursorPosition(posSweepStart_);
+            if (auto mouse = input->GetMouse()) {
+                mouse->SetVirtualPosition(posSweepStart_, true);
+            }
+        }
+    }
 }
 
 void AttractDemoManager::OnFinalize() {
@@ -350,13 +363,10 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                 float t = (demoTimeline_ - 1.40f) / 1.40f;
                 targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
 
-                // 自機頭上クロス（t ≒ 0.45 付近）で重力光彩パルス ＆ 全ガレキ一斉衝撃波を発火！
+                // 自機頭上クロス（t ≒ 0.45 付近）で全ガレキ一斉共鳴衝撃波を発火（星雲の引き波はカーソル軌跡で優美に表現）
                 if (t >= 0.45f && !hasTriggeredDemoPulse_) {
                     hasTriggeredDemoPulse_ = true;
                     if (dirComp) {
-                        if (auto nebulaComp = dirComp->GetNebulaComponent()) {
-                            nebulaComp->TriggerPulse(1.0f);
-                        }
                         dirComp->TriggerGravitationalShockwave(1.0f);
                     }
                 }
@@ -390,13 +400,10 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                 float t = (demoTimeline_ - 1.40f) / 1.40f;
                 targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
 
-                // 自機頭上クロス（t ≒ 0.5 付近）で重力光彩パルス ＆ 全ガレキ一斉衝撃波を発火！
+                // 自機頭上クロス（t ≒ 0.5 付近）で全ガレキ一斉共鳴衝撃波を発火（星雲の引き波はカーソル軌跡で優美に表現）
                 if (t >= 0.45f && !hasTriggeredDemoPulse_) {
                     hasTriggeredDemoPulse_ = true;
                     if (dirComp) {
-                        if (auto nebulaComp = dirComp->GetNebulaComponent()) {
-                            nebulaComp->TriggerPulse(1.0f);
-                        }
                         dirComp->TriggerGravitationalShockwave(1.0f);
                     }
                 }

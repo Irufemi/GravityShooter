@@ -213,5 +213,5 @@ private: // メンバ変数
 
     // フレームごとの外力注入キュー
     std::vector<InjectionRequest> injectionQueue_;
-    bool needsReset_ = false;
+    bool needsReset_ = true; //!< 起動直後にGPU上の未初期化VRAMゴミデータを確実にゼロクリアするフラグ
 };
