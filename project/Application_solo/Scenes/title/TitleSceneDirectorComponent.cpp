@@ -383,18 +383,17 @@ void TitleSceneDirectorComponent::OnImpactRelease() {
         if (auto engine = GetEngine()) {
             if (auto voxelMgr = engine->GetVoxelParticleManager()) {
                 Irufemi::VoxelEmitter p{};
-                p.particleType = 5;                                  // DebrisExplosive
-                p.lifeTime = 1.1f;                                   // 儚く消え入る1.1秒
-                p.gravity = 1.0f;                                    // 宇宙空間の微弱重力
-                p.dispersion = 8.5f;                                 // ふわっと優しく広がる拡散
-                p.scale = {0.35f, 0.35f, 0.35f};                     // 繊細なクリスタル状微細キューブ
-                p.startColor = {4.5f, 4.5f, 5.0f, 1.0f};             // 純白の星光（白熱エミッシブ）
-                p.endColor = {0.15f, 0.35f, 0.55f, 0.0f};            // 深宇宙シアンの儚いフェードアウト
-                p.dissolveEdgeColor = {8.0f, 8.0f, 10.0f, 1.0f};     // 散華時の白熱グローエッジ
+                p.particleType = 5;                              // DebrisExplosive
+                p.lifeTime = 1.1f;                               // 儚く消え入る1.1秒
+                p.gravity = 1.0f;                                // 宇宙空間の微弱重力
+                p.dispersion = 8.5f;                             // ふわっと優しく広がる拡散
+                p.scale = {0.35f, 0.35f, 0.35f};                 // 繊細なクリスタル状微細キューブ
+                p.startColor = {4.5f, 4.5f, 5.0f, 1.0f};         // 純白の星光（白熱エミッシブ）
+                p.endColor = {0.15f, 0.35f, 0.55f, 0.0f};        // 深宇宙シアンの儚いフェードアウト
+                p.dissolveEdgeColor = {8.0f, 8.0f, 10.0f, 1.0f}; // 散華時の白熱グローエッジ
 
-                voxelMgr->PlayExplosion(debrisVoxelModelPath_, ast.currentPos,
-                                        Irufemi::Vector3{0.0f, 0.0f, 0.0f}, ast.rotation,
-                                        ast.currentScale, p, Irufemi::Vector3Int{3, 3, 3});
+                voxelMgr->PlayExplosion(debrisVoxelModelPath_, ast.currentPos, Irufemi::Vector3{0.0f, 0.0f, 0.0f},
+                                        ast.rotation, ast.currentScale, p, Irufemi::Vector3Int{3, 3, 3});
             }
         }
         // 破砕した小惑星は非表示化（極小スケールへ）

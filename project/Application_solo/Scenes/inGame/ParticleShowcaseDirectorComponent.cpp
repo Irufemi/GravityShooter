@@ -303,8 +303,8 @@ void ParticleShowcaseDirectorComponent::Update() {
 }
 
 void ParticleShowcaseDirectorComponent::SpawnDemonstrationEnemy(const std::string& prefabPath, float initialDistOffset,
-                                                               const Irufemi::Vector2& formationOffset,
-                                                               bool shootAtPlayer) {
+                                                                const Irufemi::Vector2& formationOffset,
+                                                                bool shootAtPlayer) {
     if (!enemySpawner_) {
         return;
     }

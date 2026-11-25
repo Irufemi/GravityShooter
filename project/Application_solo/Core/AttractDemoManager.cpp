@@ -359,7 +359,8 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                 float t = (demoTimeline_ - 1.40f) / 1.40f;
                 targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
 
-                // 自機頭上クロス（t ≒ 0.45 付近）で全ガレキ一斉共鳴衝撃波を発火（星雲の引き波はカーソル軌跡で優美に表現）
+                // 自機頭上クロス（t ≒ 0.45
+                // 付近）で全ガレキ一斉共鳴衝撃波を発火（星雲の引き波はカーソル軌跡で優美に表現）
                 if (t >= 0.45f && !hasTriggeredDemoPulse_) {
                     hasTriggeredDemoPulse_ = true;
                     if (dirComp) {
@@ -396,7 +397,8 @@ void AttractDemoManager::UpdateTitleScene(float deltaTime) {
                 float t = (demoTimeline_ - 1.40f) / 1.40f;
                 targetCursorPos = EvaluateQuadraticBezier(posSweepRight_, posSweepCenter_, posSweepLeft_, t);
 
-                // 自機頭上クロス（t ≒ 0.5 付近）で全ガレキ一斉共鳴衝撃波を発火（星雲の引き波はカーソル軌跡で優美に表現）
+                // 自機頭上クロス（t ≒ 0.5
+                // 付近）で全ガレキ一斉共鳴衝撃波を発火（星雲の引き波はカーソル軌跡で優美に表現）
                 if (t >= 0.45f && !hasTriggeredDemoPulse_) {
                     hasTriggeredDemoPulse_ = true;
                     if (dirComp) {
@@ -648,8 +650,8 @@ void AttractDemoManager::UpdateResultScene(float deltaTime) {
             AttractDemoManager::ToggleParticleShowcaseTarget();
             particleShowcaseTargetIsClear_ = AttractDemoManager::IsParticleShowcaseTargetClear();
             // タイトルへ滑らかに帰還し、タイトル演出〜出撃演出から再スタート（完全アトラクトループ）
-            sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::RadialBlur, 0.8f,
-                             EaseType::EaseInCubic, Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
+            sm->TransitionTo(GameScenes::Title, Irufemi::SceneTransition::Type::RadialBlur, 0.8f, EaseType::EaseInCubic,
+                             Irufemi::Vector4{0.01f, 0.03f, 0.06f, 1.0f});
         } else if (demoMode_ == DemoMode::GameOverShowcase || demoMode_ == DemoMode::ClearShowcase) {
             // 単体ショーケースデモ中は、Title を挟まず直接 InGame へ即時再出撃ループ！
             sm->TransitionTo(GameScenes::InGame, Irufemi::SceneTransition::Type::RadialBlur, 0.8f,
@@ -887,7 +889,8 @@ void AttractDemoManager::UpdateDemoHud(float deltaTime) {
             targetText = L"DEMO: STANDARD ATTRACT   |   F7: MODE   |   F8: EXIT";
             break;
         case DemoMode::ParticleShowcase:
-            targetText = L"DEMO: PARTICLE SHOWCASE (ETHEREAL VOXEL & FLUID FX)   |   F5: TEST   |   F7: MODE   |   F8: EXIT";
+            targetText =
+                L"DEMO: PARTICLE SHOWCASE (ETHEREAL VOXEL & FLUID FX)   |   F5: TEST   |   F7: MODE   |   F8: EXIT";
             break;
         case DemoMode::GameOverShowcase:
             targetText = L"DEMO: GAME OVER SHOWCASE   |   F6: KILL   |   F7: MODE   |   F8: EXIT";

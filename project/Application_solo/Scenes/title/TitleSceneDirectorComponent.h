@@ -361,8 +361,9 @@ private: // メンバ変数
     float launchTimer_ = 0.0f;
     bool hasTriggeredSceneTransition_ = false;
     bool hasExplodedDebris_ = false;
-    bool hasTriggeredEtherealVoxel_ = false;                      ///< 白熱クリスタルVoxel散華多重発火防止フラグ
-    std::string debrisVoxelModelPath_ = "resources/model/Debris/Generic/Debris_Generic.obj"; ///< タイトル散華用ガレキモデル
+    bool hasTriggeredEtherealVoxel_ = false; ///< 白熱クリスタルVoxel散華多重発火防止フラグ
+    std::string debrisVoxelModelPath_ =
+        "resources/model/Debris/Generic/Debris_Generic.obj";      ///< タイトル散華用ガレキモデル
     bool isMicroFreezing_ = false;                                ///< 現在臨界蓄圧（マイクロフリーズ）中かどうか
     float freezeTimer_ = 0.0f;                                    ///< マイクロフリーズ経過タイマー
     bool hasTriggeredRelease_ = false;                            ///< 臨界解放マイルストーン発火済みフラグ

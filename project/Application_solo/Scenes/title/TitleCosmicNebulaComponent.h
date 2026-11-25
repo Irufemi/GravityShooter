@@ -101,5 +101,6 @@ private: // メンバ変数
     Irufemi::Vector2 prevRawMouseUV_{0.5f, 0.5f};       //!< 前フレームのマウスUV
     Irufemi::Vector2 smoothedVelocity_{0.0f, 0.0f};     //!< 平滑化されたマウス移動速度ベクトル
     Irufemi::Vector2 parallaxOffset_{0.0f, 0.0f};       //!< パララックスオフセット
-    int initialSnapFrames_ = 5;                         //!< 起動直後およびシーン開始直後のワープ外力を完全に防止する初期スナップフレームカウンタ
+    int initialSnapFrames_ =
+        5; //!< 起動直後およびシーン開始直後のワープ外力を完全に防止する初期スナップフレームカウンタ
 };
